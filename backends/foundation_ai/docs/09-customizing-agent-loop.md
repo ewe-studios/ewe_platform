@@ -1,194 +1,156 @@
 # How-To: Customizing the Agent Loop
 
-How to modify the agent's behavior: iteration limits, tool strategies,
-memory triggers, and circuit breaker behavior.
+The knobs that change how a turn behaves, what each one really does, and when
+to touch it. Doc 01 explains the loop itself.
 
 ---
 
-## 1. The AgentLoop lifecycle
-
-The agent loop runs in iterations:
-
-```
-User message
-  → Assemble context (system prompt + memories + recent messages)
-  → Generate from model
-    → Text response → yield to user
-    → Tool calls → execute → loop back with results
-  → Check memory triggers (observation/reflection)
-  → Check loop detection
-  → Check budget
-  → Continue or terminate
-```
-
-Two iteration levels:
-- **Inner iteration** — tool call rounds within a single generation
-- **Outer iteration** — full conversation rounds (user → agent → user)
-
-## 2. Configuring iteration limits
+## 1. Iteration limits
 
 ```rust
-let config = AgentConfig {
-    max_inner_iterations: 10,  // Default: 10 tool call rounds
-    max_outer_iterations: 5,   // Default: 5 conversation rounds
-    ..AgentConfig::default()
-};
-
-let session = AgentSession::builder(SessionId::new(), router)
-    .with_config(config)
+let agent = AgentSession::<Doc, Mem>::builder(id, router)
+    .with_config(AgentConfig {
+        max_inner_iterations: 10,   // default 25
+        max_outer_iterations: 3,    // default 10
+        ..AgentConfig::default()
+    })
+    .with_model(model_id)           // with_model wins over config.primary_model
     .build()?;
 ```
 
-**When to change:**
-- **Increase inner** for complex tool chains (e.g., read → analyze → write)
-- **Decrease inner** for fast responses (agent stops after N tool calls)
-- **Increase outer** for long conversations
-- **Decrease outer** for single-turn interactions
+- **Inner iterations** count tool rounds: generate → run tools → generate
+  again. Hitting the cap moves on to output processing; the turn is not an
+  error.
+- **Outer iterations** count queue drains within one `run_turn`: the prompt,
+  then any steering or follow-up messages that arrive while it runs.
 
-## 3. Circuit breaker behavior
+Raise inner for long tool chains (read → analyse → edit → test). Lower it to
+cap cost on simple agents.
 
-The circuit breaker switches to fallback models after repeated failures:
-
-```rust
-let config = AgentConfig {
-    circuit_breaker_threshold: 3,  // Failures before fallback (default: 3)
-    fallback_models: vec![
-        ModelId::Name("gpt-4".into(), None),
-        ModelId::Name("local-llama".into(), None),
-    ],
-    ..AgentConfig::default()
-};
-```
-
-**How it works:**
-1. Primary model fails → increment failure counter
-2. Counter reaches threshold → switch to first fallback
-3. Fallback also fails → switch to next fallback
-4. All fallbacks exhausted → terminate with error
-
-**When to change:**
-- **Lower threshold** (2) for production systems (fail fast, switch quickly)
-- **Higher threshold** (5) for development (give primary more chances)
-
-## 4. Context pressure management
-
-The agent monitors context window usage and can compress or truncate:
+## 2. Fallback models and the circuit breaker
 
 ```rust
-let config = AgentConfig {
-    context_pressure_threshold: 0.8,  // Warn at 80% context usage
-    preflight_compression_threshold: 0.9,  // Compress at 90%
-    ..AgentConfig::default()
-};
-```
-
-**What happens at each threshold:**
-- **Warning (context_pressure_threshold)** — log a warning, continue normally
-- **Compression (preflight_compression_threshold)** — compress recent messages
-  before next generation (summarize verbose turns)
-- **Hard limit** — terminate with `AgenticError::ContextOverflow`
-
-## 5. Memory trigger customization
-
-Control when the agent generates observations and reflections:
-
-```rust
-let memory_config = MemoryConfig {
-    observation_trigger_tokens: 30_000,  // Generate observation after 30K tokens
-    reflection_trigger_tokens: 40_000,   // Generate reflection after 40K tokens
-    ..MemoryConfig::default()
-};
-
-let session = AgentSession::builder(SessionId::new(), router)
-    .with_memory_config(memory_config)
+let agent = builder
+    .with_model(ModelId::Name("claude-sonnet-4-6".into(), None))
+    .with_fallback_models(vec![ModelId::Name("gpt-4o".into(), None)])
+    .with_config(AgentConfig { circuit_breaker_threshold: 2, ..AgentConfig::default() })
     .build()?;
 ```
 
-**When to change:**
-- **Lower thresholds** (10K/15K) for memory-intensive agents (research, analysis)
-- **Higher thresholds** (50K/80K) for token-efficient agents (simple Q&A)
-- **Disable memory** — set thresholds to `usize::MAX`
+The breaker moves to the next fallback when the error policy says
+`SwitchModel` (rate limits, by default) or loop detection escalates to
+`SwitchModelOrTemperature`, once `threshold` consecutive failures have
+accumulated. A successful generation resets the count. With no fallbacks
+left, a `SwitchModel` error ends the turn.
 
-## 6. Model parameter tuning
+Every fallback must resolve in the router (Doc 03).
+
+## 3. Budgets, compression and context pressure
+
+All three use the **session token budget** — the `remaining()` of
+`SessionAccessProvider::token_budget(user)` at `build()`. With the default
+`AllowAllAccess` there is no budget, and none of them do anything.
+
+| Setting | Default | Effect |
+|---|---|---|
+| Budget exhausted | — | Turn ends with `AgenticError::BudgetExhausted` |
+| `preflight_compression_threshold` | 0.85 | Before each request, drop the oldest context messages until the estimate is under `threshold × budget`. `0.0` disables. |
+| `context_pressure_threshold` | 0.70 | When the estimate passes `threshold × budget`, append a "be concise" note to the system prompt. `0.0` disables. |
+| `max_tokens` clamp | — | Each request's `max_tokens` is capped at the budget's remaining tokens |
+
+These do not look at the model's context window. A provider-side
+context-overflow error is handled separately by the error policy
+(`RetryWithReducedContext`, which re-assembles — so it only shrinks the
+context when a budget makes compression kick in).
+
+To set a budget, supply an access provider (Doc 08 §6) or call
+`agent.ledger().set_budget(Some(tokens))` after `build()`.
+
+## 4. Sampling parameters
 
 ```rust
 let config = AgentConfig {
     model_params: ModelParams {
-        temperature: 0.7,       // 0.0 (deterministic) to 1.0 (creative)
-        top_p: 0.95,           // Nucleus sampling (0.0 to 1.0)
-        max_tokens: 4096,      // Max tokens per response
-        stop_sequences: vec![], // Stop when any sequence appears
+        temperature: 0.2,
+        top_p: 0.95,
+        max_tokens: 4096,
+        stop_tokens: vec!["</answer>".into()],
         ..ModelParams::default()
     },
     ..AgentConfig::default()
 };
 ```
 
-**When to change:**
-- **Low temperature** (0.1-0.3) for code generation, factual responses
-- **High temperature** (0.7-1.0) for creative writing, brainstorming
-- **Low top_p** (0.7) for focused, safe responses
-- **High top_p** (0.95) for diverse, varied responses
+The same params go to every request in the session. Backends ignore fields
+they don't support (Doc 02 §8 lists them). Loop detection's
+`SwitchModelOrTemperature` does **not** change the temperature today.
 
-## 7. Custom tool strategies
-
-### Tool selection per model
+## 5. Context assembly
 
 ```rust
-// Some models handle tools better than others
-let toolshed = if model.is_tool_capable() {
-    build_full_toolshed()
-} else {
-    ToolShed::default()  // No tools for this model
-};
+let agent = builder
+    .with_context_config(ContextConfig {
+        recent_message_count: 40,          // default 20
+        inject_newer_observations: true,
+        ..ContextConfig::default()
+    })
+    .build()?;
 ```
 
-### Tool retry configuration
+`recent_message_count` is the main lever on how much history each request
+carries.
 
-Tools can be retried via the `ToolRetryConfig` in `ToolCallRequest`:
+## 6. Memory triggers
 
 ```rust
-// Tools have retry configuration
-let request = ToolCallRequest {
-    id: "call-1".into(),
-    name: "read_file".into(),
-    arguments: /* ... */,
-    depends_on: vec![],
-    execution_hint: ExecutionHint::default(),
-};
+let agent = builder
+    .with_memory_config(MemoryConfig {
+        observation_trigger_tokens: 10_000,
+        reflection_trigger_tokens: 20_000,
+        ..MemoryConfig::default()
+    })
+    .build()?;
 ```
 
-Retry behavior is controlled by the `ToolCallManager` and the error policy.
-For custom retry logic, wrap tool execution in the manager or use the
-circuit breaker's fallback model chain.
+Crossing a threshold only emits `AgentProgress::ProcessingMemory` today;
+nothing generates the observation or reflection (Doc 11). To silence the
+signal, set both thresholds to `u64::MAX`.
 
-## 8. Error handling customization
+## 7. Loop detection
 
-The agent's error policy maps errors to actions:
+The loop uses `LoopDetectorConfig::default()`:
 
-| Error | Default Action |
+| Field | Default |
 |---|---|
-| Context overflow | `AgentAction::RetryWithReducedContext` |
-| Rate limit | `AgentAction::SwitchModel` |
-| Tool error | `AgentAction::Continue` |
-| Budget exceeded | `AgentAction::Terminate` |
-| Provider error | `AgentAction::Terminate` |
+| `window_size` | 5 |
+| `similarity_threshold` | 0.9 (simhash) |
+| `tool_call_max_repeats` | 3 |
+| `max_redirects` | 3 |
+| `try_model_change` | `true` |
+| `temperature_delta` | 0.3 (unused by the loop) |
+| `detect_vacuous_answers` | `true` |
+| `judge_bare_numbers_against_question` | `true` |
 
-Customize the policy with a closure:
+`AgentSession` has no way to change it yet. `LoopDetector` is public if you
+drive your own loop.
+
+## 8. Error policy
+
+Defaults and the override pattern are in Doc 01 §6. One more example —
+treat any provider failure as a reason to fall back instead of ending:
 
 ```rust
-let policy = ErrorPolicy::customize(|error| {
-    match error {
-        AgenticError::Generation(f) if f.kind == GenKind::RateLimit => {
-            AgentAction::RetryWithReducedContext
-        }
-        AgenticError::ToolCall { ref tool_name, .. } if tool_name == "critical_tool" => {
-            AgentAction::Terminate(error)
-        }
-        _ => ErrorPolicy::new().classify(error), // fall through to defaults
-    }
+let policy = ErrorPolicy::customize(|error| match error {
+    AgenticError::Generation(ref f) if f.kind == GenKind::Provider => AgentAction::SwitchModel,
+    other => ErrorPolicy::new().classify(other),
 });
 ```
 
-`ErrorPolicy::customize()` takes any `Fn(AgenticError) -> AgentAction + Send + Sync + 'static`.
-The custom classifier is checked first; if none is set, the default classification applies.
+## 9. Tool behaviour
+
+- **Retries:** `agent.tool_manager().set_retry_config("name", ToolRetryConfig { .. })`
+  (Doc 04 §5).
+- **Order:** calls run one at a time in dependency order (Doc 04 §4).
+- **Which tools a model sees:** whatever is registered on
+  `agent.tool_manager()` when a request is assembled. `deregister(name)`
+  removes one mid-session.

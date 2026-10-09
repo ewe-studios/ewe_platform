@@ -189,9 +189,11 @@ let main = preset.router.resolve(&preset.primary_model)?;   // &dyn RoutableProv
 // Or hand back a builder you finish customizing:
 let agent = preset
     .into_agent_builder::<Doc, Mem>(SessionId::new())
-    .with_toolshed(my_toolshed)
     .with_system_prompt("…")
     .build()?;
+
+// Tools go on the session's manager after build (Doc 04 §2):
+ToolPreset::shell().register_all(agent.tool_manager());
 ```
 
 ---

@@ -1,109 +1,117 @@
-# Fundamentals 07 — Embedding provider and vector integration
+# Fundamentals 07 — Embeddings and vector integration
 
-How text is converted to vectors for semantic search, and how vectors are
-stored and queried.
+How text becomes vectors, where this crate uses them, and how they meet a
+`VectorStore`. Source: `src/agentic/embedding.rs`.
 
 ---
 
-## 1. The embedding pipeline
+## 1. The pipeline
 
 ```
-Text → EmbeddingProvider.embed(text, model_id) → EmbeddingVector → VectorStore.insert()
-                                                                          ↓
-Query text → EmbeddingProvider.embed(query, model_id) → EmbeddingVector → VectorStore.search() → matches
+text ─► TextChunker ─► chunks ─► (LRU cache → cold cache → model) per chunk
+                                         │
+                                         ▼
+                          mean of chunk vectors ─► EmbeddingVector
 ```
 
-## 2. EmbeddingProvider trait
+Embeddings are produced by an ordinary `Model` behind the `ProviderRouter`:
+the provider receives a `ModelInteraction` marked as an embedding request and
+answers with `ModelOutput::Embedding { dimensions, values }`. Backends that
+support this today: OpenAI-compatible (`/v1/embeddings`) and llama.cpp.
+
+## 2. Types
 
 ```rust
+pub struct EmbeddingVector {
+    pub dimensions: u16,
+    pub data: Vec<f32>,
+    pub model_id: String,
+}
+
 pub trait EmbeddingProvider: Send + Sync {
     fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError>;
-    fn embed_batch(&self, texts: &[String], model_id: &str) -> Result<Vec<EmbeddingVector>, EmbeddingError>;
+    fn embed_batch(&self, texts: &[String], model_id: &str)
+        -> Result<Vec<EmbeddingVector>, EmbeddingError>;
     fn register_model(&self, model_id: &str, dimensions: u16);
-    fn cache_stats(&self) -> CacheStats;
+    fn cache_stats(&self) -> CacheStats;   // hits, misses, evictions, size
     fn clear_cache(&self);
 }
 ```
 
-Key methods:
-- **`embed()`** — embed a single text string for a given model
-- **`embed_batch()`** — embed multiple texts efficiently
-- **`register_model()`** — register a model's dimension count
-- **`cache_stats()`** — cache hit/miss statistics
+`EmbeddingError` covers generation and routing failures, dimension overflow
+(more than `u16::MAX`), and dimension mismatches between chunks.
 
-`EmbeddingVector` is `Vec<f32>` — vectors are typically normalized for
-cosine similarity (dot product = cosine when normalized).
+## 3. `CachedEmbeddingProvider`
 
-## 3. TextChunker — splitting text before embedding
+The one implementation:
 
 ```rust
-pub trait TextChunker: Send + Sync {
-    fn chunk(&self, text: &str) -> Vec<String>;
-}
+use foundation_ai::agentic::{CachedEmbeddingProvider, SentenceChunker, NoopColdCache};
+
+let embedder = CachedEmbeddingProvider::new(
+    router.clone(),                 // routes the embedding model id
+    Box::new(SentenceChunker),      // or WholeTextChunker
+    Box::new(NoopColdCache),        // or your own ColdCache (KV, disk, …)
+    1000,                           // LRU capacity
+);
+// Same thing with those defaults:
+let embedder = CachedEmbeddingProvider::with_defaults(router.clone());
+
+let v = embedder.embed("The cat sat on the mat.", "text-embedding-3-small")?;
 ```
 
-Built-in chunkers:
-- **`WholeTextChunker`** — returns the entire text as one chunk
-- **`SentenceChunker`** — splits on sentence boundaries
+How `embed` works:
 
-The `EmbeddingProvider` implementation uses a chunker internally:
+1. The chunker splits the text (`SentenceChunker` on sentence boundaries,
+   `WholeTextChunker` not at all).
+2. Each chunk is looked up in the in-memory LRU, then the `ColdCache`, then
+   generated through the router and written to both caches. The cache key is
+   (text hash, model id, epoch).
+3. Multi-chunk texts are **mean-pooled** into one vector. You always get one
+   `EmbeddingVector` per input text.
+
+`embed_batch` calls `embed` for each text.
+
+## 4. Where the agent uses embeddings
+
+**Semantic recall.** Give the session an embedder and
+`ContextProvider::search_from_memory` — what the `search_context` tool calls —
+ranks prior messages by cosine similarity instead of keyword matching. (Normal
+per-turn context assembly does not use the embedder; it takes the most recent
+messages.)
 
 ```rust
-let provider = EmbeddingProviderImpl::new(router, SentenceChunker, NoopColdCache, 1000);
+let agent = AgentSession::<Doc, Mem>::builder(id, router.clone())
+    .with_embedder(Arc::new(CachedEmbeddingProvider::with_defaults(router)), "text-embedding-3-small")
+    .build()?;
 ```
 
-## 4. Caching
+> **Gap:** `AgentSession` doesn't expose its `ContextProvider`, and
+> `SearchContextTool::new` needs one, so there is currently no way to register
+> a `search_context` tool that uses the session's embedder. Today
+> `with_embedder` only pays off if you build the `ContextProvider` and tool
+> yourself (as `tests/tools/search_tests.rs` does). Doc 15 covers the fix.
 
-The embedding provider includes an LRU cache:
+Without an embedder, `search_context` falls back to keyword matching.
+`SearchMode::Graph` has no session knowledge graph to search, so it logs a
+warning and falls back to hybrid recall.
 
-```rust
-pub struct CacheStats {
-    pub hits: u64,
-    pub misses: u64,
-    pub evictions: u64,
-}
-```
+**Tool discovery.** `ToolDiscovery::new(vector_store, embedder, model)`
+embeds tool descriptions into a `foundation_vectors::VectorStore`; the `shed`
+tool searches it.
 
-Cache key is `(text_hash, model_id, epoch)` — same text + same model = cache
-hit. Useful for repeated queries on the same corpus.
+## 5. Storing vectors yourself
 
-## 5. Integration with VectorStore
+`VectorStore`, `VectorEntry` and `VectorMatch` live in `foundation_vectors`.
+To index your own documents, embed with the provider and insert the
+`EmbeddingVector::data` into your store; see that crate's docs for the exact
+API and distance metrics.
 
-The `VectorStore` trait (in foundation_vectors) stores vectors with metadata:
+## 6. Choosing chunking
 
-```rust
-store.insert("namespace", VectorEntry {
-    id: "doc-123".into(),
-    vector: Vector::new(embedding),
-    metadata: VectorMetadata { tags },
-})?;
-
-let matches = store.search("namespace", &query_embedding, 10)?;
-// matches: Vec<VectorMatch { id, score }>
-```
-
-## 6. Supported embedding models
-
-| Provider | Model | Dimension |
-|---|---|---|
-| OpenAI | text-embedding-3-small | 1536 |
-| OpenAI | text-embedding-3-large | 3072 |
-| Local | all-MiniLM-L6-v2 | 384 |
-| Local | bge-small-en-v1.5 | 384 |
-
-## 7. Chunking strategy
-
-Long texts are split into chunks before embedding:
-
-```rust
-// Using SentenceChunker (built-in)
-let provider = EmbeddingProviderImpl::new(router, SentenceChunker, cache, max_entries);
-
-// Each sentence gets its own vector
-let embedding = provider.embed("Long text with multiple sentences.", "model-id")?;
-```
-
-Chunk size trades off:
-- **Smaller chunks** → more precise matches, more vectors
-- **Larger chunks** → broader context, fewer vectors
-- **Sentence boundaries** → natural semantic units
+- `SentenceChunker` (the default) keeps each piece to a natural unit, then
+  averages — good for long passages where you want one vector per document.
+- `WholeTextChunker` sends the text as-is — use it for short texts, or when
+  the model's own context handles long inputs better than averaging does.
+- If you need **one vector per chunk** (classic RAG indexing), chunk the text
+  yourself and call `embed` on each piece.

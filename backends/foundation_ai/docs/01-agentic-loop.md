@@ -1,244 +1,222 @@
 # Fundamentals 01 — The agentic loop
 
-Zero-to-expert on how the AI agent works end-to-end. If you're adding a tool,
-modifying the loop, or debugging agent behavior, start here.
+How one agent turn runs end to end. Read this before you change the loop, add
+a guard, or debug odd agent behaviour.
+
+Source: `src/agentic/session.rs`, `src/agentic/agent_loop.rs`.
 
 ---
 
 ## 1. The big picture
 
-The agentic loop is a **streaming conversation** between the agent and a model
-provider, interleaved with tool execution and memory management:
-
 ```
-User message → AgentSession.start()
-  └── Assemble context (system prompt + memories + recent messages)
-  └── Stream generation from model provider
-        ├── Text tokens → yield to user
-        └── Tool calls → pause generation
-              └── Execute tools → append results
-              └── Resume generation with tool results
-  └── Process output (memory triggers, loop detection)
-  └── Check budget (token limit reached?)
-  └── Continue or terminate
+session.run_turn_stream(prompt)
+  └─ push prompt onto the follow-up queue
+  └─ build a fresh AgentLoop (shares the session's components)
+  └─ schedule it on the Valtron executor → DrivenStreamIterator
+
+AgentLoop (one TaskIterator step per next_status call)
+  Initializing
+  └─ OuterBoundary ── abort? ──────────────────────────────┐
+       drain priority queue, then follow-up queue          │
+       nothing queued ─────────────────────────────────────┤
+       │                                                   │
+       └─ InnerAssemble                                    │
+            abort? / priority? / budget exhausted?         │
+            router.get_model(current_model)                │
+            hydrate memory, assemble context               │
+            preflight compression + context-pressure note  │
+            model.stream(interaction, params)              │
+          InnerGenerate   (pump one stream item per step)  │
+            priority arrived? → discard, re-assemble       │
+            stream done → loop / vacuous-answer checks,    │
+                          persist assistant turn,          │
+                          record usage in the ledger       │
+          InnerToolCalls → InnerExecuting → InnerEmitResults
+            (tool results persisted, back to InnerAssemble)│
+          no tool calls → OutputProcessing (memory triggers)
+       back to OuterBoundary                               │
+  Ending  ◄────────────────────────────────────────────────┘
+    emit SessionRecord::Summary
+  Done
 ```
 
-## 2. AgentSession
+Everything is synchronous from the caller's point of view. The loop never
+blocks the executor: each `next_status` call does one step of work and returns.
 
-The public API for interacting with the agent:
+## 2. Running a turn
 
 ```rust
-let session = AgentSession::builder()
-    .model(ModelId::Name("claude-sonnet-4-6".into(), None))
-    .system_prompt("You are a coding assistant.")
-    .memory_store(kv_store)
-    .message_api(doc_store)
-    .token_ledger(ledger)
+let agent = AgentSession::<Doc, Mem>::builder(SessionId::new(), router)
+    .with_model(ModelId::Name("claude-sonnet-4-6".into(), None))
+    .with_system_prompt("You are a coding assistant.")
     .build()?;
 
-// Send a message and stream the response
-let stream = session.send("Fix the bug in src/main.rs").await?;
-// stream: AgentStream = Stream<SessionRecord, AgentProgress>
-```
-
-## 3. ContextProvider
-
-Assembles the full prompt from multiple sources:
-
-1. **System prompt** — fixed instructions from the builder
-2. **Working memory** — active facts the agent should know (recent, high-confidence)
-3. **Observation memory** — things the agent has noticed (medium-term)
-4. **Reflection memory** — synthesized insights (long-term, sparse)
-5. **Recent messages** — the last N conversation turns
-
-Assembly order is deterministic: working → reflection → observation → recent
-messages. This order matters because the model reads top-to-bottom and the most
-recent content should be closest to the actual user message.
-
-## 4. Memory hierarchy
-
-Three tiers of memory, each with different lifespans and trigger thresholds:
-
-| Tier | Content | Trigger | Lifespan |
-|---|---|---|---|
-| **Working** | Active facts, current task state | Immediate append | Until overwritten |
-| **Observation** | Notable patterns, repeated behaviors | 30K rolling tokens | Until reflection supersedes |
-| **Reflection** | Synthesized insights, condensed summaries | 40K observation tokens | Long-term (overwritten by newer) |
-
-### Triggers
-
-`MemoryHierarchy::check_triggers()` fires when:
-- **Not generating** (don't interrupt active generation)
-- **Rolling tokens ≥ observation threshold** → generate observation
-- **Observation tokens ≥ reflection threshold** → generate reflection
-
-Working memory takes priority over observation, observation over reflection.
-
-### Persistence
-
-Memory is stored via `KvMemoryStore` (foundation_db):
-```
-memory:{session_id} → SessionMemory { working, observation, reflection }
-```
-
-On CF Workers, this maps to KV storage. On native, it's a file or SQL table.
-
-## 5. Tool execution
-
-Tools are registered with `ToolCallManager` and executed via staged DAG:
-
-```rust
-let manager = ToolCallManager::new(session_id);
-manager.register(Arc::new(ReadFileTool::new(vfs)));
-manager.register(Arc::new(ShellTool::new(shell)));
-
-let toolshed = manager.build_toolshed();
-// toolshed.read, toolshed.shell, toolshed.search, ...
-```
-
-### Tool categories
-
-- **read** — Read files, search code, inspect state (safe, fast)
-- **write** — Edit files, create files (modifies state)
-- **shell** — Run commands, scripts, processes (powerful, potentially dangerous)
-- **search** — Search context, search files (read-only, semantic)
-- **shed** — Tool discovery and metatool (dynamic)
-
-### Execution stages
-
-1. **Validate** — check arguments against schema
-2. **Persist** — save tool call state before execution (crash recovery)
-3. **Execute** — run the tool (async)
-4. **Record** — save result to conversation history
-
-### Dependency DAG
-
-Tools can declare dependencies on other tools' results:
-
-```rust
-ToolCallRequest {
-    id: "read-file-1",
-    name: "read_file",
-    arguments: {"path": "/src/main.rs"},
-    depends_on: vec![],  // no dependencies
-    execution_hint: ExecutionHint::default(),
-}
-```
-
-The executor builds a DAG and runs independent tools in parallel.
-
-## 6. Loop detection
-
-Prevents the agent from getting stuck in repetitive behavior:
-
-```rust
-let detector = LoopDetector::new(LoopDetectorConfig::default());
-
-for output in generation_stream {
-    if let LoopDetection::ExactLoop { repetitions } = detector.check(&output) {
-        // Agent is repeating itself → escalate
-        match detector.escalate() {
-            Escalation::Redirect => { restart with different prompt }
-            Escalation::SwitchModelOrTemperature { delta } => { lower temperature }
-            Escalation::Terminate => { end the session }
-        }
+// Streaming — the primary API.
+for item in agent.run_turn_stream(prompt)? {
+    match item {
+        Stream::Next(record) => { /* SessionRecord */ }
+        Stream::Pending(progress) => { /* AgentProgress */ }
+        _ => {}
     }
 }
+
+// Or collect the whole turn.
+let records: Vec<SessionRecord> = agent.run_turn(prompt)?;
 ```
 
-### Detection methods
+`run_turn` drains the stream for you. It returns `Err` on the first
+`SessionRecord::FailedAction`, and when it sees `SessionRecord::Retracted` it
+drops the assistant messages it has collected so far (the loop is retrying that
+answer). Streaming consumers must handle `Retracted` themselves.
 
-- **Exact loop** — identical output repeated N times (simhash match = 1.0)
-- **Tool call loop** — same tool call with same arguments repeated N times
-- **Fuzzy loop** — near-identical output (simhash similarity ≥ threshold)
+The process must be running a Valtron executor (`#[valtron] fn main`, or the
+test helpers in `foundation_testing`).
 
-### Escalation ladder
+## 3. The states
 
-1. **Redirect** — restart with a different system prompt (first response)
-2. **Switch model or reduce temperature** — try a different model or lower
-   creativity (repeated redirects)
-3. **Terminate** — end the session (max redirects exceeded)
-
-## 7. Token accounting
-
-`TokenLedger` tracks token consumption across the session:
-
-```rust
-let ledger = TokenLedger::new();
-
-// Record usage from a model response
-ledger.record(&usage_report);
-
-// Check budgets
-if ledger.rolling() >= 30_000 {
-    // Fire observation memory trigger
-}
-```
-
-### Budget types
-
-- **Rolling** — tokens consumed since last memory generation (resets on observe)
-- **Session total** — all tokens consumed in the session (never resets)
-- **Hard limit** — maximum tokens allowed (session terminates when reached)
-
-### Cost calculation
-
-Model costs are calculated via `calculate_cost()` with per-model pricing:
-
-```rust
-let pricing = ModelUsageCosting {
-    input: 3.0,   // $3/M input tokens
-    output: 15.0, // $15/M output tokens
-    cache_read: 0.3,
-    cache_write: 3.75,
-};
-let cost = calculate_cost(&usage_report, &pricing);
-```
-
-## 8. Error handling and retry
-
-`AgenticError` classifies failures into actionable categories:
-
-```rust
-enum AgenticError {
-    Generation(GenerationFailure), // Provider error, rate limit, network
-    ToolCall { tool_name, reason }, // Tool execution failed
-    ToolNotAuthorized { tool_name, user }, // User can't use this tool
-    Budget { limit },              // Token budget exceeded
-    LoopDetected(LoopDetection),   // Agent stuck in a loop
-    Auth(AuthError),               // Authentication failed
-    Routing(String),               // No provider for this model
-    Unexpected(String),            // Unknown error
-}
-```
-
-### Error policy
-
-`ErrorPolicy` maps each error to an action:
-
-| Error | Action |
+| State | What happens |
 |---|---|
-| Context overflow | Retry with reduced context |
-| Rate limit | Switch model |
-| Tool call error | Continue (report to agent) |
-| Budget exceeded | Terminate |
-| Provider error | Terminate |
+| `Initializing` | Emits `AgentProgress::Initializing`, moves to `OuterBoundary`. |
+| `OuterBoundary` | Honours an abort, enforces `max_outer_iterations`, drains the priority queue first, then the follow-up queue. Each drained message is persisted to the `MessageApi`. Nothing queued → `Ending`. |
+| `InnerAssemble` | Honours abort, folds in any priority messages, stops on an exhausted budget (`AgenticError::BudgetExhausted`), resolves the model, assembles context, starts `model.stream(...)`. |
+| `InnerGenerate { stream, collected }` | Pumps one stream item per step. A newly-arrived priority message discards the generation and re-assembles. When the stream ends, runs `on_generation_complete`. |
+| `InnerToolCalls { calls }` | Tool calls extracted from the assistant output. |
+| `InnerExecuting { .. }` | Runs each call through `ToolCallManager::execute_one`, wrapped in a `CancellableFutureTask`. A priority message cancels in-flight tools. |
+| `InnerEmitResults { .. }` | Emits each `Messages::ToolResult` as a record, persists it, returns to `InnerAssemble`. Enforces `max_inner_iterations`. |
+| `OutputProcessing` | Calls `MemoryHierarchy::check_triggers()`; emits `ProcessingMemory` when a threshold is crossed (see Doc 11 — generation itself is not wired). |
+| `Ending` | Emits `SessionRecord::Summary { message_count, usage }`. |
+| `Done` | Terminal. |
+
+## 4. Context assembly
+
+`ContextProvider::assemble_from_memory` builds the message list in this order:
+
+1. Working memory (if any) as a system-role message
+2. Reflection (if any)
+3. Observation — only when it is newer than the latest reflection
+   (`ContextConfig::inject_newer_observations`)
+4. The last `ContextConfig::recent_message_count` (default 20) records from the
+   `MessageApi`
+
+The system prompt rides separately on `ModelInteraction::system_prompt`. The
+tools come from `ToolCallManager::build_toolshed()` at every assemble, so tools
+registered mid-session show up on the next generation.
+
+> **Known issue.** `MessageApi::recent` returns records newest-first and the
+> context keeps that order, so the model sees recent messages in reverse. See
+> Doc 00, "Known limitations".
+
+Two budget-driven adjustments run before the request is sent. Both measure the
+context's estimated tokens against the **session token budget**
+(`TokenLedger::budget()`), not the model's context window, and both do nothing
+when there is no budget:
+
+- **Preflight compression** (`preflight_compression_threshold`, default 0.85):
+  drops the oldest messages until the estimate fits under
+  `threshold × budget`.
+- **Context pressure** (`context_pressure_threshold`, default 0.70): appends a
+  "Context is at N% capacity — prefer concise responses" note to the system
+  prompt.
+
+`max_tokens` for the request is clamped to the budget's remaining tokens
+(`TokenLedger::effective_max_tokens`).
+
+## 5. After generation: checks and persistence
+
+When the stream finishes, `on_generation_complete`:
+
+1. Runs `LoopDetector::check` on every assistant output. On a loop it
+   escalates:
+   - `Redirect` → injects a system message ("Loop detected. Please try a
+     different approach…") and re-assembles.
+   - `SwitchModelOrTemperature` → moves to the next fallback model via the
+     circuit breaker (temperature is **not** changed), injects a system
+     message, re-assembles.
+   - `Terminate` → `AgenticError::LoopDetected` as a `FailedAction`. A
+     repeated *empty* answer is passed through instead of failing.
+2. If the turn called no tool, judges the assembled answer with
+   `LoopDetector::check_answer`. A vacuous answer (a lone `.`, an empty
+   reply, or a bare number to a question that didn't ask for one) is retried:
+   the loop emits `SessionRecord::Retracted` and asks again. Out of retries,
+   the weak answer is passed through rather than turned into an error.
+3. Resets the detector after a good turn.
+4. Persists the assistant messages to the `MessageApi`.
+5. Records the last assistant message's `UsageReport` in the `TokenLedger`
+   (streaming backends report cumulative usage, so only the last one counts).
+6. Extracts tool calls; none → `OutputProcessing`.
+
+The detector is built with `LoopDetectorConfig::default()` (window 5,
+similarity 0.9, 3 tool-call repeats, 3 redirects). It is not configurable
+through `AgentSession` today.
+
+## 6. Error handling
+
+Errors become `AgenticError` and go through `ErrorPolicy::classify`, which
+returns an `AgentAction`:
+
+| Error | Default action | What the loop does |
+|---|---|---|
+| `Generation` with `GenKind::ContextOverflow` | `RetryWithReducedContext` | Re-assembles (compression applies if a budget is set) |
+| `Generation` with `GenKind::RateLimit` | `SwitchModel` | `CircuitBreaker::on_failure()`; next fallback model, or terminate when none are left |
+| `ToolCall`, `LoopDetected` | `Continue` | Keeps going |
+| Everything else | `Terminate(err)` | Emits `FailedAction`, ends the turn |
+
+`GenKind` is detected at the boundary: context overflow by matching provider
+error text (`Messages::is_context_overflow`), rate limits by `"rate limit"`,
+`"429"` or `"too many requests"` in the message. Providers retry 429/5xx
+internally before an error reaches the loop.
+
+Override the policy with a closure:
+
+```rust
+let policy = ErrorPolicy::customize(|error| match error {
+    AgenticError::ToolCall { ref tool_name, .. } if tool_name == "deploy" => {
+        AgentAction::Terminate(error)
+    }
+    other => ErrorPolicy::new().classify(other),
+});
+let agent = builder.with_error_policy(policy).build()?;
+```
+
+A tool that fails normally does **not** reach the policy: its error becomes a
+`Messages::ToolResult` (with `error_detail`) that the model reads and reacts
+to. A tool that panics is caught at the boundary and reported the same way.
 
 ### Circuit breaker
 
-`CircuitBreaker` provides automatic failover:
+`CircuitBreaker::new(threshold, fallbacks)` counts consecutive failures. Once
+the count reaches `threshold` (`AgentConfig::circuit_breaker_threshold`,
+default 3), each further `on_failure()` returns the next model from
+`fallback_models`; `on_success()` resets the count.
 
-```rust
-let mut breaker = CircuitBreaker::new(2, vec![fallback_model_1, fallback_model_2]);
+## 7. Token accounting
 
-match generation_result {
-    Ok(output) => breaker.on_success(),
-    Err(_) => {
-        if let Some(fallback) = breaker.on_failure() {
-            // Retry with fallback model
-        }
-    }
-}
-```
+`TokenLedger` is shared by the session, the loop and the memory hierarchy.
 
-After N consecutive failures, switches to the next fallback model.
+| Method | Meaning |
+|---|---|
+| `record(&UsageReport)` | Add a generation's usage (called by the loop) |
+| `total()`, `input()`, `output()`, `cost()` | Session totals |
+| `rolling()` / `reset_rolling()` | Tokens since the last observation (drives the memory trigger) |
+| `budget()`, `remaining()`, `is_exhausted()` | Hard budget, set from `SessionAccessProvider::token_budget` at `build()` |
+| `snapshot()` | A `TokenSnapshot` (also carried by `SessionRecord::Summary`) |
+
+To price usage yourself, use `costing::calculate_cost(&pricing, &usage,
+CostStatus::…)` and `CostAccumulator`.
+
+## 8. Limits and defaults (`AgentConfig`)
+
+| Field | Default | Meaning |
+|---|---|---|
+| `primary_model` | empty name — set it with `with_model` | Model for generation |
+| `fallback_models` | `[]` | Circuit-breaker fallbacks |
+| `memory_model` | `None` | Recorded, but nothing generates memory yet |
+| `max_inner_iterations` | 25 | Tool-call rounds per outer iteration |
+| `max_outer_iterations` | 10 | Queue-drain rounds per turn |
+| `circuit_breaker_threshold` | 3 | Failures before switching models |
+| `preflight_compression_threshold` | 0.85 | Fraction of the budget; `0.0` disables |
+| `context_pressure_threshold` | 0.70 | Fraction of the budget; `0.0` disables |
+| `model_params` | `ModelParams::default()` | Sampling parameters for every request |
+
+Doc 09 covers tuning these.

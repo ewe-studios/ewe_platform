@@ -72,21 +72,44 @@ Provider mapping:
 
 ## 2. ToolCallManager — registration and execution
 
+Every `AgentSession` owns a `ToolCallManager`. Register tools on it **after**
+`build()`; the loop rebuilds the `ToolShed` from the registry before every
+generation, so registration takes effect on the next request.
+
+```rust
+let agent = AgentSession::<Doc, Mem>::builder(session_id, router).build()?;
+
+agent.tool_manager().register(Arc::new(ReadTool::new(Arc::clone(&fs))));
+agent.tool_manager().register(Arc::new(BashTool::new()));
+```
+
+> Do not pass a populated `ToolShed` to `AgentSessionBuilder::with_toolshed`.
+> `build()` checks that every shed tool is registered with the session's
+> manager, which is still empty at that point, so `build()` fails.
+
+A standalone manager (tests, custom loops):
+
 ```rust
 let manager = ToolCallManager::new(session_id);
-manager.register(Arc::new(ReadFileTool::new(vfs)));
-manager.register(Arc::new(ShellTool::new()));
+manager.register(Arc::new(ReadTool::new(fs)));
 
-// Execute a single tool call
 let request = ToolCallRequest {
-    id: "call-1",
-    name: "read_file",
+    id: "call-1".into(),
+    name: "read".into(),
     arguments: HashMap::from([("path".into(), ArgType::Text("/src/main.rs".into()))]),
     depends_on: vec![],
     execution_hint: ExecutionHint::Unspecified,
 };
-let result = manager.execute_one(&request).await?;
+let result = futures_lite::future::block_on(manager.execute_one(&request));
 ```
+
+`execute_one` looks the tool up, then runs it with panic containment: a
+panicking tool becomes `ToolError::Execution`. It does **not** validate the
+arguments against the tool's schema — the schema goes to the model, and the
+tool must check its own inputs.
+
+Other methods: `deregister`, `get`, `get_def`, `names`, `build_toolshed`,
+`build_workflow`, `execute_with_retry`, `set_retry_config` / `retry_config`.
 
 ### Using ToolPreset (harness)
 
@@ -99,6 +122,7 @@ use foundation_ai::harness::ToolPreset;
 ToolPreset::files(fs)        // → read, write, edit
 ToolPreset::shell()          // → bash
 ToolPreset::memory(h)        // → memory add/remove/replace (MultiCommands)
+                             //   h = Arc::new(agent.memory_hierarchy().clone())
 ToolPreset::agent(...)       // → agent start/check/result/… (MultiCommands)
 ToolPreset::shed(d)          // → tool discovery metatool
 
@@ -130,31 +154,36 @@ pub struct ToolShed {
 }
 ```
 
-No more per-category slots — each tool declares its own shape (single or multi
-command) via `ToolImpl::definition()`. The shed metatool is included only when
-there is at least one real tool to discover.
+Each tool declares its own shape (single or multi command) via
+`ToolImpl::definition()`. A registered tool named `shed` becomes the `shed`
+field; when none is registered, a default `shed` definition is added. When
+there are no other tools, `shed` is `None` — advertising discovery to a
+tool-less model made it call a phantom `shed()`.
 
 ---
 
-## 4. Execution DAG
+## 4. Execution order (the dependency DAG)
 
 Tool calls can declare dependencies:
 
 ```rust
 ToolCallRequest {
-    id: "call-3",
-    name: "process_results",
+    id: "call-3".into(),
+    name: "process_results".into(),
     depends_on: vec!["call-1".into(), "call-2".into()],
-    ...
+    ..
 }
 ```
 
-The executor:
-1. Groups calls by dependency depth into stages
-2. Runs each stage in parallel or sequentially (per `ExecutionHint`)
-3. Cycles detected → error
+`ToolCallManager::build_workflow` groups calls into stages by dependency
+depth. A stage is `Sequential { fail_fast: true }` if any call in it has
+`ExecutionHint::Sequential`, otherwise `Parallel { fail_mode: CollectAll }`.
+Cycles and unknown dependency ids are `ToolError::InvalidArguments`; the loop
+reports them as a `FailedAction`.
 
----
+The agent loop flattens the stages and runs the calls **one at a time** in that
+order, each through `execute_with_retry`. The parallel / sequential stage
+distinction is computed but not yet used for concurrency.
 
 ## 5. Retry configuration
 
@@ -168,6 +197,10 @@ pub struct ToolRetryConfig {
 }
 ```
 
+Set it per tool with `manager.set_retry_config("name", cfg)`. `ToolError::kind()`
+never returns `Network` today (only `Timeout`, `Execution`,
+`InvalidArguments`), so in practice only timeouts are retried.
+
 ---
 
 ## 6. Built-in tools
@@ -178,8 +211,11 @@ pub struct ToolRetryConfig {
 | `agent start/check/result/pause/resume/stop` | `agentic::tools::agent` | MultiCommands (F15) |
 | `read`, `write`, `edit` | `agentic::tools::files` | SingleCommand × 3 |
 | `bash` | `agentic::tools::files` | SingleCommand |
-| `search_file`, `search_content` | `agentic::tools::search` | SingleCommand × 2 |
-| `shed` | `agentic::tools::shed` | SingleCommand (metatool) |
+| `search_file` (filesystem), `search_context` (session recall) | `agentic::tools::search` | SingleCommand × 2 (native only) |
+| `shed` | `agentic::tools::shed` | SingleCommand (metatool; needs a `ToolDiscovery` with an embedder + vector store) |
+
+`register_file_tools(manager, fs)` and `register_shell_tool(manager)` in
+`agentic::tools::files` register the file and shell tools without a preset.
 
 ---
 

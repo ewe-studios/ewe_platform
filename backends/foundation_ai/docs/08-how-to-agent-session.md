@@ -1,539 +1,276 @@
 # How-To: Using the AgentSession API
 
-Zero-to-expert guide for creating, running, and managing an AI agent session.
+Creating, running, steering and ending an agent session. For the one-call
+harness path see `getting-started/02-agent-harness.md`; this doc is the
+manual path and the reference.
+
+Source: `src/agentic/session.rs`.
 
 ---
 
-## Quick Start
-
-The shortest path to a working agent:
+## Quick start
 
 ```rust
-use foundation_ai::agentic::session::AgentSession;
-use foundation_ai::types::{ModelId, Messages, SessionId, UserModelContent, MessageRole, TextContent};
-use foundation_ai::types::{ProviderRouter, ToolShed};
-use foundation_ai::costing::calculate_cost;
-
-// 1. Create a provider router with your model provider
-let router = ProviderRouter::single(Box::new(my_openai_provider));
-
-// 2. Create a session
-let session = AgentSession::builder(SessionId::new(), router).build()?;
-
-// 3. Run a turn
-let prompt = Messages::User {
-    id: foundation_compact::ids::new_scru128(),
-    role: MessageRole::User,
-    content: UserModelContent::Text(TextContent {
-        content: "Explain Rust lifetimes".into(),
-        signature: None,
-    }),
-    signature: None,
+use foundation_ai::agentic::{AgentSession, KvMemoryStore};
+use foundation_ai::backends::anthropic_messages_provider::{AnthropicConfig, AnthropicMessagesProvider};
+use foundation_ai::types::{
+    MessageRole, Messages, ModelId, ModelOutput, ProviderRouter,
+    RoutableProviderBox, SessionId, SessionRecord, TextContent, UserModelContent,
 };
+use foundation_auth::{AuthCredential, ConfidentialText};
+use foundation_compact::ids::new_scru128;
+use foundation_core::valtron::valtron;
+use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
-let records = session.run_turn(prompt)?;
-for record in &records {
-    match record {
-        SessionRecord::Conversation { message: Messages::Assistant { content, .. } } => {
-            if let ModelOutput::Text(t) = content {
-                println!("{}", t.content);
-            }
+type Doc = MemoryDocumentStore;
+type Mem = KvMemoryStore<MemoryStorage>;
+
+#[valtron]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 1. A provider, wrapped for routing.
+    let api_key = std::env::var("ANTHROPIC_API_KEY")?;
+    let provider = AnthropicMessagesProvider::with_config(
+        AnthropicConfig::new()
+            .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key))),
+    );
+    let router = ProviderRouter::single(Box::new(RoutableProviderBox::new(provider)));
+
+    // 2. A session. D and M pick the storage backends.
+    let agent = AgentSession::<Doc, Mem>::builder(SessionId::new(), router)
+        .with_model(ModelId::Name("claude-sonnet-4-6".into(), None))
+        .with_system_prompt("Answer concisely.")
+        .build()?;
+
+    // 3. A turn.
+    let records = agent.run_turn(Messages::User {
+        id: new_scru128(),
+        role: MessageRole::User,
+        content: UserModelContent::Text(TextContent {
+            content: "Explain Rust lifetimes in two sentences.".into(),
+            signature: None,
+        }),
+        signature: None,
+    })?;
+
+    for record in &records {
+        if let SessionRecord::Conversation {
+            message: Messages::Assistant { content: ModelOutput::Text(t), .. },
+        } = record
+        {
+            print!("{}", t.content);
+        }
+    }
+
+    // 4. Teardown.
+    agent.end()?;
+    Ok(())
+}
+```
+
+`getting-started/01-providers.md` shows the provider setup (auth,
+`base_url`, local models) for every backend.
+
+---
+
+## 1. The router
+
+`AgentSession` takes a `ProviderRouter`. One provider:
+`ProviderRouter::single(Box::new(RoutableProviderBox::new(p)))`. Several
+providers, rules and resolution order: Doc 03 §3.
+
+Always set the model with `with_model(...)`. The default `primary_model` is an
+empty name, which only resolves in a single-provider router.
+
+## 2. The builder
+
+`AgentSession::<D, M>::builder(session_id, router)` → chain `with_*` →
+`build()`.
+
+| Method | Default | Notes |
+|---|---|---|
+| `with_model(ModelId)` | empty name | Primary model |
+| `with_fallback_models(Vec<ModelId>)` | `[]` | Circuit-breaker fallbacks |
+| `with_memory_model(ModelId)` | `None` | Stored in `AgentConfig::memory_model`; nothing generates memory yet (Doc 11) |
+| `with_system_prompt(..)` | none | |
+| `with_config(AgentConfig)` | `AgentConfig::default()` | `with_model` / `with_fallback_models` / `with_memory_model` override the matching fields at `build()` |
+| `with_context_config(ContextConfig)` | 20 recent messages | |
+| `with_memory_config(MemoryConfig)` | 30k / 40k token triggers | |
+| `with_error_policy(ErrorPolicy)` | `ErrorPolicy::new()` | Doc 01 §6 |
+| `with_embedder(Arc<dyn EmbeddingProvider>, model)` | none | Semantic recall (Doc 07) |
+| `with_access(Arc<dyn SessionAccessProvider>)` | `AllowAllAccess` | §6 |
+| `with_user(UserId)` | `UserId("local")` | |
+| `with_doc_store(D)` | `D::default()` | Message history |
+| `with_memory_store(M)` | `M::default()` | Memory tiers |
+| `with_toolshed(ToolShed)` | `ToolShed::default()` | Leave it alone — see §3 |
+
+`build()` requires `D: Default` and `M: Default`, even when you pass both
+stores. Only the in-memory stores implement `Default` today, so persistent
+backends can't be used with `build()` yet (Doc 00, "Known limitations").
+
+`build()` runs preflight before returning: every tool in the toolshed must be
+registered with the session's `ToolCallManager`, and the access provider must
+allow the session and the primary model. The user's `token_budget` becomes
+the ledger's budget.
+
+## 3. Tools
+
+Register tools on the session's manager **after** `build()`:
+
+```rust
+use foundation_ai::harness::ToolPreset;
+
+let agent = AgentSession::<Doc, Mem>::builder(id, router).build()?;
+
+agent.tool_manager().register(Arc::new(MyTool));
+ToolPreset::files(Arc::clone(&fs))
+    .merge(ToolPreset::shell())
+    .register_all(agent.tool_manager());
+```
+
+The loop rebuilds the `ToolShed` from the manager before every generation.
+
+Don't build a `ToolShed` from a separate manager and pass it to
+`with_toolshed`: the session's own manager is empty during preflight, so
+`build()` fails with "toolshed tool '…' not registered with ToolCallManager".
+
+Writing tools: Doc 10. Presets and sub-agents:
+`getting-started/03-tools-and-presets.md`.
+
+## 4. Running turns
+
+### Streaming
+
+```rust
+use foundation_core::valtron::Stream;
+use foundation_ai::agentic::AgentProgress;
+
+for item in agent.run_turn_stream(prompt)? {
+    match item {
+        Stream::Pending(AgentProgress::Generating { model, tokens_so_far }) => {
+            eprintln!("[{model}: {} tokens]", tokens_so_far.unwrap_or(0));
+        }
+        Stream::Pending(AgentProgress::ToolCallRequested { name }) => eprintln!("[tool {name}]"),
+        Stream::Pending(_) => {}
+        Stream::Next(SessionRecord::Conversation {
+            message: Messages::Assistant { content: ModelOutput::Text(t), .. },
+        }) => print!("{}", t.content),
+        Stream::Next(SessionRecord::Retracted { reason, .. }) => {
+            // The loop is retrying this answer: clear what you printed for it.
+            eprintln!("\n[retrying: {reason}]");
+        }
+        Stream::Next(SessionRecord::FailedAction { error, .. }) => {
+            eprintln!("error: {error:?}");
+        }
+        Stream::Next(SessionRecord::Summary { usage, .. }) => {
+            eprintln!("\n[{} tokens total]", usage.total);
         }
         _ => {}
     }
 }
-
-// 4. Clean up
-session.end()?;
 ```
 
----
+`AgentProgress` is `#[non_exhaustive]`, so keep the `_` arms.
 
-## 1. Creating a ProviderRouter
-
-The `ProviderRouter` decides which model provider handles each request.
-
-### Single provider (most common)
+### Collected
 
 ```rust
-use foundation_ai::types::ProviderRouter;
-
-// If you have one provider (e.g., OpenAI):
-let router = ProviderRouter::single(Box::new(openai_provider));
-
-// openai_provider implements RoutableProvider:
-// - supports() returns true for models this provider can handle
-// - generate() / generate_stream() produce the response
+let records = agent.run_turn(prompt)?;   // Err on the first FailedAction
 ```
 
-### Multiple providers with routing rules
+`run_turn` already drops retracted assistant output.
+
+### Multi-turn
+
+Call `run_turn` again on the same session. Each turn's messages are persisted
+to the `MessageApi`, and the next turn's context includes the last
+`ContextConfig::recent_message_count` records.
+
+## 5. Steering and lifecycle
 
 ```rust
-let router = ProviderRouter::builder()
-    .add_provider(Box::new(openai_provider))
-    .add_provider(Box::new(anthropic_provider))
-    .add_provider(Box::new(llamacpp_provider))
-    .rule(RoutingRule {
-        model: ModelId::Name("gpt-4".into(), None),
-        provider_name: "openai".into(),  // match by provider name()
-    })
-    .rule(RoutingRule {
-        model: ModelId::Name("claude-sonnet-4-6".into(), None),
-        provider_name: "anthropic".into(),
-    })
-    .rule(RoutingRule {
-        model: ModelId::Name("local-llama".into(), None),
-        provider_name: "llama-cpp".into(),
-    })
-    .build();
+agent.steer(msg);       // interrupt: discards an in-flight generation / cancels tools
+agent.follow_up(msg);   // run after the current work
+agent.abort();          // end the running turn at the next boundary
+agent.end()?;           // flush the log, persist queued messages, reset the cancel signal
 ```
 
-### Adding providers with custom names
+`AgentSession` clones are cheap (`Arc`), so steering from another thread is a
+clone away. Details: Doc 05.
 
-Providers get their name from `provider.describe()`. If a provider returns
-`None` from `describe()`, construction **panics** — every provider must have
-a name and identity. Use `with_identity()` to set them explicitly:
-
-```rust
-use foundation_ai::types::{RoutableProviderBox, ModelProviders};
-
-// If provider.describe() works (most built-in providers):
-let routed = RoutableProviderBox::new(openai_provider);
-// → name: "openai", provider_id: ModelProviders::OpenAI
-
-// If provider has no descriptor, set explicitly:
-let routed = RoutableProviderBox::with_identity(
-    my_custom_provider,
-    "my-provider",                  // custom name for routing
-    ModelProviders::Custom("my-provider".into()),
-);
-```
-
-### Model identification
+### Resume
 
 ```rust
-// By exact name
-ModelId::Name("gpt-4".into(), None)
-ModelId::Name("claude-sonnet-4-6".into(), None)
-
-// By alias (user-friendly names that map to concrete models)
-ModelId::Alias("default".into(), None)
-ModelId::Alias("fast".into(), None)
-
-// By group (semantic categories)
-ModelId::Group("coding".into(), None)
-ModelId::Group("reasoning".into(), None)
-```
-
----
-
-## 2. Building an AgentSession
-
-The builder requires `SessionId` and `ProviderRouter`, everything else is optional.
-
-### Minimal session
-
-```rust
-let session = AgentSession::builder(SessionId::new(), router).build()?;
-```
-
-### Full configuration
-
-```rust
-use foundation_ai::agentic::session::AgentSession;
-use foundation_ai::agentic::access::AllowAllAccess;
-use foundation_ai::agentic::errors::{AgenticError, ErrorPolicy, AgentAction, GenKind};
-use foundation_ai::types::UserId;
-
-let session = AgentSession::builder(SessionId::new(), router)
-    // Required: ToolShed (what tools the agent can use)
-    .with_toolshed(my_toolshed)
-    
-    // Access control (who can do what)
-    .with_access(Arc::new(my_auth_manager))
-    .with_user(UserId("alice".into()))
-    
-    // Model selection
-    .with_model(ModelId::Name("claude-sonnet-4-6".into(), None))
-    .with_fallback_models(vec![
-        ModelId::Name("gpt-4".into(), None),
-        ModelId::Name("local-llama".into(), None),
-    ])
-    .with_memory_model(ModelId::Name("embedding-model".into(), None))
-    
-    // Storage (defaults to in-memory)
-    .with_doc_store(my_document_store)
-    .with_memory_store(my_memory_store)
-    
-    // Prompt and behavior
-    .with_system_prompt("You are a helpful coding assistant.")
-    .with_error_policy(ErrorPolicy::customize(|error| {
-        match error {
-            AgenticError::Generation(f) if f.kind == GenKind::RateLimit => {
-                AgentAction::RetryWithReducedContext
-            }
-            _ => ErrorPolicy::new().classify(error),
-        }
-    }))
-    .with_config(AgentConfig {
-        primary_model: ModelId::Name("claude-sonnet-4-6".into(), None),
-        max_inner_iterations: 10,    // max tool call rounds per turn
-        max_outer_iterations: 5,     // max conversation rounds
-        circuit_breaker_threshold: 3, // failures before fallback
-        ..AgentConfig::default()
-    })
-    .build()?;
-```
-
-### ToolShed setup
-
-```rust
-use foundation_ai::agentic::tools::shed::ToolShed;
-use foundation_ai::agentic::tool_impl::ToolCallManager;
-use foundation_ai::types::SessionId;
-
-// Create a ToolShed with tools
-let mut toolshed = ToolShed::default();
-
-// Register tools
-let manager = ToolCallManager::new(SessionId::new());
-manager.register(Arc::new(ReadFileTool::new(vfs)));
-manager.register(Arc::new(ShellTool::new(shell)));
-manager.register(Arc::new(SearchContextTool::new(context)));
-
-// Build the toolshed from the manager
-let toolshed = manager.build_toolshed();
-```
-
----
-
-## 3. Running Turns
-
-### Streaming (recommended)
-
-```rust
-use foundation_core::valtron::Stream;
-
-let prompt = /* ... create Messages::User ... */;
-let stream = session.run_turn_stream(prompt)?;
-
-for item in stream {
-    match item {
-        Stream::Pending(progress) => {
-            // Agent is working — show progress
-            match progress {
-                AgentProgress::Initializing { step } => println!("Initializing: {}", step),
-                AgentProgress::Generating { model, tokens_so_far } => {
-                    println!("Generating with {}... ({} tokens)", model.name, tokens_so_far.unwrap_or(0));
-                }
-                AgentProgress::ToolCallRequested { name } => println!("Calling tool: {}", name),
-                AgentProgress::ExecutingTools { total, completed } => {
-                    println!("Executing tools: {}/{}", completed, total);
-                }
-                AgentProgress::ProcessingMemory { kind } => println!("Processing memory: {:?}", kind),
-                AgentProgress::SessionEnding => println!("Session ending"),
-            }
-        }
-        Stream::Next(record) => {
-            // Agent produced something
-            match record {
-                SessionRecord::Conversation { message } => {
-                    if let Messages::Assistant { content, .. } = message {
-                        match content {
-                            ModelOutput::Text(t) => print!("{}", t.content),
-                            ModelOutput::ToolCall { name, arguments, .. } => {
-                                println!("\nTool call: {} {:?}", name, arguments);
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-                SessionRecord::FailedAction { error, .. } => {
-                    eprintln!("Error: {:?}", error);
-                    break;
-                }
-                _ => {}
-            }
-        }
-        Stream::Spread(items) => {
-            // Multiple items at once (batched output)
-            for item in items {
-                // handle each item
-            }
-        }
-        _ => {} // Init, Ignore, Wait, Delayed — control signals
-    }
-}
-```
-
-### Non-streaming (collect all results)
-
-```rust
-let records = session.run_turn(prompt)?;
-// records: Vec<SessionRecord>
-
-for record in &records {
-    if let SessionRecord::Conversation { message: Messages::Assistant { content, .. } } = record {
-        if let ModelOutput::Text(t) = content {
-            println!("{}", t.content);
-        }
-    }
-}
-```
-
-### Multi-turn conversation
-
-```rust
-// First turn
-let response1 = session.run_turn(user_message("What is Rust?"))?;
-
-// Second turn (session remembers context)
-let response2 = session.run_turn(user_message("How does borrowing work?"))?;
-
-// Third turn
-let response3 = session.run_turn(user_message("Show me an example"))?;
-```
-
----
-
-## 4. Steering and Interruption
-
-### High-priority steering (interrupts current work)
-
-```rust
-// Agent is generating a response — interrupt it
-session.steer(Messages::User {
-    // ... new urgent message
-});
-```
-
-### Follow-up (processed after current work)
-
-```rust
-// Queue a follow-up for after the current generation completes
-session.follow_up(Messages::User {
-    // ... follow-up question
-});
-```
-
----
-
-## 5. Session Lifecycle
-
-### End session (teardown)
-
-```rust
-// Flushes message buffer, drains queues, persists remaining state
-session.end()?;
-```
-
-What `end()` does:
-1. Flushes the Message API buffer (writes pending messages to storage)
-2. Drains priority and follow-up queues → persists as conversation records
-3. Flushes again (ensure everything is persisted)
-4. Resets the cancel signal (clean state for potential resume)
-
-### Resume session (deterministic replay)
-
-```rust
-use foundation_ai::agentic::session::AgentSession;
-
-// Resume a previous session by its SessionId
-let session = AgentSession::resume(
-    saved_session_id,    // The ID from the original session
-    router,              // ProviderRouter (can be different from original)
-    AgentConfig::default(),
+let agent = AgentSession::<Doc, Mem>::resume(
+    session_id,
+    router,
+    AgentConfig { primary_model: model_id, ..AgentConfig::default() },
+    None,                        // Option<ErrorPolicy>
 )?;
-
-// Resume protocol (Decision 01 order):
-// 1. Load WorkingMemory
-// 2. Load Observation + Reflection (observation if no reflection exists)
-// 3. Load recent 10 messages from MessageApi
-// 4. Semantic recall (deferred — F31/F32)
-// 5. Assemble context: system → working → reflection → recent → recalled
-// 6. Queues start EMPTY (were drained+persisted on prior end())
-// 7. ToolCallManager fresh
-
-// Continue the conversation
-let response = session.run_turn(user_message("Continue from where we left off"))?;
 ```
 
----
+`resume` builds a session over `D::default()` / `M::default()` with no system
+prompt, an empty tool registry, default context and memory configs and
+`AllowAllAccess`, and it skips preflight. History and memory are only there if
+the default-constructed stores point at the same data — which the in-memory
+stores do not. Treat `resume` as unusable for real persistence until it takes
+stores (Doc 15).
 
-## 6. Access Control
+### Extension handles
 
-### Default: AllowAllAccess
+`agent.session_id()`, `message_api()`, `ledger()`, `steering_queues()`,
+`router()`, `tool_manager()`, `memory_hierarchy()`.
 
-By default, anyone can use any model and tool:
-
-```rust
-let session = AgentSession::builder(SessionId::new(), router).build()?;
-// Uses AllowAllAccess internally
-```
-
-### Custom access provider
-
-```rust
-struct MyAccessProvider { /* ... */ }
-
-impl SessionAccessProvider for MyAccessProvider {
-    fn can_access_session(&self, user: &UserId, session: &SessionId) -> Result<bool, AuthError> {
-        // Check if user owns this session
-        Ok(true)
-    }
-    
-    fn can_use_model(&self, user: &UserId, model: &str) -> Result<bool, AuthError> {
-        // Check if user is allowed to use this model
-        if model == "gpt-4" && !user.is_premium() {
-            return Ok(false);
-        }
-        Ok(true)
-    }
-    
-    fn can_use_tool(&self, user: &UserId, tool: &str) -> Result<bool, AuthError> {
-        // Check if user can use this tool
-        if tool == "shell" && !user.is_admin() {
-            return Ok(false);
-        }
-        Ok(true)
-    }
-    
-    fn can_spend(&self, user: &UserId, tokens: u64) -> Result<bool, AuthError> {
-        // Check if user has enough token budget
-        Ok(user.remaining_budget() >= tokens)
-    }
-    
-    fn token_budget(&self, user: &UserId) -> Result<TokenBudget, AuthError> {
-        Ok(TokenBudget {
-            limit: Some(user.max_tokens()),
-            used: user.tokens_used(),
-        })
-    }
-}
-
-let session = AgentSession::builder(SessionId::new(), router)
-    .with_access(Arc::new(MyAccessProvider))
-    .build()?;
-```
-
----
-
-## 7. Configuration Reference
-
-### AgentConfig
-
-| Field | Default | Description |
-|---|---|---|
-| `primary_model` | None | The model to use for generation |
-| `fallback_models` | `[]` | Models to try if primary fails |
-| `memory_model` | None | Model for memory generation |
-| `max_inner_iterations` | 10 | Max tool call rounds per turn |
-| `max_outer_iterations` | 5 | Max conversation rounds |
-| `circuit_breaker_threshold` | 3 | Failures before fallback |
-| `context_pressure_threshold` | 0.8 | Context window pressure (0.0-1.0) |
-| `preflight_compression_threshold` | 0.9 | Compress before this ratio |
-
-### ContextConfig
-
-| Field | Default | Description |
-|---|---|---|
-| `recent_message_count` | 10 | Number of recent messages to include |
-| `semantic_recall_count` | 5 | Number of semantic recall results |
-
-### MemoryConfig
-
-| Field | Default | Description |
-|---|---|---|
-| `observation_trigger_tokens` | 30_000 | Tokens before observation generation |
-| `reflection_trigger_tokens` | 40_000 | Tokens before reflection generation |
-
----
-
-## 8. Common Patterns
-
-### Simple Q&A bot
+## 6. Access control
 
 ```rust
-fn run_qa(router: ProviderRouter, questions: Vec<String>) -> Result<Vec<String>, ErrorTrace<AgenticError>> {
-    let session = AgentSession::builder(SessionId::new(), router)
-        .with_system_prompt("Answer concisely.")
-        .build()?;
-    
-    let mut answers = Vec::new();
-    for q in questions {
-        let records = session.run_turn(user_message(&q))?;
-        for record in &records {
-            if let Some(text) = extract_assistant_text(record) {
-                answers.push(text);
-            }
-        }
-    }
-    session.end()?;
-    Ok(answers)
+pub trait SessionAccessProvider: Send + Sync {
+    fn can_access_session(&self, user: &UserId, session: &SessionId) -> Result<bool, AuthError>;
+    fn can_use_model(&self, user: &UserId, model: &str) -> Result<bool, AuthError>;
+    fn token_budget(&self, user: &UserId) -> Result<TokenBudget, AuthError>;
+    // Defaulted, and not called by the loop today:
+    fn can_use_tool(&self, user: &UserId, tool: &str) -> Result<bool, AuthError> { Ok(true) }
+    fn can_spend(&self, user: &UserId, tokens: u64) -> Result<bool, AuthError> { Ok(true) }
+    fn record_usage(&self, user: &UserId, tokens: u64) -> Result<(), AuthError> { Ok(()) }
 }
 ```
 
-### Streaming chat interface
+At `build()` the session checks `can_access_session` and `can_use_model` (for
+the primary model only) and applies `token_budget(user).remaining()` as the
+ledger budget. A turn stops with `AgenticError::BudgetExhausted` once the
+budget is spent. `can_use_tool`, `can_spend` and `record_usage` are not
+enforced yet — don't rely on them for security.
 
-```rust
-fn chat_stream(session: &AgentSession, prompt: String) -> impl Iterator<Item = String> {
-    let stream = session.run_turn_stream(user_message(&prompt)).unwrap();
-    
-    // Filter to just text tokens
-    stream.flat_map(|item| {
-        match item {
-            Stream::Next(SessionRecord::Conversation { message }) => {
-                if let Messages::Assistant { content: ModelOutput::Text(t), .. } = message {
-                    Some(t.content)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        }
-    })
-}
-```
+## 7. Configuration reference
 
-### Tool-using agent
+### `AgentConfig`
 
-```rust
-// 1. Set up tools
-let manager = ToolCallManager::new(SessionId::new());
-manager.register(Arc::new(ReadFileTool::new(vfs)));
-manager.register(Arc::new(ShellTool::new(shell)));
-let toolshed = manager.build_toolshed();
+| Field | Default |
+|---|---|
+| `primary_model` | empty `ModelId::Name` |
+| `fallback_models` | `[]` |
+| `memory_model` | `None` |
+| `max_inner_iterations` | 25 |
+| `max_outer_iterations` | 10 |
+| `circuit_breaker_threshold` | 3 |
+| `preflight_compression_threshold` | 0.85 (of the token budget) |
+| `context_pressure_threshold` | 0.70 (of the token budget) |
+| `model_params` | `ModelParams::default()` |
 
-// 2. Create session with tools
-let session = AgentSession::builder(SessionId::new(), router)
-    .with_toolshed(toolshed)
-    .with_system_prompt("You can read files and run shell commands.")
-    .build()?;
+### `ContextConfig`
 
-// 3. Run — agent will automatically call tools when needed
-let records = session.run_turn(user_message("What's in the Cargo.toml?"))?;
+| Field | Default | Meaning |
+|---|---|---|
+| `recent_message_count` | 20 | Recent records in each context |
+| `recall_budget_tokens` | 4096 | Reserved for semantic recall; not read by any code yet |
+| `inject_newer_observations` | `true` | Include the observation tier when it is newer than the latest reflection |
 
-// The agent will:
-// 1. Generate → decides to call read_file
-// 2. Tool executes → returns file contents
-// 3. Agent resumes with tool results → generates response
-```
+### `MemoryConfig`
 
-### Session persistence and resume
+| Field | Default |
+|---|---|
+| `observation_trigger_tokens` | 30 000 |
+| `reflection_trigger_tokens` | 40 000 |
+| `memory_model` | `None` |
+| `parse_strategy` | `MemoryParseStrategy::StructuredText` |
 
-```rust
-// Save session ID for later
-let session_id = SessionId::new();
-println!("Session ID: {}", session_id);
-
-// Create and use session
-let session = AgentSession::builder(session_id.clone(), router).build()?;
-session.run_turn(user_message("Let's start a project"))?;
-session.end()?;
-
-// ... later, in a different process ...
-
-// Resume the session
-let resumed = AgentSession::resume(session_id, router, AgentConfig::default())?;
-resumed.run_turn(user_message("What were we working on?"))?;
-```
+Tuning guidance: Doc 09.
