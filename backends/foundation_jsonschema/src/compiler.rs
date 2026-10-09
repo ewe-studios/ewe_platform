@@ -4,7 +4,11 @@
 //! once into a tree of keyword validators, we pay the schema analysis cost once
 //! and validate instances with minimal per-invocation overhead.
 
+use alloc::boxed::Box;
+use alloc::format;
 use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec;
 use alloc::vec::Vec;
 
 use crate::compiler_context::CompilerContext;
@@ -66,7 +70,7 @@ use serde_json::Value;
 fn value_to_u64(value: &Value) -> Option<u64> {
     value.as_u64().or_else(|| {
         value.as_f64().and_then(|f| {
-            if f >= 0.0 && f.fract() == 0.0 && f <= u64::MAX as f64 {
+            if f >= 0.0 && crate::float::fract(f) == 0.0 && f <= u64::MAX as f64 {
                 Some(f as u64)
             } else {
                 None
@@ -703,7 +707,7 @@ fn compile_items(
                     let skip_first = schema_obj
                         .get("prefixItems")
                         .and_then(Value::as_array)
-                        .map_or(0, std::vec::Vec::len);
+                        .map_or(0, alloc::vec::Vec::len);
                     let sub_ctx = ctx.push_keyword("items");
                     match compile_node(value, &sub_ctx) {
                         Ok(node) => {
@@ -737,7 +741,7 @@ fn compile_items(
                         schema_obj
                             .get("prefixItems")
                             .and_then(Value::as_array)
-                            .map_or(0, std::vec::Vec::len)
+                            .map_or(0, alloc::vec::Vec::len)
                     } else {
                         0
                     };

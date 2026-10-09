@@ -151,6 +151,7 @@ impl Validate for ContainsValidator {
 mod tests {
     use super::*;
     use crate::paths::{LazyLocation, Location};
+    use alloc::vec;
     use serde_json::json;
 
     fn ctx() -> ValidationContext {

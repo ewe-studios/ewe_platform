@@ -11,6 +11,7 @@
 //! dispatches. The registry itself lives on the `Runtime` (`BTreeMap`, monotonic
 //! never-reused ids, stale lookups dropped silently).
 
+use alloc::string::String;
 use serde::{Deserialize, Serialize};
 
 /// Modifier-key state at event time. Four independent keys, four bools — this

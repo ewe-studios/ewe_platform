@@ -73,6 +73,7 @@ mod tests {
     use super::*;
     use crate::keywords::type_::TypeValidator;
     use crate::types::JsonTypeSet;
+    use alloc::vec;
     use serde_json::json;
 
     fn ctx() -> ValidationContext {

@@ -10,14 +10,17 @@ description = "WASM UI components for authentication — login, register, MFA, a
 keywords.workspace = true
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.0" }
-foundation_signals = { path = "../foundation_signals", version = "0.0.1" }
+# This crate is `no_std`: every dependency below is taken without the
+# default features that would link `std` (signals' cross-thread hub,
+# wasm_ui's arrow-rs IPC, serde/serde_json `std`). `foundation_core` is not a
+# dependency: it is a std-only crate and nothing here uses it.
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.0", default-features = false }
+foundation_signals = { path = "../foundation_signals", version = "0.0.1", default-features = false, features = ["single_threaded"] }
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
 foundation_ui_components = { path = "../foundation_ui_components", version = "0.1.0" }
 
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 
 [features]
 default = []

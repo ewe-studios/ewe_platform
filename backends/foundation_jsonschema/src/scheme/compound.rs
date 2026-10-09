@@ -1,6 +1,8 @@
 //! Compound schema builders — anyOf, oneOf, allOf, not, if/then/else.
 
 use super::Value;
+use alloc::vec;
+use alloc::vec::Vec;
 
 /// Create an `anyOf` (union) schema from a list of sub-schemas.
 ///

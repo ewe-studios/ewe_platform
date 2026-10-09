@@ -14,8 +14,10 @@
 //! nodes; capturing typed storage in the eval closure keeps identical observable
 //! semantics with no downcast failure path (spec G18 becomes unreachable).
 
-use std::cell::RefCell;
-use std::rc::Rc;
+use alloc::boxed::Box;
+use alloc::rc::Rc;
+use alloc::vec::Vec;
+use core::cell::RefCell;
 
 use crate::arena::NodeId;
 

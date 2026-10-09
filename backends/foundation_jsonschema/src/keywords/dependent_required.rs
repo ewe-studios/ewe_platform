@@ -88,6 +88,7 @@ impl Validate for DependentRequiredValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
     use serde_json::json;
 
     fn ctx() -> ValidationContext {

@@ -10,6 +10,7 @@
 //! HOW: Single pass over the schema object's keys, extracting `$id`/`id`,
 //! `$anchor`/`$dynamicAnchor`, `$ref`, and `$schema`.
 
+use alloc::string::String;
 pub mod draft201909;
 pub mod draft202012;
 pub mod draft4;

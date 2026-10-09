@@ -15,6 +15,7 @@
 use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
+use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use serde_json::Value;
@@ -167,7 +168,7 @@ impl RegistryBuilder {
         let mut iteration = 0;
         while !external_refs.is_empty() && iteration < 100 {
             iteration += 1;
-            let refs: Vec<String> = std::mem::take(&mut external_refs);
+            let refs: Vec<String> = core::mem::take(&mut external_refs);
             for ext_uri in refs {
                 let fragmentless = ext_uri.split('#').next().unwrap_or(&ext_uri).to_string();
                 let norm = normalize_uri(&fragmentless);

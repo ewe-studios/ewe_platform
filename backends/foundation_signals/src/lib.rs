@@ -31,12 +31,17 @@
 //! assert_eq!(*seen.borrow(), vec![0, 42]);
 //! ```
 
+// The graph is `core + alloc`; only the cross-thread hub needs `std`.
+#![cfg_attr(not(feature = "std"), no_std)]
+
+extern crate alloc;
+
 mod arena;
 mod callback;
 mod computed;
 mod context;
 mod effect;
-#[cfg(not(target_family = "wasm"))]
+#[cfg(all(feature = "std", not(target_family = "wasm")))]
 pub mod hub;
 mod node;
 mod notification;
@@ -48,10 +53,12 @@ pub use callback::{Callback, EventData, Modifiers};
 pub use computed::ComputedGetter;
 pub use context::Context;
 pub use effect::Effect;
-#[cfg(not(target_family = "wasm"))]
-pub use hub::{HubGone, HubHandle, PumpReport, RemoteGetter, RemoteSetter, SignalHub, SignalStream};
-#[cfg(all(not(target_family = "wasm"), feature = "valtron"))]
+#[cfg(all(feature = "std", not(target_family = "wasm"), feature = "valtron"))]
 pub use hub::HubDriver;
+#[cfg(all(feature = "std", not(target_family = "wasm")))]
+pub use hub::{
+    HubGone, HubHandle, PumpReport, RemoteGetter, RemoteSetter, SignalHub, SignalStream,
+};
 pub use node::ThreeState;
 pub use notification::NotificationManager;
 pub use runtime::Runtime;

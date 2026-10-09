@@ -13,6 +13,7 @@
 //! Resolution follows the algorithm in RFC 3986 §5.2.2.
 
 use alloc::string::String;
+use alloc::string::ToString;
 use alloc::vec::Vec;
 use core::fmt;
 

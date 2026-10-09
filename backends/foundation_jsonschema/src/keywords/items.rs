@@ -96,6 +96,7 @@ mod tests {
     use crate::paths::{LazyLocation, Location};
     use crate::types::JsonType;
     use crate::types::JsonTypeSet;
+    use alloc::vec;
     use serde_json::json;
 
     fn ctx() -> ValidationContext {

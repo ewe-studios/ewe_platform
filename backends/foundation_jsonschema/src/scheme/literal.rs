@@ -1,6 +1,7 @@
 //! Literal and enum schema builders — const and enum values.
 
 use super::Value;
+use alloc::vec::Vec;
 
 /// Create a literal schema that matches only the given value (`"const"`).
 ///

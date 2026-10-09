@@ -10,7 +10,7 @@
 //! `register` and dispose in `unregister`. The signal system itself only runs
 //! closures; this trait is the extension point, not a runtime requirement.
 
-use std::rc::Rc;
+use alloc::rc::Rc;
 
 use crate::runtime::Runtime;
 

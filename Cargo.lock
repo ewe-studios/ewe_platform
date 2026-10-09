@@ -4685,7 +4685,6 @@ dependencies = [
 name = "foundation_auth_ui"
 version = "0.0.1"
 dependencies = [
- "foundation_core",
  "foundation_signals",
  "foundation_ui_components",
  "foundation_ui_traits",
@@ -5187,6 +5186,7 @@ dependencies = [
  "fancy-regex 0.14.0",
  "foundation_errstacks",
  "itoa",
+ "libm",
  "percent-encoding",
  "regex",
  "ryu",

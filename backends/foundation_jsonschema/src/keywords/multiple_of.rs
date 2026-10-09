@@ -28,7 +28,7 @@ impl Validate for MultipleOfValidator {
         if let Value::Number(n) = instance {
             if let Some(v) = n.as_f64() {
                 let quotient = v / self.multiple;
-                return (quotient - quotient.round()).abs()
+                return (quotient - crate::float::round(quotient)).abs()
                     < f64::EPSILON * quotient.abs().max(1.0);
             }
         }

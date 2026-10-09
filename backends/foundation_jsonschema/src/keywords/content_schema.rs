@@ -11,6 +11,7 @@
 
 use alloc::boxed::Box;
 use alloc::string::String;
+use alloc::string::ToString;
 use alloc::vec::Vec;
 
 use serde_json::Value;
@@ -137,6 +138,7 @@ mod tests {
     use crate::paths::{LazyLocation, Location};
     use crate::types::JsonType;
     use crate::types::JsonTypeSet;
+    use alloc::vec;
     use serde_json::json;
 
     fn ctx() -> ValidationContext {

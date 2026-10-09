@@ -1,6 +1,9 @@
 //! Primitive type schema builders — string, integer, number, boolean, null.
 
 use super::{BTreeMap, ValidationOptions, Value};
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
 
 /// Builder for JSON Schema string type.
 ///
