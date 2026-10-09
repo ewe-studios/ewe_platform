@@ -46,80 +46,57 @@ pub struct SteeringQueues {
 }
 ```
 
-### Priority queue
+`push_priority` also stores `CancelCode::PauseForPriority` in the cancel
+signal; `abort()` stores `CancelCode::Abort`.
 
-Messages here should **interrupt** current work. The agent loop checks this
-queue when:
-- `CancelCode::PauseForPriority` is set
-- Between tool execution rounds
-- Before starting a new generation
+### Where the loop checks them
 
-### Follow-up queue
+| Point in the loop | Priority message waiting | Abort |
+|---|---|---|
+| `OuterBoundary` | Drain it (before the follow-up queue), persist, start a new inner round | End the turn |
+| `InnerAssemble` | Fold it into history before generating | End the turn |
+| `InnerGenerate` (each stream step) | **Discard** the in-flight generation and re-assemble | — |
+| `InnerExecuting` | **Cancel** every in-flight tool future, then re-assemble | — |
 
-Messages here are processed **after** current work completes. Used for:
-- Multi-turn conversations (each user message is a follow-up)
-- Agent-generated follow-up questions
-- Deferred tool results
+Follow-up messages are only read at `OuterBoundary`, after the current inner
+round is done. Each user prompt you pass to `run_turn` is itself pushed onto
+the follow-up queue.
+
+Every drained message is persisted to the `MessageApi` and reaches the model
+through normal context assembly. `max_outer_iterations` (default 10) bounds
+how many queue drains one turn performs.
 
 ## 4. Using steering from AgentSession
 
 ```rust
-// High-priority (interrupts current work)
-session.steer(Messages::User { /* urgent message */ });
-// → Sets CancelCode::PauseForPriority
+// Interrupt current work (from another thread while a turn runs):
+agent.steer(user_message("Stop — use the staging database instead."));
 
-// Follow-up (processed after current generation)
-session.follow_up(Messages::User { /* next question */ });
-// → Enqueued for next turn
+// Queue the next message; it runs after the current work in the same turn,
+// or in the next run_turn if nothing is running:
+agent.follow_up(user_message("Then summarise what changed."));
+
+// Hard stop: the loop ends the turn at its next boundary and emits Summary.
+agent.abort();
 ```
 
-## 5. Integration with the agentic loop
+`AgentSession` is cheap to clone (`Arc` inside), so hand a clone to the thread
+that steers.
 
-```
-User message → session.follow_up(msg)
-  → AgentLoop dequeues from follow_up queue
-  → Generate from model
-    → Text tokens → stream to user
-    → Tool calls → execute → loop back
-  → Check cancel_signal
-    → PauseForPriority → drain priority queue
-    → Abort → terminate
-  → Check follow_up queue for next turn
-```
+## 5. Queue readiness
 
-## 6. Queue readiness (no spinning)
+`SteeringQueues::priority_readiness()` / `followup_readiness()` return
+`EventReadiness` handles for Valtron's `TaskStatus::Depends`, so a task can park
+until a message arrives. The agent loop does not use them today — it checks
+the queues at the points in §3 instead.
 
-The agent loop uses `TaskStatus::Depends` with `QueueReadiness` to wait
-for messages without busy-spinning:
+## 6. Ending a session
 
-```rust
-// Wait for messages without spinning
-TaskStatus::Depends(QueueReadiness::new(&priority_queue))
-```
+`AgentSession::end()` flushes the `MessageApi`, drains both queues and
+persists whatever was still queued as conversation records, flushes again, and
+resets the cancel signal.
 
-This parks the task until a message arrives, then resumes.
-
-## 7. Session lifecycle with steering
-
-```rust
-// Create session
-let session = AgentSession::builder(SessionId::new(), router).build()?;
-
-// Start first turn
-let stream = session.run_turn_stream(user_message("Hello"))?;
-
-// While streaming, user interrupts:
-session.steer(user_message("Stop, try a different approach"));
-// → Current generation pauses, new message takes priority
-
-// Follow-up for next turn
-session.follow_up(user_message("Now explain it simply"));
-
-// End session (flushes remaining queue messages)
-session.end()?;
-```
-
-## 8. CancelCode reset
+## 7. CancelCode reset
 
 After handling a cancel signal, the loop resets it:
 

@@ -62,7 +62,6 @@ Then customize and build:
 ```rust
 let agent = builder
     .with_system_prompt("You are a helpful assistant.")
-    .with_toolshed(my_toolshed)
     .with_config(my_config)
     .with_context_config(my_ctx_cfg)
     .with_memory_config(my_mem_cfg)
@@ -163,14 +162,12 @@ let router = ProviderRouter::builder()
 
 ```rust
 use foundation_ai::agentic::{AgentSession, AgentConfig, KvMemoryStore};
-use foundation_ai::types::ToolShed;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type Doc = MemoryDocumentStore;
 type Mem = KvMemoryStore<MemoryStorage>;
 
 let agent = AgentSession::<Doc, Mem>::builder(SessionId::new(), router)
-    .with_toolshed(ToolShed::default())
     .with_model(ModelId::Name("claude-opus-4-8".into(), None))
     .with_memory_model(ModelId::Name("claude-sonnet-4-6".into(), None))
     .with_system_prompt("You are a helpful assistant.")
@@ -246,8 +243,9 @@ for record in &records {
                 println!("Assistant: {}", tc.content);
             }
         }
-        SessionRecord::ToolCall { name, .. } => println!("Tool call: {name}"),
-        SessionRecord::ToolResult { name, .. } => println!("Tool result: {name}"),
+        SessionRecord::Conversation { message: Messages::ToolResult { name, .. } } => {
+            println!("Tool result: {name}")
+        }
         SessionRecord::FailedAction { error, .. } => eprintln!("Error: {error:?}"),
         _ => {}
     }
@@ -262,12 +260,17 @@ use foundation_core::valtron::Stream;
 let stream = agent.run_turn_stream(prompt)?;
 for item in stream {
     match item {
+        Stream::Next(SessionRecord::Retracted { .. }) => {
+            /* the loop is retrying: drop the assistant text shown for this turn */
+        }
         Stream::Next(record) => { /* process as it arrives */ }
         Stream::Pending(_) | Stream::Init | Stream::Ignore | Stream::Wait | Stream::Delayed(_) => {}
         Stream::Spread(items) => { /* batch completion */ }
     }
 }
 ```
+
+`run_turn` handles `Retracted` for you; a streaming consumer must.
 
 ### 3.3. Multi-Turn
 
@@ -364,6 +367,10 @@ let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
     .build()?;
 ```
 
+> **Note:** `build()` requires `Doc: Default` and `Mem: Default`. The Turso
+> and JSON-file combinations above satisfy it; `D1R2DocumentStore` doesn't,
+> because D1 and R2 need credentials. See Doc 00, "Known limitations".
+
 ---
 
 ## 6. Tools
@@ -375,38 +382,27 @@ let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
 
 ### 6.1. Default ToolShed
 
-Default: only the `shed` meta-tool (tool registry lookup). No actual
-capabilities.
+With no tools registered, the model is offered nothing — not even the `shed`
+discovery tool.
 
 ### 6.2. Adding Tools
 
-```rust
-use foundation_ai::types::{Tool, ToolShed, Args};
-use foundation_jsonschema::scheme;
+Register `ToolImpl`s on the session's manager after `build()`:
 
-let toolshed = ToolShed::default()
-    .with_read(Some(Tool {
-        name: "read_file".into(),
-        description: "Read a file".into(),
-        arguments: Some(Args::new(
-            scheme::object().required("path", scheme::string()).build(),
-        )),
-        returns: None,
-    }))
-    .with_shell(Some(Tool {
-        name: "shell".into(),
-        description: "Run a shell command".into(),
-        arguments: Some(Args::new(
-            scheme::object().required("command", scheme::string()).build(),
-        )),
-        returns: None,
-    }));
+```rust
+use foundation_ai::harness::ToolPreset;
+
+agent.tool_manager().register(Arc::new(MyTool));
+
+ToolPreset::files(Arc::clone(&fs))
+    .merge(ToolPreset::shell())
+    .register_all(agent.tool_manager());
 ```
 
-### 6.3. Tool Slots
-
-`shed` (always present), `read`, `edit`, `write`, `search`, `search_files`,
-`shell`, `memory`, `delegate`.
+Don't pass a populated `ToolShed` to `with_toolshed` — `build()` checks every
+shed tool against the session's (still empty) manager and fails. Each tool
+declares its own shape via `ToolImpl::definition()` (`Tool::SingleCommand` or
+`Tool::MultiCommands`); there are no fixed slots.
 
 ---
 
@@ -415,16 +411,22 @@ let toolshed = ToolShed::default()
 ```rust
 use foundation_ai::agentic::AgentConfig;
 
-let config = AgentConfig::default()
-    .with_max_turns(10)
-    .with_loop_threshold(3);
+let config = AgentConfig {
+    max_inner_iterations: 10,      // tool rounds per turn (default 25)
+    max_outer_iterations: 5,       // queue drains per turn (default 10)
+    circuit_breaker_threshold: 3,
+    ..AgentConfig::default()
+};
+let agent = builder.with_config(config).build()?;
 ```
 
-Token budgets:
+All fields and defaults: Doc 08 §7. Tuning: Doc 09.
+
+Token usage:
 
 ```rust
 let snapshot = agent.ledger().snapshot();
-println!("Used: {}, remaining: {}", snapshot.total_tokens, snapshot.remaining);
+println!("Used: {}, remaining: {:?}", snapshot.total, snapshot.remaining);
 ```
 
 ---
@@ -448,9 +450,11 @@ let agent = AgentSession::<Doc, Mem>::resume(
 )?;
 ```
 
-Resume protocol: WorkingMemory → Observation → Reflection → recent messages
-(10) → semantic recall (deferred) → context assembled → empty queues → fresh
-ToolCallManager.
+`resume` rebuilds the session over `Doc::default()` / `Mem::default()` with an
+empty tool registry, no system prompt and default configs. It only finds the
+earlier history if those default stores reach the same data, which the
+in-memory stores don't — so today it is effectively a fresh session. See
+Doc 08 §5.
 
 ---
 

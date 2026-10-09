@@ -135,6 +135,8 @@ spawn sub-agents by accident.
 ```rust
 use foundation_ai::harness::ToolPreset;
 
+// The session's hierarchy is a cheap Arc handle; wrap a clone.
+let memory_hierarchy = Arc::new(agent.memory_hierarchy().clone());
 let preset = ToolPreset::standard(
     Arc::clone(&fs),
     Arc::clone(&memory_hierarchy),

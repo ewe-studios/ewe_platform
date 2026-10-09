@@ -30,7 +30,7 @@ Reference and how-to docs for everything the getting-started guides skim:
 
 | Doc | Topic |
 |-----|-------|
-| [00. Overview](docs/00-overview.md) | Module map and architecture |
+| [00. Overview](docs/00-overview.md) | Module map, architecture, **known limitations** |
 | [01. The Agentic Loop](docs/01-agentic-loop.md) | How a turn runs end to end |
 | [02. Agent Types](docs/02-agent-types.md) | `Messages`, `ModelOutput`, the `Stream` contract |
 | [03. Model Providers](docs/03-model-providers.md) | Provider implementations and the router |
@@ -44,6 +44,7 @@ Reference and how-to docs for everything the getting-started guides skim:
 | [11. Memory System](docs/11-memory-system.md) | The memory hierarchy and `memory` tool |
 | [12. Harness Presets](docs/12-how-to-harness-presets.md) | One-call model + router setup |
 | [14. GPU Acceleration](docs/14-gpu-acceleration.md) | CUDA, Metal, Vulkan — both backends |
+| [15. API Simplification (proposal)](docs/15-api-simplification-proposal.md) | Where the public API is heading |
 
 Root-caused bug write-ups live in [`docs/fixes/`](docs/fixes/).
 
@@ -151,9 +152,10 @@ cargo run -p foundation_ai --example agent_with_tools --features agentic
   server) via one `base_url`.
 - **Local inference** — llama.cpp (GGUF) and Candle (safetensors), on **CPU or
   GPU** (CUDA, Metal, Vulkan). See [GPU Acceleration](docs/14-gpu-acceleration.md).
-- **The agentic layer** — `AgentSession` orchestrates generation, a memory
-  hierarchy (working / observation / reflection), tool execution, token budgets,
-  loop detection, and mid-turn steering.
+- **The agentic layer** — `AgentSession` orchestrates generation, tool
+  execution, token budgets, loop detection, mid-turn steering, and a memory
+  hierarchy (working / observation / reflection; see the
+  [known limitations](docs/00-overview.md#known-limitations)).
 - **Tools** — built-in `read`/`write`/`edit` (over a swappable VFS) and `bash`,
   bundled by [`ToolPreset`](docs/getting-started/03-tools-and-presets.md), plus
   background **sub-agent delegation**. Provider-specific tool formatters for

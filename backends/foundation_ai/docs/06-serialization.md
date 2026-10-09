@@ -1,69 +1,102 @@
-# Fundamentals 06 — Serialization: JSON and Arrow columns
+# Fundamentals 06 — Serialization: JSON and Arrow
 
-How agent data is persisted and queried across JSON and columnar formats.
+How session data is stored and exported. Source: `src/agentic/serialization.rs`,
+`src/agentic/message_api.rs`.
 
 ---
 
-## 1. JSON serialization (the primary format)
+## 1. JSON — the storage format
 
-All core types implement `Serialize + Deserialize`:
-
-```rust
-// Message round-trip
-let json = serde_json::to_string(&message)?;
-let restored: Messages = serde_json::from_str(&json)?;
-```
-
-### Custom serialization
-- **`ModelId`** — serializes as the model name string, deserializes by
-  checking known providers
-- **`ArgType`** — serializes as native JSON (Text → string, Number → number, etc.)
-- **`ModelOutput`** — tagged union: `{"type": "text", "content": "..."}` or
-  `{"type": "tool_call", "name": "...", "arguments": {...}}`
-
-## 2. Arrow serialization (for analytics)
-
-Promoted fields (`title`, `summary`, `record_type`) can be exported as
-Arrow columns for efficient querying:
+Every core type (`Messages`, `ModelOutput`, `SessionRecord`, `ModelId`,
+`ArgType`, …) derives serde `Serialize` / `Deserialize`. `SessionRecord` is
+internally tagged on `message_type` (snake_case); the other enums use serde's
+default externally-tagged form:
 
 ```rust
-// DocumentStore → Arrow batch
-let batch = store.export_as_arrow(key, time_range)?;
-// batch: RecordBatch with columns: doc_id, title, summary, record_type, created_at
+let json = serde_json::to_string(&record)?;
+// {"message_type":"conversation","message":{"User":{"id":"…","role":"user",…}}}
+let back: SessionRecord = serde_json::from_str(&json)?;
 ```
 
-This is used for:
-- Analytics dashboards (token usage over time)
-- Batch reprocessing (regenerate embeddings)
-- Export to external systems
+A few fields have custom handling:
 
-## 3. State persistence
+- `MessageRole` serializes to `"user"` / `"agent"` / `"system"` / `"tool"`;
+  `Custom(s)` serializes as the bare string.
+- `ExecutionHint` serializes lowercase (`"parallel"`, …).
+- `Args` serializes as its JSON Schema only; the validator is rebuilt on load.
 
-Agent session state is persisted via `MessageApi` (F08):
+`MessageApi` stores each record as the JSON `content` of a `DocumentStore`
+document, keyed by session id.
 
+## 2. How records are persisted
+
+`MessageApi::append` buffers a record in memory and flushes to the
+`DocumentStore` when the buffer reaches 50 records (configurable with
+`MessageApi::with_config`), when you call `flush()`, before every `recent()` /
+`all()` read, and in `AgentSession::end()`.
+
+| Record | Written as |
+|---|---|
+| `Conversation { message }` | `append_with_id`, using the message's scru128 id as the document id |
+| `WorkingMemory`, `Observation`, `Reflection` | `append_promotable` (promoted columns filled) — when written through `MessageApi` |
+| `Retracted`, `Summary`, `FailedAction` | `append` |
+
+The agent loop appends user messages, accepted assistant messages and tool
+results. It does not append `FailedAction` or `Summary`; those only reach the
+caller through the stream.
+
+Memory tiers have their own path: `MemoryCoordinator` writes the record to an
+audit `DocumentStore` and overwrites the latest copy in the `MemoryStore`
+(`memory:{session_id}` → `SessionMemory { working, observation, reflection }`).
+See Doc 11.
+
+Subscribers can watch the log: `message_api.subscribe()` returns a receiver of
+`MessageEvent`s (appended, flushed, errors).
+
+## 3. Arrow — for analytics and bulk export
+
+`SessionRecordRow` is a flat row with promoted columns plus the full JSON:
+
+| Column | Content |
+|---|---|
+| `id` | Record id |
+| `record_type` | `conversation`, `retracted`, `working_memory`, `observation`, `reflection`, `failed_action`, `summary` |
+| `role` | Message role for conversation records |
+| `title`, `summary` | Promoted text |
+| `model` | Model name for assistant messages |
+| `input_tokens`, `output_tokens` | From the message's `UsageReport` |
+| `created_at` | Timestamp |
+| `content` | The full record as JSON (lossless) |
+
+```rust
+use foundation_ai::agentic::{to_record_batch, from_record_batch};
+
+let records = agent.message_api().all()?;
+let batch = to_record_batch(&records)?;          // arrow RecordBatch
+let restored = from_record_batch(&batch)?;       // Vec<SessionRecord>, round-trips via `content`
 ```
-SessionRecord::Conversation { message }  → append to message log
-SessionRecord::WorkingMemory { facts }   → overwrite working memory
-SessionRecord::Observation { observations } → append to observation log
-SessionRecord::Reflection { reflections }   → overwrite reflection
-SessionRecord::FailedAction { error }    → append to error log
-```
 
-Each record type has its own persistence strategy (append vs overwrite) and
-storage location (message log vs KV store).
+`serialization` also has small helpers over rows: `sum_input_tokens`,
+`sum_output_tokens`, `filter_by_type`. Errors are `SerError::{Json, Arrow}`.
 
 ## 4. Schema evolution
 
-The serialization format is versioned. New fields are added with `#[serde(default)]`
-to maintain backward compatibility:
+Add fields compatibly with `#[serde(default)]` (or `Option`). The crate does
+this already, for example:
 
 ```rust
-#[derive(Serialize, Deserialize)]
-pub struct Messages {
-    // ... existing fields ...
-    #[serde(default)]
-    pub signature: Option<String>,  // New field, old data deserializes fine
+Messages::User {
+    #[serde(default = "fresh_message_id")]   // pre-id fixtures get a fresh scru128
+    id: Id,
+    ..
+}
+
+ModelOutput::ToolCall {
+    #[serde(default)] depends_on: Vec<String>,
+    #[serde(default)] execution_hint: ExecutionHint,
+    ..
 }
 ```
 
-Breaking changes (renaming, removing) require a migration step.
+Renaming or removing a field, or changing an enum's shape, breaks stored
+sessions and needs a migration.

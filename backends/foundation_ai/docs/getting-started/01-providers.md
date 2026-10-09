@@ -89,10 +89,7 @@ use foundation_ai::backends::anthropic_messages_provider::{
 use foundation_ai::types::{
     ModelId, ProviderRouter, RoutableProviderBox, RoutingRule,
 };
-use foundation_ai::{
-    agentic::{AgentSession, AgentConfig, KvMemoryStore},
-    types::ToolShed,
-};
+use foundation_ai::agentic::{AgentSession, AgentConfig, KvMemoryStore};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
@@ -147,7 +144,6 @@ let router = ProviderRouter::builder()
 let agent = AgentSession::<Doc, Mem>::builder(SessionId::new(), router)
     .with_model(ModelId::Name("claude-opus-4-8".into(), None))
     .with_memory_model(ModelId::Name("claude-sonnet-4-6".into(), None))
-    .with_toolshed(ToolShed::default())
     .with_config(AgentConfig::default())
     .with_system_prompt("You are a helpful assistant.")
     .build()?;
@@ -477,6 +473,9 @@ let mem_store = KvMemoryStore::new(kv);
 // type Mem = KvMemoryStore<TursoStorage>;            // Turso memory cache
 // type Mem = KvMemoryStore<JsonFileStorage>;         // JSON file cache
 
+// NOTE: build() requires Doc: Default + Mem: Default. The Turso and JSON-file
+// types above implement it; D1R2DocumentStore doesn't, because D1 and R2 need
+// credentials (Doc 00, "Known limitations").
 let agent = AgentSession::<Doc, Mem>::builder(session_id, router)
     .with_doc_store(doc_store)         // your concrete DocumentStore
     .with_memory_store(mem_store)      // KvMemoryStore wrapping a KeyValueStore
@@ -510,46 +509,31 @@ let agent = AgentSession::<Doc, Mem>::resume(
 )?;
 ```
 
-Resume protocol: loads WorkingMemory → Observation → Reflection → recent
-messages → assembles context → starts with empty queues.
+`resume` currently rebuilds the session over `Doc::default()` /
+`Mem::default()` (and needs both to implement `Default`), so it only sees
+earlier data when those defaults reach the same storage. See Doc 08 §5.
 
 ---
 
 ## 4. Level 4 — Adding Tools
 
-```rust
-use foundation_ai::types::{ToolShed, Tool, Args};
-use foundation_jsonschema::scheme;
+Tools are `ToolImpl`s registered on the session's `ToolCallManager` after
+`build()`:
 
-let toolshed = ToolShed::default()
-    .with_read(Some(Tool {
-        name: "read_file".into(),
-        description: "Read a file from disk".into(),
-        arguments: Some(Args::new(
-            scheme::object()
-                .required("path", scheme::string())
-                .build(),
-        )),
-        returns: Some(Args::new(
-            scheme::object()
-                .required("content", scheme::string())
-                .build(),
-        )),
-    }))
-    .with_search(Some(Tool {
-        name: "search".into(),
-        description: "Search for information".into(),
-        arguments: Some(Args::new(
-            scheme::object()
-                .required("query", scheme::string().min_len(1))
-                .build(),
-        )),
-        returns: None,
-    }));
+```rust
+use foundation_ai::harness::ToolPreset;
+
+agent.tool_manager().register(Arc::new(MyTool));     // your own ToolImpl
+
+ToolPreset::files(Arc::clone(&fs))                     // read / write / edit over a VFS
+    .merge(ToolPreset::shell())                        // bash
+    .register_all(agent.tool_manager());
 ```
 
-Available slots: `read`, `edit`, `write`, `search`, `search_files`, `shell`,
-`memory`, `delegate`. The `shed` meta-tool is always present by default.
+There are no fixed tool slots, and passing a populated `ToolShed` to
+`with_toolshed` makes `build()` fail. See
+[Tools & Presets](03-tools-and-presets.md) and
+[Doc 10](../10-building-custom-tools.md) for writing tools.
 
 ---
 
@@ -569,8 +553,8 @@ agent.follow_up(follow_up_message);
 
 ```rust
 let snapshot = agent.ledger().snapshot();
-println!("Tokens used: {}, remaining: {}",
-    snapshot.total_tokens, snapshot.remaining);
+println!("Tokens used: {}, remaining: {:?}",
+    snapshot.total, snapshot.remaining);
 ```
 
 ### 5.3. Agent Configuration
@@ -578,9 +562,11 @@ println!("Tokens used: {}, remaining: {}",
 ```rust
 use foundation_ai::agentic::AgentConfig;
 
-let config = AgentConfig::default()
-    .with_max_turns(10)
-    .with_loop_threshold(3);
+let config = AgentConfig {
+    max_inner_iterations: 10,
+    max_outer_iterations: 5,
+    ..AgentConfig::default()
+};
 ```
 
 ### 5.4. Session Lifecycle
@@ -607,8 +593,9 @@ OpenRouter:
 Persistence:
   .with_doc_store(doc_store).with_memory_store(kv_memory_store)
 
-Tools:
-  .with_toolshed(toolshed)
+Tools (after build):
+  agent.tool_manager().register(Arc::new(tool))
+  ToolPreset::files(fs).merge(ToolPreset::shell()).register_all(agent.tool_manager())
 ```
 
 ---
