@@ -1,4 +1,4 @@
-//! # foundation_auth_ui
+//! # `foundation_auth_ui`
 //!
 //! WHY: WASM UI components for the authentication flow — login, register, MFA,
 //! password reset, account management, and passkey enrollment.
@@ -9,16 +9,16 @@
 //!
 //! HOW: Each page is a `fn(&Context, &SharedInstructionReceiver, ...) -> Html`
 //! that self-mounts and drives API calls via `primal:on*` event handlers.
+//!
+//! STATUS: only the request/response wire types (`types`) exist so far. The
+//! page and API-client modules (layout, login, register, password, account,
+//! api) are specified in
+//! `specifications/48-foundation-auth-app/features/10-auth-ui-package` and are
+//! added here as that feature is implemented.
 
 #![cfg_attr(not(test), no_std)]
 #![allow(clippy::module_name_repetitions)]
 
 extern crate alloc;
 
-pub mod login;
-pub mod register;
-pub mod password;
-pub mod account;
-pub mod api;
 pub mod types;
-pub mod layout;
