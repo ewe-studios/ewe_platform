@@ -75,7 +75,7 @@
 //!
 //! ```rust
 //! # #[cfg(feature = "std")] {
-//! use derive_more::{Display, Error};
+//! use derive_more::{Display, Error, From};
 //! use foundation_errstacks::{ErrorTrace, PlainResultExt, ErrorTraceResultExt};
 //!
 //! // Simple error with Display and Error derived
@@ -109,7 +109,7 @@
 //!
 //! ```rust
 //! # #[cfg(feature = "std")] {
-//! use derive_more::{Display, Error};
+//! use derive_more::{Display, Error, From};
 //! use foundation_errstacks::{ErrorTrace, PlainResultExt, ErrorTraceResultExt};
 //!
 //! #[derive(Debug, Display, Error, From)]
