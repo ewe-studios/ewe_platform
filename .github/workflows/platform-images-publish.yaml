@@ -1,0 +1,220 @@
+name: Platform images (publish)
+
+# Builds, smoke-tests and publishes both flavors of the CI image
+# (ewestudios/ci-base[-cuda] and ewestudios/ewe-platform-ci[-cuda]).
+# Replaces the old publish-ci-image.yaml / ci-test.Dockerfile.
+#
+# The images themselves are content-addressed (`hash-<inputs hash>`), and
+# check.yaml already makes sure the default flavor exists for every commit it
+# tests. This workflow adds what check.yaml doesn't:
+#   - the CUDA flavor
+#   - smoke tests of the images (tools, Vulkan/GL/WebGL/WebGPU, the Rust
+#     toolchain, baked submodules, llama.cpp CPU/Vulkan/CUDA builds, a
+#     release binary)
+#   - the moving tags `latest` and `sha-<commit>`, only after the smoke tests
+#     pass, on master pushes, the weekly rebuild and manual runs
+#   - a weekly rebuild from scratch (no layer cache, fresh base images) for
+#     security updates; it re-pushes the same hash tags
+#
+# Triggers:
+#   - every push to master: cheap when nothing changed (the hash tags exist,
+#     nothing is built); this is also how a submodule bump, which path filters
+#     can't see reliably, gets its image
+#   - pull requests touching the image inputs: build and smoke-test them
+#   - weekly schedule, and manual runs (optionally forced)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    paths:
+      - ci/platform-images/**
+      - ci/ewe-platform-image/**
+      - rust-toolchain.toml
+      - mise.toml
+      - mise.lock
+      - .gitmodules
+      - tools/**
+      - .github/workflows/platform-images.yaml
+      - .github/workflows/platform-images-publish.yaml
+  schedule:
+    - cron: "23 4 * * 1" # Mondays: rebuild with fresh packages
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild even if the hash tags exist
+        type: boolean
+        default: false
+      no-cache:
+        description: Build without the layer cache (fresh apt packages)
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  default:
+    name: Image (default)
+    uses: ./.github/workflows/platform-images.yaml
+    with:
+      config: ci/ewe-platform-image/config.toml
+      flavor: default
+      force: ${{ github.event_name == 'schedule' || inputs.force == true }}
+      no-cache: ${{ github.event_name == 'schedule' || inputs.no-cache == true }}
+    secrets:
+      registry-password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
+  cuda:
+    name: Image (cuda)
+    uses: ./.github/workflows/platform-images.yaml
+    with:
+      config: ci/ewe-platform-image/config.toml
+      flavor: cuda
+      force: ${{ github.event_name == 'schedule' || inputs.force == true }}
+      no-cache: ${{ github.event_name == 'schedule' || inputs.no-cache == true }}
+      free-disk: true
+    secrets:
+      registry-password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
+  smoke-default:
+    name: Smoke test (default)
+    needs: default
+    # Fork PRs get an artifact instead; check.yaml covers those.
+    if: needs.default.outputs.image-source == 'registry'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    container:
+      image: ${{ needs.default.outputs.image-ref }}
+      credentials:
+        username: ${{ needs.default.outputs.registry-username }}
+        password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+      # Chrome needs more shared memory than Docker's 64M default.
+      options: --shm-size=2g
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Image checks
+        run: nu ci/platform-images/scripts/smoke-test.nu --layer image --browsers "[chrome firefox]"
+
+      - name: Link the baked submodules
+        uses: ./ci/platform-images/actions/link-submodules
+
+      - name: llama.cpp (CPU) builds from the baked sources
+        run: cargo build --profile uat -p infrastructure_llama_cpp --examples
+
+      - name: llama.cpp (Vulkan) builds with the image's Vulkan SDK
+        run: cargo build --profile uat -p infrastructure_llama_cpp --features vulkan --examples
+
+      - name: Release binary
+        run: |
+          cargo build --release -p ewe_platform --bins
+          ls -la target/release/ewe_platform
+
+  smoke-cuda:
+    name: Smoke test (cuda)
+    needs: cuda
+    if: needs.cuda.outputs.image-source == 'registry'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    # Not a `container:` job: the CUDA image is ~15 GB unpacked, so the
+    # runner's disk is freed first and the image is run with docker.
+    env:
+      IMAGE: ${{ needs.cuda.outputs.image-ref }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force
+          df -h /
+
+      - name: Log in to Docker Hub
+        if: needs.cuda.outputs.registry-username != ''
+        uses: docker/login-action@v4.5.2
+        with:
+          username: ${{ needs.cuda.outputs.registry-username }}
+          password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
+      - name: Start the image
+        run: |
+          docker pull "$IMAGE"
+          docker run --detach --name ci \
+            --volume "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" --workdir "$GITHUB_WORKSPACE" \
+            --env GITHUB_ACTIONS --env CARGO_TERM_COLOR=always --env CARGO_INCREMENTAL=0 \
+            "$IMAGE" sleep infinity
+
+      - name: Image checks
+        run: docker exec ci nu ci/platform-images/scripts/smoke-test.nu --layer image --browsers "[chrome firefox]" --cuda
+
+      - name: Link the baked submodules
+        run: docker exec ci nu ci/platform-images/scripts/link-submodules.nu --workspace "$GITHUB_WORKSPACE"
+
+      - name: llama.cpp (CUDA) compiles and links
+        # No GPU on the runner: this proves nvcc, the CUDA libraries and the
+        # link step work. One architecture keeps the build short.
+        run: |
+          docker exec --env CMAKE_CUDA_ARCHITECTURES=89-real ci \
+            cargo build --release -p infrastructure_llama_cpp --features cuda --examples
+
+  promote:
+    name: Tag latest
+    needs: [default, cuda, smoke-default, smoke-cuda]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Install nushell
+        uses: ./ci/platform-images/actions/setup-nu
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4.5.2
+        with:
+          username: ${{ needs.default.outputs.registry-username }}
+          password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.4.1
+
+      - name: Point latest and sha-<commit> at the tested images
+        env:
+          REFS: >-
+            ${{ needs.default.outputs.base-ref }}
+            ${{ needs.default.outputs.image-ref }}
+            ${{ needs.cuda.outputs.base-ref }}
+            ${{ needs.cuda.outputs.image-ref }}
+        run: |
+          set -euo pipefail
+          tags="[latest sha-${GITHUB_SHA::7}]"
+          for ref in $REFS; do
+            nu ci/platform-images/scripts/images.nu promote "$ref" --tags "$tags"
+          done
+          {
+            echo "### Tagged latest and sha-${GITHUB_SHA::7}"
+            for ref in $REFS; do echo "- \`$ref\`"; done
+          } >> "$GITHUB_STEP_SUMMARY"

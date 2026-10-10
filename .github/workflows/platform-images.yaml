@@ -41,10 +41,6 @@ on:
         description: Build without the layer cache (fresh apt packages for security updates).
         type: boolean
         default: false
-      promote-tags:
-        description: Extra tags to point at both layers after they exist, space separated (e.g. "latest sha-1a2b3c4"). Only applied when pushing.
-        type: string
-        default: ""
       free-disk:
         description: Free runner disk space before building (needed for the large CUDA flavor).
         type: boolean
@@ -109,15 +105,18 @@ jobs:
           set -euo pipefail
           username=$(nu -c "let o = (\$env.PLATFORM_IMAGES_REGISTRY_USERNAME? | default ''); if (\$o | is-empty) { open '$CONFIG' | get registry.username } else { \$o }")
           host=$(nu -c "open '$CONFIG' | get -o registry.host | default 'docker.io'")
-          echo "username=$username" >> "$GITHUB_OUTPUT"
-          echo "host=$host" >> "$GITHUB_OUTPUT"
-          echo "push=$HAS_PASSWORD" >> "$GITHUB_OUTPUT"
+          pull_username=""
           if [ "$HAS_PASSWORD" = "true" ]; then
-            echo "pull-username=$username" >> "$GITHUB_OUTPUT"
+            pull_username=$username
           else
-            echo "pull-username=" >> "$GITHUB_OUTPUT"
             echo "::notice::No registry credentials (fork or Dependabot pull request): images are pulled anonymously and, if missing, built without pushing."
           fi
+          {
+            echo "username=$username"
+            echo "host=$host"
+            echo "push=$HAS_PASSWORD"
+            echo "pull-username=$pull_username"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Log in to ${{ steps.registry.outputs.host }}
         if: steps.registry.outputs.push == 'true'
@@ -169,18 +168,6 @@ jobs:
           force: ${{ inputs.force }}
           no-cache: ${{ inputs.no-cache }}
           github-token: ${{ github.token }}
-
-      - name: Promote tags
-        if: inputs.promote-tags != '' && steps.registry.outputs.push == 'true'
-        env:
-          BASE_REF: ${{ steps.base.outputs.ref }}
-          IMAGE_REF: ${{ steps.image.outputs.ref }}
-          TAGS: ${{ inputs.promote-tags }}
-        run: |
-          set -euo pipefail
-          tags="[$TAGS]"
-          nu ci/platform-images/scripts/images.nu promote "$BASE_REF" --tags "$tags"
-          nu ci/platform-images/scripts/images.nu promote "$IMAGE_REF" --tags "$tags"
 
       - name: Name the image artifact
         id: artifact

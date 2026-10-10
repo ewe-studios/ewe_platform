@@ -1,0 +1,190 @@
+name: Release binaries
+
+# Builds release binaries inside the CI image, so a release is built with
+# exactly the toolchain, libraries and submodules CI tested with.
+#
+#   - push a tag `v*`: build, upload as workflow artifacts and attach to the
+#     GitHub release for that tag (created as a draft if it doesn't exist)
+#   - run it manually: build and upload as workflow artifacts only
+#
+# Linux x86_64 binaries come from the default image. The CUDA variant (the
+# llama.cpp-backed binaries with `foundation_ai/cuda`, built in the cuda
+# image) is opt-in, because nvcc makes it long.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: Bin packages to build (space separated)
+        type: string
+        default: "ewe_platform answerme-agent foundation_deployment_platform foundation_codegentools foundation_keychain foundation_connectrpc_codegen foundation_testbed"
+      cuda:
+        description: Also build the CUDA variant of the llama.cpp-backed binaries
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  # The same list as the workflow_dispatch default, for tag pushes.
+  DEFAULT_PACKAGES: "ewe_platform answerme-agent foundation_deployment_platform foundation_codegentools foundation_keychain foundation_connectrpc_codegen foundation_testbed"
+  # Packages built again with foundation_ai/cuda for the CUDA variant.
+  CUDA_PACKAGES: "ewe_platform answerme-agent"
+
+jobs:
+  image:
+    name: CI image
+    uses: ./.github/workflows/platform-images.yaml
+    with:
+      config: ci/ewe-platform-image/config.toml
+    secrets:
+      registry-password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
+  image-cuda:
+    name: CI image (cuda)
+    if: inputs.cuda == true
+    uses: ./.github/workflows/platform-images.yaml
+    with:
+      config: ci/ewe-platform-image/config.toml
+      flavor: cuda
+      free-disk: true
+    secrets:
+      registry-password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
+  linux:
+    name: Linux x86_64
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    container:
+      image: ${{ needs.image.outputs.image-ref }}
+      credentials:
+        username: ${{ needs.image.outputs.registry-username }}
+        password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Link the baked submodules
+        uses: ./ci/platform-images/actions/link-submodules
+
+      - name: Build
+        id: build
+        env:
+          PACKAGES: ${{ inputs.packages || env.DEFAULT_PACKAGES }}
+        run: |
+          set -euo pipefail
+          args=()
+          for p in $PACKAGES; do args+=(-p "$p"); done
+          cargo build --release --locked --bins "${args[@]}"
+          name="ewe_platform-${GITHUB_REF_NAME//\//-}-x86_64-unknown-linux-gnu"
+          mkdir -p "dist/$name"
+          # Every bin target of the selected packages, from cargo metadata.
+          cargo metadata --format-version 1 --no-deps \
+            | PACKAGES="$PACKAGES" python3 -c '
+          import json, os, sys
+          wanted = set(os.environ["PACKAGES"].split())
+          for p in json.load(sys.stdin)["packages"]:
+              if p["name"] in wanted:
+                  for t in p["targets"]:
+                      if "bin" in t["kind"]:
+                          print(t["name"])
+          ' | while read -r bin; do cp "target/release/$bin" "dist/$name/"; done
+          tar -C dist -czf "dist/$name.tar.gz" "$name"
+          sha256sum "dist/$name.tar.gz" > "dist/$name.tar.gz.sha256"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Upload
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: ${{ steps.build.outputs.name }}
+          path: dist/${{ steps.build.outputs.name }}.tar.gz*
+          if-no-files-found: error
+
+  linux-cuda:
+    name: Linux x86_64 (CUDA)
+    needs: image-cuda
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      IMAGE: ${{ needs.image-cuda.outputs.image-ref }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force
+
+      - name: Log in to Docker Hub
+        if: needs.image-cuda.outputs.registry-username != ''
+        uses: docker/login-action@v4.5.2
+        with:
+          username: ${{ needs.image-cuda.outputs.registry-username }}
+          password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
+      - name: Build in the CUDA image
+        id: build
+        run: |
+          set -euo pipefail
+          docker pull "$IMAGE"
+          docker run --rm --volume "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" --workdir "$GITHUB_WORKSPACE" \
+            --env GITHUB_ACTIONS --env CARGO_TERM_COLOR --env CARGO_INCREMENTAL --env CUDA_PACKAGES \
+            "$IMAGE" bash -euo pipefail -c '
+              nu ci/platform-images/scripts/link-submodules.nu
+              args=()
+              for p in $CUDA_PACKAGES; do args+=(-p "$p"); done
+              cargo build --release --locked --bins --features foundation_ai/cuda "${args[@]}"
+            '
+          name="ewe_platform-${GITHUB_REF_NAME//\//-}-x86_64-unknown-linux-gnu-cuda12"
+          mkdir -p "dist/$name"
+          for bin in ewe_platform answerme-agent; do sudo cp "target/release/$bin" "dist/$name/"; done
+          tar -C dist -czf "dist/$name.tar.gz" "$name"
+          sha256sum "dist/$name.tar.gz" > "dist/$name.tar.gz.sha256"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Upload
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: ${{ steps.build.outputs.name }}
+          path: dist/${{ steps.build.outputs.name }}.tar.gz*
+          if-no-files-found: error
+
+  publish:
+    name: Attach to the GitHub release
+    needs: linux
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download
+        uses: actions/download-artifact@v7.0.0
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft --title "$TAG" --notes "Built by the Release binaries workflow."
+          fi
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber dist/*

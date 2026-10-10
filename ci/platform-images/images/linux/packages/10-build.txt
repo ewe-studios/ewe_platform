@@ -22,6 +22,7 @@ zip
 bzip2
 file
 jq
+shellcheck
 sudo
 tzdata
 
