@@ -19,9 +19,16 @@ can't hold up your PR.
 2. **Package jobs.** Each selected package runs `rustfmt`, `cargo build`
    (all targets), `clippy` and `cargo test` as separate steps, so the Actions
    page shows whether a crate failed to build or failed its tests. They use
-   the `uat` profile (dev with LLVM; the `dev` profile's Cranelift backend
-   isn't available in CI). Packages that depend on llama.cpp
-   fetch the `tools/llama.cpp` submodule; nothing else does.
+   the `uat` profile (dev with LLVM, which is what the test docs use).
+   Every package job runs **inside the CI image** (`container:`), which
+   already has the pinned toolchain, the system libraries (GTK/WebKit,
+   Vulkan, Mesa, ...), the tools and the submodules, so jobs install
+   nothing. The submodules are linked into the checkout from the copies
+   baked into the image (`ci/platform-images/actions/link-submodules`).
+   Before the package jobs, the `image` job makes sure the image for this
+   commit's inputs exists, and builds and pushes it if not. See
+   [`ewe-platform-image/README.md`](ewe-platform-image/README.md) and
+   [`platform-images/README.md`](platform-images/README.md).
 3. **Checks passed.** One summary job that is green when every selected package
    passed (or none needed testing). Make this the required status check in
    branch protection: it stays the same name however many packages run.
@@ -47,3 +54,19 @@ make ci-package PACKAGE=foundation_ai STEP=test
 
 The toolchain is pinned in `rust-toolchain.toml`. Bump it deliberately, and
 run the affected packages when you do.
+
+To run exactly what CI runs, in the same environment, use the image:
+
+```sh
+docker run --rm -it -v "$PWD:/w" -w /w ewestudios/ewe-platform-ci:latest bash
+nu ci/platform-images/scripts/link-submodules.nu   # inside the container
+python3 scripts/ci/ci.py run foundation_ai
+```
+
+## Other workflows
+
+- **Platform images (publish)** (`platform-images-publish.yaml`): builds and
+  smoke-tests both image flavors (default and CUDA), tags `latest`, and
+  rebuilds weekly for security updates.
+- **Release binaries** (`release.yaml`): on `v*` tags (and by hand), builds
+  release binaries inside the image and attaches them to the release.

@@ -13,7 +13,7 @@ def fail [msg: string] {
     error make --unspanned {msg: $msg}
 }
 
-def git-in [dir: path, ...args: string] {
+def --wrapped git-in [dir: path, ...args: string] {
     ^git -C $dir ...$args
 }
 

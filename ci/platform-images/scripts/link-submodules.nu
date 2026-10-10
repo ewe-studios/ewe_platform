@@ -32,7 +32,7 @@ def warn [msg: string] {
 
 # git in the workspace. The checkout may belong to another uid than the one
 # running in the container, so trust it explicitly for these commands.
-def ws-git [ws: path, ...args: string] {
+def --wrapped ws-git [ws: path, ...args: string] {
     ^git -c $"safe.directory=($ws)" -C $ws ...$args
 }
 
@@ -90,7 +90,15 @@ def main [
         let want_sha = gitlink-sha $ws $p
         let entry = $baked | where path == $p
         let baked_dir = if ($baked_root | is-empty) { "" } else { $baked_root | path join $p }
-        if ($entry | is-empty) {
+        let target = $ws | path join $p
+        let present = if ($target | path type) == "dir" and (ls -a $target | is-not-empty) {
+            do { ^git -c "safe.directory=*" -C $target rev-parse HEAD } | complete
+        } else { null }
+        if $present != null and $present.exit_code == 0 and ($present.stdout | str trim) == $want_sha {
+            # Already checked out at the right commit (e.g. a local checkout
+            # with initialised submodules): leave it alone.
+            {path: $p, sha: $want_sha, source: "already checked out"}
+        } else if ($entry | is-empty) {
             warn $"($p) is not baked into this image; fetching ($want_sha) from its remote"
             fetch-submodule $ws $p
             {path: $p, sha: $want_sha, source: "fetched (not baked)"}
@@ -100,7 +108,6 @@ def main [
             {path: $p, sha: $want_sha, source: "fetched (image stale)"}
         } else {
             if not ($baked_dir | path exists) { fail $"lock lists ($p) but ($baked_dir) is missing from the image" }
-            let target = $ws | path join $p
             clear-path $target
             if $mode == "symlink" {
                 ^ln -s $baked_dir $target
