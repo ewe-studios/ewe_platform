@@ -42,14 +42,35 @@ LLAMA_TEST_MODEL_DESC = "Qwen2.5-0.5B-Instruct q4_k_m, ~370MB"
 # NOTE: Rust toolchain is managed by rust-toolchain.toml (rustup).
 # mise defers to rust-toolchain.toml when present, so we don't duplicate it.
 
+#
+# Every tool is pinned, and mise.lock records each one's download URL and
+# sha256: `mise install` here, in the CI image (ci/ewe-platform-image) and on
+# the Windows/macOS images installs exactly the same versions. Only [tools]
+# (and [settings]) feed the CI image, so editing tasks or env doesn't rebuild
+# it. After changing a version, refresh the lock (needs GitHub API access):
+#   mise lock --platform linux-x64,linux-arm64,macos-arm64,windows-x64
+# The shared versions match ci/platform-images/images/linux/mise/mise.toml.
+
 [tools]
-node = "23"
-pnpm = "latest"
-"cargo:cargo-nextest" = "latest"
-"cargo:cargo-audit" = "latest"
-"cargo:bacon" = "latest"
-"aqua:nushell/nushell" = "latest"
-pitchfork = "latest"
+nushell = "0.116.1"
+node = "24.21.0"
+pnpm = "10.34.6"
+"aqua:denoland/deno" = "2.9.7"
+cmake = "3.31.12"
+ninja = "1.13.2"
+protoc = "36.2"
+sccache = "0.18.0"
+cargo-binstall = "1.25.2"
+# Must match the wasm-bindgen version in Cargo.lock (CI checks this).
+"github:wasm-bindgen/wasm-bindgen" = "0.2.126"
+"github:wasm-bindgen/wasm-pack" = "0.15.0"
+"github:WebAssembly/binaryen" = "version_133"
+wasmtime = "49.0.2"
+actionlint = "1.7.12"
+"cargo:cargo-nextest" = "0.9.148"
+"cargo:cargo-audit" = "0.22.2"
+"cargo:bacon" = "3.26.0"
+pitchfork = "2.30.1"
 # wrangler is managed via project devDependencies (pnpm), not mise —
 # mise's npm shim installs wrangler into a nested tree where sharp's
 # prebuilt-binary check fails and falls back to a node-gyp build.

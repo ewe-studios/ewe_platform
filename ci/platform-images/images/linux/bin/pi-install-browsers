@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# pi-install-browsers [chrome] [firefox]
+#
+# Install real (non-snap) browsers for headless testing on Ubuntu:
+#   chrome   Google Chrome stable from Google's apt repository
+#            (Ubuntu's own chromium package is a snap shim and does not work
+#            in containers). Installs as `google-chrome`; `chromium` and
+#            `chromium-browser` are linked to it for tools that look for those.
+#   firefox  Firefox from Mozilla's apt repository, pinned above Ubuntu's
+#            snap transitional package.
+#
+# Both repositories are amd64 builds. With no arguments nothing is installed.
+set -euo pipefail
+
+[ "$#" -eq 0 ] && { echo "pi-install-browsers: none requested"; exit 0; }
+
+arch=$(dpkg --print-architecture)
+install -d -m 0755 /etc/apt/keyrings
+need_update=0
+
+for browser in "$@"; do
+  case "$browser" in
+    chrome)
+      if [ "$arch" != "amd64" ]; then
+        echo "pi-install-browsers: Google Chrome has no $arch Linux build" >&2
+        exit 1
+      fi
+      curl -fsSL https://dl.google.com/linux/linux_signing_key.pub -o /etc/apt/keyrings/google-chrome.asc
+      echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb/ stable main" \
+        > /etc/apt/sources.list.d/google-chrome.list
+      need_update=1
+      ;;
+    firefox)
+      curl -fsSL https://packages.mozilla.org/apt/repo-signing-key.gpg -o /etc/apt/keyrings/packages.mozilla.org.asc
+      echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" \
+        > /etc/apt/sources.list.d/mozilla.list
+      printf 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n' \
+        > /etc/apt/preferences.d/mozilla
+      need_update=1
+      ;;
+    *)
+      echo "pi-install-browsers: unknown browser '$browser' (expected chrome or firefox)" >&2
+      exit 2
+      ;;
+  esac
+done
+
+[ "$need_update" -eq 1 ] && apt-get update
+
+packages=()
+for browser in "$@"; do
+  case "$browser" in
+    chrome) packages+=(google-chrome-stable) ;;
+    firefox) packages+=(firefox) ;;
+  esac
+done
+apt-get install -y --no-install-recommends "${packages[@]}"
+
+for browser in "$@"; do
+  case "$browser" in
+    chrome)
+      ln -sf /usr/bin/google-chrome /usr/local/bin/chromium
+      ln -sf /usr/bin/google-chrome /usr/local/bin/chromium-browser
+      google-chrome --version
+      ;;
+    firefox)
+      firefox --version
+      ;;
+  esac
+done
+rm -rf /var/lib/apt/lists/*

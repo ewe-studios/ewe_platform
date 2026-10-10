@@ -1,0 +1,35 @@
+name: platform-images / setup-nu
+description: >
+  Install nushell on a Linux x64 runner at the version the platform-images
+  base image pins, downloading the exact URL recorded in its mise.lock and
+  checking the sha256 recorded there. No GitHub API calls, no third-party
+  action. (Jobs running inside a platform-images container already have nu.)
+
+runs:
+  using: composite
+  steps:
+    - name: Install nushell from the platform-images lock
+      shell: bash
+      run: |
+        set -euo pipefail
+        LOCK="$GITHUB_ACTION_PATH/../../images/linux/mise/mise.lock"
+        if [ "$RUNNER_OS" != "Linux" ] || [ "$RUNNER_ARCH" != "X64" ]; then
+          echo "::error::setup-nu supports Linux X64 runners only (got $RUNNER_OS $RUNNER_ARCH)"
+          exit 1
+        fi
+        read -r version url checksum < <(python3 - "$LOCK" <<'EOF'
+        import sys, tomllib
+        lock = tomllib.load(open(sys.argv[1], "rb"))
+        entry = lock["tools"]["nushell"][0]
+        plat = entry["platforms.linux-x64"]
+        print(entry["version"], plat["url"], plat["checksum"].removeprefix("sha256:"))
+        EOF
+        )
+        dest="$RUNNER_TEMP/platform-images-nu-$version"
+        mkdir -p "$dest"
+        curl -fsSL --retry 3 -o "$dest/nu.tar.gz" "$url"
+        echo "$checksum  $dest/nu.tar.gz" | sha256sum -c -
+        tar -xzf "$dest/nu.tar.gz" -C "$dest" --strip-components=1
+        rm "$dest/nu.tar.gz"
+        echo "$dest" >> "$GITHUB_PATH"
+        "$dest/nu" --version

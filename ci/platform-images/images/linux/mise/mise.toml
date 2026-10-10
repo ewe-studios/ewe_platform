@@ -1,0 +1,33 @@
+# Tools every platform-images base image carries, pinned. `mise.lock` next to
+# this file holds each tool's download URL and sha256, and the image installs
+# with MISE_LOCKED=1, so a build is reproducible and never needs the GitHub API.
+#
+# These are generic tools only. A consuming repository pins its own tools in
+# its own mise.toml (layer 2 installs those on top).
+#
+# Bumping a tool: change the version here, then refresh the lock with
+#   mise lock --platform linux-x64,linux-arm64,macos-arm64,windows-x64
+# (needs GitHub API access, e.g. GITHUB_TOKEN set). See ../../../README.md.
+
+[tools]
+# Scripting core for every platform-images script.
+nushell = "0.116.1"
+
+# Build tools, same versions on Linux, Windows and macOS.
+cmake = "3.31.12"
+ninja = "1.13.2"
+protoc = "36.2"
+
+# JavaScript runtimes (wasm test harnesses, Playwright drivers, tooling).
+node = "24.21.0"
+"aqua:denoland/deno" = "2.9.7"
+
+# Rust-adjacent tooling that does not depend on a repository's toolchain.
+sccache = "0.18.0"
+cargo-binstall = "1.25.2"
+"github:WebAssembly/binaryen" = "version_133"
+"github:wasm-bindgen/wasm-pack" = "0.15.0"
+wasmtime = "49.0.2"
+
+# Workflow linting.
+actionlint = "1.7.12"

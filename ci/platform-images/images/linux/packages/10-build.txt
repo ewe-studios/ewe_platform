@@ -1,0 +1,59 @@
+# Base build environment: compilers, linkers, build tools and the common
+# -dev libraries native crates link against. Ubuntu 24.04 (noble) package
+# names, one per line; `#` starts a comment. Every file in this directory is
+# installed, so split new groups into new files rather than growing this one.
+#
+# cmake, ninja and protoc come from mise (images/linux/mise/mise.toml) so
+# every platform gets the same pinned versions.
+
+# Fetching, archives, certificates
+ca-certificates
+curl
+wget
+gnupg
+git
+git-lfs
+openssh-client
+rsync
+xz-utils
+zstd
+unzip
+zip
+bzip2
+file
+jq
+shellcheck
+sudo
+tzdata
+
+# C/C++ toolchains. Rust on Linux links through `clang -fuse-ld=lld` in many
+# repositories (including ewe_platform), and bindgen needs libclang.
+build-essential
+clang
+lld
+llvm
+libclang-dev
+libomp-dev
+pkg-config
+autoconf
+automake
+libtool
+make
+
+# Python: build scripts (V8, Dawn/depot_tools, llama.cpp converters) and CI glue
+python3
+python3-pip
+python3-venv
+
+# Dawn / Chromium-style builds: gn (ninja comes from mise)
+generate-ninja
+
+# Common -dev libraries
+libssl-dev
+zlib1g-dev
+libzstd-dev
+liblzma-dev
+libbz2-dev
+libsqlite3-dev
+libcurl4-openssl-dev
+libudev-dev

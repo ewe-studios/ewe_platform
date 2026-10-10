@@ -7,6 +7,14 @@ name: Checks
 # Per-package settings live in ci/packages.toml; the driver is
 # scripts/ci/ci.py, which you can run locally (`make ci-package PACKAGE=...`).
 #
+# Every package job runs inside the ewe_platform CI image
+# (ci/ewe-platform-image): the pinned toolchain, system libraries (GTK/WebKit,
+# Vulkan, Mesa, ...), tools and the baked submodules are already there, so
+# jobs install nothing. The `image` job makes sure the image for this
+# commit's inputs exists (computing its content hash, building and pushing it
+# only when it is missing) before the package jobs start; see
+# ci/platform-images/README.md.
+#
 # Pull requests test only what they affect. Pushes to master, the nightly
 # schedule and manual runs test the whole workspace (or the packages you name).
 
@@ -43,15 +51,25 @@ env:
   CI_PROFILE: uat
 
 jobs:
+  image:
+    name: CI image
+    uses: ./.github/workflows/platform-images.yaml
+    with:
+      config: ci/ewe-platform-image/config.toml
+    secrets:
+      registry-password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
   plan:
     name: Plan
+    # Only reads `cargo metadata`, so it runs on the runner, in parallel with
+    # the image job.
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 0 # change detection diffs against the PR base
           submodules: false
@@ -72,31 +90,34 @@ jobs:
 
   package:
     name: ${{ matrix.package }}
-    needs: plan
-    if: needs.plan.outputs.count != '0'
+    needs: [plan, image]
+    # The usual path: the image is in the registry (it existed, or the image
+    # job just pushed it).
+    if: needs.plan.outputs.count != '0' && needs.image.outputs.image-source == 'registry'
     runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.image.outputs.image-ref }}
+      # Empty for forks (no secrets): the runner then pulls anonymously.
+      credentials:
+        username: ${{ needs.image.outputs.registry-username }}
+        password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
 
-      - name: Fetch llama.cpp
-        if: matrix.llama
-        run: git submodule update --init --depth 1 tools/llama.cpp
+      - name: Link the baked submodules
+        uses: ./ci/platform-images/actions/link-submodules
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            clang libclang-dev cmake pkg-config libssl-dev protobuf-compiler
-
-      - name: Install the pinned toolchain
+      - name: Use the pinned toolchain
+        # Already in the image (its hash covers rust-toolchain.toml), so this
+        # installs nothing; it pins RUSTUP_TOOLCHAIN for the steps below.
         run: |
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
           rustup toolchain install "$toolchain" --profile minimal --no-self-update \
@@ -104,9 +125,13 @@ jobs:
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
       - name: Cache cargo registry and target dir
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@v2.9.2
         with:
-          key: ${{ matrix.package }}
+          # The image hash in the key: a new image (system libraries, tools)
+          # starts a fresh target cache instead of linking against stale state.
+          key: ${{ matrix.package }}-${{ needs.image.outputs.image-hash }}
+          # CARGO_HOME/bin holds the image's rustup/cargo; don't cache it.
+          cache-bin: "false"
           # Only master writes caches, so PR runs can't evict each other.
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
@@ -122,49 +147,114 @@ jobs:
       - name: test
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
 
+  package-artifact:
+    name: ${{ matrix.package }}
+    needs: [plan, image]
+    # Pull requests without registry credentials (forks, Dependabot) whose
+    # changes need an image that isn't in the registry yet: the image job
+    # built it as an artifact. `container:` can only pull from a registry, so
+    # load the image and run the same steps in it with `docker exec`.
+    if: needs.plan.outputs.count != '0' && needs.image.outputs.image-source == 'artifact'
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      IMAGE: ${{ needs.image.outputs.image-ref }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Download the image
+        uses: actions/download-artifact@v7.0.0
+        with:
+          name: ${{ needs.image.outputs.artifact-name }}
+          path: ${{ runner.temp }}/image
+
+      - name: Start the image
+        run: |
+          set -euo pipefail
+          docker load --input "$RUNNER_TEMP/image/image.tar"
+          rm -rf "$RUNNER_TEMP/image"
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          docker run --detach --name ci \
+            --volume "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" --workdir "$GITHUB_WORKSPACE" \
+            --env GITHUB_ACTIONS --env CI --env CARGO_TERM_COLOR --env CARGO_INCREMENTAL \
+            --env CARGO_PROFILE_UAT_DEBUG --env CI_PROFILE --env RUSTUP_TOOLCHAIN="$toolchain" \
+            "$IMAGE" sleep infinity
+
+      - name: Link the baked submodules
+        run: docker exec ci nu ci/platform-images/scripts/link-submodules.nu --workspace "$GITHUB_WORKSPACE"
+
+      - name: rustfmt
+        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt
+
+      - name: build
+        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step build
+
+      - name: clippy
+        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy
+
+      - name: test
+        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
+
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
   checks-passed:
     name: Checks passed
-    needs: [plan, package]
+    needs: [image, plan, package, package-artifact]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate
         env:
+          IMAGE: ${{ needs.image.result }}
           PLAN: ${{ needs.plan.result }}
           PACKAGES: ${{ needs.package.result }}
+          PACKAGES_ARTIFACT: ${{ needs.package-artifact.result }}
         run: |
-          echo "plan: $PLAN, packages: $PACKAGES"
-          if [ "$PLAN" != "success" ]; then exit 1; fi
-          case "$PACKAGES" in
-            success|skipped) exit 0 ;;
-            *) exit 1 ;;
-          esac
+          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT"
+          if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
+          for result in "$PACKAGES" "$PACKAGES_ARTIFACT"; do
+            case "$result" in
+              success|skipped) ;;
+              *) exit 1 ;;
+            esac
+          done
 
   publish-dry-run:
     name: Publish dry-run
+    needs: image
     # Packaging the whole workspace is slow; run it where releases happen.
+    # Non-PR events always have registry credentials, so the image is there.
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.image.outputs.image-ref }}
+      credentials:
+        username: ${{ needs.image.outputs.registry-username }}
+        password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
     timeout-minutes: 120
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
 
-      - name: Fetch llama.cpp
-        run: git submodule update --init --depth 1 tools/llama.cpp
+      - name: Check out the baked submodules
+        # `cargo publish` refuses a dirty tree, and a symlink where a gitlink
+        # belongs is a change: use real submodule checkouts, cloned from the
+        # baked copies (still no network).
+        uses: ./ci/platform-images/actions/link-submodules
+        with:
+          mode: submodule
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            clang libclang-dev cmake pkg-config libssl-dev protobuf-compiler
-
-      - name: Install the pinned toolchain
+      - name: Use the pinned toolchain
         run: |
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
           rustup toolchain install "$toolchain" --profile minimal --no-self-update
