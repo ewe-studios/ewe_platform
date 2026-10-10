@@ -88,3 +88,9 @@ runs = ["", "--no-default-features"]
 # The reactive graph is `no_std + alloc` (the wasm UI crates use it that way);
 # test that configuration too (ewe-studios/ewe_platform#51, #52).
 runs = ["", "--no-default-features --features single_threaded"]
+
+[packages.foundation_deployment_platform]
+# VM orchestration (QEMU/UTM) is behind the non-default `vms` feature; its
+# tests (moved here from foundation_testbed with the code, spec-53 F11) only
+# compile with it, so test that configuration as well.
+runs = ["", "vms"]

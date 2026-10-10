@@ -1,6 +1,8 @@
 //! Tests extracted from vms/winrm/mod.rs
 
-use foundation_testbed::vms::winrm::{
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::winrm::{
     generate_message_id, parse_command_id, parse_receive_response, parse_shell_id, WinRM,
 };
 

@@ -1,9 +1,11 @@
 //! Tests extracted from vms/build/ modules
 
-use foundation_testbed::vms::build::{guest_project_path, target_triple};
-use foundation_testbed::vms::build::logs::{extract_errors, ERROR_PATTERNS};
-use foundation_testbed::vms::build::multiarch::{cross_compile_env, CROSS_DEPS};
-use foundation_testbed::vms::config::GuestOs;
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::build::{guest_project_path, target_triple};
+use foundation_deployment_platform::build::logs::{extract_errors, ERROR_PATTERNS};
+use foundation_deployment_platform::build::multiarch::{cross_compile_env, CROSS_DEPS};
+use foundation_deployment_platform::config::GuestOs;
 
 // From build/mod.rs
 #[test]

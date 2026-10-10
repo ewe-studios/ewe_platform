@@ -1,6 +1,8 @@
 //! Tests extracted from vms/init/mod.rs
 
-use foundation_testbed::vms::init::{
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::init::{
     generate_gitignore, generate_testbed_toml, BUILTIN_DEFENDER_EXCLUSIONS, BUILTIN_MOUNT_CHECK,
 };
 

@@ -1,6 +1,8 @@
 //! Tests extracted from vms/state/mod.rs
 
-use foundation_testbed::vms::state::{from_qemu, is_process_alive, state_dir, VmState};
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::state::{from_qemu, is_process_alive, state_dir, VmState};
 
 #[test]
 fn test_is_process_alive_check() {

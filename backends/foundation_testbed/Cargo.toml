@@ -14,11 +14,13 @@ default = ["wasm", "cli"]
 # Uses std::process::Command for docker exec — zero new Rust deps.
 docker-tests = []
 
-# vms feature kept as alias — enables foundation_deployment_platform with vms
-vms = ["dep:foundation_deployment_platform"]
+# vms feature kept as alias — enables foundation_deployment_platform with vms.
+# The VM code and its tests live in foundation_deployment_platform (spec-53
+# Feature 11); `foundation_testbed::platform` re-exports it.
+vms = ["dep:foundation_deployment_platform", "foundation_deployment_platform/vms"]
 # cli kept for backward compat
 cli = ["dep:clap"]
-foundation_deployment_platform_vms = ["dep:foundation_deployment_platform"]
+foundation_deployment_platform_vms = ["vms"]
 
 # wasm32 test harness: browser (pure-Rust CDP/BiDi), Deno, Cloudflare Workers.
 wasm = [
