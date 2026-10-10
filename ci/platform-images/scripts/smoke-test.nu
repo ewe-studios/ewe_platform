@@ -15,7 +15,7 @@
 # Prints a table and exits non-zero if any check failed.
 
 # Run an external command; its first non-empty output line, or an error.
-def run [bin: string, ...args: string]: nothing -> string {
+def --wrapped first-line [bin: string, ...args: string]: nothing -> string {
     let out = ^$bin ...$args | complete
     if $out.exit_code != 0 {
         error make --unspanned {msg: ($"exit ($out.exit_code): ($out.stderr) ($out.stdout)" | lines | first 3 | str join " | ")}
@@ -24,7 +24,7 @@ def run [bin: string, ...args: string]: nothing -> string {
 }
 
 # Full stdout of an external command, or an error.
-def output [bin: string, ...args: string]: nothing -> string {
+def --wrapped output [bin: string, ...args: string]: nothing -> string {
     let out = ^$bin ...$args | complete
     if $out.exit_code != 0 {
         error make --unspanned {msg: ($"exit ($out.exit_code): ($out.stderr)" | lines | first 3 | str join " | ")}
@@ -50,13 +50,13 @@ def base-checks [browsers: list<string>, cuda: bool]: nothing -> list<record> {
         [clang --version] [ld.lld --version] [gcc --version] [python3 --version] [git --version]
         [glslc --version] [spirv-val --version] [Xvfb -help]
     ]
-    mut results = $tools | each {|t| check $t.0 {|| run $t.0 ...($t | skip 1) } }
+    mut results = $tools | each {|t| check $t.0 {|| first-line $t.0 ...($t | skip 1) } }
     let modules = [
         gtk+-3.0 webkit2gtk-4.1 javascriptcoregtk-4.1 libsoup-3.0 dbus-1 ayatana-appindicator3-0.1 librsvg-2.0
         gl egl glesv2 osmesa gbm vulkan x11 x11-xcb xcb xkbcommon xkbcommon-x11 xrandr xi xcursor wayland-client
         openssl zlib sqlite3 libudev
     ]
-    $results = $results | append ($modules | each {|m| check $"pkg-config ($m)" {|| run pkg-config --modversion $m } })
+    $results = $results | append ($modules | each {|m| check $"pkg-config ($m)" {|| first-line pkg-config --modversion $m } })
 
     $results = $results | append (check "vulkan: lavapipe device" {||
         let dev = output vulkaninfo --summary | lines | where {|l| $l =~ 'deviceName' } | str join " " | str trim
@@ -74,7 +74,7 @@ def base-checks [browsers: list<string>, cuda: bool]: nothing -> list<record> {
         $r
     })
     if "chrome" in $browsers {
-        $results = $results | append (check "chrome" {|| run google-chrome --version })
+        $results = $results | append (check "chrome" {|| first-line google-chrome --version })
         $results = $results | append (check "chrome: webgl2 + webgpu" {||
             # The page reports the contexts it gets; --virtual-time-budget lets
             # the async WebGPU adapter request finish before the DOM is dumped.
@@ -91,7 +91,7 @@ def base-checks [browsers: list<string>, cuda: bool]: nothing -> list<record> {
         })
     }
     if "firefox" in $browsers {
-        $results = $results | append (check "firefox" {|| run firefox --version })
+        $results = $results | append (check "firefox" {|| first-line firefox --version })
     }
     if $cuda {
         $results = $results | append (check "nvcc" {|| output nvcc --version | lines | last })
@@ -103,7 +103,7 @@ def image-checks []: nothing -> list<record> {
     let tools = [[rustc --version] [cargo --version] [cargo clippy --version] [cargo fmt --version]
         [wasm-bindgen --version] [wasm-bindgen-test-runner --version] [cargo-nextest --version] [cargo-audit --version]
         [bacon --version] [pnpm --version] [pitchfork --version]]
-    mut results = $tools | each {|t| check ($t | str join " ") {|| run $t.0 ...($t | skip 1) } }
+    mut results = $tools | each {|t| check ($t | str join " ") {|| first-line $t.0 ...($t | skip 1) } }
     $results = $results | append (check "rust targets" {|| output rustup target list --installed | lines | str join " " })
     $results = $results | append (check "rust components" {|| output rustup component list --installed | lines | str join " " })
     let lock = $env.PLATFORM_IMAGES_SUBMODULES_LOCK? | default ""
@@ -113,7 +113,7 @@ def image-checks []: nothing -> list<record> {
         let root = $lock | path dirname
         for sub in (open $lock | get submodules) {
             $results = $results | append (check $"submodule ($sub.path)" {||
-                let head = run git -c "safe.directory=*" -C ($root | path join $sub.path) rev-parse HEAD
+                let head = first-line git -c "safe.directory=*" -C ($root | path join $sub.path) rev-parse HEAD
                 if $head != $sub.sha { error make --unspanned {msg: $"at ($head), lock says ($sub.sha)"} }
                 $head
             })
