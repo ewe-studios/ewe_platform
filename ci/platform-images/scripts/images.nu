@@ -6,7 +6,7 @@
 #   nu images.nu prepare --config ci/ewe-platform-image/config.toml --layer base --out /tmp/pi/base
 #   nu images.nu prepare --config ... --layer image --parent docker.io/ns/ci-base@sha256:... --out /tmp/pi/image
 #   nu images.nu exists docker.io/ns/ci-base:hash-0123...
-#   nu images.nu promote docker.io/ns/image@sha256:... --tags [latest sha-abc1234]
+#   nu images.nu promote docker.io/ns/image@sha256:... --tags "latest sha-abc1234"
 #
 # Layers:
 #   base   generic layer 1, built from this unit's images/linux (FROM the
@@ -301,8 +301,9 @@ def "main exists" [
 # Point extra tags at an image that is already in the registry.
 def "main promote" [
     ref: string             # repository@sha256:... (or :tag)
-    --tags: list<string>    # e.g. [latest sha-1a2b3c4]
+    --tags: string          # space separated, e.g. "latest sha-1a2b3c4"
 ] {
+    let tags = $tags | default "" | split row ' ' | where {|t| $t != '' }
     if ($tags | is-empty) { fail "--tags is empty" }
     let repo = $ref | str replace --regex '[@:][^/]*$' ''
     let args = $tags | each {|t| [-t $"($repo):($t)"] } | flatten

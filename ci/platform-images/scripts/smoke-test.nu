@@ -1,8 +1,8 @@
 #!/usr/bin/env nu
 # Smoke-test a platform-images Linux image from the inside:
 #
-#   docker run --rm <image> nu /opt/platform-images/scripts/smoke-test.nu --layer base --browsers [chrome firefox]
-#   docker run --rm <image> nu /opt/platform-images/scripts/smoke-test.nu --layer image --browsers [chrome firefox]
+#   docker run --rm <image> nu /opt/platform-images/scripts/smoke-test.nu --layer base --browsers "chrome firefox"
+#   docker run --rm <image> nu /opt/platform-images/scripts/smoke-test.nu --layer image --browsers "chrome firefox"
 #
 # base:  every tool runs; pkg-config finds the desktop/graphics stacks;
 #        Vulkan enumerates lavapipe; GL and EGL render with llvmpipe (under
@@ -129,9 +129,10 @@ def image-checks []: nothing -> list<record> {
 
 def main [
     --layer: string = "base"            # base | image
-    --browsers: list<string> = []       # browsers the image should have
+    --browsers: string = ""             # browsers the image should have, space separated
     --cuda                              # the image should have the CUDA toolkit
 ] {
+    let browsers = $browsers | split row ' ' | where {|b| $b != '' }
     let results = match $layer {
         "base" => (base-checks $browsers $cuda)
         "image" => ((base-checks $browsers $cuda) | append (image-checks))

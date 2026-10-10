@@ -109,7 +109,7 @@ jobs:
           submodules: false
 
       - name: Image checks
-        run: nu ci/platform-images/scripts/smoke-test.nu --layer image --browsers "[chrome firefox]"
+        run: nu ci/platform-images/scripts/smoke-test.nu --layer image --browsers "chrome firefox"
 
       - name: Link the baked submodules
         uses: ./ci/platform-images/actions/link-submodules
@@ -165,7 +165,7 @@ jobs:
             "$IMAGE" sleep infinity
 
       - name: Image checks
-        run: docker exec ci nu ci/platform-images/scripts/smoke-test.nu --layer image --browsers "[chrome firefox]" --cuda
+        run: docker exec ci nu ci/platform-images/scripts/smoke-test.nu --layer image --browsers "chrome firefox" --cuda
 
       - name: Link the baked submodules
         run: docker exec ci nu ci/platform-images/scripts/link-submodules.nu --workspace "$GITHUB_WORKSPACE"
@@ -210,7 +210,7 @@ jobs:
             ${{ needs.cuda.outputs.image-ref }}
         run: |
           set -euo pipefail
-          tags="[latest sha-${GITHUB_SHA::7}]"
+          tags="latest sha-${GITHUB_SHA::7}"
           for ref in $REFS; do
             nu ci/platform-images/scripts/images.nu promote "$ref" --tags "$tags"
           done

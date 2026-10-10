@@ -2,7 +2,7 @@
 # Install the toolchain a rust-toolchain.toml pins (channel, components,
 # targets) with rustup, plus any extras, and make it the default.
 #
-#   nu install-rust-toolchain.nu rust-toolchain.toml --components [clippy] --targets [wasm32-wasip1]
+#   nu install-rust-toolchain.nu rust-toolchain.toml --components "clippy rust-analyzer" --targets wasm32-wasip1
 #
 # Installs with `--profile minimal` plus the listed components rather than the
 # file's `profile`, so an image does not carry rust-docs; components the file
@@ -14,8 +14,8 @@ def fail [msg: string] {
 
 def main [
     toolchain_file: path
-    --components: list<string> = []   # extra components (e.g. clippy)
-    --targets: list<string> = []      # extra targets
+    --components: string = ""         # extra components, space separated (e.g. "clippy")
+    --targets: string = ""            # extra targets, space separated
     --no-default                      # don't `rustup default` the channel
 ] {
     if not ($toolchain_file | path exists) { fail $"not found: ($toolchain_file)" }
@@ -24,8 +24,8 @@ def main [
     let channel = $tc | get -o channel
     if ($channel | is-empty) { fail $"($toolchain_file) has no toolchain.channel" }
 
-    let components = $tc | get -o components | default [] | append $components | uniq
-    let targets = $tc | get -o targets | default [] | append $targets | uniq
+    let components = $tc | get -o components | default [] | append ($components | split row ' ' | where {|c| $c != '' }) | uniq
+    let targets = $tc | get -o targets | default [] | append ($targets | split row ' ' | where {|t| $t != '' }) | uniq
 
     mut args = [toolchain install $channel --profile minimal --no-self-update]
     if not ($components | is-empty) { $args = ($args | append [--component ($components | str join ",")]) }

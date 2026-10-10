@@ -24,10 +24,9 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # Toolchain from rust-toolchain.toml, made the default so cargo works anywhere
 # in the image. CI still sets RUSTUP_TOOLCHAIN to the same channel.
 COPY files/rust-toolchain.toml /opt/ewe/rust-toolchain.toml
-# (`[a b]` is a nushell list literal; the build args are space separated.)
 RUN nu /opt/platform-images/scripts/install-rust-toolchain.nu /opt/ewe/rust-toolchain.toml \
-      --components "[${RUST_EXTRA_COMPONENTS}]" \
-      --targets "[${RUST_EXTRA_TARGETS}]"
+      --components "${RUST_EXTRA_COMPONENTS}" \
+      --targets "${RUST_EXTRA_TARGETS}"
 
 # Repository tools (wasm-bindgen matching Cargo.lock, cargo-nextest, ...),
 # put ahead of the base image's tools on PATH. cargo:* tools come through
