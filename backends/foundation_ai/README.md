@@ -54,7 +54,7 @@ Root-caused bug write-ups live in [`docs/fixes/`](docs/fixes/).
 
 ```toml
 [dependencies]
-foundation_ai = { version = "0.0.1", features = ["agentic"] }
+foundation_ai = "0.0.1"
 foundation_auth = "0.0.1"
 foundation_db = "0.0.1"
 serde_json = "1"
@@ -64,7 +64,6 @@ serde_json = "1"
 
 | Flag | What it does |
 |---|---|
-| `agentic` | Agent loop, sessions, tools, memory |
 | `llamacpp` | llama.cpp GGUF inference (on by default) |
 | `candle` | Candle pure-Rust inference (on by default) |
 | `candle-cuda` | Candle on NVIDIA CUDA |
@@ -85,8 +84,7 @@ GPU builds need a couple of environment variables — see the
 The shortest path to a working agent — a Claude session in a few lines:
 
 ```rust
-use foundation_ai::harness;
-use foundation_ai::types::SessionId;
+use foundation_ai::harness::RouterPreset;
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -94,7 +92,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_key = std::env::var("ANTHROPIC_API_KEY")?;
 
     // Harness wires the provider, router, and memory model for you.
-    let agent = harness::claude_session(SessionId::new(), &api_key)?
+    let agent = RouterPreset::claude(&api_key)?
+        .into_agent_builder()
         .with_system_prompt("You are a helpful assistant.")
         .build()?;
 
@@ -114,17 +113,17 @@ That's all in **[Getting Started: Providers](docs/getting-started/01-providers.m
 
 ```bash
 # Harness shortcuts — one-call setup:
-cargo run -p foundation_ai --example hello_claude     --features agentic
-cargo run -p foundation_ai --example hello_openai     --features agentic
-cargo run -p foundation_ai --example hello_openrouter --features agentic
-cargo run -p foundation_ai --example hello_llamacpp   --features "agentic llamacpp"
+cargo run -p foundation_ai --example hello_claude
+cargo run -p foundation_ai --example hello_openai
+cargo run -p foundation_ai --example hello_openrouter
+cargo run -p foundation_ai --example hello_llamacpp
 
 # Manual (no helpers) — full ProviderRouter setup:
-cargo run -p foundation_ai --example manual_claude_router --features agentic
-cargo run -p foundation_ai --example manual_openrouter    --features agentic
+cargo run -p foundation_ai --example manual_claude_router
+cargo run -p foundation_ai --example manual_openrouter
 
 # Tools and delegation:
-cargo run -p foundation_ai --example agent_with_tools --features agentic
+cargo run -p foundation_ai --example agent_with_tools
 ```
 
 ---

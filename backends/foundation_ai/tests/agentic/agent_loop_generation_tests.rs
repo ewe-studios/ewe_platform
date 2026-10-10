@@ -14,19 +14,20 @@
 //! provider seam is covered separately in `integrations/session_turn.rs` — see
 //! `specifications/60-agentic-reliability/test-matrix.md` for the split.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
+use foundation_ai::agentic::internals::{
+    AgentLoop, ContextProvider, LoopDetectorConfig, MemoryCoordinator, MemoryHierarchy, MessageApi,
+    SteeringQueues, TokenLedger,
+};
 use foundation_ai::agentic::testing::{mock_text, mock_tool_call, MockModelProvider};
 use foundation_ai::agentic::tool_impl::ToolCallManager;
 use foundation_ai::agentic::{
-    AgentConfig, AgentLoop, ContextConfig, ContextProvider, ErrorPolicy, KvMemoryStore,
-    LoopDetectorConfig, MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi,
-    SteeringQueues, TokenLedger,
+    AgentConfig, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig, ModelSelection,
 };
 use foundation_ai::types::{
-    ArgType, MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
-    TextContent, UserModelContent,
+    MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
+    TextContent, ToolArguments, UserModelContent,
 };
 use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
@@ -56,11 +57,21 @@ fn harness_with(router: ProviderRouter, config: AgentConfig) -> Harness {
     harness_with_tools(router, config, Vec::new())
 }
 
-/// As `harness_with`, plus tools registered on the `ToolCallManager` so the
-/// `InnerToolCalls -> InnerExecuting -> InnerEmitResults` states can run.
+/// Build a loop on the `mock` model with `tools` registered.
 fn harness_with_tools(
     router: ProviderRouter,
     config: AgentConfig,
+    tools: Vec<Arc<dyn foundation_ai::agentic::tool_impl::ToolImpl>>,
+) -> Harness {
+    harness_with_models(router, config, ModelSelection::new("mock"), tools)
+}
+
+/// As `harness_with`, plus tools registered on the `ToolCallManager` so the
+/// `InnerToolCalls -> InnerExecuting -> InnerEmitResults` states can run.
+fn harness_with_models(
+    router: ProviderRouter,
+    config: AgentConfig,
+    models: ModelSelection,
     tools: Vec<Arc<dyn foundation_ai::agentic::tool_impl::ToolImpl>>,
 ) -> Harness {
     let session_id = SessionId::new();
@@ -109,6 +120,7 @@ fn harness_with_tools(
         ErrorPolicy::new(),
         router,
         config,
+        models,
     );
 
     Harness {
@@ -117,13 +129,6 @@ fn harness_with_tools(
         priority,
         cancel,
         ledger: ledger_handle,
-    }
-}
-
-fn config_for(model: &str) -> AgentConfig {
-    AgentConfig {
-        primary_model: ModelId::Name(model.into(), None),
-        ..Default::default()
     }
 }
 
@@ -191,7 +196,7 @@ fn follow_up_drives_a_full_generation_turn() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("hello from the model")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("hi"));
 
     let records = drive(&mut h);
@@ -211,7 +216,7 @@ fn ending_emits_summary_counting_messages() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("reply")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("hi"));
 
     let records = drive(&mut h);
@@ -231,7 +236,7 @@ fn loop_terminates_and_yields_none() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("done")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("hi"));
 
     drive(&mut h);
@@ -252,7 +257,7 @@ fn provider_failure_emits_failed_action_not_silent_success() {
     let mut mock = MockModelProvider::new();
     mock.fail_with(|_| true, "provider exploded");
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("hi"));
 
     let records = drive(&mut h);
@@ -275,10 +280,10 @@ fn tool_call_output_drives_the_tool_path() {
     let mut mock = MockModelProvider::new();
     // First call asks for a tool; any later call answers in text, so the loop
     // can terminate rather than looping on the tool forever.
-    mock.on_nth_call(1, vec![mock_tool_call("search", HashMap::new())]);
+    mock.on_nth_call(1, vec![mock_tool_call("search", ToolArguments::new())]);
     mock.on_any(vec![mock_text("done after tool")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("use a tool"));
 
     let records = drive(&mut h);
@@ -301,7 +306,7 @@ fn priority_message_is_processed_before_follow_up() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("ack")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("second"));
     let _ = h.priority.push(user_msg("first"));
     h.cancel.store(1, Ordering::SeqCst); // PauseForPriority
@@ -333,7 +338,6 @@ fn max_outer_iterations_terminates_a_generating_loop() {
     mock.on_any(vec![mock_text("again")]);
 
     let config = AgentConfig {
-        primary_model: ModelId::Name("mock".into(), None),
         max_outer_iterations: 2,
         ..Default::default()
     };
@@ -358,7 +362,7 @@ fn assistant_reply_is_persisted_to_message_api() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("persisted reply")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("hi"));
 
     let records = drive(&mut h);
@@ -380,11 +384,11 @@ fn registered_tool_executes_and_emits_its_result() {
     use foundation_ai::agentic::testing::MockTool;
 
     let mut mock = MockModelProvider::new();
-    mock.on_nth_call(0, vec![mock_tool_call("echo", HashMap::new())]);
+    mock.on_nth_call(0, vec![mock_tool_call("echo", ToolArguments::new())]);
     mock.on_any(vec![mock_text("finished")]);
 
     let tool = Arc::new(MockTool::returning("echo", "tool output here"));
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![tool]);
     let _ = h.follow_up.push(user_msg("call the tool"));
 
     let records = drive(&mut h);
@@ -409,11 +413,11 @@ fn failing_tool_does_not_kill_the_turn() {
     use foundation_ai::agentic::testing::MockTool;
 
     let mut mock = MockModelProvider::new();
-    mock.on_nth_call(0, vec![mock_tool_call("broken", HashMap::new())]);
+    mock.on_nth_call(0, vec![mock_tool_call("broken", ToolArguments::new())]);
     mock.on_any(vec![mock_text("recovered")]);
 
     let tool = Arc::new(MockTool::failing("broken", "tool exploded"));
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![tool]);
     let _ = h.follow_up.push(user_msg("call the broken tool"));
 
     // drive() panics if the loop wedges — a failing tool must not hang it.
@@ -428,11 +432,14 @@ fn failing_tool_does_not_kill_the_turn() {
 #[test]
 fn unknown_tool_name_errors_without_panic() {
     let mut mock = MockModelProvider::new();
-    mock.on_nth_call(0, vec![mock_tool_call("does_not_exist", HashMap::new())]);
+    mock.on_nth_call(
+        0,
+        vec![mock_tool_call("does_not_exist", ToolArguments::new())],
+    );
     mock.on_any(vec![mock_text("moved on")]);
 
     // No tools registered at all.
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("call a missing tool"));
 
     let records = drive(&mut h);
@@ -451,8 +458,8 @@ fn multiple_tool_calls_all_execute() {
     mock.on_nth_call(
         0,
         vec![
-            mock_tool_call("alpha", HashMap::new()),
-            mock_tool_call("beta", HashMap::new()),
+            mock_tool_call("alpha", ToolArguments::new()),
+            mock_tool_call("beta", ToolArguments::new()),
         ],
     );
     mock.on_any(vec![mock_text("both done")]);
@@ -461,7 +468,7 @@ fn multiple_tool_calls_all_execute() {
         Arc::new(MockTool::returning("alpha", "A")),
         Arc::new(MockTool::returning("beta", "B")),
     ];
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), tools);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), tools);
     let _ = h.follow_up.push(user_msg("call both"));
 
     let records = drive(&mut h);
@@ -502,14 +509,13 @@ fn repeated_failures_trip_the_breaker_and_terminate() {
     mock.fail_with(|_| true, "always fails");
 
     let config = AgentConfig {
-        primary_model: ModelId::Name("primary".into(), None),
-        fallback_models: vec![ModelId::Name("fallback".into(), None)],
         circuit_breaker_threshold: 2,
         max_outer_iterations: 3,
         ..Default::default()
     };
+    let models = ModelSelection::new("primary").with_fallbacks(["fallback"]);
 
-    let mut h = harness_with(mock.into_router(), config);
+    let mut h = harness_with_models(mock.into_router(), config, models, Vec::new());
     let _ = h.follow_up.push(user_msg("hi"));
 
     let records = drive(&mut h);
@@ -523,9 +529,11 @@ fn repeated_failures_trip_the_breaker_and_terminate() {
 /// Matrix 1.9 — a router that serves nothing fails cleanly, without panicking.
 #[test]
 fn empty_router_fails_cleanly() {
-    let mut h = harness_with(
+    let mut h = harness_with_models(
         ProviderRouter::builder().build(),
-        config_for("nobody-serves-this"),
+        AgentConfig::default(),
+        ModelSelection::new("nobody-serves-this"),
+        Vec::new(),
     );
     let _ = h.follow_up.push(user_msg("hi"));
 
@@ -550,7 +558,7 @@ fn unscripted_interaction_fails_loudly() {
     // No .on_any(), so resolve() finds no matching script.
     let mock = MockModelProvider::new();
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("hi"));
 
     let records = drive(&mut h);
@@ -570,10 +578,9 @@ fn max_inner_iterations_bounds_a_non_converging_tool_loop() {
 
     let mut mock = MockModelProvider::new();
     // Always ask for the tool — never answer in text.
-    mock.on_any(vec![mock_tool_call("loop_forever", HashMap::new())]);
+    mock.on_any(vec![mock_tool_call("loop_forever", ToolArguments::new())]);
 
     let config = AgentConfig {
-        primary_model: ModelId::Name("mock".into(), None),
         max_inner_iterations: 3,
         max_outer_iterations: 2,
         ..Default::default()
@@ -628,7 +635,7 @@ fn assembled_interaction_carries_system_message_and_tools() {
     );
 
     let tool = Arc::new(MockTool::returning("search", "results"));
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![tool]);
     let _ = h.follow_up.push(user_msg("find me something"));
     drive(&mut h);
 
@@ -656,11 +663,14 @@ fn tool_result_is_fed_back_into_next_assemble() {
         0,
         vec![mock_tool_call(
             "shed",
-            HashMap::from([("description".to_string(), ArgType::Text("lookup".into()))]),
+            ToolArguments::from_iter([(
+                "description".to_string(),
+                serde_json::Value::String("lookup".into()),
+            )]),
         )],
     );
     // Call 1: request the tool `shed` returned.
-    mock.on_nth_call(1, vec![mock_tool_call("lookup", HashMap::new())]);
+    mock.on_nth_call(1, vec![mock_tool_call("lookup", ToolArguments::new())]);
     // Any later call: check the tool's result reached the interaction, then answer.
     mock.on(
         move |mi| {
@@ -677,7 +687,7 @@ fn tool_result_is_fed_back_into_next_assemble() {
     );
 
     let tool = Arc::new(MockTool::returning("lookup", "TOOL_OUTPUT_MARKER"));
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![tool]);
     let _ = h.follow_up.push(user_msg("use the tool"));
     drive(&mut h);
 
@@ -694,7 +704,7 @@ fn abort_terminates_the_loop_before_generation() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("should not be reached")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("hi"));
     // Abort before driving — the outer boundary must terminate to Ending.
     h.cancel.store(2, std::sync::atomic::Ordering::SeqCst); // CancelCode::Abort
@@ -734,7 +744,6 @@ fn context_pressure_note_injected_when_over_threshold() {
 
     // Tiny budget so even a modest context crosses the 0.70 pressure threshold.
     let config = AgentConfig {
-        primary_model: ModelId::Name("mock".into(), None),
         context_pressure_threshold: 0.70,
         ..Default::default()
     };
@@ -774,7 +783,6 @@ fn preflight_compression_drops_oldest_when_over_budget() {
     );
 
     let config = AgentConfig {
-        primary_model: ModelId::Name("mock".into(), None),
         preflight_compression_threshold: 0.85,
         context_pressure_threshold: 0.0, // isolate compression
         ..Default::default()
@@ -822,7 +830,7 @@ fn tool_call_with_deps(
         content: ModelOutput::ToolCall {
             id: call_id.to_string(),
             name: name.to_string(),
-            arguments: Some(HashMap::new()),
+            arguments: Some(ToolArguments::new()),
             signature: None,
             depends_on,
             execution_hint: foundation_ai::types::ExecutionHint::Unspecified,
@@ -848,7 +856,7 @@ fn a_self_referential_dependency_fails_the_workflow_without_panicking() {
     mock.on_any(vec![mock_text("finished")]);
 
     let tool = Arc::new(MockTool::returning("echo", "out"));
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![tool]);
     let _ = h.follow_up.push(user_msg("go"));
 
     let records = drive(&mut h);
@@ -871,7 +879,7 @@ fn a_dependency_on_an_unknown_call_fails_the_workflow() {
     mock.on_any(vec![mock_text("finished")]);
 
     let tool = Arc::new(MockTool::returning("echo", "out"));
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![tool]);
     let _ = h.follow_up.push(user_msg("go"));
 
     let records = drive(&mut h);
@@ -895,7 +903,7 @@ fn a_workflow_failure_does_not_end_the_turn() {
     mock.on_any(vec![mock_text("recovered")]);
 
     let tool = Arc::new(MockTool::returning("echo", "out"));
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![tool]);
     let _ = h.follow_up.push(user_msg("go"));
 
     // `drive` panics if the loop fails to terminate, so reaching here at all is
@@ -918,7 +926,7 @@ fn well_ordered_dependencies_still_execute() {
     mock.on_any(vec![mock_text("finished")]);
 
     let tool = Arc::new(MockTool::returning("echo", "out"));
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![tool]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![tool]);
     let _ = h.follow_up.push(user_msg("go"));
 
     let records = drive(&mut h);
@@ -947,7 +955,7 @@ fn well_ordered_dependencies_still_execute() {
 
 #[test]
 fn a_hard_abort_ends_the_turn_before_the_next_generation() {
-    use foundation_ai::agentic::CancelCode;
+    use foundation_ai::agentic::internals::CancelCode;
 
     // A hard abort must be honoured at the outer boundary, not after another
     // (billable) model call. Set it before driving so the very first boundary
@@ -955,7 +963,7 @@ fn a_hard_abort_ends_the_turn_before_the_next_generation() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("should not be reached")]);
 
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![]);
     let _ = h.follow_up.push(user_msg("go"));
     CancelCode::Abort.store(&h.cancel);
 
@@ -970,14 +978,14 @@ fn a_hard_abort_ends_the_turn_before_the_next_generation() {
 
 #[test]
 fn an_abort_resets_the_cancel_signal() {
-    use foundation_ai::agentic::CancelCode;
+    use foundation_ai::agentic::internals::CancelCode;
 
     // The signal is consumed on handling; leaving it set would abort the NEXT
     // turn too, which reads as the session mysteriously going dead.
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("hi")]);
 
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![]);
     let _ = h.follow_up.push(user_msg("go"));
     CancelCode::Abort.store(&h.cancel);
 
@@ -997,7 +1005,7 @@ fn a_priority_message_is_injected_and_the_signal_cleared() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("answered")]);
 
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![]);
     let _ = h.follow_up.push(user_msg("original"));
     h.priority
         .push(user_msg("urgent"))
@@ -1024,7 +1032,6 @@ fn the_outer_iteration_cap_terminates_a_turn() {
     mock.on_any(vec![mock_text("more")]);
 
     let config = AgentConfig {
-        primary_model: ModelId::Name("mock".into(), None),
         max_outer_iterations: 1,
         ..Default::default()
     };
@@ -1044,7 +1051,6 @@ fn a_zero_outer_iteration_cap_ends_immediately() {
     mock.on_any(vec![mock_text("never")]);
 
     let config = AgentConfig {
-        primary_model: ModelId::Name("mock".into(), None),
         max_outer_iterations: 0,
         ..Default::default()
     };
@@ -1075,7 +1081,7 @@ fn a_priority_message_during_generation_discards_and_reassembles() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("original answer")]);
 
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![]);
     let _ = h.follow_up.push(user_msg("first question"));
 
     let mut injected = false;
@@ -1120,7 +1126,7 @@ fn mid_generation_steering_drains_the_priority_queue() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("answer")]);
 
-    let mut h = harness_with_tools(mock.into_router(), config_for("mock"), vec![]);
+    let mut h = harness_with_tools(mock.into_router(), AgentConfig::default(), vec![]);
     let _ = h.follow_up.push(user_msg("question"));
 
     let mut injected = false;
@@ -1170,7 +1176,7 @@ fn a_vacuous_turn_is_retried_and_the_good_answer_replaces_it() {
     mock.on_nth_call(0, vec![mock_text(".")]);
     mock.on_any(vec![mock_text("Hello. How can I help you?")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("hello"));
 
     let records = drive(&mut h);
@@ -1197,7 +1203,7 @@ fn the_withdrawn_text_is_not_left_in_front_of_the_answer() {
     mock.on_nth_call(0, vec![mock_text(".")]);
     mock.on_any(vec![mock_text("Paris")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("What is the capital of France?"));
 
     let records = drive(&mut h);
@@ -1229,7 +1235,7 @@ fn a_real_answer_is_never_retried() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("Paris")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("What is the capital of France?"));
 
     let records = drive(&mut h);
@@ -1247,7 +1253,7 @@ fn a_bare_number_is_kept_when_the_question_asked_for_one() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("4")]);
 
-    let mut h = harness_with(mock.into_router(), config_for("mock"));
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
     let _ = h.follow_up.push(user_msg("What is 2+2?"));
 
     let records = drive(&mut h);
@@ -1270,9 +1276,7 @@ fn a_model_stuck_on_junk_stops_being_asked_and_never_fails_the_turn() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text(".")]);
 
-    let config = AgentConfig {
-        ..config_for("mock")
-    };
+    let config = AgentConfig::default();
     let mut h = harness_with(mock.into_router(), config);
     let _ = h.follow_up.push(user_msg("hello"));
 

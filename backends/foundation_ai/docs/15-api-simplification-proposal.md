@@ -1,7 +1,7 @@
 # Proposal 15 — Simplifying the `foundation_ai` API surface
 
 **Status:** approved; being implemented tier by tier — each item below is
-marked when it lands (Tier 1: [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63), Tier 2: [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65)). The bug fixes
+marked when it lands (Tier 1: [ewe-studios/ewe_platform#63](https://github.com/ewe-studios/ewe_platform/pull/63), Tier 2: [ewe-studios/ewe_platform#65](https://github.com/ewe-studios/ewe_platform/pull/65), Tier 3: [ewe-studios/ewe_platform#66](https://github.com/ewe-studios/ewe_platform/pull/66)). The bug fixes
 for the "Known limitations" in Doc 00 are handled separately; this doc is
 about making the everyday API smaller and harder to misuse.
 
@@ -1288,6 +1288,8 @@ let tools = ToolShed::new().tool(greet);   // FnTool: ToolImpl, category default
 
 #### 14. Single source for models (F8)
 
+✅ Implemented in [ewe-studios/ewe_platform#66](https://github.com/ewe-studios/ewe_platform/pull/66).
+
 Today:
 
 ```rust
@@ -1331,6 +1333,8 @@ pub struct ModelSelection {                 // built only by AgentSessionBuilder
 
 #### 15. One error type at the public boundary (F11)
 
+✅ Implemented in [ewe-studios/ewe_platform#66](https://github.com/ewe-studios/ewe_platform/pull/66).
+
 Today: harness `Result<_, String>`, session `ErrorTrace<AgenticError>`
 (F11).
 
@@ -1361,6 +1365,8 @@ fn main() -> Result<(), ErrorTrace<AgenticError>> {
 
 #### 16. Name cleanup (F10)
 
+✅ Implemented in [ewe-studios/ewe_platform#66](https://github.com/ewe-studios/ewe_platform/pull/66).
+
 Today:
 
 ```rust
@@ -1387,6 +1393,8 @@ pub use tool_impl::{ /* … */ ToolImpl, /* … */ };                 // ToolDef
 
 #### 17. Feature flag (F13)
 
+✅ Implemented in [ewe-studios/ewe_platform#66](https://github.com/ewe-studios/ewe_platform/pull/66).
+
 Today: `agentic = []` in the default features, gating nothing (F13).
 
 Proposed (option A — make it real):
@@ -1407,6 +1415,8 @@ default = ["llamacpp", "candle"]
 ```
 
 #### 18. Narrow the public surface
+
+✅ Implemented in [ewe-studios/ewe_platform#66](https://github.com/ewe-studios/ewe_platform/pull/66).
 
 Today `agentic/mod.rs` re-exports ~60 items, loop internals included:
 
@@ -1446,6 +1456,8 @@ pub mod internals {
 
 #### 19. Harness collapse
 
+✅ Implemented in [ewe-studios/ewe_platform#66](https://github.com/ewe-studios/ewe_platform/pull/66).
+
 Today each model mix is a pair of free functions:
 
 ```rust
@@ -1476,6 +1488,8 @@ let agent = RouterPreset::claude(&key)?
 ```
 
 #### 20. Tool arguments are `serde_json::Value` (F9) — breaking
+
+✅ Implemented in [ewe-studios/ewe_platform#66](https://github.com/ewe-studios/ewe_platform/pull/66).
 
 **Decided:** drop `ArgType` and carry tool arguments as JSON end to end. Every
 backend already receives JSON from the model; `ArgType` only adds a lossy

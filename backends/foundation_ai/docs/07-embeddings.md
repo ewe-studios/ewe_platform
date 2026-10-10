@@ -46,7 +46,8 @@ pub trait EmbeddingProvider: Send + Sync {
 The one implementation:
 
 ```rust
-use foundation_ai::agentic::{CachedEmbeddingProvider, SentenceChunker, NoopColdCache};
+use foundation_ai::agentic::CachedEmbeddingProvider;
+use foundation_ai::agentic::internals::{SentenceChunker, NoopColdCache};
 
 let embedder = CachedEmbeddingProvider::new(
     router.clone(),                 // routes the embedding model id
@@ -82,6 +83,7 @@ messages.)
 
 ```rust
 let agent = AgentSession::builder(router.clone())
+    .with_model("my-model")
     .with_embedder(Arc::new(CachedEmbeddingProvider::with_defaults(router)), "text-embedding-3-small")
     // search_context, built inside build() from the session's own context
     // provider — so it uses the session's stores and embedder:

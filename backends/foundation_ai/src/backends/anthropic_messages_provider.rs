@@ -24,15 +24,15 @@ use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;
 
+use crate::backends::backend_utils::{tool_arguments_from_str, tool_arguments_from_value};
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
-use crate::types::base_types::json_value_to_arg_type;
 use crate::types::base_types::{
-    ArgType, AuthProvider, CostStatus, ExecutionHint, ExtractResult, MessageType, Messages, Model,
-    ModelAPI, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
-    ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelStreamBox,
-    ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolDeclarations,
-    ToolFormatter, UsageCosting, UsageReport, UserModelContent,
+    AuthProvider, CostStatus, ExecutionHint, ExtractResult, MessageType, Messages, Model, ModelAPI,
+    ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor,
+    ModelProviders, ModelSpec, ModelState, ModelStreamBox, ModelUsageCosting, StopReason,
+    TextContent, Tool, ToolCallingError, ToolDeclarations, ToolFormatter, UsageCosting,
+    UsageReport, UserModelContent,
 };
 
 // ============================================================================
@@ -765,8 +765,7 @@ impl ToolFormatter for AnthropicFormatter {
                             .get("input")
                             .cloned()
                             .unwrap_or(serde_json::Value::Null);
-                        let arguments: Option<HashMap<String, ArgType>> =
-                            serde_json::from_value(input.clone()).ok();
+                        let arguments = tool_arguments_from_value(&name, input);
                         calls.push(ModelOutput::ToolCall {
                             id,
                             name,
@@ -1193,18 +1192,7 @@ impl AnthropicStream {
 
         // Emit each tool call as a separate message.
         for tc in &self.tool_calls {
-            let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
-                serde_json::from_str(&tc.arguments)
-                    .ok()
-                    .map(|v: serde_json::Value| {
-                        v.as_object()
-                            .map(|obj| {
-                                obj.iter()
-                                    .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-                                    .collect()
-                            })
-                            .unwrap_or_default()
-                    });
+            let arguments = tool_arguments_from_str(&tc.name, &tc.arguments);
 
             messages.push(Messages::Assistant {
                 id: foundation_compact::ids::new_scru128(),
@@ -1499,18 +1487,7 @@ pub fn parse_response(
                 metadata: None,
             },
             AnthropicContentBlock::ToolUse { id, name, input } => {
-                let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
-                    serde_json::from_value(input.clone())
-                        .ok()
-                        .map(|v: serde_json::Value| {
-                            v.as_object()
-                                .map(|obj| {
-                                    obj.iter()
-                                        .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-                                        .collect()
-                                })
-                                .unwrap_or_default()
-                        });
+                let arguments = tool_arguments_from_value(name, input.clone());
 
                 Messages::Assistant {
                     id: foundation_compact::ids::new_scru128(),

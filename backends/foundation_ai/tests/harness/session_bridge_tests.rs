@@ -2,7 +2,7 @@
 //!
 //! WHY: A preset is only "super easy" if the builder it hands back actually
 //! produces a working session. This verifies the bridge end-to-end: a preset's
-//! `into_agent_builder` (and the `*_session` convenience wrappers) yields a
+//! `into_agent_builder` yields a
 //! builder that passes preflight and builds a real `AgentSession` with the
 //! given id and the wired primary model — all offline.
 //!
@@ -14,7 +14,7 @@
 //! (`MemoryDocumentStore`, `KvMemoryStore<MemoryStorage>`); cloud preflight
 //! (`AllowAllAccess`, empty toolshed, default budget) needs no network.
 
-use foundation_ai::harness::{self, CLAUDE_OPUS};
+use foundation_ai::harness::{RouterPreset, CLAUDE_OPUS};
 use foundation_ai::types::{ModelId, SessionId};
 
 fn named(id: &str) -> ModelId {
@@ -24,7 +24,7 @@ fn named(id: &str) -> ModelId {
 #[test]
 fn into_agent_builder_builds_session_with_id() {
     let id = SessionId::from_name("harness-bridge-preset");
-    let preset = harness::claude_router("test-key").expect("router builds");
+    let preset = RouterPreset::claude("test-key").expect("router builds");
 
     let session = preset
         .into_agent_builder()
@@ -38,14 +38,16 @@ fn into_agent_builder_builds_session_with_id() {
 }
 
 #[test]
-fn session_convenience_wrapper_builds_and_accepts_customisation() {
+fn preset_builder_builds_and_accepts_customisation() {
     let id = SessionId::from_name("harness-bridge-wrapper");
 
-    let session = harness::claude_session(id.clone(), "test-key")
-        .expect("builder returned")
+    let session = RouterPreset::claude("test-key")
+        .expect("preset builds")
+        .into_agent_builder()
+        .with_session_id(id.clone())
         .with_system_prompt("You are a helpful assistant.")
         .build()
-        .expect("session builds from convenience wrapper");
+        .expect("session builds from the preset");
 
     assert_eq!(*session.session_id(), id);
 }

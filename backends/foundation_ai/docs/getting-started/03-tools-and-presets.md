@@ -27,6 +27,7 @@ Every tool is a `ToolImpl`. Three things connect it to an agent:
 use foundation_ai::agentic::{AgentSession, ToolShed};
 
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tool(my_tool))
     .build()?;
 
@@ -142,6 +143,7 @@ spawn sub-agents by accident.
 
 ```rust
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tools(ToolPreset::standard(Arc::clone(&fs))))
     .build()?;
 ```
@@ -202,6 +204,7 @@ let delegation = ToolPreset::agent::<Doc, Mem>(
 
 // Give the parent everything plus delegation.
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tools(ToolPreset::standard(fs)).tools(delegation))
     .build()?;
 ```
@@ -216,8 +219,7 @@ sub-agents, so delegation chains are bounded no matter what the model requests.
 ```rust
 use std::sync::Arc;
 use foundation_ai::agentic::ToolShed;
-use foundation_ai::harness::{self, ToolPreset};
-use foundation_ai::types::SessionId;
+use foundation_ai::harness::{RouterPreset, ToolPreset};
 use foundation_nativeapis::shared::vfs::MemoryFs;
 
 # fn demo() -> Result<(), Box<dyn std::error::Error>> {
@@ -225,7 +227,8 @@ let api_key = std::env::var("ANTHROPIC_API_KEY")?;
 let fs = Arc::new(MemoryFs::new());
 
 // 1. Model preset → session, with read/write/edit + bash.
-let agent = harness::claude_session(SessionId::new(), &api_key)?
+let agent = RouterPreset::claude(&api_key)?
+    .into_agent_builder()
     .with_system_prompt("You are a coding assistant. Use the file tools.")
     .with_toolshed(
         ToolShed::new()
@@ -252,8 +255,7 @@ agent.end()?;
 # }
 ```
 
-Runnable version: `cargo run -p foundation_ai --example agent_with_tools
---features agentic`.
+Runnable version: `cargo run -p foundation_ai --example agent_with_tools`.
 
 ---
 

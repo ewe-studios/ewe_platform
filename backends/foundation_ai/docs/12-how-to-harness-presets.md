@@ -19,11 +19,11 @@ The shortest path to a working, multi-model agent — a strong main model plus a
 small memory model, wired and ready:
 
 ```rust
-use foundation_ai::harness;
-use foundation_ai::types::SessionId;
+use foundation_ai::harness::RouterPreset;
 
-// GLM 5.2 for chat + Gemma 4 E2B for memory, as an AgentSession builder.
-let agent = harness::glm52_gemma_session(SessionId::new(), None, None)?
+// GLM 5.2 for chat + Gemma 4 E2B for memory, bridged into an AgentSession.
+let agent = RouterPreset::glm52_gemma(None, None)?
+    .into_agent_builder()
     .with_system_prompt("You are a helpful assistant.")
     .build()?;
 ```
@@ -39,42 +39,54 @@ The harness gives you three entry points, from highest-level to lowest:
 
 | Layer | You get | Use when |
 |-------|---------|----------|
-| `*_session(id, …)` | a wired `AgentSessionBuilder` | you want an agent, fast |
-| `*_router(…)` → `RouterPreset` | router + model ids | you want to inspect/mix further |
+| `RouterPreset::claude(key)?.into_agent_builder()` (and the other constructors) | a wired `AgentSessionBuilder` | you want an agent, fast |
+| `RouterPreset::claude(key)?` | router + model ids | you want to inspect/mix further |
 | `providers::*` + `RouterMix` | raw providers, full control | fully custom combinations |
 
-They compose: `*_session` calls `*_router()?.into_agent_builder().with_session_id(id)`, and
-`*_router` builds a `RouterMix`.
+They compose: each `RouterPreset` constructor builds a `RouterMix`, and
+`into_agent_builder()` turns any preset into a builder with its models set.
+
+Every fallible harness function returns `ErrorTrace<AgenticError>` — the same
+error type as `build()` and `run_turn()` — so one `?` works end to end. A
+provider that can't be constructed (cache directory, download client, config)
+fails with `AgenticError::Provider(reason)`.
 
 ---
 
 ## 2. Combo presets (`agents.rs`)
 
-Each combination has a `*_router()` (returns `RouterPreset`) and a `*_session()`
-(returns `AgentSessionBuilder`). Local (GGUF) combos take two optional
-`HuggingFaceGGUFConfig`s (main, memory); cloud combos take an `api_key`.
+Each combination is a constructor on `RouterPreset`. Local (GGUF) combos take
+two optional `HuggingFaceGGUFConfig`s (main, memory); cloud combos take an
+`api_key`.
 
-| Function | Main model | Memory model | Backend |
+| Constructor | Main model | Memory model | Backend |
 |----------|-----------|--------------|---------|
-| `glm52_gemma_*` | GLM 5.2 | Gemma 4 E2B | GGUF (llama.cpp) |
-| `qwen36_gemma_*` | Qwen 3.6 35B-A3B | Gemma 4 E2B | GGUF |
-| `gemma_*` | Gemma 4 26B-A4B | Gemma 4 E2B | GGUF (big + small) |
-| `claude_*` | Claude Opus | Claude Sonnet | Anthropic |
-| `openai_chat_*` | GPT-4o | GPT-4o-mini | OpenAI Chat Completions |
-| `openai_responses_*` | GPT-4o | GPT-4o-mini | OpenAI Responses API |
-| `candle_llama_*` | one safetensors model | — | Candle (Llama arch only) |
+| `RouterPreset::glm52_gemma(main, memory)` | GLM 5.2 | Gemma 4 E2B | GGUF (llama.cpp) |
+| `RouterPreset::qwen36_gemma(main, memory)` | Qwen 3.6 35B-A3B | Gemma 4 E2B | GGUF |
+| `RouterPreset::gemma(main, memory)` | Gemma 4 26B-A4B | Gemma 4 E2B | GGUF (big + small) |
+| `RouterPreset::claude(key)` | Claude Opus | Claude Sonnet | Anthropic |
+| `RouterPreset::openai_chat(key)` | GPT-4o | GPT-4o-mini | OpenAI Chat Completions |
+| `RouterPreset::openai_responses(key)` | GPT-4o | GPT-4o-mini | OpenAI Responses API |
+| `RouterPreset::candle_llama(repo, config)` | one safetensors model | — | Candle (Llama arch only) |
 
 ```rust
+use foundation_ai::harness::RouterPreset;
+
 // Local (GGUF) — main + memory:
-let preset = harness::gemma_router(None, None)?;              // RouterPreset
-let builder = harness::gemma_session(id, None, None)?;
+let preset = RouterPreset::gemma(None, None)?;
+let builder = RouterPreset::gemma(None, None)?.into_agent_builder().with_session_id(id);
 
 // Cloud:
-let preset = harness::claude_router(&api_key)?;
-let builder = harness::openai_responses_session(id, &api_key)?;
+let preset = RouterPreset::claude(&api_key)?;
+let builder = RouterPreset::openai_responses(&api_key)?.into_agent_builder();
 ```
 
-> **Candle note:** `candle_llama_*` is gated behind the `candle` feature and
+The old free functions (`claude_router` / `claude_session`, …) are gone:
+`RouterPreset::claude(key)?` replaces `claude_router(key)?`, and
+`RouterPreset::claude(key)?.into_agent_builder().with_session_id(id)`
+replaces `claude_session(id, key)?`.
+
+> **Candle note:** `RouterPreset::candle_llama` is gated behind the `candle` feature and
 > Candle currently implements only the **Llama** architecture. Other
 > architectures load-fail as unsupported.
 
@@ -94,7 +106,9 @@ assert_eq!(Glm52::MODEL_ID, "unsloth/GLM-5.2-GGUF");
 ```
 
 Local presets: `Glm52`, `Qwen36`, `Ornith10`, `Gemma4E4b`, `Gemma4_26b`,
-`Gemma4E2b`. (Quantization string consts `Q3_K_M`/`Q4_K_M`/`Q5_K_M`/`Q8_0` are
+`Gemma4E2b` (with `with_mtp` and the GGUF `RouterPreset` constructors, these
+need the `llamacpp` feature; `CloudPresets` and the cloud constructors build
+with `--no-default-features`). (Quantization string consts `Q3_K_M`/`Q4_K_M`/`Q5_K_M`/`Q8_0` are
 also exported.)
 
 > `Gemma4E2b` points at `unsloth/gemma-4-E2B-it-GGUF` (not the `ggml-org`
@@ -114,7 +128,7 @@ let resp     = CloudPresets::openai_responses(&api_key)?; // Responses API
 
 Cloud model-id constants (`CLAUDE_OPUS`, `CLAUDE_SONNET`, `OPENAI_GPT4O`,
 `OPENAI_GPT4O_MINI`) give you the canonical id strings so a routing rule and the
-agent's `primary_model`/`memory_model` line up.
+agent's primary and memory models line up.
 
 ---
 
@@ -160,12 +174,13 @@ E2B memory model).
 
 ## 5. `RouterPreset` — the bridge to an agent
 
-`*_router()` and `RouterMix::build()` return a `RouterPreset`:
+The `RouterPreset` constructors and `RouterMix::build()` return a
+`RouterPreset`:
 
 ```rust
 pub struct RouterPreset {
     pub router: ProviderRouter,
-    pub primary_model: ModelId,
+    pub primary_model: Option<ModelId>,   // None if the mix had no primary
     pub memory_model: Option<ModelId>,
     pub fallback_models: Vec<ModelId>,
 }
@@ -175,10 +190,12 @@ Inspect/route with it directly, or bridge into an agent — `into_agent_builder`
 applies the primary/memory/fallback models for you:
 
 ```rust
-let preset = harness::claude_router(&api_key)?;
+let preset = RouterPreset::claude(&api_key)?;
 
 // Inspect routing:
-let main = preset.router.resolve(&preset.primary_model)?;   // &dyn RoutableProvider
+if let Some(primary) = &preset.primary_model {
+    let main = preset.router.resolve(primary)?;   // &dyn RoutableProvider
+}
 
 // Or hand back a builder you finish customizing (in-memory stores and a
 // fresh SessionId unless you set them):
@@ -219,7 +236,7 @@ The harness ships offline unit tests plus feature-gated pull tests:
 - `tests/harness/integrations/gemma_pull.rs` — gated behind the
   `integration_tests` feature (no `#[ignore]`; when the feature is on, it
   runs). Pulls Gemma 4 E2B and generates, both via the `Gemma4E2b` preset and
-  end-to-end through `gemma_router`.
+  end-to-end through `RouterPreset::gemma`.
 
 Run the pull tests:
 
@@ -308,7 +325,7 @@ let agent_tool = ToolPreset::agent::<Doc, Mem>(
 
 ```rust
 use foundation_ai::agentic::ToolShed;
-use foundation_ai::harness::{self, ToolPreset};
+use foundation_ai::harness::{RouterPreset, ToolPreset};
 
 // Agent delegation: the sub-agents' tools, then the agent tool itself.
 let child_tools = ToolPreset::minimal_sub_agent(Arc::clone(&fs)).as_child_tools()?;
@@ -319,7 +336,9 @@ let delegation = ToolPreset::agent::<Doc, Mem>(
 );
 
 // Model preset + tools:
-let agent = harness::claude_session(session_id, &api_key)?
+let agent = RouterPreset::claude(&api_key)?
+    .into_agent_builder()
+    .with_session_id(session_id)
     .with_toolshed(ToolShed::new().tools(ToolPreset::standard(fs)).tools(delegation))
     .build()?;
 ```
@@ -336,7 +355,8 @@ CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI
 Q3_K_M, Q4_K_M, Q5_K_M, Q8_0
 RouterMix, RouterPreset, ToolPreset
 
-// Combo functions (each has _router and _session):
-glm52_gemma_*, qwen36_gemma_*, gemma_*, claude_*, openai_chat_*, openai_responses_*
-candle_llama_*   // feature = "candle"
+// Combination constructors (each returns Result<RouterPreset, ErrorTrace<AgenticError>>):
+RouterPreset::{glm52_gemma, qwen36_gemma, gemma, claude, openai_chat, openai_responses}
+RouterPreset::candle_llama   // feature = "candle"
+RouterPreset::into_agent_builder   // → AgentSessionBuilder with the preset's models
 ```

@@ -7,7 +7,7 @@
 //!
 //! WHAT: pulls the smallest Gemma 4 variant (E2B, the harness memory model) and
 //! exercises (1) the [`Gemma4E2b`] preset's provider directly and (2) the
-//! [`harness::gemma_router`] memory model resolved + downloaded through the
+//! [`RouterPreset::gemma`] memory model resolved + downloaded through the
 //! router. Mirrors `tests/providers/integrations` — gated behind the
 //! `integration_tests` feature (no `#[ignore]`: when the feature is on these
 //! are meant to run, like the llama.cpp download tests). It downloads ~1.5 GB.
@@ -22,7 +22,7 @@
 use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFConfigBuilder,
 };
-use foundation_ai::harness::{self, Gemma4E2b};
+use foundation_ai::harness::{Gemma4E2b, RouterPreset};
 use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider,
     TextContent, ToolDeclarations, UserModelContent,
@@ -98,12 +98,12 @@ fn test_pull_gemma4_e2b_via_preset() {
 // 2. Pull + load + generate via a harness router (the agent path)
 
 #[valtron_test]
-fn test_pull_gemma4_memory_via_harness_router() {
+fn test_pull_gemma4_memory_via_router_preset() {
     // gemma_router pairs a big main model (26B) with the small E2B memory model.
     // Building both providers downloads nothing; we only resolve + pull the
     // memory model, so this test stays at the E2B download size.
     let preset =
-        harness::gemma_router(Some(gguf_config()), Some(gguf_config())).expect("router builds");
+        RouterPreset::gemma(Some(gguf_config()), Some(gguf_config())).expect("router builds");
 
     let memory_id = preset
         .memory_model

@@ -1,5 +1,8 @@
 //! Provider presets - provides pre-configured model presets for various models.
 //!
+//! The local GGUF presets (`Glm52`, `Gemma4E2b`, …, `with_mtp`) need the
+//! `llamacpp` feature; `CloudPresets` and the cloud model ids are always there.
+//!
 //! Each model is represented by a zero-sized unit struct with methods to create
 //! providers with different quantizations. Pass `None` to use default config,
 //! or provide your own `HuggingFaceGGUFConfig` for full control.
@@ -20,10 +23,17 @@
 //! let provider = Glm52::q4_k_m(Some(config))?;
 //! ```
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use std::path::PathBuf;
 
+use foundation_errstacks::ErrorTrace;
+
+use crate::agentic::AgenticError;
+
 use crate::backends::anthropic_messages_provider::AnthropicMessagesProvider;
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use crate::backends::huggingface_gguf_provider::{HuggingFaceGGUFConfig, HuggingFaceGGUFProvider};
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use crate::backends::llamacpp::SpeculativeConfig;
 use crate::backends::openai_provider::OpenAIProvider;
 use crate::backends::openai_responses_provider::ResponsesProvider;
@@ -41,17 +51,21 @@ pub const Q8_0: &str = "Q8_0";
 // Helper function to create a provider
 // ===========================================================================
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 fn create_provider(
     quantization: &str,
     config: Option<HuggingFaceGGUFConfig>,
-) -> Result<HuggingFaceGGUFProvider, String> {
+) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
     let config = config.unwrap_or_else(|| {
         HuggingFaceGGUFConfig::builder()
             .default_quantization(quantization)
             .build()
     });
-    HuggingFaceGGUFProvider::new(config)
-        .map_err(|e| format!("Failed to create provider: {e}"))
+    HuggingFaceGGUFProvider::new(config).map_err(|e| {
+        ErrorTrace::new(AgenticError::Provider(format!(
+            "failed to create GGUF provider ({quantization}): {e}"
+        )))
+    })
 }
 
 // ===========================================================================
@@ -70,7 +84,8 @@ fn create_provider(
 /// an MTP head fails at model load rather than silently doing nothing.
 ///
 /// Pass the result as the *main-model* config to a combo router, e.g.
-/// `glm52_gemma_router(Some(with_mtp(None, 4, None)), None)`.
+/// `RouterPreset::glm52_gemma(Some(with_mtp(None, 4, None)), None)`.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 #[must_use]
 pub fn with_mtp(
     base: Option<HuggingFaceGGUFConfig>,
@@ -87,126 +102,176 @@ pub fn with_mtp(
 // ===========================================================================
 
 /// GLM 5.2 - Zhipu AI's flagship model, excellent for long-horizon tasks.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Glm52;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Glm52 {
     pub const MODEL_ID: &str = "unsloth/GLM-5.2-GGUF";
     /// GLM 5.2 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
 
 /// Qwen 3.6 35B-A3B - Alibaba's MoE model with excellent reasoning.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Qwen36;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Qwen36 {
     pub const MODEL_ID: &str = "unsloth/Qwen3.6-35B-A3B-GGUF";
     /// Qwen 3.6 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
 
 /// Ornith 1.0 35B - Fine-tuned model with excellent instruction following.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Ornith10;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Ornith10 {
     pub const MODEL_ID: &str = "LordNeel/Ornith-1.0-35B-GGUF-llamacpp-tp1";
     /// Ornith 1.0 does not ship an MTP head.
     pub const SUPPORTS_MTP: bool = false;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
 
 /// Gemma 4 E4B - Google's small expert model, efficient for memory tasks.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Gemma4E4b;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Gemma4E4b {
     pub const MODEL_ID: &str = "unsloth/gemma-4-E4B-it-GGUF";
     /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
 
 /// Gemma 4 26B-A4B - Google's MoE model.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Gemma4_26b;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Gemma4_26b {
     pub const MODEL_ID: &str = "unsloth/gemma-4-26B-A4B-it-GGUF";
     /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
@@ -219,26 +284,36 @@ impl Gemma4_26b {
 /// (`Q3_K_M`/`Q4_K_M`/`Q5_K_M`/`Q8_0`); the `ggml-org` mirror only carries
 /// `Q8_0` and `bf16`, so the mid-range quant methods below would fail to
 /// resolve a file there.
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Gemma4E2b;
 
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 impl Gemma4E2b {
     pub const MODEL_ID: &str = "unsloth/gemma-4-E2B-it-GGUF";
     /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
     pub const SUPPORTS_MTP: bool = true;
 
-    pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q3_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q3_K_M, config)
     }
 
-    pub fn q4_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q4_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q4_K_M, config)
     }
 
-    pub fn q5_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q5_k_m(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q5_K_M, config)
     }
 
-    pub fn q8_0(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
+    pub fn q8_0(
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<HuggingFaceGGUFProvider, ErrorTrace<AgenticError>> {
         create_provider(Q8_0, config)
     }
 }
@@ -254,7 +329,7 @@ impl Gemma4E2b {
 // Cloud providers serve a model by the id string passed at generation time
 // (`ModelId::Name`), not by anything baked into the provider. These constants
 // give callers the canonical ids so a router rule and the agent's
-// `primary_model`/`memory_model` line up.
+// primary and memory models line up.
 
 /// Claude Opus 4.8 — strongest reasoning, the default "main" cloud model.
 pub const CLAUDE_OPUS: &str = "claude-opus-4-8";
@@ -270,28 +345,32 @@ pub struct CloudPresets;
 
 impl CloudPresets {
     /// Create an Anthropic Claude Opus provider.
-    pub fn claude_opus(api_key: &str) -> Result<AnthropicMessagesProvider, String> {
+    pub fn claude_opus(
+        api_key: &str,
+    ) -> Result<AnthropicMessagesProvider, ErrorTrace<AgenticError>> {
         Ok(AnthropicMessagesProvider::api_key(api_key))
     }
 
     /// Create an Anthropic Claude Sonnet provider.
-    pub fn claude_sonnet(api_key: &str) -> Result<AnthropicMessagesProvider, String> {
+    pub fn claude_sonnet(
+        api_key: &str,
+    ) -> Result<AnthropicMessagesProvider, ErrorTrace<AgenticError>> {
         Ok(AnthropicMessagesProvider::api_key(api_key))
     }
 
     /// Create an OpenAI GPT-4 provider (Chat Completions API).
-    pub fn openai_gpt4(api_key: &str) -> Result<OpenAIProvider, String> {
+    pub fn openai_gpt4(api_key: &str) -> Result<OpenAIProvider, ErrorTrace<AgenticError>> {
         Ok(OpenAIProvider::api_key(api_key))
     }
 
     /// Create an OpenAI GPT-4o provider (Chat Completions API).
-    pub fn openai_gpt4o(api_key: &str) -> Result<OpenAIProvider, String> {
+    pub fn openai_gpt4o(api_key: &str) -> Result<OpenAIProvider, ErrorTrace<AgenticError>> {
         Ok(OpenAIProvider::api_key(api_key))
     }
 
     /// Create an OpenAI provider that speaks the **Responses API** (rather than
     /// Chat Completions). Use this for the newer `/v1/responses` surface.
-    pub fn openai_responses(api_key: &str) -> Result<ResponsesProvider, String> {
+    pub fn openai_responses(api_key: &str) -> Result<ResponsesProvider, ErrorTrace<AgenticError>> {
         Ok(ResponsesProvider::api_key(api_key))
     }
 }

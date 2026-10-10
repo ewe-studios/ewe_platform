@@ -25,7 +25,7 @@ use foundation_netio::shared::http::{
 use serde::{Deserialize, Serialize};
 
 use crate::backends::backend_utils::{
-    empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
+    empty_usage_report, flatten_tools, model_id_to_string, tool_arguments_from_str,
 };
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
@@ -1247,18 +1247,7 @@ fn extract_output(output: &[ResponseOutputItem]) -> ModelOutput {
                 arguments,
                 ..
             } => {
-                let args: Option<HashMap<String, crate::types::base_types::ArgType>> =
-                    serde_json::from_str(arguments)
-                        .ok()
-                        .map(|v: serde_json::Value| {
-                            v.as_object()
-                                .map(|obj| {
-                                    obj.iter()
-                                        .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-                                        .collect()
-                                })
-                                .unwrap_or_default()
-                        });
+                let args = tool_arguments_from_str(name, arguments);
                 return ModelOutput::ToolCall {
                     id: id.clone(),
                     name: name.clone(),

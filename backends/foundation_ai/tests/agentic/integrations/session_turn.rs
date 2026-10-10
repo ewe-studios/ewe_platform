@@ -19,7 +19,7 @@
 //! `cargo test -p foundation_ai --features integration_tests --test foundation_ai_tests -- --nocapture agentic::integrations`
 
 use foundation_ai::agentic::{
-    AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
+    AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
 };
 use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFConfigBuilder,
@@ -98,11 +98,7 @@ fn gemma_session() -> TestSession {
     preset
         .into_agent_builder()
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
-        .with_model(model_id.clone())
-        .with_config(AgentConfig {
-            primary_model: model_id,
-            ..Default::default()
-        })
+        .with_model(model_id)
         .with_context_config(ContextConfig::default())
         .with_memory_config(MemoryConfig::default())
         .with_error_policy(ErrorPolicy::new())

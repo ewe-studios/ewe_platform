@@ -7,27 +7,26 @@
 //! ```bash
 //! # CPU only:
 //! cargo run -p foundation_ai \
-//!   --example hello_llamacpp --features "agentic llamacpp"
+//!   --example hello_llamacpp
 //!
 //! # With Apple Metal GPU:
 //! cargo run -p foundation_ai \
-//!   --example hello_llamacpp --features "agentic llamacpp metal"
+//!   --example hello_llamacpp --features metal
 //!
 //! # With CUDA GPU:
 //! cargo run -p foundation_ai \
-//!   --example hello_llamacpp --features "agentic llamacpp cuda"
+//!   --example hello_llamacpp --features cuda
 //! ```
 
 use foundation_ai::agentic::TurnEvent;
-use foundation_ai::harness;
-use foundation_ai::types::SessionId;
+use foundation_ai::harness::RouterPreset;
 use foundation_core::valtron::valtron;
 
 #[valtron]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // GLM 5.2 (main) + Gemma 4 E2B (memory) via Llama.cpp.
     // None, None = default Q4_K_M quantization, default cache dir, CPU.
-    let builder = harness::glm52_gemma_session(SessionId::new(), None, None)?;
+    let builder = RouterPreset::glm52_gemma(None, None)?.into_agent_builder();
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")

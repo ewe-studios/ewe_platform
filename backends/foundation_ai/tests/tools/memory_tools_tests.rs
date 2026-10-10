@@ -1,7 +1,6 @@
 //! Memory tool (single multi-command `memory`: add/remove/replace) over a real
 //! in-memory `MemoryHierarchy` — spec-60 F14 / F19. Offline and deterministic.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use foundation_ai::agentic::memory::{MemoryConfig, MemoryHierarchy};
@@ -10,7 +9,7 @@ use foundation_ai::agentic::memory_store::KvMemoryStore;
 use foundation_ai::agentic::token_ledger::TokenLedger;
 use foundation_ai::agentic::tool_impl::{ToolError, ToolImpl};
 use foundation_ai::agentic::tools::memory::{register_memory_tool, MemoryTool};
-use foundation_ai::types::{ArgType, SessionId, SessionRecord, Tool};
+use foundation_ai::types::{SessionId, SessionRecord, Tool, ToolArguments};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type Hierarchy = MemoryHierarchy<KvMemoryStore<MemoryStorage>, MemoryDocumentStore>;
@@ -29,11 +28,17 @@ fn setup() -> Arc<Hierarchy> {
 }
 
 /// Build a `command`-bearing arg map.
-fn cmd(command: &str, pairs: &[(&str, &str)]) -> HashMap<String, ArgType> {
-    let mut m: HashMap<String, ArgType> = HashMap::new();
-    m.insert("command".to_string(), ArgType::Text(command.to_string()));
+fn cmd(command: &str, pairs: &[(&str, &str)]) -> ToolArguments {
+    let mut m: ToolArguments = ToolArguments::new();
+    m.insert(
+        "command".to_string(),
+        serde_json::Value::String(command.to_string()),
+    );
     for (k, v) in pairs {
-        m.insert((*k).to_string(), ArgType::Text((*v).to_string()));
+        m.insert(
+            (*k).to_string(),
+            serde_json::Value::String((*v).to_string()),
+        );
     }
     m
 }
@@ -74,7 +79,7 @@ fn memory_add_appends_facts() {
 fn memory_missing_command_errors() {
     futures_lite::future::block_on(async {
         let tool = MemoryTool::new(setup());
-        let err = tool.execute(HashMap::new()).await.unwrap_err();
+        let err = tool.execute(ToolArguments::new()).await.unwrap_err();
         assert!(matches!(err, ToolError::InvalidArguments { .. }));
     });
 }

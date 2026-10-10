@@ -29,6 +29,8 @@ fn generation_error_display_and_from() {
     }
 }
 
+// `GenerationError::Candle` only exists with the `candle` feature.
+#[cfg(feature = "candle")]
 #[test]
 fn generation_error_from_candle() {
     let c = candle_core::Error::Msg("tensor".into());

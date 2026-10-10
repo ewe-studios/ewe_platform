@@ -629,84 +629,20 @@ impl From<&'static str> for StopReason {
     }
 }
 
-#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub enum ArgType {
-    Text(String),
-    Float32(f32),
-    Float64(f64),
-    Usize(usize),
-    U8(u8),
-    U16(u16),
-    U32(u32),
-    U64(u64),
-    U128(u128),
-    Isize(isize),
-    I8(i8),
-    I16(i16),
-    I32(i32),
-    I64(i64),
-    I128(i128),
-    Duration(std::time::Duration),
-
-    // Custom types
-    #[from(ignore)]
-    JSON(String),
-    /// Nested structured object with named sub-fields.
-    #[from(ignore)]
-    JSONMap(std::collections::HashMap<String, ArgType>),
-}
-
-impl ArgType {
-    /// The plain JSON value this argument stands for — the inverse of
-    /// [`json_value_to_arg_type`]. Used to validate a call's arguments against
-    /// the tool's JSON Schema.
-    #[must_use]
-    pub fn to_json_value(&self) -> serde_json::Value {
-        use serde_json::Value;
-        match self {
-            ArgType::Text(s) => Value::String(s.clone()),
-            ArgType::Float32(n) => {
-                serde_json::Number::from_f64(f64::from(*n)).map_or(Value::Null, Value::Number)
-            }
-            ArgType::Float64(n) => {
-                serde_json::Number::from_f64(*n).map_or(Value::Null, Value::Number)
-            }
-            ArgType::Usize(n) => Value::from(*n),
-            ArgType::U8(n) => Value::from(*n),
-            ArgType::U16(n) => Value::from(*n),
-            ArgType::U32(n) => Value::from(*n),
-            ArgType::U64(n) => Value::from(*n),
-            ArgType::U128(n) => {
-                u64::try_from(*n).map_or_else(|_| Value::String(n.to_string()), Value::from)
-            }
-            ArgType::Isize(n) => Value::from(*n),
-            ArgType::I8(n) => Value::from(*n),
-            ArgType::I16(n) => Value::from(*n),
-            ArgType::I32(n) => Value::from(*n),
-            ArgType::I64(n) => Value::from(*n),
-            ArgType::I128(n) => {
-                i64::try_from(*n).map_or_else(|_| Value::String(n.to_string()), Value::from)
-            }
-            ArgType::Duration(d) => {
-                serde_json::Number::from_f64(d.as_secs_f64()).map_or(Value::Null, Value::Number)
-            }
-            ArgType::JSON(raw) => {
-                serde_json::from_str(raw).unwrap_or_else(|_| Value::String(raw.clone()))
-            }
-            ArgType::JSONMap(map) => Value::Object(
-                map.iter()
-                    .map(|(k, v)| (k.clone(), v.to_json_value()))
-                    .collect(),
-            ),
-        }
-    }
-}
+/// A tool call's arguments: the JSON object the model sent, carried as is
+/// from the backend to the tool.
+///
+/// Every backend receives tool arguments as JSON; keeping them as JSON means
+/// no lossy conversion between what the model wrote and what the tool (and
+/// the schema validator) sees. Read them with
+/// [`ToolArgs`](crate::agentic::ToolArgs).
+pub type ToolArguments = serde_json::Map<String, serde_json::Value>;
 
 /// A tool argument/return definition — stores a JSON Schema document and a
 /// pre-built `ValidationOptions` so that callers can extract the schema for
 /// API requests and compile a `Validator` for runtime validation.
 ///
-/// WHY: Previously `Args` was an externally-tagged enum mapping `ArgType` →
+/// WHY: Previously `Args` was an externally-tagged enum mapping an argument type →
 /// `"type"` per provider. This loses expressiveness (min, max, format, etc.)
 /// and can't produce real validators. Now `Args` holds the full JSON Schema
 /// and its compiled `ValidationOptions` together.
@@ -965,7 +901,7 @@ pub enum ModelOutput {
     ToolCall {
         id: String,
         name: String,
-        arguments: Option<HashMap<String, ArgType>>,
+        arguments: Option<ToolArguments>,
         signature: Option<String>,
         /// Ids of tool calls this one depends on (Decision 04). The `ToolCall` DAG
         /// executor (F11) uses these to order staged execution. `#[serde(default)]`
@@ -1006,7 +942,7 @@ pub enum ExecutionHint {
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ToolParam {
-    pub value: ArgType,
+    pub value: serde_json::Value,
     pub name: String,
     pub description: String,
 }
@@ -1672,40 +1608,6 @@ pub struct ExtractResult {
 const TOOL_CALL_OPEN: &str = "<ToolCall>";
 const TOOL_CALL_CLOSE: &str = "</ToolCall>";
 
-/// Convert a raw JSON value to `ArgType` — the one mapping every backend uses.
-///
-/// Needed because `ArgType` is externally tagged and can't be deserialized
-/// from plain JSON values. Strings become `Text`, integers `I64`, other numbers
-/// `Float64`, objects a recursive `JSONMap`; booleans, `null` and arrays keep
-/// their JSON text in `JSON(..)`. Tools read any of these with `ToolArgs`.
-///
-/// WHY one function: the cloud backends and the text-protocol parser used to
-/// carry their own copies that disagreed (a boolean was `JSON("true")` from
-/// OpenAI/Anthropic but `Text("true")` from a local model), so a tool written
-/// against one backend misread arguments from another.
-#[must_use]
-pub fn json_value_to_arg_type(v: &serde_json::Value) -> ArgType {
-    match v {
-        serde_json::Value::String(s) => ArgType::Text(s.clone()),
-        serde_json::Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                ArgType::I64(i)
-            } else if let Some(f) = n.as_f64() {
-                ArgType::Float64(f)
-            } else {
-                ArgType::Text(n.to_string())
-            }
-        }
-        serde_json::Value::Object(map) => ArgType::JSONMap(
-            map.iter()
-                .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-                .collect(),
-        ),
-        // bool, null, array: one rule everywhere.
-        other => ArgType::JSON(other.to_string()),
-    }
-}
-
 /// Shared formatter for text-based models (llama.cpp, Candle).
 ///
 /// Produces system prompt instructions and parses `<ToolCall>...</ToolCall>`
@@ -1772,7 +1674,7 @@ impl ToolFormatter for TextBasedFormatter {
             }
             last_end = full.end();
 
-            // Try to parse the JSON as a generic value, then convert to ArgType map
+            // Parse the JSON envelope; the tool receives its `arguments` object.
             let parsed: Result<serde_json::Value, _> = serde_json::from_str(json_str);
             match parsed {
                 Ok(value) => {
@@ -1781,15 +1683,11 @@ impl ToolFormatter for TextBasedFormatter {
                         // The tool receives the `arguments` object's entries —
                         // not the envelope (which used to nest every parameter
                         // under an `arguments` key the tool never looked at).
-                        let arguments: HashMap<String, ArgType> = obj
+                        let arguments: ToolArguments = obj
                             .get("arguments")
                             .or_else(|| obj.get("parameters"))
                             .and_then(serde_json::Value::as_object)
-                            .map(|args| {
-                                args.iter()
-                                    .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-                                    .collect()
-                            })
+                            .cloned()
                             .unwrap_or_default();
                         let name = obj
                             .get("name")

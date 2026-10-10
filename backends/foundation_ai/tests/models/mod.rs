@@ -7,8 +7,12 @@ mod base_types_coverage_tests;
 mod base_types_tests;
 mod enum_fallback_tests;
 mod error_types_tests;
-mod llama_errors_tests;
 mod errors_tests;
+// The llama.cpp error conversions only exist with the `llamacpp` feature.
+#[cfg(feature = "llamacpp")]
+mod llama_errors_tests;
+// Sampler chains are llama.cpp helpers.
+#[cfg(feature = "llamacpp")]
 mod sampler_chain;
 // `agentic::testing` only exists under the `testing` feature, so this suite must
 // be gated too — otherwise a plain `cargo test` fails to COMPILE the whole test

@@ -370,9 +370,8 @@ fn agent_session_run_turn_through_candle_fixture() {
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
         AgentSession::builder(router)
             .with_system_prompt("You are a helpful assistant.")
-            .with_model(model_id.clone())
+            .with_model(model_id)
             .with_config(AgentConfig {
-                primary_model: model_id,
                 model_params: params(),
                 ..Default::default()
             })
@@ -431,8 +430,11 @@ fn candle_session_handles_multiple_turns() {
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
         AgentSession::builder(PreloadedProvider::new(model, model_id.clone()).into_router())
             .with_system_prompt("You are a helpful assistant.")
-            .with_model(model_id.clone())
-            .with_config(AgentConfig { primary_model: model_id, model_params: params(), ..Default::default() })
+            .with_model(model_id)
+            .with_config(AgentConfig {
+                model_params: params(),
+                ..Default::default()
+            })
             .with_context_config(ContextConfig::default())
             .with_memory_config(MemoryConfig::default())
             .with_error_policy(ErrorPolicy::new())
@@ -596,7 +598,10 @@ fn cost_accounting_is_per_session() {
         AgentSession::builder(PreloadedProvider::new(model.clone(), model_id.clone()).into_router())
             .with_system_prompt("You are a helpful assistant.")
             .with_model(model_id.clone())
-            .with_config(AgentConfig { primary_model: model_id.clone(), model_params: params(), ..Default::default() })
+            .with_config(AgentConfig {
+                model_params: params(),
+                ..Default::default()
+            })
             .with_context_config(ContextConfig::default())
             .with_memory_config(MemoryConfig::default())
             .with_error_policy(ErrorPolicy::new())

@@ -16,7 +16,7 @@
 //! first, then the error that ended the turn. `Err` from the session methods
 //! means the turn never started.
 
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 
 use foundation_core::valtron::{DrivenStreamIterator, Stream, StreamSpread};
 use foundation_db::traits::DocumentStore;
@@ -27,7 +27,7 @@ use crate::agentic::errors::AgenticError;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::progress::AgentProgress;
 use crate::agentic::token_ledger::TokenSnapshot;
-use crate::types::{ArgType, Messages, ModelOutput, SessionRecord, UserModelContent};
+use crate::types::{Messages, ModelOutput, SessionRecord, ToolArguments, UserModelContent};
 
 // ---------------------------------------------------------------------------
 // Flattening the raw stream
@@ -156,9 +156,7 @@ impl Turn {
     }
 
     /// Each `ModelOutput::ToolCall` the model made: `(id, name, arguments)`.
-    pub fn tool_calls(
-        &self,
-    ) -> impl Iterator<Item = (&str, &str, Option<&HashMap<String, ArgType>>)> {
+    pub fn tool_calls(&self) -> impl Iterator<Item = (&str, &str, Option<&ToolArguments>)> {
         self.records.iter().filter_map(|record| match record {
             SessionRecord::Conversation {
                 message:
@@ -355,7 +353,7 @@ pub enum TurnEvent {
     ToolCall {
         id: String,
         name: String,
-        arguments: Option<HashMap<String, ArgType>>,
+        arguments: Option<ToolArguments>,
     },
     /// A tool's result, as the model will see it.
     ToolResult {
@@ -432,7 +430,38 @@ impl TurnEvent {
     }
 }
 
-/// A running turn: the raw stream iterator, plus [`events`](Self::events).
+/// A running turn: the raw valtron stream, plus [`events`](Self::events).
+///
+/// `TurnStream` adds a friendlier view without taking the raw stream away:
+///
+/// - It **is** the raw stream. It implements
+///   `Iterator<Item = Stream<SessionRecord, AgentProgress>>`, so valtron's
+///   blanket impl makes it a [`StreamIterator`](foundation_core::valtron::StreamIterator)
+///   with `D = SessionRecord`, `P = AgentProgress`, and every
+///   [`StreamIteratorExt`](foundation_core::valtron::StreamIteratorExt)
+///   combinator (`into_stream_iter`, `map_done`, `map_pending`,
+///   `filter_done`, …) applies to it directly.
+/// - [`inner`](Self::inner) / [`inner_mut`](Self::inner_mut) borrow the
+///   underlying [`DrivenStreamIterator`]; [`into_inner`](Self::into_inner)
+///   (or `DrivenStreamIterator::from(stream)`) hands it over.
+/// - [`events`](Self::events) is the high-level view: [`TurnEvent`]s.
+///
+/// ```ignore
+/// use foundation_core::valtron::{Stream, StreamIteratorExt};
+///
+/// // Combinators on the turn itself: keep only the assistant text.
+/// let texts: Vec<String> = agent
+///     .run_turn_stream("Hi")?
+///     .map_done(|record| Turn::text_of(&record))
+///     .filter_map(|item| match item {
+///         Stream::Next(text) if !text.is_empty() => Some(text),
+///         _ => None,
+///     })
+///     .collect();
+///
+/// // Or take the valtron iterator back out.
+/// let mut raw = agent.run_turn_stream("Again")?.into_inner();
+/// ```
 pub struct TurnStream<D, M>(DrivenStreamIterator<AgentLoop<D, M>>)
 where
     D: DocumentStore + 'static,
@@ -461,6 +490,18 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
         self.0
     }
 
+    /// Borrow the underlying valtron iterator.
+    #[must_use]
+    pub fn inner(&self) -> &DrivenStreamIterator<AgentLoop<D, M>> {
+        &self.0
+    }
+
+    /// Mutably borrow the underlying valtron iterator — e.g. to drive it
+    /// directly and keep the `TurnStream` afterwards.
+    pub fn inner_mut(&mut self) -> &mut DrivenStreamIterator<AgentLoop<D, M>> {
+        &mut self.0
+    }
+
     /// The turn as [`TurnEvent`]s: text, tool calls and results, retractions
     /// and progress as they happen, then one terminal `Done` or `Failed`.
     #[must_use]
@@ -478,6 +519,14 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnStre
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
+    }
+}
+
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<D, M>>
+    for DrivenStreamIterator<AgentLoop<D, M>>
+{
+    fn from(stream: TurnStream<D, M>) -> Self {
+        stream.0
     }
 }
 

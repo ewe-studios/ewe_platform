@@ -1,17 +1,17 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 
+use foundation_ai::agentic::internals::{
+    NoopColdCache, ShedResult, ToolDiscovery, WholeTextChunker,
+};
 use foundation_ai::agentic::tool_impl::{
-    ToolCallManager, ToolCallRequest, ToolCallResult, ToolDefinition, ToolError, ToolImpl,
+    ToolCallManager, ToolCallRequest, ToolCallResult, ToolError, ToolImpl,
 };
-use foundation_ai::agentic::{
-    CachedEmbeddingProvider, EmbeddingProvider, NoopColdCache, ShedResult, ToolDiscovery,
-    WholeTextChunker,
-};
+use foundation_ai::agentic::{CachedEmbeddingProvider, EmbeddingProvider};
 use foundation_ai::types::{
-    ArgType, BoxModel, CostStatus, ExecutionHint, ModelId, ModelInteraction, ModelOutput,
-    ModelParams, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelStreamBox,
-    ProviderRouter, RoutableProvider, StopReason, ToolDeclarations, UsageCosting, UsageReport,
+    BoxModel, CostStatus, ExecutionHint, ModelId, ModelInteraction, ModelOutput, ModelParams,
+    ModelProviderDescriptor, ModelProviders, ModelSpec, ModelStreamBox, ProviderRouter,
+    RoutableProvider, StopReason, ToolArguments, ToolDeclarations, ToolDefinition, UsageCosting,
+    UsageReport,
 };
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{InMemoryVectorStore, VectorStoreConfig};
@@ -215,10 +215,7 @@ impl ToolImpl for NamedTool {
         foundation_ai::types::Tool::SingleCommand(sample_def(self.name, self.description, "test"))
     }
 
-    async fn execute(
-        &self,
-        _arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         Ok(ToolCallResult {
             content: foundation_ai::types::UserModelContent::Text(
                 foundation_ai::types::TextContent {
@@ -239,7 +236,7 @@ fn manager_with(tools: &[(&'static str, &'static str)]) -> ToolCallManager {
     mgr
 }
 
-fn shed_request(args: HashMap<String, ArgType>) -> ToolCallRequest {
+fn shed_request(args: ToolArguments) -> ToolCallRequest {
     ToolCallRequest {
         id: "call-1".into(),
         name: "shed".into(),
@@ -266,9 +263,9 @@ async fn shed_returns_matching_tools_as_json_and_activates_them() {
     ]);
     assert_eq!(mgr.active_definitions().len(), 0);
 
-    let args = HashMap::from([(
+    let args = ToolArguments::from_iter([(
         "description".to_string(),
-        ArgType::Text("search for patterns".into()),
+        serde_json::Value::String("search for patterns".into()),
     )]);
     let result = mgr.execute_one(&shed_request(args)).await.unwrap();
 
@@ -297,9 +294,12 @@ async fn shed_respects_the_limit() {
         ("tool_b", "Second tool"),
         ("tool_c", "Third tool"),
     ]);
-    let args = HashMap::from([
-        ("description".to_string(), ArgType::Text("tool".into())),
-        ("limit".to_string(), ArgType::I64(2)),
+    let args = ToolArguments::from_iter([
+        (
+            "description".to_string(),
+            serde_json::Value::String("tool".into()),
+        ),
+        ("limit".to_string(), serde_json::json!(2)),
     ]);
     let result = mgr.execute_one(&shed_request(args)).await.unwrap();
     assert_eq!(returned_names(&result).len(), 2);
@@ -309,7 +309,7 @@ async fn shed_respects_the_limit() {
 async fn shed_missing_description_errors() {
     let mgr = manager_with(&[("tool_a", "First tool")]);
     let err = mgr
-        .execute_one(&shed_request(HashMap::new()))
+        .execute_one(&shed_request(ToolArguments::new()))
         .await
         .unwrap_err();
     match err {

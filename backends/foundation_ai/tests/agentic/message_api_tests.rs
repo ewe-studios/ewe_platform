@@ -4,7 +4,7 @@
 
 #![allow(unused_must_use)]
 
-use foundation_ai::agentic::{MessageApi, MessageEvent};
+use foundation_ai::agentic::internals::{MessageApi, MessageEvent};
 use foundation_ai::types::{
     MemoryFact, MessageRole, Messages, ObservationEntry, ObservationKind, SessionId, SessionRecord,
     TextContent, UserModelContent,

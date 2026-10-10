@@ -60,18 +60,26 @@ macro_rules! test_util {
 
 /// General-purpose block-level conditional compilation with explicit feature name.
 ///
+/// The feature name is a string literal, exactly as it would be written in
+/// `#[cfg(feature = "...")]`, and is checked against the features of the
+/// crate that invokes the macro.
+///
 /// # Example
 ///
 /// ```rust
 /// use foundation_conditional::cfg_block;
 ///
-/// cfg_block!(my_feature => {
+/// let compiled_in = std::cell::Cell::new(false);
+/// cfg_block!("my_feature" => {
 ///     // only compiled when `my_feature` is enabled
+///     compiled_in.set(true);
 /// });
+/// // Doctests are built without `my_feature`, so the block was compiled out.
+/// assert!(!compiled_in.get());
 /// ```
 #[macro_export]
 macro_rules! cfg_block {
-    ($name:ident => { $($block:tt)* }) => {
+    ($name:literal => { $($block:tt)* }) => {
         #[cfg(feature = $name)]
         { $($block)* }
         #[cfg(not(feature = $name))]

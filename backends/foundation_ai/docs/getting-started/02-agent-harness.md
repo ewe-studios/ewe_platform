@@ -40,17 +40,16 @@ defaults (`AgentSession` = `AgentSession<MemoryDocumentStore, KvMemoryStore<Memo
 ### 2.1. Fastest Path: Harness Presets
 
 ```rust
-use foundation_ai::harness;
-use foundation_ai::types::SessionId;
+use foundation_ai::harness::RouterPreset;
 
 // Anthropic: Claude Opus + Sonnet
-let builder = harness::claude_session(SessionId::new(), &anthropic_key)?;
+let builder = RouterPreset::claude(&anthropic_key)?.into_agent_builder();
 
 // OpenAI: GPT-4o + GPT-4o-mini (Chat Completions)
-let builder = harness::openai_chat_session(SessionId::new(), &openai_key)?;
+let builder = RouterPreset::openai_chat(&openai_key)?.into_agent_builder();
 
 // Llama.cpp (local): GLM 5.2 + Gemma 4 E2B
-let builder = harness::glm52_gemma_session(SessionId::new(), None, None)?;
+let builder = RouterPreset::glm52_gemma(None, None)?.into_agent_builder();
 ```
 
 Then customize and build:
@@ -316,7 +315,7 @@ let agent = AgentSession::builder(router)
     .build()?;
 
 // From a harness preset:
-let agent = harness::claude_router(&key)?
+let agent = RouterPreset::claude(&key)?
     .into_agent_builder()
     .with_session_id(session_id)
     .with_doc_store(doc_store)
@@ -407,6 +406,7 @@ same stores with the same id:
 
 ```rust
 let agent = AgentSession::builder(router)      // rebuild the same ProviderRouter
+    .with_model("my-model")
     .resume(session_id)                        // Err(SessionNotFound) if the stores don't hold it
     .with_doc_store(doc_store)
     .with_memory_store(mem_store)
@@ -461,16 +461,16 @@ agent.context_provider();   // history + memory recall
 
 ```bash
 # Harness shortcuts:
-cargo run -p foundation_ai --example hello_claude --features agentic
-cargo run -p foundation_ai --example hello_openai --features agentic
-cargo run -p foundation_ai --example hello_openrouter --features agentic
-cargo run -p foundation_ai --example hello_llamacpp --features "agentic llamacpp"
+cargo run -p foundation_ai --example hello_claude
+cargo run -p foundation_ai --example hello_openai
+cargo run -p foundation_ai --example hello_openrouter
+cargo run -p foundation_ai --example hello_llamacpp
 
 # Manual (no helpers):
-cargo run -p foundation_ai --example manual_claude_router --features agentic
-cargo run -p foundation_ai --example manual_openrouter --features agentic
-cargo run -p foundation_ai --example custom_router --features agentic
-cargo run -p foundation_ai --example agent_with_tools --features agentic
+cargo run -p foundation_ai --example manual_claude_router
+cargo run -p foundation_ai --example manual_openrouter
+cargo run -p foundation_ai --example custom_router
+cargo run -p foundation_ai --example agent_with_tools
 ```
 
 ---

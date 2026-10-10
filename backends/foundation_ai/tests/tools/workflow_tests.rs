@@ -3,16 +3,14 @@
 //! Pure and deterministic; tool_impl.rs was 75% region coverage and this path
 //! (topo-sort, cycle + unknown-dep detection, stage grouping) was untested.
 
-use std::collections::HashMap;
-
 use foundation_ai::agentic::tool_impl::{ToolCallManager, ToolCallRequest, ToolCallStage};
-use foundation_ai::types::{ExecutionHint, SessionId};
+use foundation_ai::types::{ExecutionHint, SessionId, ToolArguments};
 
 fn call(id: &str, deps: &[&str], hint: ExecutionHint) -> ToolCallRequest {
     ToolCallRequest {
         id: id.into(),
         name: format!("tool_{id}"),
-        arguments: HashMap::new(),
+        arguments: ToolArguments::new(),
         depends_on: deps.iter().map(|s| (*s).to_string()).collect(),
         execution_hint: hint,
     }
