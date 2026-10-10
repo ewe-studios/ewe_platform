@@ -126,8 +126,13 @@ layer 2 on its next CI run. Layer 1 rebuilds only for changes under
 
 ## Size
 
-Measured on a local build without browsers (the vendor repositories were
-unreachable from the build machine): layer 1 is 4.8 GB unpacked, and layer 2
-adds the toolchain, tools, submodules and registry on top (see the PR for
-the measured total). Chrome and Firefox add roughly 0.6 GB. The CUDA flavor's
-upstream image alone is about 5.2 GB compressed.
+Measured on local builds of the default flavor without browsers (the vendor
+repositories were unreachable from the build machine):
+
+| | Unpacked | Compressed (what a job pulls) |
+|---|---|---|
+| Layer 1 (`ci-base`) | 4.8 GB | 1.1 GB |
+| Layers 1 + 2 (`ewe-platform-ci`) | 9.3 GB | 2.3 GB |
+
+Chrome and Firefox add an estimated 0.3 GB compressed. The CUDA flavor's
+upstream image alone is 5.2 GB compressed (about 10 GB unpacked).
