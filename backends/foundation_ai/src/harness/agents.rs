@@ -8,9 +8,12 @@
 //!
 //! WHAT: one constructor on [`RouterPreset`] per combination, each returning
 //! the router plus the model ids that drive the agent:
-//! The local GGUF combinations (1–3) need the `llamacpp` feature and
+//! The local GGUF constructors (0–3) need the `llamacpp` feature and
 //! `candle_llama` the `candle` feature; the cloud ones are always available.
 //!
+//! 0. [`RouterPreset::hugging_face`] — any single `HuggingFace` GGUF repo, with
+//!    [`RouterPreset::huggingface_cpu`] / [`RouterPreset::huggingface_gpu`]
+//!    forcing the backend. Every local preset below is built on it.
 //! 1. [`RouterPreset::glm52_gemma`] — GLM 5.2 main + Gemma 4 E2B memory.
 //! 2. [`RouterPreset::qwen36_gemma`] — Qwen 3.6 main + Gemma 4 E2B memory.
 //! 3. [`RouterPreset::gemma`] — Gemma 4 26B main + Gemma 4 E2B memory
@@ -35,6 +38,11 @@
 //!     .into_agent_builder()
 //!     .with_session_id(session_id)
 //!     .build()?;
+//!
+//! // One local model on the CPU, default config; the preset's model is the
+//! // session's model, so there is no `with_model`.
+//! let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
+//! let agent = AgentSession::builder(preset).build()?;
 //! ```
 
 use foundation_errstacks::ErrorTrace;
@@ -52,7 +60,7 @@ use crate::types::ModelId;
 
 use super::providers::{CloudPresets, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI};
 #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
-use super::providers::{Gemma4E2b, Gemma4_26b, Glm52, Qwen36};
+use super::providers::{gguf_provider, Gemma4E2b, Gemma4_26b, Glm52, Qwen36};
 use super::router::{RouterMix, RouterPreset};
 
 /// `ModelId::Name` from a model id string, default quantization.
@@ -62,10 +70,84 @@ fn named(id: &str) -> ModelId {
 
 impl RouterPreset {
     // =======================================================================
-    // Local GGUF combinations — `main` / `memory` override the GGUF provider
-    // config (cache dir, GPU layers, quantization); `None` takes the `Q4_K_M`
-    // defaults.
+    // Local GGUF models — `config` overrides the GGUF provider config (cache
+    // dir, backend, GPU layers, quantization); `None` takes
+    // `HuggingFaceGGUFConfig::default()` (CPU, `q4_k_m`, the `HuggingFace`
+    // cache dir).
     // =======================================================================
+
+    /// One `HuggingFace` GGUF model as the session's primary model.
+    ///
+    /// `model` is the repo id (`"unsloth/gemma-4-E2B-it-GGUF"`, or a family's
+    /// `MODEL_ID` such as [`Gemma4E2b::MODEL_ID`]); it is both the model the
+    /// GGUF provider downloads and the preset's
+    /// [`primary_model`](RouterPreset::primary_model), so
+    /// `AgentSession::builder(preset)` needs no `with_model`. `config` is used
+    /// as given (`None` takes [`HuggingFaceGGUFConfig::default()`]); to force
+    /// the backend use [`huggingface_cpu`](Self::huggingface_cpu) /
+    /// [`huggingface_gpu`](Self::huggingface_gpu).
+    ///
+    /// Constructing the preset downloads nothing; the GGUF file is fetched into
+    /// the cache dir on the first turn.
+    ///
+    /// # Errors
+    /// Returns [`AgenticError::Provider`] if the GGUF provider cannot be
+    /// constructed.
+    #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
+    pub fn hugging_face(
+        model: impl Into<ModelId>,
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<Self, ErrorTrace<AgenticError>> {
+        Self::hugging_face_mix((model.into(), config), None)
+    }
+
+    /// [`hugging_face`](Self::hugging_face) on the CPU: `config` (or the
+    /// default) with [`HuggingFaceGGUFConfig::on_cpu`] applied — the
+    /// `LLamaCPU` backend, no layers offloaded.
+    ///
+    /// # Errors
+    /// Returns [`AgenticError::Provider`] if the GGUF provider cannot be
+    /// constructed.
+    #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
+    pub fn huggingface_cpu(
+        model: impl Into<ModelId>,
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<Self, ErrorTrace<AgenticError>> {
+        Self::hugging_face(model, Some(config.unwrap_or_default().on_cpu()))
+    }
+
+    /// [`hugging_face`](Self::hugging_face) on the GPU: `config` (or the
+    /// default) with [`HuggingFaceGGUFConfig::on_gpu`] applied — the platform
+    /// GPU backend (`LLamaMetal` on Apple targets, `LLamaGPU` elsewhere) with
+    /// every layer offloaded. Offload needs a build with a GPU feature
+    /// (`metal`, `cuda`, `vulkan`); see `on_gpu`.
+    ///
+    /// # Errors
+    /// Returns [`AgenticError::Provider`] if the GGUF provider cannot be
+    /// constructed.
+    #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
+    pub fn huggingface_gpu(
+        model: impl Into<ModelId>,
+        config: Option<HuggingFaceGGUFConfig>,
+    ) -> Result<Self, ErrorTrace<AgenticError>> {
+        Self::hugging_face(model, Some(config.unwrap_or_default().on_gpu()))
+    }
+
+    /// The shared base of every local preset: a GGUF primary model and an
+    /// optional GGUF memory model, each `(repo id, config)`, each built through
+    /// [`gguf_provider`].
+    #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
+    fn hugging_face_mix(
+        primary: (ModelId, Option<HuggingFaceGGUFConfig>),
+        memory: Option<(ModelId, Option<HuggingFaceGGUFConfig>)>,
+    ) -> Result<Self, ErrorTrace<AgenticError>> {
+        let (primary_model, primary_config) = primary;
+        let mut mix = RouterMix::new().primary(gguf_provider(primary_config)?, primary_model);
+        if let Some((memory_model, memory_config)) = memory {
+            mix = mix.memory(gguf_provider(memory_config)?, memory_model);
+        }
+        Ok(mix.build())
+    }
 
     /// GLM 5.2 as the main model, Gemma 4 E2B as the small memory model.
     ///
@@ -77,12 +159,10 @@ impl RouterPreset {
         main: Option<HuggingFaceGGUFConfig>,
         memory: Option<HuggingFaceGGUFConfig>,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
-        let main_provider = Glm52::q4_k_m(main)?;
-        let memory_provider = Gemma4E2b::q4_k_m(memory)?;
-        Ok(RouterMix::new()
-            .primary(main_provider, named(Glm52::MODEL_ID))
-            .memory(memory_provider, named(Gemma4E2b::MODEL_ID))
-            .build())
+        Self::hugging_face_mix(
+            (named(Glm52::MODEL_ID), main),
+            Some((named(Gemma4E2b::MODEL_ID), memory)),
+        )
     }
 
     /// Qwen 3.6 35B-A3B as the main model, Gemma 4 E2B as the small memory
@@ -96,12 +176,10 @@ impl RouterPreset {
         main: Option<HuggingFaceGGUFConfig>,
         memory: Option<HuggingFaceGGUFConfig>,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
-        let main_provider = Qwen36::q4_k_m(main)?;
-        let memory_provider = Gemma4E2b::q4_k_m(memory)?;
-        Ok(RouterMix::new()
-            .primary(main_provider, named(Qwen36::MODEL_ID))
-            .memory(memory_provider, named(Gemma4E2b::MODEL_ID))
-            .build())
+        Self::hugging_face_mix(
+            (named(Qwen36::MODEL_ID), main),
+            Some((named(Gemma4E2b::MODEL_ID), memory)),
+        )
     }
 
     /// Gemma 4 26B-A4B as the big main model, Gemma 4 E2B as the small memory
@@ -115,12 +193,10 @@ impl RouterPreset {
         main: Option<HuggingFaceGGUFConfig>,
         memory: Option<HuggingFaceGGUFConfig>,
     ) -> Result<Self, ErrorTrace<AgenticError>> {
-        let main_provider = Gemma4_26b::q4_k_m(main)?;
-        let memory_provider = Gemma4E2b::q4_k_m(memory)?;
-        Ok(RouterMix::new()
-            .primary(main_provider, named(Gemma4_26b::MODEL_ID))
-            .memory(memory_provider, named(Gemma4E2b::MODEL_ID))
-            .build())
+        Self::hugging_face_mix(
+            (named(Gemma4_26b::MODEL_ID), main),
+            Some((named(Gemma4E2b::MODEL_ID), memory)),
+        )
     }
 
     // =======================================================================

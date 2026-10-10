@@ -102,6 +102,59 @@ impl HuggingFaceGGUFConfig {
     pub fn builder() -> HuggingFaceGGUFConfigBuilder {
         HuggingFaceGGUFConfigBuilder::new()
     }
+
+    /// The default config with GGUF files cached under `path`.
+    ///
+    /// Everything else is [`HuggingFaceGGUFConfig::default()`]: no token, the
+    /// `q4_k_m` default quantization, the CPU backend, and
+    /// [`LlamaBackendConfig::default()`] (no GPU layers, 4096 context, 512
+    /// batch, one thread per available CPU). Use [`builder`](Self::builder)
+    /// to change more.
+    ///
+    /// ```rust
+    /// use foundation_ai::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
+    ///
+    /// let config = HuggingFaceGGUFConfig::with_cache_dir("/models");
+    /// assert_eq!(config.cache_dir, std::path::PathBuf::from("/models"));
+    /// ```
+    #[must_use]
+    pub fn with_cache_dir(path: impl Into<PathBuf>) -> Self {
+        Self {
+            cache_dir: path.into(),
+            ..Self::default()
+        }
+    }
+
+    /// This config forced onto the CPU: [`LlamaBackends::LLamaCPU`] with no
+    /// layers offloaded. Every other setting is kept.
+    #[must_use]
+    pub fn on_cpu(mut self) -> Self {
+        self.llama_backend = LlamaBackends::LLamaCPU;
+        self.llama_config.n_gpu_layers = 0;
+        self
+    }
+
+    /// This config forced onto the GPU: the platform's GPU backend with every
+    /// layer offloaded (`n_gpu_layers = u32::MAX`, which llama.cpp clamps to
+    /// the model's depth). Every other setting is kept.
+    ///
+    /// The backend is [`LlamaBackends::LLamaMetal`] on Apple targets and
+    /// [`LlamaBackends::LLamaGPU`] elsewhere. llama.cpp picks the actual
+    /// device from the build's GPU feature (`metal`, `cuda`, `vulkan`); the
+    /// layer count is what turns offload on. A build without a GPU feature
+    /// runs on the CPU — check
+    /// `infrastructure_llama_cpp::llama_backend::LlamaBackend::supports_gpu_offload`
+    /// to confirm (see doc 14, GPU acceleration).
+    #[must_use]
+    pub fn on_gpu(mut self) -> Self {
+        self.llama_backend = if cfg!(target_vendor = "apple") {
+            LlamaBackends::LLamaMetal
+        } else {
+            LlamaBackends::LLamaGPU
+        };
+        self.llama_config.n_gpu_layers = u32::MAX;
+        self
+    }
 }
 
 /// Get default cache directory: `~/.cache/huggingface`
@@ -259,6 +312,30 @@ impl HuggingFaceGGUFProvider {
             default_quantization: config.default_quantization,
             llama_config: config.llama_config,
         })
+    }
+
+    /// Directory GGUF files are cached in.
+    #[must_use]
+    pub fn cache_dir(&self) -> &std::path::Path {
+        &self.cache_dir
+    }
+
+    /// The llama.cpp backend variant models load on.
+    #[must_use]
+    pub fn llama_backend(&self) -> LlamaBackends {
+        self.llama_backend
+    }
+
+    /// The llama.cpp settings models load with.
+    #[must_use]
+    pub fn llama_config(&self) -> &LlamaBackendConfig {
+        &self.llama_config
+    }
+
+    /// Quantization used when the `ModelId` names none.
+    #[must_use]
+    pub fn default_quantization(&self) -> Option<&str> {
+        self.default_quantization.as_deref()
     }
 
     /// Parse a `ModelId` into `HuggingFace` `repo_id`, quantization, and revision.
