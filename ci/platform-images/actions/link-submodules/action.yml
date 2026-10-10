@@ -1,0 +1,34 @@
+name: platform-images / link-submodules
+description: >
+  Put submodules into the checkout from the copies baked into the job's
+  platform-images container (no network), falling back loudly to fetching a
+  submodule whose gitlink SHA differs from the baked one. Run it after
+  actions/checkout (with `submodules: false`) in a job whose `container:` is a
+  layer 2 image. See scripts/link-submodules.nu.
+
+inputs:
+  paths:
+    description: Space-separated submodule paths. Empty means every submodule the image baked.
+    default: ""
+  mode:
+    description: "`symlink` (default) or `submodule` (a git-clean checkout cloned from the baked copy)."
+    default: symlink
+  workspace:
+    description: The checkout.
+    default: ${{ github.workspace }}
+
+runs:
+  using: composite
+  steps:
+    - name: Link baked submodules
+      shell: bash
+      env:
+        SCRIPT: ${{ github.action_path }}/../../scripts/link-submodules.nu
+        PATHS: ${{ inputs.paths }}
+        MODE: ${{ inputs.mode }}
+        WORKSPACE: ${{ inputs.workspace }}
+      run: |
+        set -euo pipefail
+        # PATHS is split on purpose: one argument per submodule path.
+        # shellcheck disable=SC2086
+        nu "$SCRIPT" --workspace "$WORKSPACE" --mode "$MODE" $PATHS

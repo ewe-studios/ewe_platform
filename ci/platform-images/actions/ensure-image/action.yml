@@ -1,0 +1,198 @@
+name: platform-images / ensure-image
+description: >
+  Make sure one image layer exists for the current inputs. Stages the layer's
+  build context, computes its content hash, and looks for `<repo>:hash-<hash>`
+  in the registry. If it is missing (or `force` is set) it builds it: pushed
+  when `push` is true, otherwise exported locally (an OCI layout to build
+  another layer FROM, or a docker tarball to `docker load`). Needs nu
+  (setup-nu), docker buildx (docker/setup-buildx-action) and, to push, a
+  registry login.
+
+inputs:
+  config:
+    description: Path to the consumer's platform-images config.toml.
+    required: true
+  layer:
+    description: "`base` (layer 1) or `image` (layer 2)."
+    required: true
+  flavor:
+    description: Flavor name from [base.flavors] in the config.
+    default: default
+  parent:
+    description: >
+      Layer 2 only: the base image reference to build FROM, pinned by digest
+      (repo@sha256:...) when the base is in the registry, or its tag
+      reference when the base was built locally in this job.
+    default: ""
+  parent-oci:
+    description: >
+      Layer 2 only, when the base was built locally: "<oci dir>@<digest>" of
+      the base's OCI layout (the base layer's `oci` output).
+    default: ""
+  push:
+    description: Push to the registry ("true"/"false").
+    default: "false"
+  local-output:
+    description: When not pushing, `oci` (a directory to build FROM) or `docker` (a tarball to load).
+    default: docker
+  force:
+    description: Build even if the hash tag already exists ("true"/"false").
+    default: "false"
+  no-cache:
+    description: Build without the layer cache, e.g. to pick up security updates ("true"/"false").
+    default: "false"
+  github-token:
+    description: Optional token passed to the build as the `github_token` secret (mise uses it for GitHub API calls).
+    default: ""
+
+outputs:
+  ref:
+    description: Image reference to use. repo@sha256:digest when it is in the registry, the tag reference when it was only built locally.
+    value: ${{ steps.result.outputs.ref }}
+  tag-ref:
+    description: repo:hash-<hash>
+    value: ${{ steps.prep.outputs.ref }}
+  digest:
+    description: Image digest.
+    value: ${{ steps.result.outputs.digest }}
+  hash:
+    description: The layer's input hash.
+    value: ${{ steps.prep.outputs.hash }}
+  repository:
+    description: The image repository (registry/namespace/name).
+    value: ${{ steps.prep.outputs.repository }}
+  source:
+    description: "`registry` (exists there, or was just pushed) or `local` (built in this job, not pushed)."
+    value: ${{ steps.result.outputs.source }}
+  built:
+    description: '"true" if this run built the layer.'
+    value: ${{ steps.result.outputs.built }}
+  oci:
+    description: For a local `oci` build, "<dir>@<digest>" to pass as another layer's parent-oci.
+    value: ${{ steps.result.outputs.oci }}
+  tarball:
+    description: For a local `docker` build, the tarball to `docker load`.
+    value: ${{ steps.result.outputs.tarball }}
+
+runs:
+  using: composite
+  steps:
+    - name: Stage the ${{ inputs.layer }} layer and hash its inputs
+      id: prep
+      shell: bash
+      env:
+        CONFIG: ${{ inputs.config }}
+        LAYER: ${{ inputs.layer }}
+        FLAVOR: ${{ inputs.flavor }}
+        PARENT: ${{ inputs.parent }}
+        SCRIPTS: ${{ github.action_path }}/../../scripts
+      run: |
+        set -euo pipefail
+        out="$RUNNER_TEMP/platform-images/$LAYER-$FLAVOR"
+        nu "$SCRIPTS/images.nu" prepare --config "$CONFIG" --layer "$LAYER" --flavor "$FLAVOR" \
+          --parent "$PARENT" --out "$out" --repo "$GITHUB_WORKSPACE" --github-output
+        echo "out=$out" >> "$GITHUB_OUTPUT"
+        {
+          echo "### platform-images: $LAYER ($FLAVOR)"
+          echo
+          echo "Inputs hashed into \`$(jq -r .ref "$out/plan.json")\`:"
+          echo
+          echo '```'
+          grep -v '^cargo-workspace/' "$out/inputs.txt" | cut -f1,2
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Is it in the registry?
+      id: exists
+      if: inputs.force != 'true'
+      shell: bash
+      env:
+        REF: ${{ steps.prep.outputs.ref }}
+        SCRIPTS: ${{ github.action_path }}/../../scripts
+      run: nu "$SCRIPTS/images.nu" exists "$REF" --github-output
+
+    - name: Build options
+      id: opts
+      if: inputs.force == 'true' || steps.exists.outputs.exists != 'true'
+      shell: bash
+      env:
+        PUSH: ${{ inputs.push }}
+        LOCAL_OUTPUT: ${{ inputs.local-output }}
+        OUT: ${{ steps.prep.outputs.out }}
+        REF: ${{ steps.prep.outputs.ref }}
+        CACHE_REF: ${{ steps.prep.outputs.cache_ref }}
+        PARENT: ${{ inputs.parent }}
+        PARENT_OCI: ${{ inputs.parent-oci }}
+      run: |
+        set -euo pipefail
+        if [ "$PUSH" = "true" ]; then
+          echo "outputs=type=registry" >> "$GITHUB_OUTPUT"
+          echo "cache-to=type=registry,ref=$CACHE_REF,mode=max,image-manifest=true,oci-mediatypes=true" >> "$GITHUB_OUTPUT"
+        else
+          case "$LOCAL_OUTPUT" in
+            oci) echo "outputs=type=oci,dest=$OUT/oci,tar=false" >> "$GITHUB_OUTPUT" ;;
+            docker) echo "outputs=type=docker,dest=$OUT/image.tar" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::local-output must be oci or docker, not '$LOCAL_OUTPUT'"; exit 1 ;;
+          esac
+          echo "cache-to=" >> "$GITHUB_OUTPUT"
+        fi
+        # A base built locally in this job: resolve FROM <parent> to its OCI layout.
+        if [ -n "$PARENT_OCI" ]; then
+          echo "build-contexts=$PARENT=oci-layout://$PARENT_OCI" >> "$GITHUB_OUTPUT"
+        else
+          echo "build-contexts=" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Build ${{ steps.prep.outputs.ref }}
+      id: build
+      if: steps.opts.outcome == 'success'
+      uses: docker/build-push-action@v7.4.0
+      with:
+        context: ${{ steps.prep.outputs.context }}
+        file: ${{ steps.prep.outputs.dockerfile }}
+        platforms: ${{ steps.prep.outputs.platform }}
+        build-args: ${{ steps.prep.outputs.build_args }}
+        build-contexts: ${{ steps.opts.outputs.build-contexts }}
+        tags: ${{ steps.prep.outputs.ref }}
+        outputs: ${{ steps.opts.outputs.outputs }}
+        cache-from: type=registry,ref=${{ steps.prep.outputs.cache_ref }}
+        cache-to: ${{ steps.opts.outputs.cache-to }}
+        no-cache: ${{ inputs.no-cache == 'true' }}
+        pull: true
+        provenance: false
+        sbom: false
+        secrets: |
+          github_token=${{ inputs.github-token }}
+
+    - name: Result
+      id: result
+      shell: bash
+      env:
+        BUILT: ${{ steps.build.outcome == 'success' }}
+        PUSH: ${{ inputs.push }}
+        LOCAL_OUTPUT: ${{ inputs.local-output }}
+        OUT: ${{ steps.prep.outputs.out }}
+        REPOSITORY: ${{ steps.prep.outputs.repository }}
+        TAG_REF: ${{ steps.prep.outputs.ref }}
+        EXISTING_DIGEST: ${{ steps.exists.outputs.digest }}
+        BUILT_DIGEST: ${{ steps.build.outputs.digest }}
+      run: |
+        set -euo pipefail
+        if [ "$BUILT" != "true" ]; then
+          [ -n "$EXISTING_DIGEST" ] || { echo "::error::$TAG_REF was neither found nor built"; exit 1; }
+          digest=$EXISTING_DIGEST; source=registry
+        else
+          [ -n "$BUILT_DIGEST" ] || { echo "::error::the build of $TAG_REF reported no digest"; exit 1; }
+          digest=$BUILT_DIGEST
+          if [ "$PUSH" = "true" ]; then source=registry; else source=local; fi
+        fi
+        if [ "$source" = "registry" ]; then ref="$REPOSITORY@$digest"; else ref="$TAG_REF"; fi
+        {
+          echo "ref=$ref"
+          echo "digest=$digest"
+          echo "source=$source"
+          echo "built=$BUILT"
+          if [ "$source" = "local" ] && [ "$LOCAL_OUTPUT" = "oci" ]; then echo "oci=$OUT/oci@$digest"; else echo "oci="; fi
+          if [ "$source" = "local" ] && [ "$LOCAL_OUTPUT" = "docker" ]; then echo "tarball=$OUT/image.tar"; else echo "tarball="; fi
+        } >> "$GITHUB_OUTPUT"
+        echo "- \`$ref\` ($source, built: $BUILT)" >> "$GITHUB_STEP_SUMMARY"

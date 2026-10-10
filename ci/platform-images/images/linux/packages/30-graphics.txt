@@ -1,0 +1,50 @@
+# Graphics without a GPU: OpenGL/EGL/GLES (WebGL), Vulkan (wgpu, WebGPU,
+# llama.cpp's Vulkan backend) and a virtual X server, all running on Mesa's
+# software drivers (llvmpipe for GL, lavapipe for Vulkan). The image sets
+# VK_ICD_FILENAMES/LIBGL_ALWAYS_SOFTWARE so these are what gets picked; see
+# the README for running on a real GPU instead.
+
+# OpenGL / EGL / GLES / OSMesa (Mesa)
+libgl1-mesa-dev
+libegl1-mesa-dev
+libgles2-mesa-dev
+libosmesa6-dev
+libgbm-dev
+libdrm-dev
+mesa-utils
+
+# Vulkan: loader + headers, lavapipe (in mesa-vulkan-drivers), tools,
+# validation layers, and the shader toolchain llama.cpp's backend needs
+# (glslc, SPIR-V headers/tools).
+libvulkan-dev
+mesa-vulkan-drivers
+vulkan-tools
+vulkan-validationlayers
+glslang-tools
+glslc
+spirv-tools
+spirv-headers
+
+# Windowing libraries winit/wgpu/glutin-style crates load or link
+libx11-dev
+libx11-xcb-dev
+libxcb1-dev
+libxcb-cursor-dev
+libxcb-randr0-dev
+libxcb-shape0-dev
+libxcb-xfixes0-dev
+libxcb-xinput0
+libxcb-xinerama0
+libxkbcommon-dev
+libxkbcommon-x11-dev
+libxrandr-dev
+libxi-dev
+libxcursor-dev
+libxinerama-dev
+libwayland-dev
+wayland-protocols
+
+# Headless X: `xvfb-run -a <command>` gives a command a display
+xvfb
+xauth
+x11-utils

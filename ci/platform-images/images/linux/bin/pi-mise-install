@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# pi-mise-install <config-dir> <bin-dir>
+#
+# Install the tools pinned in <config-dir>/mise.toml (+ mise.lock) and put
+# a wrapper for every executable they provide into <bin-dir>, so the tools are on PATH
+# without mise shims: a shim would resolve versions from whatever mise.toml
+# is in the current directory, and an image must not change behaviour with
+# the checkout it is used on.
+#
+# Runs in locked mode when <config-dir>/mise.lock exists: downloads come from
+# the URLs in the lock and are checked against its sha256, and no GitHub API
+# call is needed. Bash rather than nushell: this is what installs nushell.
+set -euo pipefail
+
+if [ "$#" -ne 2 ]; then
+  echo "usage: pi-mise-install <config-dir> <bin-dir>" >&2
+  exit 2
+fi
+config_dir=$(cd "$1" && pwd)
+bin_dir=$2
+
+if [ ! -f "$config_dir/mise.toml" ]; then
+  echo "pi-mise-install: no mise.toml in $config_dir" >&2
+  exit 1
+fi
+if [ -f "$config_dir/mise.lock" ]; then
+  export MISE_LOCKED=1
+fi
+
+mkdir -p "$bin_dir"
+cd "$config_dir"
+mise trust --yes "$config_dir/mise.toml"
+mise install --yes
+
+# Small exec wrappers rather than symlinks: some tools locate their files
+# relative to $0 (node's npm/npx are shell scripts doing exactly that), which a
+# symlink in another directory breaks.
+linked=0
+while IFS= read -r dir; do
+  [ -d "$dir" ] || continue
+  for f in "$dir"/*; do
+    if [ -f "$f" ] && [ -x "$f" ]; then
+      printf '#!/bin/sh\nexec "%s" "$@"\n' "$f" > "$bin_dir/$(basename "$f")"
+      chmod 0755 "$bin_dir/$(basename "$f")"
+      linked=$((linked + 1))
+    fi
+  done
+done < <(mise bin-paths)
+
+if [ "$linked" -eq 0 ]; then
+  echo "pi-mise-install: no executables found for $config_dir/mise.toml" >&2
+  exit 1
+fi
+echo "pi-mise-install: wrote $linked executable wrappers into $bin_dir"

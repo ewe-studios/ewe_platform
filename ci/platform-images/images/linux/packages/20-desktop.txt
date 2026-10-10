@@ -1,0 +1,17 @@
+# Desktop / webview stack: what Tauri (wry + tao) and other GTK apps link on
+# Linux, via pkg-config: GTK 3, WebKitGTK 4.1 (+ JavaScriptCore), libsoup 3,
+# D-Bus, the tray (Ayatana AppIndicator), SVG icons and xdo (global shortcuts).
+
+libgtk-3-dev
+libwebkit2gtk-4.1-dev
+libjavascriptcoregtk-4.1-dev
+libsoup-3.0-dev
+libdbus-1-dev
+libayatana-appindicator3-dev
+librsvg2-dev
+libxdo-dev
+
+# Fonts, so headless browsers and webviews render text the same everywhere
+fonts-liberation
+fonts-dejavu-core
+fonts-noto-color-emoji
