@@ -1,0 +1,58 @@
+# ewe_platform's CI images, built with the platform-images unit
+# (ci/platform-images). Everything repository-specific about the images lives
+# here; the unit itself is generic. See ci/ewe-platform-image/README.md.
+
+[registry]
+host = "docker.io"
+namespace = "ewestudios"
+# `docker login -u ewestudios`, password from the repository secret
+# DOCKERHUB_EWESTUDIO_TOKEN. The workflows let a repository variable
+# PLATFORM_IMAGES_REGISTRY_USERNAME override the username.
+username = "ewestudios"
+
+# Layer 1: the generic base image (ci/platform-images/images/linux).
+[base]
+name = "ci-base"
+browsers = ["chrome", "firefox"]
+# Extra apt packages on top of the unit's lists (none needed today).
+packages = []
+
+[base.flavors.default]
+from = "docker.io/library/ubuntu:24.04"
+
+# CUDA 12.9 toolkit (nvcc, cuBLAS, ...) for llama.cpp `cuda` builds. 12.x
+# rather than 13.x: binaries built with it run on older drivers (525+), and it
+# still targets the Maxwell..Volta architectures llama.cpp builds by default.
+[base.flavors.cuda]
+from = "docker.io/nvidia/cuda:12.9.2-devel-ubuntu24.04"
+
+# Layer 2: ewe_platform's image, FROM the base of the same flavor.
+[image]
+name = "ewe-platform-ci"
+dockerfile = "ci/ewe-platform-image/Dockerfile"
+# Copied into the build context (under files/) and hashed.
+files = ["rust-toolchain.toml", "Cargo.lock", ".cargo/config.toml"]
+# Tools pinned in the repository's mise.toml (only its [tools]/[settings] are
+# used, so task edits don't rebuild the image), installed from its lock.
+mise_config = "mise.toml"
+mise_lock = "mise.lock"
+# Submodules baked at their gitlink SHAs. The others are left out on purpose:
+#   tools/dawn                    not built by any crate (DAWN_DIR use is
+#                                 commented out in llama-bindings/build.rs);
+#                                 multi-GB with its gclient deps
+#   tools/depot_tools             no URL in .gitmodules
+#   .agents                       agent docs, not a build input
+#   artefacts/models/whisper.cpp  model weights (Hugging Face LFS), not a
+#                                 build input
+submodules = ["tools/llama.cpp", "tools/whisper.cpp", "tools/emsdk"]
+# Warm the cargo registry with `cargo fetch --locked`.
+cargo_fetch = true
+# Fail the image build if these mise pins drift from Cargo.lock.
+version_checks = [
+    { tool = "github:wasm-bindgen/wasm-bindgen", cargo_package = "wasm-bindgen" },
+]
+
+[image.build_args]
+SUBMODULES_DIR = "/opt/ewe/submodules"
+RUST_EXTRA_COMPONENTS = "clippy rustc-codegen-cranelift-preview"
+RUST_EXTRA_TARGETS = "wasm32-wasip1 wasm32-wasip2"
