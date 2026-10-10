@@ -30,6 +30,25 @@ let agent = RouterPreset::glm52_gemma(None, None)?
 
 `None, None` accept the default GGUF config (Q4_K_M, default cache dir); pass
 `Some(HuggingFaceGGUFConfig)` per model to override cache dir, GPU layers, etc.
+(`HuggingFaceGGUFConfig::with_cache_dir(path)` is the defaults with another
+cache dir).
+
+One local model is shorter still — the repo id plus an optional config:
+
+```rust
+use foundation_ai::agentic::AgentSession;
+use foundation_ai::harness::RouterPreset;
+
+let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
+let agent = AgentSession::builder(preset)
+    .with_system_prompt("You are a helpful assistant.")
+    .build()?;
+```
+
+The preset's models become the session's models — `AgentSession::builder(preset)`
+and `preset.into_agent_builder()` both pre-fill them, so `with_model` is only an
+override. `build()` still fails with `AgenticError::Session("no model set")`
+when neither the preset nor the builder names a primary model.
 
 ---
 
@@ -44,7 +63,8 @@ The harness gives you three entry points, from highest-level to lowest:
 | `providers::*` + `RouterMix` | raw providers, full control | fully custom combinations |
 
 They compose: each `RouterPreset` constructor builds a `RouterMix`, and
-`into_agent_builder()` turns any preset into a builder with its models set.
+`AgentSession::builder(preset)` / `into_agent_builder()` turn any preset into a
+builder with its models set.
 
 Every fallible harness function returns `ErrorTrace<AgenticError>` — the same
 error type as `build()` and `run_turn()` — so one `?` works end to end. A
@@ -55,12 +75,20 @@ fails with `AgenticError::Provider(reason)`.
 
 ## 2. Combo presets (`agents.rs`)
 
-Each combination is a constructor on `RouterPreset`. Local (GGUF) combos take
-two optional `HuggingFaceGGUFConfig`s (main, memory); cloud combos take an
-`api_key`.
+Each combination is a constructor on `RouterPreset`. The single-model local
+constructors take a repo id and an optional `HuggingFaceGGUFConfig`; local
+combos take two optional configs (main, memory); cloud combos take an
+`api_key`. `None` is always `HuggingFaceGGUFConfig::default()`.
+
+Every local preset is built on `RouterPreset::hugging_face`, and every GGUF
+provider — presets and the `Glm52::q4_k_m`-style constructors alike — through
+`harness::gguf_provider(config)`, so there is one construction path.
 
 | Constructor | Main model | Memory model | Backend |
 |----------|-----------|--------------|---------|
+| `RouterPreset::hugging_face(repo, config)` | any one GGUF repo | — | GGUF, config as given |
+| `RouterPreset::huggingface_cpu(repo, config)` | any one GGUF repo | — | GGUF, `config.on_cpu()`: `LLamaCPU`, 0 GPU layers |
+| `RouterPreset::huggingface_gpu(repo, config)` | any one GGUF repo | — | GGUF, `config.on_gpu()`: `LLamaMetal` on Apple / `LLamaGPU` elsewhere, all layers offloaded |
 | `RouterPreset::glm52_gemma(main, memory)` | GLM 5.2 | Gemma 4 E2B | GGUF (llama.cpp) |
 | `RouterPreset::qwen36_gemma(main, memory)` | Qwen 3.6 35B-A3B | Gemma 4 E2B | GGUF |
 | `RouterPreset::gemma(main, memory)` | Gemma 4 26B-A4B | Gemma 4 E2B | GGUF (big + small) |
@@ -71,6 +99,13 @@ two optional `HuggingFaceGGUFConfig`s (main, memory); cloud combos take an
 
 ```rust
 use foundation_ai::harness::RouterPreset;
+
+// Local (GGUF) — one model; the repo id can be a family's MODEL_ID:
+let preset = RouterPreset::huggingface_gpu(Gemma4E2b::MODEL_ID, None)?;
+let preset = RouterPreset::hugging_face(
+    Glm52::MODEL_ID,
+    Some(HuggingFaceGGUFConfig::with_cache_dir("/models")),
+)?;
 
 // Local (GGUF) — main + memory:
 let preset = RouterPreset::gemma(None, None)?;
@@ -85,6 +120,10 @@ The old free functions (`claude_router` / `claude_session`, …) are gone:
 `RouterPreset::claude(key)?` replaces `claude_router(key)?`, and
 `RouterPreset::claude(key)?.into_agent_builder().with_session_id(id)`
 replaces `claude_session(id, key)?`.
+
+`huggingface_gpu` sets the offload; the device comes from the build's GPU
+feature (`metal`, `cuda`, `vulkan`). A build without one runs on the CPU — see
+doc 14 for `supports_gpu_offload()`.
 
 > **Candle note:** `RouterPreset::candle_llama` is gated behind the `candle` feature and
 > Candle currently implements only the **Llama** architecture. Other
@@ -350,13 +389,20 @@ let agent = RouterPreset::claude(&api_key)?
 ```rust
 // Re-exported from foundation_ai::harness
 providers::{Glm52, Qwen36, Ornith10, Gemma4E4b, Gemma4_26b, Gemma4E2b}  // + ::MODEL_ID, ::q{3,4,5}_k_m, ::q8_0
+gguf_provider(Option<HuggingFaceGGUFConfig>)  // the one GGUF construction path; None = default config
 CloudPresets  // ::claude_opus, ::claude_sonnet, ::openai_gpt4, ::openai_gpt4o, ::openai_responses
 CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI
 Q3_K_M, Q4_K_M, Q5_K_M, Q8_0
 RouterMix, RouterPreset, ToolPreset
 
 // Combination constructors (each returns Result<RouterPreset, ErrorTrace<AgenticError>>):
+RouterPreset::{hugging_face, huggingface_cpu, huggingface_gpu}   // (repo, Option<HuggingFaceGGUFConfig>)
 RouterPreset::{glm52_gemma, qwen36_gemma, gemma, claude, openai_chat, openai_responses}
 RouterPreset::candle_llama   // feature = "candle"
 RouterPreset::into_agent_builder   // → AgentSessionBuilder with the preset's models
+AgentSession::builder(preset)      // the same; also takes a ProviderRouter or one provider (no models)
+
+// Config shortcuts (backends::huggingface_gguf_provider::HuggingFaceGGUFConfig):
+HuggingFaceGGUFConfig::with_cache_dir(path)   // defaults + cache dir
+HuggingFaceGGUFConfig::{on_cpu, on_gpu}       // force the backend, keep the rest
 ```

@@ -50,11 +50,29 @@ let builder = RouterPreset::openai_chat(&openai_key)?.into_agent_builder();
 
 // Llama.cpp (local): GLM 5.2 + Gemma 4 E2B
 let builder = RouterPreset::glm52_gemma(None, None)?.into_agent_builder();
+
+// Llama.cpp (local): any one GGUF repo, default config, forced onto the CPU
+// (`huggingface_gpu` offloads every layer; `hugging_face` uses the config as given)
+let builder = AgentSession::builder(
+    RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?,
+);
 ```
 
-Then customize and build:
+`AgentSession::builder(preset)` and `preset.into_agent_builder()` are the same
+thing: the preset's primary/memory/fallback models become the session's, so
+there is no `with_model` to call (call it to override). Pass
+`Some(HuggingFaceGGUFConfig::with_cache_dir(path))` instead of `None` to keep
+the defaults but cache models elsewhere.
+
+Then customize and build. Everything past the system prompt is optional — the
+context, memory and error-policy configs default:
 
 ```rust
+let agent = builder
+    .with_system_prompt("You are a helpful assistant.")
+    .build()?;
+
+// Only to change the defaults:
 let agent = builder
     .with_system_prompt("You are a helpful assistant.")
     .with_config(my_config)

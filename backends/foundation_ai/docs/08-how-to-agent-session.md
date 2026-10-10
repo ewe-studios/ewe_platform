@@ -46,14 +46,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## 1. The router
 
-`AgentSession::builder` takes `impl Into<ProviderRouter>`: a single
-`ModelProvider` converts into a one-provider router, so
-`AgentSession::builder(provider)` works. Several providers:
+`AgentSession::builder` takes `impl Into<RouterPreset>`: a harness preset
+(`RouterPreset::claude(key)?`, `RouterPreset::huggingface_cpu(repo, None)?`, a
+`RouterMix` build), a `ProviderRouter`, or a single `ModelProvider` (which
+converts into a one-provider router), so `AgentSession::builder(provider)`
+works. Several providers:
 `ProviderRouter::builder().provider(a).provider(b).build()`; rules and
 resolution order: Doc 03 §3.
 
-Always set the model with `with_model(...)`: `build()` fails with
-`AgenticError::Session("no model set")` without one. The builder collects the
+A preset brings its models: its primary, memory and fallback models become the
+session's, and `with_model` / `with_memory_model` / `with_fallback_models`
+override them. A bare router or provider brings none, so set the model with
+`with_model(...)`: `build()` fails with `AgenticError::Session("no model set")`
+when neither the preset nor the builder names one. The builder collects the
 primary, fallback and memory models into a `ModelSelection`
 (`agent.models()`); `AgentConfig` holds only limits and thresholds.
 

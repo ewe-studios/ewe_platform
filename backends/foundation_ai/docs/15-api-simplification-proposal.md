@@ -1538,6 +1538,73 @@ Schema validation (`ToolCallManager::execute_one`) then checks the JSON the
 model sent, with no conversion in between. Migration: tools that already use
 `ToolArgs` need no change; tools that match on `ArgType` move to `ToolArgs`.
 
+#### 21. Presets carry their models; one-call local models (F8)
+
+✅ Implemented in [ewe-studios/ewe_platform#66](https://github.com/ewe-studios/ewe_platform/pull/66).
+
+Today a single local model takes a backend config, a GGUF config, a provider, a
+model id spelled twice, a `RouterMix`, and every config passed by hand (this is
+`apps/answerme-agent`'s setup before the change):
+
+```rust
+let llama_config = LlamaBackendConfig::builder()
+    .n_gpu_layers(0).context_length(4096).batch_size(512).n_threads(4).build();
+let hf_config = HuggingFaceGGUFConfig::builder()
+    .cache_dir(model_dir()).llama_backend(LlamaBackends::LLamaCPU).llama_config(llama_config).build();
+let provider = HuggingFaceGGUFProvider::new(hf_config).expect("failed to initialize GGUF provider");
+let model_id = ModelId::Name("unsloth/gemma-4-E2B-it-GGUF".into(), None);
+let preset = RouterMix::new().primary(provider, model_id.clone()).build();
+preset
+    .into_agent_builder()
+    .with_system_prompt("You are a helpful assistant. Be concise and direct.")
+    .with_model(model_id)                          // the preset already named it
+    .with_context_config(ContextConfig::default()) // already the default
+    .with_memory_config(MemoryConfig::default())   // already the default
+    .with_error_policy(ErrorPolicy::new())         // already the default
+    .build()
+    .expect("failed to build agent session")
+```
+
+Implemented:
+
+```rust
+fn build_session() -> Result<AgentSession, ErrorTrace<AgenticError>> {
+    let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
+    AgentSession::builder(preset)
+        .with_system_prompt("You are a helpful assistant. Be concise and direct.")
+        .build()
+}
+```
+
+- `AgentSession::builder` takes `impl Into<RouterPreset>`. A preset's
+  primary/memory/fallback models pre-fill the builder's `ModelSelection`
+  (item 14); `with_model` / `with_memory_model` / `with_fallback_models`
+  override them. `ProviderRouter` and any single `ModelProvider` convert into
+  a preset with no models, so `AgentSession::builder(router)` and
+  `AgentSession::builder(provider)` work as before and still need
+  `with_model`. `preset.into_agent_builder()` is the same call.
+  `build()` fails with `AgenticError::Session("no model set")` when neither
+  the preset nor the builder names a primary model.
+- `RouterPreset::hugging_face(model: impl Into<ModelId>, config:
+  Option<HuggingFaceGGUFConfig>)` — one GGUF repo as the primary model;
+  `None` is `HuggingFaceGGUFConfig::default()`. `huggingface_cpu` /
+  `huggingface_gpu` take the same arguments and force the backend with
+  `HuggingFaceGGUFConfig::on_cpu()` (`LLamaCPU`, 0 GPU layers) /
+  `on_gpu()` (`LLamaMetal` on Apple targets, `LLamaGPU` elsewhere, every
+  layer offloaded), keeping the rest of the config. The plain-constructor form
+  matches the cloud constructors (`claude(api_key)`).
+- `gemma`, `glm52_gemma` and `qwen36_gemma` are built on the same base as
+  `hugging_face`, and every GGUF provider — presets and the family
+  constructors (`Glm52::q4_k_m`, …) — goes through one function,
+  `harness::gguf_provider(config)`. The family constructors now apply their
+  quantization to a supplied config too (`q3_k_m(Some(cfg))` used to load
+  `cfg`'s `q4_k_m` default).
+- `HuggingFaceGGUFConfig::with_cache_dir(path)` — the default config with
+  another cache dir.
+- The builder's defaults (`ContextConfig::default()`,
+  `MemoryConfig::default()`, `ErrorPolicy::new()`) are what the explicit
+  calls passed, so callers drop them.
+
 ## 4. Suggested order
 
 1. Tier 1 items 1–4 (they overlap with the bug fixes and unblock persistence).
@@ -1547,7 +1614,7 @@ model sent, with no conversion in between. Migration: tools that already use
    for one release. `with_toolshed` stays as the one way to give a session
    its tools.
 4. Tier 2 items 10–13.
-5. Tier 3 (items 14–20) in one breaking release.
+5. Tier 3 (items 14–21) in one breaking release.
 
 ## 5. Open questions
 
@@ -1558,7 +1625,7 @@ None right now: the questions raised in review are answered in their items
 
 | Where | Name | Item |
 |---|---|---|
-| `AgentSession` | `builder(impl Into<ProviderRouter>)`, `ask`, `context_provider`, `#[deprecated] builder_for`, `#[deprecated] resume` | 2, 4, 5, 7 |
+| `AgentSession` | `builder(impl Into<RouterPreset>)` (was `impl Into<ProviderRouter>`; item 21), `ask`, `context_provider`, `#[deprecated] builder_for`, `#[deprecated] resume` | 2, 4, 5, 7 |
 | `AgentSession` | `run_turn(impl Into<Messages>) -> Turn`, `run_turn_stream(impl Into<Messages>) -> TurnStream` | 6, 7, 8 |
 | `AgentSessionBuilder` | `with_toolshed` (the only tool entry point), `with_session_id`, `resume` | 1, 4 |
 | `AgentSessionBuilder` | `with_doc_store` / `with_memory_store` (change the type), `with_model` / `with_fallback_models` / `with_memory_model` (take `Into<ModelId>`) | 2, 9 |
@@ -1568,3 +1635,4 @@ None right now: the questions raised in review are answered in their items
 | Tools | `ToolShed::{new, tool, tools, build}`, `ToolCallManager::{shed_definition, active_definitions}`, `ToolConstructor`, `tool_fn`, `SessionParts`, `ToolShedError`, `ToolArgs`, `FnTool`, `ToolCallResult::text`, `ToolPreset: IntoIterator`, `ToolPreset::search_context` | 1, 5, 12, 13 |
 | Stores | `MessageApi::from_shared`, `MemoryCoordinator::from_shared` | 3 |
 | Tier 3 | `ModelSelection`, `AgenticError::Provider`, `LoopDetectedInfo`, `agentic::internals`, `RouterPreset::{claude, openai_chat, …}`, `ToolArguments` (replaces `ArgType`) | 14–20 |
+| Tier 3 | `RouterPreset::{hugging_face, huggingface_cpu, huggingface_gpu}`, `From<ProviderRouter>`/`From<P: ModelProvider>` for `RouterPreset`, `harness::gguf_provider`, `HuggingFaceGGUFConfig::{with_cache_dir, on_cpu, on_gpu}` | 21 |
