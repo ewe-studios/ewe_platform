@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use foundation_ai::agentic::context::{ContextConfig, ContextProvider, KnowledgeHit, SearchMode};
@@ -8,7 +7,7 @@ use foundation_ai::agentic::token_ledger::TokenLedger;
 use foundation_ai::agentic::tool_impl::ToolImpl;
 use foundation_ai::agentic::tools::search::*;
 use foundation_ai::types::{
-    ArgType, MemoryFact, MessageRole, Messages, SessionId, SessionRecord, TextContent,
+    MemoryFact, MessageRole, Messages, SessionId, SessionRecord, TextContent, ToolArguments,
     UserModelContent,
 };
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
@@ -60,7 +59,7 @@ fn search_context_requires_query() {
     futures_lite::future::block_on(async {
         let ctx = make_context_provider();
         let tool = SearchContextTool::new(ctx);
-        let result = tool.execute(HashMap::new()).await;
+        let result = tool.execute(ToolArguments::new()).await;
         assert!(result.is_err());
     });
 }
@@ -70,9 +69,12 @@ fn search_context_returns_empty_on_no_match() {
     futures_lite::future::block_on(async {
         let ctx = make_context_provider();
         let tool = SearchContextTool::new(ctx);
-        let args = HashMap::from([
-            ("query".into(), ArgType::Text("nonexistent_xyz".into())),
-            ("mode".into(), ArgType::Text("Semantic".into())),
+        let args = ToolArguments::from_iter([
+            (
+                "query".into(),
+                serde_json::Value::String("nonexistent_xyz".into()),
+            ),
+            ("mode".into(), serde_json::Value::String("Semantic".into())),
         ]);
         let result = tool.execute(args).await.unwrap();
         if let UserModelContent::Text(tc) = &result.content {
@@ -92,9 +94,12 @@ fn search_context_finds_matching_messages() {
         let _ = ctx.message_api().flush();
 
         let tool = SearchContextTool::new(ctx);
-        let args = HashMap::from([
-            ("query".into(), ArgType::Text("authentication".into())),
-            ("mode".into(), ArgType::Text("Semantic".into())),
+        let args = ToolArguments::from_iter([
+            (
+                "query".into(),
+                serde_json::Value::String("authentication".into()),
+            ),
+            ("mode".into(), serde_json::Value::String("Semantic".into())),
         ]);
         let result = tool.execute(args).await.unwrap();
         if let UserModelContent::Text(tc) = &result.content {
@@ -132,9 +137,9 @@ fn search_context_hybrid_searches_messages_and_memory() {
             .unwrap();
 
         let tool = SearchContextTool::new(ctx);
-        let args = HashMap::from([
-            ("query".into(), ArgType::Text("database".into())),
-            ("mode".into(), ArgType::Text("Hybrid".into())),
+        let args = ToolArguments::from_iter([
+            ("query".into(), serde_json::Value::String("database".into())),
+            ("mode".into(), serde_json::Value::String("Hybrid".into())),
         ]);
         let result = tool.execute(args).await.unwrap();
         if let UserModelContent::Text(tc) = &result.content {
@@ -152,9 +157,9 @@ fn search_context_invalid_mode_errors() {
     futures_lite::future::block_on(async {
         let ctx = make_context_provider();
         let tool = SearchContextTool::new(ctx);
-        let args = HashMap::from([
-            ("query".into(), ArgType::Text("test".into())),
-            ("mode".into(), ArgType::Text("BadMode".into())),
+        let args = ToolArguments::from_iter([
+            ("query".into(), serde_json::Value::String("test".into())),
+            ("mode".into(), serde_json::Value::String("BadMode".into())),
         ]);
         let result = tool.execute(args).await;
         assert!(result.is_err());
@@ -166,9 +171,9 @@ fn search_context_graph_returns_empty() {
     futures_lite::future::block_on(async {
         let ctx = make_context_provider();
         let tool = SearchContextTool::new(ctx);
-        let args = HashMap::from([
-            ("query".into(), ArgType::Text("test".into())),
-            ("mode".into(), ArgType::Text("Graph".into())),
+        let args = ToolArguments::from_iter([
+            ("query".into(), serde_json::Value::String("test".into())),
+            ("mode".into(), serde_json::Value::String("Graph".into())),
         ]);
         let result = tool.execute(args).await.unwrap();
         if let UserModelContent::Text(tc) = &result.content {
@@ -206,7 +211,7 @@ fn search_file_tool_definition() {
 fn search_file_requires_query() {
     futures_lite::future::block_on(async {
         let tool = make_vfs_tool();
-        let result = tool.execute(HashMap::new()).await;
+        let result = tool.execute(ToolArguments::new()).await;
         assert!(result.is_err());
     });
 }
@@ -215,9 +220,9 @@ fn search_file_requires_query() {
 fn search_file_grep_vfs() {
     futures_lite::future::block_on(async {
         let tool = make_vfs_tool_with_files();
-        let args = HashMap::from([
-            ("query".into(), ArgType::Text("hello".into())),
-            ("kind".into(), ArgType::Text("Grep".into())),
+        let args = ToolArguments::from_iter([
+            ("query".into(), serde_json::Value::String("hello".into())),
+            ("kind".into(), serde_json::Value::String("Grep".into())),
         ]);
         let result = tool.execute(args).await.unwrap();
         if let UserModelContent::Text(tc) = &result.content {
@@ -233,9 +238,9 @@ fn search_file_grep_vfs() {
 fn search_file_find_vfs() {
     futures_lite::future::block_on(async {
         let tool = make_vfs_tool_with_files();
-        let args = HashMap::from([
-            ("query".into(), ArgType::Text(r"\.rs$".into())),
-            ("kind".into(), ArgType::Text("Find".into())),
+        let args = ToolArguments::from_iter([
+            ("query".into(), serde_json::Value::String(r"\.rs$".into())),
+            ("kind".into(), serde_json::Value::String("Find".into())),
         ]);
         let result = tool.execute(args).await.unwrap();
         if let UserModelContent::Text(tc) = &result.content {
@@ -250,9 +255,9 @@ fn search_file_find_vfs() {
 fn search_file_invalid_regex_errors() {
     futures_lite::future::block_on(async {
         let tool = make_vfs_tool();
-        let args = HashMap::from([
-            ("query".into(), ArgType::Text("[invalid".into())),
-            ("kind".into(), ArgType::Text("Grep".into())),
+        let args = ToolArguments::from_iter([
+            ("query".into(), serde_json::Value::String("[invalid".into())),
+            ("kind".into(), serde_json::Value::String("Grep".into())),
         ]);
         let result = tool.execute(args).await;
         assert!(result.is_err());
@@ -263,9 +268,9 @@ fn search_file_invalid_regex_errors() {
 fn search_file_invalid_kind_errors() {
     futures_lite::future::block_on(async {
         let tool = make_vfs_tool();
-        let args = HashMap::from([
-            ("query".into(), ArgType::Text("test".into())),
-            ("kind".into(), ArgType::Text("BadKind".into())),
+        let args = ToolArguments::from_iter([
+            ("query".into(), serde_json::Value::String("test".into())),
+            ("kind".into(), serde_json::Value::String("BadKind".into())),
         ]);
         let result = tool.execute(args).await;
         assert!(result.is_err());

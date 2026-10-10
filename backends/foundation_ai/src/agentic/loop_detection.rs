@@ -8,7 +8,7 @@
 //! checks (exact, `SimHash`, tool-call pattern) run synchronously every turn in
 //! F19's tight loop. Background semantic detection deferred to F31.
 
-use crate::types::{ArgType, ModelOutput};
+use crate::types::{ModelOutput, ToolArguments};
 use std::collections::VecDeque;
 use std::hash::{Hash, Hasher};
 
@@ -93,10 +93,7 @@ pub struct ToolCallSignature {
 
 impl ToolCallSignature {
     #[must_use]
-    pub fn from_tool_call(
-        name: &str,
-        args: &Option<std::collections::HashMap<String, ArgType>>,
-    ) -> Self {
+    pub fn from_tool_call(name: &str, args: &Option<ToolArguments>) -> Self {
         let mut keys: Vec<String> = args
             .as_ref()
             .map(|m| m.keys().cloned().collect())
@@ -255,7 +252,7 @@ fn extract_tool_signatures(output: &ModelOutput) -> Option<ToolCallSignature> {
 /// # Examples
 ///
 /// ```
-/// use foundation_ai::agentic::is_vacuous_answer;
+/// use foundation_ai::agentic::internals::is_vacuous_answer;
 ///
 /// assert!(is_vacuous_answer("."));
 /// assert!(is_vacuous_answer("  ...  "));
@@ -326,7 +323,7 @@ const QUANTITY_PHRASES: [&str; 19] = [
 /// # Examples
 ///
 /// ```
-/// use foundation_ai::agentic::question_expects_a_number;
+/// use foundation_ai::agentic::internals::question_expects_a_number;
 ///
 /// assert!(question_expects_a_number("What is 2+2?"));
 /// assert!(question_expects_a_number("How many planets are there?"));

@@ -1,12 +1,11 @@
 #![allow(unused_imports)]
-use std::collections::HashMap;
 
 use foundation_ai::agentic::testing::*;
+use foundation_ai::agentic::tool_impl::ToolImpl;
 use foundation_ai::types::{
-    ArgType, CostStatus, ModelInteraction, ModelOutput, Messages, StopReason, TextContent,
+    CostStatus, Messages, ModelInteraction, ModelOutput, StopReason, TextContent, ToolArguments,
     ToolDeclarations, UsageCosting, UsageReport, UserModelContent,
 };
-use foundation_ai::agentic::tool_impl::ToolImpl;
 
 #[test]
 fn mock_provider_returns_scripted_reply() {
@@ -189,8 +188,8 @@ fn mock_text_usage_carries_report() {
 
 #[test]
 fn mock_tool_call_builds_message() {
-    let mut args = HashMap::new();
-    args.insert("path".into(), foundation_ai::types::ArgType::Text("/tmp".into()));
+    let mut args = ToolArguments::new();
+    args.insert("path".into(), serde_json::Value::String("/tmp".into()));
     let msg = mock_tool_call("read_file", args);
     match msg {
         Messages::Assistant {
@@ -212,7 +211,7 @@ fn mock_tool_call_builds_message() {
 #[test]
 fn mock_tool_returning_succeeds() {
     let tool = MockTool::returning("echo", "echoed");
-    let result = futures_lite::future::block_on(tool.execute(HashMap::new())).unwrap();
+    let result = futures_lite::future::block_on(tool.execute(ToolArguments::new())).unwrap();
     match &result.content {
         UserModelContent::Text(t) => assert_eq!(t.content, "echoed"),
         other => panic!("expected text, got {other:?}"),
@@ -222,7 +221,7 @@ fn mock_tool_returning_succeeds() {
 #[test]
 fn mock_tool_failing_errors() {
     let tool = MockTool::failing("broken", "always fails");
-    let err = futures_lite::future::block_on(tool.execute(HashMap::new())).unwrap_err();
+    let err = futures_lite::future::block_on(tool.execute(ToolArguments::new())).unwrap_err();
     assert!(err.to_string().contains("always fails"));
 }
 
@@ -250,10 +249,10 @@ fn mock_tool_fails_then_succeeds() {
 
     use futures_lite::future::block_on;
 
-    assert!(block_on(tool.execute(HashMap::new())).is_err());
-    assert!(block_on(tool.execute(HashMap::new())).is_err());
-    assert!(block_on(tool.execute(HashMap::new())).is_ok());
-    assert!(block_on(tool.execute(HashMap::new())).is_ok());
+    assert!(block_on(tool.execute(ToolArguments::new())).is_err());
+    assert!(block_on(tool.execute(ToolArguments::new())).is_err());
+    assert!(block_on(tool.execute(ToolArguments::new())).is_ok());
+    assert!(block_on(tool.execute(ToolArguments::new())).is_ok());
 }
 
 #[test]

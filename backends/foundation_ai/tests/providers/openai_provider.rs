@@ -7,7 +7,9 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use foundation_ai::backends::anthropic_messages_provider::format_http_error;
-use foundation_ai::backends::backend_utils::{json_value_to_arg_type, model_id_to_string};
+use foundation_ai::backends::backend_utils::{
+    model_id_to_string, tool_arguments_from_str, tool_arguments_from_value,
+};
 use foundation_ai::backends::openai_provider::{
     build_chat_request, exponential_backoff, is_retryable_status, parse_chat_response,
     parse_openai_error, AccumulatedToolCall, ChatCompletionChunk, ChatCompletionRequest,
@@ -844,30 +846,34 @@ fn test_tool_call_accumulation() {
 }
 
 #[test]
-fn test_json_value_to_arg_type() {
-    let text = json_value_to_arg_type(&serde_json::json!("hello"));
-    assert!(matches!(text, foundation_ai::types::base_types::ArgType::Text(s) if s == "hello"));
-
-    let int = json_value_to_arg_type(&serde_json::json!(42));
-    assert!(matches!(
-        int,
-        foundation_ai::types::base_types::ArgType::I64(42)
-    ));
-
-    let float = json_value_to_arg_type(&serde_json::json!(3.64));
-    assert!(
-        matches!(float, foundation_ai::types::base_types::ArgType::Float64(f) if (f - 3.64).abs() < f64::EPSILON)
+fn tool_arguments_are_the_json_object_the_provider_sent() {
+    // An object is passed through as is: numbers, booleans and nesting intact.
+    let args = tool_arguments_from_str("t", r#"{"s":"hello","n":42,"f":3.64,"nested":{"b":true}}"#)
+        .expect("an object is the arguments");
+    assert_eq!(
+        serde_json::Value::Object(args),
+        serde_json::json!({"s": "hello", "n": 42, "f": 3.64, "nested": {"b": true}})
     );
 
-    // Objects become a recursive JSONMap (Proposal 15, item 12).
-    let obj = json_value_to_arg_type(&serde_json::json!({"nested": true}));
-    match obj {
-        foundation_ai::types::base_types::ArgType::JSONMap(map) => assert!(matches!(
-            map.get("nested"),
-            Some(foundation_ai::types::base_types::ArgType::JSON(t)) if t == "true"
-        )),
-        other => panic!("expected JSONMap, got {other:?}"),
-    }
+    // Anthropic sends `input` as a value rather than text.
+    let args = tool_arguments_from_value("t", serde_json::json!({"q": "x"})).expect("object");
+    assert_eq!(args.get("q"), Some(&serde_json::json!("x")));
+
+    // No arguments: empty text, `null`.
+    assert_eq!(tool_arguments_from_str("t", ""), None);
+    assert_eq!(tool_arguments_from_str("t", "  "), None);
+    assert_eq!(
+        tool_arguments_from_value("t", serde_json::Value::Null),
+        None
+    );
+
+    // Not an object, or not JSON: dropped (and logged), never half-parsed.
+    assert_eq!(tool_arguments_from_str("t", "[1, 2]"), None);
+    assert_eq!(tool_arguments_from_str("t", "{not json"), None);
+    assert_eq!(
+        tool_arguments_from_value("t", serde_json::json!("text")),
+        None
+    );
 }
 
 #[test]

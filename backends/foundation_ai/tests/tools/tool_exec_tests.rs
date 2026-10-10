@@ -2,16 +2,15 @@
 //!
 //! Tests workflow building (topological staging), retry config, and error classification.
 
-use foundation_ai::types::Tool;
 use async_trait::async_trait;
-use foundation_ai::agentic::{
-    FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolDefinition,
-    ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig,
+use foundation_ai::agentic::internals::{
+    FailMode, ToolCallManager, ToolCallRequest, ToolCallStage, ToolErrorKind, ToolRetryConfig,
 };
+use foundation_ai::agentic::{ToolCallResult, ToolError, ToolImpl};
+use foundation_ai::types::Tool;
 use foundation_ai::types::{
-    ArgType, Args, ExecutionHint, SessionId, TextContent, UserModelContent,
+    Args, ExecutionHint, SessionId, TextContent, ToolArguments, ToolDefinition, UserModelContent,
 };
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -32,14 +31,11 @@ impl ToolImpl for EchoTool {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let msg = arguments
             .get("message")
             .and_then(|v| match v {
-                ArgType::Text(s) => Some(s.clone()),
+                serde_json::Value::String(s) => Some(s.clone()),
                 _ => None,
             })
             .unwrap_or_default();
@@ -69,10 +65,7 @@ impl ToolImpl for FailingTool {
         })
     }
 
-    async fn execute(
-        &self,
-        _arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         match self.kind {
             ToolErrorKind::Timeout => Err(ToolError::Timeout {
                 tool: "fail".into(),
@@ -93,7 +86,7 @@ fn req(id: &str, name: &str, deps: Vec<&str>, hint: ExecutionHint) -> ToolCallRe
     ToolCallRequest {
         id: id.into(),
         name: name.into(),
-        arguments: HashMap::new(),
+        arguments: ToolArguments::new(),
         depends_on: deps.into_iter().map(String::from).collect(),
         execution_hint: hint,
     }
@@ -390,10 +383,7 @@ impl ToolImpl for FlakyTool {
         })
     }
 
-    async fn execute(
-        &self,
-        _arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         use std::sync::atomic::Ordering;
         let n = self.attempt.fetch_add(1, Ordering::SeqCst);
         if n < self.fail_n {
@@ -476,10 +466,7 @@ impl ToolImpl for PanicTool {
         returns: None,
         })
     }
-    async fn execute(
-        &self,
-        _arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         panic!("intentional tool panic");
     }
 }
@@ -518,10 +505,7 @@ impl ToolImpl for StrictTool {
         returns: None,
         })
     }
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         if !arguments.contains_key("path") {
             return Err(ToolError::InvalidArguments {
                 tool: "strict".into(),

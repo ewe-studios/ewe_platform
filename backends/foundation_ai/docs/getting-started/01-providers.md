@@ -19,16 +19,16 @@ scratch.
 |---------|----------------|------|
 | `llamacpp` | `llama.cpp` GGUF inference + GPU backends | Local inference |
 | `candle` | Candle (safetensors) inference | Local ML framework |
-| `agentic` | Agent loop, session, tools, memory | Agent system |
 | `candle-cuda` / `cuda` / `metal` / `vulkan` | GPU acceleration | Local with GPU |
 | `testing` | `MockModelProvider`, `MockTool` | Unit tests |
 
-The `llamacpp`, `candle`, and `agentic` features are on by default. For GPU
+The agent layer (loop, session, tools, memory) is always compiled; the
+`llamacpp` and `candle` features are on by default. For GPU
 setup, see the **[GPU Acceleration](../14-gpu-acceleration.md)** deep dive.
 
 ```toml
 [dependencies]
-foundation_ai = { version = "0.0.1", default-features = false, features = ["agentic"] }
+foundation_ai = { version = "0.0.1", default-features = false }
 foundation_auth = "0.0.1"
 foundation_db = "0.0.1"
 serde_json = "1"
@@ -46,14 +46,13 @@ OpenRouter).
 ### 1a. Using the Harness (Recommended)
 
 ```rust
-use foundation_ai::harness;
-use foundation_ai::types::SessionId;
+use foundation_ai::harness::RouterPreset;
 
 // Claude Opus main + Sonnet memory, via the Anthropic Messages API.
-let builder = harness::claude_session(
-    SessionId::new(),
+let builder = RouterPreset::claude(
     &std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY"),
-)?;
+)?
+.into_agent_builder();
 
 let agent = builder
     .with_system_prompt("You are a helpful assistant.")
@@ -62,15 +61,19 @@ let agent = builder
 
 Harness presets available:
 
-| Function | Main model | Memory model | Provider |
+| Constructor | Main model | Memory model | Provider |
 |----------|-----------|-------------|----------|
-| `claude_session(id, key)` | Claude Opus | Claude Sonnet | Anthropic |
-| `openai_chat_session(id, key)` | GPT-4o | GPT-4o-mini | OpenAI Chat |
-| `openai_responses_session(id, key)` | GPT-4o | GPT-4o-mini | OpenAI Responses |
-| `glm52_gemma_session(id, None, None)` | GLM 5.2 | Gemma 4 E2B | Llama.cpp (GGUF) |
-| `qwen36_gemma_session(id, None, None)` | Qwen 3.6 | Gemma 4 E2B | Llama.cpp (GGUF) |
-| `gemma_session(id, None, None)` | Gemma 4 26B | Gemma 4 E2B | Llama.cpp (GGUF) |
-| `candle_llama_session(id, repo, None)` | one safetensors | — | Candle |
+| `RouterPreset::claude(key)` | Claude Opus | Claude Sonnet | Anthropic |
+| `RouterPreset::openai_chat(key)` | GPT-4o | GPT-4o-mini | OpenAI Chat |
+| `RouterPreset::openai_responses(key)` | GPT-4o | GPT-4o-mini | OpenAI Responses |
+| `RouterPreset::glm52_gemma(None, None)` | GLM 5.2 | Gemma 4 E2B | Llama.cpp (GGUF) |
+| `RouterPreset::qwen36_gemma(None, None)` | Qwen 3.6 | Gemma 4 E2B | Llama.cpp (GGUF) |
+| `RouterPreset::gemma(None, None)` | Gemma 4 26B | Gemma 4 E2B | Llama.cpp (GGUF) |
+| `RouterPreset::candle_llama(repo, None)` | one safetensors | — | Candle |
+
+Each returns a `RouterPreset`; `.into_agent_builder()` turns it into an
+`AgentSessionBuilder` with the models set (add `.with_session_id(id)` to pick
+the session).
 
 ### 1b. Manual: No Helpers, From Scratch
 
@@ -468,6 +471,7 @@ stores:
 
 ```rust
 let agent = AgentSession::builder(router)   // rebuild ProviderRouter the same way
+    .with_model("my-model")
     .resume(session_id)                     // same SessionId from before; must exist
     .with_doc_store(doc_store)
     .with_memory_store(mem_store)
@@ -491,6 +495,7 @@ use foundation_ai::agentic::ToolShed;
 use foundation_ai::harness::ToolPreset;
 
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(
         ToolShed::new()
             .tool(MyTool)                              // your own ToolImpl
@@ -553,7 +558,7 @@ agent.end()?;  // flush buffers, drain queues, persist
 
 ```
 Harness path (fastest):
-  harness::claude_session(id, key) → .build()
+  RouterPreset::claude(key)?.into_agent_builder() → .build()
 
 Manual path (full control):
   Provider + RoutableProviderBox → ProviderRouter::builder()
@@ -578,14 +583,14 @@ Tools:
 
 ```bash
 # Harness shortcuts:
-cargo run -p foundation_ai --example hello_claude --features agentic
-cargo run -p foundation_ai --example hello_openai --features agentic
-cargo run -p foundation_ai --example hello_llamacpp --features "agentic llamacpp"
+cargo run -p foundation_ai --example hello_claude
+cargo run -p foundation_ai --example hello_openai
+cargo run -p foundation_ai --example hello_llamacpp
 
 # Manual (no helpers):
-cargo run -p foundation_ai --example manual_claude_router --features agentic
-cargo run -p foundation_ai --example manual_openrouter --features agentic
-cargo run -p foundation_ai --example agent_with_tools --features agentic
+cargo run -p foundation_ai --example manual_claude_router
+cargo run -p foundation_ai --example manual_openrouter
+cargo run -p foundation_ai --example agent_with_tools
 ```
 
 ---

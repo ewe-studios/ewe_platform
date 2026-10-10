@@ -26,43 +26,70 @@ pub mod tools;
 pub mod toolshed;
 pub mod turn;
 
+// ---------------------------------------------------------------------------
+// What an application needs: build a session, run turns, read results, give
+// it tools, handle its errors.
+
+pub use crate::harness::ToolPreset;
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
-pub use agent_loop::{AgentConfig, AgentLoop, AgentLoopState};
-pub use context::{AgentContext, ContextConfig, ContextProvider, KnowledgeHit, SearchMode};
-pub use embedding::{
-    CacheStats, CachedEmbeddingProvider, ColdCache, EmbeddingError, EmbeddingProvider,
-    EmbeddingVector, NoopColdCache, SentenceChunker, TextChunker, WholeTextChunker,
-};
+pub use agent_loop::{AgentConfig, ModelSelection};
+pub use context::ContextConfig;
+pub use embedding::{CachedEmbeddingProvider, EmbeddingProvider};
 pub use errors::{
-    AgentAction, AgenticError, AuthError, CircuitBreaker, ErrorPolicy, GenKind, GenerationFailure,
-    LoopDetection, UserId,
+    AgentAction, AgenticError, AuthError, ErrorPolicy, GenKind, GenerationFailure,
+    LoopDetectedInfo, UserId,
 };
-pub use loop_detection::{
-    is_bare_number, is_vacuous_answer, question_expects_a_number, Escalation, LoopDetection as InlineLoopDetection, LoopDetector,
-    LoopDetectorConfig, ToolCallSignature,
-};
-pub use memory::{MemoryAction, MemoryConfig, MemoryHierarchy, MemoryParseStrategy};
-pub use memory_coordinator::MemoryCoordinator;
-pub use memory_store::{KvMemoryStore, MemoryStore, MemoryTier, SessionMemory};
-pub use message_api::{MessageApi, MessageEvent, Receiver as MessageReceiver};
-pub use progress::{lift_model_item, AgentProgress, AgentStream, MemoryKind};
-pub use serialization::{from_record_batch, to_record_batch, SerError, SessionRecordRow};
+pub use memory::{MemoryConfig, MemoryParseStrategy};
+pub use memory_store::{KvMemoryStore, MemoryStore};
+pub use progress::{AgentProgress, MemoryKind};
 pub use session::{AgentSession, AgentSessionBuilder};
-pub use steering::{CancelCode, SteeringQueues};
-pub use token_ledger::{TokenLedger, TokenSnapshot};
-pub use tool_impl::{
-    FailMode, FnTool, ToolArgs, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage,
-    ToolCallWorkflow, ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig,
-    WorkflowResult,
-};
-#[cfg(not(target_family = "wasm"))]
-pub use tools::search::{
-    FileMatch, FileSearch, FileSearchKind, SearchContextTool, SearchFileTool, VfsSearchBackend,
-};
-pub use tools::shed::{ShedQuery, ShedResult, ToolDiscovery, ToolSummary, SHED_TOOL_NAME};
+pub use token_ledger::TokenSnapshot;
+pub use tool_impl::{FnTool, ToolArgs, ToolCallResult, ToolError, ToolImpl};
 pub use toolshed::{
     tool_fn, ContextSearch, MemoryAccess, SessionParts, ToolConstructor, ToolShed, ToolShedError,
 };
 pub use turn::{Answer, Turn, TurnEvent, TurnEvents, TurnOutcome, TurnStream, TurnSummary};
-#[cfg(not(target_family = "wasm"))]
-pub use foundation_nativeapis::{VfsSearchKind, VfsSearchMatch, VfsSearcher};
+
+/// Loop internals, for custom loops, extensions and tests.
+///
+/// Everything the session wires together — the loop state machine, context
+/// assembly, the memory hierarchy, the tool-call manager, steering queues,
+/// token accounting, loop detection, the built-in tool types and the
+/// embedding/serialization helpers. Not covered by semver: these change with
+/// the loop.
+pub mod internals {
+    pub use super::agent_loop::{AgentLoop, AgentLoopState};
+    pub use super::context::{AgentContext, ContextProvider, KnowledgeHit, SearchMode};
+    pub use super::embedding::{
+        CacheStats, ColdCache, EmbeddingError, EmbeddingVector, NoopColdCache, SentenceChunker,
+        TextChunker, WholeTextChunker,
+    };
+    pub use super::errors::CircuitBreaker;
+    pub use super::loop_detection::{
+        is_bare_number, is_vacuous_answer, question_expects_a_number, Escalation, LoopDetection,
+        LoopDetector, LoopDetectorConfig, ToolCallSignature,
+    };
+    pub use super::memory::{MemoryAction, MemoryHierarchy};
+    pub use super::memory_coordinator::MemoryCoordinator;
+    pub use super::memory_store::{MemoryTier, SessionMemory};
+    pub use super::message_api::{MessageApi, MessageEvent, Receiver as MessageReceiver};
+    pub use super::progress::{lift_model_item, AgentStream};
+    pub use super::serialization::{
+        from_record_batch, to_record_batch, SerError, SessionRecordRow,
+    };
+    pub use super::steering::{CancelCode, SteeringQueues};
+    pub use super::token_ledger::TokenLedger;
+    pub use super::tool_impl::{
+        FailMode, ToolCallManager, ToolCallRequest, ToolCallStage, ToolCallWorkflow, ToolErrorKind,
+        ToolRetryConfig, WorkflowResult,
+    };
+    #[cfg(not(target_family = "wasm"))]
+    pub use super::tools::search::{
+        FileMatch, FileSearch, FileSearchKind, SearchContextTool, SearchFileTool, VfsSearchBackend,
+    };
+    pub use super::tools::shed::{
+        ShedQuery, ShedResult, ToolDiscovery, ToolSummary, SHED_TOOL_NAME,
+    };
+    #[cfg(not(target_family = "wasm"))]
+    pub use foundation_nativeapis::{VfsSearchKind, VfsSearchMatch, VfsSearcher};
+}

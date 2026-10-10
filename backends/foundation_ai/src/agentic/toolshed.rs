@@ -277,7 +277,7 @@ impl From<ToolShedError> for AgenticError {
 ///     .tools(ToolPreset::files(fs))            // a preset
 ///     .tools(ToolPreset::search_context());    // built from the session
 ///
-/// let agent = AgentSession::builder(router).with_toolshed(tools).build()?;
+/// let agent = AgentSession::builder(router).with_model("my-model").with_toolshed(tools).build()?;
 /// ```
 ///
 /// The model is offered only the built-in `shed` meta-tool up front; the tools

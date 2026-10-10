@@ -71,7 +71,7 @@ fn breaker_threshold_zero_is_clamped_to_one() {
 fn classify_loop_detected_continues() {
     let policy = ErrorPolicy::new();
     let action = policy.classify(AgenticError::LoopDetected(
-        foundation_ai::agentic::errors::LoopDetection {
+        foundation_ai::agentic::errors::LoopDetectedInfo {
             kind: "ExactLoop".into(),
             occurrences: 3,
         },

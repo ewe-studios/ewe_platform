@@ -8,18 +8,15 @@
 //!
 //! Matrix rows: 3.1, 3.2, 6.5, 6.9, 7.1, 7.2, 7.3.
 
-use std::collections::HashMap;
-
 use foundation_ai::agentic::testing::{
     last_user_contains, mock_text, mock_tool_call, MockModelProvider,
 };
 use foundation_ai::agentic::{
-    AgentConfig, AgentSession, Answer, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
-    TurnEvent, TurnOutcome,
+    AgentSession, Answer, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig, TurnEvent,
+    TurnOutcome,
 };
 use foundation_ai::types::{
-    ArgType, MessageRole, Messages, ModelId, ModelOutput, SessionRecord, TextContent,
-    UserModelContent,
+    MessageRole, Messages, ModelOutput, SessionRecord, TextContent, ToolArguments, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_db::{MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
@@ -43,14 +40,9 @@ fn user_msg(text: &str) -> Messages {
 
 /// A session whose router is the given mock, built the way the app builds one.
 fn session_with(mock: MockModelProvider) -> Session {
-    let model_id = ModelId::Name("mock".into(), None);
     AgentSession::builder(mock.into_router())
         .with_system_prompt("You are a helpful assistant.")
-        .with_model(model_id.clone())
-        .with_config(AgentConfig {
-            primary_model: model_id,
-            ..Default::default()
-        })
+        .with_model("mock")
         .with_context_config(ContextConfig::default())
         .with_memory_config(MemoryConfig::default())
         .with_error_policy(ErrorPolicy::new())
@@ -132,7 +124,10 @@ fn fails_after_partial_output() -> MockModelProvider {
             mock_text("Working on it. "),
             mock_tool_call(
                 "shed",
-                HashMap::from([("description".to_string(), ArgType::Text("anything".into()))]),
+                ToolArguments::from_iter([(
+                    "description".to_string(),
+                    serde_json::Value::String("anything".into()),
+                )]),
             ),
         ],
     );
@@ -389,15 +384,10 @@ fn build_and_run_a_turn_on_sql_backed_stores() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("hello from sqlite")]);
 
-    let model_id = ModelId::Name("mock".into(), None);
     let session: SqlSession = AgentSession::builder(mock.into_router())
         .with_doc_store(SqlDocumentStore::<TursoStorage>::default())
         .with_memory_store(KvMemoryStore::<TursoStorage>::default())
-        .with_model(model_id.clone())
-        .with_config(AgentConfig {
-            primary_model: model_id,
-            ..Default::default()
-        })
+        .with_model("mock")
         .build()
         .expect("a session over default SQL stores builds");
 
@@ -449,4 +439,110 @@ fn follow_up_accepts_a_plain_string() {
         Messages::User { role: MessageRole::User, content: UserModelContent::Text(t), .. }
             if t.content == "queued as a user message"
     ));
+}
+
+// ---------------------------------------------------------------------------
+// TurnStream keeps the raw valtron stream reachable (review on #65)
+
+mod raw_stream_access {
+    use super::*;
+    use foundation_ai::agentic::{AgentProgress, Turn, TurnStream};
+    use foundation_core::valtron::{DrivenStreamIterator, StreamIterator, StreamIteratorExt};
+
+    type Raw = DrivenStreamIterator<
+        foundation_ai::agentic::internals::AgentLoop<
+            MemoryDocumentStore,
+            KvMemoryStore<MemoryStorage>,
+        >,
+    >;
+
+    /// Compile-time: a `TurnStream` is a valtron `StreamIterator` over
+    /// `SessionRecord` / `AgentProgress`.
+    fn assert_stream_iterator<S>(_: &S)
+    where
+        S: StreamIterator<D = SessionRecord, P = AgentProgress>,
+    {
+    }
+
+    fn texts<I>(items: I) -> Vec<String>
+    where
+        I: Iterator<Item = Stream<String, AgentProgress>>,
+    {
+        items
+            .filter_map(|item| match item {
+                Stream::Next(text) if !text.is_empty() => Some(text),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+
+    fn streamed(
+        reply: &str,
+    ) -> (
+        Session,
+        TurnStream<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>,
+    ) {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(vec![mock_text(reply)]);
+        let session = session_with(mock);
+        let stream = session
+            .run_turn_stream("hi")
+            .expect("stream should schedule");
+        (session, stream)
+    }
+
+    #[valtron_test]
+    fn stream_iterator_ext_combinators_apply_to_a_turn_stream() {
+        let (_session, stream) = streamed("mapped");
+        assert_stream_iterator(&stream);
+
+        // `map_done` straight on the TurnStream.
+        let mapped = stream.map_done(|record| Turn::text_of(&record));
+        assert_eq!(texts(mapped), vec!["mapped".to_string()]);
+    }
+
+    #[valtron_test]
+    fn into_stream_iter_and_filter_done_on_a_turn_stream() {
+        let (_session, stream) = streamed("filtered");
+
+        let only_conversation = stream
+            .into_stream_iter()
+            .filter_done(|record| matches!(record, SessionRecord::Conversation { .. }))
+            .map_done(|record| Turn::text_of(&record));
+        assert_eq!(texts(only_conversation), vec!["filtered".to_string()]);
+    }
+
+    #[valtron_test]
+    fn inner_mut_drives_the_raw_iterator_and_the_turn_stream_stays_usable() {
+        let (_session, mut stream) = streamed("raw");
+
+        // Drive the raw valtron iterator through the borrow…
+        let mut assistant = Vec::new();
+        while let Some(item) = stream.inner_mut().next() {
+            if let Stream::Next(record) = item {
+                let text = Turn::text_of(&record);
+                if !text.is_empty() {
+                    assistant.push(text);
+                }
+            }
+        }
+        assert_eq!(assistant, vec!["raw".to_string()]);
+        // …and the TurnStream is still there, reporting the same state.
+        assert!(stream.inner().is_closed());
+        assert!(stream.is_closed());
+        assert!(stream.next().is_none());
+    }
+
+    #[valtron_test]
+    fn into_inner_and_from_hand_over_the_raw_iterator() {
+        let (_session, stream) = streamed("handed over");
+        let raw: Raw = stream.into_inner();
+        let mapped = raw.map_done(|record| Turn::text_of(&record));
+        assert_eq!(texts(mapped), vec!["handed over".to_string()]);
+
+        let (_session, stream) = streamed("converted");
+        let raw = Raw::from(stream);
+        let mapped = raw.map_done(|record| Turn::text_of(&record));
+        assert_eq!(texts(mapped), vec!["converted".to_string()]);
+    }
 }

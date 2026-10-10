@@ -11,7 +11,7 @@ use std::thread;
 use std::time::Duration;
 
 use crate::backends::backend_utils::{
-    empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
+    empty_usage_report, flatten_tools, model_id_to_string, tool_arguments_from_str,
 };
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -20,14 +20,12 @@ use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::shared::client::{
-    request::Extensions,
     body_reader::collect_strings_from_send_safe,
     http_client::{BoxedSseIterator, HttpClient},
+    request::Extensions,
     request::PreparedRequest,
 };
-use foundation_netio::shared::http::{
-    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
-};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
 use serde::{Deserialize, Serialize};
 
 use crate::costing::{calculate_cost, CostAccumulator};
@@ -828,8 +826,7 @@ impl ToolFormatter for OpenAIFormatter {
                             .and_then(|f| f.get("arguments"))
                             .and_then(|v| v.as_str())
                             .unwrap_or("{}");
-                        let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
-                            serde_json::from_str(args_str).ok();
+                        let arguments = tool_arguments_from_str(&name, args_str);
                         calls.push(ModelOutput::ToolCall {
                             id,
                             name,
@@ -1214,18 +1211,7 @@ impl OpenAIStream {
             })
         } else {
             let tc = &self.tool_calls[0];
-            let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
-                serde_json::from_str(&tc.arguments)
-                    .ok()
-                    .map(|v: serde_json::Value| {
-                        v.as_object()
-                            .map(|obj| {
-                                obj.iter()
-                                    .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-                                    .collect()
-                            })
-                            .unwrap_or_default()
-                    });
+            let arguments = tool_arguments_from_str(&tc.name, &tc.arguments);
 
             ModelOutput::ToolCall {
                 id: tc.id.clone(),
@@ -2020,18 +2006,7 @@ pub fn parse_chat_response(
 
     let output = if let Some(tool_calls) = &message.tool_calls {
         if let Some(tc) = tool_calls.first() {
-            let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
-                serde_json::from_str(&tc.function.arguments)
-                    .ok()
-                    .map(|v: serde_json::Value| {
-                        v.as_object()
-                            .map(|obj| {
-                                obj.iter()
-                                    .map(|(k, v)| (k.clone(), json_value_to_arg_type(v)))
-                                    .collect()
-                            })
-                            .unwrap_or_default()
-                    });
+            let arguments = tool_arguments_from_str(&tc.function.name, &tc.function.arguments);
 
             ModelOutput::ToolCall {
                 id: tc.id.clone(),

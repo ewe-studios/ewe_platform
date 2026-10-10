@@ -13,7 +13,7 @@ Every tool implements this:
 #[async_trait]
 pub trait ToolImpl: Send + Sync {
     fn definition(&self) -> Tool;    // Tool::SingleCommand or Tool::MultiCommands
-    async fn execute(&self, arguments: HashMap<String, ArgType>)
+    async fn execute(&self, arguments: ToolArguments)    // the model's JSON object
         -> Result<ToolCallResult, ToolError>;
 }
 ```
@@ -93,6 +93,7 @@ let tools = ToolShed::new()
     }));
 
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(tools)
     .build()?;
 ```
@@ -165,7 +166,7 @@ manager.register(Arc::new(ReadTool::new(fs)));
 let request = ToolCallRequest {
     id: "call-1".into(),
     name: "read".into(),
-    arguments: HashMap::from([("path".into(), ArgType::Text("/src/main.rs".into()))]),
+    arguments: ToolArguments::from_iter([("path".into(), serde_json::json!("/src/main.rs"))]),
     depends_on: vec![],
     execution_hint: ExecutionHint::Unspecified,
 };
@@ -281,11 +282,9 @@ never returns `Network` today (only `Timeout`, `Execution`,
 ## 8. Building a custom tool
 
 ```rust
-use std::collections::HashMap;
 use async_trait::async_trait;
-use foundation_ai::agentic::tool_impl::{ToolImpl, ToolCallResult, ToolDefinition, ToolError};
-use foundation_ai::agentic::{AgentSession, FnTool, ToolArgs, ToolShed};
-use foundation_ai::types::{ArgType, Args, Tool};
+use foundation_ai::agentic::{AgentSession, FnTool, ToolArgs, ToolCallResult, ToolError, ToolImpl, ToolShed};
+use foundation_ai::types::{Args, Tool, ToolArguments, ToolDefinition};
 
 struct GreetTool;
 
@@ -309,10 +308,7 @@ impl ToolImpl for GreetTool {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let name = ToolArgs::new("greet", &arguments).str("name")?;   // InvalidArguments if missing
         Ok(ToolCallResult::text(format!("Hello, {name}!")))
     }
@@ -333,6 +329,7 @@ let greet = FnTool::new(
 
 // Give it to a session:
 let agent = AgentSession::builder(router)
+    .with_model("my-model")
     .with_toolshed(ToolShed::new().tool(GreetTool))
     .build()?;
 ```

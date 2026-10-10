@@ -10,7 +10,7 @@
 //! Run with:
 //! ```bash
 //! ANTHROPIC_API_KEY=sk-... OPENAI_API_KEY=sk-... cargo run -p foundation_ai \
-//!   --example custom_router --features agentic
+//!   --example custom_router
 //! ```
 
 use foundation_ai::agentic::AgentConfig;
@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build();
 
     println!(
-        "Router built with primary={}, memory={:?}, fallbacks={:?}",
+        "Router built with primary={:?}, memory={:?}, fallbacks={:?}",
         preset.primary_model, preset.memory_model, preset.fallback_models,
     );
 

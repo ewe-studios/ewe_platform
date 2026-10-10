@@ -142,15 +142,17 @@ local backends are prompted to use), they become real
 `ModelOutput::ToolCall`s and the surrounding prose is kept as text. Then
 `on_generation_complete`:
 
-1. Runs `LoopDetector::check` on every assistant output. On a loop it
+1. Runs `LoopDetector::check` on every assistant output. On a loop (a
+   `LoopDetection` other than `NoLoop`) it
    escalates:
    - `Redirect` → injects a system message ("Loop detected. Please try a
      different approach…") and re-assembles.
    - `SwitchModelOrTemperature` → moves to the next fallback model via the
      circuit breaker (temperature is **not** changed), injects a system
      message, re-assembles.
-   - `Terminate` → `AgenticError::LoopDetected` as a `FailedAction`. A
-     repeated *empty* answer is passed through instead of failing.
+   - `Terminate` → `AgenticError::LoopDetected(LoopDetectedInfo { kind,
+     occurrences })` as a `FailedAction`. A repeated *empty* answer is passed
+     through instead of failing.
 2. If the turn called no tool, judges the assembled answer with
    `LoopDetector::check_answer`. A vacuous answer (a lone `.`, an empty
    reply, or a bare number to a question that didn't ask for one) is retried:
@@ -207,7 +209,8 @@ to. A tool that panics is caught at the boundary and reported the same way.
 `CircuitBreaker::new(threshold, fallbacks)` counts consecutive failures. Once
 the count reaches `threshold` (`AgentConfig::circuit_breaker_threshold`,
 default 3), each further `on_failure()` returns the next model from
-`fallback_models`; `on_success()` resets the count.
+`ModelSelection::fallbacks` (`with_fallback_models`); `on_success()` resets
+the count.
 
 ## 7. Token accounting
 
@@ -228,14 +231,16 @@ CostStatus::…)` and `CostAccumulator`.
 
 | Field | Default | Meaning |
 |---|---|---|
-| `primary_model` | empty name — set it with `with_model` | Model for generation |
-| `fallback_models` | `[]` | Circuit-breaker fallbacks |
-| `memory_model` | `None` | Recorded, but nothing generates memory yet |
 | `max_inner_iterations` | 25 | Tool-call rounds per outer iteration |
 | `max_outer_iterations` | 10 | Queue-drain rounds per turn |
 | `circuit_breaker_threshold` | 3 | Failures before switching models |
 | `preflight_compression_threshold` | 0.85 | Fraction of the budget; `0.0` disables |
 | `context_pressure_threshold` | 0.70 | Fraction of the budget; `0.0` disables |
 | `model_params` | `ModelParams::default()` | Sampling parameters for every request |
+
+The models are not in `AgentConfig`: `AgentLoop::new` takes a
+`ModelSelection` (primary, fallbacks, memory) next to it, which the session
+builder fills from `with_model` / `with_fallback_models` /
+`with_memory_model`.
 
 Doc 09 covers tuning these.

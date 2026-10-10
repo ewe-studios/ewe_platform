@@ -67,10 +67,18 @@ struct MessageInner<D> {
     flush_threshold: usize,
     /// Pending flush flag — set when a flush is in progress.
     flush_pending: std::sync::atomic::AtomicBool,
+    /// A record the store refused on the last flush. The next flush writes it
+    /// first, so a failed flush neither loses the record nor reorders the log.
+    retry: std::sync::Mutex<Option<SessionRecord>>,
 }
 
 impl<D: DocumentStore> MessageInner<D> {
     /// Flush all buffered records to the `DocumentStore`.
+    ///
+    /// On a store error the failing record is kept for the next flush (see
+    /// `retry`), the records behind it stay buffered, and the in-progress flag
+    /// is cleared — so a later flush can succeed instead of every flush after
+    /// the first error silently returning `Ok(0)`.
     fn flush(&self) -> StorageResult<usize> {
         if self
             .flush_pending
@@ -78,41 +86,76 @@ impl<D: DocumentStore> MessageInner<D> {
         {
             return Ok(0); // another flush in progress
         }
-        let mut count = 0;
-        while let Ok(record) = self.write_buffer.pop() {
-            let id = match &record {
-                SessionRecord::Conversation { message } => message.id().to_string(),
-                _ => foundation_compact::ids::new_scru128_string(),
-            };
-            // Use append_with_id for conversation records (stable id),
-            // append_promotable for memory records (promotes columns).
-            match &record {
-                SessionRecord::Conversation { .. } => {
-                    self.doc_store.append_with_id(
-                        &self.session_id.to_string(),
-                        &id,
-                        record.clone(),
-                    )?;
-                }
-                SessionRecord::WorkingMemory { .. }
-                | SessionRecord::Observation { .. }
-                | SessionRecord::Reflection { .. } => {
-                    self.doc_store
-                        .append_promotable(&self.session_id.to_string(), record.clone())?;
-                }
-                _ => {
-                    self.doc_store
-                        .append(&self.session_id.to_string(), record.clone())?;
-                }
-            }
-            count += 1;
-        }
+        let result = self.flush_buffered();
         self.flush_pending
             .store(false, std::sync::atomic::Ordering::SeqCst);
+        result
+    }
+
+    fn flush_buffered(&self) -> StorageResult<usize> {
+        let retry = self
+            .retry
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take();
+        let mut count = 0;
+        let mut pending = retry
+            .into_iter()
+            .chain(std::iter::from_fn(|| self.write_buffer.pop().ok()));
+        let outcome = loop {
+            let Some(record) = pending.next() else {
+                break Ok(count);
+            };
+            if let Err(error) = self.write(&record) {
+                *self
+                    .retry
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(record);
+                self.broadcaster.broadcast(MessageEvent::Error {
+                    msg: format!("flushing session {}: {error}", self.session_id),
+                });
+                break Err(error);
+            }
+            count += 1;
+        };
         if count > 0 {
             self.broadcaster.broadcast(MessageEvent::Flushed { count });
         }
-        Ok(count)
+        outcome
+    }
+
+    /// Write one record to the store.
+    fn write(&self, record: &SessionRecord) -> StorageResult<()> {
+        let key = self.session_id.to_string();
+        // append_with_id for conversation records (stable id),
+        // append_promotable for memory records (promotes columns).
+        match record {
+            SessionRecord::Conversation { message } => {
+                self.doc_store
+                    .append_with_id(&key, &message.id().to_string(), record.clone())?;
+            }
+            SessionRecord::WorkingMemory { .. }
+            | SessionRecord::Observation { .. }
+            | SessionRecord::Reflection { .. } => {
+                self.doc_store.append_promotable(&key, record.clone())?;
+            }
+            _ => {
+                self.doc_store.append(&key, record.clone())?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Records not yet written: the buffer plus a record held back by a
+    /// failed flush.
+    fn unflushed(&self) -> usize {
+        let held = usize::from(
+            self.retry
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .is_some(),
+        );
+        self.write_buffer.len() + held
     }
 
     /// Check if the buffer has reached the flush threshold.
@@ -186,6 +229,7 @@ impl<D> MessageApi<D> {
                 broadcaster: TrackedBroadcaster::new(subscriber_capacity),
                 flush_threshold,
                 flush_pending: std::sync::atomic::AtomicBool::new(false),
+                retry: std::sync::Mutex::new(None),
             }),
         }
     }
@@ -223,7 +267,16 @@ impl<D: DocumentStore> MessageApi<D> {
 
         // Trigger flush if buffer is full.
         if self.inner.should_flush() {
-            let _ = self.inner.flush();
+            // `append` only buffers; a failed threshold flush keeps every
+            // record (see `MessageInner::flush`) and the next `flush()` —
+            // `AgentSession::end()` at the latest — reports the error.
+            if let Err(error) = self.inner.flush() {
+                tracing::warn!(
+                    session = %self.inner.session_id,
+                    %error,
+                    "threshold flush failed; records stay buffered for the next flush"
+                );
+            }
         }
 
         id
@@ -236,12 +289,19 @@ impl<D: DocumentStore> MessageApi<D> {
         self.inner.flush()
     }
 
+    /// Records appended but not yet written to the store (including one held
+    /// back by a failed flush).
+    #[must_use]
+    pub fn unflushed(&self) -> usize {
+        self.inner.unflushed()
+    }
+
     /// Return the last `n` session records (newest-first).
     /// # Errors
     /// Returns [`StorageError`] if the records cannot be scanned.
     pub fn recent(&self, n: usize) -> StorageResult<Vec<SessionRecord>> {
         // Flush first so buffered records are included.
-        let _ = self.inner.flush();
+        self.inner.flush()?;
         let docs = self
             .inner
             .doc_store
@@ -256,7 +316,7 @@ impl<D: DocumentStore> MessageApi<D> {
     /// # Errors
     /// Returns [`StorageError`] if the records cannot be scanned.
     pub fn all(&self) -> StorageResult<Vec<SessionRecord>> {
-        let _ = self.inner.flush();
+        self.inner.flush()?;
         let stream = self
             .inner
             .doc_store
@@ -274,7 +334,7 @@ impl<D: DocumentStore> MessageApi<D> {
     /// # Errors
     /// Returns [`StorageError`] if the records cannot be counted.
     pub fn scan_from(&self, from_id: &str, n: usize) -> StorageResult<Vec<SessionRecord>> {
-        let _ = self.inner.flush();
+        self.inner.flush()?;
         let docs = self.inner.doc_store.scan_documents_from(
             &self.inner.session_id.to_string(),
             from_id,
@@ -290,7 +350,7 @@ impl<D: DocumentStore> MessageApi<D> {
     /// # Errors
     /// Returns [`StorageError`] if the buffer cannot be flushed.
     pub fn clear(&self) -> StorageResult<u64> {
-        let _ = self.inner.flush();
+        self.inner.flush()?;
         self.inner
             .doc_store
             .delete_all(&self.inner.session_id.to_string())

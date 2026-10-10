@@ -14,6 +14,9 @@ lerna-debug.log*
 debug/
 target/
 build/
+# Generated API modules can be named `build` (Docker's `POST /build` group,
+# `src/generated/build/mod.rs`); they are source, not build output.
+!**/src/generated/build/
 tools/dawn/*
 !tools/dawn/.gitkeep
 tools/dawn/install

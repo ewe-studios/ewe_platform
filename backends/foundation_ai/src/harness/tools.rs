@@ -42,7 +42,7 @@ use crate::types::{ModelId, SessionId};
 ///     .tools(ToolPreset::shell())
 ///     .tools(ToolPreset::search_context()); // built from the session
 ///
-/// let agent = AgentSession::builder(router).with_toolshed(tools).build()?;
+/// let agent = AgentSession::builder(router).with_model("my-model").with_toolshed(tools).build()?;
 ///
 /// // Ready-made tools only: hand them to the agent tool.
 /// let child_tools = ToolPreset::minimal_sub_agent(fs).as_child_tools()?;

@@ -13,7 +13,7 @@ use crate::agentic::tools::shed::{
     shed_definition, ShedResult, ToolDiscovery, ToolSummary, DEFAULT_SHED_LIMIT, SHED_TOOL_NAME,
 };
 use crate::types::{
-    ArgType, Args, ExecutionHint, TextContent, Tool, ToolDeclarations, UserModelContent,
+    Args, ExecutionHint, TextContent, Tool, ToolArguments, ToolDeclarations, UserModelContent,
 };
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -21,11 +21,9 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 
-// ---------------------------------------------------------------------------
-// ToolDefinition — the single, shared descriptor (F19). Defined in the types
-// layer and re-exported here so `ToolImpl::definition() -> ToolDefinition` and
-// every `impl ToolImpl` keep referring to `tool_impl::ToolDefinition` unchanged.
-pub use crate::types::base_types::ToolDefinition;
+// `ToolDefinition` — the single, shared descriptor (F19) — lives in the types
+// layer and is reached as `foundation_ai::types::ToolDefinition`.
+use crate::types::ToolDefinition;
 
 // ---------------------------------------------------------------------------
 // ToolError
@@ -99,14 +97,13 @@ impl ToolCallResult {
 // ---------------------------------------------------------------------------
 // ToolArgs — typed reads of a call's arguments
 
-/// Typed access to a tool call's arguments, whichever way the backend spelled
-/// them.
+/// Typed access to a tool call's JSON arguments.
 ///
 /// Every getter fails with [`ToolError::InvalidArguments`] naming the tool and
 /// the key; the `opt_*` getters return `Ok(None)` for a missing key but still
-/// fail on a present value of the wrong type. Numbers are accepted as any
-/// integer variant or numeric text (some models quote numbers); booleans as a
-/// JSON boolean or the text `"true"` / `"false"`.
+/// fail on a present value of the wrong type. Numbers are accepted as JSON
+/// numbers or numeric text (some models quote numbers); booleans as a JSON
+/// boolean or the text `"true"` / `"false"`.
 ///
 /// ```ignore
 /// let args = ToolArgs::new("edit", &arguments);
@@ -120,14 +117,13 @@ impl ToolCallResult {
 #[derive(Debug, Clone, Copy)]
 pub struct ToolArgs<'a> {
     tool: &'a str,
-    args: &'a HashMap<String, ArgType>,
+    args: &'a ToolArguments,
 }
 
 impl<'a> ToolArgs<'a> {
     /// Read `args`, reporting errors against `tool`.
     #[must_use]
-    #[allow(clippy::implicit_hasher)]
-    pub fn new(tool: &'a str, args: &'a HashMap<String, ArgType>) -> Self {
+    pub fn new(tool: &'a str, args: &'a ToolArguments) -> Self {
         Self { tool, args }
     }
 
@@ -177,7 +173,7 @@ impl<'a> ToolArgs<'a> {
     pub fn opt_str(&self, key: &str) -> Result<Option<&'a str>, ToolError> {
         match self.args.get(key) {
             None => Ok(None),
-            Some(ArgType::Text(s)) => Ok(Some(s.as_str())),
+            Some(serde_json::Value::String(s)) => Ok(Some(s.as_str())),
             Some(_) => Err(self.wrong_type(key, "a string")),
         }
     }
@@ -201,19 +197,9 @@ impl<'a> ToolArgs<'a> {
             return Ok(None);
         };
         let n = match value {
-            ArgType::I8(n) => Some(i64::from(*n)),
-            ArgType::I16(n) => Some(i64::from(*n)),
-            ArgType::I32(n) => Some(i64::from(*n)),
-            ArgType::I64(n) => Some(*n),
-            ArgType::I128(n) => i64::try_from(*n).ok(),
-            ArgType::Isize(n) => i64::try_from(*n).ok(),
-            ArgType::U8(n) => Some(i64::from(*n)),
-            ArgType::U16(n) => Some(i64::from(*n)),
-            ArgType::U32(n) => Some(i64::from(*n)),
-            ArgType::U64(n) => i64::try_from(*n).ok(),
-            ArgType::U128(n) => i64::try_from(*n).ok(),
-            ArgType::Usize(n) => i64::try_from(*n).ok(),
-            ArgType::Text(s) | ArgType::JSON(s) => s.trim().parse().ok(),
+            // `as_i64` is `None` for fractions and for integers past `i64::MAX`.
+            serde_json::Value::Number(n) => n.as_i64(),
+            serde_json::Value::String(s) => s.trim().parse().ok(),
             _ => None,
         };
         n.map(Some)
@@ -260,14 +246,10 @@ impl<'a> ToolArgs<'a> {
             return Ok(None);
         };
         let n = match value {
-            ArgType::Float64(n) => Some(*n),
-            ArgType::Float32(n) => Some(f64::from(*n)),
-            ArgType::Text(s) | ArgType::JSON(s) => s.trim().parse().ok(),
-            _ => match self.opt_i64(key) {
-                // Integers are numbers too; precision loss past 2^53 is accepted.
-                Ok(Some(i)) => Some(i as f64),
-                _ => None,
-            },
+            // Integers are numbers too; precision loss past 2^53 is accepted.
+            serde_json::Value::Number(n) => n.as_f64(),
+            serde_json::Value::String(s) => s.trim().parse().ok(),
+            _ => None,
         };
         n.map(Some).ok_or_else(|| self.wrong_type(key, "a number"))
     }
@@ -287,7 +269,8 @@ impl<'a> ToolArgs<'a> {
     pub fn opt_bool(&self, key: &str) -> Result<Option<bool>, ToolError> {
         match self.args.get(key) {
             None => Ok(None),
-            Some(ArgType::JSON(s) | ArgType::Text(s)) => match s.trim() {
+            Some(serde_json::Value::Bool(b)) => Ok(Some(*b)),
+            Some(serde_json::Value::String(s)) => match s.trim() {
                 "true" => Ok(Some(true)),
                 "false" => Ok(Some(false)),
                 _ => Err(self.wrong_type(key, "a boolean")),
@@ -299,7 +282,7 @@ impl<'a> ToolArgs<'a> {
     /// The argument as plain JSON (arrays, objects, anything), if passed.
     #[must_use]
     pub fn opt_value(&self, key: &str) -> Option<serde_json::Value> {
-        self.args.get(key).map(ArgType::to_json_value)
+        self.args.get(key).cloned()
     }
 
     /// All arguments as one struct.
@@ -308,13 +291,8 @@ impl<'a> ToolArgs<'a> {
     /// [`ToolError::InvalidArguments`] with the deserializer's message when
     /// the arguments don't fit `T`.
     pub fn parse<T: serde::de::DeserializeOwned>(&self) -> Result<T, ToolError> {
-        let object = serde_json::Value::Object(
-            self.args
-                .iter()
-                .map(|(key, value)| (key.clone(), value.to_json_value()))
-                .collect(),
-        );
-        serde_json::from_value(object).map_err(|e| self.invalid(e.to_string()))
+        serde_json::from_value(serde_json::Value::Object(self.args.clone()))
+            .map_err(|e| self.invalid(e.to_string()))
     }
 }
 
@@ -328,11 +306,10 @@ impl<'a> ToolArgs<'a> {
 /// # Errors
 /// [`ToolError::InvalidArguments`] naming the first violation, an unknown
 /// command, or a schema that does not compile.
-#[allow(clippy::implicit_hasher)]
 pub fn validate_arguments(
     definition: &Tool,
     tool_name: &str,
-    arguments: &HashMap<String, ArgType>,
+    arguments: &ToolArguments,
 ) -> Result<(), ToolError> {
     let invalid = |reason: String| ToolError::InvalidArguments {
         tool: tool_name.to_string(),
@@ -343,7 +320,7 @@ pub fn validate_arguments(
         Tool::SingleCommand(def) => (&def.arguments.schema, arguments.clone()),
         Tool::MultiCommands(_, commands) => {
             let command = match arguments.get("command") {
-                Some(ArgType::Text(command)) => command.as_str(),
+                Some(serde_json::Value::String(command)) => command.as_str(),
                 _ => return Err(invalid("missing 'command' argument".into())),
             };
             let Some(def) = commands.iter().find(|def| def.name == command) else {
@@ -359,12 +336,7 @@ pub fn validate_arguments(
         }
     };
 
-    let instance = serde_json::Value::Object(
-        instance
-            .iter()
-            .map(|(key, value)| (key.clone(), value.to_json_value()))
-            .collect(),
-    );
+    let instance = serde_json::Value::Object(instance);
     foundation_jsonschema::validate(schema, &instance).map_err(|err| invalid(err.to_string()))
 }
 
@@ -384,10 +356,7 @@ pub trait ToolImpl: Send + Sync {
     /// Run the tool with validated arguments. Async (async-first).
     /// Cancellation = valtron stops polling the future and drops it —
     /// drop-based cleanup handles process kills, connection closes, etc.
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError>;
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError>;
 }
 
 // ---------------------------------------------------------------------------
@@ -478,10 +447,7 @@ impl ToolImpl for FnTool {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         (self.run)(ToolArgs::new(&self.name, &arguments)).await
     }
 }
@@ -497,7 +463,7 @@ pub struct ToolCallRequest {
     /// The tool name (registry key).
     pub name: String,
     /// Parsed arguments (validated against the tool's Args schema).
-    pub arguments: HashMap<String, ArgType>,
+    pub arguments: ToolArguments,
     /// Other tool-call ids this depends on (F01 / F11 DAG).
     pub depends_on: Vec<String>,
     /// How the caller wants this tool run (F01).
@@ -876,7 +842,7 @@ impl ToolCallManager {
     }
 
     /// Run the built-in `shed`: search, activate the hits, return them.
-    fn run_shed(&self, arguments: &HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
+    fn run_shed(&self, arguments: &ToolArguments) -> Result<ToolCallResult, ToolError> {
         validate_arguments(&shed_definition(), SHED_TOOL_NAME, arguments)?;
         let args = ToolArgs::new(SHED_TOOL_NAME, arguments);
         let description = args.str("description")?;

@@ -123,9 +123,8 @@ fn agent_session_run_turn_through_gguf() {
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
         AgentSession::builder(router)
             .with_system_prompt("You are a helpful assistant.")
-            .with_model(model_id.clone())
+            .with_model(model_id)
             .with_config(AgentConfig {
-                primary_model: model_id,
                 model_params: params(),
                 ..Default::default()
             })

@@ -3,12 +3,11 @@
 //! Run with:
 //! ```bash
 //! OPENAI_API_KEY=sk-... cargo run -p foundation_ai \
-//!   --example hello_openai --features agentic
+//!   --example hello_openai
 //! ```
 
 use foundation_ai::agentic::Answer;
-use foundation_ai::harness;
-use foundation_ai::types::SessionId;
+use foundation_ai::harness::RouterPreset;
 use foundation_core::valtron::valtron;
 
 #[valtron]
@@ -17,7 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .expect("OPENAI_API_KEY must be set");
 
     // GPT-4o (main) + GPT-4o-mini (memory) via Chat Completions API.
-    let builder = harness::openai_chat_session(SessionId::new(), &api_key)?;
+    let builder = RouterPreset::openai_chat(&api_key)?.into_agent_builder();
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")

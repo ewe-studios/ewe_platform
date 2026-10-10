@@ -1,19 +1,23 @@
 //! Standard file tools (read/write/edit) over an in-memory VFS — spec-60 F05–F07.
 //! Offline and deterministic: `MemoryFs` is the swappable FS base.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use foundation_ai::agentic::tool_impl::{ToolError, ToolImpl};
 use foundation_ai::agentic::tools::files::{EditTool, ReadTool, WriteTool};
-use foundation_ai::types::ArgType;
+use foundation_ai::types::ToolArguments;
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 use foundation_nativeapis::MemoryFs;
 
-fn args(pairs: &[(&str, &str)]) -> HashMap<String, ArgType> {
+fn args(pairs: &[(&str, &str)]) -> ToolArguments {
     pairs
         .iter()
-        .map(|(k, v)| ((*k).to_string(), ArgType::Text((*v).to_string())))
+        .map(|(k, v)| {
+            (
+                (*k).to_string(),
+                serde_json::Value::String((*v).to_string()),
+            )
+        })
         .collect()
 }
 
@@ -55,8 +59,8 @@ fn read_line_range() {
         let fs = fs_with("/a.txt", "l1\nl2\nl3\nl4\n").await;
         let tool = ReadTool::new(fs);
         let mut a = args(&[("path", "/a.txt")]);
-        a.insert("offset".into(), ArgType::Usize(2));
-        a.insert("limit".into(), ArgType::Usize(2));
+        a.insert("offset".into(), serde_json::json!(2));
+        a.insert("limit".into(), serde_json::json!(2));
         let out = tool.execute(a).await.expect("read ok");
         assert_eq!(text_of(&out), "l2\nl3");
     });
@@ -76,7 +80,7 @@ fn read_missing_file_errors() {
 fn read_missing_path_arg_errors() {
     futures_lite::future::block_on(async {
         let tool = ReadTool::new(Arc::new(MemoryFs::new()));
-        let err = tool.execute(HashMap::new()).await.unwrap_err();
+        let err = tool.execute(ToolArguments::new()).await.unwrap_err();
         assert!(matches!(err, ToolError::InvalidArguments { .. }));
     });
 }
@@ -179,9 +183,18 @@ fn edit_replace_all() {
             ("new_string", "b"),
             ("replace_all", "true"),
         ]);
-        a.insert("replace_all".into(), ArgType::Text("true".into()));
-        EditTool::new(fs.clone()).execute(a).await.expect("replace_all ok");
-        let back = ReadTool::new(fs).execute(args(&[("path", "/e.txt")])).await.unwrap();
+        a.insert(
+            "replace_all".into(),
+            serde_json::Value::String("true".into()),
+        );
+        EditTool::new(fs.clone())
+            .execute(a)
+            .await
+            .expect("replace_all ok");
+        let back = ReadTool::new(fs)
+            .execute(args(&[("path", "/e.txt")]))
+            .await
+            .unwrap();
         assert_eq!(text_of(&back), "b b b");
     });
 }
@@ -252,7 +265,10 @@ mod bash {
     #[test]
     fn bash_missing_command_errors() {
         futures_lite::future::block_on(async {
-            let err = BashTool::new().execute(HashMap::new()).await.unwrap_err();
+            let err = BashTool::new()
+                .execute(ToolArguments::new())
+                .await
+                .unwrap_err();
             assert!(matches!(err, ToolError::InvalidArguments { .. }));
         });
     }

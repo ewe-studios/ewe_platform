@@ -1,5 +1,5 @@
 #![allow(unused_imports)]
-use foundation_ai::agentic::{CancelCode, SteeringQueues};
+use foundation_ai::agentic::internals::{CancelCode, SteeringQueues};
 use foundation_ai::types::{base_types::TextContent, MessageRole, Messages, UserModelContent};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;

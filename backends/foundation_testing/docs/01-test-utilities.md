@@ -76,7 +76,7 @@ fn agent_responds_to_user_message() {
 fn tool_call_executes_correctly() {
     let tool = MockTool::returning("read_file", "file contents");
     let result = futures_lite::future::block_on(
-        tool.execute(HashMap::from([("path".into(), ArgType::Text("/test.txt".into()))]))
+        tool.execute(ToolArguments::from_iter([("path".into(), serde_json::json!("/test.txt"))]))
     );
     assert!(result.is_ok());
 }

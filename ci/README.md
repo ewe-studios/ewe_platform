@@ -19,7 +19,11 @@ can't hold up your PR.
 2. **Package jobs.** Each selected package runs `rustfmt`, `cargo build`
    (all targets), `clippy` and `cargo test` as separate steps, so the Actions
    page shows whether a crate failed to build or failed its tests. They use
-   the `uat` profile (dev with LLVM, which is what the test docs use).
+   the `uat` profile (dev with LLVM, which is what the test docs use; the
+   `dev` profile's Cranelift backend isn't available in CI). Cargo builds
+   nested inside tests (trybuild compile tests) use the `dev` profile, so
+   `ci.py` points it at LLVM as well (`CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm`,
+   unless already set).
    Every package job runs **inside the CI image** (`container:`), which
    already has the pinned toolchain, the system libraries (GTK/WebKit,
    Vulkan, Mesa, ...), the tools and the submodules, so jobs install

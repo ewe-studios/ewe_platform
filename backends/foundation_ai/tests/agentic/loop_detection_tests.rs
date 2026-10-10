@@ -1,6 +1,6 @@
 use foundation_ai::agentic::loop_detection::*;
+use foundation_ai::types::base_types::{ModelOutput, ToolArguments};
 use foundation_ai::types::TextContent;
-use foundation_ai::types::base_types::{ArgType, ModelOutput};
 
 fn text_output(s: &str) -> ModelOutput {
     ModelOutput::Text(TextContent {
@@ -10,9 +10,9 @@ fn text_output(s: &str) -> ModelOutput {
 }
 
 fn tool_output(name: &str, args: Vec<(&str, &str)>) -> ModelOutput {
-    let arguments: std::collections::HashMap<String, ArgType> = args
+    let arguments: ToolArguments = args
         .into_iter()
-        .map(|(k, v)| (k.to_string(), ArgType::Text(v.to_string())))
+        .map(|(k, v)| (k.to_string(), serde_json::Value::String(v.to_string())))
         .collect();
     ModelOutput::ToolCall {
         id: "tc1".into(),
@@ -130,13 +130,13 @@ fn simhash_no_loop_on_distinct_text() {
 
 #[test]
 fn tool_call_signature_sorts_keys() {
-    let mut args1 = std::collections::HashMap::new();
-    args1.insert("z".to_string(), ArgType::Text("1".into()));
-    args1.insert("a".to_string(), ArgType::Text("2".into()));
+    let mut args1 = ToolArguments::new();
+    args1.insert("z".to_string(), serde_json::Value::String("1".into()));
+    args1.insert("a".to_string(), serde_json::Value::String("2".into()));
 
-    let mut args2 = std::collections::HashMap::new();
-    args2.insert("a".to_string(), ArgType::Text("2".into()));
-    args2.insert("z".to_string(), ArgType::Text("1".into()));
+    let mut args2 = ToolArguments::new();
+    args2.insert("a".to_string(), serde_json::Value::String("2".into()));
+    args2.insert("z".to_string(), serde_json::Value::String("1".into()));
 
     let sig1 = ToolCallSignature::from_tool_call("tool", &Some(args1));
     let sig2 = ToolCallSignature::from_tool_call("tool", &Some(args2));
@@ -452,4 +452,28 @@ fn the_ladder_is_spent_once_unless_something_works() {
     // Only a good turn refills it.
     detector.reset();
     assert_eq!(detector.escalate(), Escalation::Redirect);
+}
+
+// ---------------------------------------------------------------------------
+// Names at the `agentic` root (doc 15 item 16)
+
+#[test]
+fn agentic_root_names_the_verdict_and_the_error_payload_apart() {
+    use foundation_ai::agentic::internals::LoopDetection as Verdict;
+    use foundation_ai::agentic::{AgenticError, LoopDetectedInfo};
+
+    // `agentic::LoopDetection` is the detector's verdict — no alias needed.
+    let mut detector = LoopDetector::new(LoopDetectorConfig::default());
+    let verdict: Verdict = detector.check(&ModelOutput::Text(TextContent {
+        content: "fresh output".into(),
+        signature: None,
+    }));
+    assert_eq!(verdict, Verdict::NoLoop);
+
+    // `LoopDetectedInfo` is what `AgenticError::LoopDetected` carries.
+    let err = AgenticError::LoopDetected(LoopDetectedInfo {
+        kind: "tool_call".into(),
+        occurrences: 3,
+    });
+    assert_eq!(err.to_string(), "loop detected: tool_call x3");
 }

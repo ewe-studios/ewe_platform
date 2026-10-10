@@ -59,6 +59,12 @@ GLOBAL_PATHS = (
 STEPS = ("fmt", "build", "clippy", "test")
 MODES = ("enforce", "report", "off")
 
+# The `dev` profile uses the Cranelift backend, which CI doesn't install. CI
+# builds with `--profile uat`, but cargo invocations nested inside tests (e.g.
+# trybuild compile tests) build their own project with `dev`; point that
+# profile at LLVM too. A value already set in the environment wins.
+NESTED_BUILD_ENV = {"CARGO_PROFILE_DEV_CODEGEN_BACKEND": "llvm"}
+
 
 # ---------------------------------------------------------------------------
 # Workspace model
@@ -282,13 +288,14 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
         return 0
 
     plan = commands(name, s, profile)
+    env = {**NESTED_BUILD_ENV, **os.environ}
     failures: list[str] = []
     for step in steps:
         mode = getattr(s, step)
         for cmd in plan[step]:
             line = shlex.join(cmd)
             print(f"::group::{step}: {line}" if IN_GITHUB else f"$ {line}", flush=True)
-            code = subprocess.run(cmd, cwd=ROOT).returncode
+            code = subprocess.run(cmd, cwd=ROOT, env=env).returncode
             if IN_GITHUB:
                 print("::endgroup::", flush=True)
             if code == 0:

@@ -1,10 +1,11 @@
 use foundation_ai::types::{Tool, ToolDefinition};
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use foundation_ai::agentic::tool_impl::*;
-use foundation_ai::types::{ArgType, Args, ExecutionHint, SessionId, TextContent, UserModelContent};
+use foundation_ai::types::{
+    Args, ExecutionHint, SessionId, TextContent, ToolArguments, UserModelContent,
+};
 
 struct EchoTool;
 
@@ -20,14 +21,11 @@ impl ToolImpl for EchoTool {
         })
     }
 
-    async fn execute(
-        &self,
-        arguments: HashMap<String, ArgType>,
-    ) -> Result<ToolCallResult, ToolError> {
+    async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         let msg = arguments
             .get("message")
             .and_then(|v| match v {
-                ArgType::Text(s) => Some(s.clone()),
+                serde_json::Value::String(s) => Some(s.clone()),
                 _ => None,
             })
             .unwrap_or_default();
@@ -54,7 +52,10 @@ fn register_and_execute() {
         let request = ToolCallRequest {
             id: "call-1".into(),
             name: "echo".into(),
-            arguments: HashMap::from([("message".into(), ArgType::Text("hello".into()))]),
+            arguments: ToolArguments::from_iter([(
+                "message".into(),
+                serde_json::Value::String("hello".into()),
+            )]),
             depends_on: vec![],
             execution_hint: ExecutionHint::default(),
         };
@@ -76,7 +77,7 @@ fn unknown_tool_returns_error() {
         let request = ToolCallRequest {
             id: "call-1".into(),
             name: "nonexistent".into(),
-            arguments: HashMap::new(),
+            arguments: ToolArguments::new(),
             depends_on: vec![],
             execution_hint: ExecutionHint::default(),
         };

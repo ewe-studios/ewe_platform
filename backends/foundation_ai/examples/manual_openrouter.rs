@@ -9,7 +9,7 @@
 //! Run with:
 //! ```bash
 //! OPENROUTER_API_KEY=sk-or-... cargo run -p foundation_ai \
-//!   --example manual_openrouter --features agentic
+//!   --example manual_openrouter
 //! ```
 
 use foundation_ai::agentic::{AgentConfig, AgentSession};

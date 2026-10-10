@@ -69,7 +69,13 @@ fmt = "enforce"
 
 [packages.foundation_ai]
 # Every test target needs `testing` (mocks); defaults bring llamacpp + candle.
-runs = ["testing"]
+# The second run drops the local backends: cloud providers + the agent layer
+# only (what a wasm or cloud-only consumer builds). `testing` stays on because
+# the agentic/tool/model suites need the mocks; targets that need llamacpp or
+# candle are skipped by their `required-features`, and the llama/candle-only
+# tests inside the model suite are gated on those features. This keeps the
+# harness and backends compiling without llama.cpp or candle.
+runs = ["testing", "--no-default-features --features testing"]
 timeout-minutes = 90
 
 [packages.foundation_jsonschema]

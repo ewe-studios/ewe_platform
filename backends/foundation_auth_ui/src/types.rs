@@ -1,8 +1,6 @@
-//! WASM UI API client — HTTP functions for the auth server endpoints.
+//! Request/response wire types for the auth server endpoints.
 
-use alloc::borrow::Cow;
 use alloc::string::String;
-use alloc::vec::Vec;
 
 /// Login request sent to POST /auth/v1/oidc/authorize
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
@@ -47,7 +45,7 @@ pub struct WebAuthnOptions {
     pub session: String,
 }
 
-/// PoW challenge
+/// Proof-of-work challenge
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct PowChallenge {
     pub difficulty: u32,
@@ -55,7 +53,7 @@ pub struct PowChallenge {
     pub expires_in: u64,
 }
 
-/// PoW solve request
+/// Proof-of-work solve request
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct PowSolveRequest {
     pub challenge: String,

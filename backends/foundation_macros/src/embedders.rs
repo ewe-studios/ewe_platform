@@ -1351,10 +1351,16 @@ pub fn visit_dirs(collected: &mut Vec<FsInfo>, dir: &Path, root_dir: &Path, inde
 
         collected.push(dir_item);
 
-        let mut current_index = index;
-        for entry in fs::read_dir(dir).expect("to read path") {
-            let entry = entry.expect("resolve entry");
+        // `read_dir` order is filesystem-dependent; sort by name so the
+        // embedded listing (and the generated code) is the same everywhere.
+        let mut entries: Vec<fs::DirEntry> = fs::read_dir(dir)
+            .expect("to read path")
+            .map(|entry| entry.expect("resolve entry"))
+            .collect();
+        entries.sort_by_key(fs::DirEntry::file_name);
 
+        let mut current_index = index;
+        for entry in entries {
             let date_modified = get_file_modified_date(entry.path().as_path());
             let file_path_string = String::from(entry.path().to_str().expect("get string"));
             let file_name = get_file_name(entry.path().as_path());

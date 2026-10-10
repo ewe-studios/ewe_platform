@@ -2,7 +2,8 @@
 //! `DocumentStore` + the latest-memory cache, and the cache-miss fallback that
 //! rebuilds from the audit log.
 
-use foundation_ai::agentic::{KvMemoryStore, MemoryCoordinator, MemoryStore, MemoryTier};
+use foundation_ai::agentic::internals::{MemoryCoordinator, MemoryTier};
+use foundation_ai::agentic::{KvMemoryStore, MemoryStore};
 use foundation_ai::types::{
     ObservationEntry, ObservationKind, ReflectionEntry, SessionId, SessionRecord,
 };

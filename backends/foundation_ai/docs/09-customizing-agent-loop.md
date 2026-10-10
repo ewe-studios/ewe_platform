@@ -14,7 +14,7 @@ let agent = AgentSession::builder(router)
         max_outer_iterations: 3,    // default 10
         ..AgentConfig::default()
     })
-    .with_model(model_id)           // with_model wins over config.primary_model
+    .with_model(model_id)           // models are set on the builder, not in AgentConfig
     .build()?;
 ```
 

@@ -6,8 +6,8 @@ use std::time::SystemTime;
 
 use foundation_ai::agentic::testing::zero_usage;
 use foundation_ai::types::{
-    ArgType, CacheRetention, KVCacheType, LlamaConfig, Messages, MimeType, ModelAPI, ModelId,
-    ModelOutput, ModelProviders, SplitMode, StopReason, TextBasedFormatter, ThinkingLevels, Tool,
+    CacheRetention, KVCacheType, LlamaConfig, Messages, MimeType, ModelAPI, ModelId, ModelOutput,
+    ModelProviders, SplitMode, StopReason, TextBasedFormatter, ThinkingLevels, Tool,
     ToolDefinition, ToolFormatter, UsageReport,
 };
 
@@ -169,14 +169,14 @@ fn no_context_overflow_for_normal_stop() {
 }
 
 // ---------------------------------------------------------------------------
-// TextBasedFormatter — exercises json_value_to_arg_type's numeric/bool/null/
-// array branches (string+object branches are already covered elsewhere).
+// TextBasedFormatter — the tool receives the call's JSON arguments unchanged
+// (numbers, booleans, null, arrays and objects alike).
 // ---------------------------------------------------------------------------
 
 #[test]
 fn text_formatter_parses_all_json_arg_types() {
     let formatter = TextBasedFormatter;
-    let response = r#"<ToolCall>{"name":"do_it","arguments":{"count":3,"ratio":1.5,"flag":true,"nothing":null,"items":[1,2,3]}}</ToolCall>"#;
+    let response = r#"<ToolCall>{"name":"do_it","arguments":{"count":3,"ratio":1.5,"flag":true,"nothing":null,"items":[1,2,3],"nested":{"k":"v"}}}</ToolCall>"#;
     let result = formatter.extract_tool_calls(response).unwrap();
     assert!(result.has_tool_calls);
 
@@ -192,14 +192,18 @@ fn text_formatter_parses_all_json_arg_types() {
     );
     assert!(!args.contains_key("name"), "no envelope nesting: {args:?}");
 
-    // integer → I64
-    assert!(matches!(args.get("count"), Some(ArgType::I64(3))));
-    // float → Float64
-    assert!(matches!(args.get("ratio"), Some(ArgType::Float64(f)) if (*f - 1.5).abs() < 1e-9));
-    // bool / null / array → their JSON text, same as the HTTP backends
-    assert!(matches!(args.get("flag"), Some(ArgType::JSON(t)) if t == "true"));
-    assert!(matches!(args.get("nothing"), Some(ArgType::JSON(t)) if t == "null"));
-    assert!(matches!(args.get("items"), Some(ArgType::JSON(t)) if t == "[1,2,3]"));
+    // Every value is the JSON the model wrote — no conversion in between.
+    assert_eq!(
+        serde_json::Value::Object(args.clone()),
+        serde_json::json!({
+            "count": 3,
+            "ratio": 1.5,
+            "flag": true,
+            "nothing": null,
+            "items": [1, 2, 3],
+            "nested": {"k": "v"}
+        })
+    );
 }
 
 #[test]
