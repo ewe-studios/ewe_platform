@@ -20,8 +20,11 @@ can't hold up your PR.
    (all targets), `clippy` and `cargo test` as separate steps, so the Actions
    page shows whether a crate failed to build or failed its tests. They use
    the `uat` profile (dev with LLVM; the `dev` profile's Cranelift backend
-   isn't available in CI). Packages that depend on llama.cpp
-   fetch the `tools/llama.cpp` submodule; nothing else does.
+   isn't available in CI). Cargo builds nested inside tests (trybuild compile
+   tests) use the `dev` profile, so `ci.py` points it at LLVM as well
+   (`CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm`, unless already set). Packages
+   that depend on llama.cpp fetch the `tools/llama.cpp` submodule; nothing
+   else does.
 3. **Checks passed.** One summary job that is green when every selected package
    passed (or none needed testing). Make this the required status check in
    branch protection: it stays the same name however many packages run.
