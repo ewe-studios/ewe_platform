@@ -46,6 +46,14 @@ GLOBAL_PATHS = (
     "ci/",
     "scripts/ci/",
     ".github/workflows/check.yaml",
+    # Inputs of the CI image every package job runs in (ci/ewe-platform-image):
+    # tool pins, submodules (a gitlink bump under tools/ changes the image),
+    # and the workflow that builds it.
+    "mise.toml",
+    "mise.lock",
+    ".gitmodules",
+    "tools/",
+    ".github/workflows/platform-images.yaml",
 )
 
 STEPS = ("fmt", "build", "clippy", "test")

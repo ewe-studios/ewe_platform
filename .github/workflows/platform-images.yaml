@@ -1,0 +1,201 @@
+name: Platform images (reusable)
+
+# Make sure the CI image for the current commit exists, and say where it is.
+# This is the one definition of "build the image" that every workflow uses:
+# check.yaml, release.yaml and platform-images-publish.yaml all call it.
+#
+#   1. Hash layer 1 (the generic base, ci/platform-images/images/linux) and
+#      look for <namespace>/<base>:hash-<hash>. Build and push it if missing.
+#   2. Hash layer 2 (ci/ewe-platform-image, FROM the base pinned by digest)
+#      and do the same.
+#   3. Output the layer 2 reference, pinned by digest, for `container:`.
+#
+# Rebuilding is incremental: each layer pulls its build cache from
+# <repo>:buildcache in the registry.
+#
+# Without registry credentials (pull requests from forks, Dependabot) nothing
+# can be pushed. If the image already exists it is used as usual (anonymous
+# pull). If it has to be built, it is exported as a workflow artifact
+# instead, and `image-source` is `artifact`: callers then `docker load` it
+# and run their steps with `docker run` (see check.yaml's package-artifact).
+#
+# Lives in .github/workflows because GitHub only runs reusable workflows from
+# there; it belongs to the platform-images unit (ci/platform-images/README.md).
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        description: Path to the platform-images config.toml.
+        type: string
+        default: ci/ewe-platform-image/config.toml
+      flavor:
+        description: Flavor from [base.flavors] (default, cuda).
+        type: string
+        default: default
+      force:
+        description: Rebuild both layers even if their hash tags exist.
+        type: boolean
+        default: false
+      no-cache:
+        description: Build without the layer cache (fresh apt packages for security updates).
+        type: boolean
+        default: false
+      promote-tags:
+        description: Extra tags to point at both layers after they exist, space separated (e.g. "latest sha-1a2b3c4"). Only applied when pushing.
+        type: string
+        default: ""
+      free-disk:
+        description: Free runner disk space before building (needed for the large CUDA flavor).
+        type: boolean
+        default: false
+    secrets:
+      registry-password:
+        description: Registry password/token. Empty means read-only (no push).
+        required: false
+    outputs:
+      image-ref:
+        description: Layer 2 image reference (repo@sha256:... when in the registry, repo:tag for an artifact).
+        value: ${{ jobs.ensure.outputs.image-ref }}
+      image-source:
+        description: "`registry` or `artifact`."
+        value: ${{ jobs.ensure.outputs.image-source }}
+      artifact-name:
+        description: When image-source is `artifact`, the artifact holding the docker tarball.
+        value: ${{ jobs.ensure.outputs.artifact-name }}
+      registry-username:
+        description: Username for pulling with credentials (empty when there are none).
+        value: ${{ jobs.ensure.outputs.registry-username }}
+      base-ref:
+        description: Layer 1 reference.
+        value: ${{ jobs.ensure.outputs.base-ref }}
+      image-hash:
+        description: Layer 2 input hash.
+        value: ${{ jobs.ensure.outputs.image-hash }}
+
+permissions:
+  contents: read
+
+jobs:
+  ensure:
+    name: Ensure image (${{ inputs.flavor }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    outputs:
+      image-ref: ${{ steps.image.outputs.ref }}
+      image-source: ${{ steps.image.outputs.source == 'local' && 'artifact' || 'registry' }}
+      artifact-name: ${{ steps.artifact.outputs.name }}
+      registry-username: ${{ steps.registry.outputs.pull-username }}
+      base-ref: ${{ steps.base.outputs.ref }}
+      image-hash: ${{ steps.image.outputs.hash }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Install nushell
+        uses: ./ci/platform-images/actions/setup-nu
+
+      - name: Registry settings
+        id: registry
+        env:
+          CONFIG: ${{ inputs.config }}
+          HAS_PASSWORD: ${{ secrets.registry-password != '' }}
+          # A repository variable can override the config's username.
+          PLATFORM_IMAGES_REGISTRY_USERNAME: ${{ vars.PLATFORM_IMAGES_REGISTRY_USERNAME }}
+        run: |
+          set -euo pipefail
+          username=$(nu -c "let o = (\$env.PLATFORM_IMAGES_REGISTRY_USERNAME? | default ''); if (\$o | is-empty) { open '$CONFIG' | get registry.username } else { \$o }")
+          host=$(nu -c "open '$CONFIG' | get -o registry.host | default 'docker.io'")
+          echo "username=$username" >> "$GITHUB_OUTPUT"
+          echo "host=$host" >> "$GITHUB_OUTPUT"
+          echo "push=$HAS_PASSWORD" >> "$GITHUB_OUTPUT"
+          if [ "$HAS_PASSWORD" = "true" ]; then
+            echo "pull-username=$username" >> "$GITHUB_OUTPUT"
+          else
+            echo "pull-username=" >> "$GITHUB_OUTPUT"
+            echo "::notice::No registry credentials (fork or Dependabot pull request): images are pulled anonymously and, if missing, built without pushing."
+          fi
+
+      - name: Log in to ${{ steps.registry.outputs.host }}
+        if: steps.registry.outputs.push == 'true'
+        uses: docker/login-action@v4.5.2
+        with:
+          registry: ${{ steps.registry.outputs.host }}
+          username: ${{ steps.registry.outputs.username }}
+          password: ${{ secrets.registry-password }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.4.1
+
+      - name: Free disk space
+        if: inputs.free-disk
+        run: |
+          set -euo pipefail
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force
+          df -h /
+
+      - name: Layer 1 (base)
+        id: base
+        uses: ./ci/platform-images/actions/ensure-image
+        with:
+          config: ${{ inputs.config }}
+          layer: base
+          flavor: ${{ inputs.flavor }}
+          push: ${{ steps.registry.outputs.push }}
+          local-output: oci
+          force: ${{ inputs.force }}
+          no-cache: ${{ inputs.no-cache }}
+          github-token: ${{ github.token }}
+
+      - name: Layer 2 (image)
+        id: image
+        uses: ./ci/platform-images/actions/ensure-image
+        with:
+          config: ${{ inputs.config }}
+          layer: image
+          flavor: ${{ inputs.flavor }}
+          # Pinned by digest when the base is in the registry; built FROM the
+          # local OCI layout when the base was only built in this job.
+          parent: ${{ steps.base.outputs.ref }}
+          parent-oci: ${{ steps.base.outputs.oci }}
+          push: ${{ steps.registry.outputs.push }}
+          local-output: docker
+          force: ${{ inputs.force }}
+          no-cache: ${{ inputs.no-cache }}
+          github-token: ${{ github.token }}
+
+      - name: Promote tags
+        if: inputs.promote-tags != '' && steps.registry.outputs.push == 'true'
+        env:
+          BASE_REF: ${{ steps.base.outputs.ref }}
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          TAGS: ${{ inputs.promote-tags }}
+        run: |
+          set -euo pipefail
+          tags="[$TAGS]"
+          nu ci/platform-images/scripts/images.nu promote "$BASE_REF" --tags "$tags"
+          nu ci/platform-images/scripts/images.nu promote "$IMAGE_REF" --tags "$tags"
+
+      - name: Name the image artifact
+        id: artifact
+        if: steps.image.outputs.source == 'local'
+        env:
+          FLAVOR: ${{ inputs.flavor }}
+          HASH: ${{ steps.image.outputs.hash }}
+        run: echo "name=platform-image-$FLAVOR-$HASH-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the image as an artifact
+        if: steps.image.outputs.source == 'local'
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: ${{ steps.image.outputs.tarball }}
+          retention-days: 1
+          compression-level: 1
+          if-no-files-found: error
