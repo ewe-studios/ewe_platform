@@ -7,17 +7,11 @@
 //!   without driving a terminal UI.
 //! * `agent` — starts a `foundation_repl` session for an interactive chat.
 
-use std::path::PathBuf;
-
 use clap::{Parser, Subcommand};
-use foundation_ai::agentic::{AgentSession, Answer, ContextConfig, ErrorPolicy, MemoryConfig};
-use foundation_ai::backends::huggingface_gguf_provider::{
-    HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
-};
-use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
-use foundation_ai::harness::RouterMix;
-use foundation_ai::types::ModelId;
+use foundation_ai::agentic::{AgentSession, AgenticError, Answer};
+use foundation_ai::harness::RouterPreset;
 use foundation_core::valtron::valtron;
+use foundation_errstacks::ErrorTrace;
 use foundation_repl::{Repl, ReplTheme};
 
 /// The concrete session type — the in-memory stores, so no type parameters.
@@ -40,19 +34,6 @@ enum Command {
     },
     /// Start the interactive REPL.
     Agent,
-}
-
-/// Model cache directory — defaults to the workspace `artefacts/models`,
-/// overridden at runtime by `ANSWERME_MODEL_DIR`.
-fn model_dir() -> PathBuf {
-    std::env::var("ANSWERME_MODEL_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../../artefacts/models")
-                .canonicalize()
-                .unwrap_or_else(|e| panic!("model dir not found: {e}"))
-        })
 }
 
 // A plain `info` is all this needs, because the noisy libraries now log at
@@ -78,7 +59,13 @@ fn model_dir() -> PathBuf {
 #[valtron(tracing = "info", tracing_targets = true, tracing_names = true)]
 fn main() {
     let cli = Cli::parse();
-    let session = build_session();
+    let session = match build_session() {
+        Ok(session) => session,
+        Err(e) => {
+            tracing::error!("building the agent session failed: {e}");
+            std::process::exit(1);
+        }
+    };
 
     let turn_ok = match cli.command.unwrap_or(Command::Agent) {
         Command::Ask { question } => run_ask(&session, question),
@@ -98,40 +85,15 @@ fn main() {
     }
 }
 
-/// Build the llama.cpp-backed agent session shared by both commands.
-fn build_session() -> Session {
-    // Configure the local llama.cpp backend.
-    let llama_config = LlamaBackendConfig::builder()
-        .n_gpu_layers(0) // CPU-only; bump for GPU
-        .context_length(4096)
-        .batch_size(512)
-        .n_threads(4)
-        .build();
-
-    // Configure the HuggingFace GGUF provider with our model cache dir.
-    let hf_config = HuggingFaceGGUFConfig::builder()
-        .cache_dir(model_dir())
-        .llama_backend(LlamaBackends::LLamaCPU)
-        .llama_config(llama_config)
-        .build();
-
-    let provider =
-        HuggingFaceGGUFProvider::new(hf_config).expect("failed to initialize GGUF provider");
-
-    let model_id = ModelId::Name("unsloth/gemma-4-E2B-it-GGUF".into(), None);
-
-    // Build the router preset and agent session.
-    let preset = RouterMix::new().primary(provider, model_id.clone()).build();
-
-    preset
-        .into_agent_builder()
+/// Build the llama.cpp-backed agent session shared by both commands: Gemma 4
+/// E2B on the CPU, with the default GGUF config (`HuggingFace` cache dir,
+/// `q4_k_m`, 4096-token context, one thread per CPU). The preset's model is
+/// the session's model.
+fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
+    let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
+    AgentSession::builder(preset)
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
-        .with_model(model_id)
-        .with_context_config(ContextConfig::default())
-        .with_memory_config(MemoryConfig::default())
-        .with_error_policy(ErrorPolicy::new())
         .build()
-        .expect("failed to build agent session")
 }
 
 /// One-shot: run a single turn and print the reply on stdout. Returns whether
