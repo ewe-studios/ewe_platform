@@ -101,7 +101,7 @@ def base-checks [browsers: list<string>, cuda: bool]: nothing -> list<record> {
 
 def image-checks []: nothing -> list<record> {
     let tools = [[rustc --version] [cargo --version] [cargo clippy --version] [cargo fmt --version]
-        [wasm-bindgen --version] [wasm-bindgen-test-runner --version] [cargo-nextest --version] [cargo-audit --version]
+        [wasm-bindgen --version] [wasm-bindgen-test-runner --version] [cargo nextest --version] [cargo audit --version]
         [bacon --version] [pnpm --version] [pitchfork --version]]
     mut results = $tools | each {|t| check ($t | str join " ") {|| first-line $t.0 ...($t | skip 1) } }
     $results = $results | append (check "rust targets" {|| output rustup target list --installed | lines | str join " " })
