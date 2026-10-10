@@ -48,12 +48,13 @@ LLAMA_TEST_MODEL_DESC = "Qwen2.5-0.5B-Instruct q4_k_m, ~370MB"
 # the Windows/macOS images installs exactly the same versions. Only [tools]
 # (and [settings]) feed the CI image, so editing tasks or env doesn't rebuild
 # it. After changing a version, refresh the lock (needs GitHub API access):
-#   mise lock --platform linux-x64,linux-arm64,macos-arm64,windows-x64
+#   mise lock --platform linux-x64,windows-x64,macos-x64
 # The shared versions match ci/platform-images/images/linux/mise/mise.toml.
 
 [tools]
 nushell = "0.116.1"
 node = "24.21.0"
+python = "3.12.15"
 pnpm = "10.34.6"
 "aqua:denoland/deno" = "2.9.7"
 cmake = "3.31.12"
@@ -70,7 +71,8 @@ actionlint = "1.7.12"
 "cargo:cargo-nextest" = "0.9.148"
 "cargo:cargo-audit" = "0.22.2"
 "cargo:bacon" = "3.26.0"
-pitchfork = "2.30.1"
+# No Intel-macOS build (the macOS CI VM is x86_64).
+pitchfork = { version = "2.30.1", os = ["linux", "windows"] }
 # wrangler is managed via project devDependencies (pnpm), not mise —
 # mise's npm shim installs wrangler into a nested tree where sharp's
 # prebuilt-binary check fails and falls back to a node-gyp build.

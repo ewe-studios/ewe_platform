@@ -170,7 +170,9 @@ def stage-image [cfg: record, flavor: string, repo: path, parent: string, contex
     # CLI must equal the wasm-bindgen crate, or generated bindings break).
     for check in ($img.version_checks? | default []) {
         let tools = open ($repo | path join $img.mise_config) | get -o tools | default {}
-        let pinned = $tools | get -o $check.tool
+        let entry = $tools | get -o $check.tool
+        # `tool = "1.2"` or `tool = { version = "1.2", ... }`
+        let pinned = if ($entry | describe | str starts-with "record") { $entry | get -o version } else { $entry }
         if $pinned == null { fail $"version check: ($check.tool) is not in ($img.mise_config)" }
         let locked = (
             open --raw ($repo | path join "Cargo.lock") | from toml | get package

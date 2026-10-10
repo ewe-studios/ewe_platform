@@ -107,7 +107,7 @@ image, `link-submodules` fetches the new SHA and warns.
 next run builds an image with the new nightly.
 
 **Bump a tool:** edit `mise.toml`, then `mise lock --platform
-linux-x64,linux-arm64,macos-arm64,windows-x64` to refresh `mise.lock` (needs
+linux-x64,windows-x64,macos-x64` to refresh `mise.lock` (needs
 GitHub API access). For wasm-bindgen, keep it equal to the `wasm-bindgen`
 crate in Cargo.lock (the image build fails otherwise).
 
