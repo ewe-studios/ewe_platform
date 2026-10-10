@@ -166,6 +166,22 @@ arms. Memory records (`WorkingMemory`, `Observation`, `Reflection`) are left
 out of `events()`; iterate the `TurnStream` itself for the raw
 `Stream<SessionRecord, AgentProgress>` items.
 
+The raw valtron stream stays available. A `TurnStream` is a
+`StreamIterator` (`D = SessionRecord`, `P = AgentProgress`), so the
+`StreamIteratorExt` combinators work on it directly; `inner()` /
+`inner_mut()` borrow the underlying `DrivenStreamIterator` and
+`into_inner()` (or `DrivenStreamIterator::from(stream)`) hands it over:
+
+```rust
+use foundation_core::valtron::StreamIteratorExt;
+
+let texts = agent
+    .run_turn_stream("Hi")?
+    .map_done(|record| Turn::text_of(&record));   // Stream<String, AgentProgress>
+
+let raw = agent.run_turn_stream("Again")?.into_inner();
+```
+
 ### Collected
 
 ```rust
