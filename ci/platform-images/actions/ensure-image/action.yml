@@ -85,11 +85,12 @@ runs:
         LAYER: ${{ inputs.layer }}
         FLAVOR: ${{ inputs.flavor }}
         PARENT: ${{ inputs.parent }}
-        SCRIPTS: ${{ github.action_path }}/../../scripts
       run: |
         set -euo pipefail
+        # $GITHUB_ACTION_PATH rather than the github.action_path expression,
+        # which isn't translated for container jobs.
         out="$RUNNER_TEMP/platform-images/$LAYER-$FLAVOR"
-        nu "$SCRIPTS/images.nu" prepare --config "$CONFIG" --layer "$LAYER" --flavor "$FLAVOR" \
+        nu "$GITHUB_ACTION_PATH/../../scripts/images.nu" prepare --config "$CONFIG" --layer "$LAYER" --flavor "$FLAVOR" \
           --parent "$PARENT" --out "$out" --repo "$GITHUB_WORKSPACE" --github-output
         echo "out=$out" >> "$GITHUB_OUTPUT"
         {
@@ -108,8 +109,7 @@ runs:
       shell: bash
       env:
         REF: ${{ steps.prep.outputs.ref }}
-        SCRIPTS: ${{ github.action_path }}/../../scripts
-      run: nu "$SCRIPTS/images.nu" exists "$REF" --github-output
+      run: nu "$GITHUB_ACTION_PATH/../../scripts/images.nu" exists "$REF" --github-output
 
     - name: Build options
       id: opts

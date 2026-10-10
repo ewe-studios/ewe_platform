@@ -38,7 +38,10 @@ def main [
     # Fail now, not in the first CI job, if something did not install.
     let installed = ^rustup component list --installed --toolchain $channel | lines
     for c in $components {
-        if not ($installed | any {|line| $line | str starts-with $c }) {
+        # rustup lists `foo-preview` components under their final name `foo`
+        # (e.g. rustc-codegen-cranelift-preview -> rustc-codegen-cranelift-x86_64-...).
+        let name = $c | str replace --regex '-preview$' ''
+        if not ($installed | any {|line| $line | str starts-with $name }) {
             fail $"component ($c) is not installed for ($channel)"
         }
     }

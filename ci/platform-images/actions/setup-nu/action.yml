@@ -10,10 +10,9 @@ runs:
   steps:
     - name: Install nushell from the platform-images lock
       shell: bash
-      env:
-        LOCK: ${{ github.action_path }}/../../images/linux/mise/mise.lock
       run: |
         set -euo pipefail
+        LOCK="$GITHUB_ACTION_PATH/../../images/linux/mise/mise.lock"
         if [ "$RUNNER_OS" != "Linux" ] || [ "$RUNNER_ARCH" != "X64" ]; then
           echo "::error::setup-nu supports Linux X64 runners only (got $RUNNER_OS $RUNNER_ARCH)"
           exit 1

@@ -23,7 +23,6 @@ runs:
     - name: Link baked submodules
       shell: bash
       env:
-        SCRIPT: ${{ github.action_path }}/../../scripts/link-submodules.nu
         PATHS: ${{ inputs.paths }}
         MODE: ${{ inputs.mode }}
         WORKSPACE: ${{ inputs.workspace }}
@@ -31,4 +30,6 @@ runs:
         set -euo pipefail
         # PATHS is split on purpose: one argument per submodule path.
         # shellcheck disable=SC2086
-        nu "$SCRIPT" --workspace "$WORKSPACE" --mode "$MODE" $PATHS
+        # $GITHUB_ACTION_PATH, not the github.action_path expression: only
+        # the variable is translated to the container's path in container jobs.
+        nu "$GITHUB_ACTION_PATH/../../scripts/link-submodules.nu" --workspace "$WORKSPACE" --mode "$MODE" $PATHS
