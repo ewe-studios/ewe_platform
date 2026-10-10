@@ -6,7 +6,7 @@ static HTML: &str = include_str!("./wikipedia-2020-12-21.html");
 static HTML_BIG: &str = include_str!("./wikipedia_on_wikipedia.html");
 static HTML_SMALLEST: &str = include_str!("./scraping_course.html");
 
-use ewe_html::parsers::{wrap_in_document_fragment_container, HTMLParser};
+use foundation_html::parsers::{wrap_in_document_fragment_container, HTMLParser};
 
 fn scraping_course(c: &mut Criterion) {
     c.bench_function("scraping_course", |b| {
