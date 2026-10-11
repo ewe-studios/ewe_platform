@@ -1,0 +1,49 @@
+{
+  "_comment": "Everything provision.ps1 installs outside mise. Each download is checked before it runs: `sha256` for fixed release files, or `signer` (a valid Authenticode signature whose subject contains it) for Microsoft/LunarG downloads that are only published behind moving redirect URLs. Bump a version by changing url + sha256 (or url for signed ones).",
+  "pwsh": {
+    "version": "7.6.5",
+    "url": "https://github.com/PowerShell/PowerShell/releases/download/v7.6.5/PowerShell-7.6.5-win-x64.msi",
+    "sha256": "3a87c24e044ec792047d734c841917ee4323a535e25f645ae6c33141a35fca8d"
+  },
+  "git": {
+    "version": "2.56.0.windows.1",
+    "url": "https://github.com/git-for-windows/git/releases/download/v2.56.0.windows.1/Git-2.56.0-64-bit.exe",
+    "sha256": "bfe94e7b419b16eee9fecbd1253a98e3d4f49ba8f029630549052278ffe286a6"
+  },
+  "llvm": {
+    "version": "22.1.8",
+    "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-22.1.8/LLVM-22.1.8-win64.exe",
+    "sha256": "16e5709785fef73c854646241c4a92c5cd574318d1b33c63330dd7721903e55c"
+  },
+  "vs_buildtools": {
+    "version": "17 (Visual Studio 2022 Build Tools, release channel)",
+    "url": "https://aka.ms/vs/17/release/vs_buildtools.exe",
+    "signer": "O=Microsoft Corporation",
+    "workloads": ["Microsoft.VisualStudio.Workload.VCTools"]
+  },
+  "webview2": {
+    "version": "Evergreen bootstrapper",
+    "url": "https://go.microsoft.com/fwlink/p/?LinkId=2124703",
+    "signer": "O=Microsoft Corporation"
+  },
+  "vulkan_sdk": {
+    "version": "1.4.357.0",
+    "url": "https://sdk.lunarg.com/sdk/download/1.4.357.0/windows/vulkansdk-windows-X64-1.4.357.0.exe",
+    "signer": "LunarG"
+  },
+  "mise": {
+    "version": "2026.9.18",
+    "url": "https://github.com/jdx/mise/releases/download/v2026.9.18/mise-v2026.9.18-windows-x64.zip",
+    "sha256": "0436007827b3594fb3494164065ddeed87974c68c7e394d09ef87c962fa4c2ac"
+  },
+  "rustup": {
+    "version": "1.29.0",
+    "url": "https://static.rust-lang.org/rustup/archive/1.29.0/x86_64-pc-windows-msvc/rustup-init.exe",
+    "sha256": "86478e53f769379d7f0ebfa7c9aa97cb76ca92233f79aa2cc0dbee2efaac73c7"
+  },
+  "actions_runner": {
+    "version": "2.337.0",
+    "url": "https://github.com/actions/runner/releases/download/v2.337.0/actions-runner-win-x64-2.337.0.zip",
+    "sha256": "1150692afa94e71f872017e254ea55b6eece1eece3fe7e3a6d4c93d0a1b85cfc"
+  }
+}

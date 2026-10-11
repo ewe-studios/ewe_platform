@@ -56,3 +56,27 @@ version_checks = [
 SUBMODULES_DIR = "/opt/ewe/submodules"
 RUST_EXTRA_COMPONENTS = "clippy rustc-codegen-cranelift-preview"
 RUST_EXTRA_TARGETS = "wasm32-wasip1 wasm32-wasip2"
+
+# ---------------------------------------------------------------------------
+# Windows and macOS VM images (dockurr: QEMU/KVM in a Linux container).
+# Layer 1 is the unit's images/<os> FROM the dockurr image (pinned by
+# digest), layer 2 the directory below. mise_config, mise_lock, submodules
+# and version_checks come from [image] unless set here.
+# Licensing (ci/platform-images/README.md): macOS only on Apple hardware;
+# Windows installs an evaluation edition by default.
+
+[vm.windows]
+base_name = "ci-windows"
+base_from = "docker.io/ewestudios/windows@sha256:6459721fc185e6599e55a6266b03f20bf896980859afd483ddcb1a5b8be8fad3"
+name = "ewe-platform-ci-windows"
+dockerfile = "ci/ewe-platform-image/windows/Dockerfile"
+layer_dir = "ci/ewe-platform-image/windows/layer"
+files = ["rust-toolchain.toml"]
+
+[vm.macos]
+base_name = "ci-macos"
+base_from = "docker.io/ewestudios/macos@sha256:7b66ae949d41aa02b0017faad32e9a9e0ff5376593a4a8140117cacf4a169387"
+name = "ewe-platform-ci-macos"
+dockerfile = "ci/ewe-platform-image/macos/Dockerfile"
+layer_dir = "ci/ewe-platform-image/macos/layer"
+files = ["rust-toolchain.toml"]

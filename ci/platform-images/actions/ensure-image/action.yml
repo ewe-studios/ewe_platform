@@ -13,8 +13,11 @@ inputs:
     description: Path to the consumer's platform-images config.toml.
     required: true
   layer:
-    description: "`base` (layer 1) or `image` (layer 2)."
+    description: "`base` (layer 1) or `image` (layer 2): for os windows/macos these are the VM layers (vm-base/vm-image)."
     required: true
+  os:
+    description: "`linux` (the container images) or `windows`/`macos` (the VM images)."
+    default: linux
   flavor:
     description: Flavor name from [base.flavors] in the config.
     default: default
@@ -85,16 +88,22 @@ runs:
         LAYER: ${{ inputs.layer }}
         FLAVOR: ${{ inputs.flavor }}
         PARENT: ${{ inputs.parent }}
+        OS: ${{ inputs.os }}
       run: |
         set -euo pipefail
+        case "$OS" in
+          linux) layer=$LAYER; os_args=() ;;
+          windows|macos) layer="vm-$LAYER"; os_args=(--os "$OS") ;;
+          *) echo "::error::os must be linux, windows or macos, not '$OS'"; exit 1 ;;
+        esac
         # $GITHUB_ACTION_PATH rather than the github.action_path expression,
         # which isn't translated for container jobs.
-        out="$RUNNER_TEMP/platform-images/$LAYER-$FLAVOR"
-        nu "$GITHUB_ACTION_PATH/../../scripts/images.nu" prepare --config "$CONFIG" --layer "$LAYER" --flavor "$FLAVOR" \
-          --parent "$PARENT" --out "$out" --repo "$GITHUB_WORKSPACE" --github-output
+        out="$RUNNER_TEMP/platform-images/$OS-$LAYER-$FLAVOR"
+        nu "$GITHUB_ACTION_PATH/../../scripts/images.nu" prepare --config "$CONFIG" --layer "$layer" --flavor "$FLAVOR" \
+          "${os_args[@]}" --parent "$PARENT" --out "$out" --repo "$GITHUB_WORKSPACE" --github-output
         echo "out=$out" >> "$GITHUB_OUTPUT"
         {
-          echo "### platform-images: $LAYER ($FLAVOR)"
+          echo "### platform-images: $OS $layer ($FLAVOR)"
           echo
           echo "Inputs hashed into \`$(jq -r .ref "$out/plan.json")\`:"
           echo

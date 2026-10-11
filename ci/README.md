@@ -74,3 +74,8 @@ python3 scripts/ci/ci.py run foundation_ai
   rebuilds weekly for security updates.
 - **Release binaries** (`release.yaml`): on `v*` tags (and by hand), builds
   release binaries inside the image and attaches them to the release.
+- **Windows and macOS (VMs)** (`platform-vms.yaml`): nightly and manual runs
+  in the Windows/macOS VM images (dockurr, QEMU/KVM). Windows runs on
+  `ubuntu-latest`, either over SSH or as an ephemeral just-in-time runner.
+  macOS runs only on a self-hosted Linux host that is Apple hardware. See
+  [`platform-images/README.md`](platform-images/README.md#windows-and-macos-vm-images).

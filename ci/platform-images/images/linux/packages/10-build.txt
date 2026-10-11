@@ -3,7 +3,7 @@
 # names, one per line; `#` starts a comment. Every file in this directory is
 # installed, so split new groups into new files rather than growing this one.
 #
-# cmake, ninja and protoc come from mise (images/linux/mise/mise.toml) so
+# cmake, ninja and protoc come from mise (mise/mise.toml at the unit root) so
 # every platform gets the same pinned versions.
 
 # Fetching, archives, certificates

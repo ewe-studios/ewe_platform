@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# pi-vm-entry: container entrypoint of the platform-images VM images, in front
+# of dockurr's own (/run/entry.sh).
+#
+# Windows: dockurr copies /oem into the VM as C:\OEM during the unattended
+# install and runs C:\OEM\install.bat at its end. This assembles /oem from
+#   /opt/platform-images/guest     layer 1: install.bat, provision.ps1, ...
+#   /opt/platform-images/layers/*  layer 2+: one directory per layer, each
+#                                  with an install.ps1 run after layer 1
+#   $PI_SSH_AUTHORIZED_KEY         a public key authorised for SSH into the
+#                                  VM (the CI job generates one per run)
+# /oem is only read on a fresh install (an empty /storage). A VM whose disk
+# already exists keeps the key and provisioning it was installed with.
+#
+# macOS: dockurr has no unattended install, so nothing is assembled here;
+# provisioning runs over SSH after the one-time manual install (vm.nu
+# provision). The guest files stay in /opt/platform-images for that.
+set -euo pipefail
+
+case "${PI_VM_OS:-}" in
+  windows)
+    rm -rf /oem
+    mkdir -p /oem
+    cp -a /opt/platform-images/guest/. /oem/
+    if [ -d /opt/platform-images/layers ]; then
+      mkdir -p /oem/layers
+      cp -a /opt/platform-images/layers/. /oem/layers/
+    fi
+    if [ -n "${PI_SSH_AUTHORIZED_KEY:-}" ]; then
+      mkdir -p /oem/ssh
+      printf '%s\n' "$PI_SSH_AUTHORIZED_KEY" > /oem/ssh/authorized_keys
+    fi
+    ;;
+  macos) ;;
+  *)
+    echo "pi-vm-entry: PI_VM_OS must be windows or macos (got '${PI_VM_OS:-}')" >&2
+    exit 1
+    ;;
+esac
+
+exec /run/entry.sh "$@"

@@ -13,6 +13,10 @@ name: Platform images (reusable)
 # Rebuilding is incremental: each layer pulls its build cache from
 # <repo>:buildcache in the registry.
 #
+# With `os: windows` or `os: macos` the same two steps ensure the VM images
+# instead ([vm.<os>] in the config: layer 1 FROM the dockurr image, layer 2
+# the repository's VM layer); platform-images-vm.yaml calls it that way.
+#
 # Without registry credentials (pull requests from forks, Dependabot) nothing
 # can be pushed. If the image already exists it is used as usual (anonymous
 # pull). If it has to be built, it is exported as a workflow artifact
@@ -30,9 +34,13 @@ on:
         type: string
         default: ci/ewe-platform-image/config.toml
       flavor:
-        description: Flavor from [base.flavors] (default, cuda).
+        description: Flavor from [base.flavors] (default, cuda). Linux only.
         type: string
         default: default
+      os:
+        description: "`linux` (the container images), or `windows`/`macos` (the VM images from [vm.<os>])."
+        type: string
+        default: linux
       force:
         description: Rebuild both layers even if their hash tags exist.
         type: boolean
@@ -74,7 +82,7 @@ permissions:
 
 jobs:
   ensure:
-    name: Ensure image (${{ inputs.flavor }})
+    name: Ensure image (${{ inputs.os }} ${{ inputs.flavor }})
     runs-on: ubuntu-latest
     timeout-minutes: 120
     outputs:
@@ -145,6 +153,7 @@ jobs:
         with:
           config: ${{ inputs.config }}
           layer: base
+          os: ${{ inputs.os }}
           flavor: ${{ inputs.flavor }}
           push: ${{ steps.registry.outputs.push }}
           local-output: oci
@@ -158,6 +167,7 @@ jobs:
         with:
           config: ${{ inputs.config }}
           layer: image
+          os: ${{ inputs.os }}
           flavor: ${{ inputs.flavor }}
           # Pinned by digest when the base is in the registry; built FROM the
           # local OCI layout when the base was only built in this job.
@@ -175,7 +185,8 @@ jobs:
         env:
           FLAVOR: ${{ inputs.flavor }}
           HASH: ${{ steps.image.outputs.hash }}
-        run: echo "name=platform-image-$FLAVOR-$HASH-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+          OS: ${{ inputs.os }}
+        run: echo "name=platform-image-$OS-$FLAVOR-$HASH-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
       - name: Upload the image as an artifact
         if: steps.image.outputs.source == 'local'
