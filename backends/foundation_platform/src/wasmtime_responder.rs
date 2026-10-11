@@ -42,18 +42,27 @@ impl WasmtimeResponder {
         Self { builder, instance: Mutex::new(None) }
     }
 
-    /// Get or build the wasmtime instance.
-    fn get_instance(&self) -> Result<&mut foundation_wasmtime::WasmtimeInstance, String> {
-        // SAFETY: We hold the Mutex lock, so the Option<Instance> inside is stable.
-        // The caller must not hold the lock across await points — but we're
-        // synchronous, so this is fine.
-        let mut guard = self.instance.lock().unwrap();
+    /// Run `f` against the wasmtime instance, building it on first use.
+    ///
+    /// The instance lives behind the mutex, so it is only reachable while the
+    /// lock is held: `f` runs inside the critical section instead of a
+    /// `&mut` escaping the guard.
+    fn with_instance<R>(
+        &self,
+        f: impl FnOnce(&mut foundation_wasmtime::WasmtimeInstance) -> R,
+    ) -> Result<R, String> {
+        let mut guard = self
+            .instance
+            .lock()
+            .map_err(|_| "wasmtime instance lock poisoned".to_string())?;
         if guard.is_none() {
             let instance = self.builder.build().map_err(|e| format!("wasmtime build: {e}"))?;
             *guard = Some(instance);
         }
-        // SAFETY: we just ensured guard is Some
-        Ok(unsafe { &mut *(&raw mut *guard).cast::<Option<foundation_wasmtime::WasmtimeInstance>>() }.as_mut().unwrap())
+        match guard.as_mut() {
+            Some(instance) => Ok(f(instance)),
+            None => Err("wasmtime instance missing after build".to_string()),
+        }
     }
 }
 
@@ -65,11 +74,10 @@ impl RouteResponder for WasmtimeResponder {
         _session: &PlatformSession,
     ) -> Response<Vec<u8>> {
         let route = crate::pattern::extract_path(&intent.url);
-        let body = match self.get_instance() {
-            Ok(instance) => {
-                let _ = instance.name();
-                format!("wasmtime shell handled: {route}")
-            }
+        // Building the instance on first use is the work here; the handler
+        // body doesn't call an export yet.
+        let body = match self.with_instance(|_instance| ()) {
+            Ok(()) => format!("wasmtime shell handled: {route}"),
             Err(e) => format!("wasmtime error: {e}"),
         };
 
