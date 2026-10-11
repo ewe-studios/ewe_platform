@@ -83,10 +83,15 @@ def base-checks [browsers: list<string>, cuda: bool]: nothing -> list<record> {
             let out = ^python3 $probe --browser google-chrome | complete
             let report = try { $out.stdout | lines | last | from json } catch { {} }
             if $out.exit_code != 0 {
-                error make --unspanned {msg: ($"($out.stdout | str trim) ($out.stderr | lines | last 3 | str join ' | ')" | str trim)}
+                # The table cell is short; print the probe's full report (the
+                # WebGL error, requestAdapter() error, chrome://gpu status).
+                print --stderr "browser-gpu-probe report:"
+                print --stderr ($out.stdout | str trim)
+                print --stderr ($out.stderr | str trim)
+                error make --unspanned {msg: $"exit ($out.exit_code): webgl2=($report.webgl2? | default '?') webgpu=($report.webgpu? | default '?'), full report above"}
             }
             let adapter = $report.adapter? | default {}
-            $"webgl2=($report.webgl2) webgpu=($report.webgpu) \(($adapter.vendor? | default '') ($adapter.architecture? | default '') fallback=($adapter.fallback? | default false))"
+            $"webgl2=($report.webgl2) \(($report.webgl_renderer? | default '')) webgpu=($report.webgpu) \(($adapter.vendor? | default '') ($adapter.architecture? | default ''))"
         })
     }
     if "firefox" in $browsers {
