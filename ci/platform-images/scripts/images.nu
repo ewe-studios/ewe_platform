@@ -279,7 +279,17 @@ def "main exists" [
     ref: string
     --github-output
 ] {
-    let res = do { ^docker buildx imagetools inspect $ref --format '{{json .Manifest}}' } | complete
+    # Registries rate-limit (Docker Hub answers 429, also to anonymous HEAD
+    # requests from busy shared IPs): back off and retry before giving up.
+    mut res = do { ^docker buildx imagetools inspect $ref --format '{{json .Manifest}}' } | complete
+    mut attempt = 1
+    while $res.exit_code != 0 and ($res.stderr | str lowercase) =~ '429|too many requests|toomanyrequests' and $attempt < 5 {
+        let wait = 15sec * $attempt
+        print --stderr $"::warning::($ref): registry rate limit \(429\), retrying in ($wait)"
+        sleep $wait
+        $attempt += 1
+        $res = do { ^docker buildx imagetools inspect $ref --format '{{json .Manifest}}' } | complete
+    }
     let result = if $res.exit_code == 0 {
         let manifest = $res.stdout | from json
         {exists: true, digest: $manifest.digest}

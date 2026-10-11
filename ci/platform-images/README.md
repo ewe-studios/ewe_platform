@@ -87,11 +87,21 @@ Layer 1 sets:
 
 There is no X server running. For a display, wrap the command:
 `xvfb-run -a cargo test ...` (or start `Xvfb :99 &` and set `DISPLAY=:99`).
-EGL also works without one (`eglinfo -p surfaceless`). Headless Chrome gets
-WebGL2 and WebGPU on SwiftShader with
-`--headless=new --enable-unsafe-webgpu --use-angle=swiftshader --enable-unsafe-swiftshader`
-(the smoke test checks both), and wants `--shm-size=2g` on the container
-(`container.options` in a workflow).
+EGL also works without one (`eglinfo -p surfaceless`).
+
+Headless Chrome gets WebGL2 and a WebGPU adapter without a GPU with:
+
+```
+--headless=new --enable-unsafe-webgpu --enable-features=Vulkan
+--use-angle=vulkan --use-webgpu-adapter=swiftshader --enable-unsafe-swiftshader
+```
+
+The page must be a **secure context**: `navigator.gpu` doesn't exist at all
+on `data:` or `file:` URLs. Serve test pages from `http://127.0.0.1` or
+`http://localhost`. `scripts/browser-gpu-probe.py` does exactly this; the smoke
+test runs it and requires `requestAdapter()` to return an adapter. Chrome
+also wants `--shm-size=2g` on the container (`container.options` in a
+workflow).
 
 To use a real GPU instead (the CUDA flavor on a GPU host with the NVIDIA
 container toolkit), unset `VK_ICD_FILENAMES`/`VK_DRIVER_FILES` and

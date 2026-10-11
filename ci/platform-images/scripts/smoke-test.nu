@@ -75,19 +75,18 @@ def base-checks [browsers: list<string>, cuda: bool]: nothing -> list<record> {
     })
     if "chrome" in $browsers {
         $results = $results | append (check "chrome" {|| first-line google-chrome --version })
-        $results = $results | append (check "chrome: webgl2 + webgpu" {||
-            # The page reports the contexts it gets; --virtual-time-budget lets
-            # the async WebGPU adapter request finish before the DOM is dumped.
-            let page = "<body><script>(async()=>{const c=document.createElement('canvas');const gl=!!c.getContext('webgl2');let gpu='no-api';if(navigator.gpu){const a=await navigator.gpu.requestAdapter();gpu=a?'adapter':'no-adapter';}document.body.textContent='webgl2='+gl+' webgpu='+gpu;})()</script></body>"
-            let dom = (output google-chrome --headless=new --no-sandbox --disable-dev-shm-usage
-                --enable-unsafe-webgpu --enable-features=Vulkan --use-angle=swiftshader --enable-unsafe-swiftshader
-                --virtual-time-budget=10000 --dump-dom $"data:text/html,($page | url encode)")
-            let found = $dom | parse --regex 'webgl2=(?<gl>\w+) webgpu=(?<gpu>[\w-]+)'
-            if ($found | is-empty) { error make --unspanned {msg: "the page did not report"} }
-            if $found.0.gl != "true" or $found.0.gpu != "adapter" {
-                error make --unspanned {msg: $"webgl2=($found.0.gl) webgpu=($found.0.gpu)"}
+        $results = $results | append (check "chrome: webgl2 + webgpu adapter" {||
+            # The probe page is served from http://127.0.0.1: navigator.gpu
+            # only exists in a secure context (a data: URL is not one). It
+            # passes only if requestAdapter() returns an adapter.
+            let probe = $env.FILE_PWD | path join browser-gpu-probe.py
+            let out = ^python3 $probe --browser google-chrome | complete
+            let report = try { $out.stdout | lines | last | from json } catch { {} }
+            if $out.exit_code != 0 {
+                error make --unspanned {msg: ($"($out.stdout | str trim) ($out.stderr | lines | last 3 | str join ' | ')" | str trim)}
             }
-            $"webgl2=($found.0.gl) webgpu=($found.0.gpu)"
+            let adapter = $report.adapter? | default {}
+            $"webgl2=($report.webgl2) webgpu=($report.webgpu) \(($adapter.vendor? | default '') ($adapter.architecture? | default '') fallback=($adapter.fallback? | default false))"
         })
     }
     if "firefox" in $browsers {
