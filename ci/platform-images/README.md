@@ -67,7 +67,7 @@ doesn't need it.
   apt repositories; Ubuntu's are snap shims that don't run in containers),
   as listed in `[base] browsers`. `chromium`/`chromium-browser` point at
   Chrome.
-- **mise tools** (`images/linux/mise/mise.toml`): nushell, node + npm, deno,
+- **mise tools** (`mise/mise.toml`, shared by every platform): nushell, node + npm, deno,
   cmake, ninja, protoc, sccache, cargo-binstall, binaryen (wasm-opt),
   wasm-pack, wasmtime, actionlint
 - **rustup**, with no toolchain (layer 2 installs the repository's)
@@ -292,7 +292,7 @@ plan's `build_args` are `BASE_IMAGE` and `BROWSERS` as shown.)
 
 ## Updating pinned versions
 
-- **A tool in layer 1:** edit `images/linux/mise/mise.toml`, then refresh
+- **A tool in layer 1:** edit `mise/mise.toml`, shared by every platform, then refresh
   its lock with `mise lock --platform linux-x64,windows-x64,macos-x64`
   in that directory (this needs GitHub API access, e.g. with `GITHUB_TOKEN`
   set). The image installs with `MISE_LOCKED=1` and checks every download

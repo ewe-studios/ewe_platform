@@ -12,7 +12,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        LOCK="$GITHUB_ACTION_PATH/../../images/linux/mise/mise.lock"
+        LOCK="$GITHUB_ACTION_PATH/../../mise/mise.lock"
         if [ "$RUNNER_OS" != "Linux" ] || [ "$RUNNER_ARCH" != "X64" ]; then
           echo "::error::setup-nu supports Linux X64 runners only (got $RUNNER_OS $RUNNER_ARCH)"
           exit 1

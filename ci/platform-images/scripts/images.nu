@@ -13,6 +13,10 @@
 #          flavor's upstream image, e.g. ubuntu or nvidia/cuda)
 #   image  the consumer's layer 2, built from its own Dockerfile FROM a base
 #          image pinned by digest
+#   vm-base / vm-image (with --os windows|macos)
+#          the same two layers for the Windows/macOS VM images: layer 1 is
+#          this unit's images/<os> FROM a dockurr image, layer 2 the
+#          consumer's VM layer FROM it
 #
 # The hash is a sha256 over every staged context file (path, executable bit,
 # content), the build args, and for layer 2 the parent digest. Only the first
@@ -144,49 +148,58 @@ def stage-base [cfg: record, flavor: string, context: path]: nothing -> record {
     }
 }
 
-# Layer 2: the consumer's Dockerfile and the inputs its config lists.
-def stage-image [cfg: record, flavor: string, repo: path, parent: string, context: path]: nothing -> record {
-    if ($parent | is-empty) { fail "--parent is required for the image layer" }
-    let img = $cfg.image
-    copy-into ($repo | path join $img.dockerfile) ($context | path join Dockerfile)
-    for f in ($img.files? | default []) {
-        copy-into ($repo | path join $f) ($context | path join files $f)
+# The repository inputs a layer 2 bakes in, staged under <dest>: the files it
+# lists (files/<path>), the [tools]/[settings] of its mise config plus the
+# lock (mise/), and a lock of the submodules to bake (submodules.lock.json).
+# `spec` is the [image] table, or a [vm.<os>] table falling back to [image].
+def stage-repo-inputs [spec: record, repo: path, dest: path] {
+    for f in ($spec.files? | default []) {
+        copy-into ($repo | path join $f) ($dest | path join files $f)
     }
 
     # mise: only [tools] (and [settings]) matter to the image, so tasks and env
     # edits in the consumer's mise.toml do not change the hash.
-    if ($img.mise_config? | is-not-empty) {
-        let src = open ($repo | path join $img.mise_config)
+    if ($spec.mise_config? | is-not-empty) {
+        let src = open ($repo | path join $spec.mise_config)
         let tools_only = {tools: ($src.tools? | default {})}
         let tools_only = if ($src.settings? | is-not-empty) { $tools_only | insert settings $src.settings } else { $tools_only }
-        mkdir ($context | path join mise)
-        $tools_only | to toml | save --force ($context | path join mise mise.toml)
-        if ($img.mise_lock? | is-not-empty) {
-            copy-into ($repo | path join $img.mise_lock) ($context | path join mise mise.lock)
+        mkdir ($dest | path join mise)
+        $tools_only | to toml | save --force ($dest | path join mise mise.toml)
+        if ($spec.mise_lock? | is-not-empty) {
+            copy-into ($repo | path join $spec.mise_lock) ($dest | path join mise mise.lock)
         }
     }
 
     # A mise tool that must match a crate version in Cargo.lock (wasm-bindgen's
     # CLI must equal the wasm-bindgen crate, or generated bindings break).
-    for check in ($img.version_checks? | default []) {
-        let tools = open ($repo | path join $img.mise_config) | get -o tools | default {}
+    for check in ($spec.version_checks? | default []) {
+        let tools = open ($repo | path join $spec.mise_config) | get -o tools | default {}
         let entry = $tools | get -o $check.tool
         # `tool = "1.2"` or `tool = { version = "1.2", ... }`
         let pinned = if ($entry | describe | str starts-with "record") { $entry | get -o version } else { $entry }
-        if $pinned == null { fail $"version check: ($check.tool) is not in ($img.mise_config)" }
+        if $pinned == null { fail $"version check: ($check.tool) is not in ($spec.mise_config)" }
         let locked = (
             open --raw ($repo | path join "Cargo.lock") | from toml | get package
             | where name == $check.cargo_package | get version | uniq
         )
         if ($locked | is-empty) { fail $"version check: ($check.cargo_package) is not in Cargo.lock" }
         if ($pinned | into string) not-in $locked {
-            fail $"version check: ($img.mise_config) pins ($check.tool) = ($pinned), but Cargo.lock has ($check.cargo_package) ($locked | str join ', ')"
+            fail $"version check: ($spec.mise_config) pins ($check.tool) = ($pinned), but Cargo.lock has ($check.cargo_package) ($locked | str join ', ')"
         }
     }
 
     # Submodules to bake, at the gitlink SHAs of the checked-out commit.
-    let subs = $img.submodules? | default [] | each {|p| submodule-entry $repo $p }
-    {submodules: $subs} | to json --indent 2 | save --force ($context | path join submodules.lock.json)
+    let subs = $spec.submodules? | default [] | each {|p| submodule-entry $repo $p }
+    mkdir $dest
+    {submodules: $subs} | to json --indent 2 | save --force ($dest | path join submodules.lock.json)
+}
+
+# Layer 2: the consumer's Dockerfile and the inputs its config lists.
+def stage-image [cfg: record, flavor: string, repo: path, parent: string, context: path]: nothing -> record {
+    if ($parent | is-empty) { fail "--parent is required for the image layer" }
+    let img = $cfg.image
+    copy-into ($repo | path join $img.dockerfile) ($context | path join Dockerfile)
+    stage-repo-inputs $img $repo $context
 
     # A manifest-only skeleton of the cargo workspace for `cargo fetch`: every
     # tracked Cargo.toml, Cargo.lock and cargo config, and an empty stub for
@@ -212,6 +225,54 @@ def stage-image [cfg: record, flavor: string, repo: path, parent: string, contex
     }
 }
 
+def vm-config [cfg: record, os: string]: nothing -> record {
+    let vms = $cfg.vm? | default {}
+    if $os not-in $vms { fail $"no [vm.($os)] table in the config \(defined: ($vms | columns | str join ', '))" }
+    let vm = $vms | get $os
+    for key in [base_name base_from name dockerfile layer_dir] {
+        if $key not-in $vm { fail $"[vm.($os)] needs `($key)`" }
+    }
+    $vm
+}
+
+# VM layer 1: this unit's images/<os> (a Dockerfile FROM the dockurr image,
+# guest/ with the provisioning that runs inside the VM, bin/ with the
+# container-side helpers), plus the shared mise tools and scripts, which go
+# into the guest too.
+def stage-vm-base [cfg: record, os: string, context: path]: nothing -> record {
+    let unit = unit-dir
+    let vm = vm-config $cfg $os
+    let dir = $unit | path join images $os
+    if not ($dir | path exists) { fail $"this unit has no images/($os)" }
+    copy-into ($dir | path join Dockerfile) ($context | path join Dockerfile)
+    copy-into ($dir | path join guest) ($context | path join guest)
+    copy-into ($unit | path join images vm bin) ($context | path join bin)
+    copy-into ($unit | path join mise) ($context | path join guest mise)
+    copy-into ($unit | path join scripts) ($context | path join guest scripts)
+    {
+        name: $vm.base_name
+        build_args: {BASE_IMAGE: $vm.base_from}
+        exclude: []
+    }
+}
+
+# VM layer 2: the consumer's Dockerfile and guest layer directory, plus the
+# repository inputs ([vm.<os>] keys, falling back to [image]) staged into
+# that layer, so the guest-side install script finds them next to itself.
+def stage-vm-image [cfg: record, os: string, repo: path, parent: string, context: path]: nothing -> record {
+    if ($parent | is-empty) { fail "--parent is required for the vm-image layer" }
+    let vm = vm-config $cfg $os
+    let spec = $cfg.image | merge ($vm | reject -o base_name base_from name dockerfile layer_dir build_args)
+    copy-into ($repo | path join $vm.dockerfile) ($context | path join Dockerfile)
+    copy-into ($repo | path join $vm.layer_dir) ($context | path join layer)
+    stage-repo-inputs $spec $repo ($context | path join layer)
+    {
+        name: $vm.name
+        build_args: ($vm.build_args? | default {} | merge {BASE_IMAGE: $parent})
+        exclude: []
+    }
+}
+
 def write-github-output [values: record] {
     let out = $env.GITHUB_OUTPUT? | default ""
     if ($out | is-empty) { fail "--github-output needs GITHUB_OUTPUT (run inside GitHub Actions)" }
@@ -229,8 +290,9 @@ def write-github-output [values: record] {
 # Stage a layer's build context and print its plan (JSON).
 def "main prepare" [
     --config: path          # the consumer's config.toml
-    --layer: string         # base | image
+    --layer: string         # base | image | vm-base | vm-image
     --flavor: string = "default"
+    --os: string = ""       # vm layers: windows | macos
     --parent: string = ""   # image layer only: the base image, pinned by digest
     --out: path             # output directory (the context goes to <out>/context)
     --repo: path = "."      # repository root (for files, submodules, git)
@@ -247,7 +309,12 @@ def "main prepare" [
     let staged = match $layer {
         "base" => (stage-base $cfg $flavor $context)
         "image" => (stage-image $cfg $flavor $repo $parent $context)
-        _ => (fail $"unknown layer `($layer)` \(expected base or image)")
+        "vm-base" | "vm-image" => {
+            if $os not-in [windows macos] { fail $"--os must be windows or macos for ($layer), not `($os)`" }
+            if $flavor != "default" { fail "vm layers have no flavors" }
+            if $layer == "vm-base" { stage-vm-base $cfg $os $context } else { stage-vm-image $cfg $os $repo $parent $context }
+        }
+        _ => (fail $"unknown layer `($layer)` \(expected base, image, vm-base or vm-image)")
     }
     let lines = hash-context $context $staged.exclude
     let hash = compute-hash $lines $staged.build_args $parent
