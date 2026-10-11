@@ -5212,7 +5212,6 @@ dependencies = [
  "foundation_http",
  "foundation_netio",
  "pbkdf2",
- "rand 0.9.5",
  "rmp-serde",
  "rmpv",
  "secrecy",

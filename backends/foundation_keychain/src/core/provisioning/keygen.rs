@@ -23,7 +23,7 @@ pub fn generate(key_type: &str, comment: &str) -> AppResult<GeneratedKey> {
         "ed25519" | "" => (Algorithm::Ed25519, "ed25519"),
         other => return Err(AppError::BadRequest(format!("unsupported key_type: {other}"))),
     };
-    let mut key = PrivateKey::random(&mut rand::thread_rng(), algo)
+    let mut key = PrivateKey::random(&mut ssh_key::rand_core::OsRng, algo)
         .map_err(|e| AppError::Internal(format!("ssh key generation failed: {e}")))?;
     if !comment.is_empty() {
         key.set_comment(comment);
