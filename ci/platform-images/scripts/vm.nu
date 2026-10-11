@@ -271,7 +271,9 @@ def "main runner" [
             "Start-ScheduledTask -TaskName platform-images-runner"
         ] | str join "; "
     } else {
-        "jit=$(cat) && cd /usr/local/actions-runner && printf '%s' \"$jit\" > .jitconfig && chmod 600 .jitconfig && nohup bash -lc './run.sh --jitconfig \"$(cat .jitconfig)\"' > runner.log 2>&1 < /dev/null & echo started"
+        # `;`, not `&&`, before the `&`: a trailing `&` backgrounds the whole
+        # && chain, and a background job reads stdin from /dev/null.
+        "umask 077; cd /usr/local/actions-runner || exit 1; cat > .jitconfig || exit 1; [ -s .jitconfig ] || { echo 'empty JIT config' >&2; exit 1; }; nohup bash -lc './run.sh --jitconfig \"$(cat .jitconfig)\"' > runner.log 2>&1 < /dev/null & echo started"
     }
     let r = ssh-run $os $key $port $start --stdin $jit
     if $r.exit_code != 0 { fail $"starting the runner failed: ($r.stderr)" }
@@ -289,7 +291,8 @@ def "main runner-alive" [--os: string, --key: path, --port: int = $SSH_PORT]: no
     let probe = if $os == "windows" {
         "if (Get-Process -Name Runner.Listener -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
     } else {
-        "pgrep -f Runner.Listener >/dev/null"
+        # [R]: keep pgrep from matching the shell that runs this command.
+        "pgrep -f '[R]unner.Listener' >/dev/null"
     }
     (ssh-run $os $key $port $probe).exit_code == 0
 }
