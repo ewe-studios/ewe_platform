@@ -136,3 +136,26 @@ repositories were unreachable from the build machine):
 
 Chrome and Firefox add an estimated 0.3 GB compressed. The CUDA flavor's
 upstream image alone is 5.2 GB compressed (about 10 GB unpacked).
+
+## Windows and macOS
+
+The same repository layer exists for the platform-images VM images
+([`windows/`](windows), [`macos/`](macos); `[vm.windows]` / `[vm.macos]` in
+[`config.toml`](config.toml)):
+
+| | Windows | macOS |
+|---|---|---|
+| Layer 1 | `ewestudios/ci-windows` (FROM `ewestudios/windows`, the dockurr mirror, pinned by digest) | `ewestudios/ci-macos` (FROM `ewestudios/macos`) |
+| Layer 2 | `ewestudios/ewe-platform-ci-windows` | `ewestudios/ewe-platform-ci-macos` |
+| ewe_platform's layer | `windows/layer/install.ps1`: the pinned nightly (+ clippy), the repository's mise tools, submodules in `C:\ewe\submodules` | `macos/layer/install.sh`: the same, submodules in `/usr/local/ewe/submodules` |
+| Runs on | `ubuntu-latest` (KVM), nightly and manual | a self-hosted Linux host on **Apple hardware**, manual |
+
+The layer runs inside the VM: during Windows' unattended install, or over
+SSH for macOS. The images themselves only carry scripts.
+`link-submodules` makes junctions on Windows. `platform-vms.yaml` runs the
+checks over SSH, or registers the VM as an ephemeral runner with the GitHub
+App secrets `EWE_RUNNER_REGISTRA_CLIENT_ID` / `EWE_RUNNER_REGISTRA_PRIVATE_KEY`.
+
+Setup, timings, licensing (macOS on Apple hardware only; Windows defaults to
+the Server 2022 180-day evaluation) and the macOS one-time install are in
+the [platform-images README](../platform-images/README.md#windows-and-macos-vm-images).

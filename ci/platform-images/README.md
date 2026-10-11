@@ -10,28 +10,39 @@ way any other repository would.
 
 ```
 ci/platform-images/
-├── images/linux/           layer 1: the generic Linux base image
-│   ├── Dockerfile
-│   ├── packages/*.txt      apt packages, one per line
-│   ├── mise/               pinned tools (mise.toml + mise.lock)
-│   └── bin/                build-time helpers (pi-mise-install, pi-install-browsers)
-├── scripts/                nushell, also copied into the image at /opt/platform-images/scripts
+├── mise/                   pinned tools for every platform (mise.toml + mise.lock:
+│                           URL + sha256 for linux-x64, windows-x64, macos-x64)
+├── images/
+│   ├── linux/              layer 1: the generic Linux base image
+│   │   ├── Dockerfile
+│   │   ├── packages/*.txt  apt packages, one per line
+│   │   └── bin/            build-time helpers (pi-mise-install, pi-install-browsers)
+│   ├── windows/            layer 1 VM: dockurr/windows + guest/ provisioning (PowerShell)
+│   ├── macos/              layer 1 VM: dockurr/macos + guest/ provisioning (bash)
+│   └── vm/bin/             pi-vm-entry: the VM images' container entrypoint
+├── scripts/                nushell, also in every image
 │   ├── images.nu           stage a layer's context, hash it, look it up, tag it
+│   ├── vm.nu               boot a VM, wait, push/exec/pull over SSH, start a JIT runner
 │   ├── install-rust-toolchain.nu
 │   ├── bake-submodules.nu
-│   ├── link-submodules.nu
+│   ├── link-submodules.nu  (symlinks on Linux/macOS, junctions on Windows)
 │   └── smoke-test.nu
 └── actions/                composite actions
     ├── setup-nu            nushell on a host runner, from the lock (no API, checksummed)
     ├── ensure-image        hash → look up → build/push (or export) one layer
-    └── link-submodules     baked submodules into a checkout
+    ├── link-submodules     baked submodules into a checkout
+    ├── boot-vm             start a Windows/macOS VM image and wait until it is provisioned
+    └── register-runner     register the VM as an ephemeral just-in-time runner (GitHub App)
 ```
 
-The reusable workflow is
-[`.github/workflows/platform-images.yaml`](../../.github/workflows/platform-images.yaml):
-GitHub only runs reusable workflows from `.github/workflows`, so it lives
-there. If the unit moves to its own repository, it moves along and callers
-reference it as `<owner>/<repo>/.github/workflows/platform-images.yaml@<ref>`.
+The reusable workflows are
+[`.github/workflows/platform-images.yaml`](../../.github/workflows/platform-images.yaml)
+(ensure the images exist) and
+[`.github/workflows/platform-images-vm.yaml`](../../.github/workflows/platform-images-vm.yaml)
+(run work in a Windows/macOS VM). GitHub only runs reusable workflows from
+`.github/workflows`, so they live there. If the unit moves to its own
+repository, they move along and callers reference them as
+`<owner>/<repo>/.github/workflows/<file>@<ref>`.
 
 ## Layers
 
@@ -306,6 +317,201 @@ plan's `build_args` are `BASE_IMAGE` and `BROWSERS` as shown.)
 Every one of these changes the layer 1 hash, so the next CI run builds the
 new base, and layer 2 on top of it.
 
+## Windows and macOS: VM images
+
+Windows and macOS don't run in Linux containers, so they come as VM images.
+The unit uses [dockurr](../../infrastructure/docker/windows/readme.md)
+images: a Linux container that runs QEMU/KVM, installs the OS into
+`/storage` on first boot and serves a web viewer on port 8006. The layering
+and content hashing are the same as for Linux:
+
+| Layer | Image | Built from | Contains |
+|---|---|---|---|
+| 1 | `<namespace>/<vm.<os>.base_name>` (`ci-windows`, `ci-macos`) | `images/<os>/Dockerfile`, FROM the dockurr image (`base_from`, pinned by digest) | the provisioning that runs **inside** the VM, the shared `mise/` tools, `scripts/` |
+| 2 | `<namespace>/<vm.<os>.name>` (`ewe-platform-ci-windows`, …) | the repository's `vm.<os>.dockerfile` | the repository's provisioning layer (`layer_dir`) with its toolchain file, mise tools and submodule lock |
+
+The images hold **no Windows or macOS bits**, only provisioning scripts:
+dockurr downloads the OS from Microsoft or Apple when a VM is first
+installed. (`images.nu prepare --layer vm-base|vm-image --os windows|macos`
+stages the contexts; `platform-images.yaml` with `os: windows|macos`
+ensures the images like the Linux ones.)
+
+### What gets installed in the VM
+
+| | Windows (unattended) | macOS (after the one-time manual install) |
+|---|---|---|
+| How | dockurr runs `C:\OEM\install.bat` at the end of its unattended install. It runs `provision.ps1` (layer 1), then each `C:\OEM\layers\<name>\install.ps1` (layer 2). | `vm.nu provision` copies `guest/` (and the layers) in over SSH and runs `provision.sh`, then each `layers/<name>/install.sh`. |
+| System | OpenSSH Server (key auth, default shell pwsh), long paths, no Windows Update reboots, Defender real-time scanning off (best effort) | Xcode Command Line Tools (via `softwareupdate`) |
+| Toolchain | Visual Studio 2022 Build Tools (MSVC + Windows SDK), LLVM 22 (`LIBCLANG_PATH`), Git for Windows (+ bash), PowerShell 7, Vulkan SDK (`VULKAN_SDK`), WebView2 | clang, git, make, macOS SDK (CLT), Vulkan SDK / MoltenVK (`VULKAN_SDK`) |
+| mise tools | nushell, node, python 3.12, cmake, ninja, protoc, sccache, deno, binaryen, wasm-pack, wasmtime, actionlint, cargo-binstall: the same versions as Linux, from the same lock | same |
+| Rust | rustup, no toolchain (`C:\rust`); layer 2 installs the pinned one | rustup (`/usr/local/rust`); layer 2 installs the pinned one |
+| CI | GitHub Actions runner (`C:\actions-runner`), started per job with a JIT config | GitHub Actions runner (`/usr/local/actions-runner`) |
+
+Every download is checked before it runs. GitHub releases, rustup and mise
+have a pinned sha256 (`guest/components.json` / `components.env`, plus
+`mise.lock`). The Microsoft and LunarG downloads, which are only published
+behind moving redirect URLs (VS Build Tools, WebView2, Vulkan SDK), are
+checked by Authenticode or code signature against the expected signer.
+Provisioning stops at the first failure. It records the outcome in
+`C:\OEM\status\` or `/usr/local/platform-images/status/` (`provisioned.ok`
+or `provision.failed`, `provision.log`, `versions.txt`), and `vm.nu wait`
+reports it.
+
+### Two ways to use a VM in a workflow
+
+Both run on a **Linux host job** that boots the VM: `ubuntu-latest` for
+Windows, or a self-hosted Linux host (required for macOS, see licensing).
+
+1. **SSH mode** (`platform-images-vm.yaml` with `mode: ssh`): the host job
+   copies the checkout into the VM (`vm.nu push`) and runs a script there
+   (`vm.nu exec`: PowerShell 7 on Windows, bash on macOS; stops at the first
+   failure). It's simple, needs no extra secrets, and works for anything
+   that is just commands. Use it for builds and tests.
+2. **Runner mode** (`mode: runner`): the host job registers the VM as an
+   **ephemeral just-in-time runner** of the repository with a unique label
+   (`register-runner`). A separate job in the caller,
+   `runs-on: [self-hosted, <label>]`, then runs *inside* the VM with normal
+   `uses:` steps (checkout, caches, actions). The host keeps the VM up until
+   that one job is done (`vm.nu wait-runner`); the runner then unregisters
+   itself. Use it when the work needs actions, not just commands.
+
+`.github/workflows/platform-vms.yaml` shows both: `windows-ssh` (nightly)
+and `windows-runner` + `windows-in-vm` (manual).
+
+### Runner registration: GitHub App and secrets
+
+Registering a JIT runner calls
+`POST /repos/{owner}/{repo}/actions/runners/generate-jitconfig`, which needs
+**Administration: read & write** on the repository. `register-runner` mints
+a short-lived installation token for a GitHub App with
+`actions/create-github-app-token@v3.2.0` (`client-id` + `private-key`), so
+no long-lived token is stored.
+
+- Create a GitHub App with the repository permission **Administration: Read
+  and write** (nothing else), and install it on the repository.
+- Store its **Client ID** (not the numeric App ID) and a **private key** as
+  repository secrets. ewe_platform uses `EWE_RUNNER_REGISTRA_CLIENT_ID` and
+  `EWE_RUNNER_REGISTRA_PRIVATE_KEY`; `platform-images-vm.yaml` takes the
+  secret *names* as inputs (`app-client-id-secret`,
+  `app-private-key-secret`, `registry-password-secret`), so other
+  repositories can use their own. Callers pass `secrets: inherit`.
+- Runner mode only runs on **trusted events** (push, workflow_dispatch,
+  schedule). It refuses `pull_request` and `pull_request_target`, both in
+  the workflow and in `register-runner`, because a registered runner runs
+  whatever job asks for its label. Labels are unique per run
+  (`<prefix>-<run id>-<attempt>`), so only the intended job lands on it.
+
+### KVM on GitHub-hosted runners
+
+GitHub's standard Linux runners (`ubuntu-latest`, 4 vCPU, 16 GB) expose
+`/dev/kvm`. `boot-vm` checks it exists and installs GitHub's documented
+udev rule, so the device is usable by non-root processes too:
+
+```sh
+echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+  | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+```
+
+The dockurr container itself runs as root and only needs
+`--device /dev/kvm --device /dev/net/tun --cap-add NET_ADMIN`, which
+`vm.nu up` passes. The VM disk goes to `/mnt` on GitHub-hosted runners
+(`/mnt` has the most free space). Self-hosted hosts need hardware
+virtualisation enabled; check with `kvm-ok` (package `cpu-checker`).
+
+### How long it takes
+
+These are estimates for a fresh disk on `ubuntu-latest`. GitHub-hosted runs
+always start from a fresh disk.
+
+| Step | Windows (Server 2022) | macOS |
+|---|---|---|
+| ISO download | 5-10 min (~6 GB from Microsoft) | first boot only, manual |
+| OS install | 15-25 min, unattended | ~1 h once, by hand (VNC) |
+| Layer 1 provisioning | 25-40 min (VS Build Tools alone 10-20) | 15-30 min |
+| Layer 2 (ewe_platform) | 5-10 min (toolchain, tools, submodules) | 5-10 min |
+| Total before the work starts | **~50-85 min** | provisioning only, if the disk is kept |
+
+That is why the VM workflows are opt-in (nightly, manual) and never run on
+pull requests.
+
+### Can the provisioned disk be baked in or cached?
+
+Not publicly, and not on GitHub-hosted runners:
+
+- **Licensing.** A provisioned disk contains Windows or macOS.
+  Redistributing it in a public image isn't allowed (Microsoft's
+  evaluation terms, Apple's EULA). That's why the images carry only scripts
+  and dockurr downloads the OS from the vendor.
+- **Size.** A provisioned Windows disk is about 40-50 GB (OS, VS Build
+  Tools, Vulkan SDK, toolchain), roughly 15-20 GB compressed. That's above
+  the 10 GB GitHub Actions cache limit per repository and impractical to
+  pull per job.
+- **What works:** a **persistent `/storage` on a self-hosted Linux host**.
+  Provisioning happens once, and later runs boot the installed disk in about
+  a minute (`storage` input; reuse the authorised key with `ssh-key-path`).
+  This is the recommended setup for frequent Windows jobs, and the only one
+  for macOS. A provisioned disk could also be pushed to a *private*
+  registry for internal reuse. That's not implemented: it needs a licence
+  decision (internal copies of an evaluation install) that this unit can't
+  make for you.
+
+### Licensing
+
+- **macOS:** Apple's licence permits running macOS **only on Apple
+  hardware**. dockurr/macos says the same. Running the macOS image on
+  GitHub-hosted runners, or any non-Apple machine, violates it. Use it only
+  on a self-hosted Linux host that is Apple hardware (e.g. an Intel Mac
+  running Linux). ewe_platform's workflow targets runners labelled
+  `apple-hardware` and never GitHub-hosted runners.
+- **Windows:** the image defaults to `VERSION=2022`, **Windows Server 2022
+  Standard Evaluation**: dockurr downloads Microsoft's evaluation ISO, valid
+  for **180 days** from installation. Fresh-disk CI runs never get near
+  that, but a persistent disk on a self-hosted host expires; reinstall by
+  emptying `/storage`. Other `version` values include `11l` (Windows 11
+  Enterprise LTSC Evaluation, 90 days) and `11` (Windows 11 Pro,
+  unactivated: no time limit, but you still need a licence to use it). For
+  production, use an edition you hold a licence for (dockurr's `KEY`).
+  dockurr's readme notes that its keys are generic installation keys, not
+  activations.
+
+### macOS: the one-time manual install
+
+On the self-hosted Linux host (Apple hardware), with a persistent storage
+directory:
+
+1. Start the image: `nu ci/platform-images/scripts/vm.nu up --os macos
+   --image docker.io/ewestudios/ewe-platform-ci-macos:<tag> --name ci-mac
+   --storage /var/lib/platform-images/macos/storage --key <key>`.
+   Open the web viewer at `http://127.0.0.1:8006`.
+2. Follow dockurr's install steps: Disk Utility → erase the largest
+   `Apple Inc. VirtIO Block Media` disk → Reinstall macOS → skip Apple ID.
+   Create the user `ci` (or set `PI_VM_USER`).
+3. In the VM: System Settings → General → Sharing → **Remote Login** on.
+   Then add the public key to `~ci/.ssh/authorized_keys`, and give `ci`
+   passwordless sudo:
+   `echo 'ci ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/ci`.
+4. From then on, workflows (or `vm.nu provision`) run the provisioning over
+   SSH. It's idempotent, so re-running it after an image update is fine.
+
+### Running a VM by hand
+
+```sh
+nu ci/platform-images/scripts/vm.nu up --os windows --image docker.io/ewestudios/ewe-platform-ci-windows:<tag> \
+   --name win --storage /mnt/win --key ~/.ssh/ci          # ~/.ssh/ci.pub is authorised on a fresh install
+nu ci/platform-images/scripts/vm.nu wait --os windows --name win --key ~/.ssh/ci
+nu ci/platform-images/scripts/vm.nu push --os windows --key ~/.ssh/ci --src . --dest C:/work/repo
+echo 'cargo build -p foundation_core' > /tmp/run.ps1
+nu ci/platform-images/scripts/vm.nu exec --os windows --key ~/.ssh/ci --cwd C:/work/repo --script /tmp/run.ps1
+nu ci/platform-images/scripts/vm.nu down --name win
+```
+
+`vm.nu up` publishes the VM's SSH (`--port`, default 2222) and dockurr's web
+viewer (`--web-port`, default 8006) on 127.0.0.1 only. It doesn't publish
+RDP; run the container yourself with `-p 3389:3389` if you need it. The
+default Windows account is `Docker` / `admin`; set `USERNAME`/`PASSWORD` on
+the container for anything long-lived.
+
 ## Limits
 
 - `linux/amd64` only. Google Chrome has no Linux arm64 build, and
@@ -313,3 +519,7 @@ new base, and layer 2 on top of it.
 - Layer 1 is about 5.5 GB unpacked (default flavor, with browsers). The
   CUDA flavor adds about 10 GB, which is why the workflows free runner disk
   before building or running it.
+- The VM images are x86_64 guests: Windows x64, and Intel macOS (what
+  dockurr/macos emulates). Their tool lock covers windows-x64 and macos-x64.
+  pitchfork has no Intel-macOS build and is limited to Linux/Windows in
+  ewe_platform's `mise.toml`.

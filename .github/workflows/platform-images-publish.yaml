@@ -8,7 +8,10 @@ name: Platform images (publish)
 # check.yaml already makes sure the default flavor exists for every commit it
 # tests. This workflow adds what check.yaml doesn't:
 #   - the CUDA flavor
-#   - smoke tests of the images (tools, Vulkan/GL/WebGL/WebGPU, the Rust
+#   - the Windows and macOS VM images (ewestudios/ci-{windows,macos},
+#     ewestudios/ewe-platform-ci-{windows,macos}): built and pushed here,
+#     booted and tested by platform-vms.yaml
+#   - smoke tests of the Linux images (tools, Vulkan/GL/WebGL/WebGPU, the Rust
 #     toolchain, baked submodules, llama.cpp CPU/Vulkan/CUDA builds, a
 #     release binary)
 #   - the moving tags `latest` and `sha-<commit>`, only after the smoke tests
@@ -81,6 +84,30 @@ jobs:
       force: ${{ github.event_name == 'schedule' || inputs.force == true }}
       no-cache: ${{ github.event_name == 'schedule' || inputs.no-cache == true }}
       free-disk: true
+    secrets:
+      registry-password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
+  # The Windows/macOS VM images only carry provisioning scripts on top of the
+  # dockurr images, so building them is quick. Ensuring them here validates
+  # changes to them on pull requests and pushes them on master; booting
+  # them is platform-vms.yaml's job (KVM, ~1h per fresh install).
+  windows:
+    name: Image (windows VM)
+    uses: ./.github/workflows/platform-images.yaml
+    with:
+      config: ci/ewe-platform-image/config.toml
+      os: windows
+      force: ${{ github.event_name == 'schedule' || inputs.force == true }}
+    secrets:
+      registry-password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+
+  macos:
+    name: Image (macos VM)
+    uses: ./.github/workflows/platform-images.yaml
+    with:
+      config: ci/ewe-platform-image/config.toml
+      os: macos
+      force: ${{ github.event_name == 'schedule' || inputs.force == true }}
     secrets:
       registry-password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
 
@@ -179,7 +206,7 @@ jobs:
 
   promote:
     name: Tag latest
-    needs: [default, cuda, smoke-default, smoke-cuda]
+    needs: [default, cuda, windows, macos, smoke-default, smoke-cuda]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -208,6 +235,10 @@ jobs:
             ${{ needs.default.outputs.image-ref }}
             ${{ needs.cuda.outputs.base-ref }}
             ${{ needs.cuda.outputs.image-ref }}
+            ${{ needs.windows.outputs.base-ref }}
+            ${{ needs.windows.outputs.image-ref }}
+            ${{ needs.macos.outputs.base-ref }}
+            ${{ needs.macos.outputs.image-ref }}
         run: |
           set -euo pipefail
           tags="latest sha-${GITHUB_SHA::7}"
