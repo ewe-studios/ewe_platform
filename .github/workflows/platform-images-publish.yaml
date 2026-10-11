@@ -186,7 +186,9 @@ jobs:
       - name: Start the image
         run: |
           docker pull "$IMAGE"
-          docker run --detach --name ci \
+          # --shm-size: Chrome (the smoke test's WebGL/WebGPU probe) needs more
+          # shared memory than Docker's 64M default.
+          docker run --detach --name ci --shm-size=2g \
             --volume "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" --workdir "$GITHUB_WORKSPACE" \
             --env GITHUB_ACTIONS --env CARGO_TERM_COLOR=always --env CARGO_INCREMENTAL=0 \
             "$IMAGE" sleep infinity
