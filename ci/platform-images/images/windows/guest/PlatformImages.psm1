@@ -4,9 +4,12 @@
 
 Set-StrictMode -Version Latest
 
+# Log to the host, not the pipeline: functions here return values (paths,
+# exit codes), and Write-Output would mix log lines into them. Host output
+# still lands in provision.log (install.bat redirects powershell's stdout).
 function Write-PiLog {
     param([Parameter(Mandatory)][string]$Message)
-    Write-Output ("[platform-images {0}] {1}" -f (Get-Date -Format s), $Message)
+    Write-Host ("[platform-images {0}] {1}" -f (Get-Date -Format s), $Message)
 }
 
 # Quote one argument for a Windows command line (CommandLineToArgvW rules).
@@ -48,9 +51,10 @@ function Get-VerifiedDownload {
     param(
         [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)]$Component,
-        [Parameter(Mandatory)][string]$FileName
+        [Parameter(Mandatory)][string]$FileName,
+        [string]$Directory = 'C:\platform-images\downloads'
     )
-    $dir = 'C:\platform-images\downloads'
+    $dir = $Directory
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
     $file = Join-Path $dir $FileName
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12

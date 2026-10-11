@@ -1,0 +1,238 @@
+name: Platform images VM (reusable)
+
+# Run CI work on Windows or macOS through the platform-images VM images
+# (dockurr: QEMU/KVM inside a Linux container), from a Linux host job.
+#
+#   1. images: make sure the VM images for this commit exist
+#      (platform-images.yaml with os windows|macos: hash, reuse or build+push).
+#   2. vm: on the host (a GitHub-hosted ubuntu-latest has /dev/kvm; macOS
+#      must run on a self-hosted Linux host on Apple hardware, see below),
+#      boot the VM, wait for it to be provisioned, then either
+#        mode ssh:    copy the checkout into the VM and run `run` there over
+#                     SSH (PowerShell 7 on Windows, bash on macOS), or
+#        mode runner: register the VM as an ephemeral just-in-time runner
+#                     with the label `runner-label`, and keep it up until the
+#                     caller's job `runs-on: [self-hosted, <runner-label>]`
+#                     has run on it. That job uses normal `uses:` steps.
+#      and finally collect the VM's logs and shut it down.
+#
+# Secrets come from the caller with `secrets: inherit`; their names are
+# inputs, defaulting to ewe_platform's. Runner mode refuses pull_request
+# events: a registered runner runs whatever job asks for its label.
+#
+# LICENSING: macOS may only run on Apple hardware (Apple's licence, also
+# stated by dockurr/macos). Use `os: macos` only with `host-runs-on` pointing
+# at self-hosted Linux runners on Apple hardware, never GitHub-hosted runners.
+# Windows images install an evaluation edition by default (Server 2022, 180
+# days); see ci/platform-images/README.md.
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        description: Path to the platform-images config.toml.
+        type: string
+        default: ci/ewe-platform-image/config.toml
+      os:
+        description: "`windows` or `macos`."
+        type: string
+        required: true
+      mode:
+        description: "`ssh` (run `run` in the VM) or `runner` (register the VM as a JIT runner for `runner-label`)."
+        type: string
+        default: ssh
+      run:
+        description: "mode ssh: the script to run in the VM, in the checkout's copy (PowerShell 7 on Windows, bash on macOS; stops at the first failure)."
+        type: string
+        default: ""
+      runner-label:
+        description: "mode runner: the unique label the caller's job targets, e.g. ewe-windows-<run id>-<run attempt>."
+        type: string
+        default: ""
+      host-runs-on:
+        description: JSON for the host job's runs-on. GitHub-hosted ubuntu-latest has KVM; macOS needs self-hosted Apple hardware, e.g. '["self-hosted","linux","kvm","apple-hardware"]'.
+        type: string
+        default: '"ubuntu-latest"'
+      storage:
+        description: Host directory for the VM disk. Empty means a temporary one (a fresh install every run). On a self-hosted host, a persistent path keeps the installed VM between runs.
+        type: string
+        default: ""
+      ssh-key-path:
+        description: Private key already authorised in the VM (needed for macOS and for reused Windows disks). Empty means generate one per run.
+        type: string
+        default: ""
+      version:
+        description: dockurr VERSION (Windows edition / macOS release). Empty means the image default.
+        type: string
+        default: ""
+      ram:
+        type: string
+        default: "10G"
+      cpus:
+        type: string
+        default: "4"
+      disk:
+        type: string
+        default: "128G"
+      timeout-minutes:
+        description: Timeout of the host job (install + provisioning + the work).
+        type: number
+        default: 300
+      registry-password-secret:
+        description: Name of the secret with the registry password/token.
+        type: string
+        default: DOCKERHUB_EWESTUDIO_TOKEN
+      app-client-id-secret:
+        description: Name of the secret with the runner-registration GitHub App's Client ID.
+        type: string
+        default: EWE_RUNNER_REGISTRA_CLIENT_ID
+      app-private-key-secret:
+        description: Name of the secret with the runner-registration GitHub App's private key.
+        type: string
+        default: EWE_RUNNER_REGISTRA_PRIVATE_KEY
+    outputs:
+      image-ref:
+        description: The VM image that ran.
+        value: ${{ jobs.images.outputs.image-ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  images:
+    name: VM image (${{ inputs.os }})
+    uses: ./.github/workflows/platform-images.yaml
+    with:
+      config: ${{ inputs.config }}
+      os: ${{ inputs.os }}
+    secrets:
+      registry-password: ${{ secrets[inputs.registry-password-secret] }}
+
+  vm:
+    name: VM (${{ inputs.os }}, ${{ inputs.mode }})
+    needs: images
+    runs-on: ${{ fromJSON(inputs.host-runs-on) }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    env:
+      VM_NAME: pi-${{ inputs.os }}-${{ github.run_id }}
+    steps:
+      - name: Check the request
+        env:
+          MODE: ${{ inputs.mode }}
+          OS: ${{ inputs.os }}
+          EVENT: ${{ github.event_name }}
+          RUN: ${{ inputs.run }}
+          LABEL: ${{ inputs.runner-label }}
+          SOURCE: ${{ needs.images.outputs.image-source }}
+        run: |
+          set -euo pipefail
+          case "$OS" in windows|macos) ;; *) echo "::error::os must be windows or macos"; exit 1 ;; esac
+          case "$MODE" in
+            ssh) [ -n "$RUN" ] || { echo "::error::mode ssh needs \`run\`"; exit 1; } ;;
+            runner)
+              [ -n "$LABEL" ] || { echo "::error::mode runner needs \`runner-label\`"; exit 1; }
+              case "$EVENT" in
+                pull_request|pull_request_target) echo "::error::runner mode is not allowed for $EVENT events"; exit 1 ;;
+              esac ;;
+            *) echo "::error::mode must be ssh or runner"; exit 1 ;;
+          esac
+          [ "$SOURCE" = "registry" ] || { echo "::error::the VM image must be in the registry (got $SOURCE): run on a trusted event"; exit 1; }
+
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Install nushell
+        uses: ./ci/platform-images/actions/setup-nu
+
+      - name: Log in to the registry
+        if: needs.images.outputs.registry-username != ''
+        uses: docker/login-action@v4.5.2
+        with:
+          username: ${{ needs.images.outputs.registry-username }}
+          password: ${{ secrets[inputs.registry-password-secret] }}
+
+      - name: Boot the VM
+        id: vm
+        uses: ./ci/platform-images/actions/boot-vm
+        with:
+          os: ${{ inputs.os }}
+          image: ${{ needs.images.outputs.image-ref }}
+          name: ${{ env.VM_NAME }}
+          storage: ${{ inputs.storage }}
+          key: ${{ inputs.ssh-key-path }}
+          version: ${{ inputs.version }}
+          ram: ${{ inputs.ram }}
+          cpus: ${{ inputs.cpus }}
+          disk: ${{ inputs.disk }}
+          timeout-minutes: "180"
+
+      - name: Copy the checkout into the VM
+        if: inputs.mode == 'ssh'
+        id: push
+        env:
+          OS: ${{ inputs.os }}
+          KEY: ${{ steps.vm.outputs.key }}
+          PORT: ${{ steps.vm.outputs.port }}
+        run: |
+          set -euo pipefail
+          repo=${GITHUB_REPOSITORY#*/}
+          if [ "$OS" = windows ]; then dest="C:/work/$repo"; else dest="/Users/ci/work/$repo"; fi
+          nu ci/platform-images/scripts/vm.nu push --os "$OS" --key "$KEY" --port "$PORT" --src "$GITHUB_WORKSPACE" --dest "$dest"
+          echo "dest=$dest" >> "$GITHUB_OUTPUT"
+
+      - name: Run in the VM
+        if: inputs.mode == 'ssh'
+        env:
+          OS: ${{ inputs.os }}
+          KEY: ${{ steps.vm.outputs.key }}
+          PORT: ${{ steps.vm.outputs.port }}
+          DEST: ${{ steps.push.outputs.dest }}
+          RUN: ${{ inputs.run }}
+        run: |
+          set -euo pipefail
+          script="$RUNNER_TEMP/platform-images-run"
+          printf '%s\n' "$RUN" > "$script"
+          nu ci/platform-images/scripts/vm.nu exec --os "$OS" --key "$KEY" --port "$PORT" --cwd "$DEST" --script "$script"
+
+      - name: Register the VM as a just-in-time runner
+        if: inputs.mode == 'runner'
+        uses: ./ci/platform-images/actions/register-runner
+        with:
+          os: ${{ inputs.os }}
+          key: ${{ steps.vm.outputs.key }}
+          port: ${{ steps.vm.outputs.port }}
+          labels: ${{ inputs.runner-label }}
+          client-id: ${{ secrets[inputs.app-client-id-secret] }}
+          private-key: ${{ secrets[inputs.app-private-key-secret] }}
+
+      - name: Keep the VM up until its job has run
+        if: inputs.mode == 'runner'
+        env:
+          OS: ${{ inputs.os }}
+          KEY: ${{ steps.vm.outputs.key }}
+          PORT: ${{ steps.vm.outputs.port }}
+        run: nu ci/platform-images/scripts/vm.nu wait-runner --os "$OS" --key "$KEY" --port "$PORT" --timeout 4hr
+
+      - name: Collect VM logs
+        if: always() && steps.vm.outputs.key != ''
+        env:
+          OS: ${{ inputs.os }}
+          KEY: ${{ steps.vm.outputs.key }}
+          PORT: ${{ steps.vm.outputs.port }}
+        run: nu ci/platform-images/scripts/vm.nu logs --os "$OS" --name "$VM_NAME" --key "$KEY" --port "$PORT" --out "$RUNNER_TEMP/vm-logs"
+
+      - name: Upload VM logs
+        if: always() && steps.vm.outputs.key != ''
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: vm-logs-${{ inputs.os }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vm-logs
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Shut the VM down
+        if: always()
+        run: nu ci/platform-images/scripts/vm.nu down --name "$VM_NAME"

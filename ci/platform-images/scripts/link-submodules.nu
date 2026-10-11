@@ -5,6 +5,8 @@
 #   nu link-submodules.nu tools/llama.cpp         # just these paths
 #   nu link-submodules.nu --mode submodule ...    # git-clean checkout instead of a symlink
 #
+# On Windows, "symlink" mode makes a directory junction instead.
+#
 # For each path, the gitlink SHA in the checkout's HEAD is compared with the
 # SHA the image baked (its submodules.lock.json):
 #   - same SHA: use the baked copy, no network.
@@ -46,10 +48,26 @@ def gitlink-sha [ws: path, sub_path: string]: nothing -> string {
 
 # The path must be absent, an empty directory (what a checkout without
 # submodules leaves), or our own symlink from an earlier run.
+def on-windows []: nothing -> bool {
+    $nu.os-info.name == "windows"
+}
+
+# Remove a link we made earlier: a symlink, or on Windows a directory
+# junction. `rmdir` removes a junction itself and never what it points at.
+def remove-link [target: path] {
+    if (on-windows) { ^cmd /c rmdir $target } else { rm $target }
+}
+
+# Link <target> to the baked copy: a symlink, or on Windows a directory
+# junction (no administrator rights or developer mode needed).
+def make-link [baked: path, target: path] {
+    if (on-windows) { ^cmd /c mklink /J $target $baked } else { ^ln -s $baked $target }
+}
+
 def clear-path [target: path] {
     let kind = $target | path type
     if $kind == "symlink" {
-        rm $target
+        remove-link $target
     } else if $kind == "dir" {
         if not (ls -a $target | is-empty) {
             fail $"($target) is not empty; refusing to replace it \(already initialised?)"
@@ -62,7 +80,7 @@ def clear-path [target: path] {
 
 def fetch-submodule [ws: path, sub_path: string] {
     let target = $ws | path join $sub_path
-    if ($target | path type) == "symlink" { rm $target }
+    if ($target | path type) == "symlink" { remove-link $target }
     ws-git $ws submodule update --init --recursive --depth 1 -- $sub_path
 }
 
@@ -110,7 +128,7 @@ def main [
             if not ($baked_dir | path exists) { fail $"lock lists ($p) but ($baked_dir) is missing from the image" }
             clear-path $target
             if $mode == "symlink" {
-                ^ln -s $baked_dir $target
+                make-link $baked_dir $target
             } else {
                 # Clone from the baked copy instead of the remote, then let
                 # git record it as a normal, initialised submodule.
