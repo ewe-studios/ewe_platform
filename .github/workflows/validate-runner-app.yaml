@@ -1,0 +1,35 @@
+# Temporary: checks that the runner-registration GitHub App secrets work and
+# that the app has Administration read and write on this repository. Runs only
+# on pushes to this throwaway branch; the branch is deleted afterwards.
+name: Validate runner app
+on:
+  push:
+    branches: [ci/validate-runner-app]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint an installation token
+        id: app
+        uses: actions/create-github-app-token@v3.2.0
+        with:
+          client-id: ${{ secrets.EWE_RUNNER_REGISTRA_CLIENT_ID }}
+          private-key: ${{ secrets.EWE_RUNNER_REGISTRA_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+      - name: Check Administration read and write
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          echo "Installation token minted for $REPO"
+          # Administration: read
+          count=$(gh api "repos/$REPO/actions/runners" --jq '.total_count')
+          echo "Administration read OK: $count self-hosted runner(s) registered"
+          # Administration: write. A registration token is short-lived (1h),
+          # never used and never printed; only its expiry is shown.
+          expires=$(gh api -X POST "repos/$REPO/actions/runners/registration-token" --jq '.expires_at')
+          echo "Administration write OK: registration token minted (expires $expires, unused)"
