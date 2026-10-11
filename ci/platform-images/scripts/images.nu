@@ -129,9 +129,11 @@ def stage-base [cfg: record, flavor: string, context: path]: nothing -> record {
     let fl = flavor-config $cfg $flavor
     let linux = $unit | path join images linux
     copy-into ($linux | path join Dockerfile) ($context | path join Dockerfile)
-    for dir in [packages mise bin] {
+    for dir in [packages bin] {
         copy-into ($linux | path join $dir) ($context | path join $dir)
     }
+    # The pinned tools are shared by every platform's image.
+    copy-into ($unit | path join mise) ($context | path join mise)
     copy-into ($unit | path join scripts) ($context | path join scripts)
     let extra = $cfg.base.packages? | default []
     if not ($extra | is-empty) {
