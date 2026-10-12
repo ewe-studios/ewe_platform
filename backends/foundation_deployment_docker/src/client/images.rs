@@ -62,13 +62,12 @@ use crate::DockerClient;
 use crate::error::DockerError;
 use crate::generated::shared::ApiError;
 use crate::generated::commit::{image_commit_request, ContainerConfig, ImageCommitArgs};
-use crate::generated::create::{image_create_request, ImageCreateArgs};
 use crate::generated::history::{image_history_request, ImageHistoryArgs};
 use crate::generated::images::{image_delete_request, ImageDeleteArgs};
 use crate::generated::json::{image_inspect_request, image_list_request, ImageInspect, ImageInspectArgs, ImageListArgs};
 use crate::generated::load::{image_load_request, ImageLoadArgs};
 use crate::generated::prune::{image_prune_request, ImagePruneArgs};
-use crate::generated::push::{image_push_request, ImagePushArgs};
+use crate::generated::push::ImagePushArgs;
 use crate::generated::search::{image_search_request, ImageSearchArgs};
 use crate::generated::shared::IDResponse;
 use crate::generated::tag::{image_tag_request, ImageTagArgs};
@@ -393,11 +392,13 @@ impl DockerClient {
     /// Push an image to a registry (`POST /images/{name}/push`).
     ///
     /// Accepts an optional `X-Registry-Auth` header for authentication.
-    /// This is a streaming endpoint; returns raw bytes for now.
+    /// The response is a JSON-lines progress stream; it is read to the end
+    /// (the work happens while it streams) and returned raw.
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    /// Returns [`DockerError`] on transport failure, a non-2xx status, or
+    /// [`DockerError::PushFailed`] for a failure reported in the stream.
     pub async fn image_push(
         &self,
         name: &str,
@@ -409,28 +410,71 @@ impl DockerClient {
             tag: tag.map(str::to_string),
             platform: None,
         };
-        let auth = x_registry_auth.map(str::to_string);
-        image_push_request(
-            self.http(),
-            &args,
-            &self.api_url().await?,
-            Some(move |b: &mut PreparedRequestBuilder| {
-                if let Some(ref auth) = auth {
-                    b.set_header(SimpleHeader::custom("X-Registry-Auth"), auth.clone());
-                }
-            }),
-        )
-        .await?;
-        Ok(Vec::new())
+        let endpoint_url = format!("{}/images/{}/push", self.api_url().await?, args.name);
+        let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+        builder = builder.query("tag", args.tag.as_deref());
+        if let Some(auth) = x_registry_auth {
+            builder.set_header(SimpleHeader::custom("X-Registry-Auth"), auth.to_string());
+        }
+        let body = self.send_progress_request(builder).await?;
+        Self::check_progress_stream(&body).map_err(DockerError::PushFailed)?;
+        Ok(body)
+    }
+
+    /// Send a request whose `200` response is a JSON-lines progress stream
+    /// (`/images/create`, `/images/{name}/push`) and read the stream to its end.
+    ///
+    /// The daemon does the work *while* it streams progress: returning once the
+    /// headers arrive, and dropping the connection, leaves the pull or push
+    /// unfinished (the daemon may cancel it), so the image is not there yet when
+    /// the caller goes on to use it.
+    async fn send_progress_request(&self, builder: PreparedRequestBuilder) -> Result<Vec<u8>, DockerError> {
+        let response = self
+            .http()
+            .send_async(builder.build())
+            .await
+            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
+        let status: usize = response.get_status().into();
+        let headers = response.get_headers_ref().clone();
+        let body = collect_bytes_from_send_safe(response.take_body());
+        if !(200..300).contains(&status) {
+            return Err(ApiError::HttpStatus {
+                code: status as u16,
+                headers,
+                body: Some(String::from_utf8_lossy(&body).into_owned()),
+            }
+            .into());
+        }
+        Ok(body)
+    }
+
+    /// Scan a JSON-lines progress stream for the `{"error": …}` object the
+    /// daemon reports a failure with — inside a `200` response, after the
+    /// headers, so the status alone says nothing about the outcome.
+    fn check_progress_stream(body: &[u8]) -> Result<(), String> {
+        let mut decoder = JsonLineDecoder::new();
+        decoder.feed(body);
+        while let Some(line) = decoder.decode() {
+            let Ok(value) = serde_json::from_slice::<serde_json::Value>(&line) else {
+                continue;
+            };
+            if let Some(err) = value.get("error").and_then(serde_json::Value::as_str) {
+                return Err(err.to_string());
+            }
+        }
+        Ok(())
     }
 
     /// Pull an image from a registry (`POST /images/create`).
     ///
-    /// This is a streaming endpoint; returns raw bytes for now.
+    /// The response is a JSON-lines progress stream; it is read to the end
+    /// (the work happens while it streams) and returned raw.
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    /// Returns [`DockerError`] on transport failure, a non-2xx status, or
+    /// [`DockerError::PullFailed`] for a failure reported in the stream.
     pub async fn image_pull(
         &self,
         from_image: Option<&str>,
@@ -440,17 +484,18 @@ impl DockerClient {
         message: Option<&str>,
         platform: Option<&str>,
     ) -> Result<Vec<u8>, DockerError> {
-        let args = ImageCreateArgs {
-            from_image: from_image.map(str::to_string),
-            from_src: from_src.map(str::to_string),
-            repo: repo.map(str::to_string),
-            tag: tag.map(str::to_string),
-            message: message.map(str::to_string),
-            changes: None,
-            platform: platform.map(str::to_string),
-        };
-        image_create_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
-        Ok(Vec::new())
+        let endpoint_url = format!("{}/images/create", self.api_url().await?);
+        let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+        builder = builder.query("fromImage", from_image);
+        builder = builder.query("fromSrc", from_src);
+        builder = builder.query("repo", repo);
+        builder = builder.query("tag", tag);
+        builder = builder.query("message", message);
+        builder = builder.query("platform", platform);
+        let body = self.send_progress_request(builder).await?;
+        Self::check_progress_stream(&body).map_err(DockerError::PullFailed)?;
+        Ok(body)
     }
 
     /// Save (export) an image as a tar archive (`GET /images/{name}/get`).

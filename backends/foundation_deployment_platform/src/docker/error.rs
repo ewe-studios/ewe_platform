@@ -50,6 +50,10 @@ pub enum DockerError {
     #[display("Image pull failed for '{image}': {reason}")]
     ImagePull { image: String, reason: String },
 
+    /// Image push failed (registry refused it, authentication failed).
+    #[display("Image push failed: {_0}")]
+    ImagePush(String),
+
     /// Image build failed (a Dockerfile instruction returned non-zero, a COPY
     /// source was missing, the base image could not be resolved).
     #[display("Image build failed: {_0}")]
@@ -124,6 +128,10 @@ pub fn classify_docker_client_err(
         }
         De::JsonParse(m) => DockerError::InvalidConfig(format!("{operation}: {m}")),
         De::BuildFailed(m) => DockerError::ImageBuild(m),
+        // The image name is not part of the client's error; the caller (which
+        // knows it) builds `ImagePull` itself where it matters.
+        De::PullFailed(m) => DockerError::ImagePull { image: operation.to_string(), reason: m },
+        De::PushFailed(m) => DockerError::ImagePush(format!("{operation}: {m}")),
     }
 }
 

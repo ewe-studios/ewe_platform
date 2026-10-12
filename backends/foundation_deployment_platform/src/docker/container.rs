@@ -498,7 +498,9 @@ impl ContainerHandle {
         let (repo, tag) = Self::split_image_tag(image);
         info!(image = %image, "pulling image");
 
-        docker
+        // Returns once the daemon has finished the pull (the progress stream
+        // is read to its end), so the image exists when `create` runs.
+        let progress = docker
             .image_pull(
                 Some(&repo),
                 None, // from_src
@@ -508,12 +510,13 @@ impl ContainerHandle {
                 None, // platform
             )
             .await
-            .map_err(|e| {
-                docker_err(DockerError::ImagePull {
-                    image: image.to_string(),
-                    reason: format!("{e}"),
-                })
+            .map_err(|e| match e {
+                foundation_deployment_docker::DockerError::PullFailed(reason) => {
+                    docker_err(DockerError::ImagePull { image: image.to_string(), reason })
+                }
+                other => docker_err(classify_docker_client_err("image_pull", other)),
             })?;
+        info!(image = %image, progress_bytes = progress.len(), "pulled image");
 
         Ok(())
     }

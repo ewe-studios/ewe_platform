@@ -42,6 +42,16 @@ pub enum DockerError {
     #[display("docker build failed: {_0}")]
     BuildFailed(String),
 
+    /// An image pull failed. Like a build, the daemon reports this inside a
+    /// `200` response, as an `{"error": …}` object in the progress stream
+    /// (e.g. the image does not exist, or the registry refused access).
+    #[display("docker pull failed: {_0}")]
+    PullFailed(String),
+
+    /// An image push failed, reported inside the `200` progress stream.
+    #[display("docker push failed: {_0}")]
+    PushFailed(String),
+
     /// The Docker daemon socket could not be resolved or is unavailable.
     #[display("docker unavailable: {_0}")]
     Unavailable(String),

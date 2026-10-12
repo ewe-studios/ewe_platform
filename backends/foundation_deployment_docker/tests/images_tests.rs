@@ -47,6 +47,20 @@ fn images_route(method: &str, path: &str) -> (u16, String) {
         // Version negotiation: the client asks once, unversioned, before its
         // first versioned request.
         ("GET", "/version") => (200, r#"{"ApiVersion":"1.53","MinAPIVersion":"1.24"}"#.to_string()),
+        // image_pull: POST /images/create — a 200 progress stream; a failed
+        // pull reports `{"error": …}` inside it, as dockerd does.
+        ("POST", p) if p.starts_with("images/create?") && p.contains("fromImage=missing") => (
+            200,
+            "{\"status\":\"Pulling repository missing\"}\n\
+             {\"errorDetail\":{\"message\":\"pull access denied for missing\"},\"error\":\"pull access denied for missing\"}\n"
+                .to_string(),
+        ),
+        ("POST", p) if p.starts_with("images/create?") => (
+            200,
+            "{\"status\":\"Pulling from library/alpine\",\"id\":\"latest\"}\n\
+             {\"status\":\"Status: Downloaded newer image for alpine:latest\"}\n"
+                .to_string(),
+        ),
         // image_list: GET /images/json
         ("GET", "images/json") => (
             200,
@@ -114,6 +128,51 @@ fn mock_images_daemon(
             }
         }
     });
+}
+
+/// The pull happens while the daemon streams progress, so `image_pull` must
+/// read the stream to its end (it used to return as soon as the headers came
+/// back, with an empty body, before the image existed).
+#[valtron_test]
+async fn image_pull_reads_the_progress_stream_to_the_end() {
+    let socket = temp_socket_path("image_pull");
+    let stop = Arc::new(AtomicBool::new(false));
+    mock_images_daemon(socket.clone(), stop.clone());
+
+    let client = DockerClient::connect_unix(&socket);
+    let progress = client
+        .image_pull(Some("alpine"), None, None, Some("latest"), None, None)
+        .await
+        .expect("image_pull should succeed");
+    let text = String::from_utf8(progress).expect("utf-8 progress");
+    assert!(text.contains("Downloaded newer image for alpine:latest"), "{text}");
+
+    stop.store(true, Ordering::Relaxed);
+    let _ = std::fs::remove_file(&socket);
+}
+
+/// A failed pull is a `200` whose stream carries `{"error": …}`: that must be
+/// an error, not a success.
+#[valtron_test]
+async fn image_pull_reports_an_error_in_the_stream() {
+    let socket = temp_socket_path("image_pull_err");
+    let stop = Arc::new(AtomicBool::new(false));
+    mock_images_daemon(socket.clone(), stop.clone());
+
+    let client = DockerClient::connect_unix(&socket);
+    let err = client
+        .image_pull(Some("missing"), None, None, Some("latest"), None, None)
+        .await
+        .expect_err("a pull that reports an error must fail");
+    match err {
+        foundation_deployment_docker::DockerError::PullFailed(m) => {
+            assert_eq!(m, "pull access denied for missing");
+        }
+        other => panic!("expected PullFailed, got {other:?}"),
+    }
+
+    stop.store(true, Ordering::Relaxed);
+    let _ = std::fs::remove_file(&socket);
 }
 
 #[valtron_test]

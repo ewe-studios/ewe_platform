@@ -86,6 +86,17 @@ fn an_unreachable_daemon_is_a_connection_error() {
 }
 
 #[test]
+fn a_failed_pull_or_push_is_not_a_connection_error() {
+    let e = classify_docker_client_err("redis:7", ClientError::PullFailed("pull access denied".into()));
+    assert!(!e.is_connection_error());
+    assert!(matches!(e, DockerError::ImagePull { ref reason, .. } if reason == "pull access denied"), "{e:?}");
+
+    let e = classify_docker_client_err("image_push", ClientError::PushFailed("denied".into()));
+    assert!(!e.is_connection_error());
+    assert!(matches!(e, DockerError::ImagePush(_)), "{e:?}");
+}
+
+#[test]
 fn an_api_version_mismatch_is_not_a_connection_error() {
     let e = classify_docker_client_err(
         "image_inspect",
