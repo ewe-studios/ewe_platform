@@ -9,7 +9,7 @@
 #![cfg(all(feature = "std", not(target_family = "wasm")))]
 
 use std::rc::Rc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
 
 use foundation_signals::{Context, HubGone, Runtime, SignalHub};
@@ -100,24 +100,42 @@ fn snapshots_are_never_glitchy() {
 
     let stop = Arc::new(AtomicBool::new(false));
     let watcher_stop = Arc::clone(&stop);
+    let sampled = Arc::new(AtomicU32::new(0));
+    let watcher_sampled = Arc::clone(&sampled);
     let watcher = std::thread::spawn(move || {
-        let mut observed = 0u32;
-        while !watcher_stop.load(Ordering::Relaxed) {
+        // Sample before checking `stop`, so the watcher always takes at least
+        // one sample however late the thread gets scheduled.
+        loop {
             if let Some(value) = remote_d.snapshot() {
                 assert_eq!(value % 5, 0, "torn diamond observed: {value}");
-                observed += 1;
+                watcher_sampled.fetch_add(1, Ordering::Relaxed);
+            }
+            if watcher_stop.load(Ordering::Relaxed) {
+                break;
             }
         }
-        observed
     });
+
+    // The 198 pumps take well under a millisecond, often less than it takes
+    // to schedule a new thread: without this wait the whole update loop could
+    // finish before the watcher first ran, and nothing was sampled while the
+    // graph was changing. A watcher that already ended (it panicked on a torn
+    // value) stops the wait too; `join` below reports its panic.
+    while sampled.load(Ordering::Relaxed) == 0 && !watcher.is_finished() {
+        std::thread::yield_now();
+    }
 
     for i in 2..200i64 {
         remote_a.set(i).unwrap();
-        let _ = hub.pump();
+        let report = hub.pump();
+        assert_eq!(report.commands_applied, 1, "one set per pump");
+        assert!(report.stabilized, "every applied set stabilizes");
+        // Give the watcher a chance to sample between stabilizes.
+        std::thread::yield_now();
     }
     stop.store(true, Ordering::Relaxed);
-    let observed = watcher.join().unwrap();
-    assert!(observed > 0, "the watcher actually sampled");
+    watcher.join().expect("the watcher never observed a torn diamond");
+    assert!(sampled.load(Ordering::Relaxed) > 0, "the watcher actually sampled");
     assert_eq!(d_mirror.get(), 199 * 5);
 }
 
@@ -136,11 +154,11 @@ fn streams_and_versions_track_published_changes() {
     let v0 = remote.version();
 
     setter.set(7).unwrap();
-    let _ = hub.pump();
+    assert_eq!(hub.pump().commands_applied, 1);
     setter.set(7).unwrap(); // PartialEq dedup — no change, no publish
-    let _ = hub.pump();
+    assert_eq!(hub.pump().commands_applied, 1);
     setter.set(9).unwrap();
-    let _ = hub.pump();
+    assert_eq!(hub.pump().commands_applied, 1);
 
     assert_eq!(remote.version(), v0 + 2, "two ACTUAL changes");
     let mut seen = Vec::new();
@@ -162,17 +180,19 @@ fn run_on_hub_creates_and_exposes() {
             .run_on_hub(move |scope| {
                 let (getter, setter) = scope.context().signal(0u64);
                 let pair = (scope.expose(&getter), scope.expose_setter(&setter));
-                let _ = reply_tx.send(pair);
+                reply_tx
+                    .send(pair)
+                    .expect("the test still holds the reply receiver");
             })
             .unwrap();
     });
     worker.join().unwrap();
-    let _ = hub.pump();
+    assert_eq!(hub.pump().commands_applied, 1, "the run_on_hub closure ran");
 
     let (remote_get, remote_set) = reply_rx.recv().expect("handles minted on the hub");
     remote_set.set(41).unwrap();
     remote_set.update(|v| *v += 1).unwrap();
-    let _ = hub.pump();
+    assert_eq!(hub.pump().commands_applied, 2);
     assert_eq!(remote_get.snapshot(), Some(42));
 }
 
