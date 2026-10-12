@@ -40,6 +40,13 @@ fn route(method: &str, path: &str) -> (u16, String, String) {
         rest.split_once('/').map_or(rest, |(_, r)| r)
     });
     match (method, p) {
+        // Version negotiation: the client asks once, unversioned, before its
+        // first versioned request.
+        ("GET", "/version") => (
+            200,
+            "application/json".to_string(),
+            r#"{"ApiVersion":"1.53","MinAPIVersion":"1.24"}"#.to_string(),
+        ),
         // System
         ("GET", "_ping") => (200, "text/plain".to_string(), "OK".to_string()),
         ("GET", "info") => (

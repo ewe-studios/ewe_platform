@@ -94,7 +94,7 @@ impl DockerClient {
             manifests: None,
         };
         let response =
-            image_list_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+            image_list_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -110,7 +110,7 @@ impl DockerClient {
             platform: None,
         };
         let response =
-            image_inspect_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+            image_inspect_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -125,7 +125,7 @@ impl DockerClient {
             platform: None,
         };
         let response =
-            image_history_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+            image_history_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -147,7 +147,7 @@ impl DockerClient {
             repo: repo.map(str::to_string),
             tag: tag.map(str::to_string),
         };
-        image_tag_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+        image_tag_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(())
     }
 
@@ -171,7 +171,7 @@ impl DockerClient {
             platforms: None,
         };
         let response =
-            image_delete_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+            image_delete_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -194,7 +194,7 @@ impl DockerClient {
             filters: filters.map(str::to_string),
         };
         let response =
-            image_search_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+            image_search_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -218,7 +218,7 @@ impl DockerClient {
         image_load_request(
             self.http(),
             &args,
-            &self.base_url(),
+            &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
                 let _ = b.set_body_json(&body);
             }),
@@ -253,7 +253,7 @@ impl DockerClient {
             body: ContainerConfig::default(),
         };
         let response =
-            image_commit_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+            image_commit_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -266,7 +266,7 @@ impl DockerClient {
         let args = ImagePruneArgs {
             filters: filters.map(str::to_string),
         };
-        image_prune_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+        image_prune_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(())
     }
 
@@ -294,7 +294,7 @@ impl DockerClient {
         context: &ContextTar,
         opts: &ImageBuildOptions,
     ) -> Result<ImageBuildOutcome, DockerError> {
-        let endpoint_url = format!("{}/build", self.base_url());
+        let endpoint_url = format!("{}/build", self.api_url().await?);
         let mut builder = PreparedRequestBuilder::post(&endpoint_url)
             .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
@@ -413,7 +413,7 @@ impl DockerClient {
         image_push_request(
             self.http(),
             &args,
-            &self.base_url(),
+            &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
                 if let Some(ref auth) = auth {
                     b.set_header(SimpleHeader::custom("X-Registry-Auth"), auth.clone());
@@ -449,7 +449,7 @@ impl DockerClient {
             changes: None,
             platform: platform.map(str::to_string),
         };
-        image_create_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+        image_create_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(Vec::new())
     }
 
@@ -468,7 +468,7 @@ impl DockerClient {
     ) -> Result<Vec<u8>, DockerError> {
         use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 
-        let endpoint_url = format!("{}/images/{}/get", self.base_url(), name);
+        let endpoint_url = format!("{}/images/{}/get", self.api_url().await?, name);
         let builder = PreparedRequestBuilder::get(&endpoint_url)
             .map_err(|e| crate::generated::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
@@ -496,7 +496,7 @@ impl DockerClient {
         let args = DistributionInspectArgs {
             name: name.to_string(),
         };
-        let response = distribution_inspect_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+        let response = distribution_inspect_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -521,7 +521,7 @@ impl DockerClient {
             all: all.map(|v| v.to_string()),
             filters: filters.map(str::to_string),
         };
-        build_prune_request(self.http(), &args, &self.base_url(), None::<super::NoMod>).await?;
+        build_prune_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(())
     }
 
@@ -543,7 +543,7 @@ impl DockerClient {
     pub async fn export_images(&self, names: &[&str]) -> Result<Vec<u8>, DockerError> {
         use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 
-        let endpoint_url = format!("{}/images/get", self.base_url());
+        let endpoint_url = format!("{}/images/get", self.api_url().await?);
         let mut builder = PreparedRequestBuilder::get(&endpoint_url)
             .map_err(|e| crate::generated::shared::ApiError::RequestBuildFailed(e.to_string()))?;
         for name in names {

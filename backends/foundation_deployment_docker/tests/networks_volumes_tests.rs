@@ -50,6 +50,9 @@ fn route(method: &str, path: &str) -> (u16, String) {
     });
 
     match (method, p) {
+        // Version negotiation: the client asks once, unversioned, before its
+        // first versioned request.
+        ("GET", "/version") => (200, r#"{"ApiVersion":"1.53","MinAPIVersion":"1.24"}"#.to_string()),
         // ── Networks ─────────────────────────────────────────────────────
         ("GET", "networks") => (
             200,

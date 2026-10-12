@@ -12,8 +12,8 @@
 //!
 //! HOW: Every function takes `base_url: &str` (e.g. `"http://localhost/v1.53"`),
 //! matching the generated `*_request` functions. Pass
-//! [`DockerClient::base_url()`](crate::client::DockerClient::base_url) for the
-//! configured host + version prefix.
+//! [`DockerClient::api_url()`](crate::client::DockerClient::api_url) for the
+//! configured host + negotiated version prefix.
 
 pub mod decoder;
 

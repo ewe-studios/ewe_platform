@@ -15,6 +15,7 @@ use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, OnceLock};
 
 use crate::error::DockerError;
 use crate::generated::auth::AuthResponse;
@@ -32,7 +33,15 @@ use crate::generated::wait::{container_wait_request, ContainerWaitArgs, Containe
 /// Default Docker daemon Unix socket path.
 pub const DEFAULT_DOCKER_SOCKET: &str = "/var/run/docker.sock";
 
-/// The Docker Engine API version this client targets.
+/// The newest Docker Engine API version this client speaks (the version its
+/// generated types were built from).
+///
+/// The client does not assume the daemon supports it: before the first
+/// versioned request it negotiates with the daemon (see
+/// [`DockerClient::negotiate_version`]) and talks
+/// `min(DEFAULT_API_VERSION, daemon ApiVersion)` from then on, the way the
+/// `docker` CLI does. A daemon asked for a version newer than its own rejects
+/// every request with `400 Bad Request`.
 pub const DEFAULT_API_VERSION: &str = "1.53";
 
 /// A closure type for the (empty) `builder_mod` argument — no request mutation.
@@ -182,12 +191,16 @@ pub mod ssh;
 /// WHAT: Holds the client handle, the socket path, and the negotiated API version.
 ///
 /// HOW: Constructed via [`DockerClient::connect_unix`] /
-/// [`DockerClient::connect_with_defaults`].
+/// [`DockerClient::connect_with_defaults`]. The API version is negotiated with
+/// the daemon lazily, on the first versioned request, and cached; clones share
+/// the cache, since they talk to the same daemon.
 #[derive(Clone)]
 pub struct DockerClient {
     http: DynNetClient,
     socket_path: PathBuf,
-    api_version: String,
+    /// The API version negotiated with the daemon. Empty until the first
+    /// versioned request (or an explicit [`Self::negotiate_version`]).
+    negotiated_version: Arc<OnceLock<String>>,
     /// Optional remote host:port for TCP connections (e.g. "192.168.1.10:2375").
     /// When `None`, the base URL uses `localhost` (the Unix-socket default).
     remote_host: Option<String>,
@@ -239,7 +252,7 @@ impl std::fmt::Debug for DockerClient {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("DockerClient")
             .field("socket_path", &self.socket_path)
-            .field("api_version", &self.api_version)
+            .field("api_version", &self.api_version())
             .field("remote_host", &self.remote_host)
             .finish_non_exhaustive()
     }
@@ -270,7 +283,7 @@ impl DockerClient {
         Self {
             http,
             socket_path,
-            api_version: DEFAULT_API_VERSION.to_string(),
+            negotiated_version: Arc::new(OnceLock::new()),
             remote_host: None,
             tls: false,
         }
@@ -293,7 +306,7 @@ impl DockerClient {
         Self {
             http,
             socket_path,
-            api_version: DEFAULT_API_VERSION.to_string(),
+            negotiated_version: Arc::new(OnceLock::new()),
             remote_host: Some(host.to_string()),
             tls: false,
         }
@@ -329,7 +342,7 @@ impl DockerClient {
         Ok(Self {
             http,
             socket_path: PathBuf::from(format!("tcp://{host}")),
-            api_version: DEFAULT_API_VERSION.to_string(),
+            negotiated_version: Arc::new(OnceLock::new()),
             remote_host: Some(host.to_string()),
             tls: true,
         })
@@ -372,7 +385,7 @@ impl DockerClient {
         Ok(Self {
             http,
             socket_path: PathBuf::from(url),
-            api_version: DEFAULT_API_VERSION.to_string(),
+            negotiated_version: Arc::new(OnceLock::new()),
             // dial-stdio bridges to the remote's *local* docker.sock — Host: localhost.
             remote_host: None,
             tls: false,
@@ -457,13 +470,29 @@ impl DockerClient {
         self.http.clone()
     }
 
-    /// The negotiated (or default) API version, e.g. `"1.53"`.
+    /// The API version requests are sent with: the negotiated one once
+    /// negotiation has run, [`DEFAULT_API_VERSION`] before that.
     #[must_use]
     pub fn api_version(&self) -> &str {
-        &self.api_version
+        self.negotiated_version
+            .get()
+            .map_or(DEFAULT_API_VERSION, String::as_str)
     }
 
-    /// The base URL for API calls: `http://{host}/v{version}`.
+    /// The daemon's root URL, without an API version: `http://localhost` for a
+    /// Unix socket, `http://192.168.1.10:2375` for a remote daemon.
+    ///
+    /// WHY: `GET /version` must be reachable before a version is agreed on —
+    /// the daemon answers it unversioned, whatever API versions it supports.
+    #[must_use]
+    pub fn unversioned_base_url(&self) -> String {
+        let host = self.remote_host.as_deref().unwrap_or("localhost");
+        let scheme = if self.tls { "https" } else { "http" };
+        format!("{scheme}://{host}")
+    }
+
+    /// The base URL for API calls with the version currently in effect:
+    /// `http://{host}/v{version}`.
     ///
     /// WHY: Generated functions take a `base_url: &str` so callers can point at
     /// remote Docker daemons over TCP, not just Unix-socket-local. Uses
@@ -472,11 +501,26 @@ impl DockerClient {
     ///
     /// WHAT: `http://localhost/v1.53` for Unix-socket, `http://192.168.1.10:2375/v1.53`
     /// for remote.
+    ///
+    /// This does not negotiate: before negotiation it carries
+    /// [`DEFAULT_API_VERSION`], which an older daemon rejects with `400`. Build
+    /// request URLs with [`Self::api_url`].
     #[must_use]
     pub fn base_url(&self) -> String {
-        let host = self.remote_host.as_deref().unwrap_or("localhost");
-        let scheme = if self.tls { "https" } else { "http" };
-        format!("{scheme}://{host}/v{}", self.api_version)
+        format!("{}/v{}", self.unversioned_base_url(), self.api_version())
+    }
+
+    /// The base URL for API calls, negotiating the API version with the daemon
+    /// first if this client has not done so yet.
+    ///
+    /// Every request method on [`DockerClient`] builds its URL with this.
+    ///
+    /// # Errors
+    ///
+    /// Returns the [`DockerError`] from [`Self::negotiate_version`].
+    pub async fn api_url(&self) -> Result<String, DockerError> {
+        self.negotiate_version().await?;
+        Ok(self.base_url())
     }
 
     /// The Unix socket path this client dials.
@@ -487,36 +531,58 @@ impl DockerClient {
 
     /// Fetch daemon version info (`GET /version`).
     ///
+    /// Sent unversioned: version negotiation is built on it, so it must work
+    /// before a version is agreed on.
+    ///
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn version(&self) -> Result<SystemVersion, DockerError> {
-        let response =
-            system_version_request(self.http(), &SystemVersionArgs::default(), &self.base_url(), None::<NoMod>)
-                .await?;
+        let response = system_version_request(
+            self.http(),
+            &SystemVersionArgs::default(),
+            &self.unversioned_base_url(),
+            None::<NoMod>,
+        )
+        .await?;
         Ok(response.body)
     }
 
-    /// Negotiate the effective API version with the daemon.
+    /// Negotiate the API version with the daemon, once per client.
     ///
-    /// WHY: The client and server may support different API versions; Docker
-    /// negotiates the minimum common version.
+    /// WHY: The client and the daemon each support a range of API versions. A
+    /// daemon rejects a request for a version newer than its own `ApiVersion`
+    /// with `400 Bad Request`, so a client that hard-codes its newest version
+    /// cannot talk to an older daemon at all (GitHub's runners have one).
     ///
-    /// WHAT: Reads the daemon's `ApiVersion`; picks the lower of client/server.
+    /// WHAT: Reads the daemon's `ApiVersion` and `MinAPIVersion` and settles on
+    /// `min(DEFAULT_API_VERSION, ApiVersion)`; see [`negotiate_api_version`].
+    /// The result is cached: later calls, and clones of this client, reuse it
+    /// without asking the daemon again. A failed negotiation is not cached.
     ///
-    /// HOW: `GET /version` → compare with [`DEFAULT_API_VERSION`].
+    /// HOW: unversioned `GET /version`.
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn negotiate_version(&mut self) -> Result<(), DockerError> {
+    /// Returns [`DockerError::Transport`] if the daemon cannot be reached,
+    /// [`DockerError::Api`] if it answers `/version` with an error status,
+    /// [`DockerError::JsonParse`] if it reports no usable `ApiVersion`, and
+    /// [`DockerError::UnsupportedApiVersion`] if the versions do not overlap.
+    pub async fn negotiate_version(&self) -> Result<(), DockerError> {
+        if self.negotiated_version.get().is_some() {
+            return Ok(());
+        }
         let version = self.version().await?;
-        if let Some(server) = version.api_version {
-            // Both are dotted "major.minor"; the lexicographically-lower valid
-            // version is the safe common denominator for our fixed client version.
-            if version_lt(&server, &self.api_version) {
-                self.api_version = server;
-            }
+        let agreed = negotiate_api_version(
+            DEFAULT_API_VERSION,
+            version.api_version.as_deref(),
+            version.min_api_version.as_deref(),
+        )?;
+        // Two concurrent first requests may both negotiate. They asked the same
+        // daemon, so they agree, and whichever stores first wins: `set` failing
+        // only means the other one got there first.
+        if let Err(ours) = self.negotiated_version.set(agreed) {
+            debug_assert_eq!(Some(&ours), self.negotiated_version.get());
         }
         Ok(())
     }
@@ -547,7 +613,7 @@ impl DockerClient {
         let response = container_create_request(
             self.http(),
             &args,
-            &self.base_url(),
+            &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
                 b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
                 let _ = b.set_body_json(&json);
@@ -567,7 +633,7 @@ impl DockerClient {
             id: id.to_string(),
             detach_keys: None,
         };
-        container_start_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
+        container_start_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -585,7 +651,7 @@ impl DockerClient {
             id: id.to_string(),
             condition: condition.map(str::to_string),
         };
-        let response = container_wait_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
+        let response = container_wait_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -609,7 +675,7 @@ impl DockerClient {
             signal: None,
             t: timeout_secs.map(|t| t.to_string()),
         };
-        match container_stop_request(self.http(), &args, &self.base_url(), None::<NoMod>).await {
+        match container_stop_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await {
             Ok(_) => Ok(()),
             // Docker returns 304 when the container is already exited — not an error.
             Err(ApiError::HttpStatus { code: 304, .. }) => Ok(()),
@@ -629,7 +695,7 @@ impl DockerClient {
             force: Some(force.to_string()),
             link: None,
         };
-        container_delete_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
+        container_delete_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -646,7 +712,7 @@ impl DockerClient {
             id: id.to_string(),
             size: None,
         };
-        let response = container_inspect_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
+        let response = container_inspect_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -661,7 +727,7 @@ impl DockerClient {
         let args = ContainerPauseArgs {
             id: id.to_string(),
         };
-        container_pause_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
+        container_pause_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -676,7 +742,7 @@ impl DockerClient {
         let args = ContainerUnpauseArgs {
             id: id.to_string(),
         };
-        container_unpause_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
+        container_unpause_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -756,15 +822,130 @@ impl DockerClient {
     }
 }
 
-/// Compare two dotted `"major.minor"` version strings, returning `true` when
-/// `a < b`. Non-numeric components sort as 0.
+/// A Docker Engine API version, `major.minor` (e.g. `1.53`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+struct ApiVersion {
+    major: u32,
+    minor: u32,
+}
+
+impl ApiVersion {
+    /// Parse `"major.minor"`. Anything else is an error rather than a guess:
+    /// a misread version would pick the wrong API for every request.
+    fn parse(s: &str) -> Result<Self, DockerError> {
+        let invalid = || DockerError::JsonParse(format!("invalid Docker API version {s:?}"));
+        let (major, minor) = s.trim().split_once('.').ok_or_else(invalid)?;
+        Ok(Self {
+            major: major.parse().map_err(|_| invalid())?,
+            minor: minor.parse().map_err(|_| invalid())?,
+        })
+    }
+}
+
+/// Pick the API version to talk to a daemon with, as the `docker` CLI does:
+/// the lower of the client's newest version and the daemon's `ApiVersion`,
+/// provided the daemon still accepts it (`MinAPIVersion`).
 ///
-/// # Panics
+/// Returns the chosen version as the side it came from wrote it.
 ///
-/// Never panics.
-fn version_lt(a: &str, b: &str) -> bool {
-    let parse = |s: &str| -> Vec<u32> {
-        s.split('.').map(|p| p.parse().unwrap_or(0)).collect()
+/// # Errors
+///
+/// - [`DockerError::JsonParse`] if the daemon reported no `ApiVersion`, or a
+///   version is not `major.minor`.
+/// - [`DockerError::UnsupportedApiVersion`] if the daemon's minimum is newer
+///   than the client's newest version, so there is no version both speak.
+pub fn negotiate_api_version(
+    client_max: &str,
+    server_max: Option<&str>,
+    server_min: Option<&str>,
+) -> Result<String, DockerError> {
+    let server_max_str = server_max.ok_or_else(|| {
+        DockerError::JsonParse("the daemon's GET /version reported no ApiVersion".to_string())
+    })?;
+    let client = ApiVersion::parse(client_max)?;
+    let server = ApiVersion::parse(server_max_str)?;
+    let (chosen, chosen_str) = if server < client {
+        (server, server_max_str)
+    } else {
+        (client, client_max)
     };
-    parse(a) < parse(b)
+    if let Some(min_str) = server_min {
+        if chosen < ApiVersion::parse(min_str)? {
+            return Err(DockerError::UnsupportedApiVersion {
+                client_max: client_max.to_string(),
+                server_min: min_str.to_string(),
+                server_max: server_max_str.to_string(),
+            });
+        }
+    }
+    Ok(chosen_str.trim().to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn negotiation_lowers_to_an_older_daemon() {
+        // GitHub's ubuntu runners: a daemon older than the client.
+        let v = negotiate_api_version("1.53", Some("1.48"), Some("1.24")).expect("versions overlap");
+        assert_eq!(v, "1.48");
+    }
+
+    #[test]
+    fn negotiation_keeps_the_client_version_for_a_newer_daemon() {
+        let v = negotiate_api_version("1.53", Some("1.56"), Some("1.40")).expect("versions overlap");
+        assert_eq!(v, "1.53");
+    }
+
+    #[test]
+    fn negotiation_keeps_an_equal_version() {
+        let v = negotiate_api_version("1.53", Some("1.53"), None).expect("versions overlap");
+        assert_eq!(v, "1.53");
+    }
+
+    #[test]
+    fn negotiation_compares_numerically_not_lexically() {
+        // As strings "1.9" > "1.10"; as versions 1.9 is the older one.
+        let v = negotiate_api_version("1.10", Some("1.9"), None).expect("versions overlap");
+        assert_eq!(v, "1.9");
+        let v = negotiate_api_version("1.9", Some("1.10"), None).expect("versions overlap");
+        assert_eq!(v, "1.9");
+    }
+
+    #[test]
+    fn negotiation_fails_when_the_daemon_minimum_is_newer_than_the_client() {
+        let err = negotiate_api_version("1.53", Some("1.60"), Some("1.55")).expect_err("no overlap");
+        match err {
+            DockerError::UnsupportedApiVersion { client_max, server_min, server_max } => {
+                assert_eq!(client_max, "1.53");
+                assert_eq!(server_min, "1.55");
+                assert_eq!(server_max, "1.60");
+            }
+            other => panic!("expected UnsupportedApiVersion, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn negotiation_fails_without_a_daemon_api_version() {
+        let err = negotiate_api_version("1.53", None, Some("1.24")).expect_err("no ApiVersion");
+        assert!(matches!(err, DockerError::JsonParse(_)), "got {err:?}");
+    }
+
+    #[test]
+    fn negotiation_rejects_malformed_versions() {
+        for bad in ["", "1", "one.two", "1.x", "1.2.3"] {
+            let err = negotiate_api_version("1.53", Some(bad), None)
+                .expect_err("a malformed ApiVersion must not be guessed at");
+            assert!(matches!(err, DockerError::JsonParse(_)), "{bad:?}: got {err:?}");
+        }
+    }
+
+    #[test]
+    fn a_fresh_client_reports_the_default_version_until_negotiated() {
+        let c = DockerClient::connect_unix("/nonexistent/docker.sock");
+        assert_eq!(c.api_version(), DEFAULT_API_VERSION);
+        assert_eq!(c.base_url(), format!("http://localhost/v{DEFAULT_API_VERSION}"));
+        assert_eq!(c.unversioned_base_url(), "http://localhost");
+    }
 }
