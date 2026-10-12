@@ -22,58 +22,31 @@ foundation_toolings = { path = "../../backends/foundation_toolings", version = "
 foundation_core = { path = "../../backends/foundation_core", version = "0.0.4", features = ["multi"] }
 foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.2", features = ["ssl", "multi"] }
 foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.1" }
-foundation_runtimes = { path = "../../backends/foundation_runtimes", version = "0.0.3" }
-foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.5" }
 foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.5" }
-foundation_deployment = { path = "../../backends/foundation_deployment", version = "0.0.1" }
+# Referenced by the code `foundation_macros::EmbedDirectoryAs` expands to.
+foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.5" }
 
 # base crates
-derive_more.workspace = true
 tracing = { workspace = true }
 
 # cli
-ctrlc = { version = "3.4" }
 clap = { version = "4.5.54", features = ["derive"] }
-signal-hook = { version = "0.4.1" }
 
-# -- tokio, axum and tower
-tower = { version = "0.4.13" }
-crossbeam = { version = "0.8" }
-axum = { version = "0.7.5", default-features = true }
+# -- tokio
 tokio = { version = "1.36", features = ["full"], default-features = true }
 
-# -- http and hyper
+# -- http
 bytes = { version = "1.6.1" }
 http = { version = "1.1" }
-http-body = { version = "1.0" }
-hyper = { version = "1.4.1", features = ["full"] }
-hyper-util = { version = "0.1.7" }
-http-body-util = { version = "0.1.2" }
 
-# -- serve# -- serve
-serde = { version = "1.0.197", features = ["derive"] }
+# -- serde
 serde_json = { version = "1.0.114" }
-serde_with = { version = "3.6.1" }
-
-# -- error crates
-anyhow = { version = "1.0.80" }
-thiserror = { version = "2.0.17" }
-chrono = { version = "0.4", features = ["serde"] }
 
 # -- tracing crates
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
-# -- file system utilities
-walkdir = { version = "2.5" }
-
 # -- toml for Cargo.toml manipulation
 toml = { version = "0.8" }
-
-# -- regex for comment sanitization
-regex = { version = "1.10" }
-
-# -- platform (VM/container orchestration)
-foundation_deployment_platform = { path = "../../backends/foundation_deployment_platform", version = "0.1.0", features = ["vms"] }
 
 [features]
 debug_block = ["foundation_packager/debug_block"]

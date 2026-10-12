@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::time;
 
 use foundation_toolings::{
@@ -7,10 +6,6 @@ use foundation_toolings::{
 };
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-
-use crate::local::signal::setup_ctrlc_handler;
-
-mod signal;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -154,11 +149,15 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         build_arguments: vec!["cargo", "build", "--bin", binary_name.as_str()].to_vec_string(),
     };
 
-    let dev_service = DevService::new(definition);
-    let shutdown = Arc::new(foundation_core::synca::OnSignal::new());
-    setup_ctrlc_handler(shutdown.clone());
-
-    foundation_toolings::run_dev_server(definition)?;
+    // `main` already holds the process-wide valtron pool guard, so start the
+    // service on that pool directly. `foundation_toolings::run_dev_server`
+    // would call `valtron::initialize_pool` again, which blocks until the
+    // existing guard drops — a deadlock while `main` is still running.
+    //
+    // `DevService::start` installs its own SIGINT/SIGTERM handling and returns
+    // once Ctrl+C (or SIGTERM/SIGQUIT) arrives, so shutdown is graceful
+    // without a separate ctrlc handler (which it would override anyway).
+    DevService::new(definition).start()?;
 
     Ok(())
 }
