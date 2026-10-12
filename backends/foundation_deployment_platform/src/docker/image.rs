@@ -29,7 +29,9 @@ use foundation_deployment_docker::client::build_context::ContextTar;
 use foundation_deployment_docker::client::images::ImageBuildOptions;
 use foundation_deployment_docker::DockerClient;
 
-use crate::docker::error::{docker_err, map_docker_client_err, DockerError, DockerResult};
+use crate::docker::error::{
+    classify_docker_client_err, docker_err, map_docker_client_err, DockerError, DockerResult,
+};
 
 /// Which builder runs the Dockerfile.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -151,7 +153,7 @@ impl DockerFileConfig {
     /// dockerd's builder: upload the context as a tar to `POST /build`.
     async fn build_classic(&self) -> DockerResult<ImageBuildResult> {
         let docker = DockerClient::connect_with_defaults()
-            .map_err(|e| docker_err(DockerError::Connection(format!("{e}"))))?;
+            .map_err(|e| docker_err(classify_docker_client_err("connect", e)))?;
 
         // Already built? `image_inspect` is the cache check — no CLI, no shelling.
         if let Some(sha) = image_sha(&docker, &self.tag).await? {

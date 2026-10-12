@@ -25,8 +25,8 @@ pub use config::{
     VolumeSource,
 };
 pub use container::ContainerHandle;
-pub use error::{docker_err, DockerError, DockerResult};
+pub use error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
 pub use group::ContainerGroup;
 pub use image::{BuildBackend, DockerFileConfig, DockerFileSource, ImageBuildResult};
 pub use network::NetworkHandle;
-pub use wait_for::{wait_for_port, WaitFor};
+pub use wait_for::{wait_for_port, wait_for_port_at, WaitFor};

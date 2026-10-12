@@ -19,7 +19,7 @@ use tracing::{info, warn};
 
 use crate::docker::config::{parse_memory_bytes, ContainerConfig};
 use crate::docker::network::NetworkHandle;
-use crate::docker::error::{docker_err, DockerError, DockerResult};
+use crate::docker::error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
 
 /// RAII guard for a running Docker container.
 pub struct ContainerHandle {
@@ -28,13 +28,95 @@ pub struct ContainerHandle {
     container_name: Option<String>,
     stop_timeout: u64,
     ports: HashMap<String, u16>,
+    /// The address this process reaches the published ports at — see
+    /// [`ContainerHandle::host_ip`].
+    host_ip: Ipv4Addr,
+}
+
+/// The container this process runs in, when the daemon it talks to runs it —
+/// a CI job container with the daemon's socket mounted, as GitHub Actions'
+/// `container:` jobs have.
+#[derive(Debug)]
+pub(crate) struct CallerContainer {
+    /// Its `NetworkSettings.Networks`, as the daemon reports them.
+    pub(crate) networks: Option<serde_json::Value>,
+}
+
+/// Find the container this process runs in, if this daemon runs it.
+///
+/// HOW: The process is in a container when `/.dockerenv` exists; it is one of
+/// this daemon's when the daemon knows a container by this host's name (Docker
+/// sets the hostname to the container id). A remote daemon (`tcp://`,
+/// `ssh://`) runs its containers on another machine, so this process cannot be
+/// one of them.
+///
+/// # Errors
+/// Returns the daemon's error if inspecting the container fails for any reason
+/// other than "no such container", or if `/etc/hostname` cannot be read.
+pub(crate) async fn caller_container(docker: &DockerClient) -> DockerResult<Option<CallerContainer>> {
+    if !docker.socket_path().is_absolute() || !std::path::Path::new("/.dockerenv").exists() {
+        return Ok(None);
+    }
+    let hostname = match std::fs::read_to_string("/etc/hostname") {
+        Ok(h) => h.trim().to_string(),
+        // No hostname file: nothing to look this container up by.
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => {
+            return Err(docker_err(DockerError::InvalidConfig(format!(
+                "reading /etc/hostname to find this container: {e}"
+            ))));
+        }
+    };
+    if hostname.is_empty() {
+        return Ok(None);
+    }
+    match docker.inspect_container(&hostname).await {
+        Ok(info) => Ok(Some(CallerContainer {
+            networks: info.network_settings.and_then(|ns| ns.networks),
+        })),
+        // A container, but not one this daemon runs (a sandbox, another
+        // engine).
+        Err(foundation_deployment_docker::DockerError::Api { status: 404, .. }) => Ok(None),
+        Err(e) => Err(docker_err(classify_docker_client_err("inspect_container (self)", e))),
+    }
+}
+
+/// Where this process reaches the ports Docker publishes, which is also the
+/// host address they are published on.
+///
+/// WHY: Published ports are bound on the Docker host. A process running on the
+/// host reaches them on `127.0.0.1`. A process running inside a container of
+/// the same daemon has its own loopback, so `127.0.0.1` reaches nothing there;
+/// it reaches the host on its network's gateway address instead.
+///
+/// HOW: The caller container's first network with a gateway (by name, for
+/// determinism). A container on the host network shares the host's loopback,
+/// and has no gateway, so it stays on `127.0.0.1`.
+pub(crate) fn published_port_host(caller: Option<&CallerContainer>) -> Ipv4Addr {
+    caller
+        .and_then(|c| gateway_of(c.networks.as_ref()))
+        .unwrap_or(Ipv4Addr::LOCALHOST)
+}
+
+/// The gateway of the first network (by name) in an inspect response's
+/// `NetworkSettings.Networks` that has an IPv4 one.
+pub(crate) fn gateway_of(networks: Option<&serde_json::Value>) -> Option<Ipv4Addr> {
+    let networks = networks?.as_object()?;
+    let mut names: Vec<&String> = networks.keys().collect();
+    names.sort();
+    names.into_iter().find_map(|name| {
+        networks[name]
+            .get("Gateway")
+            .and_then(serde_json::Value::as_str)
+            .and_then(|g| g.parse::<Ipv4Addr>().ok())
+    })
 }
 
 impl ContainerHandle {
     /// Start a container: pull → create → start → inspect → wait.
     pub async fn start_async(config: ContainerConfig) -> DockerResult<Self> {
         let docker = DockerClient::connect_with_defaults()
-            .map_err(|e| docker_err(DockerError::Connection(format!("{e}"))))?;
+            .map_err(|e| docker_err(classify_docker_client_err("connect", e)))?;
 
         // Validated up front: a bad memory limit is a config mistake, and
         // failing here beats creating a container that silently ignores it.
@@ -56,7 +138,9 @@ impl ContainerHandle {
             NetworkHandle::create_or_find(&docker, network, None).await?;
         }
 
-        let body = Self::build_body(&config, memory_bytes);
+        let caller = caller_container(&docker).await?;
+        let host_ip = published_port_host(caller.as_ref());
+        let body = Self::build_body(&config, memory_bytes, host_ip);
 
         let created = docker
             .create_container(&body, config.name.as_deref())
@@ -70,13 +154,14 @@ impl ContainerHandle {
         // here on must remove it by hand, or a failed start (a port conflict, a
         // readiness timeout) strands a container that keeps holding its ports and
         // makes every later run fail the same way.
-        match Self::finish_start(&docker, &container_id, &config).await {
+        match Self::finish_start(&docker, &container_id, &config, host_ip).await {
             Ok(ports) => Ok(Self {
                 docker,
                 container_id,
                 container_name: config.name.clone(),
                 stop_timeout: config.stop_timeout,
                 ports,
+                host_ip,
             }),
             Err(e) => {
                 Self::discard(&docker, &container_id, config.stop_timeout).await;
@@ -92,6 +177,7 @@ impl ContainerHandle {
         docker: &DockerClient,
         container_id: &str,
         config: &ContainerConfig,
+        host_ip: Ipv4Addr,
     ) -> DockerResult<HashMap<String, u16>> {
         docker
             .start_container(container_id)
@@ -100,7 +186,7 @@ impl ContainerHandle {
 
         let ports = Self::resolve_ports(docker, container_id, config).await?;
 
-        config.wait.apply(docker, container_id, &ports).await?;
+        config.wait.apply(docker, container_id, host_ip, &ports).await?;
 
         Ok(ports)
     }
@@ -151,18 +237,28 @@ impl ContainerHandle {
         &self.ports
     }
 
+    /// The host address this process reaches the published ports at:
+    /// `127.0.0.1` on the Docker host itself, or the host's address on this
+    /// container's network when the process runs in a container of the same
+    /// daemon (a CI job container). Pair it with [`Self::host_port`], or use
+    /// [`Self::address`], which does.
+    #[must_use]
+    pub fn host_ip(&self) -> Ipv4Addr {
+        self.host_ip
+    }
+
     /// The host-side address `container_port` is reachable at, e.g.
     /// `127.0.0.1:49153`. This is the address to connect to from the test
     /// process, and it is the reason a caller rarely needs `port_mapped`: let
     /// Docker assign the host port with `port = N` and ask the handle where it
     /// landed, instead of pinning a host port that a parallel run may already
-    /// hold.
+    /// hold. The IP is [`Self::host_ip`].
     ///
     /// `None` if `container_port` was never exposed as TCP.
     #[must_use]
     pub fn address(&self, container_port: u16) -> Option<SocketAddr> {
         self.host_port(container_port)
-            .map(|p| SocketAddr::from((Ipv4Addr::LOCALHOST, p)))
+            .map(|p| SocketAddr::from((self.host_ip, p)))
     }
 
     /// The host-side UDP address for `container_port`. `None` if it was never
@@ -170,7 +266,7 @@ impl ContainerHandle {
     #[must_use]
     pub fn udp_address(&self, container_port: u16) -> Option<SocketAddr> {
         self.host_port_udp(container_port)
-            .map(|p| SocketAddr::from((Ipv4Addr::LOCALHOST, p)))
+            .map(|p| SocketAddr::from((self.host_ip, p)))
     }
 
     pub async fn shutdown_async(&self) -> DockerResult<()> {
@@ -216,7 +312,7 @@ impl ContainerHandle {
                 None,  // tail (all)
             )
             .await
-            .map_err(|e| docker_err(DockerError::Connection(format!("container_logs: {e}"))))?;
+            .map_err(|e| docker_err(classify_docker_client_err("container_logs", e)))?;
 
         let mut decoder = LogFrameDecoder::new();
         decoder.feed(&raw);
@@ -249,7 +345,7 @@ impl ContainerHandle {
         self.docker
             .wait_container(&self.container_id, Some("not-running"))
             .await
-            .map_err(|e| docker_err(DockerError::Connection(format!("wait_container: {e}"))))?;
+            .map_err(|e| docker_err(classify_docker_client_err("wait_container", e)))?;
 
         self.logs_async().await
     }
@@ -259,7 +355,7 @@ impl ContainerHandle {
             .docker
             .inspect_container(&self.container_id)
             .await
-            .map_err(|e| docker_err(DockerError::Connection(format!("inspect failed: {e}"))))?;
+            .map_err(|e| docker_err(classify_docker_client_err("inspect_container", e)))?;
 
         Ok(info.state.and_then(|s| s.running).unwrap_or(false))
     }
@@ -282,11 +378,7 @@ impl ContainerHandle {
                 Ok(_) => return Ok(()),
                 // 404 = not cached → fall through to pull.
                 Err(foundation_deployment_docker::DockerError::Api { status: 404, .. }) => {}
-                Err(e) => {
-                    return Err(docker_err(DockerError::Connection(format!(
-                        "image_inspect: {e}"
-                    ))));
-                }
+                Err(e) => return Err(docker_err(classify_docker_client_err("image_inspect", e))),
             }
         }
         Self::pull_image(docker, image).await
@@ -331,7 +423,12 @@ impl ContainerHandle {
     }
 
     /// Build a typed [`ContainerCreateBody`] from our `ContainerConfig` builder.
-    fn build_body(config: &ContainerConfig, memory_bytes: Option<i64>) -> ContainerCreateBody {
+    fn build_body(
+        config: &ContainerConfig,
+        memory_bytes: Option<i64>,
+        host_ip: Ipv4Addr,
+    ) -> ContainerCreateBody {
+        let host_ip = host_ip.to_string();
         let mut exposed_ports = serde_json::Map::new();
         let mut port_bindings = serde_json::Map::new();
 
@@ -355,7 +452,7 @@ impl ContainerHandle {
             port_bindings.insert(
                 port_key,
                 serde_json::json!([{
-                    "HostIp": "127.0.0.1",
+                    "HostIp": host_ip,
                     "HostPort": host_port_str,
                 }]),
             );
@@ -491,7 +588,7 @@ impl ContainerHandle {
             .inspect_container(container_id)
             .await
             .map_err(|e| {
-                docker_err(DockerError::Connection(format!("inspect failed: {e}")))
+                docker_err(classify_docker_client_err("inspect_container", e))
             })?;
 
         let mut ports = HashMap::new();
@@ -553,7 +650,65 @@ impl std::fmt::Debug for ContainerHandle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ContainerHandle")
             .field("container_id", &self.container_id)
+            .field("host_ip", &self.host_ip)
             .field("ports", &self.ports)
             .finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gateway_of_a_bridge_network_job_container() {
+        // What `GET /containers/<self>/json` reports for a GitHub Actions job
+        // container: one user-defined bridge network with a gateway.
+        let networks = serde_json::json!({
+            "github_network_4b74fb24": { "Gateway": "172.18.0.1", "IPAddress": "172.18.0.2" }
+        });
+        assert_eq!(gateway_of(Some(&networks)), Some(Ipv4Addr::new(172, 18, 0, 1)));
+    }
+
+    #[test]
+    fn gateway_of_picks_the_first_network_by_name() {
+        let networks = serde_json::json!({
+            "zeta": { "Gateway": "10.0.9.1" },
+            "alpha": { "Gateway": "10.0.1.1" },
+        });
+        assert_eq!(gateway_of(Some(&networks)), Some(Ipv4Addr::new(10, 0, 1, 1)));
+    }
+
+    #[test]
+    fn host_network_has_no_gateway() {
+        // `--network host` shares the host's loopback: stay on 127.0.0.1.
+        let networks = serde_json::json!({ "host": { "Gateway": "", "IPAddress": "" } });
+        assert_eq!(gateway_of(Some(&networks)), None);
+        assert_eq!(gateway_of(None), None);
+        assert_eq!(gateway_of(Some(&serde_json::json!({}))), None);
+    }
+
+    #[test]
+    fn ports_are_published_on_the_given_host_ip() {
+        let config = ContainerConfig::new("redis:7-alpine").port(6379);
+        let body = ContainerHandle::build_body(&config, None, Ipv4Addr::new(172, 18, 0, 1));
+        let json = serde_json::to_value(&body).expect("serialize body");
+        assert_eq!(
+            json["HostConfig"]["PortBindings"]["6379/tcp"][0]["HostIp"],
+            "172.18.0.1"
+        );
+        assert_eq!(json["HostConfig"]["PortBindings"]["6379/tcp"][0]["HostPort"], "");
+    }
+
+    #[test]
+    fn published_ports_are_reached_on_loopback_or_the_job_networks_gateway() {
+        let me = CallerContainer { networks: None };
+        // On the host, or in a container on the host network: loopback.
+        assert_eq!(published_port_host(None), Ipv4Addr::LOCALHOST);
+        assert_eq!(published_port_host(Some(&me)), Ipv4Addr::LOCALHOST);
+        let job = CallerContainer {
+            networks: Some(serde_json::json!({ "github_network_x": { "Gateway": "172.18.0.1" } })),
+        };
+        assert_eq!(published_port_host(Some(&job)), Ipv4Addr::new(172, 18, 0, 1));
     }
 }
