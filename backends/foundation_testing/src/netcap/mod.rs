@@ -14,8 +14,8 @@ use std::{
 
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_netio::shared::http::{
-    self, Http11, IncomingRequestParts, RenderHttp, RequestDescriptor, ServiceAction,
-    ServiceActionList, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
+    Http11, IncomingRequestParts, RenderHttp, RequestDescriptor, ServiceAction,
+    ServiceActionList, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 
 /// Result type for test server operations.
@@ -67,9 +67,8 @@ impl ResourcesHttpServer {
             .map_err(foundation_core::extensions::result_ext::BoxedResult::into_boxed_error)?;
 
         client
-            .write(b"CLOSE\r\n")
+            .write_all(b"CLOSE\r\n")
             .map_err(foundation_core::extensions::result_ext::BoxedResult::into_boxed_error)
-            .map(|_| ())
     }
 
     #[must_use]
@@ -228,11 +227,23 @@ impl ResourcesHttpServer {
                             for part in renderer {
                                 match part {
                                     Ok(data) => {
-                                        if write_stream.write(&data).is_err() {
-                                            break;
+                                        if let Err(err) = write_stream.write_all(&data) {
+                                            tracing::error!(
+                                                "Failed to write response to {:?}: {:?}",
+                                                &url,
+                                                err
+                                            );
+                                            return;
                                         }
                                     }
-                                    Err(_) => break,
+                                    Err(err) => {
+                                        tracing::error!(
+                                            "Failed to render response to {:?}: {:?}",
+                                            &url,
+                                            err
+                                        );
+                                        return;
+                                    }
                                 }
                             }
                             tracing::info!("Finished sending response to: {:?}", &url);
@@ -253,21 +264,36 @@ impl ResourcesHttpServer {
                 tracing::info!("Request processing finished");
             }
 
+            // A body-less response gets no implicit `Content-Length`, and an
+            // HTTP/1.1 response without headers cannot be rendered, so the
+            // empty body is declared explicitly.
             let response = Http11::response(
                 SimpleOutgoingResponse::builder()
                     .with_status(Status::BadRequest)
+                    .add_header(SimpleHeader::CONTENT_LENGTH, "0")
                     .build()
-                    .unwrap(),
+                    .expect("a status and a header are all a response needs"),
             );
 
-            if let Ok(renderer) = response.http_render() {
-                for part in renderer {
-                    if let Ok(data) = part {
-                        if write_stream.write_all(&data).is_ok() {
-                            continue;
+            match response.http_render() {
+                Ok(renderer) => {
+                    for part in renderer {
+                        match part {
+                            Ok(data) => {
+                                if let Err(err) = write_stream.write_all(&data) {
+                                    tracing::error!("Failed to write 400 response: {:?}", err);
+                                    return;
+                                }
+                            }
+                            Err(err) => {
+                                tracing::error!("Failed to render 400 response: {:?}", err);
+                                return;
+                            }
                         }
                     }
-                    return;
+                }
+                Err(err) => {
+                    tracing::error!("Failed to render 400 response: {:?}", err);
                 }
             }
         })
@@ -294,11 +320,37 @@ mod test_server_tests {
     use tracing_test::traced_test;
 
     use foundation_core::extensions::result_ext::BoxedResult;
-    use foundation_netio::shared::http::{FuncSimpleServer, RequestDescriptor, SendSafeBody, Status};
+    use foundation_core::extensions::result_ext::BoxedError;
+    use foundation_netio::shared::client::body_reader::try_collect_bytes;
+    use foundation_netio::shared::http::{
+        FuncSimpleServer, RequestDescriptor, SendSafeBody, SimpleIncomingRequest, Status,
+    };
 
     use foundation_netio::shared::http::{ServiceAction, SimpleHeader, SimpleMethod, SimpleOutgoingResponse};
 
     use super::ResourcesHttpServer;
+
+    /// Answers `200` with the request body wrapped in a JSON-like envelope,
+    /// or `400` when the request carries no body. The server hands sized
+    /// bodies over as a stream, so the body is collected first.
+    fn echo_body_handler(req: SimpleIncomingRequest) -> Result<SimpleOutgoingResponse, BoxedError> {
+        let body = match req.body {
+            None | Some(SendSafeBody::None) => {
+                return SimpleOutgoingResponse::builder()
+                    .with_status(Status::BadRequest)
+                    .add_header(SimpleHeader::CONTENT_LENGTH, "0")
+                    .build()
+                    .map_err(|err| err.into_boxed_error());
+            }
+            Some(body) => body,
+        };
+        let content = String::from_utf8(try_collect_bytes(body)?).map_err(|err| err.into_boxed_error())?;
+        SimpleOutgoingResponse::builder()
+            .with_status(Status::OK)
+            .with_body_bytes(format!(r#"{{"name": "alex", "body": {content} }}"#).into_bytes())
+            .build()
+            .map_err(|err| err.into_boxed_error())
+    }
 
     macro_rules! t {
         ($e:expr) => {
@@ -316,27 +368,7 @@ mod test_server_tests {
             .with_route("/service/endpoint/v1")
             .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
             .with_method(SimpleMethod::POST)
-            .with_body(FuncSimpleServer::new(|req| match req.body {
-                Some(SendSafeBody::Bytes(body)) => match String::from_utf8(body.to_vec()) {
-                    Ok(content) => SimpleOutgoingResponse::builder()
-                        .with_status(Status::OK)
-                        .with_body_bytes(
-                            format!(r#"{{"name": "alex", "body": {content} }}"#).into_bytes(),
-                        )
-                        .build()
-                        .map_err(|err| err.into_boxed_error()),
-                    Err(err) => Err(err.into_boxed_error()),
-                },
-                Some(SendSafeBody::Text(body)) => SimpleOutgoingResponse::builder()
-                    .with_status(Status::OK)
-                    .with_body_string(format!(r#"{{"name": "alex", "body": {body} }}"#))
-                    .build()
-                    .map_err(|err| err.into_boxed_error()),
-                _ => SimpleOutgoingResponse::builder()
-                    .with_status(Status::BadRequest)
-                    .build()
-                    .map_err(|err| err.into_boxed_error()),
-            }))
+            .with_body(FuncSimpleServer::new(echo_body_handler))
             .build()
             .expect("should generate service action");
 
@@ -396,27 +428,7 @@ Hello world!";
             .with_route("/service/endpoint/v1")
             .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
             .with_method(SimpleMethod::POST)
-            .with_body(FuncSimpleServer::new(|req| match req.body {
-                Some(SendSafeBody::Bytes(body)) => match String::from_utf8(body.to_vec()) {
-                    Ok(content) => SimpleOutgoingResponse::builder()
-                        .with_status(Status::OK)
-                        .with_body_bytes(
-                            format!(r#"{{"name": "alex", "body": {content} }}"#).into_bytes(),
-                        )
-                        .build()
-                        .map_err(|err| err.into_boxed_error()),
-                    Err(err) => Err(err.into_boxed_error()),
-                },
-                Some(SendSafeBody::Text(body)) => SimpleOutgoingResponse::builder()
-                    .with_status(Status::OK)
-                    .with_body_string(format!(r#"{{"name": "alex", "body": {body} }}"#))
-                    .build()
-                    .map_err(|err| err.into_boxed_error()),
-                _ => SimpleOutgoingResponse::builder()
-                    .with_status(Status::BadRequest)
-                    .build()
-                    .map_err(|err| err.into_boxed_error()),
-            }))
+            .with_body(FuncSimpleServer::new(echo_body_handler))
             .build()
             .expect("should generate service action");
 

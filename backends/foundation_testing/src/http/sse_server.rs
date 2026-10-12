@@ -21,12 +21,13 @@ use std::time::Duration;
 use socket2::SockRef;
 
 use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::{
     http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody,
 };
 
 use crate::http::HttpRequest;
+use super::server::{expects_continue, set_request_read_mode, REQUEST_READ_TIMEOUT};
 
 /// Set SO_LINGER=0 on the socket to force TCP RST on close.
 ///
@@ -180,7 +181,7 @@ impl SseStreamWriter {
 /// # Examples
 ///
 /// ```rust
-/// use foundation_testing::sse_server::{SseTestServer, SseConnectionResult, SseStreamWriter};
+/// use foundation_testing::http::{SseTestServer, SseConnectionResult, SseStreamWriter};
 /// use foundation_testing::http::HttpRequest;
 ///
 /// // Server that sends one event then cleanly closes
@@ -329,24 +330,55 @@ impl SseTestServer {
     }
 
     fn handle_connection(
-        stream: TcpStream,
+        mut stream: TcpStream,
         handler: &SseResponseHandler,
         conn_num: usize,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // Parse the HTTP request using the same infrastructure as TestHttpServer.
-        // Clone the stream for reading and set to non-blocking to avoid hangs
-        // when reading body streams on blocking TCP.
+        //
+        // The request is read in blocking mode, every read bounded by
+        // `REQUEST_READ_TIMEOUT`: the request reader treats `WouldBlock` as a
+        // failed read, so on a non-blocking socket a request (or body) that
+        // had not fully arrived yet was dropped or read empty. The bound keeps
+        // a silent client from hanging the connection thread.
         let read_stream = stream.try_clone()?;
-        read_stream.set_nonblocking(true)?;
+        set_request_read_mode(&read_stream, Some(REQUEST_READ_TIMEOUT))?;
         let conn = RawStream::from_tcp(read_stream)?;
         let request_streams = http_streams::send::http_streams(conn);
 
         let request_reader = request_streams.next_request();
 
-        let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = request_reader
+        // Answer `Expect: 100-continue` once the head is parsed (the parts
+        // iterator is lazy, so the body has not been read yet); a client that
+        // asked for it sends the body only after the interim response.
+        let mut collected: Vec<IncomingRequestParts> = Vec::new();
+        let mut read_error: Option<HttpReaderError> = None;
+        for item in request_reader
             .into_iter()
             .filter(|item| !matches!(item, Ok(IncomingRequestParts::SKIP)))
-            .collect();
+        {
+            match item {
+                Ok(part) => {
+                    let continue_now = matches!(
+                        &part,
+                        IncomingRequestParts::Headers(headers) if expects_continue(headers)
+                    );
+                    collected.push(part);
+                    if continue_now {
+                        stream.write_all(b"HTTP/1.1 100 Continue\r\n\r\n")?;
+                        stream.flush()?;
+                    }
+                }
+                Err(err) => {
+                    read_error = Some(err);
+                    break;
+                }
+            }
+        }
+        let parts: Result<Vec<IncomingRequestParts>, HttpReaderError> = match read_error {
+            Some(err) => Err(err),
+            None => Ok(collected),
+        };
 
         if let Err(part_err) = parts {
             tracing::error!(
@@ -390,7 +422,16 @@ impl SseTestServer {
             }
         };
 
-        let body = collect_bytes_from_send_safe(body_part);
+        // Read the whole body (to its `Content-Length`, or its last chunk);
+        // one that cannot be read in full ends the connection with an error
+        // rather than reaching the handler empty or truncated.
+        let body = match try_collect_bytes(body_part) {
+            Ok(body) => body,
+            Err(err) => {
+                tracing::error!("SseTestServer: Failed to read the request body: {err}");
+                return Err(err);
+            }
+        };
 
         let request = HttpRequest {
             path: url,
@@ -452,7 +493,7 @@ impl Drop for SseTestServer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{BufRead, BufReader, Read, Write};
+    use std::io::{BufReader, Read, Write};
 
     #[test]
     fn test_server_start() {
