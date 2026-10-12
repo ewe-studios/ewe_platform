@@ -16,13 +16,87 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::time::Duration;
 
+use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::{
-    http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody, SimpleHeader,
+    HTTPStreams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody, SimpleHeader,
     SimpleHeaders, SimpleMethod, SimpleUrl,
 };
+
+/// How long one read of a request (head or body) may wait for bytes.
+///
+/// A request head that stalls this long ends the connection with an error; the
+/// body reader retries a bounded number of timed-out reads before it gives up.
+pub(crate) const REQUEST_READ_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// How long the idle wait sleeps between checks for the next request.
+const IDLE_POLL_INTERVAL: Duration = Duration::from_millis(1);
+
+/// Wait until the next request starts arriving on an idle keep-alive
+/// connection whose socket is non-blocking.
+///
+/// WHY: the request reader treats `WouldBlock` as a failed read. Parsing a
+/// request off a non-blocking socket before its bytes are there ends the
+/// connection without an answer, and reading a body that is still in flight
+/// gave the handler an empty or truncated body (the body reader gives up after
+/// a bounded number of immediate `WouldBlock` retries, and the error was
+/// dropped). The socket stays non-blocking only while idle, so the handler
+/// can notice the server stopping.
+///
+/// Returns `Ok(true)` once request bytes are buffered, `Ok(false)` when the
+/// peer closed the connection or the server stopped.
+fn wait_for_request(
+    source: &mut SharedByteBufferStream<RawStream>,
+    running: &AtomicBool,
+) -> std::io::Result<bool> {
+    loop {
+        if !running.load(Ordering::Relaxed) {
+            return Ok(false);
+        }
+        match source.probe() {
+            Ok(0) => return Ok(false),
+            Ok(_) => return Ok(true),
+            Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
+                thread::sleep(IDLE_POLL_INTERVAL);
+            }
+            Err(err) if err.kind() == std::io::ErrorKind::Interrupted => {}
+            Err(err) => return Err(err),
+        }
+    }
+}
+
+/// Switch a connection socket between the idle (non-blocking) and the
+/// request-reading (blocking, bounded by `timeout`) modes.
+///
+/// The read half is a `try_clone` of the same socket, so the mode set here
+/// applies to both handles.
+pub(crate) fn set_request_read_mode(
+    socket: &TcpStream,
+    timeout: Option<Duration>,
+) -> std::io::Result<()> {
+    match timeout {
+        Some(timeout) => {
+            socket.set_nonblocking(false)?;
+            socket.set_read_timeout(Some(timeout))
+        }
+        None => {
+            socket.set_read_timeout(None)?;
+            socket.set_nonblocking(true)
+        }
+    }
+}
+
+/// Whether the request head asks for an `Expect: 100-continue` handshake.
+pub(crate) fn expects_continue(headers: &SimpleHeaders) -> bool {
+    headers.get(&SimpleHeader::EXPECT).is_some_and(|values| {
+        values
+            .iter()
+            .any(|v| v.eq_ignore_ascii_case("100-continue"))
+    })
+}
 
 type ResponseHandler = Arc<Mutex<Box<dyn Fn(&HttpRequest) -> HttpResponse + Send>>>;
 
@@ -218,6 +292,8 @@ impl TestHttpServer {
     /// # Examples
     ///
     /// ```rust
+    /// use foundation_testing::http::{HttpResponse, TestHttpServer};
+    ///
     /// let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"data"))
     ///     .close_after_response(true);
     /// ```
@@ -229,23 +305,29 @@ impl TestHttpServer {
 
     /// Set whether the server's read stream should use blocking I/O with a timeout.
     ///
-    /// WHY: The HTTP reader treats WouldBlock from non-blocking sockets as a fatal
-    /// error. Tests with precise client timing (e.g., connection pooling tests)
-    /// need blocking read to avoid premature connection handler exit.
+    /// WHY: by default a connection waits for each request without blocking
+    /// (so it notices the server stopping) and then reads the request in
+    /// blocking mode bounded by a fixed per-read timeout. Some tests need an
+    /// idle keep-alive connection to time out instead, after a known delay.
     ///
     /// # Arguments
     ///
-    /// * `timeout` - When `Some`, enables blocking read with the given timeout.
-    ///   When `None`, keeps the default non-blocking behavior.
+    /// * `timeout` - When `Some`, every read on the connection blocks for at
+    ///   most this long, and an idle connection ends when it expires.
+    ///   When `None`, keeps the default behavior.
     ///
     /// # Examples
     ///
     /// ```rust
+    /// use std::time::Duration;
+    ///
+    /// use foundation_testing::http::{HttpResponse, TestHttpServer};
+    ///
     /// // Blocking read with 5s timeout
     /// let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"data"))
     ///     .blocking_read(Some(Duration::from_secs(5)));
     ///
-    /// // Non-blocking (default)
+    /// // Default: wait for each request, then read it in full
     /// let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"data"))
     ///     .blocking_read(None);
     /// ```
@@ -298,7 +380,7 @@ impl TestHttpServer {
     /// use foundation_testing::http::{TestHttpServer, HttpRequest, HttpResponse};
     ///
     /// let server = TestHttpServer::with_response(|req| {
-    ///     if req.path == "/redirect" {
+    ///     if req.path.url == "/redirect" {
     ///         HttpResponse::redirect("/target")
     ///     } else {
     ///         HttpResponse::ok(b"Success")
@@ -518,38 +600,44 @@ impl TestHttpServer {
 
         // Clone the stream for reading — keep original for writing responses.
         // The reader consumes bytes; the writer needs the original socket.
-        let read_stream: TcpStream = stream.try_clone().expect("should clone tcp stream");
+        let read_stream: TcpStream = stream.try_clone()?;
 
+        // A configured `blocking_read` timeout applies to every read for the
+        // connection's whole life. Otherwise the socket is non-blocking while
+        // idle (so the handler notices the server stopping) and blocking,
+        // bounded by `REQUEST_READ_TIMEOUT`, while a request is being read:
+        // the request reader treats `WouldBlock` as a failed read, so a
+        // request must never be parsed off a non-blocking socket.
         let timeout_ms = read_timeout_ms.load(Ordering::Relaxed);
-        if timeout_ms > 0 {
-            // Blocking read with timeout — HTTP reader treats WouldBlock as fatal,
-            // so blocking mode with a timeout prevents premature connection handler exit.
-            read_stream
-                .set_nonblocking(false)
-                .expect("should set blocking on read stream");
-            read_stream
-                .set_read_timeout(Some(std::time::Duration::from_millis(timeout_ms)))
-                .expect("should set read timeout");
-        } else {
-            // Default: non-blocking so the handler can check the running flag.
-            read_stream
-                .set_nonblocking(true)
-                .expect("should enable non-blocking");
-        }
+        let configured_timeout = (timeout_ms > 0).then(|| Duration::from_millis(timeout_ms));
+        set_request_read_mode(&read_stream, configured_timeout)?;
 
-        let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
-        let request_streams = http_streams::send::http_streams(conn);
-
-        let running_clone = Arc::clone(&running);
+        let conn = RawStream::from_tcp(read_stream)?;
+        let mut source = SharedByteBufferStream::rwrite(conn);
+        let request_streams = HTTPStreams::new(source.clone());
 
         for _req_num in 0..MAX_REQUESTS_PER_CONN {
-            if !running_clone.load(Ordering::Relaxed) {
+            if configured_timeout.is_none() {
+                match wait_for_request(&mut source, &running) {
+                    Ok(true) => set_request_read_mode(&stream, Some(REQUEST_READ_TIMEOUT))?,
+                    Ok(false) => {
+                        tracing::debug!(
+                            "[TestHTTPServer] Peer closed the connection or the server stopped"
+                        );
+                        break;
+                    }
+                    Err(err) => {
+                        tracing::warn!(
+                            "[TestHTTPServer] Waiting for the next request failed: {err}"
+                        );
+                        return Err(err.into());
+                    }
+                }
+            } else if !running.load(Ordering::Relaxed) {
                 tracing::debug!("[TestHTTPServer] Killing next request reader");
                 break;
             }
 
-            // fetch the intro portion and validate we have resources for processing request
-            tracing::debug!("[TestHTTPServer] Pulled next request");
             let request_reader = request_streams.next_request();
             tracing::debug!("Pulled next request");
 
@@ -566,9 +654,9 @@ impl TestHttpServer {
             // it. `with_interim_response` also handles the handshake, but it
             // discards request bodies, so neither constructor could inspect what
             // a POST actually sent until this.
-            let mut parts_iter = request_reader.into_iter().filter(|item| {
-                !matches!(item, Ok(IncomingRequestParts::SKIP))
-            });
+            let mut parts_iter = request_reader
+                .into_iter()
+                .filter(|item| !matches!(item, Ok(IncomingRequestParts::SKIP)));
 
             let mut collected: Vec<IncomingRequestParts> = Vec::new();
             let mut read_error: Option<HttpReaderError> = None;
@@ -577,14 +665,13 @@ impl TestHttpServer {
                     Ok(part) => {
                         let expects_continue = matches!(
                             &part,
-                            IncomingRequestParts::Headers(headers)
-                                if headers.get(&SimpleHeader::EXPECT).is_some_and(|values| {
-                                    values.iter().any(|v| v.eq_ignore_ascii_case("100-continue"))
-                                })
+                            IncomingRequestParts::Headers(headers) if expects_continue(headers)
                         );
                         collected.push(part);
                         if expects_continue {
-                            tracing::debug!("[TestHTTPServer] Expect: 100-continue — sending interim");
+                            tracing::debug!(
+                                "[TestHTTPServer] Expect: 100-continue — sending interim"
+                            );
                             stream.write_all(b"HTTP/1.1 100 Continue\r\n\r\n")?;
                             stream.flush()?;
                         }
@@ -643,7 +730,21 @@ impl TestHttpServer {
             };
 
             tracing::trace!("[HTTP TEST SERVER] Read the body of request");
-            let body = collect_bytes_from_send_safe(body_part);
+            // The whole body is read before the handler runs: a
+            // `Content-Length` body to exactly that length, a chunked body to
+            // its last chunk. A body that cannot be read in full ends the
+            // connection with an error rather than reaching the handler empty
+            // or truncated.
+            let body = match try_collect_bytes(body_part) {
+                Ok(body) => body,
+                Err(err) => {
+                    tracing::warn!("Failed to read the request body, ending connection: {err}");
+                    return Err(err);
+                }
+            };
+            if configured_timeout.is_none() {
+                set_request_read_mode(&stream, None)?;
+            }
 
             tracing::info!("Got request");
             let request = HttpRequest {
@@ -693,18 +794,19 @@ impl TestHttpServer {
         read_timeout_ms: &Arc<AtomicU64>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let timeout_ms = read_timeout_ms.load(Ordering::Relaxed);
-        let read_stream: TcpStream = stream.try_clone().expect("should clone tcp stream");
-        if timeout_ms > 0 {
-            read_stream
-                .set_nonblocking(false)
-                .expect("should set blocking on read stream");
-            read_stream
-                .set_read_timeout(Some(std::time::Duration::from_millis(timeout_ms)))
-                .expect("should set read timeout");
-        }
+        let read_stream: TcpStream = stream.try_clone()?;
+        // One request per connection, read in blocking mode (the request
+        // reader treats `WouldBlock` as a failed read), with every read
+        // bounded so a silent client cannot pin the connection thread.
+        let read_timeout = if timeout_ms > 0 {
+            Duration::from_millis(timeout_ms)
+        } else {
+            REQUEST_READ_TIMEOUT
+        };
+        set_request_read_mode(&read_stream, Some(read_timeout))?;
         // Parse minimal HTTP request (method, path, version)
-        let conn = RawStream::from_tcp(read_stream).expect("should wrap tcp stream");
-        let request_streams = http_streams::send::http_streams(conn);
+        let conn = RawStream::from_tcp(read_stream)?;
+        let request_streams = HTTPStreams::new(SharedByteBufferStream::rwrite(conn));
 
         tracing::info!("Read a line on connection!");
 
@@ -792,7 +894,13 @@ impl TestHttpServer {
 
         // NOW read the body (client will send it after receiving 100 Continue)
         tracing::trace!("[HTTP TEST SERVER] Read the body of request");
-        let _body = collect_bytes_from_send_safe(body_part);
+        // The socket is blocking, so the read waits for the body. The body is
+        // consumed to keep the connection in sync; its content isn't used,
+        // but a failed read still ends the connection with an error.
+        if let Err(err) = try_collect_bytes(body_part) {
+            tracing::warn!("Failed to read the request body, ending connection: {err}");
+            return Err(err);
+        }
 
         tracing::info!(
             "Received new http request for proto: method: {:?}, url: {:?}, proto: {:?}",
@@ -884,5 +992,177 @@ mod tests {
         }
         // Server should have stopped after drop
         // No assertion needed - test passes if no panic/hang
+    }
+
+    /// One client action in a scripted exchange with the server.
+    enum Step {
+        /// Write these bytes to the socket.
+        Write(&'static [u8]),
+        /// Wait before the next step, so the server sees a partial request.
+        Pause(Duration),
+        /// Read and check the `100 Continue` interim response.
+        ReadInterim,
+    }
+
+    /// Runs `steps` against a server that records every request body it
+    /// hands to its handler, then reads until the server closes the
+    /// connection. A request to `/last` is answered with `Connection: close`.
+    /// Returns the recorded bodies (in order) and everything the server sent.
+    fn exchange(steps: &[Step]) -> (Vec<Vec<u8>>, String) {
+        use std::io::Read;
+
+        let seen = Arc::new(Mutex::new(Vec::<Vec<u8>>::new()));
+        let recorder = Arc::clone(&seen);
+        let server = TestHttpServer::with_response(move |req| {
+            let captured = match &req.body {
+                SendSafeBody::Bytes(bytes) => bytes.clone(),
+                other => panic!("the server must hand handlers a byte body, got {other:?}"),
+            };
+            recorder.lock().unwrap().push(captured);
+            let mut response = HttpResponse::ok(b"done");
+            if req.path.url == "/last" {
+                response
+                    .headers
+                    .push(("Connection".to_string(), "close".to_string()));
+            }
+            response
+        });
+
+        let addr = server.base_url().trim_start_matches("http://").to_string();
+        let mut client = TcpStream::connect(&addr).expect("connect to test server");
+        client
+            .set_read_timeout(Some(Duration::from_secs(30)))
+            .expect("bound the client's reads");
+        for step in steps {
+            match step {
+                Step::Write(bytes) => {
+                    client.write_all(bytes).expect("write to the server");
+                    client.flush().expect("flush to the server");
+                }
+                Step::Pause(delay) => thread::sleep(*delay),
+                Step::ReadInterim => {
+                    let interim = b"HTTP/1.1 100 Continue\r\n\r\n";
+                    let mut buf = vec![0u8; interim.len()];
+                    client
+                        .read_exact(&mut buf)
+                        .expect("read the interim response");
+                    assert_eq!(buf, interim, "the server must answer Expect: 100-continue");
+                }
+            }
+        }
+
+        let mut response = String::new();
+        client
+            .read_to_string(&mut response)
+            .expect("read the server's responses until it closes");
+        let bodies = std::mem::take(&mut *seen.lock().unwrap());
+        (bodies, response)
+    }
+
+    /// Number of complete `200 OK` responses in `raw`.
+    fn ok_responses(raw: &str) -> usize {
+        raw.matches("HTTP/1.1 200 OK\r\n").count()
+    }
+
+    /// WHY: the server read bodies from a non-blocking socket with a bounded
+    /// number of immediate retries, so a body that arrived a moment after the
+    /// headers reached the handler empty (the flaky body capture in
+    /// foundation_ai's provider_fault_injection_tests).
+    /// WHAT: a `Content-Length` body sent 200ms after the headers is captured
+    /// in full.
+    #[test]
+    fn late_body_is_captured_in_full() {
+        let (bodies, response) = exchange(&[
+            Step::Write(
+                b"POST /last HTTP/1.1\r\nHost: test\r\nContent-Type: application/octet-stream\r\nContent-Length: 15\r\n\r\n",
+            ),
+            Step::Pause(Duration::from_millis(200)),
+            Step::Write(b"late body bytes"),
+        ]);
+        assert_eq!(bodies, vec![b"late body bytes".to_vec()]);
+        assert_eq!(ok_responses(&response), 1, "response: {response}");
+    }
+
+    /// WHY: a `Content-Length` body that arrives in pieces must be read to its
+    /// declared length, not to the end of the first read.
+    /// WHAT: a body written in two halves 100ms apart is captured in full.
+    #[test]
+    fn body_split_across_writes_is_captured_in_full() {
+        let (bodies, response) = exchange(&[
+            Step::Write(
+                b"POST /last HTTP/1.1\r\nHost: test\r\nContent-Length: 23\r\n\r\nfirst half, ",
+            ),
+            Step::Pause(Duration::from_millis(100)),
+            Step::Write(b"second half"),
+        ]);
+        assert_eq!(bodies, vec![b"first half, second half".to_vec()]);
+        assert_eq!(ok_responses(&response), 1, "response: {response}");
+    }
+
+    /// WHY: our own client sends `Expect: 100-continue` and writes the body
+    /// only after the interim response, so the body can never be there when
+    /// the headers are parsed.
+    /// WHAT: the body sent after `100 Continue` is captured in full.
+    #[test]
+    fn body_after_expect_continue_is_captured_in_full() {
+        let (bodies, response) = exchange(&[
+            Step::Write(
+                b"POST /last HTTP/1.1\r\nHost: test\r\nContent-Type: application/json\r\nContent-Length: 26\r\nExpect: 100-continue\r\n\r\n",
+            ),
+            Step::ReadInterim,
+            Step::Pause(Duration::from_millis(50)),
+            Step::Write(b"{\"input\":\"after continue\"}"),
+        ]);
+        assert_eq!(bodies, vec![b"{\"input\":\"after continue\"}".to_vec()]);
+        assert_eq!(ok_responses(&response), 1, "response: {response}");
+    }
+
+    /// WHY: chunked bodies have no length up front; the server must read to
+    /// the last chunk even when the chunks arrive over time.
+    /// WHAT: a chunked body sent as three writes is captured in full.
+    #[test]
+    fn chunked_body_arriving_over_time_is_captured_in_full() {
+        let (bodies, response) = exchange(&[
+            Step::Write(
+                b"POST /last HTTP/1.1\r\nHost: test\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nhello\r\n",
+            ),
+            Step::Pause(Duration::from_millis(100)),
+            Step::Write(b"6\r\n world\r\n"),
+            Step::Pause(Duration::from_millis(100)),
+            Step::Write(b"0\r\n\r\n"),
+        ]);
+        assert_eq!(bodies, vec![b"hello world".to_vec()]);
+        assert_eq!(ok_responses(&response), 1, "response: {response}");
+    }
+
+    /// WHY: parsing a request off a non-blocking socket before its bytes
+    /// arrived ended the connection without an answer.
+    /// WHAT: a request whose head arrives late, and split in two, is answered.
+    #[test]
+    fn late_and_split_request_head_is_answered() {
+        let (bodies, response) = exchange(&[
+            Step::Pause(Duration::from_millis(200)),
+            Step::Write(b"POST /last HTTP/1.1\r\nHost: te"),
+            Step::Pause(Duration::from_millis(100)),
+            Step::Write(b"st\r\nContent-Length: 4\r\n\r\nbody"),
+        ]);
+        assert_eq!(bodies, vec![b"body".to_vec()]);
+        assert_eq!(ok_responses(&response), 1, "response: {response}");
+    }
+
+    /// WHY: an idle keep-alive connection was closed as soon as the next
+    /// request was not already buffered, so a client reusing it lost the
+    /// request.
+    /// WHAT: a second request sent 200ms after the first is answered on the
+    /// same connection.
+    #[test]
+    fn keep_alive_connection_serves_a_later_request() {
+        let (bodies, response) = exchange(&[
+            Step::Write(b"POST /first HTTP/1.1\r\nHost: test\r\nContent-Length: 3\r\n\r\none"),
+            Step::Pause(Duration::from_millis(200)),
+            Step::Write(b"POST /last HTTP/1.1\r\nHost: test\r\nContent-Length: 3\r\n\r\ntwo"),
+        ]);
+        assert_eq!(bodies, vec![b"one".to_vec(), b"two".to_vec()]);
+        assert_eq!(ok_responses(&response), 2, "response: {response}");
     }
 }

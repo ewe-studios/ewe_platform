@@ -7,10 +7,10 @@
 //!
 //! ```rust
 //! use foundation_testing::io::SharedBuffer;
-//! use std::io::Write;
+//! use std::io::{Read, Write};
 //!
 //! // Split into writer and reader handles
-//! let (mut writer, reader) = SharedBuffer::split();
+//! let (mut writer, mut reader) = SharedBuffer::split();
 //!
 //! // Write from producer thread
 //! writer.write_all(b"hello").unwrap();
@@ -128,10 +128,10 @@ impl SharedBufferReader {
 ///
 /// ```rust
 /// use foundation_testing::io::SharedBuffer;
-/// use std::io::Write;
+/// use std::io::{Read, Write};
 ///
 /// // Create writer and reader handles
-/// let (mut writer, reader) = SharedBuffer::split();
+/// let (mut writer, mut reader) = SharedBuffer::split();
 ///
 /// // Write data
 /// writer.write_all(b"hello").unwrap();
@@ -156,7 +156,7 @@ impl SharedBuffer {
     ///
     /// ```rust
     /// use foundation_testing::io::SharedBuffer;
-    /// use std::io::Write;
+    /// use std::io::{Read, Write};
     ///
     /// let (mut writer, mut reader) = SharedBuffer::split();
     /// writer.write_all(b"hello").unwrap();
