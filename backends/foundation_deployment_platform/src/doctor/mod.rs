@@ -58,7 +58,7 @@ pub fn check_host() -> HostHealth {
             }
             crate::host_bootstrap::ToolStatus::Missing { error } => error.clone(),
         },
-        suggestion: Some("run: ewe_platform testbed doctor --install to auto-install"),
+        suggestion: Some("run: testbed doctor --install to auto-install"),
     });
     checks.push(Check {
         name: "nushell",
@@ -70,7 +70,7 @@ pub fn check_host() -> HostHealth {
             }
             crate::host_bootstrap::ToolStatus::Missing { error } => error.clone(),
         },
-        suggestion: Some("run: ewe_platform testbed doctor --install to auto-install"),
+        suggestion: Some("run: testbed doctor --install to auto-install"),
     });
     checks.push(Check {
         name: "pitchfork",
@@ -82,7 +82,7 @@ pub fn check_host() -> HostHealth {
             }
             crate::host_bootstrap::ToolStatus::Missing { error } => error.clone(),
         },
-        suggestion: Some("run: ewe_platform testbed doctor --install to auto-install (optional)"),
+        suggestion: Some("run: testbed doctor --install to auto-install (optional)"),
     });
 
     // KVM
@@ -196,7 +196,7 @@ pub fn check_vm(profile: &VmProfile) -> HostHealth {
         } else {
             format!("VM '{}' is not running", profile.name)
         },
-        suggestion: Some("run: ewe_platform testbed start <profile>"),
+        suggestion: Some("run: testbed start <profile>"),
     });
 
     if !running {

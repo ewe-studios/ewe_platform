@@ -74,6 +74,14 @@ vms = [
     "dep:foundation_wireguard",
 ]
 
+# VM testbed CLI (`cli::command()` / `cli::run()`, moved from foundation_testbed),
+# built as the standalone `testbed` binary below. Requires the VM orchestration
+# it drives. It is not mounted in ewe_platform: `vms` links libssh2's vendored
+# OpenSSL, which cannot share a binary with the BoringSSL ewe_platform already
+# links via foundation_ai -> foundation_auth -> jwt-simple (duplicate SSL_*/EVP_*
+# symbols; same constraint as foundation_deployment_docker's `ssh` feature).
+cli = ["vms"]
+
 # WireGuard mesh integration (gated, depends on foundation_wireguard)
 wireguard = ["dep:foundation_wireguard"]
 
@@ -93,9 +101,9 @@ tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
 tracing-subscriber = "0.3"
 
 [[bin]]
-name = "platform"
-path = "src/bin/platform.rs"
-required-features = ["clap"]
+name = "testbed"
+path = "src/bin/testbed.rs"
+required-features = ["cli"]
 
 [lints]
 workspace = true
