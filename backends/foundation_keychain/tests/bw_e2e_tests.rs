@@ -7,10 +7,15 @@
 //! NOTE: Full `bw login` requires client-side encryption keys that self-hosted
 //! servers don't generate. The API is tested via HTTP; `bw config server`
 //! validates CLI connectivity. Full CLI CRUD is a follow-up.
+//!
+//! The `bw` image is built from `Dockerfile.bw_e2e` by the macro (cached by
+//! tag), and the container shares the test process's network namespace, so
+//! `bw` reaches the in-process server on `localhost` — on a developer machine
+//! and inside a CI job container alike. Without a Docker daemon the test logs
+//! a skip and returns.
 
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
-use std::process::Command;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -24,11 +29,6 @@ use foundation_db::core::storage_provider::AsyncQueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 
 // ── Helpers ──────────────────────────────────────────────────────────────
-
-fn bw_image_available() -> bool {
-    Command::new("docker").args(["images", "-q", "foundation-keychain-bw-e2e"])
-        .output().map(|o| !o.stdout.is_empty()).unwrap_or(false)
-}
 
 fn read_response(s: &mut TcpStream) -> (u16, String) {
     let mut buf = Vec::new(); let mut c = [0u8; 4096];
@@ -62,12 +62,16 @@ fn bw_password_hash(email: &str, password: &str) -> String {
 
 // ── Test ─────────────────────────────────────────────────────────────────
 
-#[docker_container(image = "foundation-keychain-bw-e2e", as = "bw", network = "host")]
+#[docker_container(
+    image = "foundation-keychain-bw-e2e",
+    dockerfile = "Dockerfile.bw_e2e",
+    as = "bw",
+    share_caller_network = true,
+    stop_timeout = 5
+)]
 #[valtron_test]
 fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
-    if !bw_image_available() { println!("SKIP — build image first"); return; }
     let bw = containers.container("bw").expect("bw container");
-    let cid = bw.id().to_string();
 
     // ── 1. Start server ──────────────────────────────────────────────────
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
@@ -92,10 +96,8 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
 
     // ── 3. `bw config server` validates CLI connectivity ─────────────────
     let url = format!("http://localhost:{}", addr.port());
-    let cfg = Command::new("docker")
-        .args(["exec", &cid, "bw", "config", "server", &url])
-        .output().expect("bw config");
-    assert!(cfg.status.success(), "bw config: {}", String::from_utf8_lossy(&cfg.stderr));
+    let cfg = bw.exec(&["bw", "config", "server", &url]).expect("bw config");
+    assert!(cfg.success(), "bw config (exit {}): {}{}", cfg.exit_code, cfg.stdout, cfg.stderr);
 
     // ── 4. Register ──────────────────────────────────────────────────────
     let ts = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();

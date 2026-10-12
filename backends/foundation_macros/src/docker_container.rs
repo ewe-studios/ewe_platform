@@ -101,6 +101,11 @@ struct ContainerDef {
     cpus: Option<u32>,
     always_pull: bool,
     required: bool,
+    /// Dockerfile to build `image` from (relative to the invoking crate's
+    /// `CARGO_MANIFEST_DIR`; its directory is the build context).
+    dockerfile: Option<String>,
+    /// Share the network namespace of the process running the test.
+    share_caller_network: bool,
 }
 
 impl Parse for ContainerDef {
@@ -128,6 +133,8 @@ impl Parse for ContainerDef {
         let mut cpus = None;
         let mut always_pull = false;
         let mut required = false;
+        let mut dockerfile = None;
+        let mut share_caller_network = false;
 
         while !input.is_empty() {
             // `as` is a keyword, so it cannot be parsed as an `Ident`.
@@ -161,6 +168,8 @@ impl Parse for ContainerDef {
                 "cpus" => cpus = Some(parse_u32(&value)?),
                 "always_pull" => always_pull = parse_bool(&value)?,
                 "required" => required = parse_bool(&value)?,
+                "dockerfile" => dockerfile = Some(parse_string(&value)?),
+                "share_caller_network" => share_caller_network = parse_bool(&value)?,
                 _ => {
                     return Err(syn::Error::new(
                         key_span,
@@ -198,6 +207,8 @@ impl Parse for ContainerDef {
             cpus,
             always_pull,
             required,
+            dockerfile,
+            share_caller_network,
         })
     }
 }
@@ -493,6 +504,24 @@ fn container_config(args: &ContainerDef, platform: &TokenStream2) -> TokenStream
     }
     if args.required {
         config_calls.push(quote! { .required() });
+    }
+    if let Some(ref dockerfile) = args.dockerfile {
+        // Resolved against the invoking crate at its compile time, so the test
+        // finds the file wherever it runs from; the Dockerfile's own directory
+        // is the build context.
+        config_calls.push(quote! {
+            .build({
+                let __dockerfile = ::std::path::Path::new(::core::env!("CARGO_MANIFEST_DIR")).join(#dockerfile);
+                let __context = __dockerfile
+                    .parent()
+                    .map(::std::path::Path::to_path_buf)
+                    .unwrap_or_else(|| ::std::path::PathBuf::from(::core::env!("CARGO_MANIFEST_DIR")));
+                #platform::docker::DockerFileConfig::from_file(__dockerfile).context(__context)
+            })
+        });
+    }
+    if args.share_caller_network {
+        config_calls.push(quote! { .share_caller_network() });
     }
 
     // Wait strategies. Every explicit `wait_*` attribute contributes one

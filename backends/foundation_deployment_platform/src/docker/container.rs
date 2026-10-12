@@ -33,11 +33,32 @@ pub struct ContainerHandle {
     host_ip: Ipv4Addr,
 }
 
+/// What a command run with [`ContainerHandle::exec_async`] did.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExecOutput {
+    /// The command's exit code.
+    pub exit_code: i64,
+    /// Everything it wrote to stdout.
+    pub stdout: String,
+    /// Everything it wrote to stderr.
+    pub stderr: String,
+}
+
+impl ExecOutput {
+    /// `true` when the command exited 0.
+    #[must_use]
+    pub fn success(&self) -> bool {
+        self.exit_code == 0
+    }
+}
+
 /// The container this process runs in, when the daemon it talks to runs it —
 /// a CI job container with the daemon's socket mounted, as GitHub Actions'
 /// `container:` jobs have.
 #[derive(Debug)]
 pub(crate) struct CallerContainer {
+    /// The container's id.
+    pub(crate) id: String,
     /// Its `NetworkSettings.Networks`, as the daemon reports them.
     pub(crate) networks: Option<serde_json::Value>,
 }
@@ -72,6 +93,7 @@ pub(crate) async fn caller_container(docker: &DockerClient) -> DockerResult<Opti
     }
     match docker.inspect_container(&hostname).await {
         Ok(info) => Ok(Some(CallerContainer {
+            id: info.id.unwrap_or(hostname),
             networks: info.network_settings.and_then(|ns| ns.networks),
         })),
         // A container, but not one this daemon runs (a sandbox, another
@@ -96,6 +118,15 @@ pub(crate) fn published_port_host(caller: Option<&CallerContainer>) -> Ipv4Addr 
     caller
         .and_then(|c| gateway_of(c.networks.as_ref()))
         .unwrap_or(Ipv4Addr::LOCALHOST)
+}
+
+/// The network mode for a container that shares the caller's network
+/// namespace: the caller's container, or the host's when the caller runs on it.
+pub(crate) fn caller_network_mode(caller: Option<&CallerContainer>) -> String {
+    match caller {
+        Some(c) => format!("container:{}", c.id),
+        None => "host".to_string(),
+    }
 }
 
 /// The gateway of the first network (by name) in an inspect response's
@@ -127,20 +158,42 @@ impl ContainerHandle {
             None => None,
         };
 
-        Self::ensure_image(&docker, &config.image, config.always_pull).await?;
+        // Sharing the caller's network namespace means sharing its ports too:
+        // there is nothing to publish, and Docker refuses to try.
+        if config.share_caller_network && !config.ports.is_empty() {
+            return Err(docker_err(DockerError::InvalidConfig(format!(
+                "{}: a container sharing the caller's network cannot publish ports \
+                 (it already shares the caller's)",
+                config.image
+            ))));
+        }
 
-        // A user-defined network must exist before a container can join it —
-        // Docker fails the create otherwise. `create_or_find` is idempotent, so
-        // naming a network is enough to get one (Decision 10). It is deliberately
-        // left in place afterwards: it may be shared with containers this handle
-        // knows nothing about, so it is not ours to remove.
-        if let Some(ref network) = config.network {
-            NetworkHandle::create_or_find(&docker, network, None).await?;
+        match &config.build {
+            // Built (or found already built) under `image`: nothing to pull.
+            Some(dockerfile) => {
+                dockerfile.build_once().await?;
+            }
+            None => Self::ensure_image(&docker, &config.image, config.always_pull).await?,
         }
 
         let caller = caller_container(&docker).await?;
+        let network_mode = if config.share_caller_network {
+            Some(caller_network_mode(caller.as_ref()))
+        } else {
+            // A user-defined network must exist before a container can join it —
+            // Docker fails the create otherwise. `create_or_find` is idempotent,
+            // so naming a network is enough to get one (Decision 10). It is
+            // deliberately left in place afterwards: it may be shared with
+            // containers this handle knows nothing about, so it is not ours to
+            // remove.
+            if let Some(ref network) = config.network {
+                NetworkHandle::create_or_find(&docker, network, None).await?;
+            }
+            config.network.clone()
+        };
+
         let host_ip = published_port_host(caller.as_ref());
-        let body = Self::build_body(&config, memory_bytes, host_ip);
+        let body = Self::build_body(&config, memory_bytes, host_ip, network_mode);
 
         let created = docker
             .create_container(&body, config.name.as_deref())
@@ -350,6 +403,63 @@ impl ContainerHandle {
         self.logs_async().await
     }
 
+    /// Run `cmd` inside the container and wait for it to finish — `docker
+    /// exec`, over the API (no `docker` CLI needed).
+    ///
+    /// # Errors
+    /// Returns the daemon's error (classified, see
+    /// [`crate::docker::error::classify_docker_client_err`]) if the exec cannot
+    /// be created, run or inspected, and [`DockerError::InvalidConfig`] if the
+    /// daemon reports no exit code for a finished exec.
+    pub async fn exec_async(&self, cmd: &[&str]) -> DockerResult<ExecOutput> {
+        let exec = self
+            .docker
+            .exec_create(&self.container_id, cmd)
+            .await
+            .map_err(|e| docker_err(classify_docker_client_err("exec_create", e)))?;
+        // Attached (not detached): the call returns once the command has
+        // exited, with its multiplexed stdout/stderr as the body.
+        let raw = self
+            .docker
+            .exec_start(&exec.id, false)
+            .await
+            .map_err(|e| docker_err(classify_docker_client_err("exec_start", e)))?;
+        let info = self
+            .docker
+            .exec_inspect(&exec.id)
+            .await
+            .map_err(|e| docker_err(classify_docker_client_err("exec_inspect", e)))?;
+        let exit_code = info
+            .get("ExitCode")
+            .and_then(serde_json::Value::as_i64)
+            .ok_or_else(|| {
+                docker_err(DockerError::InvalidConfig(format!(
+                    "exec {cmd:?}: the daemon reported no ExitCode: {info}"
+                )))
+            })?;
+
+        let mut decoder = LogFrameDecoder::new();
+        decoder.feed(&raw);
+        let mut out = ExecOutput { exit_code, stdout: String::new(), stderr: String::new() };
+        while let Some(frame) = decoder.decode() {
+            match frame {
+                LogOutput::StdOut { message } => out.stdout.push_str(&String::from_utf8_lossy(&message)),
+                LogOutput::StdErr { message } => out.stderr.push_str(&String::from_utf8_lossy(&message)),
+                _ => continue,
+            }
+        }
+        Ok(out)
+    }
+
+    /// Sync convenience: [`Self::exec_async`] via `block_on`, for test bodies
+    /// that are not async.
+    ///
+    /// # Errors
+    /// As [`Self::exec_async`].
+    pub fn exec(&self, cmd: &[&str]) -> DockerResult<ExecOutput> {
+        crate::block_on(self.exec_async(cmd))
+    }
+
     pub async fn is_running_async(&self) -> DockerResult<bool> {
         let info = self
             .docker
@@ -427,6 +537,7 @@ impl ContainerHandle {
         config: &ContainerConfig,
         memory_bytes: Option<i64>,
         host_ip: Ipv4Addr,
+        network_mode: Option<String>,
     ) -> ContainerCreateBody {
         let host_ip = host_ip.to_string();
         let mut exposed_ports = serde_json::Map::new();
@@ -497,7 +608,7 @@ impl ContainerHandle {
                 } else {
                     Some(config.extra_hosts.clone())
                 },
-                network_mode: config.network.clone(),
+                network_mode: network_mode.clone(),
                 ..Default::default()
             },
             resources: Resources {
@@ -557,7 +668,9 @@ impl ContainerHandle {
         // set when a network was named. Setting them at create time (rather than
         // connecting afterwards) means the container is resolvable by alias from
         // the moment it starts, with no window where a peer could miss it.
-        let networking_config = match (&config.network, config.network_aliases.is_empty()) {
+        // A container sharing the caller's namespace has no endpoint of its own.
+        let named_network = if config.share_caller_network { None } else { config.network.as_ref() };
+        let networking_config = match (named_network, config.network_aliases.is_empty()) {
             (Some(network), false) => {
                 let mut endpoints_config = HashMap::new();
                 endpoints_config.insert(
@@ -691,7 +804,7 @@ mod tests {
     #[test]
     fn ports_are_published_on_the_given_host_ip() {
         let config = ContainerConfig::new("redis:7-alpine").port(6379);
-        let body = ContainerHandle::build_body(&config, None, Ipv4Addr::new(172, 18, 0, 1));
+        let body = ContainerHandle::build_body(&config, None, Ipv4Addr::new(172, 18, 0, 1), None);
         let json = serde_json::to_value(&body).expect("serialize body");
         assert_eq!(
             json["HostConfig"]["PortBindings"]["6379/tcp"][0]["HostIp"],
@@ -701,14 +814,41 @@ mod tests {
     }
 
     #[test]
-    fn published_ports_are_reached_on_loopback_or_the_job_networks_gateway() {
-        let me = CallerContainer { networks: None };
+    fn the_caller_network_is_the_callers_container_or_the_host() {
+        assert_eq!(caller_network_mode(None), "host");
+        let me = CallerContainer { id: "0123abcd".into(), networks: None };
+        assert_eq!(caller_network_mode(Some(&me)), "container:0123abcd");
         // On the host, or in a container on the host network: loopback.
         assert_eq!(published_port_host(None), Ipv4Addr::LOCALHOST);
         assert_eq!(published_port_host(Some(&me)), Ipv4Addr::LOCALHOST);
         let job = CallerContainer {
+            id: "job".into(),
             networks: Some(serde_json::json!({ "github_network_x": { "Gateway": "172.18.0.1" } })),
         };
         assert_eq!(published_port_host(Some(&job)), Ipv4Addr::new(172, 18, 0, 1));
+    }
+
+    #[test]
+    fn a_container_sharing_the_callers_network_gets_that_mode_and_no_endpoint() {
+        let config = ContainerConfig::new("bw")
+            .network("ignored")
+            .network_alias("also-ignored")
+            .share_caller_network();
+        let body = ContainerHandle::build_body(
+            &config,
+            None,
+            Ipv4Addr::LOCALHOST,
+            Some("container:0123abcd".into()),
+        );
+        let json = serde_json::to_value(&body).expect("serialize body");
+        assert_eq!(json["HostConfig"]["NetworkMode"], "container:0123abcd");
+        assert!(json.get("NetworkingConfig").is_none(), "{json}");
+    }
+
+    #[test]
+    fn building_tags_the_dockerfile_with_the_image() {
+        let config = ContainerConfig::new("my-e2e-image")
+            .build(crate::docker::DockerFileConfig::new("FROM alpine:3.20"));
+        assert_eq!(config.build.expect("build set").tag, "my-e2e-image");
     }
 }

@@ -24,7 +24,7 @@ pub use config::{
     parse_memory_bytes, ContainerConfig, DeviceMapping, PortMapping, PortProtocol, VolumeMount,
     VolumeSource,
 };
-pub use container::ContainerHandle;
+pub use container::{ContainerHandle, ExecOutput};
 pub use error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
 pub use group::ContainerGroup;
 pub use image::{BuildBackend, DockerFileConfig, DockerFileSource, ImageBuildResult};
