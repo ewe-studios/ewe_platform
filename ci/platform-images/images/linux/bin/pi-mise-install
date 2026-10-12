@@ -25,6 +25,9 @@ if [ ! -f "$config_dir/mise.toml" ]; then
 fi
 if [ -f "$config_dir/mise.lock" ]; then
   export MISE_LOCKED=1
+  # Locked downloads are already pinned by sha256; skip the extra GitHub
+  # attestation lookup for python, which needs the GitHub API.
+  export MISE_PYTHON_GITHUB_ATTESTATIONS=false
 fi
 
 mkdir -p "$bin_dir"

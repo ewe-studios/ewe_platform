@@ -1,0 +1,104 @@
+name: platform-images / register-runner
+description: >
+  Register the GitHub Actions runner inside a booted platform-images VM as an
+  ephemeral, just-in-time (JIT) self-hosted runner of this repository, and
+  start it. It takes exactly one job that targets its labels and then
+  unregisters itself. Authentication is a GitHub App: a short-lived
+  installation token with Administration read/write (needed for the
+  generate-jitconfig endpoint) is minted per run, nothing is stored.
+  Only use this on trusted events (push to the default branch,
+  workflow_dispatch, schedule), never for pull requests: a registered runner
+  will run whatever job asks for its labels.
+
+inputs:
+  os:
+    description: "`windows` or `macos` (the VM)."
+    required: true
+  key:
+    description: Private SSH key for the VM (boot-vm's key output).
+    required: true
+  port:
+    description: Host port for the VM's SSH.
+    default: "2222"
+  labels:
+    description: Comma-separated custom labels; make them unique per run (e.g. ewe-windows-<run id>-<attempt>) so only the intended job lands on this runner.
+    required: true
+  runner-name:
+    description: Runner name. Empty means platform-images-<os>-<run id>-<attempt>.
+    default: ""
+  client-id:
+    description: The GitHub App's Client ID (not the numeric App ID).
+    required: true
+  private-key:
+    description: The GitHub App's private key (PEM).
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Refuse untrusted events
+      shell: bash
+      env:
+        EVENT: ${{ github.event_name }}
+      run: |
+        case "$EVENT" in
+          push|workflow_dispatch|schedule|workflow_call) ;;
+          *) echo "::error::register-runner only runs on push, workflow_dispatch or schedule events, not '$EVENT'"; exit 1 ;;
+        esac
+
+    - name: Mint a GitHub App installation token
+      id: token
+      uses: actions/create-github-app-token@v3.2.0
+      with:
+        client-id: ${{ inputs.client-id }}
+        private-key: ${{ inputs.private-key }}
+        permission-administration: write
+
+    - name: Create a just-in-time runner config
+      id: jit
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.token.outputs.token }}
+        OS: ${{ inputs.os }}
+        LABELS: ${{ inputs.labels }}
+        NAME: ${{ inputs.runner-name }}
+      run: |
+        set -euo pipefail
+        name=${NAME:-platform-images-$OS-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT}
+        case "$OS" in windows) os_label=Windows ;; macos) os_label=macOS ;; *) echo "::error::unknown os '$OS'"; exit 1 ;; esac
+        # JIT runners get exactly the labels listed here.
+        body=$(LABELS="$LABELS" NAME="$name" OS_LABEL="$os_label" python3 -c '
+        import json, os
+        labels = ["self-hosted", os.environ["OS_LABEL"], "X64"]
+        labels += [l.strip() for l in os.environ["LABELS"].split(",") if l.strip()]
+        print(json.dumps({"name": os.environ["NAME"], "runner_group_id": 1, "labels": labels, "work_folder": "_work"}))
+        ')
+        response="$RUNNER_TEMP/platform-images-jit.json"
+        status=$(curl -sS -o "$response" -w '%{http_code}' -X POST \
+          -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runners/generate-jitconfig" -d "$body")
+        if [ "$status" != "201" ]; then
+          echo "::error::generate-jitconfig returned HTTP $status: $(jq -r '.message // .' "$response")"
+          rm -f "$response"
+          exit 1
+        fi
+        jit="$RUNNER_TEMP/platform-images-jit.txt"
+        umask 077
+        jq -r '.encoded_jit_config' "$response" > "$jit"
+        echo "::add-mask::$(cat "$jit")"
+        echo "runner $(jq -r '.runner.name' "$response") (id $(jq -r '.runner.id' "$response")) registered with labels: $(jq -r '[.runner.labels[].name] | join(", ")' "$response")"
+        rm -f "$response"
+        echo "file=$jit" >> "$GITHUB_OUTPUT"
+
+    - name: Start the runner in the VM
+      shell: bash
+      env:
+        OS: ${{ inputs.os }}
+        KEY: ${{ inputs.key }}
+        PORT: ${{ inputs.port }}
+        JIT: ${{ steps.jit.outputs.file }}
+      run: |
+        set -euo pipefail
+        trap 'rm -f "$JIT"' EXIT
+        nu "$GITHUB_ACTION_PATH/../../scripts/vm.nu" runner --os "$OS" --key "$KEY" --port "$PORT" --jitconfig-file "$JIT"

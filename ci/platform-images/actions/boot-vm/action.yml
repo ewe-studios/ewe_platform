@@ -1,0 +1,139 @@
+name: platform-images / boot-vm
+description: >
+  Boot a platform-images Windows or macOS VM (dockurr: QEMU/KVM in a Linux
+  container) on a Linux runner with /dev/kvm, and wait until it is
+  provisioned and reachable over SSH. Windows installs and provisions itself
+  unattended (fresh disk: ~45-75 min on a GitHub-hosted runner). macOS needs
+  a disk that went through the one-time manual install and an authorised SSH
+  key (`key` input); this then runs the provisioning over SSH. Needs nu on
+  the host (setup-nu) and the image pullable (docker login if private).
+  Stop the VM with `nu ci/platform-images/scripts/vm.nu down --name <name>`.
+
+inputs:
+  os:
+    description: "`windows` or `macos`."
+    required: true
+  image:
+    description: The VM image reference (e.g. the image-ref output of platform-images.yaml with os windows).
+    required: true
+  name:
+    description: Container name.
+    default: pi-vm
+  storage:
+    description: Host directory for the VM disk. Empty means /mnt/platform-images-vm on GitHub-hosted runners (more space there), else $RUNNER_TEMP/platform-images-vm.
+    default: ""
+  key:
+    description: Private SSH key already authorised in the VM (macOS, or a Windows disk installed earlier). Empty means generate one; a fresh Windows install authorises it.
+    default: ""
+  port:
+    description: Host port for the VM's SSH.
+    default: "2222"
+  version:
+    description: dockurr VERSION (Windows edition, macOS release). Empty means the image default (Windows Server 2022 evaluation / macOS 15).
+    default: ""
+  ram:
+    description: RAM_SIZE for the VM.
+    default: "10G"
+  cpus:
+    description: CPU_CORES for the VM.
+    default: "4"
+  disk:
+    description: DISK_SIZE for the VM.
+    default: "128G"
+  timeout-minutes:
+    description: How long to wait for install + provisioning.
+    default: "120"
+
+outputs:
+  key:
+    description: Path of the private SSH key for the VM.
+    value: ${{ steps.key.outputs.key }}
+  port:
+    description: Host port for the VM's SSH.
+    value: ${{ inputs.port }}
+  name:
+    description: Container name.
+    value: ${{ inputs.name }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check KVM
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ ! -e /dev/kvm ]; then
+          echo "::error::/dev/kvm is missing: this runner cannot run VMs (GitHub-hosted Linux runners have it; self-hosted hosts need hardware virtualisation enabled)"
+          exit 1
+        fi
+        # Make /dev/kvm usable by non-root users too (GitHub's documented
+        # udev rule); the dockurr container itself runs as root.
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-platform-images-kvm.rules >/dev/null
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+        ls -l /dev/kvm
+
+    - name: SSH key
+      id: key
+      shell: bash
+      env:
+        KEY: ${{ inputs.key }}
+      run: |
+        set -euo pipefail
+        if [ -n "$KEY" ]; then
+          [ -f "$KEY" ] && [ -f "$KEY.pub" ] || { echo "::error::$KEY and $KEY.pub must exist"; exit 1; }
+          echo "key=$KEY" >> "$GITHUB_OUTPUT"
+        else
+          key="$RUNNER_TEMP/platform-images-vm-key"
+          rm -f "$key" "$key.pub"
+          ssh-keygen -q -t ed25519 -N "" -C "platform-images-$GITHUB_RUN_ID" -f "$key"
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Start the VM
+      shell: bash
+      env:
+        OS: ${{ inputs.os }}
+        IMAGE: ${{ inputs.image }}
+        NAME: ${{ inputs.name }}
+        STORAGE: ${{ inputs.storage }}
+        KEY: ${{ steps.key.outputs.key }}
+        PORT: ${{ inputs.port }}
+        VERSION: ${{ inputs.version }}
+        RAM: ${{ inputs.ram }}
+        CPUS: ${{ inputs.cpus }}
+        DISK: ${{ inputs.disk }}
+      run: |
+        set -euo pipefail
+        storage=$STORAGE
+        if [ -z "$storage" ]; then
+          if [ -d /mnt ] && sudo -n true 2>/dev/null; then
+            storage=/mnt/platform-images-vm
+            sudo mkdir -p "$storage" && sudo chown "$(id -u):$(id -g)" "$storage"
+          else
+            storage="$RUNNER_TEMP/platform-images-vm"
+          fi
+        fi
+        df -h "$(dirname "$storage")"
+        docker pull --quiet "$IMAGE"
+        nu "$GITHUB_ACTION_PATH/../../scripts/vm.nu" up --os "$OS" --image "$IMAGE" --name "$NAME" \
+          --storage "$storage" --key "$KEY" --port "$PORT" \
+          --version "$VERSION" --ram "$RAM" --cpus "$CPUS" --disk "$DISK"
+
+    - name: Wait for the install and provisioning
+      shell: bash
+      env:
+        OS: ${{ inputs.os }}
+        NAME: ${{ inputs.name }}
+        KEY: ${{ steps.key.outputs.key }}
+        PORT: ${{ inputs.port }}
+        TIMEOUT: ${{ inputs.timeout-minutes }}
+      run: |
+        set -euo pipefail
+        vm="$GITHUB_ACTION_PATH/../../scripts/vm.nu"
+        if [ "$OS" = "windows" ]; then
+          nu "$vm" wait --os windows --name "$NAME" --key "$KEY" --port "$PORT" --timeout "${TIMEOUT}min"
+        else
+          nu "$vm" wait --os macos --name "$NAME" --key "$KEY" --port "$PORT" --timeout "${TIMEOUT}min" --ssh-only
+          nu "$vm" provision --os macos --name "$NAME" --key "$KEY" --port "$PORT"
+        fi

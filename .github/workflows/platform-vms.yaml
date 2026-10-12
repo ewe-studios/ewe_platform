@@ -1,0 +1,125 @@
+name: Windows and macOS (VMs)
+
+# Builds and tests on Windows and macOS in the platform-images VM images
+# (ci/ewe-platform-image/{windows,macos}). Opt-in: nightly and manual runs
+# only. A VM install plus provisioning takes 45-75 minutes on a
+# GitHub-hosted runner, so these never run on pull requests.
+#
+#   windows-ssh     nightly + manual: boots the Windows VM on ubuntu-latest
+#                   (KVM) and runs the checks over SSH
+#   windows-runner  manual (mode runner): registers the VM as an ephemeral
+#                   just-in-time runner; the job `windows-in-vm` then runs on
+#                   it with normal `uses:` steps
+#   macos-ssh       manual only, and only on a self-hosted Linux host that is
+#                   Apple hardware (Apple's macOS licence): label it
+#                   `apple-hardware`; its VM disk must have gone through the
+#                   one-time manual install (ci/platform-images/README.md)
+#
+# Secrets: DOCKERHUB_EWESTUDIO_TOKEN (pull/push the images), and for runner
+# mode the GitHub App EWE_RUNNER_REGISTRA_CLIENT_ID / _PRIVATE_KEY.
+
+on:
+  schedule:
+    - cron: "47 3 * * *"
+  workflow_dispatch:
+    inputs:
+      os:
+        description: Which VM
+        type: choice
+        options: [windows, macos]
+        default: windows
+      mode:
+        description: "ssh: run the checks over SSH; runner: register the VM as a just-in-time runner"
+        type: choice
+        options: [ssh, runner]
+        default: ssh
+      macos-ssh-key:
+        description: "macOS: path on the self-hosted host of the private key authorised in the VM"
+        type: string
+        default: /var/lib/platform-images/macos/ci-key
+      macos-storage:
+        description: "macOS: persistent VM disk directory on the self-hosted host"
+        type: string
+        default: /var/lib/platform-images/macos/storage
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.os || 'windows' }}-${{ inputs.mode || 'ssh' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  windows-ssh:
+    if: github.event_name == 'schedule' || (inputs.os == 'windows' && inputs.mode == 'ssh')
+    uses: ./.github/workflows/platform-images-vm.yaml
+    with:
+      os: windows
+      mode: ssh
+      run: |
+        nu ci/platform-images/scripts/link-submodules.nu
+        python scripts/ci/ci.py run foundation_jsonschema --profile uat
+        cargo build --profile uat -p infrastructure_llama_cpp --features vulkan --examples
+    secrets: inherit
+
+  windows-runner:
+    if: github.event_name == 'workflow_dispatch' && inputs.os == 'windows' && inputs.mode == 'runner'
+    uses: ./.github/workflows/platform-images-vm.yaml
+    with:
+      os: windows
+      mode: runner
+      runner-label: ewe-windows-${{ github.run_id }}-${{ github.run_attempt }}
+    secrets: inherit
+
+  # Runs inside the Windows VM, on the runner `windows-runner` registers.
+  windows-in-vm:
+    if: github.event_name == 'workflow_dispatch' && inputs.os == 'windows' && inputs.mode == 'runner'
+    runs-on: [self-hosted, Windows, "ewe-windows-${{ github.run_id }}-${{ github.run_attempt }}"]
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Link the baked submodules
+        uses: ./ci/platform-images/actions/link-submodules
+
+      - name: Check a package
+        shell: pwsh
+        run: python scripts/ci/ci.py run foundation_jsonschema --profile uat
+
+  macos-ssh:
+    if: github.event_name == 'workflow_dispatch' && inputs.os == 'macos'
+    uses: ./.github/workflows/platform-images-vm.yaml
+    with:
+      os: macos
+      mode: ${{ inputs.mode }}
+      host-runs-on: '["self-hosted", "linux", "kvm", "apple-hardware"]'
+      storage: ${{ inputs.macos-storage }}
+      ssh-key-path: ${{ inputs.macos-ssh-key }}
+      runner-label: ewe-macos-${{ github.run_id }}-${{ github.run_attempt }}
+      run: |
+        nu ci/platform-images/scripts/link-submodules.nu
+        python3 scripts/ci/ci.py run foundation_jsonschema --profile uat
+        cargo build --profile uat -p infrastructure_llama_cpp --examples
+    secrets: inherit
+
+  # Runs inside the macOS VM when macos-ssh registers it (mode runner).
+  macos-in-vm:
+    if: github.event_name == 'workflow_dispatch' && inputs.os == 'macos' && inputs.mode == 'runner'
+    runs-on: [self-hosted, macOS, "ewe-macos-${{ github.run_id }}-${{ github.run_attempt }}"]
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 1
+          submodules: false
+
+      - name: Link the baked submodules
+        uses: ./ci/platform-images/actions/link-submodules
+
+      - name: Check a package
+        run: python3 scripts/ci/ci.py run foundation_jsonschema --profile uat
