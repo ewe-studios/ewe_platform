@@ -147,11 +147,18 @@ impl Drop for TestHttpsServer {
 
 /// Create a `SSLConnector` that trusts the embedded self-signed test certificate.
 ///
-/// Use this when building a `SimpleHttpClient` that talks to `TestHttpsServer`:
+/// Use this when building a `NativeHttpClient` that talks to `TestHttpsServer`:
 ///
-/// ```ignore
+/// ```rust
+/// use std::net::SocketAddr;
+///
+/// use foundation_netio::http::NativeHttpClient;
+/// use foundation_netio::shared::client::StaticSocketAddr;
+/// use foundation_testing::http::{test_tls_connector, TestHttpsServer};
+///
 /// let server = TestHttpsServer::start();
-/// let client = SimpleHttpClient::with_resolver(dns)
+/// let dns = StaticSocketAddr::new(SocketAddr::from(([127, 0, 0, 1], server.port())));
+/// let client = NativeHttpClient::with_resolver(dns)
 ///     .with_tls_connector(test_tls_connector());
 /// ```
 #[must_use]
@@ -244,7 +251,7 @@ fn handle_tls_connection(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use foundation_netio::http::SimpleHttpClient;
+    use foundation_netio::http::NativeHttpClient;
     use foundation_netio::shared::client::StaticSocketAddr;
     use std::net::SocketAddr;
 
@@ -265,7 +272,7 @@ mod tests {
         let dns = StaticSocketAddr::new(addr);
         let connector = test_tls_connector();
 
-        let client = SimpleHttpClient::with_resolver(dns).with_tls_connector(connector);
+        let client = NativeHttpClient::with_resolver(dns).with_tls_connector(connector);
 
         let response = client
             .get("https://localhost/test")
