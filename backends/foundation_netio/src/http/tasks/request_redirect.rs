@@ -119,8 +119,9 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     /// non-blocking `WouldBlock`. Stores `resume` as the next `ReadingHead` state,
     /// registers a `BoolSignal`-backed waker on the connection, and returns
     /// `Depends(signal)` — the `TunnelDriver` flips the signal when the response
-    /// arrives. A blocking transport (no waker support) fails with `Timeout`, matching
-    /// the previous behavior.
+    /// arrives. A blocking transport (no waker support) fails with `Timeout` and the
+    /// task terminates (state `Done`) — it must not keep the resume state, or the
+    /// executor would re-drive the read and fail again on every timeout, forever.
     fn park_head(
         &mut self,
         resume: ReadHeadData<R>,
@@ -129,12 +130,15 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         let flag = signal.clone_inner();
         let waker: ConnWaker = Arc::new(move || flag.store(true, Ordering::SeqCst));
         // `resume.5` is the connection; register on it before moving into the state.
-        let registered = resume.5.register_read_waker(waker);
-        self.0 = Some(HttpRequestRedirectState::ReadingHead(Some(resume)));
-        if registered {
+        if resume.5.register_read_waker(waker) {
+            self.0 = Some(HttpRequestRedirectState::ReadingHead(Some(resume)));
             tracing::trace!("ReadingHead: response not ready; parking on connection read waker");
             TaskStatus::Depends(Arc::new(signal))
         } else {
+            // Terminal: the blocking read already waited out its timeout. Move to
+            // `Done` (not back to `ReadingHead`) so the task ends after this one
+            // `Ready` instead of re-reading — and re-failing — forever.
+            self.0 = Some(HttpRequestRedirectState::Done);
             TaskStatus::Ready(HttpRequestRedirectResponse::Error(HttpClientError::Timeout))
         }
     }

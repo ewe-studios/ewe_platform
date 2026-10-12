@@ -355,6 +355,9 @@ where
                                                     "Get intro from stream - error: {:?}",
                                                     err
                                                 );
+                                                // Terminal: end the task after this
+                                                // `Ready` (same as the sibling arms).
+                                                self.0.take();
                                                 return Some(TaskStatus::Ready(err.into()));
                                             }
                                         }
@@ -382,6 +385,9 @@ where
                                                     "Get intro from stream - error: {:?}",
                                                     err
                                                 );
+                                                // Terminal: end the task after this
+                                                // `Ready` (same as the sibling arms).
+                                                self.0.take();
                                                 return Some(TaskStatus::Ready(err.into()));
                                             }
                                         }

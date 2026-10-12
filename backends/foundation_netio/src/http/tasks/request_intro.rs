@@ -140,22 +140,26 @@ impl GetRequestIntroTask {
     /// `TunnelDriver` flips the signal and the executor unparks us. If the transport
     /// does not support readiness wakeups (a blocking `TcpStream` whose read timed
     /// out), the `WouldBlock` is a genuine failure, so we fail instead of parking
-    /// forever.
+    /// forever — and the task terminates: `resume` is only stored when parking.
     fn park_on_would_block(
         &mut self,
         conn: &HttpClientConnection,
         resume: GetRequestIntroState,
     ) -> TaskStatus<RequestIntro, (), BoxedSendExecutionAction> {
-        self.0 = Some(resume);
-
         let signal = BoolSignal::new(false);
         let flag = signal.clone_inner();
         let waker: ConnWaker = Arc::new(move || flag.store(true, Ordering::SeqCst));
 
         if conn.register_read_waker(waker) {
             tracing::trace!("[INTRO] read would block; parking on connection read waker");
+            self.0 = Some(resume);
             TaskStatus::Depends(Arc::new(signal))
         } else {
+            // Terminal failure: leave the state empty so the next `next_status`
+            // returns `None` and the task ends. Keeping `resume` here re-drove the
+            // blocking read after every timeout and emitted a fresh `Failed` each
+            // time — an unbounded retry loop that hung the caller forever.
+            drop(resume);
             tracing::error!(
                 "[INTRO] read would block on a blocking transport; treating as failure"
             );
@@ -335,5 +339,105 @@ impl TaskIterator for GetRequestIntroTask {
                 None => None,
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::net::TcpListener;
+    use std::sync::mpsc;
+    use std::time::{Duration, Instant};
+
+    use foundation_core::io::ioutils::ReadTimeoutOperations;
+    use foundation_core::url::Uri;
+
+    use crate::shared::client::SystemDnsResolver;
+
+    /// Regression: a blocking transport whose read times out must yield exactly
+    /// one `Ready(Failed(WouldBlock))` and then end (`None`).
+    ///
+    /// WHY: `park_on_would_block` used to store the resume state *before*
+    /// checking whether the transport could park. On a blocking `TcpStream` it
+    /// returned `Ready(Failed)` but left `IntroReading` in place, so the executor
+    /// drove the task again: another blocking read, another timeout, another
+    /// `Failed` — forever (CI `foundation_connectrpc` hung for 60 minutes logging
+    /// "[INTRO] read would block on a blocking transport" every 3s).
+    ///
+    /// HOW: a loopback peer accepts and never writes; the client read timeout is
+    /// 100ms. The task is driven with a hard iteration cap and a wall-clock bound,
+    /// so a regression fails fast instead of hanging.
+    #[test]
+    fn blocking_transport_timeout_fails_once_and_terminates() {
+        const MAX_STEPS: usize = 16;
+
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind loopback");
+        let addr = listener.local_addr().expect("local addr");
+
+        // Silent peer: accept, hold the socket open (never respond) until told to stop.
+        let (stop_tx, stop_rx) = mpsc::channel::<()>();
+        let peer = std::thread::spawn(move || {
+            let (socket, _) = listener.accept().expect("accept client");
+            // An explicit stop, the sender dropping, or the cap all end the wait;
+            // which one it was does not matter to the peer.
+            let _stopped = stop_rx.recv_timeout(Duration::from_secs(30));
+            drop(socket);
+        });
+
+        let uri = Uri::parse(&format!("http://127.0.0.1:{}/", addr.port())).expect("uri");
+        let mut conn = HttpClientConnection::connect(
+            &uri,
+            &SystemDnsResolver::new(),
+            Some(Duration::from_secs(5)),
+        )
+        .expect("connect to silent peer");
+        conn.stream_mut()
+            .set_read_timeout_as(Duration::from_millis(100))
+            .expect("set read timeout");
+
+        let mut task = GetRequestIntroTask::new(conn);
+
+        let started = Instant::now();
+        let mut ready_failures = 0usize;
+        let mut terminated = false;
+        for _ in 0..MAX_STEPS {
+            match task.next_status() {
+                None => {
+                    terminated = true;
+                    break;
+                }
+                Some(TaskStatus::Ready(RequestIntro::Failed(HttpClientError::ReaderError(
+                    HttpReaderError::WouldBlock,
+                )))) => ready_failures += 1,
+                Some(TaskStatus::Ready(RequestIntro::Failed(other))) => {
+                    panic!("unexpected failure kind: {other:?}")
+                }
+                Some(TaskStatus::Ready(RequestIntro::Success { .. })) => {
+                    panic!("a silent peer cannot produce a response")
+                }
+                Some(TaskStatus::Depends(_)) => {
+                    panic!("a blocking TcpStream must not park on a read waker")
+                }
+                Some(_) => {}
+            }
+        }
+        let elapsed = started.elapsed();
+
+        stop_tx.send(()).expect("signal silent peer");
+        peer.join().expect("silent peer thread");
+
+        assert!(
+            terminated,
+            "task kept running after its terminal failure (unbounded retry loop)"
+        );
+        assert_eq!(
+            ready_failures, 1,
+            "exactly one terminal failure is reported"
+        );
+        assert!(
+            elapsed < Duration::from_secs(10),
+            "task took {elapsed:?}; expected a single ~100ms read timeout"
+        );
     }
 }
