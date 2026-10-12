@@ -95,7 +95,7 @@ impl<T> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let `lock` = SpinRwLock::new(42);
+    /// let lock = SpinRwLock::new(42);
     /// ```
     #[inline]
     pub const fn new(data: T) -> Self {
@@ -117,8 +117,8 @@ impl<T> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let `lock` = SpinRwLock::new(42);
-    /// let value = `lock`.into_inner().unwrap();
+    /// let lock = SpinRwLock::new(42);
+    /// let value = lock.into_inner().unwrap();
     /// assert_eq!(value, 42);
     /// ```
     #[inline]
@@ -146,7 +146,7 @@ impl<T> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let mut `lock` = SpinRwLock::new(0);
+    /// let mut lock = SpinRwLock::new(0);
     /// *lock.get_mut().unwrap() = 10;
     /// assert_eq!(*lock.read().unwrap(), 10);
     /// ```
@@ -173,7 +173,7 @@ impl<T: ?Sized> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let `lock` = SpinRwLock::new(0);
+    /// let lock = SpinRwLock::new(0);
     /// assert!(!lock.is_poisoned());
     /// ```
     #[inline]
@@ -196,9 +196,9 @@ impl<T: ?Sized> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let `lock` = SpinRwLock::new(vec![1, 2, 3]);
-    /// let r1 = `lock`.read().unwrap();
-    /// let r2 = `lock`.read().unwrap();  // Multiple readers OK
+    /// let lock = SpinRwLock::new(vec![1, 2, 3]);
+    /// let r1 = lock.read().unwrap();
+    /// let r2 = lock.read().unwrap();  // Multiple readers OK
     /// assert_eq!(*r1, vec![1, 2, 3]);
     /// ```
     #[inline]
@@ -265,9 +265,9 @@ impl<T: ?Sized> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let `lock` = SpinRwLock::new(42);
+    /// let lock = SpinRwLock::new(42);
     ///
-    /// match `lock`.try_read() {
+    /// match lock.try_read() {
     ///     Ok(guard) => assert_eq!(*guard, 42),
     ///     Err(_) => {}
     /// };
@@ -310,8 +310,8 @@ impl<T: ?Sized> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let `lock` = SpinRwLock::new(0);
-    /// let mut w = `lock`.write().unwrap();
+    /// let lock = SpinRwLock::new(0);
+    /// let mut w = lock.write().unwrap();
     /// *w += 1;
     /// ```
     #[inline]
@@ -383,9 +383,9 @@ impl<T: ?Sized> SpinRwLock<T> {
     /// ```
     /// use foundation_nostd::primitives::SpinRwLock;
     ///
-    /// let `lock` = SpinRwLock::new(42);
+    /// let lock = SpinRwLock::new(42);
     ///
-    /// match `lock`.try_write() {
+    /// match lock.try_write() {
     ///     Ok(mut guard) => *guard = 100,
     ///     Err(_) => {}
     /// };

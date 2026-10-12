@@ -26,7 +26,7 @@ pub type TryLockResult<Guard> = Result<Guard, TryLockError<Guard>>;
 /// # Examples
 ///
 /// ```ignore
-/// use foundation_nostd::primitives::{SpinMutex, `PoisonError`};
+/// use foundation_nostd::primitives::{SpinMutex, PoisonError};
 ///
 /// let mutex = SpinMutex::new(0);
 /// let result = mutex.lock();
@@ -38,7 +38,7 @@ pub type TryLockResult<Guard> = Result<Guard, TryLockError<Guard>>;
 ///     }
 ///     Err(poisoned) => {
 ///         // Lock was poisoned by a panicked thread
-///         // Can recover by calling `into_inner`()
+///         // Can recover by calling `into_inner()`
 ///         let guard = poisoned.into_inner();
 ///         // Now we can access the data despite poisoning
 ///     }
