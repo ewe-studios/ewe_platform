@@ -31,7 +31,11 @@ fn test_build_qemu_args_headless() {
 
     let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
 
-    assert!(args.contains(&"-enable-kvm".to_string()) || args.iter().any(|a| a.contains("kvm")));
+    // KVM acceleration is used exactly when the host exposes a usable /dev/kvm.
+    assert_eq!(
+        args.contains(&"-enable-kvm".to_string()),
+        foundation_deployment_platform::doctor::kvm_available()
+    );
     assert!(args.iter().any(|a| a.contains("12288"))); // RAM
     assert!(args.iter().any(|a| a.contains("virtio-net-pci,netdev=net")));
     assert!(args.iter().any(|a| a.contains("vnc=:0")));

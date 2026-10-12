@@ -94,3 +94,10 @@ runs = ["", "--no-default-features --features single_threaded"]
 # tests (moved here from foundation_testbed with the code, spec-53 F11) only
 # compile with it, so test that configuration as well.
 runs = ["", "vms"]
+
+[packages.foundation_testbed]
+# `vms` re-exports foundation_deployment_platform (with its `vms` feature) as
+# `foundation_testbed::platform`; the VM e2e target (tests/e2e_tauri.rs, its
+# tests `#[ignore]`d — they need KVM and VM images) only compiles with it.
+# Test that configuration so the target cannot silently rot again.
+runs = ["", "vms"]

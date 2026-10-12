@@ -44,8 +44,14 @@ fn test_qemu_provider_host_health() {
     use foundation_deployment_platform::providers::Provider;
     let provider = QemuProvider::new();
     let health = provider.host_health();
-    // Should return host health struct (checks may fail if KVM not available)
-    let _ = health.is_healthy();
+    // The provider reports one (name, ok, message) row per host check the
+    // doctor runs. Individual checks may fail (no KVM, no qemu on the host);
+    // the report itself must still cover every check.
+    let expected = foundation_deployment_platform::doctor::check_host();
+    assert!(!health.is_empty(), "host health must report at least one check");
+    let names: Vec<&str> = health.iter().map(|(name, _, _)| name.as_str()).collect();
+    let expected_names: Vec<&str> = expected.checks.iter().map(|c| c.name).collect();
+    assert_eq!(names, expected_names);
 }
 
 // From providers/utm/applescript.rs
@@ -93,9 +99,11 @@ fn test_is_utm_bundle_false_for_regular_dir() {
 #[test]
 fn test_save_from_runtime_creates_valid_state() {
     use foundation_deployment_platform::providers::utm::state::{delete, exists, save_from_runtime};
-    let _ = save_from_runtime("test-utm", "/tmp/test.utm", "test-uuid", 2222, false);
+    save_from_runtime("test-utm", "/tmp/test.utm", "test-uuid", 2222, false)
+        .expect("saving UTM runtime state must succeed");
     assert!(exists("test-utm"));
-    let _ = delete("test-utm");
+    delete("test-utm").expect("deleting UTM runtime state must succeed");
+    assert!(!exists("test-utm"));
 }
 
 // From providers/utm/utmctl.rs

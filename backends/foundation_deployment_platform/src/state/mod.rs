@@ -48,6 +48,13 @@ pub fn save(state: &VmState) -> Result<()> {
         message: format!("serializing state: {e}"),
     })?;
 
+    // The state directory lives under the user's cache dir and does not exist
+    // on a fresh machine; don't rely on a launch path having created it.
+    let dir = state_dir();
+    std::fs::create_dir_all(&dir).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("creating state directory {dir:?}: {e}"),
+    })?;
+
     std::fs::write(&path, json).map_err(|e| TestbedError::Qcow2Error {
         message: format!("writing state to {path:?}: {e}"),
     })?;
