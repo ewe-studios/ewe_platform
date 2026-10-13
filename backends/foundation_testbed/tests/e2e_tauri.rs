@@ -18,7 +18,7 @@
 //! - Pre-built VM images (downloaded on first run)
 //! - Several minutes of execution time
 //!
-//! Run with: `cargo test -p foundation_testbed --test e2e_tauri -- --ignored`
+//! Run with: `cargo test -p foundation_testbed --features vms --test e2e_tauri -- --ignored`
 
 mod common;
 
@@ -27,7 +27,7 @@ use std::time::Duration;
 
 use common::{TestVm, assert_build_ok_linux, assert_build_ok_windows, assert_build_ok_macos,
              assert_elf_binary, assert_pe_binary, assert_macho_binary};
-use foundation_testbed::vms::config::Result;
+use foundation_testbed::platform::config::Result;
 use serial_test::serial;
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -464,7 +464,7 @@ fn test_project_mount_macos() -> Result<()> {
         .arg("-c")
         .arg(&scp_cmd)
         .status()
-        .map_err(|e| foundation_testbed::vms::config::TestbedError::Qcow2Error {
+        .map_err(|e| foundation_testbed::platform::config::TestbedError::Qcow2Error {
             message: format!("scp command: {e}"),
         })?;
     assert!(status.success(), "scp transfer should succeed");
@@ -500,7 +500,7 @@ fn test_tauri_build_macos() -> Result<()> {
         .arg("-c")
         .arg(&scp_cmd)
         .status()
-        .map_err(|e| foundation_testbed::vms::config::TestbedError::Qcow2Error {
+        .map_err(|e| foundation_testbed::platform::config::TestbedError::Qcow2Error {
             message: format!("scp command: {e}"),
         })?;
     assert!(status.success(), "scp transfer should succeed");
@@ -713,7 +713,7 @@ fn test_full_e2e_macos() -> Result<()> {
         .arg("-c")
         .arg(&scp_cmd)
         .status()
-        .map_err(|e| foundation_testbed::vms::config::TestbedError::Qcow2Error {
+        .map_err(|e| foundation_testbed::platform::config::TestbedError::Qcow2Error {
             message: format!("scp command: {e}"),
         })?;
     assert!(status.success(), "scp transfer should succeed");

@@ -1,18 +1,20 @@
 //! Tests extracted from vms/runner/ modules
 
-use foundation_testbed::vms::config::GuestOs;
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::config::GuestOs;
 
 // From runner/mod.rs
 #[test]
 fn test_auto_detect_search_paths() {
-    let target = foundation_testbed::vms::build::target_triple(GuestOs::Linux);
+    let target = foundation_deployment_platform::build::target_triple(GuestOs::Linux);
     assert!(target.contains("aarch64"));
 }
 
 // From runner/logs.rs
 #[test]
 fn test_log_kind_from_str() {
-    use foundation_testbed::vms::runner::logs::LogKind;
+    use foundation_deployment_platform::runner::logs::LogKind;
     assert!("build".parse::<LogKind>().is_ok());
     assert!("run".parse::<LogKind>().is_ok());
     assert!("invalid".parse::<LogKind>().is_err());
@@ -20,8 +22,8 @@ fn test_log_kind_from_str() {
 
 #[test]
 fn test_log_path_linux() {
-    use foundation_testbed::vms::config::get_profile;
-    use foundation_testbed::vms::runner::logs::{log_path, LogKind};
+    use foundation_deployment_platform::config::get_profile;
+    use foundation_deployment_platform::runner::logs::{log_path, LogKind};
     let profile = get_profile("linux-build").unwrap().clone();
     assert_eq!(
         log_path(&profile, LogKind::Build),
@@ -31,8 +33,8 @@ fn test_log_path_linux() {
 
 #[test]
 fn test_log_path_windows() {
-    use foundation_testbed::vms::config::get_profile;
-    use foundation_testbed::vms::runner::logs::{log_path, LogKind};
+    use foundation_deployment_platform::config::get_profile;
+    use foundation_deployment_platform::runner::logs::{log_path, LogKind};
     let profile = get_profile("windows-build").unwrap().clone();
     assert!(log_path(&profile, LogKind::Build).contains("Users"));
     assert!(log_path(&profile, LogKind::Build).contains("build.log"));
@@ -88,7 +90,7 @@ fn test_windows_type_escape() {
 // From runner/validate.rs
 #[test]
 fn test_validation_result_structure() {
-    use foundation_testbed::vms::runner::validate::ValidationResult;
+    use foundation_deployment_platform::runner::validate::ValidationResult;
     let result = ValidationResult {
         match_pct: 95.0,
         passed: true,

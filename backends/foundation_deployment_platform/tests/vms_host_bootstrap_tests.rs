@@ -1,7 +1,9 @@
 //! Tests extracted from vms/host_bootstrap/ modules
 
-use foundation_testbed::vms::host_bootstrap::{host_mise_config_path, ToolStatus};
-use foundation_testbed::vms::host_bootstrap::install::find_mise_bin;
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::host_bootstrap::{host_mise_config_path, ToolStatus};
+use foundation_deployment_platform::host_bootstrap::install::find_mise_bin;
 
 // From host_bootstrap/mod.rs
 #[test]

@@ -735,6 +735,18 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// start in the order written and all land in the same group. The attribute
 /// cannot be stacked (that is a compile error pointing here).
 ///
+/// `dockerfile = "path"` builds `image` from that Dockerfile (relative to the
+/// crate's `CARGO_MANIFEST_DIR`, with its directory as the build context)
+/// instead of pulling it; the build is cached by tag. `share_caller_network =
+/// true` runs the container in the test process's network namespace, so each
+/// reaches the other on `localhost` — on the Docker host and inside a CI job
+/// container alike.
+///
+/// Without a reachable Docker daemon the function logs a skip and returns
+/// without running its body — in the sync and the `async fn` form alike —
+/// unless `required = true`, which makes a missing daemon a panic. A daemon
+/// that is reachable but fails a request is never skipped.
+///
 /// # Examples
 ///
 /// A single container — the bare `key = value` list is shorthand:

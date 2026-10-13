@@ -93,6 +93,26 @@ runs = ["", "--no-default-features"]
 # test that configuration too (ewe-studios/ewe_platform#51, #52).
 runs = ["", "--no-default-features --features single_threaded"]
 
+[packages.foundation_deployment_platform]
+# VM orchestration (QEMU/UTM) is behind the non-default `vms` feature; its
+# tests (moved here from foundation_testbed with the code, spec-53 F11) only
+# compile with it, so test that configuration as well.
+runs = ["", "vms"]
+
+[packages.foundation_testbed]
+# `vms` re-exports foundation_deployment_platform (with its `vms` feature) as
+# `foundation_testbed::platform`; the VM e2e target (tests/e2e_tauri.rs, its
+# tests `#[ignore]`d — they need KVM and VM images) only compiles with it.
+# Test that configuration so the target cannot silently rot again.
+runs = ["", "vms"]
+
+[packages.foundation_deployment_docker]
+# The Docker client (`client`, `error`, `streaming`) is behind the `docker`
+# feature; with default features none of it compiles, so its mock-daemon tests
+# (API version negotiation, error classification, every endpoint wrapper)
+# never ran. Test that configuration as well. The real-daemon tests stay
+# behind `integration-tests`.
+runs = ["", "docker"]
 # ---------------------------------------------------------------------------
 # Packages that need more memory than the runner has to spare.
 

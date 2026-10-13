@@ -9,11 +9,11 @@
 #![allow(clippy::too_many_arguments)]
 
 // Re-export the platform for backward compatibility. Only present when the
-// (optional) platform dependency is pulled in — the `vms` feature (or its
-// `foundation_deployment_platform_vms` alias). Without this gate the re-export
+// (optional) platform dependency is pulled in — the `vms` feature (which
+// `foundation_deployment_platform_vms` aliases). Without this gate the re-export
 // fails to compile under the default feature set, which breaks every crate that
 // dev-depends on `foundation_testbed`.
-#[cfg(any(feature = "vms", feature = "foundation_deployment_platform_vms"))]
+#[cfg(feature = "vms")]
 pub use foundation_deployment_platform as platform;
 
 #[cfg(feature = "wasm")]

@@ -1,6 +1,8 @@
 //! Tests extracted from vms/bootstrap/ modules
 
-use foundation_testbed::vms::bootstrap::BOOTSTRAP_MISE_TOML;
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::bootstrap::BOOTSTRAP_MISE_TOML;
 
 // From bootstrap/mod.rs
 #[test]
@@ -42,7 +44,7 @@ fn test_windows_bootstrap_mise_toml_has_required_tools() {
 // From bootstrap/logger.rs
 #[test]
 fn test_logger_creates_directory() {
-    use foundation_testbed::vms::bootstrap::logger::BootstrapLogger;
+    use foundation_deployment_platform::bootstrap::logger::BootstrapLogger;
     use std::path::PathBuf;
 
     let logger = BootstrapLogger::new("test-logger-tmp").unwrap();
@@ -54,8 +56,8 @@ fn test_logger_creates_directory() {
 // From bootstrap/boot_wait.rs
 #[test]
 fn test_wait_for_ssh_times_out_on_unreachable_port() {
-    use foundation_testbed::vms::bootstrap::boot_wait::wait_for_ssh;
-    use foundation_testbed::vms::config::get_profile;
+    use foundation_deployment_platform::bootstrap::boot_wait::wait_for_ssh;
+    use foundation_deployment_platform::config::get_profile;
 
     let profile = get_profile("linux-test").unwrap();
     // Use a different port for this test

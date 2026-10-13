@@ -51,7 +51,7 @@ pub async fn system_info(client: &super::DockerClient) -> Result<serde_json::Val
     use crate::error::DockerError;
     use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 
-    let base = client.base_url();
+    let base = client.api_url().await?;
     let endpoint_url = format!("{base}/info");
     let builder = foundation_netio::PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| crate::generated::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -81,7 +81,7 @@ pub async fn system_info(client: &super::DockerClient) -> Result<serde_json::Val
 ///
 /// Returns [`DockerError`] on transport failure or non-2xx status.
 pub async fn system_ping(client: &super::DockerClient) -> Result<(), DockerError> {
-    let base = client.base_url();
+    let base = client.api_url().await?;
     let endpoint_url = format!("{base}/_ping");
     let builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| DockerError::Transport(e.to_string()))?;
@@ -121,7 +121,7 @@ pub async fn system_events(
     until: Option<&str>,
     filters: Option<&str>,
 ) -> Result<Vec<u8>, DockerError> {
-    let base = client.base_url();
+    let base = client.api_url().await?;
     let endpoint_url = format!("{base}/events");
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| DockerError::Transport(e.to_string()))?;
@@ -166,7 +166,7 @@ pub async fn system_data_usage(
     client: &super::DockerClient,
     types: Option<&str>,
 ) -> Result<serde_json::Value, DockerError> {
-    let base = client.base_url();
+    let base = client.api_url().await?;
     let endpoint_url = format!("{base}/system/df");
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| DockerError::Transport(e.to_string()))?;
@@ -216,6 +216,6 @@ pub async fn system_auth(
             serveraddress: None,
         },
     };
-    let response = system_auth_request(client.http(), &args, &client.base_url(), None::<NoMod>).await?;
+    let response = system_auth_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(response.body)
 }

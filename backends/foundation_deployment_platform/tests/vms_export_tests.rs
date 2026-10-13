@@ -1,11 +1,13 @@
 //! Tests extracted from vms/export/ modules
 
+#![cfg(feature = "vms")]
+
 use std::path::Path;
 
-use foundation_testbed::vms::export::compress::{
+use foundation_deployment_platform::export::compress::{
     compress_gzip, compress_xz, decompress_gzip, decompress_xz, is_compressed, Compression,
 };
-use foundation_testbed::vms::export::manifest::ExportManifest;
+use foundation_deployment_platform::export::manifest::ExportManifest;
 
 // From export/compress.rs
 #[test]

@@ -52,7 +52,7 @@ pub async fn exec_create(
     let response = container_exec_request(
         client.http(),
         &args,
-        &client.base_url(),
+        &client.api_url().await?,
         Some(move |b: &mut PreparedRequestBuilder| {
             b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
             let _ = b.set_body_json(&body);
@@ -81,7 +81,7 @@ pub async fn exec_start(
     detach: bool,
 ) -> Result<Vec<u8>, DockerError> {
     let body = serde_json::json!({ "Detach": detach });
-    let endpoint_url = format!("{}/exec/{}/start", client.base_url(), id);
+    let endpoint_url = format!("{}/exec/{}/start", client.api_url().await?, id);
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| DockerError::Transport(e.to_string()))?;
     builder.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
@@ -123,7 +123,7 @@ pub async fn exec_inspect(
     client: &super::DockerClient,
     id: &str,
 ) -> Result<serde_json::Value, DockerError> {
-    let endpoint_url = format!("{}/exec/{}/json", client.base_url(), id);
+    let endpoint_url = format!("{}/exec/{}/json", client.api_url().await?, id);
     let builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| DockerError::Transport(e.to_string()))?;
     let response = client
@@ -169,6 +169,6 @@ pub async fn exec_resize(
         h: Some(h.to_string()),
         w: Some(w.to_string()),
     };
-    exec_resize_request(client.http(), &args, &client.base_url(), None::<NoMod>).await?;
+    exec_resize_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(())
 }

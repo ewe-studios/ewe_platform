@@ -1,6 +1,8 @@
 //! Tests extracted from vms/config.rs
 
-use foundation_testbed::vms::config::UserConfig;
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::config::UserConfig;
 
 #[test]
 fn test_parse_mount_from_inline_toml() {

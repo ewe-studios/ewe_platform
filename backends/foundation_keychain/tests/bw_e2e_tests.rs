@@ -7,10 +7,15 @@
 //! NOTE: Full `bw login` requires client-side encryption keys that self-hosted
 //! servers don't generate. The API is tested via HTTP; `bw config server`
 //! validates CLI connectivity. Full CLI CRUD is a follow-up.
+//!
+//! The `bw` image is built from `Dockerfile.bw_e2e` by the macro (cached by
+//! tag), and the container shares the test process's network namespace, so
+//! `bw` reaches the in-process server on `localhost` — on a developer machine
+//! and inside a CI job container alike. Without a Docker daemon the test logs
+//! a skip and returns.
 
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
-use std::process::Command;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -24,11 +29,6 @@ use foundation_db::core::storage_provider::AsyncQueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 
 // ── Helpers ──────────────────────────────────────────────────────────────
-
-fn bw_image_available() -> bool {
-    Command::new("docker").args(["images", "-q", "foundation-keychain-bw-e2e"])
-        .output().map(|o| !o.stdout.is_empty()).unwrap_or(false)
-}
 
 fn read_response(s: &mut TcpStream) -> (u16, String) {
     let mut buf = Vec::new(); let mut c = [0u8; 4096];
@@ -52,6 +52,27 @@ fn auth_req(method: &str, addr: SocketAddr, path: &str, body: &str, ct: &str, be
     read_response(&mut s)
 }
 
+/// Percent-encode a value for an `application/x-www-form-urlencoded` body:
+/// everything but the RFC 3986 unreserved characters is escaped.
+fn form_encode(value: &str) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~') {
+            out.push(byte as char);
+        } else {
+            write!(out, "%{byte:02X}").expect("writing to a String cannot fail");
+        }
+    }
+    out
+}
+
+#[test]
+fn form_encode_escapes_base64_and_email_characters() {
+    assert_eq!(form_encode("a+b/c=="), "a%2Bb%2Fc%3D%3D");
+    assert_eq!(form_encode("test-1@e2e.local"), "test-1%40e2e.local");
+}
+
 fn bw_password_hash(email: &str, password: &str) -> String {
     use base64::Engine; use pbkdf2::pbkdf2_hmac; use sha2::Sha256;
     let e = email.trim().to_lowercase(); let mut mk = vec![0u8; 32];
@@ -62,12 +83,16 @@ fn bw_password_hash(email: &str, password: &str) -> String {
 
 // ── Test ─────────────────────────────────────────────────────────────────
 
-#[docker_container(image = "foundation-keychain-bw-e2e", as = "bw", network = "host")]
+#[docker_container(
+    image = "foundation-keychain-bw-e2e",
+    dockerfile = "Dockerfile.bw_e2e",
+    as = "bw",
+    share_caller_network = true,
+    stop_timeout = 5
+)]
 #[valtron_test]
 fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
-    if !bw_image_available() { println!("SKIP — build image first"); return; }
     let bw = containers.container("bw").expect("bw container");
-    let cid = bw.id().to_string();
 
     // ── 1. Start server ──────────────────────────────────────────────────
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
@@ -92,15 +117,23 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
 
     // ── 3. `bw config server` validates CLI connectivity ─────────────────
     let url = format!("http://localhost:{}", addr.port());
-    let cfg = Command::new("docker")
-        .args(["exec", &cid, "bw", "config", "server", &url])
-        .output().expect("bw config");
-    assert!(cfg.status.success(), "bw config: {}", String::from_utf8_lossy(&cfg.stderr));
+    let cfg = bw.exec(&["bw", "config", "server", &url]).expect("bw config");
+    assert!(cfg.success(), "bw config (exit {}): {}{}", cfg.exit_code, cfg.stdout, cfg.stderr);
 
     // ── 4. Register ──────────────────────────────────────────────────────
     let ts = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-    let email = format!("test-{ts}@e2e.local");
-    let hash = bw_password_hash(&email, "correct-horse-battery-staple");
+    // Pick an account whose password hash contains a `+`, so every run covers
+    // the form-encoding case that once failed only for some hashes (about
+    // half of all hashes contain one; 64 tries make a miss vanishingly rare,
+    // and a miss is reported rather than silently testing the easy case).
+    let (email, hash) = (0..64)
+        .map(|n| {
+            let email = format!("test-{ts}-{n}@e2e.local");
+            let hash = bw_password_hash(&email, "correct-horse-battery-staple");
+            (email, hash)
+        })
+        .find(|(_, hash)| hash.contains('+'))
+        .expect("one of 64 password hashes should contain a '+'");
     use base64::Engine;
     let akey = base64::engine::general_purpose::STANDARD.encode([0u8; 64]);
 
@@ -119,8 +152,12 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     assert_eq!(pre["kdf"], 0, "prelogin kdf");
 
     // ── 6. Login (connect/token) ─────────────────────────────────────────
+    // Form values must be percent-encoded: the hash is base64, and an
+    // unencoded `+` in it decodes to a space on the server (as the form
+    // encoding says it must), failing the login for roughly every other hash.
     let (s, b) = http_req("POST", addr, "/identity/connect/token",
-        &format!("grant_type=password&username={email}&password={hash}"), "application/x-www-form-urlencoded");
+        &format!("grant_type=password&username={}&password={}", form_encode(&email), form_encode(&hash)),
+        "application/x-www-form-urlencoded");
     assert_eq!(s, 200, "login: {b}");
     let tok: serde_json::Value = serde_json::from_str(&b).unwrap();
     let at = tok["access_token"].as_str().expect("access_token").to_string();

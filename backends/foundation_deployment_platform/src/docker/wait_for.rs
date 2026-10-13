@@ -12,14 +12,14 @@
 //! constructors provide sensible defaults.
 
 use std::collections::HashMap;
-use std::net::{TcpStream, UdpSocket};
+use std::net::{Ipv4Addr, SocketAddr, TcpStream, UdpSocket};
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::sleep_async;
 use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
 use foundation_deployment_docker::DockerClient;
 use foundation_netio::http::SimpleHttpClient;
-use crate::docker::error::{docker_err, DockerError, DockerResult};
+use crate::docker::error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
 
 /// A readiness condition for a running container.
 #[derive(Debug, Clone)]
@@ -84,22 +84,26 @@ impl WaitFor {
 
     /// Apply this wait strategy. Called by ContainerHandle::start_async().
     ///
+    /// `host` is where the published `ports` are reached from this process
+    /// (see [`crate::docker::ContainerHandle::host_ip`]).
+    ///
     /// All waits are async and use valtron's cooperative [`sleep_async`] for
     /// backoff — no thread blocking.
     pub async fn apply(
         &self,
         client: &DockerClient,
         container_id: &str,
+        host: Ipv4Addr,
         ports: &HashMap<String, u16>,
     ) -> DockerResult<()> {
         let mut stack = vec![self];
         while let Some(strategy) = stack.pop() {
             match strategy {
                 WaitFor::Port { port, timeout } => {
-                    wait_for_port(*port, *timeout, ports).await?;
+                    wait_for_port_at(host, *port, *timeout, ports).await?;
                 }
                 WaitFor::Udp { port, timeout } => {
-                    wait_for_udp(*port, *timeout, ports).await?;
+                    wait_for_udp(host, *port, *timeout, ports).await?;
                 }
                 WaitFor::Stdout { message, timeout } => {
                     wait_for_stdout(client, container_id, message, *timeout).await?;
@@ -119,21 +123,36 @@ impl WaitFor {
     }
 }
 
+/// Wait until the host port `port` is published on accepts TCP connections on
+/// `127.0.0.1`. See [`wait_for_port_at`] for a process that reaches the host
+/// elsewhere.
 pub async fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
+    wait_for_port_at(Ipv4Addr::LOCALHOST, port, timeout, ports).await
+}
+
+/// Wait until the host port `port` is published on accepts TCP connections on
+/// `host`.
+pub async fn wait_for_port_at(
+    host: Ipv4Addr,
+    port: u16,
+    timeout: Duration,
+    ports: &HashMap<String, u16>,
+) -> DockerResult<()> {
     let key = format!("{port}/tcp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
         docker_err(DockerError::InvalidConfig(format!("port {port} was not mapped")))
     })?;
+    let addr = SocketAddr::from((host, host_port));
 
     let start = Instant::now();
     let mut backoff = Duration::from_millis(100);
 
     loop {
-        match TcpStream::connect(format!("127.0.0.1:{host_port}")) {
+        match TcpStream::connect_timeout(&addr, Duration::from_secs(1)) {
             Ok(_) => return Ok(()),
             Err(_) if start.elapsed() >= timeout => {
                 return Err(docker_err(DockerError::WaitTimeout {
-                    strategy: format!("Port({port} via host:{host_port})"),
+                    strategy: format!("Port({port} via {addr})"),
                     elapsed: start.elapsed(),
                 }));
             }
@@ -148,21 +167,27 @@ pub async fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String,
 /// UDP readiness: send a 1-byte probe to the mapped host port, retry until a
 /// response arrives or the timeout elapses. Uses valtron's cooperative
 /// [`sleep_async`].
-pub(crate) async fn wait_for_udp(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
+pub(crate) async fn wait_for_udp(
+    host: Ipv4Addr,
+    port: u16,
+    timeout: Duration,
+    ports: &HashMap<String, u16>,
+) -> DockerResult<()> {
     let key = format!("{port}/udp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
         docker_err(DockerError::InvalidConfig(format!("UDP port {port} was not mapped")))
     })?;
+    let addr = SocketAddr::from((host, host_port));
 
     let start = Instant::now();
     let mut backoff = Duration::from_millis(100);
 
     loop {
-        match udp_probe(host_port) {
+        match udp_probe(addr) {
             true => return Ok(()),
             false if start.elapsed() >= timeout => {
                 return Err(docker_err(DockerError::WaitTimeout {
-                    strategy: format!("Udp({port} via host:{host_port})"),
+                    strategy: format!("Udp({port} via {addr})"),
                     elapsed: start.elapsed(),
                 }));
             }
@@ -174,18 +199,20 @@ pub(crate) async fn wait_for_udp(port: u16, timeout: Duration, ports: &HashMap<S
     }
 }
 
-/// Send a 1-byte probe to `127.0.0.1:host_port` and return true if a response
-/// comes back within a short window.  Uses a non-empty payload (0x01) because
+/// Send a 1-byte probe to `addr` and return true if a response comes back
+/// within a short window.  Uses a non-empty payload (0x01) because
 /// `socat EXEC:cat` produces no response for an empty datagram — cat reads 0
 /// bytes and exits without writing.
-fn udp_probe(host_port: u16) -> bool {
+fn udp_probe(addr: SocketAddr) -> bool {
     let socket = match UdpSocket::bind("0.0.0.0:0") {
         Ok(s) => s,
         Err(_) => return false,
     };
-    let _ = socket.set_read_timeout(Some(Duration::from_millis(200)));
-    let addr = format!("127.0.0.1:{host_port}");
-    if socket.send_to(&[1u8], &addr).is_err() {
+    // Without the timeout `recv_from` could block the probe forever.
+    if socket.set_read_timeout(Some(Duration::from_millis(200))).is_err() {
+        return false;
+    }
+    if socket.send_to(&[1u8], addr).is_err() {
         return false;
     }
     let mut buf = [0u8; 16];
@@ -218,7 +245,7 @@ async fn wait_for_stdout(
             )
             .await
             .map_err(|e| {
-                docker_err(DockerError::Connection(format!("container_logs: {e}")))
+                docker_err(classify_docker_client_err("container_logs", e))
             })?;
 
         let mut decoder = LogFrameDecoder::new();

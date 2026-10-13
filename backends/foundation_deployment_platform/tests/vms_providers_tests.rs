@@ -1,7 +1,9 @@
 //! Tests extracted from vms/providers/ modules
 
-use foundation_testbed::vms::config::{get_profile, DisplayMode};
-use foundation_testbed::vms::providers::{Provider, ProviderId, ResolvedPorts, VmHandle};
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::config::{get_profile, DisplayMode};
+use foundation_deployment_platform::providers::{Provider, ProviderId, ResolvedPorts, VmHandle};
 
 // From providers/mod.rs
 #[test]
@@ -28,24 +30,28 @@ fn test_vm_handle_pid_parsing() {
     assert_eq!(handle.pid(), Some(12345));
 }
 
-#[cfg(feature = "qemu")]
 #[test]
 fn test_qemu_provider_creation() {
-    use foundation_testbed::vms::providers::qemu::QemuProvider;
+    use foundation_deployment_platform::providers::qemu::QemuProvider;
     let provider = QemuProvider::new();
     assert_eq!(provider.name(), "qemu");
     assert_eq!(provider.id(), ProviderId::Qemu);
 }
 
-#[cfg(feature = "qemu")]
 #[test]
 fn test_qemu_provider_host_health() {
-    use foundation_testbed::vms::providers::qemu::QemuProvider;
-    use foundation_testbed::vms::providers::Provider;
+    use foundation_deployment_platform::providers::qemu::QemuProvider;
+    use foundation_deployment_platform::providers::Provider;
     let provider = QemuProvider::new();
     let health = provider.host_health();
-    // Should return host health struct (checks may fail if KVM not available)
-    let _ = health.is_healthy();
+    // The provider reports one (name, ok, message) row per host check the
+    // doctor runs. Individual checks may fail (no KVM, no qemu on the host);
+    // the report itself must still cover every check.
+    let expected = foundation_deployment_platform::doctor::check_host();
+    assert!(!health.is_empty(), "host health must report at least one check");
+    let names: Vec<&str> = health.iter().map(|(name, _, _)| name.as_str()).collect();
+    let expected_names: Vec<&str> = expected.checks.iter().map(|c| c.name).collect();
+    assert_eq!(names, expected_names);
 }
 
 // From providers/utm/applescript.rs
@@ -63,25 +69,25 @@ fn test_import_script_format() {
 // From providers/utm/bundle.rs
 #[test]
 fn test_quoted_plist_string_simple() {
-    use foundation_testbed::vms::providers::utm::bundle::quoted_plist_string;
+    use foundation_deployment_platform::providers::utm::bundle::quoted_plist_string;
     assert_eq!(quoted_plist_string("hello"), "\"hello\"");
 }
 
 #[test]
 fn test_quoted_plist_string_with_backslash() {
-    use foundation_testbed::vms::providers::utm::bundle::quoted_plist_string;
+    use foundation_deployment_platform::providers::utm::bundle::quoted_plist_string;
     assert_eq!(quoted_plist_string("path\\to"), "\"path\\\\to\"");
 }
 
 #[test]
 fn test_quoted_plist_string_with_quotes() {
-    use foundation_testbed::vms::providers::utm::bundle::quoted_plist_string;
+    use foundation_deployment_platform::providers::utm::bundle::quoted_plist_string;
     assert_eq!(quoted_plist_string("say \"hi\""), "\"say \\\"hi\\\"\"");
 }
 
 #[test]
 fn test_is_utm_bundle_false_for_regular_dir() {
-    use foundation_testbed::vms::providers::utm::bundle::is_utm_bundle;
+    use foundation_deployment_platform::providers::utm::bundle::is_utm_bundle;
     // A regular directory without config.plist should not be a bundle
     let dir = std::env::temp_dir().join("test_not_bundle");
     let _ = std::fs::create_dir_all(&dir);
@@ -92,16 +98,18 @@ fn test_is_utm_bundle_false_for_regular_dir() {
 // From providers/utm/state.rs
 #[test]
 fn test_save_from_runtime_creates_valid_state() {
-    use foundation_testbed::vms::providers::utm::state::{delete, exists, save_from_runtime};
-    let _ = save_from_runtime("test-utm", "/tmp/test.utm", "test-uuid", 2222, false);
+    use foundation_deployment_platform::providers::utm::state::{delete, exists, save_from_runtime};
+    save_from_runtime("test-utm", "/tmp/test.utm", "test-uuid", 2222, false)
+        .expect("saving UTM runtime state must succeed");
     assert!(exists("test-utm"));
-    let _ = delete("test-utm");
+    delete("test-utm").expect("deleting UTM runtime state must succeed");
+    assert!(!exists("test-utm"));
 }
 
 // From providers/utm/utmctl.rs
 #[test]
 fn test_version_is_older() {
-    use foundation_testbed::vms::providers::utm::utmctl::version_is_older;
+    use foundation_deployment_platform::providers::utm::utmctl::version_is_older;
     assert!(version_is_older("4.6.4", "4.6.5"));
     assert!(version_is_older("4.5.0", "4.6.5"));
     assert!(version_is_older("3.9.9", "4.6.5"));

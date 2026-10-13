@@ -1,7 +1,9 @@
 //! Tests extracted from vms/ssh/ modules
 
-use foundation_testbed::vms::config::GuestOs;
-use foundation_testbed::vms::ssh::{wrap_command, wrap_command_bash, wrap_command_cmd};
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::config::GuestOs;
+use foundation_deployment_platform::ssh::{wrap_command, wrap_command_bash, wrap_command_cmd};
 
 // From ssh/mod.rs
 #[test]

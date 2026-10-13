@@ -1,6 +1,8 @@
 //! Tests extracted from vms/doctor/mod.rs
 
-use foundation_testbed::vms::doctor::{check_host, find_ssh_key, kvm_available};
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::doctor::{check_host, find_ssh_key, kvm_available};
 
 #[test]
 fn test_host_health_returns_checks() {

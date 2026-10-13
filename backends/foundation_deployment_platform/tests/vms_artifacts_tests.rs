@@ -1,7 +1,9 @@
 //! Tests extracted from vms/artifacts.rs
 
-use foundation_testbed::vms::artifacts::scan_artifacts;
-use foundation_testbed::vms::config::GuestOs;
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::artifacts::scan_artifacts;
+use foundation_deployment_platform::config::GuestOs;
 
 #[test]
 fn test_scan_artifacts_filters_extensions() {

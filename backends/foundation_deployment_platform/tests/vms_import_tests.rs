@@ -1,6 +1,8 @@
 //! Tests extracted from vms/import/ modules
 
-use foundation_testbed::vms::import::{validate_image, MIN_IMAGE_SIZE};
+#![cfg(feature = "vms")]
+
+use foundation_deployment_platform::import::{validate_image, MIN_IMAGE_SIZE};
 
 // From import/mod.rs
 #[test]
@@ -20,7 +22,7 @@ fn test_validate_image_rejects_small_file() {
 // From import/macos.rs
 #[test]
 fn test_config_plist_is_valid_xml() {
-    let config = foundation_testbed::vms::import::macos::generate_config_plist();
+    let config = foundation_deployment_platform::import::macos::generate_config_plist();
     assert!(config.contains("<?xml"));
     assert!(config.contains("iMacPro1,1"));
     assert!(config.contains("boot-args"));
@@ -28,7 +30,7 @@ fn test_config_plist_is_valid_xml() {
 
 #[test]
 fn test_config_plist_has_required_sections() {
-    let config = foundation_testbed::vms::import::macos::generate_config_plist();
+    let config = foundation_deployment_platform::import::macos::generate_config_plist();
     assert!(config.contains("<key>PlatformInfo</key>"));
     assert!(config.contains("<key>SystemProductName</key>"));
     assert!(config.contains("<key>NVRAM</key>"));

@@ -130,10 +130,18 @@ async fn exec_create_start_returns_output() {
 
 #[valtron_test]
 async fn negotiate_version_detects_server() {
-    let mut c = client();
+    let c = client();
     c.negotiate_version().await.expect("negotiate");
-    let v = c.api_version();
-    assert!(v == "1.53" || v == "1.54", "version is {v}");
+    let daemon = c.version().await.expect("version");
+    let expected = foundation_deployment_docker::client::negotiate_api_version(
+        foundation_deployment_docker::client::DEFAULT_API_VERSION,
+        daemon.api_version.as_deref(),
+        daemon.min_api_version.as_deref(),
+    )
+    .expect("this daemon shares an API version with the client");
+    assert_eq!(c.api_version(), expected, "min(client max, daemon ApiVersion)");
+    // A versioned request with the negotiated version is accepted.
+    c.system_ping().await.expect("ping with the negotiated version");
 }
 
 #[valtron_test]

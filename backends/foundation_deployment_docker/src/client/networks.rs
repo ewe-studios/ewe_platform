@@ -42,7 +42,7 @@ impl DockerClient {
         let args = NetworkListArgs {
             filters: filters.map(str::to_string),
         };
-        let response = network_list_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
+        let response = network_list_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -71,7 +71,7 @@ impl DockerClient {
         verbose: Option<bool>,
         scope: Option<&str>,
     ) -> Result<Network, DockerError> {
-        let endpoint_url = format!("{}/networks/{id}", self.base_url());
+        let endpoint_url = format!("{}/networks/{id}", self.api_url().await?);
         let mut builder = PreparedRequestBuilder::get(&endpoint_url)
             .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
         builder = builder.query("verbose", verbose.map(|v| v.to_string()).as_deref());
@@ -116,7 +116,7 @@ impl DockerClient {
         let args = NetworkDeleteArgs {
             id: id.to_string(),
         };
-        network_delete_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
+        network_delete_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -142,7 +142,7 @@ impl DockerClient {
         let response = network_create_request(
             self.http(),
             &args,
-            &self.base_url(),
+            &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
                 b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
                 let _ = b.set_body_json(&config);
@@ -184,7 +184,7 @@ impl DockerClient {
         network_connect_request(
             self.http(),
             &args,
-            &self.base_url(),
+            &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
                 b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
                 let _ = b.set_body_json(&body);
@@ -221,7 +221,7 @@ impl DockerClient {
         network_disconnect_request(
             self.http(),
             &args,
-            &self.base_url(),
+            &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
                 b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
                 let _ = b.set_body_json(&body);
@@ -246,7 +246,7 @@ impl DockerClient {
         let args = NetworkPruneArgs {
             filters: filters.map(str::to_string),
         };
-        network_prune_request(self.http(), &args, &self.base_url(), None::<NoMod>).await?;
+        network_prune_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 }

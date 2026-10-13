@@ -46,6 +46,9 @@ fn route(method: &str, path: &str) -> (u16, String) {
     });
 
     match (method, p) {
+        // Version negotiation: the client asks once, unversioned, before its
+        // first versioned request.
+        ("GET", "/version") => (200, r#"{"ApiVersion":"1.53","MinAPIVersion":"1.24"}"#.to_string()),
         // POST /containers/{id}/restart → 204 No Content
         ("POST", p) if p.starts_with("containers/") && p.ends_with("/restart") => {
             (204, String::new())

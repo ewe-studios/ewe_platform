@@ -14,11 +14,13 @@ default = ["wasm", "cli"]
 # Uses std::process::Command for docker exec — zero new Rust deps.
 docker-tests = []
 
-# vms feature kept as alias — enables foundation_deployment_platform with vms
-vms = ["dep:foundation_deployment_platform"]
+# vms feature kept as alias — enables foundation_deployment_platform with vms.
+# The VM code and its tests live in foundation_deployment_platform (spec-53
+# Feature 11); `foundation_testbed::platform` re-exports it.
+vms = ["dep:foundation_deployment_platform", "foundation_deployment_platform/vms"]
 # cli kept for backward compat
 cli = ["dep:clap"]
-foundation_deployment_platform_vms = ["dep:foundation_deployment_platform"]
+foundation_deployment_platform_vms = ["vms"]
 
 # wasm32 test harness: browser (pure-Rust CDP/BiDi), Deno, Cloudflare Workers.
 wasm = [
@@ -127,6 +129,9 @@ clap = { version = "4", features = ["derive"], optional = true }
 foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0", optional = true }
 
 [dev-dependencies]
+# The VM e2e tests (`vms`) build `TestbedError::SshFailed`, whose `source` is
+# an `anyhow::Error` in foundation_deployment_platform's public error type.
+anyhow = "1"
 serial_test = "3"
 tempfile = "3"
 tracing-test = { version = "0.2", features = ["no-env-filter"] }

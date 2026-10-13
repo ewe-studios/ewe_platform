@@ -29,9 +29,30 @@ pub enum DockerError {
     #[display("Docker daemon not reachable: {_0}")]
     Connection(String),
 
+    /// The daemon was reached and answered a request with an error status
+    /// (`4xx`/`5xx`). The daemon *is* available, so this is never a
+    /// connection error: a test must fail on it, not skip.
+    #[display("Docker API error during {operation} (status {status}): {message}")]
+    Api {
+        /// What was being done, e.g. `image_inspect`.
+        operation: String,
+        /// The HTTP status the daemon answered with.
+        status: u16,
+        /// The daemon's error message.
+        message: String,
+    },
+
+    /// The daemon was reached but shares no API version with this client.
+    #[display("Docker daemon is incompatible with this client: {_0}")]
+    IncompatibleDaemon(String),
+
     /// Image pull failed (registry unreachable, image not found, auth failure).
     #[display("Image pull failed for '{image}': {reason}")]
     ImagePull { image: String, reason: String },
+
+    /// Image push failed (registry refused it, authentication failed).
+    #[display("Image push failed: {_0}")]
+    ImagePush(String),
 
     /// Image build failed (a Dockerfile instruction returned non-zero, a COPY
     /// source was missing, the base image could not be resolved).
@@ -82,19 +103,45 @@ pub fn docker_err(e: DockerError) -> ErrorTrace<DockerError> {
     ErrorTrace::new(e)
 }
 
+/// Classify a `foundation_deployment_docker::DockerError` raised while doing
+/// `operation` (e.g. `"image_inspect"`).
+///
+/// Only a daemon that could not be talked to at all becomes
+/// [`DockerError::Connection`]. A daemon that answered — with an error status
+/// or an API-version mismatch — was reachable, so those stay distinct: callers
+/// that skip when Docker is absent must not skip on them.
+#[must_use]
+pub fn classify_docker_client_err(
+    operation: &str,
+    e: foundation_deployment_docker::DockerError,
+) -> DockerError {
+    use foundation_deployment_docker::DockerError as De;
+    match e {
+        De::Transport(m) | De::Unavailable(m) => DockerError::Connection(format!("{operation}: {m}")),
+        De::Api { status, message } => DockerError::Api {
+            operation: operation.to_string(),
+            status,
+            message,
+        },
+        e @ De::UnsupportedApiVersion { .. } => {
+            DockerError::IncompatibleDaemon(format!("{operation}: {e}"))
+        }
+        De::JsonParse(m) => DockerError::InvalidConfig(format!("{operation}: {m}")),
+        De::BuildFailed(m) => DockerError::ImageBuild(m),
+        // The image name is not part of the client's error; the caller (which
+        // knows it) builds `ImagePull` itself where it matters.
+        De::PullFailed(m) => DockerError::ImagePull { image: operation.to_string(), reason: m },
+        De::PushFailed(m) => DockerError::ImagePush(format!("{operation}: {m}")),
+    }
+}
+
 /// Map a `foundation_deployment_docker::DockerError` into our `ErrorTrace<DockerError>`.
 ///
 /// Use with `.map_err(map_docker_client_err)` on `foundation_deployment_docker` calls
-/// to convert errors without a manual match at each call site.
+/// to convert errors without a manual match at each call site. See
+/// [`classify_docker_client_err`] for how each kind maps; prefer that (with an
+/// operation name) where the operation is known.
 #[must_use]
 pub fn map_docker_client_err(e: foundation_deployment_docker::DockerError) -> ErrorTrace<DockerError> {
-    use foundation_deployment_docker::DockerError as De;
-    docker_err(match e {
-        De::Transport(m) | De::Unavailable(m) => DockerError::Connection(m),
-        De::JsonParse(m) => DockerError::InvalidConfig(m),
-        De::BuildFailed(m) => DockerError::ImageBuild(m),
-        De::Api { status, message } => {
-            DockerError::Connection(format!("docker API {status}: {message}"))
-        }
-    })
+    docker_err(classify_docker_client_err("docker request", e))
 }

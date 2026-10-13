@@ -14,6 +14,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::docker::image::DockerFileConfig;
 use crate::docker::wait_for::WaitFor;
 
 /// Builder for a Docker container configuration.
@@ -55,6 +56,13 @@ pub struct ContainerConfig {
     pub cap_add: Vec<String>,
     /// Whether this container is required (failure = panic, no graceful skip).
     pub required: bool,
+    /// Build `image` from this Dockerfile before starting (cached: an image
+    /// already built under the tag is reused). `None` pulls `image` instead.
+    pub build: Option<DockerFileConfig>,
+    /// Run the container in the network namespace of the process starting it,
+    /// so the two reach each other on `localhost`. See
+    /// [`ContainerConfig::share_caller_network`].
+    pub share_caller_network: bool,
 }
 
 /// A port mapping from container to host.
@@ -116,7 +124,33 @@ impl ContainerConfig {
             devices: Vec::new(),
             cap_add: Vec::new(),
             required: false,
+            build: None,
+            share_caller_network: false,
         }
+    }
+
+    /// Build the image from `dockerfile` before starting, tagged with this
+    /// config's `image`, instead of pulling it. The build is cached by tag
+    /// ([`DockerFileConfig::build_once`]), so repeated starts build once.
+    #[must_use]
+    pub fn build(mut self, dockerfile: DockerFileConfig) -> Self {
+        self.build = Some(dockerfile.tag(self.image.clone()));
+        self
+    }
+
+    /// Run the container in the network namespace of the process starting it,
+    /// so each reaches the other on `localhost` — e.g. a CLI in the container
+    /// talking to a server the test runs in-process.
+    ///
+    /// On the Docker host this is `--network host`. Inside a container of the
+    /// same daemon (a CI job container) the host's namespace is the wrong one —
+    /// the test is not in it — so this joins the calling container's namespace
+    /// instead (`--network container:<id>`). Overrides [`Self::network`].
+    /// Such a container shares its ports with the caller, so it publishes none.
+    #[must_use]
+    pub fn share_caller_network(mut self) -> Self {
+        self.share_caller_network = true;
+        self
     }
 
     /// Set the container name.

@@ -181,8 +181,13 @@ jobs:
           docker load --input "$RUNNER_TEMP/image/image.tar"
           rm -rf "$RUNNER_TEMP/image"
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          # The runner's Docker socket goes in too, as it does for the
+          # `container:` jobs above: Docker-backed tests (the
+          # #[docker_container] macro) run against the runner's daemon, so
+          # both paths must test the same thing.
           docker run --detach --name ci \
             --volume "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" --workdir "$GITHUB_WORKSPACE" \
+            --volume /var/run/docker.sock:/var/run/docker.sock \
             --env GITHUB_ACTIONS --env CI --env CARGO_TERM_COLOR --env CARGO_INCREMENTAL \
             --env CARGO_PROFILE_UAT_DEBUG --env CI_PROFILE --env RUSTUP_TOOLCHAIN="$toolchain" \
             "$IMAGE" sleep infinity

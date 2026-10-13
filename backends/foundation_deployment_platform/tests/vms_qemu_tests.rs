@@ -1,17 +1,19 @@
 //! Tests extracted from vms/qemu/ modules
 
+#![cfg(feature = "vms")]
+
 use std::path::Path;
 use std::net::TcpListener;
 
-use foundation_testbed::vms::config::{get_profile, list_profiles};
-use foundation_testbed::vms::qemu::{build_qemu_args, display, ResolvedPorts};
-use foundation_testbed::vms::qemu::disk::{find_qemu_img, parse_disk_info};
-use foundation_testbed::vms::qemu::display::{connection_info, DisplayBackend};
-use foundation_testbed::vms::qemu::download::is_cached;
-use foundation_testbed::vms::qemu::mount::{fstab_entry, guest_mount_command, mount_args};
-use foundation_testbed::vms::qemu::net::{allocate_port, is_port_free};
-use foundation_testbed::vms::qemu::snapshot::parse_size_string;
-use foundation_testbed::vms::config::DisplayMode;
+use foundation_deployment_platform::config::{get_profile, list_profiles};
+use foundation_deployment_platform::qemu::{build_qemu_args, display, ResolvedPorts};
+use foundation_deployment_platform::qemu::disk::{find_qemu_img, parse_disk_info};
+use foundation_deployment_platform::qemu::display::{connection_info, DisplayBackend};
+use foundation_deployment_platform::qemu::download::is_cached;
+use foundation_deployment_platform::qemu::mount::{fstab_entry, guest_mount_command, mount_args};
+use foundation_deployment_platform::qemu::net::{allocate_port, is_port_free};
+use foundation_deployment_platform::qemu::snapshot::parse_size_string;
+use foundation_deployment_platform::config::DisplayMode;
 
 // From qemu/mod.rs
 #[test]
@@ -29,7 +31,11 @@ fn test_build_qemu_args_headless() {
 
     let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
 
-    assert!(args.contains(&"-enable-kvm".to_string()) || args.iter().any(|a| a.contains("kvm")));
+    // KVM acceleration is used exactly when the host exposes a usable /dev/kvm.
+    assert_eq!(
+        args.contains(&"-enable-kvm".to_string()),
+        foundation_deployment_platform::doctor::kvm_available()
+    );
     assert!(args.iter().any(|a| a.contains("12288"))); // RAM
     assert!(args.iter().any(|a| a.contains("virtio-net-pci,netdev=net")));
     assert!(args.iter().any(|a| a.contains("vnc=:0")));
@@ -125,7 +131,7 @@ fn test_parse_disk_info() {
 
 #[test]
 fn test_qemu_img_not_found_error() {
-    use foundation_testbed::vms::config::TestbedError;
+    use foundation_deployment_platform::config::TestbedError;
     let err = find_qemu_img();
     // Should either find qemu-img or return the right error type
     match err {
