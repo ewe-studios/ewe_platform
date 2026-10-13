@@ -77,7 +77,8 @@ fn route(method: &str, path: &str) -> (u16, String) {
         ("POST", p) if p.starts_with("networks/") && p.ends_with("/disconnect") => {
             (200, String::new())
         }
-        ("POST", "networks/prune") => (200, String::new()),
+        // What dockerd answers: the (possibly empty) list of removed networks.
+        ("POST", "networks/prune") => (200, r#"{"NetworksDeleted":[]}"#.to_string()),
 
         // ── Volumes ──────────────────────────────────────────────────────
         ("GET", "volumes") => (
@@ -100,7 +101,7 @@ fn route(method: &str, path: &str) -> (u16, String) {
             r#"{"Name":"test","Driver":"local","Mountpoint":"/var/lib/docker/volumes/test/_data","Scope":"local","Labels":null,"Options":null}"#.to_string(),
         ),
         ("PUT", p) if p.starts_with("volumes/") => (200, String::new()),
-        ("POST", "volumes/prune") => (200, String::new()),
+        ("POST", "volumes/prune") => (200, r#"{"VolumesDeleted":[],"SpaceReclaimed":0}"#.to_string()),
 
         _ => (
             404,
@@ -330,8 +331,8 @@ async fn volume_create_returns_volume() {
 
 #[valtron_test]
 async fn network_prune_returns_ok() {
-    // WHY: Proves `network_prune` handles a 200 OK response (the generated
-    // function returns `ApiResponse<()>` — no body parse needed).
+    // WHY: Proves `network_prune` handles dockerd's 200 answer, parsed as the
+    // generated `NetworkPruneResponse`.
     let socket = temp_socket_path("net_prune");
     let stop = Arc::new(AtomicBool::new(false));
     mock_daemon(socket.clone(), stop.clone());

@@ -1297,11 +1297,11 @@ impl UnifiedGenerator {
                     escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
                 if ep.array_query_params.contains(param) {
                     // An array is sent as one `name=value` pair per value.
-                    writeln!(out, "    /// Query parameter: `{}` (one per value).", param)?;
-                    writeln!(out, "    pub {}: Vec<String>,", param_name)?;
+                    writeln!(out, "    /// Query parameter: `{param}` (one per value).")?;
+                    writeln!(out, "    pub {param_name}: Vec<String>,")?;
                 } else {
-                    writeln!(out, "    /// Query parameter: `{}`.", param)?;
-                    writeln!(out, "    pub {}: Option<String>,", param_name)?;
+                    writeln!(out, "    /// Query parameter: `{param}`.")?;
+                    writeln!(out, "    pub {param_name}: Option<String>,")?;
                 }
             }
             if let Some(rt) = &ep.request_type {

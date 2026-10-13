@@ -105,7 +105,7 @@ fn streamed_responses_and_raw_request_bodies_are_classified() {
         find("ImageGetAll").array_query_params,
         vec!["names".to_string()]
     );
-    assert!(find("ImageCreate").array_query_params.is_empty());
+    assert_eq!(find("ImageCreate").array_query_params, Vec::<String>::new());
 }
 
 #[test]
@@ -115,8 +115,7 @@ fn generated_functions_stream_their_bodies() {
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_nanos())
-            .unwrap_or(0)
+            .map_or(0, |d| d.as_nanos())
     ));
     let crate_src = out.join("src");
     UnifiedGenerator::new(out.clone())
