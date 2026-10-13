@@ -356,7 +356,8 @@ fn test_split_collect_until_map_never_loses_the_closing_item() {
         let (observer, mut continuation) =
             task.split_collect_until_map(|x| (CollectionState::Close(true), Some(*x)), 1);
 
-        let producer = std::thread::spawn(move || while Iterator::next(&mut continuation).is_some() {});
+        let producer =
+            std::thread::spawn(move || while Iterator::next(&mut continuation).is_some() {});
 
         let mut got = None;
         for stream in observer {
@@ -365,6 +366,10 @@ fn test_split_collect_until_map_never_loses_the_closing_item() {
             }
         }
         producer.join().expect("producer thread");
-        assert_eq!(got, Some(round), "round {round}: the closing item was dropped");
+        assert_eq!(
+            got,
+            Some(round),
+            "round {round}: the closing item was dropped"
+        );
     }
 }
