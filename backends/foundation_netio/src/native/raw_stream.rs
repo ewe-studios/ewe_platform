@@ -285,6 +285,93 @@ impl RawStream {
     }
 }
 
+// --- Non-blocking I/O with readiness parking (kernel sockets, rustls, overlay)
+
+impl RawStream {
+    /// Whether this stream can run non-blocking with readiness parking.
+    /// See [`Connection::supports_nonblocking_io`].
+    #[must_use]
+    pub fn supports_nonblocking_io(&self) -> bool {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_core_ref().supports_nonblocking_io(),
+            #[cfg(all(unix, feature = "ssl-rustls"))]
+            Self::AsServerTls(inner, _) => inner.get_core_ref().supports_nonblocking_io(),
+            #[cfg(all(unix, feature = "ssl-rustls"))]
+            Self::AsClientTls(inner, _) => inner.get_core_ref().supports_nonblocking_io(),
+            #[cfg(all(
+                any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"),
+                not(all(unix, feature = "ssl-rustls"))
+            ))]
+            Self::AsServerTls(..) | Self::AsClientTls(..) => false,
+        }
+    }
+
+    /// Switch the underlying socket's blocking mode.
+    /// See [`Connection::set_nonblocking`].
+    ///
+    /// # Errors
+    /// The socket's error, or `Unsupported` for a TLS backend that cannot be
+    /// driven non-blocking.
+    pub fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()> {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_core_ref().set_nonblocking(nonblocking),
+            #[cfg(feature = "ssl-rustls")]
+            Self::AsServerTls(inner, _) => inner.get_core_ref().set_nonblocking(nonblocking),
+            #[cfg(feature = "ssl-rustls")]
+            Self::AsClientTls(inner, _) => inner.get_core_ref().set_nonblocking(nonblocking),
+            #[cfg(all(
+                not(feature = "ssl-rustls"),
+                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+            ))]
+            Self::AsServerTls(..) | Self::AsClientTls(..) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "this TLS backend cannot be driven non-blocking",
+            )),
+        }
+    }
+
+    /// Whether the underlying socket is in non-blocking mode.
+    /// See [`Connection::is_nonblocking`].
+    ///
+    /// # Errors
+    /// The socket's error.
+    pub fn is_nonblocking(&self) -> std::io::Result<bool> {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_core_ref().is_nonblocking(),
+            #[cfg(feature = "ssl-rustls")]
+            Self::AsServerTls(inner, _) => inner.get_core_ref().is_nonblocking(),
+            #[cfg(feature = "ssl-rustls")]
+            Self::AsClientTls(inner, _) => inner.get_core_ref().is_nonblocking(),
+            #[cfg(all(
+                not(feature = "ssl-rustls"),
+                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+            ))]
+            Self::AsServerTls(..) | Self::AsClientTls(..) => Ok(false),
+        }
+    }
+
+    /// A readiness signal for a task parked on this stream.
+    /// See [`Connection::readiness`].
+    #[must_use]
+    pub fn readiness(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> Option<foundation_core::valtron::EventReadinessPtr> {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_core_ref().readiness(interest),
+            #[cfg(feature = "ssl-rustls")]
+            Self::AsServerTls(inner, _) => inner.get_core_ref().readiness(interest),
+            #[cfg(feature = "ssl-rustls")]
+            Self::AsClientTls(inner, _) => inner.get_core_ref().readiness(interest),
+            #[cfg(all(
+                not(feature = "ssl-rustls"),
+                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+            ))]
+            Self::AsServerTls(..) | Self::AsClientTls(..) => None,
+        }
+    }
+}
+
 // Type alias for TLS config with priority resolution: rustls > openssl > native-tls.
 #[cfg(feature = "ssl-rustls")]
 type TlsClientConfig = rustls::ClientConfig;

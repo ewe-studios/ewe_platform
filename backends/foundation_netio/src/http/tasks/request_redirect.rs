@@ -1,35 +1,45 @@
-//! HTTP request task implementation using `TaskIterator` pattern.
+//! Connect, send the request, and follow redirects: the first half of an HTTP/1.1
+//! exchange, as a valtron `TaskIterator` state machine.
 //!
-//! WHY: Provides a non-blocking, state-machine-based HTTP request executor that
-//! integrates with the valtron executor system. Enables async-like request handling
-//! without async/await.
+//! WHY: the client must connect, write the request head, and negotiate
+//! `Expect: 100-continue`. It writes the request body, reads enough of the
+//! response to follow redirects, and then hands the connection to the
+//! response reader. Each step can wait on the network. Done with blocking reads,
+//! every wait held a valtron worker. When the server ran on the same pool, the
+//! 100-continue wait starved the very handler that would answer it, and each POST
+//! sat out the full 3s timeout (#76).
 //!
-//! WHAT: Implements `HttpRequestTask` which processes HTTP requests through a series
-//! of states (connecting, sending request, receiving response).
-//! Uses `TaskIterator` trait to yield `TaskStatus` variants.
+//! WHAT: [`GetHttpRequestRedirectTask`] yields an [`HttpRequestRedirectResponse`]:
+//! the connection plus a response reader, and any response head it already read.
 //!
-//! HOW: State machine pattern where each `next()` call advances through states.
-//! Phase 1 uses blocking connection for simplicity. Future phases will use
-//! non-blocking connection spawning and TLS support.
-//!
-//! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
-//! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
+//! HOW: once connected, a connection that can report readiness (kernel TCP/Unix
+//! sockets, rustls over them, the overlay) is switched to non-blocking. Each step
+//! then moves bytes until the socket would block, and returns
+//! `TaskStatus::Depends` on "socket ready, or deadline passed". Writes go through
+//! [`PendingBytes`], so a partial write resumes exactly where it stopped. The
+//! 100-continue wait is a readiness wait bounded by
+//! `ClientConfig::expect_continue_read_timeout`. The body goes out when
+//! `100 Continue` arrives or the timer fires, whichever comes first (RFC 9110
+//! §10.1.1). Transports that cannot report readiness (completion sockets, the
+//! openssl and native-tls backends) keep the blocking path, with kernel read
+//! timeouts.
 
+use crate::http::{HttpClientConnection, HttpConnectionPool};
+use crate::native::readiness::{DeadlineReadiness, IoInterest};
 use crate::netcap::RawStream;
 use crate::shared::client::{redirects, ClientConfig, DnsResolver};
-use crate::http::{HttpClientConnection, HttpConnectionPool};
 use crate::shared::http::{
-    ensure_chunked_transfer_encoding, Http11, HttpClientError, HttpResponseReader,
-    IncomingResponseParts, RenderHttp, RequestDescriptor, SendSafeBody, SimpleHeader,
-    SimpleHttpBody, SimpleIncomingRequest, Status,
+    ensure_chunked_transfer_encoding, Http11, Http11RequestBodyIterator, HttpClientError,
+    HttpResponseReader, IncomingResponseParts, RenderHttp, RequestDescriptor, SendSafeBody,
+    SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
 use foundation_core::io::ioutils::ReadTimeoutOperations;
-use foundation_core::valtron::{BoolSignal, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{AnyReadiness, BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use std::io::Write;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 
-use crate::native::connection::ConnWaker;
+use super::nonblocking::{self, IdleDeadline, IoStep, Park, PendingBytes};
 use super::HttpOperationState;
 
 // Type aliases for complex enum variant data
@@ -48,6 +58,7 @@ type TryingData<R> = Box<(
     u8,
 )>;
 
+/// Blocking-transport body write (the path for transports without readiness).
 type WriteBodyData<R> = Box<(
     Option<[IncomingResponseParts; 2]>,
     SimpleIncomingRequest,
@@ -56,27 +67,98 @@ type WriteBodyData<R> = Box<(
     HttpResponseReader<SimpleHttpBody, RawStream>,
 )>;
 
-/// State carried while reading a no-body request's response head (intro + headers)
-/// to check for redirects. Persisted across polls so a non-blocking `WouldBlock`
-/// can park (`Depends`) and resume — `acc_intro` remembers a final status line
-/// already read so a park between the intro and headers reads is re-entrant.
-type ReadHeadData<R> = Box<(
-    SimpleIncomingRequest,
-    Arc<HttpConnectionPool<R>>,
-    crate::shared::client::ClientConfig,
-    RequestDescriptor,
-    u8,
-    HttpClientConnection,
-    HttpResponseReader<SimpleHttpBody, RawStream>,
-    Option<IncomingResponseParts>,
-)>;
+/// One step of the state machine.
+type Step = TaskStatus<HttpRequestRedirectResponse, HttpOperationState, BoxedSendExecutionAction>;
+
+/// Most body chunks written in one poll before yielding back to the executor, so
+/// a large in-memory body cannot monopolise a worker.
+const MAX_CHUNKS_PER_POLL: usize = 32;
+
+/// Longest back-off while the request body's *producer* has nothing yet (a
+/// pushable body the caller has not pushed into). See [`WritingBody`].
+const MAX_PRODUCER_BACKOFF_MS: u64 = 16;
+
+/// The request being sent and the connection carrying it.
+pub struct Exchange<R: DnsResolver + Send + 'static> {
+    data: SimpleIncomingRequest,
+    pool: Arc<HttpConnectionPool<R>>,
+    config: ClientConfig,
+    descriptor: RequestDescriptor,
+    remaining_redirects: u8,
+    connection: HttpClientConnection,
+    reader: HttpResponseReader<SimpleHttpBody, RawStream>,
+}
+
+/// What follows once the request head is on the wire.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AfterHead {
+    /// No body: read the response head to check for redirects.
+    ReadHead,
+    /// Body without `Expect`: write it straight away.
+    WriteBody,
+    /// Body with `Expect: 100-continue`: wait for `100` or the timer first.
+    AwaitContinue,
+}
+
+/// Writing the request head on a non-blocking socket.
+pub struct SendingHead<R: DnsResolver + Send + 'static> {
+    exchange: Exchange<R>,
+    pending: PendingBytes,
+    idle: IdleDeadline,
+    next: AfterHead,
+}
+
+/// Waiting for `100 Continue` (or an early final response) before the body.
+pub struct AwaitingContinue<R: DnsResolver + Send + 'static> {
+    exchange: Exchange<R>,
+    /// When the wait gives up and sends the body anyway (RFC 9110 §10.1.1).
+    send_body_at: Instant,
+    /// A status line already read whose headers have not arrived yet.
+    intro: Option<IncomingResponseParts>,
+    idle: IdleDeadline,
+}
+
+/// Reading a bodyless request's response head to check for redirects.
+pub struct ReadingHead<R: DnsResolver + Send + 'static> {
+    exchange: Exchange<R>,
+    /// A final status line already read whose headers have not arrived yet.
+    intro: Option<IncomingResponseParts>,
+    idle: IdleDeadline,
+}
+
+/// Streaming the request body on a non-blocking socket.
+///
+/// WHY: the body renderer yields chunks one at a time. A pushable body
+/// (client-streaming RPCs) yields an empty chunk while its producer has not
+/// pushed anything yet. Socket stalls park on writability. Producer stalls back
+/// off on a short timer (1ms doubling to `MAX_PRODUCER_BACKOFF_MS`), because the
+/// renderer's `SendSafeBody::Stream` erases the pipe it reads from and exposes no
+/// readiness to park on. Either way the worker is released. The blocking writer
+/// used to spin on those empty chunks instead.
+pub struct WritingBody {
+    starters: Option<[IncomingResponseParts; 2]>,
+    connection: HttpClientConnection,
+    reader: HttpResponseReader<SimpleHttpBody, RawStream>,
+    chunks: Http11RequestBodyIterator,
+    pending: PendingBytes,
+    rendered_all: bool,
+    idle: IdleDeadline,
+    producer_stalls: u32,
+}
 
 pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
     Init(Option<InitData<R>>),
     Trying(Option<TryingData<R>>),
-    /// Reading a no-body request's response head, parking-aware (F11).
-    ReadingHead(Option<ReadHeadData<R>>),
+    /// Non-blocking: writing the request head.
+    SendingHead(Option<Box<SendingHead<R>>>),
+    /// Non-blocking: the `Expect: 100-continue` wait.
+    AwaitingContinue(Option<Box<AwaitingContinue<R>>>),
+    /// Reading a no-body request's response head (parks on non-blocking sockets).
+    ReadingHead(Option<Box<ReadingHead<R>>>),
+    /// Blocking transports: write the whole body in one go.
     WriteBody(Option<WriteBodyData<R>>),
+    /// Non-blocking: streaming the request body.
+    WritingBody(Option<Box<WritingBody>>),
     Done,
 }
 
@@ -88,6 +170,60 @@ pub enum HttpRequestRedirectResponse {
     ),
     Error(HttpClientError),
     FlushFailed(HttpClientConnection, std::io::Error),
+}
+
+/// What a received response head means for redirect handling.
+enum RedirectDecision {
+    /// Not a followable redirect: hand the response on.
+    NotRedirect,
+    /// Re-issue the request to this descriptor.
+    Follow(Box<RequestDescriptor>),
+    /// A redirect that cannot be followed.
+    Fail(HttpClientError),
+}
+
+fn redirect_decision(
+    descriptor: &RequestDescriptor,
+    config: &ClientConfig,
+    remaining_redirects: u8,
+    status: &Status,
+    headers: &SimpleHeaders,
+) -> RedirectDecision {
+    let is_redirect = (300..400).contains(&status.clone().into_usize());
+    let Some(location) = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first()) else {
+        return RedirectDecision::NotRedirect;
+    };
+    if !is_redirect {
+        return RedirectDecision::NotRedirect;
+    }
+    if remaining_redirects == 0 {
+        tracing::error!("Redirect limit exceeded");
+        return RedirectDecision::Fail(HttpClientError::TooManyRedirects);
+    }
+    tracing::info!(
+        "Redirect detected: status {} with Location {:?}",
+        status,
+        location
+    );
+    let new_url = match redirects::resolve_location(&descriptor.request_uri, location) {
+        Ok(url) => url,
+        Err(e) => {
+            tracing::error!("Failed to resolve redirect location: {}", e);
+            return RedirectDecision::Fail(HttpClientError::InvalidLocation(location.clone()));
+        }
+    };
+    match redirects::build_followup_request_from_request_descriptor(
+        descriptor,
+        new_url,
+        config.redirect.preserve_auth_on_redirect,
+        config.redirect.preserve_cookies_on_redirect,
+    ) {
+        Ok(desc) => RedirectDecision::Follow(Box::new(desc)),
+        Err(e) => {
+            tracing::error!("Failed to build follow-up request: {}", e);
+            RedirectDecision::Fail(HttpClientError::InvalidState)
+        }
+    }
 }
 
 /// Redirect-capable variant: small task wrapper that can be spawned in place of the
@@ -115,32 +251,717 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         ))))))
     }
 
-    /// Park the no-body response-head read on a read-readiness signal after a
-    /// non-blocking `WouldBlock`. Stores `resume` as the next `ReadingHead` state,
-    /// registers a `BoolSignal`-backed waker on the connection, and returns
-    /// `Depends(signal)` — the `TunnelDriver` flips the signal when the response
-    /// arrives. A blocking transport (no waker support) fails with `Timeout` and the
-    /// task terminates (state `Done`) — it must not keep the resume state, or the
-    /// executor would re-drive the read and fail again on every timeout, forever.
-    fn park_head(
+    fn fail(&mut self, err: HttpClientError) -> Step {
+        self.0 = Some(HttpRequestRedirectState::Done);
+        TaskStatus::Ready(HttpRequestRedirectResponse::Error(err))
+    }
+
+    fn pending(&mut self, next: HttpRequestRedirectState<R>) -> Step {
+        self.0 = Some(next);
+        TaskStatus::Pending(HttpOperationState::Connecting)
+    }
+
+    fn follow(&mut self, exchange: Exchange<R>, descriptor: RequestDescriptor) -> Step {
+        tracing::debug!("Following redirect to {}", descriptor.request_uri);
+        let Exchange {
+            data,
+            pool,
+            config,
+            remaining_redirects,
+            ..
+        } = exchange;
+        self.pending(HttpRequestRedirectState::Trying(Some(Box::new((
+            data,
+            pool,
+            config,
+            descriptor,
+            remaining_redirects - 1,
+        )))))
+    }
+
+    /// Park after a `WouldBlock`, storing `resume` as the next state.
+    ///
+    /// Terminal cases end the task (`Done`) instead of re-driving the I/O.
+    /// One is a blocking socket whose kernel timeout already elapsed (the #76
+    /// unbounded-retry hang). The other is an inactivity deadline that has passed.
+    fn park(
         &mut self,
-        resume: ReadHeadData<R>,
-    ) -> TaskStatus<HttpRequestRedirectResponse, HttpOperationState, BoxedSendExecutionAction> {
-        let signal = BoolSignal::new(false);
-        let flag = signal.clone_inner();
-        let waker: ConnWaker = Arc::new(move || flag.store(true, Ordering::SeqCst));
-        // `resume.5` is the connection; register on it before moving into the state.
-        if resume.5.register_read_waker(waker) {
-            self.0 = Some(HttpRequestRedirectState::ReadingHead(Some(resume)));
-            tracing::trace!("ReadingHead: response not ready; parking on connection read waker");
-            TaskStatus::Depends(Arc::new(signal))
-        } else {
-            // Terminal: the blocking read already waited out its timeout. Move to
-            // `Done` (not back to `ReadingHead`) so the task ends after this one
-            // `Ready` instead of re-reading — and re-failing — forever.
-            self.0 = Some(HttpRequestRedirectState::Done);
-            TaskStatus::Ready(HttpRequestRedirectResponse::Error(HttpClientError::Timeout))
+        connection: &HttpClientConnection,
+        interest: IoInterest,
+        idle: &mut IdleDeadline,
+        resume: impl FnOnce(IdleDeadline) -> HttpRequestRedirectState<R>,
+    ) -> Step {
+        match nonblocking::park(connection, interest, idle) {
+            Park::On(signal) => {
+                tracing::trace!(%interest, "socket not ready; parking");
+                self.0 = Some(resume(*idle));
+                TaskStatus::Depends(signal)
+            }
+            Park::Expired => {
+                tracing::error!(timeout = ?idle.timeout(), %interest, "no progress before the deadline");
+                self.fail(HttpClientError::Timeout)
+            }
+            Park::Unsupported => {
+                tracing::error!(%interest, "would block on a blocking transport; treating as timeout");
+                self.fail(HttpClientError::Timeout)
+            }
         }
+    }
+
+    /// Connect and send the request head; branch on blocking vs non-blocking.
+    #[allow(clippy::too_many_lines)]
+    fn trying(&mut self, state: TryingData<R>) -> Step {
+        let (data, pool, config, mut descriptor, remaining_redirects) = *state;
+
+        // Unix socket transport (Docker daemon, BuildKitd) bypasses
+        // DNS and proxy — dial the configured socket directly.
+        #[cfg(unix)]
+        let unix_socket = config.unix_socket.clone();
+        #[cfg(not(unix))]
+        let unix_socket: Option<std::path::PathBuf> = None;
+
+        let connection_result = if let Some(socket_path) = unix_socket {
+            #[cfg(unix)]
+            {
+                pool.create_connection_unix(&descriptor.request_uri, &socket_path)
+            }
+            #[cfg(not(unix))]
+            {
+                let _ = socket_path;
+                unreachable!("unix_socket is always None on non-unix targets")
+            }
+        } else {
+            // Determine effective proxy configuration
+            let env_proxy = if config.proxy_from_env {
+                crate::shared::client::ProxyConfig::from_env(descriptor.request_uri.scheme())
+            } else {
+                None
+            };
+            let proxy_config = env_proxy.as_ref().or(config.proxy.as_ref());
+            pool.create_connection_with_proxy(&descriptor.request_uri, proxy_config, None)
+        };
+
+        let connection = match connection_result {
+            Ok(connection) => connection,
+            Err(err) => {
+                tracing::error!("Failed to connect: {:?}", err);
+                return self.fail(HttpClientError::ConnectionError);
+            }
+        };
+
+        // Only send Expect: 100-continue when the request has a body AND the
+        // handshake is enabled in config. Bodyless requests (e.g. GET) must never
+        // carry it — an interim `100 Continue` from the server would otherwise be
+        // mistaken for the final response. The toggle lets callers disable the
+        // handshake for servers/CDNs that handle it poorly.
+        let has_body = !matches!(data.body, None | Some(SendSafeBody::None));
+        let use_expect = has_body && config.expect_continue_enabled;
+        if use_expect {
+            descriptor
+                .headers
+                .insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
+        } else {
+            descriptor.headers.remove(&SimpleHeader::EXPECT);
+        }
+
+        // RFC 7230 §3.3.1 — the body renderer frames all three streaming variants
+        // (Stream/ChunkedStream/LineFeedStream) as chunked transfer encoding, so
+        // the head MUST advertise `Transfer-Encoding: chunked` (and carry no
+        // Content-Length). Without it a receiver finds neither framing header,
+        // treats the request as bodyless, drops the chunked bytes, and mishandles
+        // the Expect: 100-continue handshake above. The builders inject this too;
+        // do it here to cover descriptors assembled by other paths.
+        if matches!(
+            data.body,
+            Some(
+                SendSafeBody::Stream(_)
+                    | SendSafeBody::ChunkedStream(_)
+                    | SendSafeBody::LineFeedStream(_)
+            )
+        ) {
+            ensure_chunked_transfer_encoding(&mut descriptor.headers);
+        }
+
+        let Ok(request_string) =
+            Http11::request_descriptor(descriptor.clone()).http_render_string()
+        else {
+            tracing::error!("Failed to render request");
+            return self.fail(HttpClientError::InvalidState);
+        };
+
+        let next = match (has_body, use_expect) {
+            (false, _) => AfterHead::ReadHead,
+            (true, false) => AfterHead::WriteBody,
+            (true, true) => AfterHead::AwaitContinue,
+        };
+
+        if connection.supports_nonblocking_io() {
+            if let Err(err) = connection.set_nonblocking(true) {
+                tracing::error!("Failed to make the connection non-blocking: {}", err);
+                return self.fail(HttpClientError::IoError(err));
+            }
+            let reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+                connection.clone_stream(),
+                config.into_simple_http_body(),
+            );
+            let idle = IdleDeadline::new(config.io_idle_timeout());
+            return self.pending(HttpRequestRedirectState::SendingHead(Some(Box::new(
+                SendingHead {
+                    exchange: Exchange {
+                        data,
+                        pool,
+                        config,
+                        descriptor,
+                        remaining_redirects,
+                        connection,
+                        reader,
+                    },
+                    pending: PendingBytes::new(request_string.into_bytes()),
+                    idle,
+                    next,
+                },
+            ))));
+        }
+
+        self.trying_blocking(
+            Exchange {
+                reader: HttpResponseReader::<SimpleHttpBody, RawStream>::new(
+                    connection.clone_stream(),
+                    config.into_simple_http_body(),
+                ),
+                data,
+                pool,
+                config,
+                descriptor,
+                remaining_redirects,
+                connection,
+            },
+            &request_string,
+            next,
+        )
+    }
+
+    /// The blocking path, for transports that cannot report readiness. Kernel read
+    /// timeouts bound every wait, as before.
+    fn trying_blocking(
+        &mut self,
+        mut exchange: Exchange<R>,
+        request_string: &str,
+        next: AfterHead,
+    ) -> Step {
+        if let Err(err) = exchange
+            .connection
+            .stream_mut()
+            .write_all(request_string.as_bytes())
+        {
+            tracing::error!("Failed to write request: {}", err);
+            return self.fail(HttpClientError::WriteFailed);
+        }
+        if let Err(err) = exchange.connection.stream_mut().flush() {
+            tracing::error!("Failed to flush request: {}", err);
+            return self.fail(HttpClientError::WriteFailed);
+        }
+
+        let read_timeout = exchange.config.get_expect_continue_read_timeout();
+        if let Err(err) = exchange
+            .connection
+            .stream_mut()
+            .set_read_timeout_as(read_timeout)
+        {
+            tracing::error!("Failed to set read timeout: {}", err);
+            return self.fail(HttpClientError::Timeout);
+        }
+
+        match next {
+            AfterHead::WriteBody => {
+                let Exchange {
+                    data,
+                    pool,
+                    connection,
+                    reader,
+                    ..
+                } = exchange;
+                self.pending(HttpRequestRedirectState::WriteBody(Some(Box::new((
+                    None, data, pool, connection, reader,
+                )))))
+            }
+            AfterHead::ReadHead => {
+                let idle = IdleDeadline::new(exchange.config.response_head_timeout());
+                self.pending(HttpRequestRedirectState::ReadingHead(Some(Box::new(
+                    ReadingHead {
+                        exchange,
+                        intro: None,
+                        idle,
+                    },
+                ))))
+            }
+            AfterHead::AwaitContinue => self.await_continue_blocking(exchange),
+        }
+    }
+
+    /// Blocking `Expect: 100-continue`: one read bounded by the socket timeout.
+    fn await_continue_blocking(&mut self, mut exchange: Exchange<R>) -> Step {
+        tracing::trace!("[100-continue] blocking wait for the interim response");
+        let intro_result = exchange.reader.next();
+        let Some(Ok(IncomingResponseParts::Intro(status, proto, text))) = intro_result else {
+            tracing::trace!("No interim response before the timeout; writing the body");
+            return self.write_body_blocking(exchange, None);
+        };
+        let Some(Ok(IncomingResponseParts::Headers(headers))) = exchange.reader.next() else {
+            tracing::error!("Headers not received, returning timeout");
+            return self.fail(HttpClientError::Timeout);
+        };
+
+        if status == Status::Continue {
+            return self.write_body_blocking(exchange, None);
+        }
+
+        let content_length = headers
+            .get(&SimpleHeader::CONTENT_LENGTH)
+            .and_then(|v| v.first())
+            .and_then(|s| s.parse::<usize>().ok());
+        let body_read_timeout = exchange
+            .config
+            .calculate_read_timeout(content_length, false);
+        if let Err(err) = exchange
+            .connection
+            .stream_mut()
+            .set_read_timeout_as(body_read_timeout)
+        {
+            tracing::error!("Failed to set body read timeout: {}", err);
+            return self.fail(HttpClientError::IoError(err));
+        }
+
+        match redirect_decision(
+            &exchange.descriptor,
+            &exchange.config,
+            exchange.remaining_redirects,
+            &status,
+            &headers,
+        ) {
+            RedirectDecision::Follow(descriptor) => self.follow(exchange, *descriptor),
+            RedirectDecision::Fail(err) => self.fail(err),
+            RedirectDecision::NotRedirect => self.write_body_blocking(
+                exchange,
+                Some([
+                    IncomingResponseParts::Intro(status, proto, text),
+                    IncomingResponseParts::Headers(headers),
+                ]),
+            ),
+        }
+    }
+
+    fn write_body_blocking(
+        &mut self,
+        exchange: Exchange<R>,
+        starters: Option<[IncomingResponseParts; 2]>,
+    ) -> Step {
+        let Exchange {
+            data,
+            pool,
+            connection,
+            reader,
+            ..
+        } = exchange;
+        self.pending(HttpRequestRedirectState::WriteBody(Some(Box::new((
+            starters, data, pool, connection, reader,
+        )))))
+    }
+
+    /// Hand the exchange to the non-blocking body writer.
+    fn start_writing_body(
+        &mut self,
+        exchange: Exchange<R>,
+        starters: Option<[IncomingResponseParts; 2]>,
+    ) -> Step {
+        let Exchange {
+            data,
+            config,
+            connection,
+            reader,
+            ..
+        } = exchange;
+        let idle = IdleDeadline::new(config.io_idle_timeout());
+        self.pending(HttpRequestRedirectState::WritingBody(Some(Box::new(
+            WritingBody {
+                starters,
+                connection,
+                reader,
+                chunks: Http11RequestBodyIterator::new(data),
+                pending: PendingBytes::default(),
+                rendered_all: false,
+                idle,
+                producer_stalls: 0,
+            },
+        ))))
+    }
+
+    fn sending_head(&mut self, mut st: Box<SendingHead<R>>) -> Step {
+        let step = match st.pending.write_to(st.exchange.connection.stream_mut()) {
+            Ok((moved, IoStep::Done)) => {
+                if moved > 0 {
+                    st.idle.progress();
+                }
+                nonblocking::flush(st.exchange.connection.stream_mut())
+            }
+            Ok((moved, IoStep::Blocked)) => {
+                if moved > 0 {
+                    st.idle.progress();
+                }
+                Ok(IoStep::Blocked)
+            }
+            Err(err) => Err(err),
+        };
+
+        match step {
+            Ok(IoStep::Blocked) => {
+                let connection = st.exchange.connection.clone();
+                let mut idle = st.idle;
+                self.park(&connection, IoInterest::Writable, &mut idle, move |idle| {
+                    st.idle = idle;
+                    HttpRequestRedirectState::SendingHead(Some(st))
+                })
+            }
+            Err(err) => {
+                tracing::error!("Failed to write request head: {}", err);
+                self.fail(HttpClientError::WriteFailed)
+            }
+            Ok(IoStep::Done) => {
+                let SendingHead { exchange, next, .. } = *st;
+                tracing::trace!(?next, "request head sent");
+                match next {
+                    AfterHead::WriteBody => self.start_writing_body(exchange, None),
+                    AfterHead::ReadHead => {
+                        let idle = IdleDeadline::new(exchange.config.response_head_timeout());
+                        self.pending(HttpRequestRedirectState::ReadingHead(Some(Box::new(
+                            ReadingHead {
+                                exchange,
+                                intro: None,
+                                idle,
+                            },
+                        ))))
+                    }
+                    AfterHead::AwaitContinue => {
+                        let wait = exchange.config.get_expect_continue_read_timeout();
+                        let idle = IdleDeadline::new(exchange.config.response_head_timeout());
+                        self.pending(HttpRequestRedirectState::AwaitingContinue(Some(Box::new(
+                            AwaitingContinue {
+                                exchange,
+                                send_body_at: Instant::now() + wait,
+                                intro: None,
+                                idle,
+                            },
+                        ))))
+                    }
+                }
+            }
+        }
+    }
+
+    /// The `Expect: 100-continue` wait as a readiness wait with a timer.
+    fn awaiting_continue(&mut self, mut st: Box<AwaitingContinue<R>>) -> Step {
+        if st.intro.is_none() {
+            return match st.exchange.reader.next() {
+                Some(Err(ref e)) if e.is_would_block() => {
+                    if Instant::now() >= st.send_body_at {
+                        // RFC 9110 §10.1.1: a client that sent `Expect: 100-continue`
+                        // need not wait indefinitely; it sends the body after a
+                        // reasonable wait.
+                        tracing::trace!("[100-continue] timer elapsed; sending the body");
+                        let AwaitingContinue { exchange, .. } = *st;
+                        return self.start_writing_body(exchange, None);
+                    }
+                    self.park_for_continue(st)
+                }
+                Some(Ok(intro @ IncomingResponseParts::Intro(..))) => {
+                    st.idle.progress();
+                    st.intro = Some(intro);
+                    self.pending(HttpRequestRedirectState::AwaitingContinue(Some(st)))
+                }
+                Some(Ok(IncomingResponseParts::SKIP)) => {
+                    st.idle.progress();
+                    self.pending(HttpRequestRedirectState::AwaitingContinue(Some(st)))
+                }
+                Some(Ok(other)) => {
+                    tracing::error!("[100-continue] expected a status line, got {:?}", other);
+                    self.fail(HttpClientError::ReaderError(
+                        crate::shared::http::HttpReaderError::ReadFailed,
+                    ))
+                }
+                Some(Err(err)) => {
+                    tracing::error!(
+                        "[100-continue] reading the interim response failed: {:?}",
+                        err
+                    );
+                    self.fail(HttpClientError::ReaderError(err))
+                }
+                None => {
+                    tracing::error!(
+                        "[100-continue] server closed the connection before responding"
+                    );
+                    self.fail(HttpClientError::ConnectionError)
+                }
+            };
+        }
+
+        // A status line arrived; its headers are on their way.
+        let headers = match st.exchange.reader.next() {
+            Some(Ok(IncomingResponseParts::Headers(h))) => h,
+            Some(Err(ref e)) if e.is_would_block() => {
+                let connection = st.exchange.connection.clone();
+                let mut idle = st.idle;
+                return self.park(&connection, IoInterest::Readable, &mut idle, move |idle| {
+                    st.idle = idle;
+                    HttpRequestRedirectState::AwaitingContinue(Some(st))
+                });
+            }
+            other => {
+                tracing::error!(
+                    "[100-continue] headers not received: {:?}",
+                    other.map(|r| r.map(|_| ()))
+                );
+                return self.fail(HttpClientError::Timeout);
+            }
+        };
+
+        let Some(IncomingResponseParts::Intro(status, proto, text)) = st.intro.take() else {
+            unreachable!("AwaitingContinue::intro only ever holds an Intro")
+        };
+
+        if status == Status::Continue {
+            tracing::trace!("[100-continue] got 100 Continue; sending the body");
+            let AwaitingContinue { exchange, .. } = *st;
+            return self.start_writing_body(exchange, None);
+        }
+
+        let code = status.clone().into_usize();
+        if (100..200).contains(&code) && code != 101 {
+            // Another interim response (102, 103): skip it and keep waiting for
+            // `100` or the final response, on the same timer.
+            tracing::trace!("[100-continue] skipping interim {}", status);
+            st.exchange.reader = st.exchange.reader.branch_reader();
+            st.idle.progress();
+            return self.pending(HttpRequestRedirectState::AwaitingContinue(Some(st)));
+        }
+
+        // A final response before the body (e.g. 417, 4xx, a redirect).
+        let AwaitingContinue { exchange, .. } = *st;
+        match redirect_decision(
+            &exchange.descriptor,
+            &exchange.config,
+            exchange.remaining_redirects,
+            &status,
+            &headers,
+        ) {
+            RedirectDecision::Follow(descriptor) => self.follow(exchange, *descriptor),
+            RedirectDecision::Fail(err) => self.fail(err),
+            RedirectDecision::NotRedirect => self.start_writing_body(
+                exchange,
+                Some([
+                    IncomingResponseParts::Intro(status, proto, text),
+                    IncomingResponseParts::Headers(headers),
+                ]),
+            ),
+        }
+    }
+
+    /// Park the 100-continue wait on "readable, or the send-body timer fired".
+    fn park_for_continue(&mut self, st: Box<AwaitingContinue<R>>) -> Step {
+        let Some(io) = st.exchange.connection.park_readiness(IoInterest::Readable) else {
+            tracing::error!("[100-continue] connection lost its readiness support");
+            return self.fail(HttpClientError::Timeout);
+        };
+        let timer = Arc::new(DeadlineReadiness::at(st.send_body_at));
+        self.0 = Some(HttpRequestRedirectState::AwaitingContinue(Some(st)));
+        TaskStatus::Depends(Arc::new(AnyReadiness::either(io, timer)))
+    }
+
+    fn reading_head(&mut self, mut st: Box<ReadingHead<R>>) -> Step {
+        // Step 1: read the final status line, skipping interim 1xx responses
+        // (RFC 9110 §15.2). `intro` remembers a final status already read so a
+        // park between the status line and the headers is re-entrant.
+        if st.intro.is_none() {
+            match st.exchange.reader.next() {
+                Some(Err(ref e)) if e.is_would_block() => return self.park_head(st),
+                Some(Ok(IncomingResponseParts::Intro(status, proto, text))) => {
+                    st.idle.progress();
+                    let code = status.clone().into_usize();
+                    if (100..200).contains(&code) && code != 101 {
+                        // Interim: consume its (empty) head, then branch and re-read.
+                        match st.exchange.reader.next() {
+                            Some(Err(ref e)) if e.is_would_block() => {
+                                // Its headers are still in flight. Resume reading them
+                                // (step 2 sees them and branches) on the next poll.
+                                return self.park_head(st);
+                            }
+                            Some(Err(e)) => {
+                                tracing::error!("ReadingHead: interim head failed: {:?}", e);
+                                return self.fail(HttpClientError::Timeout);
+                            }
+                            _ => {}
+                        }
+                        st.exchange.reader = st.exchange.reader.branch_reader();
+                        return self.pending(HttpRequestRedirectState::ReadingHead(Some(st)));
+                    }
+                    st.intro = Some(IncomingResponseParts::Intro(status, proto, text));
+                }
+                Some(Ok(IncomingResponseParts::Headers(_))) => {
+                    // Mid-interim after a park: these are the interim's headers.
+                    // Branch and re-read the next status line.
+                    st.idle.progress();
+                    st.exchange.reader = st.exchange.reader.branch_reader();
+                    return self.pending(HttpRequestRedirectState::ReadingHead(Some(st)));
+                }
+                Some(Ok(IncomingResponseParts::SKIP)) => {
+                    return self.pending(HttpRequestRedirectState::ReadingHead(Some(st)));
+                }
+                Some(Ok(_) | Err(_)) | None => {
+                    tracing::error!("ReadingHead: no intro received");
+                    return self.fail(HttpClientError::Timeout);
+                }
+            }
+        }
+
+        // Step 2: read headers (parks on `WouldBlock`).
+        let headers = match st.exchange.reader.next() {
+            Some(Ok(IncomingResponseParts::Headers(h))) => h,
+            Some(Err(ref e)) if e.is_would_block() => return self.park_head(st),
+            _ => {
+                tracing::error!("ReadingHead: headers not received");
+                return self.fail(HttpClientError::Timeout);
+            }
+        };
+
+        let Some(intro) = st.intro.take() else {
+            unreachable!("ReadingHead::intro is set before headers are read")
+        };
+        let IncomingResponseParts::Intro(ref status, _, _) = intro else {
+            unreachable!("ReadingHead::intro only ever holds an Intro")
+        };
+
+        let ReadingHead { exchange, .. } = *st;
+        match redirect_decision(
+            &exchange.descriptor,
+            &exchange.config,
+            exchange.remaining_redirects,
+            status,
+            &headers,
+        ) {
+            RedirectDecision::Follow(descriptor) => self.follow(exchange, *descriptor),
+            RedirectDecision::Fail(err) => self.fail(err),
+            RedirectDecision::NotRedirect => {
+                tracing::debug!("No redirect for no-body request — handing off connection");
+                self.0 = Some(HttpRequestRedirectState::Done);
+                TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                    exchange.connection,
+                    exchange.reader,
+                    Box::new(Some([intro, IncomingResponseParts::Headers(headers)])),
+                ))
+            }
+        }
+    }
+
+    fn park_head(&mut self, mut st: Box<ReadingHead<R>>) -> Step {
+        let connection = st.exchange.connection.clone();
+        let mut idle = st.idle;
+        self.park(&connection, IoInterest::Readable, &mut idle, move |idle| {
+            st.idle = idle;
+            HttpRequestRedirectState::ReadingHead(Some(st))
+        })
+    }
+
+    fn writing_body(&mut self, mut st: Box<WritingBody>) -> Step {
+        for _ in 0..MAX_CHUNKS_PER_POLL {
+            if !st.pending.is_empty() {
+                match st.pending.write_to(st.connection.stream_mut()) {
+                    Ok((moved, step)) => {
+                        if moved > 0 {
+                            st.idle.progress();
+                        }
+                        if step == IoStep::Blocked {
+                            return self.park_body(st);
+                        }
+                    }
+                    Err(err) => {
+                        tracing::error!("Failed to write request body: {}", err);
+                        return self.fail(HttpClientError::WriteFailed);
+                    }
+                }
+            }
+
+            if st.rendered_all {
+                return match nonblocking::flush(st.connection.stream_mut()) {
+                    Ok(IoStep::Done) => {
+                        tracing::trace!("request body written and flushed");
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        let WritingBody {
+                            starters,
+                            connection,
+                            reader,
+                            ..
+                        } = *st;
+                        TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                            connection,
+                            reader,
+                            Box::new(starters),
+                        ))
+                    }
+                    Ok(IoStep::Blocked) => self.park_body(st),
+                    Err(err) => {
+                        tracing::error!("Failed to flush request body: {}", err);
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        TaskStatus::Ready(HttpRequestRedirectResponse::FlushFailed(
+                            st.connection,
+                            err,
+                        ))
+                    }
+                };
+            }
+
+            match st.chunks.next() {
+                Some(Ok(bytes)) if bytes.is_empty() => {
+                    // A state transition in the renderer, or a pushable body whose
+                    // producer has nothing yet. Push out what was written so the
+                    // server sees it, then retry: at once the first time, after a
+                    // short back-off while the producer stays empty.
+                    match nonblocking::flush(st.connection.stream_mut()) {
+                        Ok(IoStep::Done) => {}
+                        Ok(IoStep::Blocked) => return self.park_body(st),
+                        Err(err) => {
+                            tracing::error!("Failed to flush request body: {}", err);
+                            return self.fail(HttpClientError::WriteFailed);
+                        }
+                    }
+                    st.producer_stalls += 1;
+                    if st.producer_stalls == 1 {
+                        return self.pending(HttpRequestRedirectState::WritingBody(Some(st)));
+                    }
+                    let shift = (st.producer_stalls - 2).min(MAX_PRODUCER_BACKOFF_MS.ilog2());
+                    let backoff = Duration::from_millis(1u64 << shift);
+                    self.0 = Some(HttpRequestRedirectState::WritingBody(Some(st)));
+                    return TaskStatus::Delayed(backoff);
+                }
+                Some(Ok(bytes)) => {
+                    st.producer_stalls = 0;
+                    st.pending = PendingBytes::new(bytes);
+                }
+                Some(Err(err)) => {
+                    tracing::error!("Failed to render request body: {}", err);
+                    return self.fail(HttpClientError::WriteFailed);
+                }
+                None => st.rendered_all = true,
+            }
+        }
+        self.pending(HttpRequestRedirectState::WritingBody(Some(st)))
+    }
+
+    fn park_body(&mut self, mut st: Box<WritingBody>) -> Step {
+        let connection = st.connection.clone();
+        let mut idle = st.idle;
+        self.park(&connection, IoInterest::Writable, &mut idle, move |idle| {
+            st.idle = idle;
+            HttpRequestRedirectState::WritingBody(Some(st))
+        })
     }
 }
 
@@ -149,647 +970,95 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     type Ready = HttpRequestRedirectResponse;
     type Spawner = BoxedSendExecutionAction;
 
-    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
-        trace_span.in_scope(|| {
-            match self.0.take()? {
-                HttpRequestRedirectState::Init(mut inner_opt) => {
-                    tracing::trace!("HttpRequestRedirectState::Init");
-                    if let Some(inner) = inner_opt.take() {
-                        let (data, pool, config, remaining_redirects) = *inner;
-
-                        // create the request descriptor
-                        let request_descriptor = data.descriptor();
-                        tracing::info!("HttpRequestRedirectState::Init -> Connecting to URL: {} with headers: {:?}", &request_descriptor.request_uri, crate::shared::http::RedactedHeaders(&request_descriptor.headers));
-
-                        tracing::info!("HttpRequestRedirectState::Init -> Going to Trying state with max redirects: {}", &remaining_redirects);
-
-                        self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
-                            data,
-                            pool,
-                            config,
-                            request_descriptor,
-                            remaining_redirects,
-                        )))));
-
-                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                    }
-
+        trace_span.in_scope(|| match self.0.take()? {
+            HttpRequestRedirectState::Init(mut inner_opt) => {
+                tracing::trace!("HttpRequestRedirectState::Init");
+                let Some(inner) = inner_opt.take() else {
                     self.0 = Some(HttpRequestRedirectState::Done);
-                    None
-                }
-                HttpRequestRedirectState::Trying(inner_opt) => {
-                    tracing::trace!("HttpRequestRedirectState::Trying");
-                    let Some(state) = inner_opt else {
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return None;
-                    };
-
-
-                    let (data, pool, config, mut descriptor, remaining_redirects) = *state;
-
-                    // Calculate dynamic timeout based on request context
-                    // For HEAD requests: use min timeout (no body expected)
-                    // For other requests: use TTFB timeout for headers, dynamic for body
-
-                    let read_timeout =
-                        config.get_expect_continue_read_timeout();
-
-                    // let is_head_request = matches!(data.method, crate::shared::http::SimpleMethod::HEAD);
-                    // let read_timeout = if is_head_request {
-                    //     // HEAD requests have no body, use minimum timeout
-                    //     config.get_expect_continue_read_timeout()
-                    // } else {
-                    //     // For other requests, use the calculated read timeout
-                    //     // For header reading, we use a shorter TTFB-based timeout
-                    //     config.timeout_calculator.config().ttfb_timeout
-                    // };
-
-                    tracing::debug!("Set read timeout to {:?} (method={:?})",
-                        read_timeout, data.method);
-
-                    // Unix socket transport (Docker daemon, BuildKitd) bypasses
-                    // DNS and proxy — dial the configured socket directly.
-                    #[cfg(unix)]
-                    let unix_socket = config.unix_socket.clone();
-                    #[cfg(not(unix))]
-                    let unix_socket: Option<std::path::PathBuf> = None;
-
-                    let connection_result = if let Some(socket_path) = unix_socket {
-                        #[cfg(unix)]
-                        {
-                            pool.create_connection_unix(&descriptor.request_uri, &socket_path)
-                        }
-                        #[cfg(not(unix))]
-                        {
-                            let _ = socket_path;
-                            unreachable!("unix_socket is always None on non-unix targets")
-                        }
-                    } else {
-                        // Determine effective proxy configuration
-                        let env_proxy = if config.proxy_from_env {
-                            crate::shared::client::ProxyConfig::from_env(
-                                descriptor.request_uri.scheme(),
-                            )
-                        } else {
-                            None
-                        };
-
-                        let proxy_config = env_proxy.as_ref().or(config.proxy.as_ref());
-
-                        pool.create_connection_with_proxy(
-                            &descriptor.request_uri,
-                            proxy_config,
-                            None,
-                        )
-                    };
-
-                    // 1. Create connection (unix socket or TCP/proxy)
-                    let Ok(mut connection) = connection_result else {
-                        tracing::error!("Failed to connect with proxy");
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::ConnectionError,
-                        )));
-                    };
-
-                    tracing::debug!("Retreived connection from pool");
-
-                    // Only send Expect: 100-continue when the request has a body
-                    // AND the handshake is enabled in config. Bodyless requests
-                    // (e.g. GET) must never carry it — an interim `100 Continue`
-                    // from the server would otherwise be mistaken for the final
-                    // response. The toggle lets callers disable the handshake for
-                    // servers/CDNs that handle it poorly.
-                    let has_body = !matches!(data.body, None | Some(SendSafeBody::None));
-                    let use_expect = has_body && config.expect_continue_enabled;
-                    if use_expect {
-                        tracing::debug!("Adding EXPECT: 100-continue header for request with body");
-                        descriptor
-                            .headers
-                            .insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
-                    } else {
-                        tracing::debug!("Removing EXPECT: 100-continue header for request without body");
-                        descriptor.headers.remove(&SimpleHeader::EXPECT);
-                    }
-
-                    // RFC 7230 §3.3.1 — the body renderer frames all three
-                    // streaming variants (Stream/ChunkedStream/LineFeedStream) as
-                    // chunked transfer encoding, so the head MUST advertise
-                    // `Transfer-Encoding: chunked` (and carry no Content-Length).
-                    // Without it a receiver finds neither framing header, treats
-                    // the request as bodyless, drops the chunked bytes, and
-                    // mishandles the Expect: 100-continue handshake above. The
-                    // builders inject this too; do it here to cover descriptors
-                    // assembled by other paths.
-                    if matches!(
-                        data.body,
-                        Some(SendSafeBody::Stream(_) | SendSafeBody::ChunkedStream(_) |
-SendSafeBody::LineFeedStream(_))
-                    ) {
-                        ensure_chunked_transfer_encoding(&mut descriptor.headers);
-                    }
-
-                    tracing::debug!("Rendering and sending request");
-                    // 2. Render and send request
-                    let Ok(request_string) =
-                        Http11::request_descriptor(descriptor.clone()).http_render_string()
-                    else {
-                        tracing::error!("Failed to render request");
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::InvalidState,
-                        )));
-                    };
-
-                    if let Err(err) = connection.stream_mut().write_all(request_string.as_bytes()) {
-                        tracing::error!("Failed to write request: {}", err);
-
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::WriteFailed,
-                        )));
-                    }
-
-                    if let Err(err) = connection.stream_mut().flush() {
-                        tracing::error!("Failed to write request: {}", err);
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::WriteFailed,
-                        )));
-                    }
-
-                    // 3. Set read timeout based on request context
-                    // For HEAD requests: use minimum timeout
-                    // For other requests: use dynamic calculation
-                    tracing::debug!("Set read timeout to {:?}", read_timeout);
-
-                    if let Err(err) = connection
-                        .stream_mut()
-                        .set_read_timeout_as(read_timeout)
-                    {
-                        tracing::error!("Failed to set read timeout: {}", err);
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::Timeout,
-                        )));
-                    }
-
-                    tracing::debug!("Get response reader from stream for 100-continue");
-
-                    // 4. Try to read response intro once
-                    let simple_http_body = config.into_simple_http_body();
-
-                    let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
-                        connection.clone_stream(),
-                        simple_http_body,
-                    );
-
-                    // Body present but the Expect/100-continue handshake is disabled:
-                    // the server is waiting for the body before it responds, so write
-                    // it immediately without trying to read an interim response. The
-                    // real response is read by the caller after WriteBody completes.
-                    if has_body && !use_expect {
-                        tracing::trace!("Body present, expect/100-continue disabled — writing body without probe");
-                        self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                            None, data, pool, connection, reader,
-                        )))));
-                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                    }
-
-                    // For requests without a body, read the response head (intro +
-                    // headers) to check for redirects before handing off. This runs in
-                    // the parking-aware `ReadingHead` state so a non-blocking transport
-                    // whose response hasn't arrived yet parks instead of failing (F11).
-                    if !has_body {
-                        tracing::trace!("No body — reading response head to check redirects");
-                        self.0 = Some(HttpRequestRedirectState::ReadingHead(Some(Box::new((
-                            data,
-                            pool,
-                            config,
-                            descriptor,
-                            remaining_redirects,
-                            connection,
-                            reader,
-                            None,
-                        )))));
-                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                    }
-
-                    // Flattened: check intro and headers one by one, fallback to WriteBody if either missing
-                    tracing::trace!("[100-Continue] Waitiing for server response for 100-continue expect header with timeout: {:?}", read_timeout);
-                    let intro_result = reader.next();
-                    if !matches!(
-                        &intro_result,
-                        Some(Ok(IncomingResponseParts::Intro(_, _, _)))
-                    ) {
-                        tracing::trace!("No starter response received with timeout, moving to write body");
-                        self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                            None, data, pool, connection, reader,
-                        )))));
-                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                    }
-
-                    tracing::trace!("[100-continue, headers] Got intro response from server, moving to reading headers");
-                    let headers_result = reader.next();
-                    if !matches!(&headers_result, Some(Ok(IncomingResponseParts::Headers(_)))) {
-                        tracing::error!("Headers not received, returning timeout");
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::Timeout,
-                        )));
-                    }
-
-                    tracing::debug!("Received request response intro: {:?}", &intro_result);
-
-                    // Both intro and headers are present
-                    let (status, _proto, _text) = match &intro_result {
-                        Some(Ok(IncomingResponseParts::Intro(status, proto, text))) => {
-                            tracing::debug!("Received HTTP intro: status={}, proto={}, text={:?}", status, proto, text);
-                            (status, proto, text)
-                        }
-                        _ => unreachable!("Intro must be present here due to prior matches! check; fallback to WriteBody if missing."),
-                    };
-                    let headers = match &headers_result {
-                        Some(Ok(IncomingResponseParts::Headers(ref h))) => {
-                            tracing::debug!("Received HTTP headers: {:?}", crate::shared::http::RedactedHeaders(h));
-                            h
-                        }
-                        _ => unreachable!("Headers must be present here due to prior matches! check; fallback to WriteBody if missing."),
-                    };
-
-                    let is_100_continue = status == &Status::Continue;
-                    tracing::trace!("Is 100-continue: {}", is_100_continue);
-
-                    if is_100_continue {
-                        tracing::trace!("Moving to write body state for task: {}", is_100_continue);
-                        self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                            None,
-                            data,
-                            pool,
-                            connection,
-                            reader,
-                        )))));
-
-                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                    }
-
-                    // Extract Content-Length and calculate dynamic timeout for body reading.
-                    // Only applied for non-100-Continue responses (actual response with body).
-                    let content_length = headers_result.as_ref().and_then(|h| {
-                        h.as_ref().ok().and_then(|parts| {
-                            if let IncomingResponseParts::Headers(hdrs) = parts {
-                                hdrs.get(&SimpleHeader::CONTENT_LENGTH)
-                                    .and_then(|v| v.first())
-                                    .and_then(|s| s.parse::<usize>().ok())
-                            } else {
-                                None
-                            }
-                        })
-                    });
-
-                    let body_read_timeout = config.calculate_read_timeout(content_length, false);
-                    tracing::debug!("Setting body read timeout to {:?} for Content-Length {:?}",
-                        body_read_timeout, content_length);
-
-                    if let Err(err) = connection
-                        .stream_mut()
-                        .set_read_timeout_as(body_read_timeout)
-                    {
-                        tracing::error!("Failed to set body read timeout: {}", err);
-                    }
-
-                    tracing::trace!("No 100-continue, checking if redirect: {}", is_100_continue);
-                    let is_redirect = (300..400).contains(&status.clone().into_usize());
-                    tracing::debug!("Is redirect: {}", is_redirect);
-
-                    let location_header = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
-                    tracing::debug!("Location header: {:?}", location_header);
-
-                    tracing::error!(
-                        "Redirect limit at ({} redirects)",
-                        remaining_redirects
-                    );
-                    if is_redirect && location_header.is_some() {
-                        if remaining_redirects == 0 {
-                            tracing::error!(
-                                "Redirect limit exceeded ({} redirects)",
-                                remaining_redirects
-                            );
-                            self.0 = Some(HttpRequestRedirectState::Done);
-                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                                HttpClientError::TooManyRedirects,
-                            )));
-                        }
-                        tracing::info!(
-                            "Redirect detected: status {} with Location header {:?}",
-                            status,
-                            location_header
-                        );
-
-                        let Some(location) = location_header else {
-                            self.0 = Some(HttpRequestRedirectState::Done);
-                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                                HttpClientError::FailedWith("Location header missing in redirect".into())
-                            )));
-                        };
-                        let new_url =
-                            match redirects::resolve_location(&descriptor.request_uri, location) {
-                                Ok(url) => url,
-                                Err(e) => {
-                                    tracing::error!("Failed to resolve redirect location: {}", e);
-                                    self.0 = Some(HttpRequestRedirectState::Done);
-                                    return Some(TaskStatus::Ready(
-                                        HttpRequestRedirectResponse::Error(
-                                            HttpClientError::InvalidLocation(location.clone()),
-                                        ),
-                                    ));
-                                }
-                            };
-
-                        let new_descriptor =
-                            match redirects::build_followup_request_from_request_descriptor(
-                                &descriptor,
-                                new_url.clone(),
-                                config.redirect.preserve_auth_on_redirect,
-                                config.redirect.preserve_cookies_on_redirect,
-                            ) {
-                                Ok(desc) => {
-                                    tracing::info!("Redirected to new location: {:?}", &desc);
-                                    desc
-                                }
-                                Err(e) => {
-                                    tracing::error!(
-                                        "Failed to build follow-up request descriptor: {}",
-                                        e
-                                    );
-                                    self.0 = Some(HttpRequestRedirectState::Done);
-                                    return Some(TaskStatus::Ready(
-                                        HttpRequestRedirectResponse::Error(
-                                            HttpClientError::InvalidState,
-                                        ),
-                                    ));
-                                }
-                            };
-
-                        tracing::debug!("Following redirect to new URL: {}", new_url);
-                        self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
-                            data,
-                            pool,
-                            config,
-                            new_descriptor,
-                            remaining_redirects - 1,
-                        )))));
-
-                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                    }
-
-                    tracing::debug!(
-                        "No redirect detected, transitioning to WriteBody state to send request body."
-                    );
-
-                    let Some(intro) = intro_result.and_then(std::result::Result::ok) else {
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::FailedWith("Missing intro".into())
-                        )));
-                    };
-
-                    let Some(headers) = headers_result.and_then(std::result::Result::ok) else {
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                            HttpClientError::FailedWith("Missing headers".into())
-                        )));
-                    };
-
-                    self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                        Some([intro, headers]),
-                        data,
-                        pool,
-                        connection,
-                        reader,
-                    )))));
-                    Some(TaskStatus::Pending(HttpOperationState::Connecting))
-                }
-                HttpRequestRedirectState::ReadingHead(inner_opt) => {
-                    tracing::trace!("HttpRequestRedirectState::ReadingHead");
-                    let Some(inner) = inner_opt else { return None };
-                    let (
+                    return None;
+                };
+                let (data, pool, config, remaining_redirects) = *inner;
+                let request_descriptor = data.descriptor();
+                tracing::info!(
+                    "HttpRequestRedirectState::Init -> Connecting to URL: {} with headers: {:?}",
+                    &request_descriptor.request_uri,
+                    crate::shared::http::RedactedHeaders(&request_descriptor.headers)
+                );
+                Some(
+                    self.pending(HttpRequestRedirectState::Trying(Some(Box::new((
                         data,
                         pool,
                         config,
-                        descriptor,
+                        request_descriptor,
                         remaining_redirects,
-                        connection,
-                        mut reader,
-                        mut acc_intro,
-                    ) = *inner;
-
-                    // Step 1: read the final status line, skipping interim 1xx responses
-                    // (RFC 9110 §15.2). Parks on `WouldBlock`; `acc_intro` remembers a
-                    // final status already read so a park before headers is re-entrant.
-                    if acc_intro.is_none() {
-                        match reader.next() {
-                            Some(Err(ref e)) if e.is_would_block() => {
-                                return Some(self.park_head(Box::new((
-                                    data, pool, config, descriptor, remaining_redirects,
-                                    connection, reader, None,
-                                ))));
-                            }
-                            Some(Ok(IncomingResponseParts::Intro(status, proto, text))) => {
-                                let code = status.clone().into_usize();
-                                if (100..200).contains(&code) && code != 101 {
-                                    // Interim: consume its (empty) head, branch, re-read.
-                                    match reader.next() {
-                                        Some(Err(ref e)) if e.is_would_block() => {
-                                            return Some(self.park_head(Box::new((
-                                                data, pool, config, descriptor,
-                                                remaining_redirects, connection, reader, None,
-                                            ))));
-                                        }
-                                        Some(Err(e)) => {
-                                            tracing::error!("ReadingHead: interim head failed: {:?}", e);
-                                            self.0 = Some(HttpRequestRedirectState::Done);
-                                            return Some(TaskStatus::Ready(
-                                                HttpRequestRedirectResponse::Error(HttpClientError::Timeout),
-                                            ));
-                                        }
-                                        _ => {}
-                                    }
-                                    let branched = reader.branch_reader();
-                                    self.0 = Some(HttpRequestRedirectState::ReadingHead(Some(
-                                        Box::new((
-                                            data, pool, config, descriptor,
-                                            remaining_redirects, connection, branched, None,
-                                        )),
-                                    )));
-                                    return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                                }
-                                acc_intro = Some(IncomingResponseParts::Intro(status, proto, text));
-                            }
-                            Some(Ok(IncomingResponseParts::Headers(_))) => {
-                                // Mid-interim after a park: these are the interim's
-                                // headers. Branch and re-read the next status line.
-                                let branched = reader.branch_reader();
-                                self.0 = Some(HttpRequestRedirectState::ReadingHead(Some(
-                                    Box::new((
-                                        data, pool, config, descriptor, remaining_redirects,
-                                        connection, branched, None,
-                                    )),
-                                )));
-                                return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                            }
-                            Some(Ok(_)) | Some(Err(_)) | None => {
-                                tracing::error!("ReadingHead: no intro received");
-                                self.0 = Some(HttpRequestRedirectState::Done);
-                                return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                                    HttpClientError::Timeout,
-                                )));
-                            }
-                        }
-                    }
-
-                    // Step 2: read headers (parks on `WouldBlock`).
-                    let headers = match reader.next() {
-                        Some(Ok(IncomingResponseParts::Headers(h))) => h,
-                        Some(Err(ref e)) if e.is_would_block() => {
-                            return Some(self.park_head(Box::new((
-                                data, pool, config, descriptor, remaining_redirects,
-                                connection, reader, acc_intro,
-                            ))));
-                        }
-                        _ => {
-                            tracing::error!("ReadingHead: headers not received");
-                            self.0 = Some(HttpRequestRedirectState::Done);
-                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                                HttpClientError::Timeout,
-                            )));
-                        }
-                    };
-
-                    let intro = acc_intro.take().expect("intro read before headers");
-                    let IncomingResponseParts::Intro(ref status, _, _) = intro else {
-                        unreachable!("acc_intro only ever holds an Intro")
-                    };
-
-                    let is_redirect = (300..400).contains(&status.clone().into_usize());
-                    let location_header =
-                        headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
-
-                    if is_redirect && location_header.is_some() {
-                        if remaining_redirects == 0 {
-                            tracing::error!("Redirect limit exceeded");
-                            self.0 = Some(HttpRequestRedirectState::Done);
-                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                                HttpClientError::TooManyRedirects,
-                            )));
-                        }
-                        let location = location_header.expect("checked is_some above");
-                        let new_url =
-                            match redirects::resolve_location(&descriptor.request_uri, location) {
-                                Ok(url) => url,
-                                Err(e) => {
-                                    tracing::error!("Failed to resolve redirect location: {}", e);
-                                    self.0 = Some(HttpRequestRedirectState::Done);
-                                    return Some(TaskStatus::Ready(
-                                        HttpRequestRedirectResponse::Error(
-                                            HttpClientError::InvalidLocation(location.clone()),
-                                        ),
-                                    ));
-                                }
-                            };
-                        let new_descriptor =
-                            match redirects::build_followup_request_from_request_descriptor(
-                                &descriptor,
-                                new_url.clone(),
-                                config.redirect.preserve_auth_on_redirect,
-                                config.redirect.preserve_cookies_on_redirect,
-                            ) {
-                                Ok(desc) => desc,
-                                Err(e) => {
-                                    tracing::error!("Failed to build follow-up request: {}", e);
-                                    self.0 = Some(HttpRequestRedirectState::Done);
-                                    return Some(TaskStatus::Ready(
-                                        HttpRequestRedirectResponse::Error(
-                                            HttpClientError::InvalidState,
-                                        ),
-                                    ));
-                                }
-                            };
-
-                        tracing::debug!("Following redirect to new URL: {}", new_url);
-                        self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
-                            data,
-                            pool,
-                            config,
-                            new_descriptor,
-                            remaining_redirects - 1,
-                        )))));
-                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
-                    }
-
-                    tracing::debug!("No redirect for no-body request — handing off connection");
+                    ))))),
+                )
+            }
+            HttpRequestRedirectState::Trying(inner_opt) => {
+                tracing::trace!("HttpRequestRedirectState::Trying");
+                let Some(state) = inner_opt else {
                     self.0 = Some(HttpRequestRedirectState::Done);
-                    Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                    return None;
+                };
+                Some(self.trying(state))
+            }
+            HttpRequestRedirectState::SendingHead(inner) => {
+                tracing::trace!("HttpRequestRedirectState::SendingHead");
+                Some(self.sending_head(inner?))
+            }
+            HttpRequestRedirectState::AwaitingContinue(inner) => {
+                tracing::trace!("HttpRequestRedirectState::AwaitingContinue");
+                Some(self.awaiting_continue(inner?))
+            }
+            HttpRequestRedirectState::ReadingHead(inner) => {
+                tracing::trace!("HttpRequestRedirectState::ReadingHead");
+                Some(self.reading_head(inner?))
+            }
+            HttpRequestRedirectState::WritingBody(inner) => {
+                tracing::trace!("HttpRequestRedirectState::WritingBody");
+                Some(self.writing_body(inner?))
+            }
+            HttpRequestRedirectState::WriteBody(mut inner_opt) => {
+                tracing::trace!("HttpRequestRedirectState::WriteBody (blocking)");
+                let Some(inner) = inner_opt.take() else {
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return Some(TaskStatus::Pending(HttpOperationState::Done));
+                };
+                let (optional_starters, data, _pool, mut connection, reader) = *inner;
+                self.0 = Some(HttpRequestRedirectState::Done);
+
+                // Guard: no body to write — skip rendering and go straight to Done.
+                if matches!(data.body, None | Some(SendSafeBody::None)) {
+                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
                         connection,
                         reader,
-                        Box::new(Some([intro, IncomingResponseParts::Headers(headers)])),
-                    )))
+                        Box::new(optional_starters),
+                    )));
                 }
-                HttpRequestRedirectState::WriteBody(mut inner_opt) => {
-                    tracing::trace!("HttpRequestRedirectState::WriteBody");
-                    if let Some(inner) = inner_opt.take() {
-                        tracing::trace!("HttpRequestRedirectState::WriteBody: taking connection state data pointers");
-                        let (optional_starters, data, _pool, mut connection, reader) = *inner;
 
-                        // Guard: no body to write — skip rendering and go straight to Done.
-                        if matches!(data.body, None | Some(SendSafeBody::None)) {
-                            tracing::trace!("HttpRequestRedirectState::WriteBody: no body, skipping write");
-                            self.0 = Some(HttpRequestRedirectState::Done);
-                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
-                                connection,
-                                reader,
-                                Box::new(optional_starters),
-                            )));
-                        }
+                let body_renderer = Http11::request_body(data);
+                if let Err(err) = body_renderer.http_render_to_writer(connection.stream_mut()) {
+                    tracing::error!("Failed to write request body: {}", err);
+                    return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
+                        HttpClientError::WriteFailed,
+                    )));
+                }
 
-                        let body_renderer = Http11::request_body(data);
-                        tracing::trace!("HttpRequestRedirectState::WriteBody: creating body renderer and writing body to stream");
-
-                        if let Err(err) = body_renderer.http_render_to_writer(connection.stream_mut()) {
-                            tracing::error!("Failed to write request body: {}", err);
-
-                            self.0 = Some(HttpRequestRedirectState::Done);
-                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
-                                HttpClientError::WriteFailed,
-                            )));
-                        }
-
-                        tracing::trace!("HttpRequestRedirectState::WriteBody: written body to stream");
-                        self.0 = Some(HttpRequestRedirectState::Done);
-                        return match connection.stream_mut().flush() {
-                            Ok(()) => {
-                                tracing::trace!("HttpRequestRedirectState::WriteBody: flushed body to stream");
-                                Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
-                                connection,
-                                reader,
-                                Box::new(optional_starters),
-                            )))},
-                            Err(e) => {
-                                tracing::trace!("HttpRequestRedirectState::WriteBody: failed to flush body to stream due to: {:?}", e);
-
-                                Some(TaskStatus::Ready(
-                                HttpRequestRedirectResponse::FlushFailed(connection, e),
-                            ))},
-                        };
+                Some(match connection.stream_mut().flush() {
+                    Ok(()) => TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                        connection,
+                        reader,
+                        Box::new(optional_starters),
+                    )),
+                    Err(e) => {
+                        tracing::trace!("WriteBody: failed to flush body: {:?}", e);
+                        TaskStatus::Ready(HttpRequestRedirectResponse::FlushFailed(connection, e))
                     }
-
-                    self.0 = Some(HttpRequestRedirectState::Done);
-                    Some(TaskStatus::Pending(HttpOperationState::Done))
-                }
-                HttpRequestRedirectState::Done => None,
+                })
             }
+            HttpRequestRedirectState::Done => None,
         })
     }
 }

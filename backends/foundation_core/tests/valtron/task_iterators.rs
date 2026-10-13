@@ -335,3 +335,41 @@ fn test_map_iter_passes_through_pending() {
     ));
     assert_eq!(Iterator::next(&mut flattened), None);
 }
+
+/// Regression: an observer must not lose the final item that the producer
+/// pushes just before closing the queue.
+///
+/// WHY: the observer popped (`Empty`), then checked `is_closed()`. A producer
+/// that pushed its one item and closed in between made the observer report
+/// end-of-stream with the item still in the queue. The connectrpc H1 transport
+/// lost response heads this way (`stream.head.next()` returned `None`) once the
+/// client got fast enough to land in that window.
+///
+/// HOW: race the continuation (pushes then closes) on another thread against
+/// the observer, many times. Every round must deliver the item.
+#[test]
+fn test_split_collect_until_map_never_loses_the_closing_item() {
+    use foundation_core::valtron::CollectionState;
+
+    for round in 0..2_000u32 {
+        let task = TestTask::new(vec![TaskStatus::Ready(round)]);
+        let (observer, mut continuation) =
+            task.split_collect_until_map(|x| (CollectionState::Close(true), Some(*x)), 1);
+
+        let producer =
+            std::thread::spawn(move || while Iterator::next(&mut continuation).is_some() {});
+
+        let mut got = None;
+        for stream in observer {
+            if let Stream::Next(v) = stream {
+                got = Some(v);
+            }
+        }
+        producer.join().expect("producer thread");
+        assert_eq!(
+            got,
+            Some(round),
+            "round {round}: the closing item was dropped"
+        );
+    }
+}

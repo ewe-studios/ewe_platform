@@ -319,6 +319,64 @@ impl HttpClientConnection {
             .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()))
     }
 
+    /// Whether this connection can run non-blocking with readiness parking.
+    #[must_use]
+    pub fn supports_nonblocking_io(&self) -> bool {
+        self.stream
+            .with_inner_ref(RawStream::supports_nonblocking_io)
+    }
+
+    /// Switch the socket's blocking mode.
+    ///
+    /// # Errors
+    /// The socket's error, or `Unsupported` for a transport that cannot be driven
+    /// non-blocking.
+    pub fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()> {
+        self.stream
+            .with_inner_ref(|raw: &RawStream| raw.set_nonblocking(nonblocking))
+    }
+
+    /// Whether the socket is in non-blocking mode right now.
+    ///
+    /// # Errors
+    /// The socket's error.
+    pub fn is_nonblocking(&self) -> std::io::Result<bool> {
+        self.stream.with_inner_ref(RawStream::is_nonblocking)
+    }
+
+    /// The readiness signal to park on after a `WouldBlock`, or `None` if this
+    /// `WouldBlock` is terminal.
+    ///
+    /// A blocking socket's `WouldBlock` means its read timeout already elapsed, so
+    /// there is nothing to wait for. The same holds for a transport that cannot
+    /// report readiness. A socket whose mode cannot be read is treated as
+    /// blocking, and that error is logged.
+    #[must_use]
+    pub fn park_readiness(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> Option<foundation_core::valtron::EventReadinessPtr> {
+        match self.is_nonblocking() {
+            Ok(true) => self.readiness(interest),
+            Ok(false) => None,
+            Err(err) => {
+                tracing::error!(?err, "cannot read socket mode; treating WouldBlock as terminal");
+                None
+            }
+        }
+    }
+
+    /// A readiness signal for a task parked on this connection after `WouldBlock`.
+    /// Shares the same `RawStream` the reader and writer use (clones share it).
+    #[must_use]
+    pub fn readiness(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> Option<foundation_core::valtron::EventReadinessPtr> {
+        self.stream
+            .with_inner_ref(|raw: &RawStream| raw.readiness(interest))
+    }
+
     /// Takes ownership of the underlying stream, consuming the connection.
     ///
     /// WHY: Allows transferring stream ownership to other components (e.g., `HttpResponseReader`)

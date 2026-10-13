@@ -107,6 +107,42 @@ impl ClientConfig {
         self.expect_continue_read_timeout
     }
 
+    /// How long a non-blocking request waits for the response status line and
+    /// headers, with no bytes arriving, before failing with `Timeout`.
+    ///
+    /// WHY: a blocking socket enforced this in the kernel (`SO_RCVTIMEO`). A
+    /// parked task enforces it as a deadline instead. It is the configured
+    /// time-to-first-byte budget.
+    #[must_use]
+    pub fn response_head_timeout(&self) -> Duration {
+        self.timeout_calculator.config().ttfb_timeout
+    }
+
+    /// How long a non-blocking exchange may go with no progress while it
+    /// streams: the server not accepting request bytes, or not sending response
+    /// body bytes.
+    ///
+    /// WHY: a parked task holds no worker, so a long-idle stream (a slow
+    /// server-streaming RPC) costs nothing while it waits. The bound only has to
+    /// catch a dead peer, so it uses the generous maximum read timeout.
+    #[must_use]
+    pub fn io_idle_timeout(&self) -> Duration {
+        self.timeout_calculator.config().max_read_timeout
+    }
+
+    /// The read timeout a connection carries when its response body is handed
+    /// to a synchronous reader.
+    ///
+    /// WHY: the body iterators (`body_reader::collect_string`, the
+    /// `RequestIntro::Success` stream) rely on blocking reads. Their
+    /// `WouldBlock`/`TimedOut` retry budget assumes each retry waited a read
+    /// timeout. The blocking client always left the expect-continue read timeout
+    /// on the socket at this point, so the handoff restores exactly that.
+    #[must_use]
+    pub fn blocking_body_read_timeout(&self) -> Duration {
+        self.expect_continue_read_timeout
+    }
+
     #[must_use]
     pub fn calculate_write_timeout(&self, body_size: Option<usize>) -> Duration {
         let ctx = TimeoutContext::with_size(body_size.unwrap_or(0));

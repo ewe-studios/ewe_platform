@@ -2333,11 +2333,17 @@ pub enum Http11RequestBodyState {
 
     /// `ChunkedBodyStreaming` like `BodyStreaming` is meant to support
     /// handling of a chunked body parts where
-    ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
+    ///
+    /// Holds the `Send` iterator straight from `SendSafeBody::ChunkedStream`,
+    /// so the renderer can live inside a `Send` valtron task that writes the
+    /// body incrementally on a non-blocking socket.
+    ChunkedBodyStreaming(Option<BoxedSendableIterator<ChunkedData, BoxedError>>),
 
     /// `LineFeedStreaming` like `BodyStreaming` is meant to support
     /// handling of a chunked body parts where
-    LineFeedStreaming(Option<LineFeedVecIterator<BoxedError>>),
+    ///
+    /// `Send` for the same reason as `ChunkedBodyStreaming`.
+    LineFeedStreaming(Option<BoxedSendableIterator<LineFeed, BoxedError>>),
 
     /// The final state of the rendering which once read ends the iterator.
     End,
@@ -4404,6 +4410,31 @@ where
                 }
             }
             HttpReadState::Headers | HttpReadState::OnlyHeaders => {
+                // `HeaderReader` consumes line by line. On a non-blocking socket a
+                // header block split across reads would lose the lines read before
+                // the `WouldBlock`. So buffer the whole block first, without
+                // consuming. Then a `WouldBlock` leaves the stream untouched and the
+                // driving task can park and retry. A blocking socket fills
+                // here instead of inside the parser; nothing else changes.
+                let buffered = self.reader.do_once_mut(|buffer| {
+                    super::framing::buffer_until(
+                        buffer,
+                        super::framing::plain(super::framing::header_block),
+                    )
+                });
+                match buffered {
+                    Ok(super::framing::BufferOutcome::Ready { .. }) => {}
+                    Ok(super::framing::BufferOutcome::WouldBlock) => {
+                        tracing::trace!("Header block incomplete; parking for retry");
+                        return Some(Err(HttpReaderError::WouldBlock));
+                    }
+                    Err(err) => {
+                        tracing::error!("Failed to buffer headers: {:?}", &err);
+                        self.state = HttpReadState::Finished;
+                        return Some(Err(HttpReaderError::from_read_io(err)));
+                    }
+                }
+
                 let mut header_reader = HeaderReader::new(
                     self.reader.clone(),
                     self.max_header_key_length,

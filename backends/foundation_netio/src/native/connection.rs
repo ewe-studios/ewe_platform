@@ -343,6 +343,20 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
 /// `OverlayStream::set_read_waker`.
 pub type ConnWaker = std::sync::Arc<dyn Fn() + Send + Sync>;
 
+/// Read `O_NONBLOCK` from an fd's status flags.
+///
+/// # Errors
+/// The `fcntl(F_GETFL)` error.
+#[cfg(unix)]
+pub(crate) fn fd_is_nonblocking(fd: std::os::unix::io::RawFd) -> std::io::Result<bool> {
+    // SAFETY: F_GETFL only reads the flags of `fd`; an invalid fd yields EBADF.
+    let flags = unsafe { libc::fcntl(fd, libc::F_GETFL) };
+    if flags < 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    Ok(flags & libc::O_NONBLOCK != 0)
+}
+
 pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
     /// Duplicate the underlying stream handle (cheap `Arc` clone).
     fn clone_box(&self) -> Box<dyn OverlayReadWrite>;
@@ -1018,6 +1032,151 @@ impl Connection {
                 true
             }
             _ => false,
+        }
+    }
+
+    /// Whether a task can drive this connection non-blocking and park on its
+    /// readiness ([`Self::readiness`]).
+    ///
+    /// WHY: the HTTP/1.1 client switches a connection to non-blocking only when it
+    /// can also wake up on readiness. Otherwise a `WouldBlock` would leave it
+    /// spinning with nothing to wait on. Transports that answer `false` keep the
+    /// blocking path with kernel read timeouts.
+    ///
+    /// WHAT: `true` for kernel sockets on unix (TCP, Unix domain), for rustls over
+    /// those, and for the overlay (always non-blocking, woken by its driver).
+    /// `false` for completion sockets, whose bytes come from an `io_uring` inbox and
+    /// not from fd readability, and for the openssl / native-tls backends, which
+    /// do not expose whether a stalled call needs the socket readable or writable.
+    #[must_use]
+    pub fn supports_nonblocking_io(&self) -> bool {
+        match self {
+            #[cfg(unix)]
+            Self::Tcp(_) | Self::Unix(_) => true,
+            #[cfg(not(unix))]
+            Self::Tcp(_) => false,
+            #[cfg(all(unix, feature = "ssl-rustls"))]
+            Self::Tls(_) => true,
+            #[cfg(all(
+                any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"),
+                not(all(unix, feature = "ssl-rustls"))
+            ))]
+            Self::Tls(_) => false,
+            #[cfg(unix)]
+            Self::Completion(_) => false,
+            Self::Overlay(_) => true,
+        }
+    }
+
+    /// Put the underlying socket into (or out of) non-blocking mode.
+    ///
+    /// Overlay and completion streams are always non-blocking and have no mode to
+    /// switch, so this is a no-op for them.
+    ///
+    /// # Errors
+    /// The socket's `fcntl` error, or `Unsupported` for a TLS backend that cannot
+    /// be driven non-blocking (see [`Self::supports_nonblocking_io`]).
+    pub fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()> {
+        match self {
+            Self::Tcp(s) => s.set_nonblocking(nonblocking),
+            #[cfg(unix)]
+            Self::Unix(s) => s.set_nonblocking(nonblocking),
+            #[cfg(feature = "ssl-rustls")]
+            Self::Tls(tls) => tls.set_nonblocking(nonblocking),
+            #[cfg(all(
+                not(feature = "ssl-rustls"),
+                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+            ))]
+            Self::Tls(_) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "this TLS backend cannot be driven non-blocking",
+            )),
+            #[cfg(unix)]
+            Self::Completion(_) => Ok(()),
+            Self::Overlay(_) => Ok(()),
+        }
+    }
+
+    /// Whether the socket is currently in non-blocking mode.
+    ///
+    /// WHY: a `WouldBlock` means two different things. On a non-blocking socket it
+    /// means "nothing yet", and the task should park. On a blocking socket with a
+    /// read timeout, the kernel has already waited out the timeout, so it is a
+    /// terminal failure. A task asks the socket itself rather than trusting its
+    /// own bookkeeping.
+    ///
+    /// Overlay and completion streams are always non-blocking.
+    ///
+    /// # Errors
+    /// The `fcntl(F_GETFL)` error, or an error if the TLS stream's lock is poisoned.
+    pub fn is_nonblocking(&self) -> std::io::Result<bool> {
+        match self {
+            #[cfg(unix)]
+            Self::Tcp(s) => fd_is_nonblocking(s.as_raw_fd()),
+            #[cfg(not(unix))]
+            Self::Tcp(_) => Ok(false),
+            #[cfg(unix)]
+            Self::Unix(s) => fd_is_nonblocking(s.as_raw_fd()),
+            #[cfg(feature = "ssl-rustls")]
+            Self::Tls(tls) => tls.is_nonblocking(),
+            #[cfg(all(
+                not(feature = "ssl-rustls"),
+                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+            ))]
+            Self::Tls(_) => Ok(false),
+            #[cfg(unix)]
+            Self::Completion(_) => Ok(true),
+            Self::Overlay(_) => Ok(true),
+        }
+    }
+
+    /// A readiness signal a parked task can wait on for `interest`.
+    ///
+    /// Returns `None` when the transport cannot report readiness (see
+    /// [`Self::supports_nonblocking_io`]).
+    ///
+    /// For kernel sockets this is a zero-timeout `poll(2)` on the fd. For the
+    /// overlay it registers a one-shot waker that the tunnel driver fires. For
+    /// TLS, the direction comes from the TLS session and not from the caller: a
+    /// read can stall on a pending TLS write, and a write can stall waiting for
+    /// the peer's handshake reply.
+    #[must_use]
+    pub fn readiness(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> Option<foundation_core::valtron::EventReadinessPtr> {
+        use crate::native::readiness::IoInterest;
+        match self {
+            #[cfg(unix)]
+            Self::Tcp(s) => Some(std::sync::Arc::new(
+                crate::native::readiness::SocketReadiness::new(s.as_raw_fd(), interest),
+            )),
+            #[cfg(not(unix))]
+            Self::Tcp(_) => None,
+            #[cfg(unix)]
+            Self::Unix(s) => Some(std::sync::Arc::new(
+                crate::native::readiness::SocketReadiness::new(s.as_raw_fd(), interest),
+            )),
+            #[cfg(feature = "ssl-rustls")]
+            Self::Tls(tls) => tls.readiness(interest),
+            #[cfg(all(
+                not(feature = "ssl-rustls"),
+                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+            ))]
+            Self::Tls(_) => None,
+            #[cfg(unix)]
+            Self::Completion(_) => None,
+            Self::Overlay(o) => {
+                let signal = foundation_core::valtron::BoolSignal::new(false);
+                let flag = signal.clone_inner();
+                let waker: ConnWaker =
+                    std::sync::Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+                match interest {
+                    IoInterest::Readable => o.set_read_waker(waker),
+                    IoInterest::Writable => o.set_write_waker(waker),
+                }
+                Some(std::sync::Arc::new(signal))
+            }
         }
     }
 

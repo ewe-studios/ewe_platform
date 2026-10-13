@@ -15,12 +15,13 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
-use std::sync::atomic::Ordering;
-use std::sync::Arc;
+use std::time::Duration;
 
 use derive_more::From;
 
-use crate::native::connection::ConnWaker;
+use super::nonblocking::{self, IdleDeadline, Park};
+use crate::native::readiness::IoInterest;
+use crate::shared::client::ClientConfig;
 use crate::netcap::RawStream;
 use crate::shared::client::body_reader::drain_stream_iterator_from_send_safe;
 use crate::shared::client::ResponseIntro;
@@ -30,7 +31,7 @@ use crate::shared::http::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
     SimpleHttpBody,
 };
-use foundation_core::valtron::{BoolSignal, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 
 /// Cloneable subset of `RequestIntro` for observer patterns.
 ///
@@ -112,60 +113,87 @@ pub enum GetRequestIntroState {
     WithIntro(WithIntroData),
 }
 
-pub struct GetRequestIntroTask(Option<GetRequestIntroState>, Option<SimpleHttpBody>, usize);
+pub struct GetRequestIntroTask {
+    state: Option<GetRequestIntroState>,
+    body_config: Option<SimpleHttpBody>,
+    max_loop: usize,
+    /// Inactivity bound while parked waiting for the response head on a
+    /// non-blocking socket (the blocking path relies on `SO_RCVTIMEO` instead).
+    idle: IdleDeadline,
+}
 
 impl GetRequestIntroTask {
     #[must_use]
     pub fn new(stream: HttpClientConnection) -> Self {
-        Self(Some(GetRequestIntroState::Init(Some(stream))), None, 5)
+        Self {
+            state: Some(GetRequestIntroState::Init(Some(stream))),
+            body_config: None,
+            max_loop: 5,
+            idle: IdleDeadline::new(ClientConfig::default().response_head_timeout()),
+        }
     }
 
     #[must_use]
     pub fn with_max_loop(mut self, max_loop: usize) -> Self {
-        self.2 = max_loop;
+        self.max_loop = max_loop;
         self
     }
 
     #[must_use]
     pub fn with_body_config(mut self, body: SimpleHttpBody) -> Self {
-        self.1 = Some(body);
+        self.body_config = Some(body);
         self
     }
 
-    /// Park the task on a read-readiness signal after a non-blocking `WouldBlock`.
+    /// How long to wait, with no bytes arriving, for the response head on a
+    /// non-blocking connection before failing with `HttpClientError::Timeout`.
+    #[must_use]
+    pub fn with_head_timeout(mut self, timeout: Duration) -> Self {
+        self.idle = IdleDeadline::new(timeout);
+        self
+    }
+
+    /// Park the task on read readiness after a non-blocking `WouldBlock`.
     ///
-    /// WHY: the reader kept its (resumable) state; we must re-run it once the socket
-    /// is readable. Stores `resume` as the next state, registers a `BoolSignal`-backed
-    /// waker on the connection, and returns `TaskStatus::Depends(signal)` — the
-    /// `TunnelDriver` flips the signal and the executor unparks us. If the transport
-    /// does not support readiness wakeups (a blocking `TcpStream` whose read timed
-    /// out), the `WouldBlock` is a genuine failure, so we fail instead of parking
-    /// forever — and the task terminates: `resume` is only stored when parking.
+    /// WHY: the reader kept its resumable state, so it must run again once the
+    /// socket is readable. This stores `resume` as the next state and returns
+    /// `TaskStatus::Depends` on "readable, or the head deadline passed". The
+    /// executor then holds the task off the worker until one of those happens.
+    ///
+    /// Two `WouldBlock`s are terminal, and in both the task ends because `resume`
+    /// is dropped. One comes from a blocking socket whose read timeout already
+    /// elapsed (or a transport that cannot report readiness). The other comes once
+    /// the inactivity deadline has passed. Keeping `resume` in those cases
+    /// re-drove the read after every timeout. Each pass emitted a fresh
+    /// `Failed`: an unbounded retry loop that hung the caller forever (#76).
     fn park_on_would_block(
         &mut self,
         conn: &HttpClientConnection,
         resume: GetRequestIntroState,
     ) -> TaskStatus<RequestIntro, (), BoxedSendExecutionAction> {
-        let signal = BoolSignal::new(false);
-        let flag = signal.clone_inner();
-        let waker: ConnWaker = Arc::new(move || flag.store(true, Ordering::SeqCst));
-
-        if conn.register_read_waker(waker) {
-            tracing::trace!("[INTRO] read would block; parking on connection read waker");
-            self.0 = Some(resume);
-            TaskStatus::Depends(Arc::new(signal))
-        } else {
-            // Terminal failure: leave the state empty so the next `next_status`
-            // returns `None` and the task ends. Keeping `resume` here re-drove the
-            // blocking read after every timeout and emitted a fresh `Failed` each
-            // time — an unbounded retry loop that hung the caller forever.
-            drop(resume);
-            tracing::error!(
-                "[INTRO] read would block on a blocking transport; treating as failure"
-            );
-            TaskStatus::Ready(RequestIntro::Failed(HttpClientError::ReaderError(
-                HttpReaderError::WouldBlock,
-            )))
+        match nonblocking::park(conn, IoInterest::Readable, &mut self.idle) {
+            Park::On(signal) => {
+                tracing::trace!("[INTRO] response not ready; parking on socket readiness");
+                self.state = Some(resume);
+                TaskStatus::Depends(signal)
+            }
+            Park::Expired => {
+                drop(resume);
+                tracing::error!(
+                    timeout = ?self.idle.timeout(),
+                    "[INTRO] no response head before the deadline"
+                );
+                TaskStatus::Ready(RequestIntro::Failed(HttpClientError::Timeout))
+            }
+            Park::Unsupported => {
+                drop(resume);
+                tracing::error!(
+                    "[INTRO] read would block on a blocking transport; treating as failure"
+                );
+                TaskStatus::Ready(RequestIntro::Failed(HttpClientError::ReaderError(
+                    HttpReaderError::WouldBlock,
+                )))
+            }
         }
     }
 }
@@ -176,12 +204,12 @@ impl TaskIterator for GetRequestIntroTask {
     type Spawner = BoxedSendExecutionAction;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        match self.0.take()? {
+        match self.state.take()? {
             GetRequestIntroState::Init(inner) => match inner {
                 Some(stream) => {
                     tracing::trace!("[INTRO] Getting next status for request intro");
 
-                    let body_config = self.1.take().unwrap_or_default();
+                    let body_config = self.body_config.take().unwrap_or_default();
                     let reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                         stream.clone_stream(),
                         body_config,
@@ -190,7 +218,7 @@ impl TaskIterator for GetRequestIntroTask {
                     // Defer the first read to `IntroReading` so a non-blocking
                     // `WouldBlock` there can park and resume on the *same* reader
                     // (F11 non-blocking parking).
-                    self.0 = Some(GetRequestIntroState::IntroReading(Box::new((reader, stream))));
+                    self.state = Some(GetRequestIntroState::IntroReading(Box::new((reader, stream))));
                     Some(TaskStatus::Pending(()))
                 }
                 None => None,
@@ -201,6 +229,7 @@ impl TaskIterator for GetRequestIntroTask {
                 let intro = match reader.next()? {
                     Ok(inner) => {
                         tracing::info!("Get intro from stream - got: {:?}", inner);
+                        self.idle.progress();
                         inner
                     }
                     // No status line yet on a non-blocking transport: the reader kept
@@ -243,14 +272,14 @@ impl TaskIterator for GetRequestIntroTask {
                             "[INTRO] skipping 1xx interim response {:?}; draining then re-reading",
                             (&status, &proto, &text)
                         );
-                        self.0 = Some(GetRequestIntroState::DrainingInterim(Box::new((
+                        self.state = Some(GetRequestIntroState::DrainingInterim(Box::new((
                             reader, stream,
                         ))));
                         return Some(TaskStatus::Pending(()));
                     }
 
                     let _ = self
-                        .0
+                        .state
                         .replace(GetRequestIntroState::WithIntro(Box::new(Some((
                             reader,
                             (status, proto, text),
@@ -268,6 +297,7 @@ impl TaskIterator for GetRequestIntroTask {
                 loop {
                     match reader.next() {
                         Some(Ok(IncomingResponseParts::StreamedBody(body))) => {
+                            self.idle.progress();
                             if let Err(err) = drain_stream_iterator_from_send_safe(body) {
                                 tracing::error!(
                                     "[INTRO] failed to drain interim (1xx) body: {:?}",
@@ -280,6 +310,7 @@ impl TaskIterator for GetRequestIntroTask {
                         }
                         Some(Ok(_)) => {
                             // Interim headers / skipped parts — keep draining.
+                            self.idle.progress();
                         }
                         Some(Err(HttpReaderError::WouldBlock)) => {
                             let waker_conn = stream.clone();
@@ -301,7 +332,7 @@ impl TaskIterator for GetRequestIntroTask {
                 // Reset the reader to read the next response's status line, then
                 // re-enter the parking-aware intro path.
                 let branched = reader.branch_reader();
-                self.0 = Some(GetRequestIntroState::IntroReading(Box::new((branched, stream))));
+                self.state = Some(GetRequestIntroState::IntroReading(Box::new((branched, stream))));
                 Some(TaskStatus::Pending(()))
             }
             GetRequestIntroState::WithIntro(inner) => match *inner {
@@ -438,6 +469,96 @@ mod tests {
         assert!(
             elapsed < Duration::from_secs(10),
             "task took {elapsed:?}; expected a single ~100ms read timeout"
+        );
+    }
+
+    /// Non-blocking counterpart of the #76 regression test: a silent peer on a
+    /// non-blocking socket must park (`Depends`) without holding a worker. Once
+    /// the head deadline passes, the task reports exactly one
+    /// `Failed(Timeout)` and ends.
+    ///
+    /// WHY: the blocking test above pins "a timed-out blocking read fails once".
+    /// With non-blocking sockets nothing in the kernel times out any more, so the
+    /// deadline must do it, and must also terminate the task (no retry loop).
+    ///
+    /// HOW: drive the task by hand. Expect a `Depends` whose signal is not ready
+    /// at first (the peer is silent) and turns ready by itself at the deadline.
+    /// One more step must then fail with `Timeout`, and the next must end.
+    #[test]
+    fn nonblocking_silent_peer_parks_then_times_out_once() {
+        const MAX_STEPS: usize = 16;
+        let head_timeout = Duration::from_millis(200);
+
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind loopback");
+        let addr = listener.local_addr().expect("local addr");
+        let (stop_tx, stop_rx) = mpsc::channel::<()>();
+        let peer = std::thread::spawn(move || {
+            let (socket, _) = listener.accept().expect("accept client");
+            let _stopped = stop_rx.recv_timeout(Duration::from_secs(30));
+            drop(socket);
+        });
+
+        let uri = Uri::parse(&format!("http://127.0.0.1:{}/", addr.port())).expect("uri");
+        let conn = HttpClientConnection::connect(
+            &uri,
+            &SystemDnsResolver::new(),
+            Some(Duration::from_secs(5)),
+        )
+        .expect("connect to silent peer");
+        conn.set_nonblocking(true).expect("non-blocking");
+
+        let mut task = GetRequestIntroTask::new(conn).with_head_timeout(head_timeout);
+
+        let started = Instant::now();
+        let mut parks = 0usize;
+        let mut timeouts = 0usize;
+        let mut terminated = false;
+        for _ in 0..MAX_STEPS {
+            match task.next_status() {
+                None => {
+                    terminated = true;
+                    break;
+                }
+                Some(TaskStatus::Depends(signal)) => {
+                    parks += 1;
+                    assert!(
+                        !signal.is_ready(None),
+                        "a silent peer must not report readiness when parking"
+                    );
+                    // The executor would hold the task here. Emulate it: wait for
+                    // the signal to turn ready, which the deadline guarantees.
+                    let wait = Instant::now();
+                    while !signal.is_ready(None) {
+                        assert!(
+                            wait.elapsed() < Duration::from_secs(5),
+                            "the park signal never fired; the deadline is missing"
+                        );
+                        std::thread::sleep(Duration::from_millis(5));
+                    }
+                }
+                Some(TaskStatus::Ready(RequestIntro::Failed(HttpClientError::Timeout))) => {
+                    timeouts += 1;
+                }
+                Some(TaskStatus::Ready(RequestIntro::Failed(other))) => {
+                    panic!("unexpected failure kind: {other:?}")
+                }
+                Some(TaskStatus::Ready(RequestIntro::Success { .. })) => {
+                    panic!("a silent peer cannot produce a response")
+                }
+                Some(_) => {}
+            }
+        }
+        let elapsed = started.elapsed();
+
+        stop_tx.send(()).expect("signal silent peer");
+        peer.join().expect("silent peer thread");
+
+        assert!(parks >= 1, "the task must park on readiness, not fail at once");
+        assert_eq!(timeouts, 1, "exactly one terminal timeout is reported");
+        assert!(terminated, "task kept running after its terminal failure");
+        assert!(
+            elapsed >= head_timeout && elapsed < Duration::from_secs(5),
+            "task took {elapsed:?}; expected about the {head_timeout:?} head deadline"
         );
     }
 }
