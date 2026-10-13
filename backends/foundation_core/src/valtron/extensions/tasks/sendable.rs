@@ -2431,7 +2431,11 @@ where
             }
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    None
+                    // The producer can push its last item and close between the
+                    // `pop` above and this check. A closed queue still hands out
+                    // what it holds, so pop once more rather than drop that item
+                    // (it lost an H1 response head under load).
+                    self.queue.pop().ok()
                 } else {
                     // F45 Resolution 2: yield Wait (not Ignore) on empty-open so
                     // `into_ready_future()`/`into_pending_future()` yield to the
@@ -2619,7 +2623,11 @@ where
             }
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    None
+                    // The producer can push its last item and close between the
+                    // `pop` above and this check. A closed queue still hands out
+                    // what it holds, so pop once more rather than drop that item
+                    // (it lost an H1 response head under load).
+                    self.queue.pop().ok()
                 } else {
                     // F45 Resolution 2: yield Wait (not Ignore) on empty-open so
                     // `into_ready_future()`/`into_pending_future()` yield to the
@@ -2807,7 +2815,11 @@ where
             Ok(item) => Some(item),
             Err(concurrent_queue::PopError::Empty) => {
                 if self.queue.is_closed() {
-                    None
+                    // The producer can push its last item and close between the
+                    // `pop` above and this check. A closed queue still hands out
+                    // what it holds, so pop once more rather than drop that item
+                    // (it lost an H1 response head under load).
+                    self.queue.pop().ok()
                 } else {
                     // F45 Resolution 2: yield Wait (not Ignore) on empty-open so
                     // `into_ready_future()`/`into_pending_future()` yield to the

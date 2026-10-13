@@ -183,18 +183,22 @@ fn handle<S: Read + Write>(
 }
 
 /// Serve `count` plain-TCP requests on loopback; observations arrive on the channel.
-fn serve_tcp(count: usize, cont: Continue, reply: Reply) -> (SocketAddr, mpsc::Receiver<Seen>) {
+fn serve_tcp(
+    count: usize,
+    continue_policy: Continue,
+    reply: Reply,
+) -> (SocketAddr, mpsc::Receiver<Seen>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
         for _ in 0..count {
             let (socket, _) = listener.accept().expect("accept");
-            let (tx, cont, reply) = (tx.clone(), cont.clone(), reply.clone());
+            let (report, policy, response) = (tx.clone(), continue_policy.clone(), reply.clone());
             thread::spawn(move || {
                 let peek = socket.try_clone().expect("clone for peek");
-                let seen = handle(socket, Some(&peek), &cont, &reply);
-                tx.send(seen).expect("report");
+                let seen = handle(socket, Some(&peek), &policy, &response);
+                report.send(seen).expect("report");
             });
         }
     });
@@ -283,9 +287,9 @@ impl TaskIterator for Releaser {
 #[ntest::timeout(60_000)]
 #[serial_test::serial]
 fn waiting_clients_do_not_hold_workers() {
+    const CLIENTS: usize = 4;
     // 4 threads = 2 task workers (+ background), fewer than the 4 clients.
     let _guard = valtron::initialize_pool(29_001, Some(4));
-    const CLIENTS: usize = 4;
 
     let flag = Arc::new(AtomicBool::new(false));
     let (addr, seen) = serve_tcp(CLIENTS, Continue::When(flag.clone()), Reply::Whole("ok"));
@@ -426,7 +430,7 @@ fn silent_server_gets_body_when_the_timer_fires() {
     assert_eq!(s.body, b"anyway");
     let waited = s.body_at - s.head_at;
     assert!(
-        waited >= timer - Duration::from_millis(20) && waited < Duration::from_secs(2),
+        waited + Duration::from_millis(20) >= timer && waited < Duration::from_secs(2),
         "body arrived {waited:?} after the head; expected about the {timer:?} timer"
     );
 }

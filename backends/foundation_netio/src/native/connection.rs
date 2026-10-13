@@ -1045,7 +1045,7 @@ impl Connection {
     ///
     /// WHAT: `true` for kernel sockets on unix (TCP, Unix domain), for rustls over
     /// those, and for the overlay (always non-blocking, woken by its driver).
-    /// `false` for completion sockets, whose bytes come from an io_uring inbox and
+    /// `false` for completion sockets, whose bytes come from an `io_uring` inbox and
     /// not from fd readability, and for the openssl / native-tls backends, which
     /// do not expose whether a stalled call needs the socket readable or writable.
     #[must_use]

@@ -214,7 +214,7 @@ mod tests {
         let (a, _b) = UnixStream::pair().expect("socket pair");
         a.set_nonblocking(true).expect("nonblocking");
         let mut writer = &a;
-        let chunk = [0u8; 64 * 1024];
+        let chunk = vec![0u8; 64 * 1024];
         loop {
             match writer.write(&chunk) {
                 Ok(_) => {}

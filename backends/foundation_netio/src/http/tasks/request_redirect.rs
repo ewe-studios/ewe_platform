@@ -177,7 +177,7 @@ enum RedirectDecision {
     /// Not a followable redirect: hand the response on.
     NotRedirect,
     /// Re-issue the request to this descriptor.
-    Follow(RequestDescriptor),
+    Follow(Box<RequestDescriptor>),
     /// A redirect that cannot be followed.
     Fail(HttpClientError),
 }
@@ -218,7 +218,7 @@ fn redirect_decision(
         config.redirect.preserve_auth_on_redirect,
         config.redirect.preserve_cookies_on_redirect,
     ) {
-        Ok(desc) => RedirectDecision::Follow(desc),
+        Ok(desc) => RedirectDecision::Follow(Box::new(desc)),
         Err(e) => {
             tracing::error!("Failed to build follow-up request: {}", e);
             RedirectDecision::Fail(HttpClientError::InvalidState)
@@ -507,12 +507,9 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             tracing::trace!("No interim response before the timeout; writing the body");
             return self.write_body_blocking(exchange, None);
         };
-        let headers = match exchange.reader.next() {
-            Some(Ok(IncomingResponseParts::Headers(h))) => h,
-            _ => {
-                tracing::error!("Headers not received, returning timeout");
-                return self.fail(HttpClientError::Timeout);
-            }
+        let Some(Ok(IncomingResponseParts::Headers(headers))) = exchange.reader.next() else {
+            tracing::error!("Headers not received, returning timeout");
+            return self.fail(HttpClientError::Timeout);
         };
 
         if status == Status::Continue {
@@ -542,7 +539,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             &status,
             &headers,
         ) {
-            RedirectDecision::Follow(descriptor) => self.follow(exchange, descriptor),
+            RedirectDecision::Follow(descriptor) => self.follow(exchange, *descriptor),
             RedirectDecision::Fail(err) => self.fail(err),
             RedirectDecision::NotRedirect => self.write_body_blocking(
                 exchange,
@@ -756,7 +753,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             &status,
             &headers,
         ) {
-            RedirectDecision::Follow(descriptor) => self.follow(exchange, descriptor),
+            RedirectDecision::Follow(descriptor) => self.follow(exchange, *descriptor),
             RedirectDecision::Fail(err) => self.fail(err),
             RedirectDecision::NotRedirect => self.start_writing_body(
                 exchange,
@@ -770,17 +767,13 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
 
     /// Park the 100-continue wait on "readable, or the send-body timer fired".
     fn park_for_continue(&mut self, st: Box<AwaitingContinue<R>>) -> Step {
-        match st.exchange.connection.park_readiness(IoInterest::Readable) {
-            Some(io) => {
-                let timer = Arc::new(DeadlineReadiness::at(st.send_body_at));
-                self.0 = Some(HttpRequestRedirectState::AwaitingContinue(Some(st)));
-                TaskStatus::Depends(Arc::new(AnyReadiness::either(io, timer)))
-            }
-            None => {
-                tracing::error!("[100-continue] connection lost its readiness support");
-                self.fail(HttpClientError::Timeout)
-            }
-        }
+        let Some(io) = st.exchange.connection.park_readiness(IoInterest::Readable) else {
+            tracing::error!("[100-continue] connection lost its readiness support");
+            return self.fail(HttpClientError::Timeout);
+        };
+        let timer = Arc::new(DeadlineReadiness::at(st.send_body_at));
+        self.0 = Some(HttpRequestRedirectState::AwaitingContinue(Some(st)));
+        TaskStatus::Depends(Arc::new(AnyReadiness::either(io, timer)))
     }
 
     fn reading_head(&mut self, mut st: Box<ReadingHead<R>>) -> Step {
@@ -854,7 +847,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             status,
             &headers,
         ) {
-            RedirectDecision::Follow(descriptor) => self.follow(exchange, descriptor),
+            RedirectDecision::Follow(descriptor) => self.follow(exchange, *descriptor),
             RedirectDecision::Fail(err) => self.fail(err),
             RedirectDecision::NotRedirect => {
                 tracing::debug!("No redirect for no-body request — handing off connection");

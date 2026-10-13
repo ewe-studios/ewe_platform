@@ -245,7 +245,6 @@ pub fn buffer_until<T: Read>(
 }
 
 /// Adapt a plain [`FrameCheck`] function for [`buffer_until`].
-#[must_use]
 pub fn plain(check: fn(&[u8]) -> FrameCheck) -> impl Fn(&[u8]) -> ChunkCheck {
     move |pending| ChunkCheck {
         check: check(pending),
