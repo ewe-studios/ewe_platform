@@ -15,11 +15,28 @@ use foundation_netio::shared::client::http_client::HttpClient;
 use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
 
+// Import shared types used by this module
+use super::shared::ErrorDetail;
+use super::shared::ProgressDetail;
+
 use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `PushImageInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PushImageInfo {
+    /// errorDetail property.
+    #[serde(rename = "errorDetail")]
+    pub error_detail: Option<ErrorDetail>,
+    /// progressDetail property.
+    #[serde(rename = "progressDetail")]
+    pub progress_detail: Option<ProgressDetail>,
+    /// status property.
+    pub status: Option<String>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -62,6 +79,11 @@ pub struct PluginPushArgs {
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of `PushImageInfo`, one per line: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -74,7 +96,7 @@ pub async fn image_push_request<F>(
     args: &ImagePushArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::JsonLinesStream<PushImageInfo>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -99,9 +121,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    Ok(ApiResponse { status: status as u16, headers, body: super::shared::JsonLinesStream::new(response.take_body()) })
 }
 
 // -----------------------------------------------------------------------------
@@ -153,7 +176,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }

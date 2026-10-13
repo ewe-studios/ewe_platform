@@ -21,6 +21,26 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `SwarmJoinRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SwarmJoinRequest {
+    /// AdvertiseAddr property.
+    #[serde(rename = "AdvertiseAddr")]
+    pub advertise_addr: Option<String>,
+    /// DataPathAddr property.
+    #[serde(rename = "DataPathAddr")]
+    pub data_path_addr: Option<String>,
+    /// JoinToken property.
+    #[serde(rename = "JoinToken")]
+    pub join_token: String,
+    /// ListenAddr property.
+    #[serde(rename = "ListenAddr")]
+    pub listen_addr: String,
+    /// RemoteAddrs property.
+    #[serde(rename = "RemoteAddrs")]
+    pub remote_addrs: Vec<String>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -28,6 +48,8 @@ use super::shared::ApiResponse;
 /// Arguments for [`SwarmJoin_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SwarmJoinArgs {
+    /// Request body.
+    pub body: SwarmJoinRequest,
 }
 
 // =============================================================================
@@ -58,7 +80,7 @@ pub struct SwarmJoinArgs {
 /// ```
 pub async fn swarm_join_request<F>(
     client: DynNetClient,
-    _args: &SwarmJoinArgs,
+    args: &SwarmJoinArgs,
     base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
@@ -72,6 +94,9 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -82,7 +107,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }

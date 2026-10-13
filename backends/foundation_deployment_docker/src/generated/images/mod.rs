@@ -34,8 +34,8 @@ pub struct ImageDeleteArgs {
     pub force: Option<String>,
     /// Query parameter: `noprune`.
     pub noprune: Option<String>,
-    /// Query parameter: `platforms`.
-    pub platforms: Option<String>,
+    /// Query parameter: `platforms` (one per value).
+    pub platforms: Vec<String>,
 }
 
 // =============================================================================
@@ -83,7 +83,9 @@ where
 
     builder = builder.query("force", args.force.as_deref());
     builder = builder.query("noprune", args.noprune.as_deref());
-    builder = builder.query("platforms", args.platforms.as_deref());
+    for value in &args.platforms {
+        builder = builder.query("platforms", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -95,7 +97,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

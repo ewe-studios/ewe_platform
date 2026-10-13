@@ -130,13 +130,16 @@ impl DockerClient {
     ///
     /// WHY: Updates a volume's configuration (ClusterVolumeSpec).
     ///
-    /// WHAT: Sends the volume spec as the JSON body.
+    /// WHAT: Sends `config` as the body, read into the generated
+    /// `VolumeUpdateRequest`.
     ///
-    /// HOW: `volume_update_request` with a `builder_mod` that sets the JSON body.
+    /// HOW: `volume_update_request` with that typed body.
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    /// Returns [`DockerError::JsonParse`] if `config` does not fit the
+    /// `VolumeUpdateRequest` schema, and [`DockerError`] on transport failure or
+    /// non-2xx status.
     pub async fn volume_update(
         &self,
         name: &str,
@@ -146,17 +149,9 @@ impl DockerClient {
         let args = VolumeUpdateArgs {
             name: name.to_string(),
             version: version.map(|v| v.to_string()),
+            body: super::generated_body("volume update", config)?,
         };
-        volume_update_request(
-            self.http(),
-            &args,
-            &self.api_url().await?,
-            Some(move |b: &mut PreparedRequestBuilder| {
-                b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
-                let _ = b.set_body_json(&config);
-            }),
-        )
-        .await?;
+        volume_update_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 

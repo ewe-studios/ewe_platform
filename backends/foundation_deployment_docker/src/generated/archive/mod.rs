@@ -66,6 +66,11 @@ pub struct PutContainerArchiveArgs {
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -78,7 +83,7 @@ pub async fn container_archive_request<F>(
     args: &ContainerArchiveArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -102,9 +107,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    Ok(ApiResponse { status: status as u16, headers, body: super::shared::ByteStream::new(response.take_body()) })
 }
 
 // -----------------------------------------------------------------------------
@@ -120,6 +126,7 @@ where
 ///
 /// * `client` - HTTP client for making the request
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Request body, sent as-is as `application/x-tar`
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -133,6 +140,7 @@ pub async fn put_container_archive_request<F>(
     client: DynNetClient,
     args: &PutContainerArchiveArgs,
     base_url: &str,
+    body: foundation_netio::shared::http::SendSafeBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
 where
@@ -150,6 +158,8 @@ where
     builder = builder.query("noOverwriteDirNonDir", args.no_overwrite_dir_non_dir.as_deref());
     builder = builder.query("copyUIDGID", args.copy_uidgid.as_deref());
 
+    builder = super::shared::with_raw_body(builder, "application/x-tar", body);
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -160,7 +170,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }

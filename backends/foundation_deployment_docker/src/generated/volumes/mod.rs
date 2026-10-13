@@ -17,10 +17,10 @@ use foundation_macros::JsonHash;
 
 // Import shared types used by this module
 use super::shared::Volume;
-use super::shared::ObjectVersion;
 use super::shared::ClusterVolume;
-use super::shared::Topology;
 use super::shared::ClusterVolumeSpec;
+use super::shared::ObjectVersion;
+use super::shared::Topology;
 
 use super::shared::ApiResponse;
 
@@ -37,6 +37,14 @@ pub struct VolumeListResponse {
     /// Warnings property.
     #[serde(rename = "Warnings")]
     pub warnings: Option<Vec<String>>,
+}
+
+/// `VolumeUpdateRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct VolumeUpdateRequest {
+    /// Spec property.
+    #[serde(rename = "Spec")]
+    pub spec: Option<ClusterVolumeSpec>,
 }
 
 // =============================================================================
@@ -64,6 +72,8 @@ pub struct VolumeUpdateArgs {
     pub name: String,
     /// Query parameter: `version`.
     pub version: Option<String>,
+    /// Request body.
+    pub body: VolumeUpdateRequest,
 }
 
 /// Arguments for [`VolumeDelete_request`].
@@ -129,7 +139,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: VolumeListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -185,7 +196,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: Volume = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -233,6 +245,9 @@ where
 
     builder = builder.query("version", args.version.as_deref());
 
+    builder = builder.body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -243,7 +258,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }
@@ -299,7 +315,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }

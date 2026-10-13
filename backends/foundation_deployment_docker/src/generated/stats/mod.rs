@@ -21,17 +21,17 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `ContainerCPUUsage` type.
+/// `ContainerBlkioStatEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerCPUUsage {
-    /// percpu_usage property.
-    pub percpu_usage: Option<Vec<i64>>,
-    /// total_usage property.
-    pub total_usage: Option<i64>,
-    /// usage_in_kernelmode property.
-    pub usage_in_kernelmode: Option<i64>,
-    /// usage_in_usermode property.
-    pub usage_in_usermode: Option<i64>,
+pub struct ContainerBlkioStatEntry {
+    /// major property.
+    pub major: Option<i64>,
+    /// minor property.
+    pub minor: Option<i64>,
+    /// op property.
+    pub op: Option<String>,
+    /// value property.
+    pub value: Option<i64>,
 }
 
 /// `ContainerBlkioStats` type.
@@ -55,6 +55,32 @@ pub struct ContainerBlkioStats {
     pub sectors_recursive: Option<Vec<ContainerBlkioStatEntry>>,
 }
 
+/// `ContainerCPUStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerCPUStats {
+    /// cpu_usage property.
+    pub cpu_usage: Option<ContainerCPUUsage>,
+    /// online_cpus property.
+    pub online_cpus: Option<i64>,
+    /// system_cpu_usage property.
+    pub system_cpu_usage: Option<i64>,
+    /// throttling_data property.
+    pub throttling_data: Option<ContainerThrottlingData>,
+}
+
+/// `ContainerCPUUsage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerCPUUsage {
+    /// percpu_usage property.
+    pub percpu_usage: Option<Vec<i64>>,
+    /// total_usage property.
+    pub total_usage: Option<i64>,
+    /// usage_in_kernelmode property.
+    pub usage_in_kernelmode: Option<i64>,
+    /// usage_in_usermode property.
+    pub usage_in_usermode: Option<i64>,
+}
+
 /// `ContainerMemoryStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerMemoryStats {
@@ -76,19 +102,6 @@ pub struct ContainerMemoryStats {
     pub usage: Option<i64>,
 }
 
-/// `ContainerCPUStats` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerCPUStats {
-    /// cpu_usage property.
-    pub cpu_usage: Option<ContainerCPUUsage>,
-    /// online_cpus property.
-    pub online_cpus: Option<i64>,
-    /// system_cpu_usage property.
-    pub system_cpu_usage: Option<i64>,
-    /// throttling_data property.
-    pub throttling_data: Option<ContainerThrottlingData>,
-}
-
 /// `ContainerPidsStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerPidsStats {
@@ -96,32 +109,6 @@ pub struct ContainerPidsStats {
     pub current: Option<i64>,
     /// limit property.
     pub limit: Option<i64>,
-}
-
-/// `ContainerStorageStats` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerStorageStats {
-    /// read_count_normalized property.
-    pub read_count_normalized: Option<i64>,
-    /// read_size_bytes property.
-    pub read_size_bytes: Option<i64>,
-    /// write_count_normalized property.
-    pub write_count_normalized: Option<i64>,
-    /// write_size_bytes property.
-    pub write_size_bytes: Option<i64>,
-}
-
-/// `ContainerBlkioStatEntry` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerBlkioStatEntry {
-    /// major property.
-    pub major: Option<i64>,
-    /// minor property.
-    pub minor: Option<i64>,
-    /// op property.
-    pub op: Option<String>,
-    /// value property.
-    pub value: Option<i64>,
 }
 
 /// `ContainerStatsResponse` type.
@@ -153,6 +140,19 @@ pub struct ContainerStatsResponse {
     pub read: Option<String>,
     /// storage_stats property.
     pub storage_stats: Option<ContainerStorageStats>,
+}
+
+/// `ContainerStorageStats` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerStorageStats {
+    /// read_count_normalized property.
+    pub read_count_normalized: Option<i64>,
+    /// read_size_bytes property.
+    pub read_size_bytes: Option<i64>,
+    /// write_count_normalized property.
+    pub write_count_normalized: Option<i64>,
+    /// write_size_bytes property.
+    pub write_size_bytes: Option<i64>,
 }
 
 /// `ContainerThrottlingData` type.
@@ -237,7 +237,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: ContainerStatsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

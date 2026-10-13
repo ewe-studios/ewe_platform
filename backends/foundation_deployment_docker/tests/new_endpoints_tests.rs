@@ -11,7 +11,17 @@
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
 use foundation_core::valtron::valtron_test;
+use foundation_deployment_docker::client::body::ByteBody;
 use foundation_deployment_docker::DockerClient;
+
+/// Collect a small archive (one file) whole — fine in a test.
+async fn read_all(mut body: ByteBody) -> Vec<u8> {
+    let mut out = Vec::new();
+    while let Some(chunk) = body.next().await {
+        out.extend_from_slice(&chunk.expect("archive chunk"));
+    }
+    out
+}
 
 fn client() -> DockerClient {
     DockerClient::connect_unix("/var/run/docker.sock")
@@ -43,20 +53,24 @@ async fn upload_and_download_archive_round_trips() {
     // Download an existing file as a valid tar straight from Docker, then
     // upload that exact tar into /tmp and read it back — avoids constructing
     // tar bytes by hand while exercising both PUT and GET archive paths.
-    let tar = c
-        .container_archive(&id, "/etc/hostname")
-        .await
-        .expect("download /etc/hostname");
+    let tar = read_all(
+        c.container_archive(&id, "/etc/hostname")
+            .await
+            .expect("download /etc/hostname"),
+    )
+    .await;
     assert!(!tar.is_empty(), "downloaded tar should be non-empty");
 
     c.upload_to_container(&id, "/tmp", tar.clone(), Some(false), Some(false))
         .await
         .expect("upload tar into /tmp");
 
-    let back = c
-        .container_archive(&id, "/tmp/hostname")
-        .await
-        .expect("download /tmp/hostname after upload");
+    let back = read_all(
+        c.container_archive(&id, "/tmp/hostname")
+            .await
+            .expect("download /tmp/hostname after upload"),
+    )
+    .await;
     assert!(!back.is_empty(), "re-downloaded tar should be non-empty");
 
     let _ = c.remove_container(&id, true).await;
@@ -106,12 +120,16 @@ async fn update_container_cpu_shares() {
 async fn export_images_alpine() {
     let c = client();
     // alpine:latest is present — every other test pulls/uses it.
-    let tar = c
+    // Counted as it streams, not collected: an image tarball can be large.
+    let len = c
         .export_images(&["alpine:latest"])
         .await
-        .expect("export alpine:latest");
+        .expect("export alpine:latest")
+        .drain()
+        .await
+        .expect("read the exported tar");
     assert!(
-        tar.len() > 512,
+        len > 512,
         "exported image tar should be larger than one tar block"
     );
 }

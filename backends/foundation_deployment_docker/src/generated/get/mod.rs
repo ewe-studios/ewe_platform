@@ -28,10 +28,10 @@ use super::shared::ApiResponse;
 /// Arguments for [`ImageGetAll_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ImageGetAllArgs {
-    /// Query parameter: `names`.
-    pub names: Option<String>,
-    /// Query parameter: `platform`.
-    pub platform: Option<String>,
+    /// Query parameter: `names` (one per value).
+    pub names: Vec<String>,
+    /// Query parameter: `platform` (one per value).
+    pub platform: Vec<String>,
 }
 
 /// Arguments for [`ImageGet_request`].
@@ -39,8 +39,8 @@ pub struct ImageGetAllArgs {
 pub struct ImageGetArgs {
     /// Path parameter: `name`.
     pub name: String,
-    /// Query parameter: `platform`.
-    pub platform: Option<String>,
+    /// Query parameter: `platform` (one per value).
+    pub platform: Vec<String>,
 }
 
 // =============================================================================
@@ -62,6 +62,11 @@ pub struct ImageGetArgs {
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -74,7 +79,7 @@ pub async fn image_get_all_request<F>(
     args: &ImageGetAllArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -85,8 +90,12 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("names", args.names.as_deref());
-    builder = builder.query("platform", args.platform.as_deref());
+    for value in &args.names {
+        builder = builder.query("names", Some(value.as_str()));
+    }
+    for value in &args.platform {
+        builder = builder.query("platform", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -98,11 +107,10 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    Ok(ApiResponse { status: status as u16, headers, body: super::shared::ByteStream::new(response.take_body()) })
 }
 
 // -----------------------------------------------------------------------------
@@ -120,6 +128,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -132,7 +145,7 @@ pub async fn image_get_request<F>(
     args: &ImageGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -144,7 +157,9 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("platform", args.platform.as_deref());
+    for value in &args.platform {
+        builder = builder.query("platform", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -156,10 +171,9 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    Ok(ApiResponse { status: status as u16, headers, body: super::shared::ByteStream::new(response.take_body()) })
 }
 

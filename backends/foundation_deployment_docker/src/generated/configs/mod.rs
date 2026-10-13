@@ -24,15 +24,24 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `Driver` type.
+/// `Config` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Driver {
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: String,
-    /// Options property.
-    #[serde(rename = "Options")]
-    pub options: Option<serde_json::Value>,
+pub struct Config {
+    /// CreatedAt property.
+    #[serde(rename = "CreatedAt")]
+    pub created_at: Option<String>,
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+    /// Spec property.
+    #[serde(rename = "Spec")]
+    pub spec: Option<ConfigSpec>,
+    /// UpdatedAt property.
+    #[serde(rename = "UpdatedAt")]
+    pub updated_at: Option<String>,
+    /// Version property.
+    #[serde(rename = "Version")]
+    pub version: Option<ObjectVersion>,
 }
 
 /// `ConfigSpec` type.
@@ -52,24 +61,15 @@ pub struct ConfigSpec {
     pub templating: Option<Driver>,
 }
 
-/// `Config` type.
+/// `Driver` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Config {
-    /// CreatedAt property.
-    #[serde(rename = "CreatedAt")]
-    pub created_at: Option<String>,
-    /// ID property.
-    #[serde(rename = "ID")]
-    pub id: Option<String>,
-    /// Spec property.
-    #[serde(rename = "Spec")]
-    pub spec: Option<ConfigSpec>,
-    /// UpdatedAt property.
-    #[serde(rename = "UpdatedAt")]
-    pub updated_at: Option<String>,
-    /// Version property.
-    #[serde(rename = "Version")]
-    pub version: Option<ObjectVersion>,
+pub struct Driver {
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: String,
+    /// Options property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
 }
 
 // =============================================================================
@@ -151,7 +151,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -207,7 +208,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: Config = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -263,7 +265,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }

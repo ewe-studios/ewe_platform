@@ -11,7 +11,6 @@
 //! HOW: `HttpClientBuilder::new().unix_socket(path).build()` yields a
 //! `DynNetClient`; each method calls the matching generated `async fn`.
 
-use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -168,6 +167,11 @@ pub mod images;
 
 /// Build contexts (tar streams) for `POST /build`.
 pub mod build_context;
+
+/// Streamed answers as async streams of typed items ([`body::ProgressStream`],
+/// [`body::EventStream`], [`body::ByteBody`], [`body::LogStream`]) — large and
+/// long-lived bodies are read incrementally, never buffered whole.
+pub mod body;
 
 /// Exec instance operations (create, start, inspect, resize).
 pub mod exec;
@@ -589,8 +593,8 @@ impl DockerClient {
 
     /// Create a container (`POST /containers/create`).
     ///
-    /// WHAT: Serializes `config` as the JSON body and returns the created
-    /// container id + warnings.
+    /// WHAT: Reads `config` into the generated `ContainerCreateRequest` and
+    /// sends it; returns the created container id + warnings.
     ///
     /// Accepts any `impl Serialize` — `serde_json::json!({...})` for quick inline
     /// configs, or [`ContainerCreateBody`] for typed construction.
@@ -598,7 +602,8 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure, non-2xx status, or a config
-    /// that cannot be serialized.
+    /// that cannot be serialized or does not fit `ContainerCreateRequest`
+    /// ([`DockerError::JsonParse`]).
     pub async fn create_container(
         &self,
         config: &impl Serialize,
@@ -609,17 +614,10 @@ impl DockerClient {
         let args = ContainerCreateArgs {
             name: name.map(str::to_string),
             platform: None,
+            body: generated_body("container config", json)?,
         };
-        let response = container_create_request(
-            self.http(),
-            &args,
-            &self.api_url().await?,
-            Some(move |b: &mut PreparedRequestBuilder| {
-                b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
-                let _ = b.set_body_json(&json);
-            }),
-        )
-        .await?;
+        let response =
+            container_create_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -758,7 +756,7 @@ impl DockerClient {
     /// Start a previously-created exec instance (`POST /exec/{id}/start`).
     ///
     /// Delegates to [`exec::exec_start`].
-    pub async fn exec_start(&self, id: &str, detach: bool) -> Result<Vec<u8>, DockerError> {
+    pub async fn exec_start(&self, id: &str, detach: bool) -> Result<body::LogStream, DockerError> {
         exec::exec_start(self, id, detach).await
     }
 
@@ -803,7 +801,7 @@ impl DockerClient {
         since: Option<&str>,
         until: Option<&str>,
         filters: Option<&str>,
-    ) -> Result<Vec<u8>, DockerError> {
+    ) -> Result<body::EventStream, DockerError> {
         system::system_events(self, since, until, filters).await
     }
 
@@ -820,6 +818,20 @@ impl DockerClient {
     pub async fn system_auth(&self, username: &str, password: &str) -> Result<AuthResponse, DockerError> {
         system::system_auth(self, username, password).await
     }
+}
+
+/// Read a caller's JSON request body into the generated request type it must
+/// fit, so what goes on the wire is the spec's shape.
+///
+/// # Errors
+///
+/// [`DockerError::JsonParse`] naming `what`, if `value` does not fit `T`.
+pub(crate) fn generated_body<T: serde::de::DeserializeOwned>(
+    what: &str,
+    value: serde_json::Value,
+) -> Result<T, DockerError> {
+    serde_json::from_value(value)
+        .map_err(|e| DockerError::JsonParse(format!("{what} does not fit the API's request type: {e}")))
 }
 
 /// A Docker Engine API version, `major.minor` (e.g. `1.53`).

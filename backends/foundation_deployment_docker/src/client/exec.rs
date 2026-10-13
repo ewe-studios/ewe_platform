@@ -1,9 +1,9 @@
 //! Hand-written `DockerClient` wrappers for the Exec endpoints.
 //!
-//! WHY: The generated functions for exec endpoints either discard the response
-//! body (exec_start, exec_inspect) or need JSON bodies injected through
-//! `builder_mod` (exec_create). This module provides ergonomic wrappers that
-//! handle these cases.
+//! WHY: Ergonomic wrappers over the generated exec functions. `exec_start`'s
+//! answer is the command's output stream, returned unread as a [`LogStream`];
+//! `exec_inspect` is still built by hand (its generated function discards the
+//! response body).
 //!
 //! WHAT: `exec_create`, `exec_start`, `exec_inspect`, `exec_resize`.
 //!
@@ -11,11 +11,12 @@
 //! call the generated async fn (or build a manual request where the generated
 //! fn discards the body), and map errors to `DockerError`.
 
-use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::PreparedRequestBuilder;
 
+use crate::client::body::LogStream;
 use crate::error::DockerError;
-use crate::generated::exec::{container_exec_request, ContainerExecArgs};
+use crate::generated::exec::{container_exec_request, ContainerExecArgs, ContainerExecRequest};
+use crate::generated::start::{exec_start_request, ExecStartArgs, ExecStartRequest};
 use crate::generated::resize::{exec_resize_request, ExecResizeArgs};
 use crate::generated::shared::IDResponse;
 
@@ -27,11 +28,8 @@ type NoMod = fn(&mut PreparedRequestBuilder);
 /// WHY: Sets up a command to run inside the container and returns an exec id
 /// that can be started with [`exec_start`].
 ///
-/// WHAT: Posts `{"Cmd": cmd, "AttachStdout": true, "AttachStderr": true}` to
-/// the daemon.
-///
-/// HOW: Uses the generated `container_exec_request` with a `builder_mod` that
-/// sets the JSON body.
+/// WHAT: Sends the generated `ContainerExecRequest` with `Cmd` and stdout and
+/// stderr attached.
 ///
 /// # Errors
 ///
@@ -41,68 +39,48 @@ pub async fn exec_create(
     id: &str,
     cmd: &[&str],
 ) -> Result<IDResponse, DockerError> {
-    let body = serde_json::json!({
-        "Cmd": cmd,
-        "AttachStdout": true,
-        "AttachStderr": true,
-    });
     let args = ContainerExecArgs {
         id: id.to_string(),
+        body: ContainerExecRequest {
+            cmd: Some(cmd.iter().map(|c| (*c).to_string()).collect()),
+            attach_stdout: Some(true),
+            attach_stderr: Some(true),
+            ..ContainerExecRequest::default()
+        },
     };
-    let response = container_exec_request(
-        client.http(),
-        &args,
-        &client.api_url().await?,
-        Some(move |b: &mut PreparedRequestBuilder| {
-            b.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
-            let _ = b.set_body_json(&body);
-        }),
-    )
-    .await?;
+    let response =
+        container_exec_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(response.body)
 }
 
 /// Start a previously-created exec instance (`POST /exec/{id}/start`).
 ///
-/// WHY: Runs the command configured by [`exec_create`]; the response is a
-/// multiplexed stream (stdout/stderr). The generated function discards the
-/// response body, so we build the request manually to capture raw bytes.
+/// WHY: Runs the command configured by [`exec_create`]. Attached, the daemon
+/// streams the command's output for as long as it runs.
 ///
-/// WHAT: Posts `{"Detach": detach}` and returns the raw response body.
-///
-/// HOW: Manual `PreparedRequestBuilder::post` + `send_async`.
+/// WHAT: Sends the generated `ExecStartRequest` (`Detach`) and returns the
+/// output unread, as a [`LogStream`] of demultiplexed stdout/stderr frames. A
+/// detached start has an empty body: the stream simply ends.
 ///
 /// # Errors
 ///
-/// Returns [`DockerError`] on transport failure or non-2xx status.
+/// Returns [`DockerError`] on transport failure or non-2xx status (checked
+/// before the body is read); read errors come out of the stream.
 pub async fn exec_start(
     client: &super::DockerClient,
     id: &str,
     detach: bool,
-) -> Result<Vec<u8>, DockerError> {
-    let body = serde_json::json!({ "Detach": detach });
-    let endpoint_url = format!("{}/exec/{}/start", client.api_url().await?, id);
-    let mut builder = PreparedRequestBuilder::post(&endpoint_url)
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    builder.set_header(SimpleHeader::CONTENT_TYPE, "application/json");
-    let _ = builder.set_body_json(&body);
-    let response = client
-        .http()
-        .send_async(builder.build())
-        .await
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    let status: usize = response.get_status().into();
-    if status < 200 || status >= 300 {
-        return Err(DockerError::Api {
-            status: status as u16,
-            message: format!("exec_start failed with status {status}"),
-        });
-    }
-    let body_bytes =
-        foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(
-            response.take_body(),
-        );
-    Ok(body_bytes)
+) -> Result<LogStream, DockerError> {
+    let args = ExecStartArgs {
+        id: id.to_string(),
+        body: ExecStartRequest {
+            detach: Some(detach),
+            ..ExecStartRequest::default()
+        },
+    };
+    let response =
+        exec_start_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
+    Ok(LogStream::new(response.body))
 }
 
 /// Inspect an exec instance (`GET /exec/{id}/json`).

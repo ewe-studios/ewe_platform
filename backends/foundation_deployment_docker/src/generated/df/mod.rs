@@ -21,6 +21,103 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `BuildCacheDiskUsage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BuildCacheDiskUsage {
+    /// ActiveCount property.
+    #[serde(rename = "ActiveCount")]
+    pub active_count: Option<i64>,
+    /// Items property.
+    #[serde(rename = "Items")]
+    pub items: Option<Vec<serde_json::Value>>,
+    /// Reclaimable property.
+    #[serde(rename = "Reclaimable")]
+    pub reclaimable: Option<i64>,
+    /// TotalCount property.
+    #[serde(rename = "TotalCount")]
+    pub total_count: Option<i64>,
+    /// TotalSize property.
+    #[serde(rename = "TotalSize")]
+    pub total_size: Option<i64>,
+}
+
+/// `ContainersDiskUsage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainersDiskUsage {
+    /// ActiveCount property.
+    #[serde(rename = "ActiveCount")]
+    pub active_count: Option<i64>,
+    /// Items property.
+    #[serde(rename = "Items")]
+    pub items: Option<Vec<serde_json::Value>>,
+    /// Reclaimable property.
+    #[serde(rename = "Reclaimable")]
+    pub reclaimable: Option<i64>,
+    /// TotalCount property.
+    #[serde(rename = "TotalCount")]
+    pub total_count: Option<i64>,
+    /// TotalSize property.
+    #[serde(rename = "TotalSize")]
+    pub total_size: Option<i64>,
+}
+
+/// `ImagesDiskUsage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ImagesDiskUsage {
+    /// ActiveCount property.
+    #[serde(rename = "ActiveCount")]
+    pub active_count: Option<i64>,
+    /// Items property.
+    #[serde(rename = "Items")]
+    pub items: Option<Vec<serde_json::Value>>,
+    /// Reclaimable property.
+    #[serde(rename = "Reclaimable")]
+    pub reclaimable: Option<i64>,
+    /// TotalCount property.
+    #[serde(rename = "TotalCount")]
+    pub total_count: Option<i64>,
+    /// TotalSize property.
+    #[serde(rename = "TotalSize")]
+    pub total_size: Option<i64>,
+}
+
+/// `SystemDataUsageResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SystemDataUsageResponse {
+    /// BuildCacheUsage property.
+    #[serde(rename = "BuildCacheUsage")]
+    pub build_cache_usage: Option<BuildCacheDiskUsage>,
+    /// ContainerUsage property.
+    #[serde(rename = "ContainerUsage")]
+    pub container_usage: Option<ContainersDiskUsage>,
+    /// ImageUsage property.
+    #[serde(rename = "ImageUsage")]
+    pub image_usage: Option<ImagesDiskUsage>,
+    /// VolumeUsage property.
+    #[serde(rename = "VolumeUsage")]
+    pub volume_usage: Option<VolumesDiskUsage>,
+}
+
+/// `VolumesDiskUsage` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct VolumesDiskUsage {
+    /// ActiveCount property.
+    #[serde(rename = "ActiveCount")]
+    pub active_count: Option<i64>,
+    /// Items property.
+    #[serde(rename = "Items")]
+    pub items: Option<Vec<serde_json::Value>>,
+    /// Reclaimable property.
+    #[serde(rename = "Reclaimable")]
+    pub reclaimable: Option<i64>,
+    /// TotalCount property.
+    #[serde(rename = "TotalCount")]
+    pub total_count: Option<i64>,
+    /// TotalSize property.
+    #[serde(rename = "TotalSize")]
+    pub total_size: Option<i64>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -28,8 +125,8 @@ use super::shared::ApiResponse;
 /// Arguments for [`SystemDataUsage_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SystemDataUsageArgs {
-    /// Query parameter: `type`.
-    pub r#type: Option<String>,
+    /// Query parameter: `type` (one per value).
+    pub r#type: Vec<String>,
     /// Query parameter: `verbose`.
     pub verbose: Option<String>,
 }
@@ -65,7 +162,7 @@ pub async fn system_data_usage_request<F>(
     args: &SystemDataUsageArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<SystemDataUsageResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -76,7 +173,9 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("type", args.r#type.as_deref());
+    for value in &args.r#type {
+        builder = builder.query("type", Some(value.as_str()));
+    }
     builder = builder.query("verbose", args.verbose.as_deref());
 
     if let Some(f) = builder_mod {
@@ -89,8 +188,11 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
+    let parsed: SystemDataUsageResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
+    Ok(ApiResponse { status: status as u16, headers, body: parsed })
 }
 

@@ -24,60 +24,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SwarmSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SwarmSpec {
-    /// CAConfig property.
-    #[serde(rename = "CAConfig")]
-    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Dispatcher property.
-    #[serde(rename = "Dispatcher")]
-    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// EncryptionConfig property.
-    #[serde(rename = "EncryptionConfig")]
-    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Orchestration property.
-    #[serde(rename = "Orchestration")]
-    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Raft property.
-    #[serde(rename = "Raft")]
-    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// TaskDefaults property.
-    #[serde(rename = "TaskDefaults")]
-    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `JoinTokens` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct JoinTokens {
-    /// Manager property.
-    #[serde(rename = "Manager")]
-    pub manager: Option<String>,
-    /// Worker property.
-    #[serde(rename = "Worker")]
-    pub worker: Option<String>,
-}
-
-/// `TLSInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TLSInfo {
-    /// CertIssuerPublicKey property.
-    #[serde(rename = "CertIssuerPublicKey")]
-    pub cert_issuer_public_key: Option<String>,
-    /// CertIssuerSubject property.
-    #[serde(rename = "CertIssuerSubject")]
-    pub cert_issuer_subject: Option<String>,
-    /// TrustRoot property.
-    #[serde(rename = "TrustRoot")]
-    pub trust_root: Option<String>,
-}
-
 /// `ClusterInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ClusterInfo {
@@ -113,12 +59,96 @@ pub struct ClusterInfo {
     pub version: Option<ObjectVersion>,
 }
 
+/// `JoinTokens` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct JoinTokens {
+    /// Manager property.
+    #[serde(rename = "Manager")]
+    pub manager: Option<String>,
+    /// Worker property.
+    #[serde(rename = "Worker")]
+    pub worker: Option<String>,
+}
+
 /// `Swarm` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Swarm {
+    /// `CreatedAt` property.
+    #[serde(rename = "CreatedAt")]
+    pub created_at: Option<String>,
+    /// `DataPathPort` property.
+    #[serde(rename = "DataPathPort")]
+    pub data_path_port: Option<i64>,
+    /// `DefaultAddrPool` property.
+    #[serde(rename = "DefaultAddrPool")]
+    pub default_addr_pool: Option<Vec<String>>,
+    /// `ID` property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
     /// `JoinTokens` property.
     #[serde(rename = "JoinTokens")]
     pub join_tokens: Option<JoinTokens>,
+    /// `RootRotationInProgress` property.
+    #[serde(rename = "RootRotationInProgress")]
+    pub root_rotation_in_progress: Option<bool>,
+    /// `Spec` property.
+    #[serde(rename = "Spec")]
+    pub spec: Option<SwarmSpec>,
+    /// `SubnetSize` property.
+    #[serde(rename = "SubnetSize")]
+    pub subnet_size: Option<i64>,
+    /// `TLSInfo` property.
+    #[serde(rename = "TLSInfo")]
+    pub tls_info: Option<TLSInfo>,
+    /// `UpdatedAt` property.
+    #[serde(rename = "UpdatedAt")]
+    pub updated_at: Option<String>,
+    /// `Version` property.
+    #[serde(rename = "Version")]
+    pub version: Option<ObjectVersion>,
+}
+
+/// `SwarmSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SwarmSpec {
+    /// CAConfig property.
+    #[serde(rename = "CAConfig")]
+    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Dispatcher property.
+    #[serde(rename = "Dispatcher")]
+    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// EncryptionConfig property.
+    #[serde(rename = "EncryptionConfig")]
+    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Orchestration property.
+    #[serde(rename = "Orchestration")]
+    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Raft property.
+    #[serde(rename = "Raft")]
+    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// TaskDefaults property.
+    #[serde(rename = "TaskDefaults")]
+    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `TLSInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TLSInfo {
+    /// CertIssuerPublicKey property.
+    #[serde(rename = "CertIssuerPublicKey")]
+    pub cert_issuer_public_key: Option<String>,
+    /// CertIssuerSubject property.
+    #[serde(rename = "CertIssuerSubject")]
+    pub cert_issuer_subject: Option<String>,
+    /// TrustRoot property.
+    #[serde(rename = "TrustRoot")]
+    pub trust_root: Option<String>,
 }
 
 // =============================================================================
@@ -182,7 +212,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: Swarm = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

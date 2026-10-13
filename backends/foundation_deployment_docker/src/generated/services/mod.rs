@@ -24,6 +24,166 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `EndpointPortConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EndpointPortConfig {
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Protocol property.
+    #[serde(rename = "Protocol")]
+    pub protocol: Option<String>,
+    /// PublishMode property.
+    #[serde(rename = "PublishMode")]
+    pub publish_mode: Option<String>,
+    /// PublishedPort property.
+    #[serde(rename = "PublishedPort")]
+    pub published_port: Option<i64>,
+    /// TargetPort property.
+    #[serde(rename = "TargetPort")]
+    pub target_port: Option<i64>,
+}
+
+/// `EndpointSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EndpointSpec {
+    /// Mode property.
+    #[serde(rename = "Mode")]
+    pub mode: Option<String>,
+    /// Ports property.
+    #[serde(rename = "Ports")]
+    pub ports: Option<Vec<EndpointPortConfig>>,
+}
+
+/// `GenericResources` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
+pub struct GenericResources {
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `HealthConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HealthConfig {
+    /// Interval property.
+    #[serde(rename = "Interval")]
+    pub interval: Option<i64>,
+    /// Retries property.
+    #[serde(rename = "Retries")]
+    pub retries: Option<i64>,
+    /// StartInterval property.
+    #[serde(rename = "StartInterval")]
+    pub start_interval: Option<i64>,
+    /// StartPeriod property.
+    #[serde(rename = "StartPeriod")]
+    pub start_period: Option<i64>,
+    /// Test property.
+    #[serde(rename = "Test")]
+    pub test: Option<Vec<String>>,
+    /// Timeout property.
+    #[serde(rename = "Timeout")]
+    pub timeout: Option<i64>,
+}
+
+/// `Limit` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Limit {
+    /// MemoryBytes property.
+    #[serde(rename = "MemoryBytes")]
+    pub memory_bytes: Option<i64>,
+    /// NanoCPUs property.
+    #[serde(rename = "NanoCPUs")]
+    pub nano_cp_us: Option<i64>,
+    /// Pids property.
+    #[serde(rename = "Pids")]
+    pub pids: Option<i64>,
+}
+
+/// `Mount` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Mount {
+    /// BindOptions property.
+    #[serde(rename = "BindOptions")]
+    pub bind_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Consistency property.
+    #[serde(rename = "Consistency")]
+    pub consistency: Option<String>,
+    /// ImageOptions property.
+    #[serde(rename = "ImageOptions")]
+    pub image_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// ReadOnly property.
+    #[serde(rename = "ReadOnly")]
+    pub read_only: Option<bool>,
+    /// Source property.
+    #[serde(rename = "Source")]
+    pub source: Option<String>,
+    /// Target property.
+    #[serde(rename = "Target")]
+    pub target: Option<String>,
+    /// TmpfsOptions property.
+    #[serde(rename = "TmpfsOptions")]
+    pub tmpfs_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Type property.
+    #[serde(rename = "Type")]
+    pub r#type: Option<serde_json::Value>,
+    /// VolumeOptions property.
+    #[serde(rename = "VolumeOptions")]
+    pub volume_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `NetworkAttachmentConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NetworkAttachmentConfig {
+    /// Aliases property.
+    #[serde(rename = "Aliases")]
+    pub aliases: Option<Vec<String>>,
+    /// DriverOpts property.
+    #[serde(rename = "DriverOpts")]
+    pub driver_opts: Option<serde_json::Value>,
+    /// Target property.
+    #[serde(rename = "Target")]
+    pub target: Option<String>,
+}
+
+/// `Platform` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Platform {
+    /// Architecture property.
+    #[serde(rename = "Architecture")]
+    pub architecture: Option<String>,
+    /// OS property.
+    #[serde(rename = "OS")]
+    pub os: Option<String>,
+}
+
+/// `PluginPrivilege` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PluginPrivilege {
+    /// Description property.
+    #[serde(rename = "Description")]
+    pub description: Option<String>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Value property.
+    #[serde(rename = "Value")]
+    pub value: Option<Vec<String>>,
+}
+
+/// `ResourceObject` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceObject {
+    /// GenericResources property.
+    #[serde(rename = "GenericResources")]
+    pub generic_resources: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// MemoryBytes property.
+    #[serde(rename = "MemoryBytes")]
+    pub memory_bytes: Option<i64>,
+    /// NanoCPUs property.
+    #[serde(rename = "NanoCPUs")]
+    pub nano_cp_us: Option<i64>,
+}
+
 /// `Service` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Service {
@@ -56,41 +216,33 @@ pub struct Service {
     pub version: Option<ObjectVersion>,
 }
 
-/// `NetworkAttachmentConfig` type.
+/// `ServiceSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAttachmentConfig {
-    /// Aliases property.
-    #[serde(rename = "Aliases")]
-    pub aliases: Option<Vec<String>>,
-    /// DriverOpts property.
-    #[serde(rename = "DriverOpts")]
-    pub driver_opts: Option<serde_json::Value>,
-    /// Target property.
-    #[serde(rename = "Target")]
-    pub target: Option<String>,
-}
-
-/// `HealthConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HealthConfig {
-    /// Interval property.
-    #[serde(rename = "Interval")]
-    pub interval: Option<i64>,
-    /// Retries property.
-    #[serde(rename = "Retries")]
-    pub retries: Option<i64>,
-    /// StartInterval property.
-    #[serde(rename = "StartInterval")]
-    pub start_interval: Option<i64>,
-    /// StartPeriod property.
-    #[serde(rename = "StartPeriod")]
-    pub start_period: Option<i64>,
-    /// Test property.
-    #[serde(rename = "Test")]
-    pub test: Option<Vec<String>>,
-    /// Timeout property.
-    #[serde(rename = "Timeout")]
-    pub timeout: Option<i64>,
+pub struct ServiceSpec {
+    /// EndpointSpec property.
+    #[serde(rename = "EndpointSpec")]
+    pub endpoint_spec: Option<EndpointSpec>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Mode property.
+    #[serde(rename = "Mode")]
+    pub mode: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Networks property.
+    #[serde(rename = "Networks")]
+    pub networks: Option<Vec<NetworkAttachmentConfig>>,
+    /// RollbackConfig property.
+    #[serde(rename = "RollbackConfig")]
+    pub rollback_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// TaskTemplate property.
+    #[serde(rename = "TaskTemplate")]
+    pub task_template: Option<TaskSpec>,
+    /// UpdateConfig property.
+    #[serde(rename = "UpdateConfig")]
+    pub update_config: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `TaskSpec` type.
@@ -126,158 +278,6 @@ pub struct TaskSpec {
     /// Runtime property.
     #[serde(rename = "Runtime")]
     pub runtime: Option<String>,
-}
-
-/// `Mount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Mount {
-    /// BindOptions property.
-    #[serde(rename = "BindOptions")]
-    pub bind_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Consistency property.
-    #[serde(rename = "Consistency")]
-    pub consistency: Option<String>,
-    /// ImageOptions property.
-    #[serde(rename = "ImageOptions")]
-    pub image_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// ReadOnly property.
-    #[serde(rename = "ReadOnly")]
-    pub read_only: Option<bool>,
-    /// Source property.
-    #[serde(rename = "Source")]
-    pub source: Option<String>,
-    /// Target property.
-    #[serde(rename = "Target")]
-    pub target: Option<String>,
-    /// TmpfsOptions property.
-    #[serde(rename = "TmpfsOptions")]
-    pub tmpfs_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Type property.
-    #[serde(rename = "Type")]
-    pub r#type: Option<serde_json::Value>,
-    /// VolumeOptions property.
-    #[serde(rename = "VolumeOptions")]
-    pub volume_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `Platform` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Platform {
-    /// Architecture property.
-    #[serde(rename = "Architecture")]
-    pub architecture: Option<String>,
-    /// OS property.
-    #[serde(rename = "OS")]
-    pub os: Option<String>,
-}
-
-/// `GenericResources` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GenericResources {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EndpointSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EndpointSpec {
-    /// Mode property.
-    #[serde(rename = "Mode")]
-    pub mode: Option<String>,
-    /// Ports property.
-    #[serde(rename = "Ports")]
-    pub ports: Option<Vec<EndpointPortConfig>>,
-}
-
-/// `EndpointPortConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EndpointPortConfig {
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Protocol property.
-    #[serde(rename = "Protocol")]
-    pub protocol: Option<String>,
-    /// PublishMode property.
-    #[serde(rename = "PublishMode")]
-    pub publish_mode: Option<String>,
-    /// PublishedPort property.
-    #[serde(rename = "PublishedPort")]
-    pub published_port: Option<i64>,
-    /// TargetPort property.
-    #[serde(rename = "TargetPort")]
-    pub target_port: Option<i64>,
-}
-
-/// `PluginPrivilege` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PluginPrivilege {
-    /// Description property.
-    #[serde(rename = "Description")]
-    pub description: Option<String>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Value property.
-    #[serde(rename = "Value")]
-    pub value: Option<Vec<String>>,
-}
-
-/// `ServiceSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ServiceSpec {
-    /// EndpointSpec property.
-    #[serde(rename = "EndpointSpec")]
-    pub endpoint_spec: Option<EndpointSpec>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Mode property.
-    #[serde(rename = "Mode")]
-    pub mode: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Networks property.
-    #[serde(rename = "Networks")]
-    pub networks: Option<Vec<NetworkAttachmentConfig>>,
-    /// RollbackConfig property.
-    #[serde(rename = "RollbackConfig")]
-    pub rollback_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// TaskTemplate property.
-    #[serde(rename = "TaskTemplate")]
-    pub task_template: Option<TaskSpec>,
-    /// UpdateConfig property.
-    #[serde(rename = "UpdateConfig")]
-    pub update_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `ResourceObject` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceObject {
-    /// GenericResources property.
-    #[serde(rename = "GenericResources")]
-    pub generic_resources: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// MemoryBytes property.
-    #[serde(rename = "MemoryBytes")]
-    pub memory_bytes: Option<i64>,
-    /// NanoCPUs property.
-    #[serde(rename = "NanoCPUs")]
-    pub nano_cp_us: Option<i64>,
-}
-
-/// `Limit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Limit {
-    /// MemoryBytes property.
-    #[serde(rename = "MemoryBytes")]
-    pub memory_bytes: Option<i64>,
-    /// NanoCPUs property.
-    #[serde(rename = "NanoCPUs")]
-    pub nano_cp_us: Option<i64>,
-    /// Pids property.
-    #[serde(rename = "Pids")]
-    pub pids: Option<i64>,
 }
 
 // =============================================================================
@@ -364,7 +364,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -422,7 +423,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: Service = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -478,7 +480,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }

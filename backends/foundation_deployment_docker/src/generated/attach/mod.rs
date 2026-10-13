@@ -63,6 +63,11 @@ pub struct ContainerAttachArgs {
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -75,7 +80,7 @@ pub async fn container_attach_request<F>(
     args: &ContainerAttachArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -104,8 +109,9 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    Ok(ApiResponse { status: status as u16, headers, body: super::shared::ByteStream::new(response.take_body()) })
 }
 

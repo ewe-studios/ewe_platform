@@ -2,7 +2,7 @@
 //!
 //! WHY: The generated functions for system endpoints either discard the
 //! response body (system_data_usage), fail on non-JSON responses
-//! (system_ping), or handle streaming data (system_events). This module
+//! (system_ping); `system_events` is a feed, returned unread. This module
 //! provides ergonomic wrappers that handle these cases.
 //!
 //! WHAT: `system_info`, `system_ping`, `system_events`, `system_data_usage`,
@@ -14,7 +14,9 @@
 
 use foundation_netio::PreparedRequestBuilder;
 
+use crate::client::body::EventStream;
 use crate::error::DockerError;
+use crate::generated::events::{system_events_request, SystemEventsArgs};
 use crate::generated::auth::{
     system_auth_request, AuthConfig, AuthResponse, SystemAuthArgs,
 };
@@ -102,49 +104,31 @@ pub async fn system_ping(client: &super::DockerClient) -> Result<(), DockerError
 
 /// Stream daemon events (`GET /events`).
 ///
-/// WHY: The `/events` endpoint streams newline-delimited JSON events. The
-/// generated function parses only a single `EventMessage`. This wrapper
-/// returns the raw bytes so callers can handle the stream themselves.
+/// WHY: `/events` is a feed, not a document: without `until` the daemon keeps
+/// it open indefinitely, writing one JSON event per line.
 ///
-/// WHAT: Sends `GET /events` with optional `since`/`until`/`filters` and
-/// returns the raw response body.
-///
-/// HOW: Manual `PreparedRequestBuilder::get` + `send_async` + raw byte
-/// collection.
+/// WHAT: Returns the feed unread, as an [`EventStream`] of the generated
+/// [`EventMessage`](crate::generated::events::EventMessage).
 ///
 /// # Errors
 ///
-/// Returns [`DockerError`] on transport failure or non-2xx status.
+/// Returns [`DockerError`] on transport failure or non-2xx status (checked
+/// before the body is read); a malformed event or read error comes out of the
+/// stream.
 pub async fn system_events(
     client: &super::DockerClient,
     since: Option<&str>,
     until: Option<&str>,
     filters: Option<&str>,
-) -> Result<Vec<u8>, DockerError> {
-    let base = client.api_url().await?;
-    let endpoint_url = format!("{base}/events");
-    let mut builder = PreparedRequestBuilder::get(&endpoint_url)
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    builder = builder.query("since", since);
-    builder = builder.query("until", until);
-    builder = builder.query("filters", filters);
-    let response = client
-        .http()
-        .send_async(builder.build())
-        .await
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    let status: usize = response.get_status().into();
-    if status < 200 || status >= 300 {
-        return Err(DockerError::Api {
-            status: status as u16,
-            message: format!("system_events failed with status {status}"),
-        });
-    }
-    let body_bytes =
-        foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(
-            response.take_body(),
-        );
-    Ok(body_bytes)
+) -> Result<EventStream, DockerError> {
+    let args = SystemEventsArgs {
+        since: since.map(str::to_string),
+        until: until.map(str::to_string),
+        filters: filters.map(str::to_string),
+    };
+    let response =
+        system_events_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
+    Ok(EventStream::new(response.body))
 }
 
 /// Get data usage information (`GET /system/df`).

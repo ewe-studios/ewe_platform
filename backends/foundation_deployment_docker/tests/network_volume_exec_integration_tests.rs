@@ -150,7 +150,14 @@ async fn exec_resize() {
         .expect("exec create");
 
     // Start exec before resize — Docker returns 500 if exec hasn't been started
-    let _ = c.exec_start(&exec_id.id, true).await;
+    // Detached: the daemon answers at once, with an empty body.
+    let (mut stdout, mut stderr) = (String::new(), String::new());
+    c.exec_start(&exec_id.id, true)
+        .await
+        .expect("exec start")
+        .read_into(&mut stdout, &mut stderr)
+        .await
+        .expect("a detached start has no output to fail on");
     c.exec_resize(&exec_id.id, 40, 120)
         .await
         .expect("exec resize");
@@ -165,16 +172,21 @@ async fn exec_resize() {
 async fn system_events() {
     let c = client();
     // `/events` is an infinite stream unless bounded — with no `until` the
-    // daemon holds the connection open forever and `collect_bytes` never
-    // returns (this hung the suite). `until=<now>` makes Docker replay events
+    // daemon holds the connection open forever and the stream never ends
+    // (collecting it hung the suite). `until=<now>` makes Docker replay events
     // up to this instant and close the stream, so the call terminates.
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .expect("system clock before UNIX epoch")
         .as_secs()
         .to_string();
-    let _ = c
+    let mut events = c
         .system_events(None, Some(&now), None)
         .await
         .expect("system events");
+    // Every replayed event must parse as the generated `EventMessage`.
+    while let Some(event) = events.next().await {
+        let event = event.expect("a typed event");
+        assert!(event.r#type.is_some() || event.action.is_some(), "{event:?}");
+    }
 }

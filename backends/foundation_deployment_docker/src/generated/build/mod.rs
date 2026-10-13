@@ -15,6 +15,12 @@ use foundation_netio::shared::client::http_client::HttpClient;
 use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
 
+// Import shared types used by this module
+use super::shared::BuildInfo;
+use super::shared::ErrorDetail;
+use super::shared::ImageID;
+use super::shared::ProgressDetail;
+
 use super::shared::ApiResponse;
 
 // =============================================================================
@@ -97,7 +103,13 @@ pub struct ImageBuildArgs {
 ///
 /// * `client` - HTTP client for making the request
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Request body, sent as-is as `application/octet-stream` (`None` sends none)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Response body
+///
+/// Returned unread, as a stream of `BuildInfo`, one per line: read it with `.next().await`.
+/// The status is checked before the body is touched.
 ///
 /// # Example
 ///
@@ -110,8 +122,9 @@ pub async fn image_build_request<F>(
     client: DynNetClient,
     args: &ImageBuildArgs,
     base_url: &str,
+    body: Option<foundation_netio::shared::http::SendSafeBody>,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::JsonLinesStream<BuildInfo>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -148,6 +161,10 @@ where
     builder = builder.query("outputs", args.outputs.as_deref());
     builder = builder.query("version", args.version.as_deref());
 
+    if let Some(body) = body {
+        builder = super::shared::with_raw_body(builder, "application/octet-stream", body);
+    }
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -158,11 +175,9 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
+        let body = super::shared::read_error_body(response.take_body()).await;
         return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    Ok(ApiResponse { status: status as u16, headers, body: super::shared::JsonLinesStream::new(response.take_body()) })
 }
 

@@ -15,6 +15,12 @@ use foundation_netio::shared::client::http_client::HttpClient;
 use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
 
+// Import shared types used by this module
+use super::shared::BuildInfo;
+use super::shared::ErrorDetail;
+use super::shared::ImageID;
+use super::shared::ProgressDetail;
+
 use super::shared::ApiResponse;
 
 // =============================================================================
@@ -30,8 +36,8 @@ use super::shared::ApiResponse;
 pub struct ImageLoadArgs {
     /// Query parameter: `quiet`.
     pub quiet: Option<String>,
-    /// Query parameter: `platform`.
-    pub platform: Option<String>,
+    /// Query parameter: `platform` (one per value).
+    pub platform: Vec<String>,
 }
 
 // =============================================================================
@@ -51,7 +57,13 @@ pub struct ImageLoadArgs {
 ///
 /// * `client` - HTTP client for making the request
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Request body, sent as-is as `application/x-tar` (`None` sends none)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Response body
+///
+/// Returned unread, as a stream of `BuildInfo`, one per line: read it with `.next().await`.
+/// The status is checked before the body is touched.
 ///
 /// # Example
 ///
@@ -64,8 +76,9 @@ pub async fn image_load_request<F>(
     client: DynNetClient,
     args: &ImageLoadArgs,
     base_url: &str,
+    body: Option<foundation_netio::shared::http::SendSafeBody>,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::JsonLinesStream<BuildInfo>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -77,7 +90,13 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("quiet", args.quiet.as_deref());
-    builder = builder.query("platform", args.platform.as_deref());
+    for value in &args.platform {
+        builder = builder.query("platform", Some(value.as_str()));
+    }
+
+    if let Some(body) = body {
+        builder = super::shared::with_raw_body(builder, "application/x-tar", body);
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -89,8 +108,9 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    Ok(ApiResponse { status: status as u16, headers, body: super::shared::JsonLinesStream::new(response.take_body()) })
 }
 

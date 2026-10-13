@@ -21,17 +21,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AuthResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AuthResponse {
-    /// IdentityToken property.
-    #[serde(rename = "IdentityToken")]
-    pub identity_token: Option<String>,
-    /// Status property.
-    #[serde(rename = "Status")]
-    pub status: String,
-}
-
 /// `AuthConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AuthConfig {
@@ -41,6 +30,17 @@ pub struct AuthConfig {
     pub serveraddress: Option<String>,
     /// username property.
     pub username: Option<String>,
+}
+
+/// `AuthResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AuthResponse {
+    /// IdentityToken property.
+    #[serde(rename = "IdentityToken")]
+    pub identity_token: Option<String>,
+    /// Status property.
+    #[serde(rename = "Status")]
+    pub status: String,
 }
 
 // =============================================================================
@@ -109,7 +109,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: AuthResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

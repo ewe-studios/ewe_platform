@@ -122,8 +122,14 @@ async fn exec_create_start_returns_output() {
     ).await.expect("create");
     c.start_container(&id.id).await.expect("start");
     let exec_id = c.exec_create(&id.id, &["echo","exec-ok"]).await.expect("exec create");
-    let output = c.exec_start(&exec_id.id, false).await.expect("exec start");
-    assert!(std::str::from_utf8(&output).unwrap_or("").contains("exec-ok"));
+    let (mut stdout, mut stderr) = (String::new(), String::new());
+    c.exec_start(&exec_id.id, false)
+        .await
+        .expect("exec start")
+        .read_into(&mut stdout, &mut stderr)
+        .await
+        .expect("exec output");
+    assert!(stdout.contains("exec-ok"), "stdout: {stdout:?}, stderr: {stderr:?}");
     c.stop_container(&id.id, Some(5)).await.expect("stop");
     c.remove_container(&id.id, true).await.expect("remove");
 }
