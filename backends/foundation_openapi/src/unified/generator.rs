@@ -11,7 +11,6 @@ use std::collections::HashSet;
 use std::fmt::Write as FmtWrite;
 use std::fs;
 use std::path::{Path, PathBuf};
-use toml::Value;
 
 use super::analyzer::ApiGroup;
 
@@ -627,108 +626,166 @@ fn collapse_redundant_words(name: &str) -> String {
     result.join("_")
 }
 
-/// Update Cargo.toml with missing feature flags for the provider.
+/// Rewrite the provider's feature flags in a crate's `Cargo.toml`.
+///
+/// WHY: the generated modules are gated on `<provider>_<group>` features, so the
+/// manifest has to list exactly the groups that exist after a regeneration.
+///
+/// WHAT: replaces every `<provider>_*` feature with one empty feature per group,
+/// `<provider>_all` and `<provider>` (both enabling every group), and — for a
+/// sub-provider such as `gcp_admin` — refreshes the parent feature.
+///
+/// HOW: edits the document with `toml_edit`, so everything this function does
+/// not own (comments, table order, formatting, other features) is left exactly
+/// as written. It used to round-trip the file through `toml::Value`, which
+/// threw away every comment and re-sorted the tables, and it deleted
+/// `<provider>_all` without re-adding it.
 fn update_cargo_toml(
     provider: &str,
     groups: &[ApiGroup],
     cargo_toml_path: &Path,
 ) -> Result<(), std::io::Error> {
     let content = fs::read_to_string(cargo_toml_path)?;
-
-    // Parse TOML into a mutable Value
-    let mut doc: Value = toml::from_str(&content)
+    let group_names: Vec<String> = groups.iter().map(|g| g.name.clone()).collect();
+    let updated = rewrite_features_for_groups(&content, provider, &group_names)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
+    if updated != content {
+        fs::write(cargo_toml_path, updated)?;
+    }
+    Ok(())
+}
 
-    let provider_feature = provider.replace('-', "_").replace('/', "_");
+/// Errors from [`rewrite_features_for_groups`].
+#[derive(Debug, derive_more::Display)]
+pub enum FeatureRewriteError {
+    /// The manifest is not valid TOML.
+    #[display("Cargo.toml does not parse: {_0}")]
+    Parse(toml_edit::TomlError),
+    /// The manifest has no `[features]` table to add the group features to.
+    #[display("Cargo.toml has no [features] table")]
+    MissingFeatures,
+}
 
-    // Get or create features table
+impl std::error::Error for FeatureRewriteError {}
+
+/// The pure half of [`update_cargo_toml`]: the manifest text with the
+/// provider's features rewritten for `group_names` (as the analyzer names the
+/// groups, before sanitising), everything else untouched.
+///
+/// # Errors
+/// [`FeatureRewriteError`] when the manifest does not parse or has no
+/// `[features]` table.
+pub fn rewrite_features_for_groups(
+    manifest: &str,
+    provider: &str,
+    group_names: &[String],
+) -> Result<String, FeatureRewriteError> {
+    let mut doc: toml_edit::DocumentMut =
+        manifest.parse().map_err(FeatureRewriteError::Parse)?;
+
+    let provider_feature = provider.replace(['-', '/'], "_");
+    let all_feature = format!("{provider_feature}_all");
+    let group_prefix = format!("{provider_feature}_");
+
     let features = doc
         .get_mut("features")
-        .and_then(|v| v.as_table_mut())
-        .ok_or_else(|| {
-            std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                "missing [features] section",
-            )
-        })?;
+        .and_then(toml_edit::Item::as_table_like_mut)
+        .ok_or(FeatureRewriteError::MissingFeatures)?;
 
-    // Check if this is a hierarchical provider (e.g., gcp/admin -> gcp_admin under gcp)
-    // We detect this by checking if the provider name contains underscores that indicate nesting
-    // e.g., "gcp_admin" has two segments, "cloudflare" has one
-    let provider_parts: Vec<&str> = provider_feature.split('_').collect();
-    let parent_feature = if provider_parts.len() > 1 {
-        // This is a sub-provider like gcp_admin, parent is gcp
-        Some(provider_parts[0].to_string())
-    } else {
-        None
-    };
+    // A sub-provider (`gcp_admin`) also refreshes its parent (`gcp`).
+    let parent_feature = provider_feature
+        .split_once('_')
+        .map(|(parent, _)| parent.to_string());
 
-    // Remove all existing feature flags for this specific provider (not parent)
-    let keys_to_remove: Vec<String> = features
-        .keys()
-        .filter(|k| k.starts_with(&format!("{}_", provider_feature)))
-        .cloned()
+    // Group features, deduplicated and in a stable order.
+    let mut group_features: Vec<String> = group_names
+        .iter()
+        .map(|name| {
+            let safe = sanitize_module_name(&sanitize_group_name(name));
+            format!("{provider_feature}_{safe}")
+        })
         .collect();
-    for key in keys_to_remove {
+    group_features.sort();
+    group_features.dedup();
+
+    // Drop this provider's old group features (a group can disappear when the
+    // spec or the selection changes). `<provider>_all` is rebuilt below.
+    let stale: Vec<String> = features
+        .iter()
+        .map(|(k, _)| k.to_string())
+        .filter(|k| {
+            k.starts_with(&group_prefix) && *k != all_feature && !group_features.contains(k)
+        })
+        .collect();
+    for key in stale {
         features.remove(&key);
     }
 
-    // Collect group feature names
-    let mut group_features: Vec<String> = Vec::new();
-
-    // Add group-level features
-    for group in groups {
-        let safe_name = sanitize_group_name(&group.name);
-        let safe_name = sanitize_module_name(&safe_name);
-        let feature_name = format!("{}_{}", provider_feature, safe_name);
-        features.insert(feature_name.clone(), Value::Array(vec![]));
-        group_features.push(feature_name);
-    }
-
-    // Update provider-level feature to enable all group features
-    // e.g., gcp_admin = ["gcp_admin_applications", "gcp_admin_dates", ...]
-    let provider_feature_array: Value = Value::Array(
-        group_features
-            .iter()
-            .map(|f| Value::String(f.clone()))
-            .collect(),
-    );
-    features.insert(provider_feature.clone(), provider_feature_array);
-
-    // If this is a sub-provider (like gcp_admin), update the parent feature
-    // to include ALL sub-providers under it (not just this one)
-    if let Some(parent) = parent_feature {
-        // Collect all sub-provider features (e.g., gcp_admin, gcp_cloudkms, etc.)
-        let mut sub_providers: Vec<String> = Vec::new();
-        for key in features.keys() {
-            // Match keys like "gcp_admin", "gcp_cloudkms" but NOT "gcp_admin_applications"
-            if key.starts_with(&format!("{}_", parent)) {
-                let parts: Vec<&str> = key.split('_').collect();
-                if parts.len() == 2 {
-                    // This is a sub-provider (exactly 2 parts: parent_subprovider)
-                    sub_providers.push(key.clone());
-                }
-            }
+    // One entry per line, as the manifests write feature lists.
+    let feature_list = |names: &[String]| -> toml_edit::Item {
+        let mut array = toml_edit::Array::new();
+        for name in names {
+            let mut entry = toml_edit::Value::from(name.as_str());
+            entry.decor_mut().set_prefix("\n    ");
+            array.push_formatted(entry);
         }
+        if !names.is_empty() {
+            array.set_trailing("\n");
+            array.set_trailing_comma(true);
+        }
+        toml_edit::value(array)
+    };
 
-        // Update parent feature to include all sub-providers
-        let parent_feature_array: Value = Value::Array(
-            sub_providers
-                .iter()
-                .map(|f| Value::String(f.clone()))
-                .collect(),
-        );
-        features.insert(parent.clone(), parent_feature_array);
+    for feature in &group_features {
+        // A group feature that already exists keeps whatever it enables.
+        if features.get(feature).is_none() {
+            features.insert(feature, feature_list(&[]));
+        }
+    }
+    set_feature(features, &provider_feature, feature_list(&group_features));
+    set_feature(features, &all_feature, feature_list(&group_features));
+
+    if let Some(parent) = parent_feature {
+        // Every sub-provider feature (`gcp_admin`, `gcp_cloudkms`, …): exactly
+        // two segments, and not the parent's own `gcp_all`.
+        let mut sub_providers: Vec<String> = features
+            .iter()
+            .map(|(k, _)| k.to_string())
+            .filter(|k| {
+                k.strip_prefix(&format!("{parent}_"))
+                    .is_some_and(|rest| !rest.contains('_') && rest != "all")
+            })
+            .collect();
+        sub_providers.sort();
+        set_feature(features, &parent, feature_list(&sub_providers));
     }
 
-    // Note: shared module doesn't need a feature flag - it's always compiled when provider is enabled
+    // New keys were appended; keep the table sorted as the manifests are.
+    features.sort_values();
 
-    // Serialize back to TOML with nice formatting
-    let output = toml::to_string_pretty(&doc)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
+    Ok(doc.to_string())
+}
 
-    fs::write(cargo_toml_path, output + "\n")?;
-    Ok(())
+/// Set a feature, assigning in place when the key exists: `insert` would
+/// replace the key too, and with it any comment written above the feature.
+///
+/// A feature that already lists exactly these entries is left as it is, so
+/// regenerating an up-to-date crate does not reformat its manifest.
+fn set_feature(features: &mut dyn toml_edit::TableLike, key: &str, item: toml_edit::Item) {
+    let entries = |item: &toml_edit::Item| -> Option<Vec<String>> {
+        item.as_array().map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(str::to_string))
+                .collect()
+        })
+    };
+    match features.get_mut(key) {
+        Some(existing) if entries(existing) == entries(&item) => {}
+        Some(existing) => *existing = item,
+        None => {
+            features.insert(key, item);
+        }
+    }
 }
 
 /// Unified generator that produces cohesive per-endpoint units.
