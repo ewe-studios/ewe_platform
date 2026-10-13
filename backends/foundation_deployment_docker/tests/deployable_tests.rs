@@ -11,6 +11,8 @@
 
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
+mod common;
+
 use foundation_core::valtron::valtron_test;
 use foundation_db::core::state::traits::StateStore;
 use foundation_db::core::state::FileStateStore;
@@ -47,6 +49,8 @@ async fn deploy_then_destroy_container() {
     }
 
     let docker = DockerClient::connect_unix(DOCKER_SOCK);
+    // The deployment runs `alpine:latest`; a cold daemon does not have it.
+    common::ensure_image(&docker, "alpine", "latest").await;
     // Robustness: remove any container this test left behind on a prior run so a
     // stale name can never cause a 409 conflict on create.
     let _ = docker.remove_container(CONTAINER_NAME, true).await;

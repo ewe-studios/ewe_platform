@@ -6,28 +6,34 @@
 
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
+mod common;
+
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
 
 /// One fresh client per test — no shared state, no pool interference.
-fn client() -> DockerClient { DockerClient::connect_unix("/var/run/docker.sock") }
+/// A client for the local daemon, with `alpine:latest` pulled (the tests
+/// create containers from it; a cold daemon does not have it).
+async fn client() -> DockerClient {
+    common::client_with_alpine().await
+}
 
 // ── Read-only: prove transport + serde work against real dockerd ──────
 
-#[valtron_test] async fn ping()     { client().system_ping().await.expect("ping"); }
-#[valtron_test] async fn info()     { let i = client().system_info().await.expect("info"); assert!(!i.is_null(), "SystemInfo should be valid JSON"); }
-#[valtron_test] async fn df()       { let _ = client().system_data_usage(None).await.expect("df"); }
-#[valtron_test] async fn net_list() { let _ = client().network_list(None).await.expect("net list"); }
-#[valtron_test] async fn vol_list() { let _ = client().volume_list(None).await.expect("vol list"); }
-#[valtron_test] async fn img_list() { let _ = client().image_list(Some(true),None,None,None).await.expect("img list"); }
-#[valtron_test] async fn img_search(){ let _ = client().image_search(Some("alpine"),None,None).await.expect("search"); }
-#[valtron_test] async fn ctr_list() { let _ = client().container_list(true,None,false,None).await.expect("ctr list"); }
+#[valtron_test] async fn ping()     { client().await.system_ping().await.expect("ping"); }
+#[valtron_test] async fn info()     { let i = client().await.system_info().await.expect("info"); assert!(!i.is_null(), "SystemInfo should be valid JSON"); }
+#[valtron_test] async fn df()       { let _ = client().await.system_data_usage(None).await.expect("df"); }
+#[valtron_test] async fn net_list() { let _ = client().await.network_list(None).await.expect("net list"); }
+#[valtron_test] async fn vol_list() { let _ = client().await.volume_list(None).await.expect("vol list"); }
+#[valtron_test] async fn img_list() { let _ = client().await.image_list(Some(true),None,None,None).await.expect("img list"); }
+#[valtron_test] async fn img_search(){ let _ = client().await.image_search(Some("alpine"),None,None).await.expect("search"); }
+#[valtron_test] async fn ctr_list() { let _ = client().await.container_list(true,None,false,None).await.expect("ctr list"); }
 
 // ── Create-then-delete: simple lifecycle, no blocking stop ────────────
 
 #[valtron_test]
 async fn network_create_then_delete() {
-    let c = client();
+    let c = client().await;
     let body = serde_json::json!({"Name":"ewe-it-net","Driver":"bridge"});
     let cr = c.network_create(body).await.expect("create");
     c.network_delete(&cr.id).await.expect("delete");
@@ -35,7 +41,7 @@ async fn network_create_then_delete() {
 
 #[valtron_test]
 async fn volume_create_then_delete() {
-    let c = client();
+    let c = client().await;
     let cfg = serde_json::json!({"Name":"ewe-it-vol","Driver":"local"});
     let vol = c.volume_create(cfg).await.expect("create");
     c.volume_delete(&vol.name, Some(true)).await.expect("delete");
@@ -45,7 +51,7 @@ async fn volume_create_then_delete() {
 
 #[valtron_test]
 async fn container_full_lifecycle() {
-    let c = client();
+    let c = client().await;
     let id = c.create_container(
         &serde_json::json!({"Image":"alpine:latest","Cmd":["sleep","30"]}),
         Some("ewe-it-lifecycle"),
@@ -60,7 +66,7 @@ async fn container_stop_handles_304() {
     // Docker returns 304 when the container is already exited.
     // Fixed: send_request was misclassifying 304 as redirect causing
     // infinite redirect loops with no Location header.
-    let c = client();
+    let c = client().await;
     let id = c.create_container(
         &serde_json::json!({"Image":"alpine:latest","Cmd":["true"]}),
         Some("ewe-it-304"),
@@ -73,7 +79,7 @@ async fn container_stop_handles_304() {
 
 #[valtron_test]
 async fn container_restart_works() {
-    let c = client();
+    let c = client().await;
     let id = c.create_container(
         &serde_json::json!({"Image":"alpine:latest","Cmd":["sleep","30"]}),
         Some("ewe-it-restart"),
@@ -86,7 +92,7 @@ async fn container_restart_works() {
 
 #[valtron_test]
 async fn container_rename_works() {
-    let c = client();
+    let c = client().await;
     let id = c.create_container(
         &serde_json::json!({"Image":"alpine:latest","Cmd":["sleep","5"]}),
         Some("ewe-it-original"),
@@ -101,7 +107,7 @@ async fn container_rename_works() {
 
 #[valtron_test]
 async fn container_top_shows_processes() {
-    let c = client();
+    let c = client().await;
     let id = c.create_container(
         &serde_json::json!({"Image":"alpine:latest","Cmd":["sleep","30"]}),
         Some("ewe-it-top"),
@@ -115,7 +121,7 @@ async fn container_top_shows_processes() {
 
 #[valtron_test]
 async fn exec_create_start_returns_output() {
-    let c = client();
+    let c = client().await;
     let id = c.create_container(
         &serde_json::json!({"Image":"alpine:latest","Cmd":["sleep","30"]}),
         Some("ewe-it-exec"),
@@ -136,7 +142,7 @@ async fn exec_create_start_returns_output() {
 
 #[valtron_test]
 async fn negotiate_version_detects_server() {
-    let c = client();
+    let c = client().await;
     c.negotiate_version().await.expect("negotiate");
     let daemon = c.version().await.expect("version");
     let expected = foundation_deployment_docker::client::negotiate_api_version(
@@ -152,7 +158,7 @@ async fn negotiate_version_detects_server() {
 
 #[valtron_test]
 async fn cleanup_leftovers() {
-    let c = client();
+    let c = client().await;
     let list = c.container_list(true,None,false,None).await.expect("list");
     if let Some(arr) = list.as_array() {
         for ctr in arr {
@@ -173,7 +179,7 @@ async fn cleanup_leftovers() {
 // route through valtron_test's subscriber.
 #[valtron_test]
 async fn container_logs_chunked_body_round_trip() {
-    let c = client();
+    let c = client().await;
     let id = c.create_container(
         &serde_json::json!({"Image":"alpine:latest","Cmd":["echo","hello-chunked-test"]}),
         Some("ewe-it-chunked"),

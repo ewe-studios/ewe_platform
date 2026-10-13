@@ -6,19 +6,23 @@
 
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
+mod common;
+
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
 
 /// One fresh client per test — no shared state, no pool interference.
-fn client() -> DockerClient {
-    DockerClient::connect_unix("/var/run/docker.sock")
+/// A client for the local daemon, with `alpine:latest` pulled (the tests
+/// create containers from it; a cold daemon does not have it).
+async fn client() -> DockerClient {
+    common::client_with_alpine().await
 }
 
 // ── Network tests ──────────────────────────────────────────────────────
 
 #[valtron_test]
 async fn network_inspect_default_bridge() {
-    let c = client();
+    let c = client().await;
     // The "bridge" network always exists on any Docker daemon.
     let _net = c
         .network_inspect("bridge", None, None)
@@ -28,7 +32,7 @@ async fn network_inspect_default_bridge() {
 
 #[valtron_test]
 async fn network_connect_then_disconnect() {
-    let c = client();
+    let c = client().await;
 
     // Create a sleep container to connect.
     let ctr = c
@@ -65,7 +69,7 @@ async fn network_connect_then_disconnect() {
 
 #[valtron_test]
 async fn network_prune() {
-    let c = client();
+    let c = client().await;
     c.network_prune(None).await.expect("prune networks");
 }
 
@@ -73,7 +77,7 @@ async fn network_prune() {
 
 #[valtron_test]
 async fn volume_inspect_created() {
-    let c = client();
+    let c = client().await;
 
     let cfg = serde_json::json!({"Name":"ewe-it-nv-inspect","Driver":"local"});
     let vol = c.volume_create(cfg).await.expect("create volume");
@@ -93,7 +97,7 @@ async fn volume_inspect_created() {
 
 #[valtron_test]
 async fn volume_prune() {
-    let c = client();
+    let c = client().await;
     c.volume_prune(None).await.expect("prune volumes");
 }
 
@@ -101,7 +105,7 @@ async fn volume_prune() {
 
 #[valtron_test]
 async fn exec_inspect() {
-    let c = client();
+    let c = client().await;
 
     let ctr = c
         .create_container(
@@ -133,7 +137,7 @@ async fn exec_inspect() {
 
 #[valtron_test]
 async fn exec_resize() {
-    let c = client();
+    let c = client().await;
 
     let ctr = c
         .create_container(
@@ -170,7 +174,7 @@ async fn exec_resize() {
 
 #[valtron_test]
 async fn system_events() {
-    let c = client();
+    let c = client().await;
     // `/events` is an infinite stream unless bounded — with no `until` the
     // daemon holds the connection open forever and the stream never ends
     // (collecting it hung the suite). `until=<now>` makes Docker replay events

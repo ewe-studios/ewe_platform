@@ -10,6 +10,8 @@
 
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
+mod common;
+
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::client::body::ByteBody;
 use foundation_deployment_docker::DockerClient;
@@ -23,8 +25,10 @@ async fn read_all(mut body: ByteBody) -> Vec<u8> {
     out
 }
 
-fn client() -> DockerClient {
-    DockerClient::connect_unix("/var/run/docker.sock")
+/// A client for the local daemon, with `alpine:latest` pulled (the tests
+/// create containers from it; a cold daemon does not have it).
+async fn client() -> DockerClient {
+    common::client_with_alpine().await
 }
 
 /// Create + start a long-lived alpine container, returning its id.
@@ -47,7 +51,7 @@ async fn start_alpine(c: &DockerClient, name: &str) -> String {
 
 #[valtron_test]
 async fn upload_and_download_archive_round_trips() {
-    let c = client();
+    let c = client().await;
     let id = start_alpine(&c, "ewe-it-upload").await;
 
     // Download an existing file as a valid tar straight from Docker, then
@@ -80,7 +84,7 @@ async fn upload_and_download_archive_round_trips() {
 
 #[valtron_test]
 async fn get_container_archive_info_ok() {
-    let c = client();
+    let c = client().await;
     let id = start_alpine(&c, "ewe-it-archive-info").await;
 
     let stat = c
@@ -103,7 +107,7 @@ async fn get_container_archive_info_ok() {
 
 #[valtron_test]
 async fn update_container_cpu_shares() {
-    let c = client();
+    let c = client().await;
     let id = start_alpine(&c, "ewe-it-update").await;
 
     // CpuShares is a safe, cgroup-independent knob to flip on any host.
@@ -118,7 +122,7 @@ async fn update_container_cpu_shares() {
 
 #[valtron_test]
 async fn export_images_alpine() {
-    let c = client();
+    let c = client().await;
     // alpine:latest is present — every other test pulls/uses it.
     // Counted as it streams, not collected: an image tarball can be large.
     let len = c
