@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_swarm")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::ObjectVersion;
@@ -27,34 +31,34 @@ use super::shared::ApiResponse;
 /// `ClusterInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ClusterInfo {
-    /// CreatedAt property.
+    /// `CreatedAt` property.
     #[serde(rename = "CreatedAt")]
     pub created_at: Option<String>,
-    /// DataPathPort property.
+    /// `DataPathPort` property.
     #[serde(rename = "DataPathPort")]
     pub data_path_port: Option<i64>,
-    /// DefaultAddrPool property.
+    /// `DefaultAddrPool` property.
     #[serde(rename = "DefaultAddrPool")]
     pub default_addr_pool: Option<Vec<String>>,
-    /// ID property.
+    /// `ID` property.
     #[serde(rename = "ID")]
     pub id: Option<String>,
-    /// RootRotationInProgress property.
+    /// `RootRotationInProgress` property.
     #[serde(rename = "RootRotationInProgress")]
     pub root_rotation_in_progress: Option<bool>,
-    /// Spec property.
+    /// `Spec` property.
     #[serde(rename = "Spec")]
     pub spec: Option<SwarmSpec>,
-    /// SubnetSize property.
+    /// `SubnetSize` property.
     #[serde(rename = "SubnetSize")]
     pub subnet_size: Option<i64>,
-    /// TLSInfo property.
+    /// `TLSInfo` property.
     #[serde(rename = "TLSInfo")]
     pub tls_info: Option<TLSInfo>,
-    /// UpdatedAt property.
+    /// `UpdatedAt` property.
     #[serde(rename = "UpdatedAt")]
     pub updated_at: Option<String>,
-    /// Version property.
+    /// `Version` property.
     #[serde(rename = "Version")]
     pub version: Option<ObjectVersion>,
 }
@@ -62,10 +66,10 @@ pub struct ClusterInfo {
 /// `JoinTokens` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct JoinTokens {
-    /// Manager property.
+    /// `Manager` property.
     #[serde(rename = "Manager")]
     pub manager: Option<String>,
-    /// Worker property.
+    /// `Worker` property.
     #[serde(rename = "Worker")]
     pub worker: Option<String>,
 }
@@ -109,56 +113,23 @@ pub struct Swarm {
 }
 
 /// `SwarmSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SwarmSpec {
-    /// CAConfig property.
-    #[serde(rename = "CAConfig")]
-    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Dispatcher property.
-    #[serde(rename = "Dispatcher")]
-    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// EncryptionConfig property.
-    #[serde(rename = "EncryptionConfig")]
-    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Orchestration property.
-    #[serde(rename = "Orchestration")]
-    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Raft property.
-    #[serde(rename = "Raft")]
-    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// TaskDefaults property.
-    #[serde(rename = "TaskDefaults")]
-    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::SwarmSpecShape`.
+pub type SwarmSpec = super::shared::SwarmSpecShape;
 
 /// `TLSInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TLSInfo {
-    /// CertIssuerPublicKey property.
-    #[serde(rename = "CertIssuerPublicKey")]
-    pub cert_issuer_public_key: Option<String>,
-    /// CertIssuerSubject property.
-    #[serde(rename = "CertIssuerSubject")]
-    pub cert_issuer_subject: Option<String>,
-    /// TrustRoot property.
-    #[serde(rename = "TrustRoot")]
-    pub trust_root: Option<String>,
-}
+///
+/// Same shape as `super::shared::CertIssuerPublicKeyCertIssuerSubjectTrustRootObject`.
+pub type TLSInfo = super::shared::CertIssuerPublicKeyCertIssuerSubjectTrustRootObject;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
 /// Arguments for [`SwarmInspect_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SwarmInspectArgs {
-}
+///
+/// Same shape as `super::shared::EmptyArgs`.
+pub type SwarmInspectArgs = super::shared::EmptyArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -195,8 +166,7 @@ pub async fn swarm_inspect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/swarm",
-    );
+    let path = format!("/swarm",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -206,17 +176,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: Swarm = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_secrets")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -22,181 +26,127 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `SecretsStoreApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecretsStoreApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::AddressingApiResponseCollectionShape`.
+pub type SecretsStoreApiResponseCollection = super::shared::AddressingApiResponseCollectionShape;
 
 /// `SecretsStoreApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecretsStoreApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type SecretsStoreApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `SecretsStoreComment` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreComment {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreComment = String;
 
 /// `SecretsStoreCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreCreated = String;
 
 /// `SecretsStoreIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreIdentifier = String;
 
 /// `SecretsStoreMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `SecretsStoreModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreModified {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreModified = String;
 
 /// `SecretsStoreQuota` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreQuota {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreQuota = f64;
 
 /// `SecretsStoreQuotaResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecretsStoreQuotaResponse {
-    /// `result` property.
-    pub result: Option<SecretsStoreSecretsUsageObject>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<SecretsStoreSecretsUsageObject>>`.
+pub type SecretsStoreQuotaResponse = super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+    Option<SecretsStoreSecretsUsageObject>,
+>;
 
 /// `SecretsStoreSecretName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreSecretName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreSecretName = String;
 
 /// `SecretsStoreSecretObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SecretsStoreSecretObject {
-    /// comment property.
-    pub comment: Option<SecretsStoreComment>,
-    /// created property.
-    pub created: SecretsStoreCreated,
-    /// id property.
-    pub id: SecretsStoreIdentifier,
-    /// modified property.
-    pub modified: SecretsStoreModified,
-    /// name property.
-    pub name: SecretsStoreSecretName,
-    /// status property.
-    pub status: SecretsStoreSecretStatus,
-    /// store_id property.
-    pub store_id: SecretsStoreStoreIdentifier,
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `created` property.
+    pub created: String,
+    /// `id` property.
+    pub id: String,
+    /// `modified` property.
+    pub modified: String,
+    /// `name` property.
+    pub name: String,
+    /// `status` property.
+    pub status: String,
+    /// `store_id` property.
+    pub store_id: String,
 }
 
 /// `SecretsStoreSecretResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecretsStoreSecretResponse {
-    /// `result` property.
-    pub result: Option<SecretsStoreSecretObject>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<SecretsStoreSecretObject>>`.
+pub type SecretsStoreSecretResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<SecretsStoreSecretObject>>;
 
 /// `SecretsStoreSecretStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreSecretStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreSecretStatus = String;
 
 /// `SecretsStoreSecretsResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecretsStoreSecretsResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<SecretsStoreSecretObject>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<SecretsStoreSecretObject>>>`.
+pub type SecretsStoreSecretsResponseCollection =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+        Option<Vec<SecretsStoreSecretObject>>,
+    >;
 
 /// `SecretsStoreSecretsUsageObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SecretsStoreSecretsUsageObject {
-    /// secrets property.
+    /// `secrets` property.
     pub secrets: SecretsStoreUsageQuotaObject,
 }
 
 /// `SecretsStoreStoreIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreStoreIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreStoreIdentifier = String;
 
 /// `SecretsStoreStoreName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreStoreName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreStoreName = String;
 
 /// `SecretsStoreStoreObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SecretsStoreStoreObject {
-    /// created property.
-    pub created: SecretsStoreCreated,
-    /// id property.
-    pub id: SecretsStoreStoreIdentifier,
-    /// modified property.
-    pub modified: SecretsStoreModified,
-    /// name property.
-    pub name: SecretsStoreStoreName,
+    /// `created` property.
+    pub created: String,
+    /// `id` property.
+    pub id: String,
+    /// `modified` property.
+    pub modified: String,
+    /// `name` property.
+    pub name: String,
 }
 
 /// `SecretsStoreStoreResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecretsStoreStoreResponse {
-    /// `result` property.
-    pub result: Option<SecretsStoreStoreObject>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<SecretsStoreStoreObject>>`.
+pub type SecretsStoreStoreResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<SecretsStoreStoreObject>>;
 
 /// `SecretsStoreStoresResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecretsStoreStoresResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<SecretsStoreStoreObject>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<SecretsStoreStoreObject>>>`.
+pub type SecretsStoreStoresResponseCollection =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<SecretsStoreStoreObject>>>;
 
 /// `SecretsStoreUsage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecretsStoreUsage {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecretsStoreUsage = f64;
 
 /// `SecretsStoreUsageQuotaObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SecretsStoreUsageQuotaObject {
-    /// quota property.
-    pub quota: SecretsStoreQuota,
-    /// usage property.
-    pub usage: SecretsStoreUsage,
+    /// `quota` property.
+    pub quota: f64,
+    /// `usage` property.
+    pub usage: f64,
 }
 
 // =============================================================================
@@ -204,11 +154,9 @@ pub struct SecretsStoreUsageQuotaObject {
 // =============================================================================
 
 /// Arguments for [`secrets-store-quota_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreQuotaArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type SecretsStoreQuotaArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`secrets-store-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -226,29 +174,19 @@ pub struct SecretsStoreListArgs {
 }
 
 /// Arguments for [`secrets-store-create_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreCreateArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type SecretsStoreCreateArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`secrets-store-get-store-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreGetStoreByIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdStoreIdArgs`.
+pub type SecretsStoreGetStoreByIdArgs = super::shared::AccountIdStoreIdArgs;
 
 /// Arguments for [`secrets-store-delete-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreDeleteByIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdStoreIdArgs`.
+pub type SecretsStoreDeleteByIdArgs = super::shared::AccountIdStoreIdArgs;
 
 /// Arguments for [`secrets-store-secrets-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -267,71 +205,39 @@ pub struct SecretsStoreSecretsListArgs {
     pub search: Option<String>,
     /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: `scopes`.
-    pub scopes: Option<String>,
+    /// Query parameter: `scopes` (one per value).
+    pub scopes: Vec<String>,
 }
 
 /// Arguments for [`secrets-store-secret-create_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSecretCreateArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdStoreIdArgs`.
+pub type SecretsStoreSecretCreateArgs = super::shared::AccountIdStoreIdArgs;
 
 /// Arguments for [`secrets-store-delete-bulk_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreDeleteBulkArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdStoreIdArgs`.
+pub type SecretsStoreDeleteBulkArgs = super::shared::AccountIdStoreIdArgs;
 
 /// Arguments for [`secrets-store-get-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreGetByIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-    /// Path parameter: `secret_id`.
-    pub secret_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdStoreIdSecretIdArgs`.
+pub type SecretsStoreGetByIdArgs = super::shared::AccountIdStoreIdSecretIdArgs;
 
 /// Arguments for [`secrets-store-patch-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStorePatchByIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-    /// Path parameter: `secret_id`.
-    pub secret_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdStoreIdSecretIdArgs`.
+pub type SecretsStorePatchByIdArgs = super::shared::AccountIdStoreIdSecretIdArgs;
 
 /// Arguments for [`secrets-store-secret-delete-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSecretDeleteByIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-    /// Path parameter: `secret_id`.
-    pub secret_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdStoreIdSecretIdArgs`.
+pub type SecretsStoreSecretDeleteByIdArgs = super::shared::AccountIdStoreIdSecretIdArgs;
 
 /// Arguments for [`secrets-store-duplicate-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreDuplicateByIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-    /// Path parameter: `secret_id`.
-    pub secret_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdStoreIdSecretIdArgs`.
+pub type SecretsStoreDuplicateByIdArgs = super::shared::AccountIdStoreIdSecretIdArgs;
 
 /// Arguments for [`secrets-store-system-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -356,22 +262,14 @@ pub struct SecretsStoreSystemCreateArgs {
 }
 
 /// Arguments for [`secrets-store-system-get-store-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSystemGetStoreByIdArgs {
-    /// Path parameter: `account_tag`.
-    pub account_tag: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-}
+///
+/// Same shape as `super::shared::AccountTagStoreIdArgs`.
+pub type SecretsStoreSystemGetStoreByIdArgs = super::shared::AccountTagStoreIdArgs;
 
 /// Arguments for [`secrets-store-system-delete-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSystemDeleteByIdArgs {
-    /// Path parameter: `account_tag`.
-    pub account_tag: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-}
+///
+/// Same shape as `super::shared::AccountTagStoreIdArgs`.
+pub type SecretsStoreSystemDeleteByIdArgs = super::shared::AccountTagStoreIdArgs;
 
 /// Arguments for [`secrets-store-system-secrets-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -390,71 +288,39 @@ pub struct SecretsStoreSystemSecretsListArgs {
     pub search: Option<String>,
     /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: `scopes`.
-    pub scopes: Option<String>,
+    /// Query parameter: `scopes` (one per value).
+    pub scopes: Vec<String>,
 }
 
 /// Arguments for [`secrets-store-system-secret-create_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSystemSecretCreateArgs {
-    /// Path parameter: `account_tag`.
-    pub account_tag: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-}
+///
+/// Same shape as `super::shared::AccountTagStoreIdArgs`.
+pub type SecretsStoreSystemSecretCreateArgs = super::shared::AccountTagStoreIdArgs;
 
 /// Arguments for [`secrets-store-system-delete-bulk_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSystemDeleteBulkArgs {
-    /// Path parameter: `account_tag`.
-    pub account_tag: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-}
+///
+/// Same shape as `super::shared::AccountTagStoreIdArgs`.
+pub type SecretsStoreSystemDeleteBulkArgs = super::shared::AccountTagStoreIdArgs;
 
 /// Arguments for [`secrets-store-system-get-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSystemGetByIdArgs {
-    /// Path parameter: `account_tag`.
-    pub account_tag: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-    /// Path parameter: `secret_id`.
-    pub secret_id: String,
-}
+///
+/// Same shape as `super::shared::AccountTagStoreIdSecretIdArgs`.
+pub type SecretsStoreSystemGetByIdArgs = super::shared::AccountTagStoreIdSecretIdArgs;
 
 /// Arguments for [`secrets-store-system-patch-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSystemPatchByIdArgs {
-    /// Path parameter: `account_tag`.
-    pub account_tag: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-    /// Path parameter: `secret_id`.
-    pub secret_id: String,
-}
+///
+/// Same shape as `super::shared::AccountTagStoreIdSecretIdArgs`.
+pub type SecretsStoreSystemPatchByIdArgs = super::shared::AccountTagStoreIdSecretIdArgs;
 
 /// Arguments for [`secrets-store-system-secret-delete-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSystemSecretDeleteByIdArgs {
-    /// Path parameter: `account_tag`.
-    pub account_tag: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-    /// Path parameter: `secret_id`.
-    pub secret_id: String,
-}
+///
+/// Same shape as `super::shared::AccountTagStoreIdSecretIdArgs`.
+pub type SecretsStoreSystemSecretDeleteByIdArgs = super::shared::AccountTagStoreIdSecretIdArgs;
 
 /// Arguments for [`secrets-store-system-duplicate-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SecretsStoreSystemDuplicateByIdArgs {
-    /// Path parameter: `account_tag`.
-    pub account_tag: String,
-    /// Path parameter: `store_id`.
-    pub store_id: String,
-    /// Path parameter: `secret_id`.
-    pub secret_id: String,
-}
+///
+/// Same shape as `super::shared::AccountTagStoreIdSecretIdArgs`.
+pub type SecretsStoreSystemDuplicateByIdArgs = super::shared::AccountTagStoreIdSecretIdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -491,9 +357,7 @@ pub async fn secrets_store_quota_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/quota",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/secrets_store/quota", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -503,20 +367,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreQuotaResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -550,9 +401,7 @@ pub async fn secrets_store_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/secrets_store/stores", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -567,20 +416,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreStoresResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -614,9 +450,7 @@ pub async fn secrets_store_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/secrets_store/stores", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -626,20 +460,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreStoresResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -673,9 +494,9 @@ pub async fn secrets_store_get_store_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores/{}",
-        args.account_id,
-        args.store_id,
+    let path = format!(
+        "/accounts/{}/secrets_store/stores/{}",
+        args.account_id, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -686,20 +507,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreStoreResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -733,9 +541,9 @@ pub async fn secrets_store_delete_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores/{}",
-        args.account_id,
-        args.store_id,
+    let path = format!(
+        "/accounts/{}/secrets_store/stores/{}",
+        args.account_id, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -746,20 +554,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreStoreResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -793,9 +588,9 @@ pub async fn secrets_store_secrets_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores/{}/secrets",
-        args.account_id,
-        args.store_id,
+    let path = format!(
+        "/accounts/{}/secrets_store/stores/{}/secrets",
+        args.account_id, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -807,26 +602,15 @@ where
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("search", args.search.as_deref());
     builder = builder.query("order", args.order.as_deref());
-    builder = builder.query("scopes", args.scopes.as_deref());
+    for value in &args.scopes {
+        builder = builder.query("scopes", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -860,9 +644,9 @@ pub async fn secrets_store_secret_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores/{}/secrets",
-        args.account_id,
-        args.store_id,
+    let path = format!(
+        "/accounts/{}/secrets_store/stores/{}/secrets",
+        args.account_id, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -873,20 +657,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -920,9 +691,9 @@ pub async fn secrets_store_delete_bulk_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores/{}/secrets",
-        args.account_id,
-        args.store_id,
+    let path = format!(
+        "/accounts/{}/secrets_store/stores/{}/secrets",
+        args.account_id, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -933,20 +704,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -980,10 +738,9 @@ pub async fn secrets_store_get_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores/{}/secrets/{}",
-        args.account_id,
-        args.store_id,
-        args.secret_id,
+    let path = format!(
+        "/accounts/{}/secrets_store/stores/{}/secrets/{}",
+        args.account_id, args.store_id, args.secret_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -994,20 +751,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1041,10 +785,9 @@ pub async fn secrets_store_patch_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores/{}/secrets/{}",
-        args.account_id,
-        args.store_id,
-        args.secret_id,
+    let path = format!(
+        "/accounts/{}/secrets_store/stores/{}/secrets/{}",
+        args.account_id, args.store_id, args.secret_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1055,20 +798,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1102,10 +832,9 @@ pub async fn secrets_store_secret_delete_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores/{}/secrets/{}",
-        args.account_id,
-        args.store_id,
-        args.secret_id,
+    let path = format!(
+        "/accounts/{}/secrets_store/stores/{}/secrets/{}",
+        args.account_id, args.store_id, args.secret_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1116,20 +845,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1163,10 +879,9 @@ pub async fn secrets_store_duplicate_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/secrets_store/stores/{}/secrets/{}/duplicate",
-        args.account_id,
-        args.store_id,
-        args.secret_id,
+    let path = format!(
+        "/accounts/{}/secrets_store/stores/{}/secrets/{}/duplicate",
+        args.account_id, args.store_id, args.secret_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1177,20 +892,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1224,9 +926,7 @@ pub async fn secrets_store_system_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores",
-        args.account_tag,
-    );
+    let path = format!("/system/accounts/{}/stores", args.account_tag,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1241,20 +941,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreStoresResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1288,9 +975,7 @@ pub async fn secrets_store_system_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores",
-        args.account_tag,
-    );
+    let path = format!("/system/accounts/{}/stores", args.account_tag,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -1300,20 +985,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreStoreResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1347,9 +1019,9 @@ pub async fn secrets_store_system_get_store_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores/{}",
-        args.account_tag,
-        args.store_id,
+    let path = format!(
+        "/system/accounts/{}/stores/{}",
+        args.account_tag, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1360,20 +1032,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreStoreResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1407,9 +1066,9 @@ pub async fn secrets_store_system_delete_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores/{}",
-        args.account_tag,
-        args.store_id,
+    let path = format!(
+        "/system/accounts/{}/stores/{}",
+        args.account_tag, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1420,20 +1079,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreStoreResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1467,9 +1113,9 @@ pub async fn secrets_store_system_secrets_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores/{}/secrets",
-        args.account_tag,
-        args.store_id,
+    let path = format!(
+        "/system/accounts/{}/stores/{}/secrets",
+        args.account_tag, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1481,26 +1127,15 @@ where
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("search", args.search.as_deref());
     builder = builder.query("order", args.order.as_deref());
-    builder = builder.query("scopes", args.scopes.as_deref());
+    for value in &args.scopes {
+        builder = builder.query("scopes", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1534,9 +1169,9 @@ pub async fn secrets_store_system_secret_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores/{}/secrets",
-        args.account_tag,
-        args.store_id,
+    let path = format!(
+        "/system/accounts/{}/stores/{}/secrets",
+        args.account_tag, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1547,20 +1182,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1594,9 +1216,9 @@ pub async fn secrets_store_system_delete_bulk_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores/{}/secrets",
-        args.account_tag,
-        args.store_id,
+    let path = format!(
+        "/system/accounts/{}/stores/{}/secrets",
+        args.account_tag, args.store_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1607,20 +1229,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1654,10 +1263,9 @@ pub async fn secrets_store_system_get_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores/{}/secrets/{}",
-        args.account_tag,
-        args.store_id,
-        args.secret_id,
+    let path = format!(
+        "/system/accounts/{}/stores/{}/secrets/{}",
+        args.account_tag, args.store_id, args.secret_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1668,20 +1276,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1715,10 +1310,9 @@ pub async fn secrets_store_system_patch_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores/{}/secrets/{}",
-        args.account_tag,
-        args.store_id,
-        args.secret_id,
+    let path = format!(
+        "/system/accounts/{}/stores/{}/secrets/{}",
+        args.account_tag, args.store_id, args.secret_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1729,20 +1323,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1776,10 +1357,9 @@ pub async fn secrets_store_system_secret_delete_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores/{}/secrets/{}",
-        args.account_tag,
-        args.store_id,
-        args.secret_id,
+    let path = format!(
+        "/system/accounts/{}/stores/{}/secrets/{}",
+        args.account_tag, args.store_id, args.secret_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1790,20 +1370,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1837,10 +1404,9 @@ pub async fn secrets_store_system_duplicate_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/accounts/{}/stores/{}/secrets/{}/duplicate",
-        args.account_tag,
-        args.store_id,
-        args.secret_id,
+    let path = format!(
+        "/system/accounts/{}/stores/{}/secrets/{}/duplicate",
+        args.account_tag, args.store_id, args.secret_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1851,19 +1417,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecretsStoreSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

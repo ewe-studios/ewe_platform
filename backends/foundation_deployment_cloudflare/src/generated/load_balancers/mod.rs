@@ -7,27 +7,19 @@
 
 #![cfg(feature = "cloudflare_load_balancers")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
-use super::shared::LoadBalancingHealthDetails;
-use super::shared::LoadBalancingIdResponse;
-use super::shared::LoadBalancingMonitorReferencesResponse;
-use super::shared::LoadBalancingMonitorResponseCollection;
-use super::shared::LoadBalancingMonitorResponseSingle;
-use super::shared::LoadBalancingPoolsReferencesResponse;
-use super::shared::LoadBalancingPreviewResponse;
-use super::shared::LoadBalancingPreviewResultResponse;
-use super::shared::LoadBalancingSchemasIdResponse;
-use super::shared::LoadBalancingSchemasResponseCollection;
-use super::shared::LoadBalancingSchemasSingleResponse;
-use super::shared::MagicVisibilityMnmMnmConfigSingleResponse;
 use super::shared::LoadBalancingAddress;
 use super::shared::LoadBalancingAllowInsecure;
 use super::shared::LoadBalancingApiPaginatedResponseCollection;
@@ -43,6 +35,8 @@ use super::shared::LoadBalancingExpectedCodes;
 use super::shared::LoadBalancingFilterOptions;
 use super::shared::LoadBalancingFollowRedirects;
 use super::shared::LoadBalancingHeader;
+use super::shared::LoadBalancingHealthDetails;
+use super::shared::LoadBalancingIdResponse;
 use super::shared::LoadBalancingIdentifier;
 use super::shared::LoadBalancingInterval;
 use super::shared::LoadBalancingLatitude;
@@ -54,6 +48,9 @@ use super::shared::LoadBalancingMonitor;
 use super::shared::LoadBalancingMonitorEditable;
 use super::shared::LoadBalancingMonitorGroupId;
 use super::shared::LoadBalancingMonitorId;
+use super::shared::LoadBalancingMonitorReferencesResponse;
+use super::shared::LoadBalancingMonitorResponseCollection;
+use super::shared::LoadBalancingMonitorResponseSingle;
 use super::shared::LoadBalancingName;
 use super::shared::LoadBalancingNotificationEmail;
 use super::shared::LoadBalancingNotificationFilter;
@@ -63,8 +60,11 @@ use super::shared::LoadBalancingOriginPort;
 use super::shared::LoadBalancingOriginSteering;
 use super::shared::LoadBalancingPath;
 use super::shared::LoadBalancingPool;
+use super::shared::LoadBalancingPoolsReferencesResponse;
 use super::shared::LoadBalancingPort;
+use super::shared::LoadBalancingPreviewResponse;
 use super::shared::LoadBalancingPreviewResult;
+use super::shared::LoadBalancingPreviewResultResponse;
 use super::shared::LoadBalancingProbeZone;
 use super::shared::LoadBalancingResultInfo;
 use super::shared::LoadBalancingRetries;
@@ -72,8 +72,11 @@ use super::shared::LoadBalancingSchemasDescription;
 use super::shared::LoadBalancingSchemasDisabledAt;
 use super::shared::LoadBalancingSchemasEnabled;
 use super::shared::LoadBalancingSchemasHeader;
+use super::shared::LoadBalancingSchemasIdResponse;
 use super::shared::LoadBalancingSchemasIdentifier;
 use super::shared::LoadBalancingSchemasName;
+use super::shared::LoadBalancingSchemasResponseCollection;
+use super::shared::LoadBalancingSchemasSingleResponse;
 use super::shared::LoadBalancingTimeout;
 use super::shared::LoadBalancingTimestamp;
 use super::shared::LoadBalancingType;
@@ -85,6 +88,7 @@ use super::shared::MagicVisibilityMnmMnmConfig;
 use super::shared::MagicVisibilityMnmMnmConfigDefaultSampling;
 use super::shared::MagicVisibilityMnmMnmConfigName;
 use super::shared::MagicVisibilityMnmMnmConfigRouterIp;
+use super::shared::MagicVisibilityMnmMnmConfigSingleResponse;
 use super::shared::MagicVisibilityMnmMnmConfigWarpDevice;
 
 use super::shared::ApiResponse;
@@ -94,424 +98,375 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `AccountLoadBalancerMonitorsCreateMonitorRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorsCreateMonitorRequest {
-}
+///
+/// Same shape as `super::shared::LoadBalancerMonitorsCreateMonitorRequestShape`.
+pub type AccountLoadBalancerMonitorsCreateMonitorRequest =
+    super::shared::LoadBalancerMonitorsCreateMonitorRequestShape;
 
 /// `AccountLoadBalancerMonitorsPatchMonitorRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorsPatchMonitorRequest {
-}
+///
+/// Same shape as `super::shared::LoadBalancerMonitorsCreateMonitorRequestShape`.
+pub type AccountLoadBalancerMonitorsPatchMonitorRequest =
+    super::shared::LoadBalancerMonitorsCreateMonitorRequestShape;
 
 /// `AccountLoadBalancerMonitorsPreviewMonitorRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorsPreviewMonitorRequest {
-}
+///
+/// Same shape as `super::shared::LoadBalancerMonitorsCreateMonitorRequestShape`.
+pub type AccountLoadBalancerMonitorsPreviewMonitorRequest =
+    super::shared::LoadBalancerMonitorsCreateMonitorRequestShape;
 
 /// `AccountLoadBalancerMonitorsUpdateMonitorRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorsUpdateMonitorRequest {
-}
+///
+/// Same shape as `super::shared::LoadBalancerMonitorsCreateMonitorRequestShape`.
+pub type AccountLoadBalancerMonitorsUpdateMonitorRequest =
+    super::shared::LoadBalancerMonitorsCreateMonitorRequestShape;
 
 /// `AccountLoadBalancerPoolsCreatePoolRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsCreatePoolRequest {
-    /// description property.
-    pub description: Option<LoadBalancingSchemasDescription>,
-    /// enabled property.
-    pub enabled: Option<LoadBalancingEnabled>,
-    /// latitude property.
-    pub latitude: Option<LoadBalancingLatitude>,
-    /// load_shedding property.
+    /// `description` property.
+    pub description: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `latitude` property.
+    pub latitude: Option<f64>,
+    /// `load_shedding` property.
     pub load_shedding: Option<LoadBalancingLoadShedding>,
-    /// longitude property.
-    pub longitude: Option<LoadBalancingLongitude>,
-    /// minimum_origins property.
-    pub minimum_origins: Option<LoadBalancingMinimumOrigins>,
-    /// monitor property.
-    pub monitor: Option<LoadBalancingMonitorId>,
-    /// monitor_group property.
-    pub monitor_group: Option<LoadBalancingMonitorGroupId>,
-    /// name property.
-    pub name: LoadBalancingName,
-    /// notification_email property.
-    pub notification_email: Option<LoadBalancingNotificationEmail>,
-    /// notification_filter property.
+    /// `longitude` property.
+    pub longitude: Option<f64>,
+    /// `minimum_origins` property.
+    pub minimum_origins: Option<i64>,
+    /// `monitor` property.
+    pub monitor: Option<String>,
+    /// `monitor_group` property.
+    pub monitor_group: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `notification_email` property.
+    pub notification_email: Option<String>,
+    /// `notification_filter` property.
     pub notification_filter: Option<LoadBalancingNotificationFilter>,
-    /// origin_steering property.
+    /// `origin_steering` property.
     pub origin_steering: Option<LoadBalancingOriginSteering>,
-    /// origins property.
+    /// `origins` property.
     pub origins: Vec<LoadBalancingOrigin>,
 }
 
 /// `AccountLoadBalancerPoolsPatchPoolRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsPatchPoolRequest {
-    /// check_regions property.
+    /// `check_regions` property.
     pub check_regions: Option<Vec<String>>,
-    /// description property.
-    pub description: Option<LoadBalancingSchemasDescription>,
-    /// disabled_at property.
-    pub disabled_at: Option<LoadBalancingSchemasDisabledAt>,
-    /// enabled property.
-    pub enabled: Option<LoadBalancingEnabled>,
-    /// latitude property.
-    pub latitude: Option<LoadBalancingLatitude>,
-    /// load_shedding property.
+    /// `description` property.
+    pub description: Option<String>,
+    /// `disabled_at` property.
+    pub disabled_at: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `latitude` property.
+    pub latitude: Option<f64>,
+    /// `load_shedding` property.
     pub load_shedding: Option<LoadBalancingLoadShedding>,
-    /// longitude property.
-    pub longitude: Option<LoadBalancingLongitude>,
-    /// minimum_origins property.
-    pub minimum_origins: Option<LoadBalancingMinimumOrigins>,
-    /// monitor property.
-    pub monitor: Option<LoadBalancingMonitorId>,
-    /// monitor_group property.
-    pub monitor_group: Option<LoadBalancingMonitorGroupId>,
-    /// name property.
-    pub name: Option<LoadBalancingName>,
-    /// notification_email property.
-    pub notification_email: Option<LoadBalancingNotificationEmail>,
-    /// notification_filter property.
+    /// `longitude` property.
+    pub longitude: Option<f64>,
+    /// `minimum_origins` property.
+    pub minimum_origins: Option<i64>,
+    /// `monitor` property.
+    pub monitor: Option<String>,
+    /// `monitor_group` property.
+    pub monitor_group: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `notification_email` property.
+    pub notification_email: Option<String>,
+    /// `notification_filter` property.
     pub notification_filter: Option<LoadBalancingNotificationFilter>,
-    /// origin_steering property.
+    /// `origin_steering` property.
     pub origin_steering: Option<LoadBalancingOriginSteering>,
-    /// origins property.
+    /// `origins` property.
     pub origins: Option<Vec<LoadBalancingOrigin>>,
 }
 
 /// `AccountLoadBalancerPoolsPatchPoolsRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccountLoadBalancerPoolsPatchPoolsRequest {
-    /// notification_email property.
-    pub notification_email: Option<LoadBalancingPatchPoolsNotificationEmail>,
-}
+///
+/// Same shape as `super::shared::NotificationEmailObject`.
+pub type AccountLoadBalancerPoolsPatchPoolsRequest = super::shared::NotificationEmailObject;
 
 /// `AccountLoadBalancerPoolsPreviewPoolRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccountLoadBalancerPoolsPreviewPoolRequest {
-}
+///
+/// Same shape as `super::shared::LoadBalancerMonitorsCreateMonitorRequestShape`.
+pub type AccountLoadBalancerPoolsPreviewPoolRequest =
+    super::shared::LoadBalancerMonitorsCreateMonitorRequestShape;
 
 /// `AccountLoadBalancerPoolsUpdatePoolRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsUpdatePoolRequest {
-    /// check_regions property.
+    /// `check_regions` property.
     pub check_regions: Option<Vec<String>>,
-    /// description property.
-    pub description: Option<LoadBalancingSchemasDescription>,
-    /// disabled_at property.
-    pub disabled_at: Option<LoadBalancingSchemasDisabledAt>,
-    /// enabled property.
-    pub enabled: Option<LoadBalancingEnabled>,
-    /// latitude property.
-    pub latitude: Option<LoadBalancingLatitude>,
-    /// load_shedding property.
+    /// `description` property.
+    pub description: Option<String>,
+    /// `disabled_at` property.
+    pub disabled_at: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `latitude` property.
+    pub latitude: Option<f64>,
+    /// `load_shedding` property.
     pub load_shedding: Option<LoadBalancingLoadShedding>,
-    /// longitude property.
-    pub longitude: Option<LoadBalancingLongitude>,
-    /// minimum_origins property.
-    pub minimum_origins: Option<LoadBalancingMinimumOrigins>,
-    /// monitor property.
-    pub monitor: Option<LoadBalancingMonitorId>,
-    /// monitor_group property.
-    pub monitor_group: Option<LoadBalancingMonitorGroupId>,
-    /// name property.
-    pub name: LoadBalancingName,
-    /// notification_email property.
-    pub notification_email: Option<LoadBalancingNotificationEmail>,
-    /// notification_filter property.
+    /// `longitude` property.
+    pub longitude: Option<f64>,
+    /// `minimum_origins` property.
+    pub minimum_origins: Option<i64>,
+    /// `monitor` property.
+    pub monitor: Option<String>,
+    /// `monitor_group` property.
+    pub monitor_group: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `notification_email` property.
+    pub notification_email: Option<String>,
+    /// `notification_filter` property.
     pub notification_filter: Option<LoadBalancingNotificationFilter>,
-    /// origin_steering property.
+    /// `origin_steering` property.
     pub origin_steering: Option<LoadBalancingOriginSteering>,
-    /// origins property.
+    /// `origins` property.
     pub origins: Vec<LoadBalancingOrigin>,
 }
 
 /// `AccountLoadBalancerSearchSearchResourcesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountLoadBalancerSearchSearchResourcesResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `result` property.
+    pub result: LoadBalancingSearch,
+    /// `result_info` property.
+    pub result_info: LoadBalancingResultInfo,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `LoadBalancingCheckRegions` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingCheckRegions {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingCheckRegions = Vec<String>;
 
 /// `LoadBalancingComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type LoadBalancingComponentsSchemasSingleResponse =
+    super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `LoadBalancingHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingHost {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingHost = Vec<String>;
 
 /// `LoadBalancingMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `LoadBalancingMonitorGroup` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitorGroup {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// description property.
+    /// `description` property.
     pub description: String,
-    /// id property.
-    pub id: LoadBalancingMonitorGroupId,
-    /// members property.
+    /// `id` property.
+    pub id: String,
+    /// `members` property.
     pub members: Vec<LoadBalancingMonitorGroupMember>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `LoadBalancingMonitorGroupMember` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitorGroupMember {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// monitor_id property.
-    pub monitor_id: LoadBalancingMonitorId,
-    /// monitoring_only property.
+    /// `monitor_id` property.
+    pub monitor_id: String,
+    /// `monitoring_only` property.
     pub monitoring_only: bool,
-    /// must_be_healthy property.
+    /// `must_be_healthy` property.
     pub must_be_healthy: bool,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `LoadBalancingMonitorGroupReferencesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingMonitorGroupReferencesResponse {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type LoadBalancingMonitorGroupReferencesResponse =
+    super::shared::ApiEnvelope<Vec<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `LoadBalancingMonitorGroupResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitorGroupResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<LoadBalancingMonitorGroup>>,
+    pub result: Vec<LoadBalancingMonitorGroup>,
     /// `result_info` property.
     pub result_info: Option<LoadBalancingResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `LoadBalancingMonitorGroupSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingMonitorGroupSingleResponse {
-    /// `result` property.
-    pub result: Option<LoadBalancingMonitorGroup>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<LoadBalancingMonitorGroup>`.
+pub type LoadBalancingMonitorGroupSingleResponse =
+    super::shared::ApiEnvelope<LoadBalancingMonitorGroup>;
 
 /// `LoadBalancingNetworks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingNetworks {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingNetworks = Vec<String>;
 
 /// `LoadBalancingOrigins` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingOrigins {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingOrigins = Vec<LoadBalancingOrigin>;
 
 /// `LoadBalancingPatchPoolsNotificationEmail` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingPatchPoolsNotificationEmail {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingPatchPoolsNotificationEmail = String;
 
 /// `LoadBalancingRegionComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingRegionComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type LoadBalancingRegionComponentsSchemasResponseCollection =
+    super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `LoadBalancingResourceReference` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingResourceReference {
-    /// reference_type property.
+    /// `reference_type` property.
     pub reference_type: Option<String>,
-    /// references property.
+    /// `references` property.
     pub references: Option<Vec<serde_json::Value>>,
-    /// resource_id property.
+    /// `resource_id` property.
     pub resource_id: Option<String>,
-    /// resource_name property.
+    /// `resource_name` property.
     pub resource_name: Option<String>,
-    /// resource_type property.
+    /// `resource_type` property.
     pub resource_type: Option<String>,
 }
 
 /// `LoadBalancingSearch` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingSearch {
-    /// resources property.
+    /// `resources` property.
     pub resources: Option<Vec<LoadBalancingResourceReference>>,
 }
 
 /// `LoadBalancingSearchResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingSearchResult {
-    /// result property.
+    /// `result` property.
     pub result: Option<LoadBalancingSearch>,
 }
 
 /// `MagicNetworkMonitoringConfigurationCreateAccountConfigurationRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicNetworkMonitoringConfigurationCreateAccountConfigurationRequest {
-    /// default_sampling property.
-    pub default_sampling: MagicVisibilityMnmMnmConfigDefaultSampling,
-    /// name property.
-    pub name: MagicVisibilityMnmMnmConfigName,
-    /// router_ips property.
-    pub router_ips: Option<Vec<MagicVisibilityMnmMnmConfigRouterIp>>,
-    /// warp_devices property.
+    /// `default_sampling` property.
+    pub default_sampling: f64,
+    /// `name` property.
+    pub name: String,
+    /// `router_ips` property.
+    pub router_ips: Option<Vec<String>>,
+    /// `warp_devices` property.
     pub warp_devices: Option<Vec<MagicVisibilityMnmMnmConfigWarpDevice>>,
 }
 
 /// `MagicNetworkMonitoringConfigurationUpdateAccountConfigurationFieldsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicNetworkMonitoringConfigurationUpdateAccountConfigurationFieldsRequest {
-    /// default_sampling property.
-    pub default_sampling: Option<MagicVisibilityMnmMnmConfigDefaultSampling>,
-    /// name property.
-    pub name: Option<MagicVisibilityMnmMnmConfigName>,
-    /// router_ips property.
-    pub router_ips: Option<Vec<MagicVisibilityMnmMnmConfigRouterIp>>,
-    /// warp_devices property.
+    /// `default_sampling` property.
+    pub default_sampling: Option<f64>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `router_ips` property.
+    pub router_ips: Option<Vec<String>>,
+    /// `warp_devices` property.
     pub warp_devices: Option<Vec<MagicVisibilityMnmMnmConfigWarpDevice>>,
 }
 
 /// `MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationRequest {
-    /// default_sampling property.
-    pub default_sampling: MagicVisibilityMnmMnmConfigDefaultSampling,
-    /// name property.
-    pub name: MagicVisibilityMnmMnmConfigName,
-    /// router_ips property.
-    pub router_ips: Option<Vec<MagicVisibilityMnmMnmConfigRouterIp>>,
-    /// warp_devices property.
-    pub warp_devices: Option<Vec<MagicVisibilityMnmMnmConfigWarpDevice>>,
-}
+///
+/// Same shape as `MagicNetworkMonitoringConfigurationCreateAccountConfigurationRequest`.
+pub type MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationRequest =
+    MagicNetworkMonitoringConfigurationCreateAccountConfigurationRequest;
 
 /// `MagicTransitApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTransitApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type MagicTransitApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `MagicTransitCheckType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitCheckType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitCheckType = String;
 
 /// `MagicTransitEndpointHealthCheck` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitEndpointHealthCheck {
-    /// check_type property.
-    pub check_type: MagicTransitCheckType,
-    /// endpoint property.
+    /// `check_type` property.
+    pub check_type: String,
+    /// `endpoint` property.
     pub endpoint: String,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
 }
 
 /// `MagicTransitEndpointHealthCheckResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitEndpointHealthCheckResponse {
+    /// `check_type` property.
+    pub check_type: String,
+    /// `endpoint` property.
+    pub endpoint: String,
     /// `id` property.
-    pub id: Option<MagicTransitUuid>,
+    pub id: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
 }
 
 /// `MagicTransitEndpointHealthCheckResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTransitEndpointHealthCheckResponseSingle {
-    /// `result` property.
-    pub result: Option<MagicTransitEndpointHealthCheckResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<MagicTransitEndpointHealthCheckResponse>>`.
+pub type MagicTransitEndpointHealthCheckResponseSingle =
+    super::shared::ApiEnvelope<Option<MagicTransitEndpointHealthCheckResponse>>;
 
 /// `MagicTransitMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicTransitUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitUuid = String;
 
 /// `MagicVisibilityMnmMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicVisibilityMnmMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicVisibilityMnmMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicVisibilityMnmMnmConfigRouterIps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicVisibilityMnmMnmConfigRouterIps {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicVisibilityMnmMnmConfigRouterIps = Vec<String>;
 
 /// `MagicVisibilityMnmMnmConfigWarpDevices` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicVisibilityMnmMnmConfigWarpDevices {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicVisibilityMnmMnmConfigWarpDevices = Vec<MagicVisibilityMnmMnmConfigWarpDevice>;
 
 /// `MagicVisibilityMnmMnmVpcFlowsSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityMnmMnmVpcFlowsSingleResponse {
-    /// `result` property.
-    pub result: Option<MagicVisibilityMnmMnmVpcFlowsToken>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<String>`.
+pub type MagicVisibilityMnmMnmVpcFlowsSingleResponse = super::shared::ApiEnvelope<String>;
 
 /// `MagicVisibilityMnmMnmVpcFlowsToken` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicVisibilityMnmMnmVpcFlowsToken {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicVisibilityMnmMnmVpcFlowsToken = String;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
 /// Arguments for [`diagnostics-endpoint-healthcheck-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DiagnosticsEndpointHealthcheckListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DiagnosticsEndpointHealthcheckListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`diagnostics-endpoint-healthcheck-create_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -523,13 +478,9 @@ pub struct DiagnosticsEndpointHealthcheckCreateArgs {
 }
 
 /// Arguments for [`diagnostics-endpoint-healthcheck-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DiagnosticsEndpointHealthcheckGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `id`.
-    pub id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdIdArgs`.
+pub type DiagnosticsEndpointHealthcheckGetArgs = super::shared::AccountIdIdArgs;
 
 /// Arguments for [`diagnostics-endpoint-healthcheck-update_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -543,20 +494,14 @@ pub struct DiagnosticsEndpointHealthcheckUpdateArgs {
 }
 
 /// Arguments for [`diagnostics-endpoint-healthcheck-delete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DiagnosticsEndpointHealthcheckDeleteArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `id`.
-    pub id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdIdArgs`.
+pub type DiagnosticsEndpointHealthcheckDeleteArgs = super::shared::AccountIdIdArgs;
 
 /// Arguments for [`account-load-balancer-monitor-groups-list-monitor-groups_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorGroupsListMonitorGroupsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type AccountLoadBalancerMonitorGroupsListMonitorGroupsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`account-load-balancer-monitor-groups-create-monitor-group_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -568,13 +513,10 @@ pub struct AccountLoadBalancerMonitorGroupsCreateMonitorGroupArgs {
 }
 
 /// Arguments for [`account-load-balancer-monitor-groups-monitor-group-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorGroupsMonitorGroupDetailsArgs {
-    /// Path parameter: `monitor_group_id`.
-    pub monitor_group_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::MonitorGroupIdAccountIdArgs`.
+pub type AccountLoadBalancerMonitorGroupsMonitorGroupDetailsArgs =
+    super::shared::MonitorGroupIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-monitor-groups-update-monitor-group_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -588,40 +530,27 @@ pub struct AccountLoadBalancerMonitorGroupsUpdateMonitorGroupArgs {
 }
 
 /// Arguments for [`account-load-balancer-monitor-groups-patch-monitor-group_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorGroupsPatchMonitorGroupArgs {
-    /// Path parameter: `monitor_group_id`.
-    pub monitor_group_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Request body.
-    pub body: LoadBalancingMonitorGroup,
-}
+///
+/// Same shape as `AccountLoadBalancerMonitorGroupsUpdateMonitorGroupArgs`.
+pub type AccountLoadBalancerMonitorGroupsPatchMonitorGroupArgs =
+    AccountLoadBalancerMonitorGroupsUpdateMonitorGroupArgs;
 
 /// Arguments for [`account-load-balancer-monitor-groups-delete-monitor-group_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorGroupsDeleteMonitorGroupArgs {
-    /// Path parameter: `monitor_group_id`.
-    pub monitor_group_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::MonitorGroupIdAccountIdArgs`.
+pub type AccountLoadBalancerMonitorGroupsDeleteMonitorGroupArgs =
+    super::shared::MonitorGroupIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-monitor-groups-list-monitor-group-references_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorGroupsListMonitorGroupReferencesArgs {
-    /// Path parameter: `monitor_group_id`.
-    pub monitor_group_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::MonitorGroupIdAccountIdArgs`.
+pub type AccountLoadBalancerMonitorGroupsListMonitorGroupReferencesArgs =
+    super::shared::MonitorGroupIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-monitors-list-monitors_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorsListMonitorsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type AccountLoadBalancerMonitorsListMonitorsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`account-load-balancer-monitors-create-monitor_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -633,13 +562,9 @@ pub struct AccountLoadBalancerMonitorsCreateMonitorArgs {
 }
 
 /// Arguments for [`account-load-balancer-monitors-monitor-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorsMonitorDetailsArgs {
-    /// Path parameter: `monitor_id`.
-    pub monitor_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::MonitorIdAccountIdArgs`.
+pub type AccountLoadBalancerMonitorsMonitorDetailsArgs = super::shared::MonitorIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-monitors-update-monitor_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -664,13 +589,9 @@ pub struct AccountLoadBalancerMonitorsPatchMonitorArgs {
 }
 
 /// Arguments for [`account-load-balancer-monitors-delete-monitor_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorsDeleteMonitorArgs {
-    /// Path parameter: `monitor_id`.
-    pub monitor_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::MonitorIdAccountIdArgs`.
+pub type AccountLoadBalancerMonitorsDeleteMonitorArgs = super::shared::MonitorIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-monitors-preview-monitor_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -684,13 +605,10 @@ pub struct AccountLoadBalancerMonitorsPreviewMonitorArgs {
 }
 
 /// Arguments for [`account-load-balancer-monitors-list-monitor-references_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerMonitorsListMonitorReferencesArgs {
-    /// Path parameter: `monitor_id`.
-    pub monitor_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::MonitorIdAccountIdArgs`.
+pub type AccountLoadBalancerMonitorsListMonitorReferencesArgs =
+    super::shared::MonitorIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-pools-list-pools_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -720,13 +638,9 @@ pub struct AccountLoadBalancerPoolsPatchPoolsArgs {
 }
 
 /// Arguments for [`account-load-balancer-pools-pool-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerPoolsPoolDetailsArgs {
-    /// Path parameter: `pool_id`.
-    pub pool_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PoolIdAccountIdArgs`.
+pub type AccountLoadBalancerPoolsPoolDetailsArgs = super::shared::PoolIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-pools-update-pool_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -751,22 +665,14 @@ pub struct AccountLoadBalancerPoolsPatchPoolArgs {
 }
 
 /// Arguments for [`account-load-balancer-pools-delete-pool_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerPoolsDeletePoolArgs {
-    /// Path parameter: `pool_id`.
-    pub pool_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PoolIdAccountIdArgs`.
+pub type AccountLoadBalancerPoolsDeletePoolArgs = super::shared::PoolIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-pools-pool-health-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerPoolsPoolHealthDetailsArgs {
-    /// Path parameter: `pool_id`.
-    pub pool_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PoolIdAccountIdArgs`.
+pub type AccountLoadBalancerPoolsPoolHealthDetailsArgs = super::shared::PoolIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-pools-preview-pool_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -780,13 +686,9 @@ pub struct AccountLoadBalancerPoolsPreviewPoolArgs {
 }
 
 /// Arguments for [`account-load-balancer-pools-list-pool-references_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccountLoadBalancerPoolsListPoolReferencesArgs {
-    /// Path parameter: `pool_id`.
-    pub pool_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PoolIdAccountIdArgs`.
+pub type AccountLoadBalancerPoolsListPoolReferencesArgs = super::shared::PoolIdAccountIdArgs;
 
 /// Arguments for [`account-load-balancer-monitors-preview-result_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -835,11 +737,10 @@ pub struct AccountLoadBalancerSearchSearchResourcesArgs {
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-list-account-configuration_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicNetworkMonitoringConfigurationListAccountConfigurationArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type MagicNetworkMonitoringConfigurationListAccountConfigurationArgs =
+    super::shared::AccountIdArgs;
 
 /// Arguments for [`magic-network-monitoring-configuration-create-account-configuration_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -869,18 +770,16 @@ pub struct MagicNetworkMonitoringConfigurationUpdateAccountConfigurationFieldsAr
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-delete-account-configuration_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicNetworkMonitoringConfigurationDeleteAccountConfigurationArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type MagicNetworkMonitoringConfigurationDeleteAccountConfigurationArgs =
+    super::shared::AccountIdArgs;
 
 /// Arguments for [`magic-network-monitoring-vpc-flows-generate-authentication-token_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicNetworkMonitoringVpcFlowsGenerateAuthenticationTokenArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type MagicNetworkMonitoringVpcFlowsGenerateAuthenticationTokenArgs =
+    super::shared::AccountIdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -917,7 +816,8 @@ pub async fn diagnostics_endpoint_healthcheck_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks",
+    let path = format!(
+        "/accounts/{}/diagnostics/endpoint-healthchecks",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -929,20 +829,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTransitEndpointHealthCheckResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -976,7 +863,8 @@ pub async fn diagnostics_endpoint_healthcheck_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks",
+    let path = format!(
+        "/accounts/{}/diagnostics/endpoint-healthchecks",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -984,27 +872,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTransitEndpointHealthCheckResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1038,9 +914,9 @@ pub async fn diagnostics_endpoint_healthcheck_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks/{}",
-        args.account_id,
-        args.id,
+    let path = format!(
+        "/accounts/{}/diagnostics/endpoint-healthchecks/{}",
+        args.account_id, args.id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1051,20 +927,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTransitEndpointHealthCheckResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1098,36 +961,24 @@ pub async fn diagnostics_endpoint_healthcheck_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks/{}",
-        args.account_id,
-        args.id,
+    let path = format!(
+        "/accounts/{}/diagnostics/endpoint-healthchecks/{}",
+        args.account_id, args.id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTransitEndpointHealthCheckResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1161,9 +1012,9 @@ pub async fn diagnostics_endpoint_healthcheck_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/diagnostics/endpoint-healthchecks/{}",
-        args.account_id,
-        args.id,
+    let path = format!(
+        "/accounts/{}/diagnostics/endpoint-healthchecks/{}",
+        args.account_id, args.id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1174,20 +1025,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTransitApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1221,7 +1059,8 @@ pub async fn account_load_balancer_monitor_groups_list_monitor_groups_request<F>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitor_groups",
+    let path = format!(
+        "/accounts/{}/load_balancers/monitor_groups",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1233,20 +1072,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorGroupResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1280,7 +1106,8 @@ pub async fn account_load_balancer_monitor_groups_create_monitor_group_request<F
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitor_groups",
+    let path = format!(
+        "/accounts/{}/load_balancers/monitor_groups",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1288,27 +1115,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1342,9 +1157,9 @@ pub async fn account_load_balancer_monitor_groups_monitor_group_details_request<
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}",
-        args.account_id,
-        args.monitor_group_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitor_groups/{}",
+        args.account_id, args.monitor_group_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1355,20 +1170,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1402,36 +1204,24 @@ pub async fn account_load_balancer_monitor_groups_update_monitor_group_request<F
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}",
-        args.account_id,
-        args.monitor_group_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitor_groups/{}",
+        args.account_id, args.monitor_group_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1465,36 +1255,24 @@ pub async fn account_load_balancer_monitor_groups_patch_monitor_group_request<F>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}",
-        args.account_id,
-        args.monitor_group_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitor_groups/{}",
+        args.account_id, args.monitor_group_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1528,9 +1306,9 @@ pub async fn account_load_balancer_monitor_groups_delete_monitor_group_request<F
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}",
-        args.account_id,
-        args.monitor_group_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitor_groups/{}",
+        args.account_id, args.monitor_group_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1541,20 +1319,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorGroupSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1588,9 +1353,9 @@ pub async fn account_load_balancer_monitor_groups_list_monitor_group_references_
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitor_groups/{}/references",
-        args.account_id,
-        args.monitor_group_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitor_groups/{}/references",
+        args.account_id, args.monitor_group_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1601,20 +1366,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorGroupReferencesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1648,9 +1400,7 @@ pub async fn account_load_balancer_monitors_list_monitors_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitors",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/load_balancers/monitors", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1660,20 +1410,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1707,35 +1444,21 @@ pub async fn account_load_balancer_monitors_create_monitor_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitors",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/load_balancers/monitors", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1769,9 +1492,9 @@ pub async fn account_load_balancer_monitors_monitor_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitors/{}",
-        args.account_id,
-        args.monitor_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitors/{}",
+        args.account_id, args.monitor_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1782,20 +1505,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1829,36 +1539,24 @@ pub async fn account_load_balancer_monitors_update_monitor_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitors/{}",
-        args.account_id,
-        args.monitor_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitors/{}",
+        args.account_id, args.monitor_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1892,36 +1590,24 @@ pub async fn account_load_balancer_monitors_patch_monitor_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitors/{}",
-        args.account_id,
-        args.monitor_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitors/{}",
+        args.account_id, args.monitor_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1955,9 +1641,9 @@ pub async fn account_load_balancer_monitors_delete_monitor_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitors/{}",
-        args.account_id,
-        args.monitor_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitors/{}",
+        args.account_id, args.monitor_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1968,20 +1654,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2015,36 +1688,24 @@ pub async fn account_load_balancer_monitors_preview_monitor_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitors/{}/preview",
-        args.account_id,
-        args.monitor_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitors/{}/preview",
+        args.account_id, args.monitor_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingPreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2078,9 +1739,9 @@ pub async fn account_load_balancer_monitors_list_monitor_references_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/monitors/{}/references",
-        args.account_id,
-        args.monitor_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/monitors/{}/references",
+        args.account_id, args.monitor_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2091,20 +1752,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingMonitorReferencesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2138,9 +1786,7 @@ pub async fn account_load_balancer_pools_list_pools_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/load_balancers/pools", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2152,20 +1798,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2199,35 +1832,21 @@ pub async fn account_load_balancer_pools_create_pool_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/load_balancers/pools", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2261,35 +1880,21 @@ pub async fn account_load_balancer_pools_patch_pools_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/load_balancers/pools", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2323,9 +1928,9 @@ pub async fn account_load_balancer_pools_pool_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools/{}",
-        args.account_id,
-        args.pool_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/pools/{}",
+        args.account_id, args.pool_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2336,20 +1941,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2383,36 +1975,24 @@ pub async fn account_load_balancer_pools_update_pool_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools/{}",
-        args.account_id,
-        args.pool_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/pools/{}",
+        args.account_id, args.pool_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2446,36 +2026,24 @@ pub async fn account_load_balancer_pools_patch_pool_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools/{}",
-        args.account_id,
-        args.pool_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/pools/{}",
+        args.account_id, args.pool_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2509,9 +2077,9 @@ pub async fn account_load_balancer_pools_delete_pool_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools/{}",
-        args.account_id,
-        args.pool_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/pools/{}",
+        args.account_id, args.pool_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2522,20 +2090,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingSchemasIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2569,9 +2124,9 @@ pub async fn account_load_balancer_pools_pool_health_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools/{}/health",
-        args.account_id,
-        args.pool_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/pools/{}/health",
+        args.account_id, args.pool_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2582,20 +2137,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingHealthDetails = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2629,36 +2171,24 @@ pub async fn account_load_balancer_pools_preview_pool_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools/{}/preview",
-        args.account_id,
-        args.pool_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/pools/{}/preview",
+        args.account_id, args.pool_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingPreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2692,9 +2222,9 @@ pub async fn account_load_balancer_pools_list_pool_references_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/pools/{}/references",
-        args.account_id,
-        args.pool_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/pools/{}/references",
+        args.account_id, args.pool_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2705,20 +2235,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingPoolsReferencesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2752,9 +2269,9 @@ pub async fn account_load_balancer_monitors_preview_result_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/preview/{}",
-        args.account_id,
-        args.preview_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/preview/{}",
+        args.account_id, args.preview_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2765,20 +2282,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingPreviewResultResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2808,13 +2312,14 @@ pub async fn load_balancer_regions_list_regions_request<F>(
     args: &LoadBalancerRegionsListRegionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<LoadBalancingRegionComponentsSchemasResponseCollection>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<LoadBalancingRegionComponentsSchemasResponseCollection>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/regions",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/load_balancers/regions", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2828,20 +2333,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingRegionComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2875,9 +2367,9 @@ pub async fn load_balancer_regions_get_region_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/regions/{}",
-        args.account_id,
-        args.region_id,
+    let path = format!(
+        "/accounts/{}/load_balancers/regions/{}",
+        args.account_id, args.region_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2888,20 +2380,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LoadBalancingComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2935,9 +2414,7 @@ pub async fn account_load_balancer_search_search_resources_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/load_balancers/search",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/load_balancers/search", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2952,20 +2429,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AccountLoadBalancerSearchSearchResourcesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2999,9 +2463,7 @@ pub async fn magic_network_monitoring_configuration_list_account_configuration_r
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/mnm/config",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/mnm/config", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -3011,20 +2473,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3058,35 +2507,21 @@ pub async fn magic_network_monitoring_configuration_create_account_configuration
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/mnm/config",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/mnm/config", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3111,7 +2546,9 @@ where
 ///     b.header("X-Custom-Header", "value");
 /// })).await?;
 /// ```
-pub async fn magic_network_monitoring_configuration_update_an_entire_account_configuration_request<F>(
+pub async fn magic_network_monitoring_configuration_update_an_entire_account_configuration_request<
+    F,
+>(
     client: DynNetClient,
     args: &MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationArgs,
     base_url: &str,
@@ -3120,35 +2557,21 @@ pub async fn magic_network_monitoring_configuration_update_an_entire_account_con
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/mnm/config",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/mnm/config", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3182,35 +2605,21 @@ pub async fn magic_network_monitoring_configuration_update_account_configuration
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/mnm/config",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/mnm/config", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3244,9 +2653,7 @@ pub async fn magic_network_monitoring_configuration_delete_account_configuration
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/mnm/config",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/mnm/config", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -3256,20 +2663,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicVisibilityMnmMnmConfigSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3303,9 +2697,7 @@ pub async fn magic_network_monitoring_vpc_flows_generate_authentication_token_re
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/mnm/vpc-flows/token",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/mnm/vpc-flows/token", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -3315,19 +2707,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicVisibilityMnmMnmVpcFlowsSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

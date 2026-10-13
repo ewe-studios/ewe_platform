@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_upgrade")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -22,18 +26,9 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `PluginPrivilege` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PluginPrivilege {
-    /// Description property.
-    #[serde(rename = "Description")]
-    pub description: Option<String>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Value property.
-    #[serde(rename = "Value")]
-    pub value: Option<Vec<String>>,
-}
+///
+/// Same shape as `super::shared::DescriptionNameValueObject`.
+pub type PluginPrivilege = super::shared::DescriptionNameValueObject;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -85,9 +80,7 @@ pub async fn plugin_upgrade_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/plugins/{}/upgrade",
-        args.name,
-    );
+    let path = format!("/plugins/{}/upgrade", args.name,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -95,22 +88,13 @@ where
 
     builder = builder.query("remote", args.remote.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
-

@@ -7,17 +7,21 @@
 
 #![cfg(feature = "cloudflare_security_center")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
-use super::shared::SecurityCenterValueCountsResponse;
 use super::shared::SecurityCenterApiResponseCommon;
+use super::shared::SecurityCenterValueCountsResponse;
 
 use super::shared::ApiResponse;
 
@@ -26,42 +30,33 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `ArchiveSecurityCenterInsightRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ArchiveSecurityCenterInsightRequest {
-    /// dismiss property.
-    pub dismiss: Option<bool>,
-}
+///
+/// Same shape as `super::shared::DismissObject`.
+pub type ArchiveSecurityCenterInsightRequest = super::shared::DismissObject;
 
 /// `ArchiveSecurityCenterInsightResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ArchiveSecurityCenterInsightResponse {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type ArchiveSecurityCenterInsightResponse = super::shared::ErrorsMessagesSuccessObject;
 
 /// `GetSecurityCenterInsightContextResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetSecurityCenterInsightContextResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type GetSecurityCenterInsightContextResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `GetSecurityCenterInsightsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetSecurityCenterInsightsResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type GetSecurityCenterInsightsResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `SecurityCenterApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecurityCenterApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type SecurityCenterApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `SecurityCenterMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SecurityCenterMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SecurityCenterMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -101,91 +96,22 @@ pub struct GetSecurityCenterInsightsArgs {
 }
 
 /// Arguments for [`get-security-center-insight-counts-by-class_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetSecurityCenterInsightCountsByClassArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `dismissed`.
-    pub dismissed: Option<String>,
-    /// Query parameter: `issue_class`.
-    pub issue_class: Option<String>,
-    /// Query parameter: `issue_type`.
-    pub issue_type: Option<String>,
-    /// Query parameter: `product`.
-    pub product: Option<String>,
-    /// Query parameter: `severity`.
-    pub severity: Option<String>,
-    /// Query parameter: `subject`.
-    pub subject: Option<String>,
-    /// Query parameter: `issue_class~neq`.
-    pub issue_class_neq: Option<String>,
-    /// Query parameter: `issue_type~neq`.
-    pub issue_type_neq: Option<String>,
-    /// Query parameter: `product~neq`.
-    pub product_neq: Option<String>,
-    /// Query parameter: `severity~neq`.
-    pub severity_neq: Option<String>,
-    /// Query parameter: `subject~neq`.
-    pub subject_neq: Option<String>,
-}
+///
+/// Same shape as `super::shared::GetSecurityCenterInsightCountsByClassArgsShape`.
+pub type GetSecurityCenterInsightCountsByClassArgs =
+    super::shared::GetSecurityCenterInsightCountsByClassArgsShape;
 
 /// Arguments for [`get-security-center-insight-counts-by-severity_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetSecurityCenterInsightCountsBySeverityArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `dismissed`.
-    pub dismissed: Option<String>,
-    /// Query parameter: `issue_class`.
-    pub issue_class: Option<String>,
-    /// Query parameter: `issue_type`.
-    pub issue_type: Option<String>,
-    /// Query parameter: `product`.
-    pub product: Option<String>,
-    /// Query parameter: `severity`.
-    pub severity: Option<String>,
-    /// Query parameter: `subject`.
-    pub subject: Option<String>,
-    /// Query parameter: `issue_class~neq`.
-    pub issue_class_neq: Option<String>,
-    /// Query parameter: `issue_type~neq`.
-    pub issue_type_neq: Option<String>,
-    /// Query parameter: `product~neq`.
-    pub product_neq: Option<String>,
-    /// Query parameter: `severity~neq`.
-    pub severity_neq: Option<String>,
-    /// Query parameter: `subject~neq`.
-    pub subject_neq: Option<String>,
-}
+///
+/// Same shape as `super::shared::GetSecurityCenterInsightCountsByClassArgsShape`.
+pub type GetSecurityCenterInsightCountsBySeverityArgs =
+    super::shared::GetSecurityCenterInsightCountsByClassArgsShape;
 
 /// Arguments for [`get-security-center-insight-counts-by-type_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetSecurityCenterInsightCountsByTypeArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `dismissed`.
-    pub dismissed: Option<String>,
-    /// Query parameter: `issue_class`.
-    pub issue_class: Option<String>,
-    /// Query parameter: `issue_type`.
-    pub issue_type: Option<String>,
-    /// Query parameter: `product`.
-    pub product: Option<String>,
-    /// Query parameter: `severity`.
-    pub severity: Option<String>,
-    /// Query parameter: `subject`.
-    pub subject: Option<String>,
-    /// Query parameter: `issue_class~neq`.
-    pub issue_class_neq: Option<String>,
-    /// Query parameter: `issue_type~neq`.
-    pub issue_type_neq: Option<String>,
-    /// Query parameter: `product~neq`.
-    pub product_neq: Option<String>,
-    /// Query parameter: `severity~neq`.
-    pub severity_neq: Option<String>,
-    /// Query parameter: `subject~neq`.
-    pub subject_neq: Option<String>,
-}
+///
+/// Same shape as `super::shared::GetSecurityCenterInsightCountsByClassArgsShape`.
+pub type GetSecurityCenterInsightCountsByTypeArgs =
+    super::shared::GetSecurityCenterInsightCountsByClassArgsShape;
 
 /// Arguments for [`get-security-center-insight-context_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -242,9 +168,7 @@ pub async fn get_security_center_insights_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/security-center/insights",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/security-center/insights", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -268,20 +192,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetSecurityCenterInsightsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -315,7 +226,8 @@ pub async fn get_security_center_insight_counts_by_class_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/security-center/insights/class",
+    let path = format!(
+        "/accounts/{}/security-center/insights/class",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -339,20 +251,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecurityCenterValueCountsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -386,7 +285,8 @@ pub async fn get_security_center_insight_counts_by_severity_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/security-center/insights/severity",
+    let path = format!(
+        "/accounts/{}/security-center/insights/severity",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -410,20 +310,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecurityCenterValueCountsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -457,7 +344,8 @@ pub async fn get_security_center_insight_counts_by_type_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/security-center/insights/type",
+    let path = format!(
+        "/accounts/{}/security-center/insights/type",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -481,20 +369,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SecurityCenterValueCountsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -528,9 +403,9 @@ pub async fn get_security_center_insight_context_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/security-center/insights/{}/context",
-        args.account_id,
-        args.issue_id,
+    let path = format!(
+        "/accounts/{}/security-center/insights/{}/context",
+        args.account_id, args.issue_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -541,20 +416,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetSecurityCenterInsightContextResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -588,35 +450,22 @@ pub async fn archive_security_center_insight_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/security-center/insights/{}/dismiss",
-        args.account_id,
-        args.issue_id,
+    let path = format!(
+        "/accounts/{}/security-center/insights/{}/dismiss",
+        args.account_id, args.issue_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ArchiveSecurityCenterInsightResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

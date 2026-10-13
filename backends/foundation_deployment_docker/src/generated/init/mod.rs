@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_init")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,60 +28,36 @@ use super::shared::ApiResponse;
 /// `SwarmInitRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SwarmInitRequest {
-    /// AdvertiseAddr property.
+    /// `AdvertiseAddr` property.
     #[serde(rename = "AdvertiseAddr")]
     pub advertise_addr: Option<String>,
-    /// DataPathAddr property.
+    /// `DataPathAddr` property.
     #[serde(rename = "DataPathAddr")]
     pub data_path_addr: Option<String>,
-    /// DataPathPort property.
+    /// `DataPathPort` property.
     #[serde(rename = "DataPathPort")]
     pub data_path_port: Option<i64>,
-    /// DefaultAddrPool property.
+    /// `DefaultAddrPool` property.
     #[serde(rename = "DefaultAddrPool")]
     pub default_addr_pool: Option<Vec<String>>,
-    /// ForceNewCluster property.
+    /// `ForceNewCluster` property.
     #[serde(rename = "ForceNewCluster")]
     pub force_new_cluster: Option<bool>,
-    /// ListenAddr property.
+    /// `ListenAddr` property.
     #[serde(rename = "ListenAddr")]
     pub listen_addr: Option<String>,
-    /// Spec property.
+    /// `Spec` property.
     #[serde(rename = "Spec")]
     pub spec: Option<SwarmSpec>,
-    /// SubnetSize property.
+    /// `SubnetSize` property.
     #[serde(rename = "SubnetSize")]
     pub subnet_size: Option<i64>,
 }
 
 /// `SwarmSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SwarmSpec {
-    /// CAConfig property.
-    #[serde(rename = "CAConfig")]
-    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Dispatcher property.
-    #[serde(rename = "Dispatcher")]
-    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// EncryptionConfig property.
-    #[serde(rename = "EncryptionConfig")]
-    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Orchestration property.
-    #[serde(rename = "Orchestration")]
-    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Raft property.
-    #[serde(rename = "Raft")]
-    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// TaskDefaults property.
-    #[serde(rename = "TaskDefaults")]
-    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::SwarmSpecShape`.
+pub type SwarmSpec = super::shared::SwarmSpecShape;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -125,31 +105,19 @@ pub async fn swarm_init_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/swarm/init",
-    );
+    let path = format!("/swarm/init",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

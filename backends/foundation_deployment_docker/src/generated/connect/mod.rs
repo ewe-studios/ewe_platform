@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_connect")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,13 +28,13 @@ use super::shared::ApiResponse;
 /// `EndpointIPAMConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EndpointIPAMConfig {
-    /// IPv4Address property.
+    /// `IPv4Address` property.
     #[serde(rename = "IPv4Address")]
     pub i_pv4_address: Option<String>,
-    /// IPv6Address property.
+    /// `IPv6Address` property.
     #[serde(rename = "IPv6Address")]
     pub i_pv6_address: Option<String>,
-    /// LinkLocalIPs property.
+    /// `LinkLocalIPs` property.
     #[serde(rename = "LinkLocalIPs")]
     pub link_local_i_ps: Option<Vec<String>>,
 }
@@ -38,49 +42,49 @@ pub struct EndpointIPAMConfig {
 /// `EndpointSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EndpointSettings {
-    /// Aliases property.
+    /// `Aliases` property.
     #[serde(rename = "Aliases")]
     pub aliases: Option<Vec<String>>,
-    /// DNSNames property.
+    /// `DNSNames` property.
     #[serde(rename = "DNSNames")]
     pub dns_names: Option<Vec<String>>,
-    /// DriverOpts property.
+    /// `DriverOpts` property.
     #[serde(rename = "DriverOpts")]
     pub driver_opts: Option<serde_json::Value>,
-    /// EndpointID property.
+    /// `EndpointID` property.
     #[serde(rename = "EndpointID")]
     pub endpoint_id: Option<String>,
-    /// Gateway property.
+    /// `Gateway` property.
     #[serde(rename = "Gateway")]
     pub gateway: Option<String>,
-    /// GlobalIPv6Address property.
+    /// `GlobalIPv6Address` property.
     #[serde(rename = "GlobalIPv6Address")]
     pub global_i_pv6_address: Option<String>,
-    /// GlobalIPv6PrefixLen property.
+    /// `GlobalIPv6PrefixLen` property.
     #[serde(rename = "GlobalIPv6PrefixLen")]
     pub global_i_pv6_prefix_len: Option<i64>,
-    /// GwPriority property.
+    /// `GwPriority` property.
     #[serde(rename = "GwPriority")]
     pub gw_priority: Option<i64>,
-    /// IPAMConfig property.
+    /// `IPAMConfig` property.
     #[serde(rename = "IPAMConfig")]
     pub ipam_config: Option<EndpointIPAMConfig>,
-    /// IPAddress property.
+    /// `IPAddress` property.
     #[serde(rename = "IPAddress")]
     pub ip_address: Option<String>,
-    /// IPPrefixLen property.
+    /// `IPPrefixLen` property.
     #[serde(rename = "IPPrefixLen")]
     pub ip_prefix_len: Option<i64>,
-    /// IPv6Gateway property.
+    /// `IPv6Gateway` property.
     #[serde(rename = "IPv6Gateway")]
     pub i_pv6_gateway: Option<String>,
-    /// Links property.
+    /// `Links` property.
     #[serde(rename = "Links")]
     pub links: Option<Vec<String>>,
-    /// MacAddress property.
+    /// `MacAddress` property.
     #[serde(rename = "MacAddress")]
     pub mac_address: Option<String>,
-    /// NetworkID property.
+    /// `NetworkID` property.
     #[serde(rename = "NetworkID")]
     pub network_id: Option<String>,
 }
@@ -88,10 +92,10 @@ pub struct EndpointSettings {
 /// `NetworkConnectRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConnectRequest {
-    /// Container property.
+    /// `Container` property.
     #[serde(rename = "Container")]
     pub container: String,
-    /// EndpointConfig property.
+    /// `EndpointConfig` property.
     #[serde(rename = "EndpointConfig")]
     pub endpoint_config: Option<EndpointSettings>,
 }
@@ -144,30 +148,19 @@ pub async fn network_connect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks/{}/connect",
-        args.id,
-    );
+    let path = format!("/networks/{}/connect", args.id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
-

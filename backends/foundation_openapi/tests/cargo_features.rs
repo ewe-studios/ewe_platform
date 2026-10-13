@@ -104,3 +104,31 @@ fn a_manifest_that_already_matches_is_returned_byte_for_byte() {
     let out = rewrite_features_for_groups(manifest, "example", &groups(&["dns"])).unwrap();
     assert_eq!(out, manifest);
 }
+
+#[test]
+fn hand_written_entries_in_the_provider_feature_are_kept() {
+    // Docker's `docker` feature also turns on the optional `tar` dependency.
+    let manifest = "[features]\n\
+        example = [\n    \"dep:tar\",\n    \"example_dns\",\n]\n\
+        example_all = [\"example_dns\"]\n\
+        example_dns = []\n";
+    let out = rewrite_features_for_groups(manifest, "example", &groups(&["dns", "zones"])).unwrap();
+    let f = features(&out);
+    assert_eq!(
+        list(&f, "example"),
+        ["dep:tar", "example_dns", "example_zones"]
+    );
+    assert_eq!(list(&f, "example_all"), ["example_dns", "example_zones"]);
+
+    // Same entries in another order is not a change.
+    let reordered = "[features]\nexample = [\"example_dns\", \"dep:tar\"]\nexample_all = [\"example_dns\"]\nexample_dns = []\n";
+    let out = rewrite_features_for_groups(reordered, "example", &groups(&["dns"])).unwrap();
+    assert_eq!(out, reordered);
+}
+
+#[test]
+fn a_hand_ordered_features_table_is_not_re_sorted_when_nothing_is_added() {
+    let manifest = "[features]\nzeta = []\nexample = [\"example_dns\"]\nexample_all = [\"example_dns\"]\nexample_dns = []\nalpha = []\n";
+    let out = rewrite_features_for_groups(manifest, "example", &groups(&["dns"])).unwrap();
+    assert_eq!(out, manifest);
+}

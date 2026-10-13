@@ -117,11 +117,11 @@ runs = ["", "docker"]
 # Packages that need more memory than the runner has to spare.
 
 [packages.foundation_deployment_cloudflare]
-# ~10 MB of generated API code (≈10k types) in one crate: a single rustc for
-# the lib peaks at ~11 GB (type checking and MIR borrowck, not LLVM).
-# `--all-targets` compiles the lib and its unit-test twin at the same time, so
-# two such rustc processes OOM-killed the 16 GB runner (exit 137). One job at a
-# time keeps the peak to one of them. Serial builds take longer, hence the
-# timeout.
+# The whole Cloudflare API (~10 MB of generated code) in one crate. Since the
+# generator merges duplicate types (10,348 structs -> 4,373) and shares one
+# send/parse function across endpoints, a single rustc for the lib peaks at
+# ~7 GB (was ~12.8 GB). `--all-targets` builds the lib and its unit-test twin
+# at the same time; two of those still do not fit the 16 GB runner, so one job
+# at a time. Splitting the generated groups into their own crates is what
+# would remove this.
 env = { CARGO_BUILD_JOBS = "1" }
-timeout-minutes = 120

@@ -358,13 +358,68 @@ fn fix_hierarchical_features(
         println!("  gcp_run feature after fix: {:?}", run_feat);
     }
 
-    let output = toml::to_string_pretty(&doc)
-        .map_err(|e| format!("Failed to serialize Cargo.toml: {}", e))?;
-
-    std::fs::write(&cargo_toml_path, output + "\n")
-        .map_err(|e| format!("Failed to write Cargo.toml: {}", e))?;
+    let updated = write_features_back(&content, features)?;
+    if updated != content {
+        std::fs::write(cargo_toml_path, updated)
+            .map_err(|e| format!("Failed to write Cargo.toml: {}", e))?;
+    }
 
     Ok(())
+}
+
+/// Replace the manifest's `[features]` with `features`, touching nothing else.
+///
+/// The feature logic above works on a parsed `toml::Table`; writing that whole
+/// document back with `toml::to_string_pretty` dropped every comment in the
+/// manifest and re-sorted its tables. This edits the original text instead:
+/// removed features go, changed ones are reassigned in place (so a comment
+/// above them stays), new ones are added, and the rest is left as written.
+fn write_features_back(manifest: &str, features: &toml::Table) -> Result<String, BoxedError> {
+    let mut doc: toml_edit::DocumentMut = manifest
+        .parse()
+        .map_err(|e| format!("Failed to parse Cargo.toml: {e}"))?;
+    let table = doc
+        .get_mut("features")
+        .and_then(toml_edit::Item::as_table_like_mut)
+        .ok_or("Missing [features] section in Cargo.toml")?;
+
+    let gone: Vec<String> = table
+        .iter()
+        .map(|(k, _)| k.to_string())
+        .filter(|k| !features.contains_key(k))
+        .collect();
+    for key in gone {
+        table.remove(&key);
+    }
+    let mut added = false;
+    for (key, value) in features {
+        let entries: Vec<String> = value
+            .as_array()
+            .map(|a| a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
+            .unwrap_or_default();
+        let current: Option<Vec<String>> = table.get(key).and_then(toml_edit::Item::as_array).map(|a| {
+            a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect()
+        });
+        if current.as_ref() == Some(&entries) {
+            continue;
+        }
+        let mut array = toml_edit::Array::new();
+        for entry in &entries {
+            array.push(entry.as_str());
+        }
+        match table.get_mut(key) {
+            Some(item) => *item = toml_edit::value(array),
+            None => {
+                table.insert(key, toml_edit::value(array));
+                added = true;
+            }
+        }
+    }
+    // Only a manifest that gained features is re-sorted.
+    if added {
+        table.sort_values();
+    }
+    Ok(doc.to_string())
 }
 
 /// Fix features for hierarchical providers (e.g., gcp with nested groups).
@@ -1039,7 +1094,12 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 return Ok(());
             }
 
-            // Post-step: Fix up feature flags for all providers with sub-groups.
+            // Post-step: a multi-spec provider (gcp) nests sub-providers, whose
+            // feature tree the generator cannot see from one spec — rebuild it
+            // here. A single-spec provider's features were already written by
+            // the generator (`update_cargo_toml`), which keeps the manifest's
+            // comments and hand-written entries; running this over them again
+            // dropped both (Docker lost `dep:tar` from its `docker` feature).
             if is_multi_spec_provider {
                 generate_parent_mod_rs(&provider, &generated_dir)?;
             }
@@ -1054,12 +1114,14 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     .map(|p| p.join("Cargo.toml"))
                     .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"))
             };
-            fix_hierarchical_features(
-                &provider,
-                &generated_dir,
-                &regenerated,
-                &cargo_toml_path,
-            )?;
+            if is_multi_spec_provider {
+                fix_hierarchical_features(
+                    &provider,
+                    &generated_dir,
+                    &regenerated,
+                    &cargo_toml_path,
+                )?;
+            }
 
             println!("\n=== Generation Complete ===");
             println!("Output directory: {}", generated_dir.display());

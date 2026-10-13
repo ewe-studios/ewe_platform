@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_prune")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,10 +28,10 @@ use super::shared::ApiResponse;
 /// `BuildPruneResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildPruneResponse {
-    /// CachesDeleted property.
+    /// `CachesDeleted` property.
     #[serde(rename = "CachesDeleted")]
     pub caches_deleted: Option<Vec<String>>,
-    /// SpaceReclaimed property.
+    /// `SpaceReclaimed` property.
     #[serde(rename = "SpaceReclaimed")]
     pub space_reclaimed: Option<i64>,
 }
@@ -35,10 +39,10 @@ pub struct BuildPruneResponse {
 /// `ContainerPruneResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerPruneResponse {
-    /// ContainersDeleted property.
+    /// `ContainersDeleted` property.
     #[serde(rename = "ContainersDeleted")]
     pub containers_deleted: Option<Vec<String>>,
-    /// SpaceReclaimed property.
+    /// `SpaceReclaimed` property.
     #[serde(rename = "SpaceReclaimed")]
     pub space_reclaimed: Option<i64>,
 }
@@ -46,10 +50,10 @@ pub struct ContainerPruneResponse {
 /// `ImageDeleteResponseItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImageDeleteResponseItem {
-    /// Deleted property.
+    /// `Deleted` property.
     #[serde(rename = "Deleted")]
     pub deleted: Option<String>,
-    /// Untagged property.
+    /// `Untagged` property.
     #[serde(rename = "Untagged")]
     pub untagged: Option<String>,
 }
@@ -57,10 +61,10 @@ pub struct ImageDeleteResponseItem {
 /// `ImagePruneResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagePruneResponse {
-    /// ImagesDeleted property.
+    /// `ImagesDeleted` property.
     #[serde(rename = "ImagesDeleted")]
     pub images_deleted: Option<Vec<ImageDeleteResponseItem>>,
-    /// SpaceReclaimed property.
+    /// `SpaceReclaimed` property.
     #[serde(rename = "SpaceReclaimed")]
     pub space_reclaimed: Option<i64>,
 }
@@ -68,7 +72,7 @@ pub struct ImagePruneResponse {
 /// `NetworkPruneResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPruneResponse {
-    /// NetworksDeleted property.
+    /// `NetworksDeleted` property.
     #[serde(rename = "NetworksDeleted")]
     pub networks_deleted: Option<Vec<String>>,
 }
@@ -76,10 +80,10 @@ pub struct NetworkPruneResponse {
 /// `VolumePruneResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct VolumePruneResponse {
-    /// SpaceReclaimed property.
+    /// `SpaceReclaimed` property.
     #[serde(rename = "SpaceReclaimed")]
     pub space_reclaimed: Option<i64>,
-    /// VolumesDeleted property.
+    /// `VolumesDeleted` property.
     #[serde(rename = "VolumesDeleted")]
     pub volumes_deleted: Option<Vec<String>>,
 }
@@ -104,32 +108,24 @@ pub struct BuildPruneArgs {
 }
 
 /// Arguments for [`ContainerPrune_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ContainerPruneArgs {
-    /// Query parameter: `filters`.
-    pub filters: Option<String>,
-}
+///
+/// Same shape as `super::shared::FiltersArgs`.
+pub type ContainerPruneArgs = super::shared::FiltersArgs;
 
 /// Arguments for [`ImagePrune_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ImagePruneArgs {
-    /// Query parameter: `filters`.
-    pub filters: Option<String>,
-}
+///
+/// Same shape as `super::shared::FiltersArgs`.
+pub type ImagePruneArgs = super::shared::FiltersArgs;
 
 /// Arguments for [`NetworkPrune_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NetworkPruneArgs {
-    /// Query parameter: `filters`.
-    pub filters: Option<String>,
-}
+///
+/// Same shape as `super::shared::FiltersArgs`.
+pub type NetworkPruneArgs = super::shared::FiltersArgs;
 
 /// Arguments for [`VolumePrune_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct VolumePruneArgs {
-    /// Query parameter: `filters`.
-    pub filters: Option<String>,
-}
+///
+/// Same shape as `super::shared::FiltersArgs`.
+pub type VolumePruneArgs = super::shared::FiltersArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -166,8 +162,7 @@ pub async fn build_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/build/prune",
-    );
+    let path = format!("/build/prune",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -183,18 +178,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BuildPruneResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -228,8 +212,7 @@ pub async fn container_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/prune",
-    );
+    let path = format!("/containers/prune",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -241,18 +224,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ContainerPruneResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -286,8 +258,7 @@ pub async fn image_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/prune",
-    );
+    let path = format!("/images/prune",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -299,18 +270,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagePruneResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -344,8 +304,7 @@ pub async fn network_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks/prune",
-    );
+    let path = format!("/networks/prune",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -357,18 +316,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NetworkPruneResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -402,8 +350,7 @@ pub async fn volume_prune_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes/prune",
-    );
+    let path = format!("/volumes/prune",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -415,17 +362,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: VolumePruneResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

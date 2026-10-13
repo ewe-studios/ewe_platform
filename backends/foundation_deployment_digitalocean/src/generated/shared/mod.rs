@@ -4,7 +4,13 @@
 //! DO NOT EDIT MANUALLY.
 
 // Re-export common API types from foundation_deployment
-pub use foundation_deployment::providers::common::{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation};
+pub use foundation_deployment::providers::common::{
+    read_error_body, send_checked, send_json, send_without_body, with_raw_body, ByteStream,
+    JsonLinesStream,
+};
+pub use foundation_deployment::providers::common::{
+    ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,
+};
 
 // Imports for shared resource types
 use foundation_macros::JsonHash;
@@ -14,3 +20,27 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
+// =============================================================================
+// SHARED SHAPES
+// =============================================================================
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DropletIdArgs {
+    /// Path parameter: `droplet_id`.
+    pub droplet_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MetaObject {
+    /// `meta` property.
+    pub meta: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PagesObject {
+    /// `pages` property.
+    pub pages: Option<serde_json::Value>,
+}

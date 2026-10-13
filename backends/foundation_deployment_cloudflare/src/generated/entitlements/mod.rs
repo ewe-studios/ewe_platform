@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_entitlements")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,75 +28,71 @@ use super::shared::ApiResponse;
 /// `OrganizationsApiBoolAllocation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationsApiBoolAllocation {
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// value property.
+    /// `value` property.
     pub value: bool,
 }
 
 /// `OrganizationsApiEntitlement` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationsApiEntitlement {
-    /// allocation property.
+    /// `allocation` property.
     pub allocation: serde_json::Value,
-    /// feature property.
+    /// `feature` property.
     pub feature: OrganizationsApiFeature,
 }
 
 /// `OrganizationsApiFeature` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationsApiFeature {
-    /// key property.
+    /// `key` property.
     pub key: String,
 }
 
 /// `OrganizationsApiInnateEntitlements` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationsApiInnateEntitlements {
-    /// allow_add_subdomain property.
+    /// `allow_add_subdomain` property.
     pub allow_add_subdomain: OrganizationsApiBoolAllocation,
-    /// allow_auto_accept_invites property.
+    /// `allow_auto_accept_invites` property.
     pub allow_auto_accept_invites: OrganizationsApiBoolAllocation,
-    /// cname_setup_allowed property.
+    /// `cname_setup_allowed` property.
     pub cname_setup_allowed: OrganizationsApiBoolAllocation,
-    /// custom_entitlements property.
+    /// `custom_entitlements` property.
     pub custom_entitlements: Option<Vec<OrganizationsApiEntitlement>>,
-    /// mhs_certificate_count property.
+    /// `mhs_certificate_count` property.
     pub mhs_certificate_count: OrganizationsApiMaxCountAllocation,
-    /// partial_setup_allowed property.
+    /// `partial_setup_allowed` property.
     pub partial_setup_allowed: OrganizationsApiBoolAllocation,
 }
 
 /// `OrganizationsApiMaxCountAllocation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationsApiMaxCountAllocation {
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// value property.
+    /// `value` property.
     pub value: i64,
 }
 
 /// `OrganizationsApiV4Message` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct OrganizationsApiV4Message {
-    /// code property.
-    pub code: i64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject2`.
+pub type OrganizationsApiV4Message = super::shared::CodeMessageObject2;
 
 /// `TenantsListEntitlementsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TenantsListEntitlementsResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<serde_json::Value>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<OrganizationsApiV4Message>,
-    /// result property.
+    /// `result` property.
     pub result: OrganizationsApiInnateEntitlements,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
@@ -101,11 +101,9 @@ pub struct TenantsListEntitlementsResponse {
 // =============================================================================
 
 /// Arguments for [`Tenants_listEntitlements_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct TenantsListEntitlementsArgs {
-    /// Path parameter: `tenant_id`.
-    pub tenant_id: String,
-}
+///
+/// Same shape as `super::shared::TenantIdArgs`.
+pub type TenantsListEntitlementsArgs = super::shared::TenantIdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -142,9 +140,7 @@ pub async fn tenants_list_entitlements_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/tenants/{}/entitlements",
-        args.tenant_id,
-    );
+    let path = format!("/tenants/{}/entitlements", args.tenant_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -154,19 +150,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TenantsListEntitlementsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_stats")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,145 +28,145 @@ use super::shared::ApiResponse;
 /// `ContainerBlkioStatEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerBlkioStatEntry {
-    /// major property.
+    /// `major` property.
     pub major: Option<i64>,
-    /// minor property.
+    /// `minor` property.
     pub minor: Option<i64>,
-    /// op property.
+    /// `op` property.
     pub op: Option<String>,
-    /// value property.
+    /// `value` property.
     pub value: Option<i64>,
 }
 
 /// `ContainerBlkioStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerBlkioStats {
-    /// io_merged_recursive property.
+    /// `io_merged_recursive` property.
     pub io_merged_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_queue_recursive property.
+    /// `io_queue_recursive` property.
     pub io_queue_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_service_bytes_recursive property.
+    /// `io_service_bytes_recursive` property.
     pub io_service_bytes_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_service_time_recursive property.
+    /// `io_service_time_recursive` property.
     pub io_service_time_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_serviced_recursive property.
+    /// `io_serviced_recursive` property.
     pub io_serviced_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_time_recursive property.
+    /// `io_time_recursive` property.
     pub io_time_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// io_wait_time_recursive property.
+    /// `io_wait_time_recursive` property.
     pub io_wait_time_recursive: Option<Vec<ContainerBlkioStatEntry>>,
-    /// sectors_recursive property.
+    /// `sectors_recursive` property.
     pub sectors_recursive: Option<Vec<ContainerBlkioStatEntry>>,
 }
 
 /// `ContainerCPUStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerCPUStats {
-    /// cpu_usage property.
+    /// `cpu_usage` property.
     pub cpu_usage: Option<ContainerCPUUsage>,
-    /// online_cpus property.
+    /// `online_cpus` property.
     pub online_cpus: Option<i64>,
-    /// system_cpu_usage property.
+    /// `system_cpu_usage` property.
     pub system_cpu_usage: Option<i64>,
-    /// throttling_data property.
+    /// `throttling_data` property.
     pub throttling_data: Option<ContainerThrottlingData>,
 }
 
 /// `ContainerCPUUsage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerCPUUsage {
-    /// percpu_usage property.
+    /// `percpu_usage` property.
     pub percpu_usage: Option<Vec<i64>>,
-    /// total_usage property.
+    /// `total_usage` property.
     pub total_usage: Option<i64>,
-    /// usage_in_kernelmode property.
+    /// `usage_in_kernelmode` property.
     pub usage_in_kernelmode: Option<i64>,
-    /// usage_in_usermode property.
+    /// `usage_in_usermode` property.
     pub usage_in_usermode: Option<i64>,
 }
 
 /// `ContainerMemoryStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerMemoryStats {
-    /// commitbytes property.
+    /// `commitbytes` property.
     pub commitbytes: Option<i64>,
-    /// commitpeakbytes property.
+    /// `commitpeakbytes` property.
     pub commitpeakbytes: Option<i64>,
-    /// failcnt property.
+    /// `failcnt` property.
     pub failcnt: Option<i64>,
-    /// limit property.
+    /// `limit` property.
     pub limit: Option<i64>,
-    /// max_usage property.
+    /// `max_usage` property.
     pub max_usage: Option<i64>,
-    /// privateworkingset property.
+    /// `privateworkingset` property.
     pub privateworkingset: Option<i64>,
-    /// stats property.
+    /// `stats` property.
     pub stats: Option<serde_json::Value>,
-    /// usage property.
+    /// `usage` property.
     pub usage: Option<i64>,
 }
 
 /// `ContainerPidsStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerPidsStats {
-    /// current property.
+    /// `current` property.
     pub current: Option<i64>,
-    /// limit property.
+    /// `limit` property.
     pub limit: Option<i64>,
 }
 
 /// `ContainerStatsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerStatsResponse {
-    /// blkio_stats property.
+    /// `blkio_stats` property.
     pub blkio_stats: Option<ContainerBlkioStats>,
-    /// cpu_stats property.
+    /// `cpu_stats` property.
     pub cpu_stats: Option<ContainerCPUStats>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// memory_stats property.
+    /// `memory_stats` property.
     pub memory_stats: Option<ContainerMemoryStats>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// networks property.
+    /// `networks` property.
     pub networks: Option<serde_json::Value>,
-    /// num_procs property.
+    /// `num_procs` property.
     pub num_procs: Option<i64>,
-    /// os_type property.
+    /// `os_type` property.
     pub os_type: Option<String>,
-    /// pids_stats property.
+    /// `pids_stats` property.
     pub pids_stats: Option<ContainerPidsStats>,
-    /// precpu_stats property.
+    /// `precpu_stats` property.
     pub precpu_stats: Option<ContainerCPUStats>,
-    /// preread property.
+    /// `preread` property.
     pub preread: Option<String>,
-    /// read property.
+    /// `read` property.
     pub read: Option<String>,
-    /// storage_stats property.
+    /// `storage_stats` property.
     pub storage_stats: Option<ContainerStorageStats>,
 }
 
 /// `ContainerStorageStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerStorageStats {
-    /// read_count_normalized property.
+    /// `read_count_normalized` property.
     pub read_count_normalized: Option<i64>,
-    /// read_size_bytes property.
+    /// `read_size_bytes` property.
     pub read_size_bytes: Option<i64>,
-    /// write_count_normalized property.
+    /// `write_count_normalized` property.
     pub write_count_normalized: Option<i64>,
-    /// write_size_bytes property.
+    /// `write_size_bytes` property.
     pub write_size_bytes: Option<i64>,
 }
 
 /// `ContainerThrottlingData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerThrottlingData {
-    /// periods property.
+    /// `periods` property.
     pub periods: Option<i64>,
-    /// throttled_periods property.
+    /// `throttled_periods` property.
     pub throttled_periods: Option<i64>,
-    /// throttled_time property.
+    /// `throttled_time` property.
     pub throttled_time: Option<i64>,
 }
 
@@ -216,9 +220,7 @@ pub async fn container_stats_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/{}/stats",
-        args.id,
-    );
+    let path = format!("/containers/{}/stats", args.id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -231,17 +233,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ContainerStatsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

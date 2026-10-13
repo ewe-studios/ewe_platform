@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_version")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,40 +28,40 @@ use super::shared::ApiResponse;
 /// `SystemVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SystemVersion {
-    /// ApiVersion property.
+    /// `ApiVersion` property.
     #[serde(rename = "ApiVersion")]
     pub api_version: Option<String>,
-    /// Arch property.
+    /// `Arch` property.
     #[serde(rename = "Arch")]
     pub arch: Option<String>,
-    /// BuildTime property.
+    /// `BuildTime` property.
     #[serde(rename = "BuildTime")]
     pub build_time: Option<String>,
-    /// Components property.
+    /// `Components` property.
     #[serde(rename = "Components")]
     pub components: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// Experimental property.
+    /// `Experimental` property.
     #[serde(rename = "Experimental")]
     pub experimental: Option<bool>,
-    /// GitCommit property.
+    /// `GitCommit` property.
     #[serde(rename = "GitCommit")]
     pub git_commit: Option<String>,
-    /// GoVersion property.
+    /// `GoVersion` property.
     #[serde(rename = "GoVersion")]
     pub go_version: Option<String>,
-    /// KernelVersion property.
+    /// `KernelVersion` property.
     #[serde(rename = "KernelVersion")]
     pub kernel_version: Option<String>,
-    /// MinAPIVersion property.
+    /// `MinAPIVersion` property.
     #[serde(rename = "MinAPIVersion")]
     pub min_api_version: Option<String>,
-    /// Os property.
+    /// `Os` property.
     #[serde(rename = "Os")]
     pub os: Option<String>,
-    /// Platform property.
+    /// `Platform` property.
     #[serde(rename = "Platform")]
     pub platform: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Version property.
+    /// `Version` property.
     #[serde(rename = "Version")]
     pub version: Option<String>,
 }
@@ -67,9 +71,9 @@ pub struct SystemVersion {
 // =============================================================================
 
 /// Arguments for [`SystemVersion_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SystemVersionArgs {
-}
+///
+/// Same shape as `super::shared::EmptyArgs`.
+pub type SystemVersionArgs = super::shared::EmptyArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -106,8 +110,7 @@ pub async fn system_version_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/version",
-    );
+    let path = format!("/version",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -117,17 +120,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SystemVersion = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

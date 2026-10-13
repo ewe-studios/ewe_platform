@@ -7,18 +7,21 @@
 
 #![cfg(feature = "cloudflare_events")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
-use super::shared::AaaIdResponse;
-use super::shared::ResourceTaggingTaggedResourceResponseSingle;
 use super::shared::AaaApiResponseSingle;
+use super::shared::AaaIdResponse;
 use super::shared::AaaSchemasApiResponseCommon;
 use super::shared::AaaUuid;
 use super::shared::ResourceTaggingAccessApplicationId;
@@ -59,6 +62,7 @@ use super::shared::ResourceTaggingTaggedResourceObjectWorkerVersion;
 use super::shared::ResourceTaggingTaggedResourceObjectWorkerVersionBase;
 use super::shared::ResourceTaggingTaggedResourceObjectZone;
 use super::shared::ResourceTaggingTaggedResourceObjectZoneLevelBase;
+use super::shared::ResourceTaggingTaggedResourceResponseSingle;
 use super::shared::ResourceTaggingTags;
 use super::shared::ResourceTaggingWorkerId;
 use super::shared::ResourceTaggingZoneId;
@@ -70,541 +74,395 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `AaaAlertBody` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaAlertBody {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaAlertBody = String;
 
 /// `AaaAlertsResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaAlertsResponseCollection {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type AaaAlertsResponseCollection = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `AaaApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaApiResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<AaaSchemasResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `AaaComponentsSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaComponentsSchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaComponentsSchemasDescription = String;
 
 /// `AaaComponentsSchemasMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaComponentsSchemasMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaComponentsSchemasMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `AaaComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaComponentsSchemasName = String;
 
 /// `AaaComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<AaaPagerduty>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<AaaPagerduty>>>`.
+pub type AaaComponentsSchemasResponseCollection =
+    super::shared::ApiEnvelope<Option<Vec<AaaPagerduty>>>;
 
 /// `AaaComponentsSchemasType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaComponentsSchemasType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaComponentsSchemasType = String;
 
 /// `AaaCreatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaCreatedAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaCreatedAt = String;
 
 /// `AaaHistory` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaHistory {
-    /// alert_body property.
-    pub alert_body: Option<AaaAlertBody>,
-    /// alert_type property.
-    pub alert_type: Option<AaaSchemasAlertType>,
-    /// description property.
-    pub description: Option<AaaComponentsSchemasDescription>,
-    /// id property.
-    pub id: Option<AaaUuid>,
-    /// mechanism property.
-    pub mechanism: Option<AaaMechanism>,
-    /// mechanism_type property.
-    pub mechanism_type: Option<AaaMechanismType>,
-    /// name property.
-    pub name: Option<AaaSchemasName>,
-    /// policy_id property.
-    pub policy_id: Option<AaaPolicyId>,
-    /// sent property.
-    pub sent: Option<AaaSent>,
+    /// `alert_body` property.
+    pub alert_body: Option<String>,
+    /// `alert_type` property.
+    pub alert_type: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `mechanism` property.
+    pub mechanism: Option<String>,
+    /// `mechanism_type` property.
+    pub mechanism_type: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `policy_id` property.
+    pub policy_id: Option<String>,
+    /// `sent` property.
+    pub sent: Option<String>,
 }
 
 /// `AaaHistoryComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaHistoryComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<AaaHistory>>,
-    /// `result_info` property.
-    pub result_info: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess2<Option<Vec<AaaHistory>>>`.
+pub type AaaHistoryComponentsSchemasResponseCollection =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess2<Option<Vec<AaaHistory>>>;
 
 /// `AaaLastFailure` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaLastFailure {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaLastFailure = String;
 
 /// `AaaLastSuccess` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaLastSuccess {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaLastSuccess = String;
 
 /// `AaaMechanism` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaMechanism {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaMechanism = String;
 
 /// `AaaMechanismType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaMechanismType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaMechanismType = String;
 
 /// `AaaName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaName = String;
 
 /// `AaaPagerduty` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaPagerduty {
-    /// id property.
-    pub id: Option<AaaUuid>,
-    /// name property.
-    pub name: Option<AaaName>,
-}
+///
+/// Same shape as `super::shared::IdNameObject`.
+pub type AaaPagerduty = super::shared::IdNameObject;
 
 /// `AaaPolicyId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaPolicyId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaPolicyId = String;
 
 /// `AaaSchemasAlertType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaSchemasAlertType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaSchemasAlertType = String;
 
 /// `AaaSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaSchemasName = String;
 
 /// `AaaSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type AaaSchemasResponseCollection = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `AaaSchemasResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
+///
+/// Same shape as `super::shared::FirewallResultInfoShape`.
+pub type AaaSchemasResultInfo = super::shared::FirewallResultInfoShape;
 
 /// `AaaSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<AaaWebhooks>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<AaaWebhooks>>`.
+pub type AaaSchemasSingleResponse = super::shared::ApiEnvelope<Option<AaaWebhooks>>;
 
 /// `AaaSecret` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaSecret {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaSecret = String;
 
 /// `AaaSensitiveIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSensitiveIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type AaaSensitiveIdResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `AaaSent` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaSent {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaSent = String;
 
 /// `AaaSilence` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaSilence {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// end_time property.
+    /// `end_time` property.
     pub end_time: Option<String>,
-    /// id property.
-    pub id: Option<AaaSilenceId>,
-    /// policy_id property.
-    pub policy_id: Option<AaaPolicyId>,
-    /// start_time property.
+    /// `id` property.
+    pub id: Option<String>,
+    /// `policy_id` property.
+    pub policy_id: Option<String>,
+    /// `start_time` property.
     pub start_time: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `AaaSilenceComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<AaaSilence>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<AaaSilence>>`.
+pub type AaaSilenceComponentsSchemasResponseCollection =
+    super::shared::ApiEnvelope<Option<AaaSilence>>;
 
 /// `AaaSilenceCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaSilenceCreateRequest {
-    /// end_time property.
+    /// `end_time` property.
     pub end_time: Option<String>,
-    /// policy_id property.
-    pub policy_id: Option<AaaPolicyId>,
-    /// start_time property.
+    /// `policy_id` property.
+    pub policy_id: Option<String>,
+    /// `start_time` property.
     pub start_time: Option<String>,
 }
 
 /// `AaaSilenceId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaSilenceId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaSilenceId = String;
 
 /// `AaaSilenceUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaSilenceUpdateRequest {
-    /// end_time property.
+    /// `end_time` property.
     pub end_time: Option<String>,
-    /// id property.
-    pub id: Option<AaaSilenceId>,
-    /// start_time property.
+    /// `id` property.
+    pub id: Option<String>,
+    /// `start_time` property.
     pub start_time: Option<String>,
 }
 
 /// `AaaSilencesComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilencesComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<AaaSilence>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<AaaSilence>>>`.
+pub type AaaSilencesComponentsSchemasResponseCollection =
+    super::shared::ApiEnvelope<Option<Vec<AaaSilence>>>;
 
 /// `AaaToken` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaToken {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaToken = String;
 
 /// `AaaUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaUrl = String;
 
 /// `AaaWebhookId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaWebhookId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaWebhookId = String;
 
 /// `AaaWebhooks` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaWebhooks {
-    /// created_at property.
-    pub created_at: Option<AaaCreatedAt>,
-    /// id property.
-    pub id: Option<AaaWebhookId>,
-    /// last_failure property.
-    pub last_failure: Option<AaaLastFailure>,
-    /// last_success property.
-    pub last_success: Option<AaaLastSuccess>,
-    /// name property.
-    pub name: Option<AaaComponentsSchemasName>,
-    /// secret property.
-    pub secret: Option<AaaSecret>,
-    /// type property.
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `last_failure` property.
+    pub last_failure: Option<String>,
+    /// `last_success` property.
+    pub last_success: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `secret` property.
+    pub secret: Option<String>,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: Option<AaaComponentsSchemasType>,
-    /// url property.
-    pub url: Option<AaaUrl>,
+    pub r#type: Option<String>,
+    /// `url` property.
+    pub url: Option<String>,
 }
 
 /// `AaaWebhooksComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaWebhooksComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<AaaWebhooks>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<AaaWebhooks>>>`.
+pub type AaaWebhooksComponentsSchemasResponseCollection =
+    super::shared::ApiEnvelope<Option<Vec<AaaWebhooks>>>;
 
 /// `NotificationWebhooksCreateAWebhookRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NotificationWebhooksCreateAWebhookRequest {
-    /// name property.
-    pub name: AaaComponentsSchemasName,
-    /// secret property.
-    pub secret: Option<AaaSecret>,
-    /// url property.
-    pub url: AaaUrl,
-}
+///
+/// Same shape as `super::shared::NameSecretUrlObject`.
+pub type NotificationWebhooksCreateAWebhookRequest = super::shared::NameSecretUrlObject;
 
 /// `NotificationWebhooksUpdateAWebhookRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NotificationWebhooksUpdateAWebhookRequest {
-    /// name property.
-    pub name: AaaComponentsSchemasName,
-    /// secret property.
-    pub secret: Option<AaaSecret>,
-    /// url property.
-    pub url: AaaUrl,
-}
+///
+/// Same shape as `super::shared::NameSecretUrlObject`.
+pub type NotificationWebhooksUpdateAWebhookRequest = super::shared::NameSecretUrlObject;
 
 /// `ResourceTaggingAccountResourceTypeBaseEnum` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingAccountResourceTypeBaseEnum {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingAccountResourceTypeBaseEnum = String;
 
 /// `ResourceTaggingAccountResourceTypeWorkerVersionEnum` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingAccountResourceTypeWorkerVersionEnum {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingAccountResourceTypeWorkerVersionEnum = String;
 
 /// `ResourceTaggingCursorResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingCursorResultInfo {
-    /// count property.
+    /// `count` property.
     pub count: Option<i64>,
-    /// cursor property.
+    /// `cursor` property.
     pub cursor: Option<String>,
 }
 
 /// `ResourceTaggingDeleteTagsRequestAccountLevel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingDeleteTagsRequestAccountLevel {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingDeleteTagsRequestAccountLevel = serde_json::Value;
 
 /// `ResourceTaggingDeleteTagsRequestAccountLevelBase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingDeleteTagsRequestAccountLevelBase {
-    /// resource_id property.
-    pub resource_id: ResourceTaggingResourceId,
-    /// resource_type property.
-    pub resource_type: ResourceTaggingAccountResourceTypeBaseEnum,
-}
+///
+/// Same shape as `super::shared::ResourceIdResourceTypeObject`.
+pub type ResourceTaggingDeleteTagsRequestAccountLevelBase =
+    super::shared::ResourceIdResourceTypeObject;
 
 /// `ResourceTaggingDeleteTagsRequestAccountLevelWorkerVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingDeleteTagsRequestAccountLevelWorkerVersion {
+    /// `resource_id` property.
+    pub resource_id: String,
     /// `resource_type` property.
-    pub resource_type: Option<ResourceTaggingAccountResourceTypeWorkerVersionEnum>,
+    pub resource_type: String,
     /// `worker_id` property.
-    pub worker_id: ResourceTaggingWorkerId,
+    pub worker_id: String,
 }
 
 /// `ResourceTaggingMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `ResourceTaggingSetTagsRequestAccountLevel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingSetTagsRequestAccountLevel {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingSetTagsRequestAccountLevel = serde_json::Value;
 
 /// `ResourceTaggingSetTagsRequestAccountLevelBase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingSetTagsRequestAccountLevelBase {
-    /// `tags` property.
-    pub tags: Option<ResourceTaggingTags>,
-}
+///
+/// Same shape as `super::shared::ResourceIdResourceTypeTagsObject`.
+pub type ResourceTaggingSetTagsRequestAccountLevelBase =
+    super::shared::ResourceIdResourceTypeTagsObject;
 
 /// `ResourceTaggingSetTagsRequestAccountLevelWorkerVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingSetTagsRequestAccountLevelWorkerVersion {
+    /// `resource_id` property.
+    pub resource_id: String,
+    /// `resource_type` property.
+    pub resource_type: String,
     /// `tags` property.
-    pub tags: Option<ResourceTaggingTags>,
+    pub tags: Option<serde_json::Value>,
+    /// `worker_id` property.
+    pub worker_id: String,
 }
 
 /// `ResourceTaggingTagKeysResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTagKeysResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<String>>,
     /// `result_info` property.
     pub result_info: Option<ResourceTaggingCursorResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ResourceTaggingTagValuesResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTagValuesResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<String>>,
-    /// `result_info` property.
-    pub result_info: Option<ResourceTaggingCursorResultInfo>,
-}
+///
+/// Same shape as `ResourceTaggingTagKeysResponseCollection`.
+pub type ResourceTaggingTagValuesResponseCollection = ResourceTaggingTagKeysResponseCollection;
 
 /// `ResourceTaggingTaggedResourceResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<ResourceTaggingTaggedResourceObject>>,
+    pub result: Option<Vec<serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<ResourceTaggingCursorResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `WorSendEventWorkflowInstanceResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorSendEventWorkflowInstanceResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<WorSendEventWorkflowInstanceResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<WorSendEventWorkflowInstanceResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: Option<serde_json::Value>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<WorSendEventWorkflowInstanceResponseResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `WorSendEventWorkflowInstanceResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorSendEventWorkflowInstanceResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type WorSendEventWorkflowInstanceResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `WorSendEventWorkflowInstanceResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorSendEventWorkflowInstanceResponseMessagesItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type WorSendEventWorkflowInstanceResponseMessagesItem = super::shared::CodeMessageObject;
 
 /// `WorSendEventWorkflowInstanceResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorSendEventWorkflowInstanceResponseResultInfo {
-    /// count property.
-    pub count: f64,
-    /// cursor property.
-    pub cursor: Option<String>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: f64,
-    /// total_count property.
-    pub total_count: f64,
-}
+///
+/// Same shape as `super::shared::WorBatchCreateWorkflowInstanceResponseResultInfoShape`.
+pub type WorSendEventWorkflowInstanceResponseResultInfo =
+    super::shared::WorBatchCreateWorkflowInstanceResponseResultInfoShape;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
 /// Arguments for [`notification-alert-types-get-alert-types_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NotificationAlertTypesGetAlertTypesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type NotificationAlertTypesGetAlertTypesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`notification-mechanism-eligibility-get-delivery-mechanism-eligibility_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NotificationMechanismEligibilityGetDeliveryMechanismEligibilityArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type NotificationMechanismEligibilityGetDeliveryMechanismEligibilityArgs =
+    super::shared::AccountIdArgs;
 
 /// Arguments for [`notification-destinations-with-pager-duty-list-pager-duty-services_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NotificationDestinationsWithPagerDutyListPagerDutyServicesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type NotificationDestinationsWithPagerDutyListPagerDutyServicesArgs =
+    super::shared::AccountIdArgs;
 
 /// Arguments for [`notification-destinations-with-pager-duty-delete-pager-duty-services_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NotificationDestinationsWithPagerDutyDeletePagerDutyServicesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type NotificationDestinationsWithPagerDutyDeletePagerDutyServicesArgs =
+    super::shared::AccountIdArgs;
 
 /// Arguments for [`notification-destinations-with-pager-duty-connect-pager-duty_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NotificationDestinationsWithPagerDutyConnectPagerDutyArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type NotificationDestinationsWithPagerDutyConnectPagerDutyArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`notification-webhooks-list-webhooks_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NotificationWebhooksListWebhooksArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type NotificationWebhooksListWebhooksArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`notification-webhooks-create-a-webhook_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -660,11 +518,9 @@ pub struct NotificationHistoryListHistoryArgs {
 }
 
 /// Arguments for [`notification-silences-list-silences_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NotificationSilencesListSilencesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type NotificationSilencesListSilencesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`notification-silences-create-silences_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -685,22 +541,14 @@ pub struct NotificationSilencesUpdateSilencesArgs {
 }
 
 /// Arguments for [`notification-silences-get-silence_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NotificationSilencesGetSilenceArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `silence_id`.
-    pub silence_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdSilenceIdArgs`.
+pub type NotificationSilencesGetSilenceArgs = super::shared::AccountIdSilenceIdArgs;
 
 /// Arguments for [`notification-silences-delete-silences_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NotificationSilencesDeleteSilencesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `silence_id`.
-    pub silence_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdSilenceIdArgs`.
+pub type NotificationSilencesDeleteSilencesArgs = super::shared::AccountIdSilenceIdArgs;
 
 /// Arguments for [`tags-get_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -747,10 +595,10 @@ pub struct TagsListKeysArgs {
 pub struct TagsListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: `type`.
-    pub r#type: Option<String>,
-    /// Query parameter: `tag`.
-    pub tag: Option<String>,
+    /// Query parameter: `type` (one per value).
+    pub r#type: Vec<String>,
+    /// Query parameter: `tag` (one per value).
+    pub tag: Vec<String>,
     /// Query parameter: `cursor`.
     pub cursor: Option<String>,
 }
@@ -816,9 +664,7 @@ pub async fn notification_alert_types_get_alert_types_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/available_alerts",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/alerting/v3/available_alerts", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -828,20 +674,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaAlertsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -875,7 +708,8 @@ pub async fn notification_mechanism_eligibility_get_delivery_mechanism_eligibili
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/destinations/eligible",
+    let path = format!(
+        "/accounts/{}/alerting/v3/destinations/eligible",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -887,20 +721,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -934,7 +755,8 @@ pub async fn notification_destinations_with_pager_duty_list_pager_duty_services_
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/destinations/pagerduty",
+    let path = format!(
+        "/accounts/{}/alerting/v3/destinations/pagerduty",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -946,20 +768,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -993,7 +802,8 @@ pub async fn notification_destinations_with_pager_duty_delete_pager_duty_service
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/destinations/pagerduty",
+    let path = format!(
+        "/accounts/{}/alerting/v3/destinations/pagerduty",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1005,20 +815,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSchemasApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1052,7 +849,8 @@ pub async fn notification_destinations_with_pager_duty_connect_pager_duty_reques
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/destinations/pagerduty/connect",
+    let path = format!(
+        "/accounts/{}/alerting/v3/destinations/pagerduty/connect",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1064,20 +862,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSensitiveIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1111,7 +896,8 @@ pub async fn notification_webhooks_list_webhooks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks",
+    let path = format!(
+        "/accounts/{}/alerting/v3/destinations/webhooks",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1123,20 +909,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaWebhooksComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1170,7 +943,8 @@ pub async fn notification_webhooks_create_a_webhook_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks",
+    let path = format!(
+        "/accounts/{}/alerting/v3/destinations/webhooks",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -1178,27 +952,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1232,9 +994,9 @@ pub async fn notification_webhooks_get_a_webhook_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks/{}",
-        args.account_id,
-        args.webhook_id,
+    let path = format!(
+        "/accounts/{}/alerting/v3/destinations/webhooks/{}",
+        args.account_id, args.webhook_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1245,20 +1007,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1292,36 +1041,24 @@ pub async fn notification_webhooks_update_a_webhook_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks/{}",
-        args.account_id,
-        args.webhook_id,
+    let path = format!(
+        "/accounts/{}/alerting/v3/destinations/webhooks/{}",
+        args.account_id, args.webhook_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1355,9 +1092,9 @@ pub async fn notification_webhooks_delete_a_webhook_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/destinations/webhooks/{}",
-        args.account_id,
-        args.webhook_id,
+    let path = format!(
+        "/accounts/{}/alerting/v3/destinations/webhooks/{}",
+        args.account_id, args.webhook_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1368,20 +1105,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSchemasApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1415,9 +1139,7 @@ pub async fn notification_history_list_history_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/history",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/alerting/v3/history", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1432,20 +1154,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaHistoryComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1479,9 +1188,7 @@ pub async fn notification_silences_list_silences_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/silences",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/alerting/v3/silences", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1491,20 +1198,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSilencesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1538,35 +1232,21 @@ pub async fn notification_silences_create_silences_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/silences",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/alerting/v3/silences", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSchemasApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1600,35 +1280,21 @@ pub async fn notification_silences_update_silences_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/silences",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/alerting/v3/silences", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSilencesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1662,9 +1328,9 @@ pub async fn notification_silences_get_silence_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/silences/{}",
-        args.account_id,
-        args.silence_id,
+    let path = format!(
+        "/accounts/{}/alerting/v3/silences/{}",
+        args.account_id, args.silence_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1675,20 +1341,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSilenceComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1722,9 +1375,9 @@ pub async fn notification_silences_delete_silences_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/alerting/v3/silences/{}",
-        args.account_id,
-        args.silence_id,
+    let path = format!(
+        "/accounts/{}/alerting/v3/silences/{}",
+        args.account_id, args.silence_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1735,20 +1388,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaSchemasApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1782,9 +1422,7 @@ pub async fn tags_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/tags",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/tags", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1798,20 +1436,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ResourceTaggingTaggedResourceResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1845,35 +1470,21 @@ pub async fn tags_set_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/tags",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/tags", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ResourceTaggingTaggedResourceResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1907,33 +1518,21 @@ pub async fn tags_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/tags",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/tags", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1967,9 +1566,7 @@ pub async fn tags_list_keys_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/tags/keys",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/tags/keys", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1981,20 +1578,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ResourceTaggingTagKeysResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2028,36 +1612,25 @@ pub async fn tags_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/tags/resources",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/tags/resources", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("type", args.r#type.as_deref());
-    builder = builder.query("tag", args.tag.as_deref());
+    for value in &args.r#type {
+        builder = builder.query("type", Some(value.as_str()));
+    }
+    for value in &args.tag {
+        builder = builder.query("tag", Some(value.as_str()));
+    }
     builder = builder.query("cursor", args.cursor.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ResourceTaggingTaggedResourceResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2091,10 +1664,7 @@ pub async fn tags_list_values_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/tags/values/{}",
-        args.account_id,
-        args.tag_key,
-    );
+    let path = format!("/accounts/{}/tags/values/{}", args.account_id, args.tag_key,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2107,20 +1677,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ResourceTaggingTagValuesResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2154,11 +1711,9 @@ pub async fn wor_send_event_workflow_instance_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workflows/{}/instances/{}/events/{}",
-        args.account_id,
-        args.workflow_name,
-        args.instance_id,
-        args.event_type,
+    let path = format!(
+        "/accounts/{}/workflows/{}/instances/{}/events/{}",
+        args.account_id, args.workflow_name, args.instance_id, args.event_type,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2169,19 +1724,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorSendEventWorkflowInstanceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

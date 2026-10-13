@@ -19,9 +19,21 @@ use syn::{parse_macro_input, DeriveInput};
 pub fn json_hash_derive(item: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(item as DeriveInput);
     let struct_name = &ast.ident;
+    // Generic types are supported: generated provider code has generic
+    // envelopes (`ApiEnvelope<T>`), and the hash only needs the value to
+    // serialize, which the method's own bound states.
+    let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
+    // Only a generic type needs the bound spelled out (its parameters decide
+    // whether it serializes); a plain struct reports a missing `Serialize` at
+    // the `to_string` call, as it always has.
+    let serialize_bound = if ast.generics.params.is_empty() {
+        quote! {}
+    } else {
+        quote! { where Self: serde::Serialize, }
+    };
 
     let expanded = quote! {
-        impl #struct_name {
+        impl #impl_generics #struct_name #ty_generics #where_clause {
             /// Compute a deterministic hash for this struct instance.
             ///
             /// The hash is computed from:
@@ -36,7 +48,9 @@ pub fn json_hash_derive(item: TokenStream) -> TokenStream {
             ///
             /// Panics if serialization fails. This should not happen
             /// for structs that properly implement `Serialize`.
-            pub fn struct_hash(&self) -> String {
+            pub fn struct_hash(&self) -> String
+            #serialize_bound
+            {
                 use sha2::{Digest, Sha256};
                 use base85rs::encode as base85_encode;
 

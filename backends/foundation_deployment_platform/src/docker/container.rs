@@ -600,9 +600,8 @@ impl ContainerHandle {
                 port_bindings: if port_bindings.is_empty() {
                     None
                 } else {
-                    Some(PortMap {
-                        data: port_bindings.into_iter().collect(),
-                    })
+                    // `PortMap` is a free-form map in the spec: JSON itself.
+                    Some(PortMap::Object(port_bindings))
                 },
                 binds: if binds.is_empty() { None } else { Some(binds) },
                 cap_add: if config.cap_add.is_empty() {
@@ -724,7 +723,7 @@ impl ContainerHandle {
                             crate::docker::config::PortProtocol::Udp => "udp",
                         }
                     );
-                    if let Some(binding) = bindings.data.get(&key) {
+                    if let Some(binding) = bindings.get(&key) {
                         if let Some(arr) = binding.as_array() {
                             if let Some(first) = arr.first() {
                                 if let Some(hp) = first

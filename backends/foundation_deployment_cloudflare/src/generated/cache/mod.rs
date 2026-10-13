@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_cache")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -22,232 +26,123 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `MqApiV4Error` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqApiV4Error {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqApiV4Error = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MqApiV4Message` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqApiV4Message {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqApiV4Message = Vec<String>;
 
 /// `MqApiV4Success` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MqApiV4Success {
-    /// errors property.
-    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// messages property.
-    pub messages: Option<Vec<String>>,
-    /// success property.
-    pub success: Option<bool>,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject2`.
+pub type MqApiV4Success = super::shared::ErrorsMessagesSuccessObject2;
 
 /// `MqBatchSize` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqBatchSize {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqBatchSize = f64;
 
 /// `MqConsumerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqConsumerResponse {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqConsumerResponse = serde_json::Value;
 
 /// `MqHttpConsumerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MqHttpConsumerResponse {
-    /// consumer_id property.
-    pub consumer_id: Option<MqIdentifier>,
-    /// created_on property.
-    pub created_on: Option<String>,
-    /// dead_letter_queue property.
-    pub dead_letter_queue: Option<String>,
-    /// queue_name property.
-    pub queue_name: Option<MqQueueName>,
-    /// settings property.
-    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: Option<String>,
-}
+///
+/// Same shape as `super::shared::MqHttpConsumerResponseShape`.
+pub type MqHttpConsumerResponse = super::shared::MqHttpConsumerResponseShape;
 
 /// `MqIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqIdentifier = String;
 
 /// `MqMaxConcurrency` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqMaxConcurrency {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqMaxConcurrency = f64;
 
 /// `MqMaxRetries` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqMaxRetries {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqMaxRetries = f64;
 
 /// `MqMaxWaitTime` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqMaxWaitTime {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqMaxWaitTime = f64;
 
 /// `MqProducer` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqProducer {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqProducer = serde_json::Value;
 
 /// `MqQueue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MqQueue {
-    /// consumers property.
-    pub consumers: Option<Vec<MqConsumerResponse>>,
-    /// consumers_total_count property.
+    /// `consumers` property.
+    pub consumers: Option<Vec<serde_json::Value>>,
+    /// `consumers_total_count` property.
     pub consumers_total_count: Option<f64>,
-    /// created_on property.
+    /// `created_on` property.
     pub created_on: Option<String>,
-    /// modified_on property.
+    /// `modified_on` property.
     pub modified_on: Option<String>,
-    /// producers property.
-    pub producers: Option<Vec<MqProducer>>,
-    /// producers_total_count property.
+    /// `producers` property.
+    pub producers: Option<Vec<serde_json::Value>>,
+    /// `producers_total_count` property.
     pub producers_total_count: Option<f64>,
-    /// queue_id property.
+    /// `queue_id` property.
     pub queue_id: Option<String>,
-    /// queue_name property.
-    pub queue_name: Option<MqQueueName>,
-    /// settings property.
+    /// `queue_name` property.
+    pub queue_name: Option<String>,
+    /// `settings` property.
     pub settings: Option<MqQueueSettings>,
 }
 
 /// `MqQueueName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqQueueName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqQueueName = String;
 
 /// `MqQueueSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MqQueueSettings {
-    /// delivery_delay property.
-    pub delivery_delay: Option<f64>,
-    /// delivery_paused property.
-    pub delivery_paused: Option<bool>,
-    /// message_retention_period property.
-    pub message_retention_period: Option<f64>,
-}
+///
+/// Same shape as `super::shared::DeliveryDelayDeliveryPausedMessageRetentionPeriodObject`.
+pub type MqQueueSettings = super::shared::DeliveryDelayDeliveryPausedMessageRetentionPeriodObject;
 
 /// `MqR2Producer` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MqR2Producer {
-    /// bucket_name property.
-    pub bucket_name: Option<String>,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: Option<String>,
-}
+///
+/// Same shape as `super::shared::BucketNameTypeObject`.
+pub type MqR2Producer = super::shared::BucketNameTypeObject;
 
 /// `MqRetryDelay` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqRetryDelay {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqRetryDelay = f64;
 
 /// `MqScriptName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqScriptName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqScriptName = String;
 
 /// `MqVisibilityTimeout` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MqVisibilityTimeout {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MqVisibilityTimeout = f64;
 
 /// `MqWorkerConsumerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MqWorkerConsumerResponse {
-    /// consumer_id property.
-    pub consumer_id: Option<MqIdentifier>,
-    /// created_on property.
-    pub created_on: Option<String>,
-    /// dead_letter_queue property.
-    pub dead_letter_queue: Option<String>,
-    /// queue_name property.
-    pub queue_name: Option<MqQueueName>,
-    /// script_name property.
-    pub script_name: Option<MqScriptName>,
-    /// settings property.
-    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: Option<String>,
-}
+///
+/// Same shape as `super::shared::MqWorkerConsumerResponseShape`.
+pub type MqWorkerConsumerResponse = super::shared::MqWorkerConsumerResponseShape;
 
 /// `MqWorkerProducer` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MqWorkerProducer {
-    /// script property.
-    pub script: Option<String>,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: Option<String>,
-}
+///
+/// Same shape as `super::shared::ScriptTypeObject`.
+pub type MqWorkerProducer = super::shared::ScriptTypeObject;
 
 /// `QueuesPurgeGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueuesPurgeGetResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope3<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type QueuesPurgeGetResponse =
+    super::shared::ApiEnvelope3<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `QueuesPurgeRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueuesPurgeRequest {
-    /// delete_messages_permanently property.
+    /// `delete_messages_permanently` property.
     pub delete_messages_permanently: Option<bool>,
 }
 
 /// `QueuesPurgeResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueuesPurgeResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope3<Option<serde_json::Value>>`.
+pub type QueuesPurgeResponse = super::shared::ApiEnvelope3<Option<serde_json::Value>>;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
 /// Arguments for [`queues-purge-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct QueuesPurgeGetArgs {
-    /// Path parameter: `queue_id`.
-    pub queue_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::QueueIdAccountIdArgs`.
+pub type QueuesPurgeGetArgs = super::shared::QueueIdAccountIdArgs;
 
 /// Arguments for [`queues-purge_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -295,9 +190,9 @@ pub async fn queues_purge_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/queues/{}/purge",
-        args.account_id,
-        args.queue_id,
+    let path = format!(
+        "/accounts/{}/queues/{}/purge",
+        args.account_id, args.queue_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -308,20 +203,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: QueuesPurgeGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -355,35 +237,22 @@ pub async fn queues_purge_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/queues/{}/purge",
-        args.account_id,
-        args.queue_id,
+    let path = format!(
+        "/accounts/{}/queues/{}/purge",
+        args.account_id, args.queue_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: QueuesPurgeResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

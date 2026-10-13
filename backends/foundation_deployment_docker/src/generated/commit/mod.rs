@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_commit")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::IDResponse;
@@ -27,102 +31,84 @@ use super::shared::ApiResponse;
 /// `ContainerConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerConfig {
-    /// ArgsEscaped property.
+    /// `ArgsEscaped` property.
     #[serde(rename = "ArgsEscaped")]
     pub args_escaped: Option<bool>,
-    /// AttachStderr property.
+    /// `AttachStderr` property.
     #[serde(rename = "AttachStderr")]
     pub attach_stderr: Option<bool>,
-    /// AttachStdin property.
+    /// `AttachStdin` property.
     #[serde(rename = "AttachStdin")]
     pub attach_stdin: Option<bool>,
-    /// AttachStdout property.
+    /// `AttachStdout` property.
     #[serde(rename = "AttachStdout")]
     pub attach_stdout: Option<bool>,
-    /// Cmd property.
+    /// `Cmd` property.
     #[serde(rename = "Cmd")]
     pub cmd: Option<Vec<String>>,
-    /// Domainname property.
+    /// `Domainname` property.
     #[serde(rename = "Domainname")]
     pub domainname: Option<String>,
-    /// Entrypoint property.
+    /// `Entrypoint` property.
     #[serde(rename = "Entrypoint")]
     pub entrypoint: Option<Vec<String>>,
-    /// Env property.
+    /// `Env` property.
     #[serde(rename = "Env")]
     pub env: Option<Vec<String>>,
-    /// ExposedPorts property.
+    /// `ExposedPorts` property.
     #[serde(rename = "ExposedPorts")]
     pub exposed_ports: Option<serde_json::Value>,
-    /// Healthcheck property.
+    /// `Healthcheck` property.
     #[serde(rename = "Healthcheck")]
     pub healthcheck: Option<HealthConfig>,
-    /// Hostname property.
+    /// `Hostname` property.
     #[serde(rename = "Hostname")]
     pub hostname: Option<String>,
-    /// Image property.
+    /// `Image` property.
     #[serde(rename = "Image")]
     pub image: Option<String>,
-    /// Labels property.
+    /// `Labels` property.
     #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
-    /// NetworkDisabled property.
+    /// `NetworkDisabled` property.
     #[serde(rename = "NetworkDisabled")]
     pub network_disabled: Option<bool>,
-    /// OnBuild property.
+    /// `OnBuild` property.
     #[serde(rename = "OnBuild")]
     pub on_build: Option<Vec<String>>,
-    /// OpenStdin property.
+    /// `OpenStdin` property.
     #[serde(rename = "OpenStdin")]
     pub open_stdin: Option<bool>,
-    /// Shell property.
+    /// `Shell` property.
     #[serde(rename = "Shell")]
     pub shell: Option<Vec<String>>,
-    /// StdinOnce property.
+    /// `StdinOnce` property.
     #[serde(rename = "StdinOnce")]
     pub stdin_once: Option<bool>,
-    /// StopSignal property.
+    /// `StopSignal` property.
     #[serde(rename = "StopSignal")]
     pub stop_signal: Option<String>,
-    /// StopTimeout property.
+    /// `StopTimeout` property.
     #[serde(rename = "StopTimeout")]
     pub stop_timeout: Option<i64>,
-    /// Tty property.
+    /// `Tty` property.
     #[serde(rename = "Tty")]
     pub tty: Option<bool>,
-    /// User property.
+    /// `User` property.
     #[serde(rename = "User")]
     pub user: Option<String>,
-    /// Volumes property.
+    /// `Volumes` property.
     #[serde(rename = "Volumes")]
     pub volumes: Option<serde_json::Value>,
-    /// WorkingDir property.
+    /// `WorkingDir` property.
     #[serde(rename = "WorkingDir")]
     pub working_dir: Option<String>,
 }
 
 /// `HealthConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HealthConfig {
-    /// Interval property.
-    #[serde(rename = "Interval")]
-    pub interval: Option<i64>,
-    /// Retries property.
-    #[serde(rename = "Retries")]
-    pub retries: Option<i64>,
-    /// StartInterval property.
-    #[serde(rename = "StartInterval")]
-    pub start_interval: Option<i64>,
-    /// StartPeriod property.
-    #[serde(rename = "StartPeriod")]
-    pub start_period: Option<i64>,
-    /// Test property.
-    #[serde(rename = "Test")]
-    pub test: Option<Vec<String>>,
-    /// Timeout property.
-    #[serde(rename = "Timeout")]
-    pub timeout: Option<i64>,
-}
+///
+/// Same shape as `super::shared::HealthConfigShape`.
+pub type HealthConfig = super::shared::HealthConfigShape;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -184,8 +170,7 @@ pub async fn image_commit_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/commit",
-    );
+    let path = format!("/commit",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -199,24 +184,13 @@ where
     builder = builder.query("pause", args.pause.as_deref());
     builder = builder.query("changes", args.changes.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: IDResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

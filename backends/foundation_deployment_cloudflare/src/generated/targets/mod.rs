@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_targets")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -22,141 +26,104 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `InfraApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::AddressingApiResponseCollectionShape`.
+pub type InfraApiResponseCollection = super::shared::AddressingApiResponseCollectionShape;
 
 /// `InfraApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type InfraApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `InfraApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type InfraApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `InfraIPInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraIPInfo {
-    /// ipv4 property.
+    /// `ipv4` property.
     pub ipv4: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// ipv6 property.
+    /// `ipv6` property.
     pub ipv6: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `InfraMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct InfraMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type InfraMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `InfraTarget` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraTarget {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// hostname property.
+    /// `hostname` property.
     pub hostname: String,
-    /// id property.
-    pub id: InfraTargetId,
-    /// ip property.
+    /// `id` property.
+    pub id: String,
+    /// `ip` property.
     pub ip: InfraIPInfo,
-    /// modified_at property.
+    /// `modified_at` property.
     pub modified_at: String,
 }
 
 /// `InfraTargetArray` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct InfraTargetArray {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type InfraTargetArray = Vec<InfraTarget>;
 
 /// `InfraTargetId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct InfraTargetId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type InfraTargetId = String;
 
 /// `InfraTargetsDeleteBatchPostRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraTargetsDeleteBatchPostRequest {
-    /// target_ids property.
-    pub target_ids: Vec<InfraTargetId>,
+    /// `target_ids` property.
+    pub target_ids: Vec<String>,
 }
 
 /// `InfraTargetsGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraTargetsGetResponse {
-    /// `result` property.
-    pub result: Option<InfraTarget>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<InfraTarget>>`.
+pub type InfraTargetsGetResponse = super::shared::ApiEnvelope<Option<InfraTarget>>;
 
 /// `InfraTargetsListResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraTargetsListResponse {
-    /// `result` property.
-    pub result: Option<Vec<InfraTarget>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<InfraTarget>>>`.
+pub type InfraTargetsListResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<InfraTarget>>>;
 
 /// `InfraTargetsPostRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraTargetsPostRequest {
-    /// hostname property.
+    /// `hostname` property.
     pub hostname: String,
-    /// ip property.
+    /// `ip` property.
     pub ip: InfraIPInfo,
 }
 
 /// `InfraTargetsPostResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraTargetsPostResponse {
-    /// `result` property.
-    pub result: Option<InfraTarget>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<InfraTarget>>`.
+pub type InfraTargetsPostResponse = super::shared::ApiEnvelope<Option<InfraTarget>>;
 
 /// `InfraTargetsPutBatchRequestItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraTargetsPutBatchRequestItem {
-    /// hostname property.
-    pub hostname: String,
-    /// ip property.
-    pub ip: InfraIPInfo,
-}
+///
+/// Same shape as `InfraTargetsPostRequest`.
+pub type InfraTargetsPutBatchRequestItem = InfraTargetsPostRequest;
 
 /// `InfraTargetsPutBatchResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraTargetsPutBatchResponse {
-    /// `result` property.
-    pub result: Option<Vec<InfraTarget>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<InfraTarget>>>`.
+pub type InfraTargetsPutBatchResponse = super::shared::ApiEnvelope<Option<Vec<InfraTarget>>>;
 
 /// `InfraTargetsPutRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraTargetsPutRequest {
-    /// hostname property.
-    pub hostname: String,
-    /// ip property.
-    pub ip: InfraIPInfo,
-}
+///
+/// Same shape as `InfraTargetsPostRequest`.
+pub type InfraTargetsPutRequest = InfraTargetsPostRequest;
 
 /// `InfraTargetsPutResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraTargetsPutResponse {
-    /// `result` property.
-    pub result: Option<InfraTarget>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<InfraTarget>>`.
+pub type InfraTargetsPutResponse = super::shared::ApiEnvelope<Option<InfraTarget>>;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -185,10 +152,10 @@ pub struct InfraTargetsListArgs {
     pub modified_before: Option<String>,
     /// Query parameter: `modified_after`.
     pub modified_after: Option<String>,
-    /// Query parameter: `ips`.
-    pub ips: Option<String>,
-    /// Query parameter: `target_ids`.
-    pub target_ids: Option<String>,
+    /// Query parameter: `ips` (one per value).
+    pub ips: Vec<String>,
+    /// Query parameter: `target_ids` (one per value).
+    pub target_ids: Vec<String>,
     /// Query parameter: `ip_like`.
     pub ip_like: Option<String>,
     /// Query parameter: `ipv4_start`.
@@ -237,13 +204,9 @@ pub struct InfraTargetsDeleteBatchPostArgs {
 }
 
 /// Arguments for [`infra-targets-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct InfraTargetsGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `target_id`.
-    pub target_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTargetIdArgs`.
+pub type InfraTargetsGetArgs = super::shared::AccountIdTargetIdArgs;
 
 /// Arguments for [`infra-targets-put_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -257,13 +220,9 @@ pub struct InfraTargetsPutArgs {
 }
 
 /// Arguments for [`infra-targets-delete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct InfraTargetsDeleteArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `target_id`.
-    pub target_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTargetIdArgs`.
+pub type InfraTargetsDeleteArgs = super::shared::AccountIdTargetIdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -300,9 +259,7 @@ pub async fn infra_targets_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/infrastructure/targets",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/infrastructure/targets", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -317,8 +274,12 @@ where
     builder = builder.query("created_after", args.created_after.as_deref());
     builder = builder.query("modified_before", args.modified_before.as_deref());
     builder = builder.query("modified_after", args.modified_after.as_deref());
-    builder = builder.query("ips", args.ips.as_deref());
-    builder = builder.query("target_ids", args.target_ids.as_deref());
+    for value in &args.ips {
+        builder = builder.query("ips", Some(value.as_str()));
+    }
+    for value in &args.target_ids {
+        builder = builder.query("target_ids", Some(value.as_str()));
+    }
     builder = builder.query("ip_like", args.ip_like.as_deref());
     builder = builder.query("ipv4_start", args.ipv4_start.as_deref());
     builder = builder.query("ipv4_end", args.ipv4_end.as_deref());
@@ -333,20 +294,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: InfraTargetsListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -380,35 +328,21 @@ pub async fn infra_targets_post_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/infrastructure/targets",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/infrastructure/targets", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: InfraTargetsPostResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -442,35 +376,21 @@ pub async fn infra_targets_put_batch_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/infrastructure/targets/batch",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/infrastructure/targets/batch", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: InfraTargetsPutBatchResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -504,7 +424,8 @@ pub async fn infra_targets_delete_batch_post_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/infrastructure/targets/batch_delete",
+    let path = format!(
+        "/accounts/{}/infrastructure/targets/batch_delete",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -512,25 +433,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -564,9 +475,9 @@ pub async fn infra_targets_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/infrastructure/targets/{}",
-        args.account_id,
-        args.target_id,
+    let path = format!(
+        "/accounts/{}/infrastructure/targets/{}",
+        args.account_id, args.target_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -577,20 +488,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: InfraTargetsGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -624,36 +522,24 @@ pub async fn infra_targets_put_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/infrastructure/targets/{}",
-        args.account_id,
-        args.target_id,
+    let path = format!(
+        "/accounts/{}/infrastructure/targets/{}",
+        args.account_id, args.target_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: InfraTargetsPutResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -687,9 +573,9 @@ pub async fn infra_targets_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/infrastructure/targets/{}",
-        args.account_id,
-        args.target_id,
+    let path = format!(
+        "/accounts/{}/infrastructure/targets/{}",
+        args.account_id, args.target_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -700,17 +586,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
-

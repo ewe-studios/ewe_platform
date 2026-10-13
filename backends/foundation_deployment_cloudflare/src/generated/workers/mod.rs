@@ -7,24 +7,28 @@
 
 #![cfg(feature = "cloudflare_workers")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
-use super::shared::AccessComponentsSchemasIdResponse;
-use super::shared::AddressingApiResponseCommon;
-use super::shared::ObservatoryCountResponse;
 use super::shared::AccessApiResponseCollection;
 use super::shared::AccessApiResponseCommon;
 use super::shared::AccessApiResponseSingle;
+use super::shared::AccessComponentsSchemasIdResponse;
 use super::shared::AccessUuid;
+use super::shared::AddressingApiResponseCommon;
 use super::shared::ObservatoryApiResponseCommon;
 use super::shared::ObservatoryApiResponseSingle;
+use super::shared::ObservatoryCountResponse;
 
 use super::shared::ApiResponse;
 
@@ -33,1083 +37,824 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `AccessCreatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessCreatedAt {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type AccessCreatedAt = super::shared::EmptyObject;
 
 /// `AccessCustomPage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccessCustomPage {
-    /// app_count property.
-    pub app_count: Option<AccessSchemasAppCount>,
-    /// created_at property.
+    /// `app_count` property.
+    pub app_count: Option<i64>,
+    /// `created_at` property.
     pub created_at: Option<AccessCreatedAt>,
-    /// custom_html property.
+    /// `custom_html` property.
     pub custom_html: String,
-    /// name property.
-    pub name: AccessCustomPagesComponentsSchemasName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: AccessSchemasType,
-    /// uid property.
-    pub uid: Option<AccessUuid>,
-    /// updated_at property.
+    pub r#type: String,
+    /// `uid` property.
+    pub uid: Option<String>,
+    /// `updated_at` property.
     pub updated_at: Option<AccessUpdatedAt>,
 }
 
 /// `AccessCustomPageWithoutHtml` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccessCustomPageWithoutHtml {
-    /// app_count property.
-    pub app_count: Option<AccessSchemasAppCount>,
-    /// created_at property.
+    /// `app_count` property.
+    pub app_count: Option<i64>,
+    /// `created_at` property.
     pub created_at: Option<AccessCreatedAt>,
-    /// name property.
-    pub name: AccessCustomPagesComponentsSchemasName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: AccessSchemasType,
-    /// uid property.
-    pub uid: Option<AccessUuid>,
-    /// updated_at property.
+    pub r#type: String,
+    /// `uid` property.
+    pub uid: Option<String>,
+    /// `updated_at` property.
     pub updated_at: Option<AccessUpdatedAt>,
 }
 
 /// `AccessCustomPagesComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AccessCustomPagesComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AccessCustomPagesComponentsSchemasName = String;
 
 /// `AccessCustomPagesComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessCustomPagesComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<AccessCustomPageWithoutHtml>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<AccessCustomPageWithoutHtml>>>`.
+pub type AccessCustomPagesComponentsSchemasResponseCollection =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+        Option<Vec<AccessCustomPageWithoutHtml>>,
+    >;
 
 /// `AccessCustomPagesComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessCustomPagesComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<AccessCustomPage>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<AccessCustomPage>>`.
+pub type AccessCustomPagesComponentsSchemasSingleResponse =
+    super::shared::ApiEnvelope<Option<AccessCustomPage>>;
 
 /// `AccessMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AccessMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AccessMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `AccessSchemasAppCount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AccessSchemasAppCount {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AccessSchemasAppCount = i64;
 
 /// `AccessSchemasType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AccessSchemasType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AccessSchemasType = String;
 
 /// `AccessSingleResponseWithoutHtml` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessSingleResponseWithoutHtml {
-    /// `result` property.
-    pub result: Option<AccessCustomPageWithoutHtml>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<AccessCustomPageWithoutHtml>>`.
+pub type AccessSingleResponseWithoutHtml =
+    super::shared::ApiEnvelope<Option<AccessCustomPageWithoutHtml>>;
 
 /// `AccessTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AccessTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AccessTimestamp = String;
 
 /// `AccessUpdatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessUpdatedAt {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type AccessUpdatedAt = super::shared::EmptyObject;
 
 /// `AddressingCidr` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingCidr {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingCidr = String;
 
 /// `AddressingCreateBindingRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AddressingCreateBindingRequest {
-    /// cidr property.
-    pub cidr: AddressingCidr,
-    /// service_id property.
-    pub service_id: AddressingServiceIdentifier,
+    /// `cidr` property.
+    pub cidr: String,
+    /// `service_id` property.
+    pub service_id: String,
 }
 
 /// `AddressingMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `AddressingProvisioning` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AddressingProvisioning {
-    /// state property.
+    /// `state` property.
     pub state: Option<String>,
 }
 
 /// `AddressingServiceBinding` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AddressingServiceBinding {
-    /// cidr property.
-    pub cidr: Option<AddressingCidr>,
-    /// id property.
-    pub id: Option<AddressingServiceBindingIdentifier>,
-    /// provisioning property.
+    /// `cidr` property.
+    pub cidr: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `provisioning` property.
     pub provisioning: Option<AddressingProvisioning>,
-    /// service_id property.
-    pub service_id: Option<AddressingServiceIdentifier>,
-    /// service_name property.
-    pub service_name: Option<AddressingServiceName>,
+    /// `service_id` property.
+    pub service_id: Option<String>,
+    /// `service_name` property.
+    pub service_name: Option<String>,
 }
 
 /// `AddressingServiceBindingIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingServiceBindingIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingServiceBindingIdentifier = String;
 
 /// `AddressingServiceIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingServiceIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingServiceIdentifier = String;
 
 /// `AddressingServiceName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingServiceName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingServiceName = String;
 
 /// `BuildsAPIResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsAPIResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<String>,
-    /// result property.
+    /// `result` property.
     pub result: Option<serde_json::Value>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<BuildsPaginationInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BuildsBranch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBranch {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBranch = String;
 
 /// `BuildsBranchExcludes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBranchExcludes {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBranchExcludes = Vec<String>;
 
 /// `BuildsBranchIncludes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBranchIncludes {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBranchIncludes = Vec<String>;
 
 /// `BuildsBuildCachingEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBuildCachingEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBuildCachingEnabled = bool;
 
 /// `BuildsBuildCommand` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBuildCommand {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBuildCommand = String;
 
 /// `BuildsBuildLogsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsBuildLogsResponse {
-    /// cursor property.
-    pub cursor: Option<BuildsCursor>,
-    /// lines property.
+    /// `cursor` property.
+    pub cursor: Option<String>,
+    /// `lines` property.
     pub lines: Option<Vec<Vec<serde_json::Value>>>,
-    /// truncated property.
+    /// `truncated` property.
     pub truncated: Option<bool>,
 }
 
 /// `BuildsBuildOutcome` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBuildOutcome {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBuildOutcome = String;
 
 /// `BuildsBuildResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsBuildResponse {
-    /// build_outcome property.
-    pub build_outcome: Option<BuildsBuildOutcome>,
-    /// build_trigger_metadata property.
+    /// `build_outcome` property.
+    pub build_outcome: Option<String>,
+    /// `build_trigger_metadata` property.
     pub build_trigger_metadata: Option<BuildsBuildTriggerMetadataResponse>,
-    /// build_uuid property.
-    pub build_uuid: Option<BuildsBuildUuid>,
-    /// created_on property.
-    pub created_on: Option<BuildsCreatedOn>,
-    /// initializing_on property.
+    /// `build_uuid` property.
+    pub build_uuid: Option<String>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `initializing_on` property.
     pub initializing_on: Option<String>,
-    /// modified_on property.
-    pub modified_on: Option<BuildsModifiedOn>,
-    /// pull_request property.
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `pull_request` property.
     pub pull_request: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// running_on property.
+    /// `running_on` property.
     pub running_on: Option<String>,
-    /// status property.
-    pub status: Option<BuildsBuildStatus>,
-    /// stopped_on property.
-    pub stopped_on: Option<BuildsStoppedOn>,
-    /// trigger property.
+    /// `status` property.
+    pub status: Option<String>,
+    /// `stopped_on` property.
+    pub stopped_on: Option<String>,
+    /// `trigger` property.
     pub trigger: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `BuildsBuildSeedRepoInput` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsBuildSeedRepoInput {
-    /// branch property.
-    pub branch: BuildsBranch,
-    /// files property.
+    /// `branch` property.
+    pub branch: String,
+    /// `files` property.
     pub files: Option<Vec<BuildsBuildSeedRepoInputFile>>,
-    /// owner property.
+    /// `owner` property.
     pub owner: String,
-    /// path property.
+    /// `path` property.
     pub path: String,
-    /// provider property.
-    pub provider: BuildsSCMProviderType,
-    /// repository property.
+    /// `provider` property.
+    pub provider: String,
+    /// `repository` property.
     pub repository: String,
 }
 
 /// `BuildsBuildSeedRepoInputFile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsBuildSeedRepoInputFile {
-    /// content property.
+    /// `content` property.
     pub content: String,
-    /// filename property.
+    /// `filename` property.
     pub filename: String,
-    /// isBase64 property.
+    /// `isBase64` property.
     #[serde(rename = "isBase64")]
     pub is_base64: Option<bool>,
-    /// replace property.
+    /// `replace` property.
     pub replace: Option<String>,
 }
 
 /// `BuildsBuildStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBuildStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBuildStatus = String;
 
 /// `BuildsBuildTokenName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBuildTokenName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBuildTokenName = String;
 
 /// `BuildsBuildTokenUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBuildTokenUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBuildTokenUuid = String;
 
 /// `BuildsBuildTriggerMetadataResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsBuildTriggerMetadataResponse {
-    /// author property.
+    /// `author` property.
     pub author: Option<String>,
-    /// branch property.
-    pub branch: Option<BuildsBranch>,
-    /// build_command property.
-    pub build_command: Option<BuildsBuildCommand>,
-    /// build_token_name property.
-    pub build_token_name: Option<BuildsBuildTokenName>,
-    /// build_token_uuid property.
-    pub build_token_uuid: Option<BuildsBuildTokenUuid>,
-    /// build_trigger_source property.
-    pub build_trigger_source: Option<BuildsBuildTriggerSource>,
-    /// commit_hash property.
-    pub commit_hash: Option<BuildsCommitHash>,
-    /// commit_message property.
+    /// `branch` property.
+    pub branch: Option<String>,
+    /// `build_command` property.
+    pub build_command: Option<String>,
+    /// `build_token_name` property.
+    pub build_token_name: Option<String>,
+    /// `build_token_uuid` property.
+    pub build_token_uuid: Option<String>,
+    /// `build_trigger_source` property.
+    pub build_trigger_source: Option<String>,
+    /// `commit_hash` property.
+    pub commit_hash: Option<String>,
+    /// `commit_message` property.
     pub commit_message: Option<String>,
-    /// deploy_command property.
-    pub deploy_command: Option<BuildsDeployCommand>,
-    /// environment_variables property.
+    /// `deploy_command` property.
+    pub deploy_command: Option<String>,
+    /// `environment_variables` property.
     pub environment_variables: Option<serde_json::Value>,
-    /// provider_account_name property.
-    pub provider_account_name: Option<BuildsProviderAccountName>,
-    /// provider_type property.
-    pub provider_type: Option<BuildsSCMProviderType>,
-    /// repo_name property.
-    pub repo_name: Option<BuildsRepoName>,
-    /// root_directory property.
-    pub root_directory: Option<BuildsRootDirectory>,
+    /// `provider_account_name` property.
+    pub provider_account_name: Option<String>,
+    /// `provider_type` property.
+    pub provider_type: Option<String>,
+    /// `repo_name` property.
+    pub repo_name: Option<String>,
+    /// `root_directory` property.
+    pub root_directory: Option<String>,
 }
 
 /// `BuildsBuildTriggerSource` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBuildTriggerSource {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBuildTriggerSource = String;
 
 /// `BuildsBuildUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsBuildUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsBuildUuid = String;
 
 /// `BuildsBuildsByVersionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BuildsBuildsByVersionResponse {
-    /// builds property.
-    pub builds: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::BuildsObject`.
+pub type BuildsBuildsByVersionResponse = super::shared::BuildsObject;
 
 /// `BuildsCanceledBuildResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsCanceledBuildResponse {
-    /// build_outcome property.
-    pub build_outcome: Option<BuildsBuildOutcome>,
-    /// build_uuid property.
-    pub build_uuid: Option<BuildsBuildUuid>,
-    /// stopped_on property.
-    pub stopped_on: Option<BuildsStoppedOn>,
+    /// `build_outcome` property.
+    pub build_outcome: Option<String>,
+    /// `build_uuid` property.
+    pub build_uuid: Option<String>,
+    /// `stopped_on` property.
+    pub stopped_on: Option<String>,
 }
 
 /// `BuildsCloudflareTokenId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsCloudflareTokenId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsCloudflareTokenId = String;
 
 /// `BuildsCommitHash` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsCommitHash {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsCommitHash = String;
 
 /// `BuildsConfigAutofillResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsConfigAutofillResponse {
-    /// config_file property.
+    /// `config_file` property.
     pub config_file: Option<String>,
-    /// default_worker_name property.
+    /// `default_worker_name` property.
     pub default_worker_name: Option<String>,
-    /// env_worker_names property.
+    /// `env_worker_names` property.
     pub env_worker_names: Option<serde_json::Value>,
-    /// package_manager property.
+    /// `package_manager` property.
     pub package_manager: Option<String>,
-    /// scripts property.
+    /// `scripts` property.
     pub scripts: Option<serde_json::Value>,
 }
 
 /// `BuildsCreateBuildRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsCreateBuildRequest {
-    /// branch property.
+    /// `branch` property.
     pub branch: Option<serde_json::Value>,
-    /// commit_hash property.
+    /// `commit_hash` property.
     pub commit_hash: Option<serde_json::Value>,
-    /// seed_repo property.
+    /// `seed_repo` property.
     pub seed_repo: Option<BuildsBuildSeedRepoInput>,
 }
 
 /// `BuildsCreateBuildTokenRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsCreateBuildTokenRequest {
-    /// build_token_name property.
-    pub build_token_name: BuildsBuildTokenName,
-    /// build_token_secret property.
+    /// `build_token_name` property.
+    pub build_token_name: String,
+    /// `build_token_secret` property.
     pub build_token_secret: String,
-    /// cloudflare_token_id property.
-    pub cloudflare_token_id: BuildsCloudflareTokenId,
+    /// `cloudflare_token_id` property.
+    pub cloudflare_token_id: String,
 }
 
 /// `BuildsCreateBuildTokenResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BuildsCreateBuildTokenResponse {
-    /// build_token_name property.
-    pub build_token_name: Option<BuildsBuildTokenName>,
-    /// build_token_uuid property.
-    pub build_token_uuid: Option<BuildsBuildTokenUuid>,
-    /// cloudflare_token_id property.
-    pub cloudflare_token_id: Option<BuildsCloudflareTokenId>,
-    /// owner_type property.
-    pub owner_type: Option<BuildsOwnerType>,
-}
+///
+/// Same shape as `super::shared::BuildsCreateBuildTokenResponseShape`.
+pub type BuildsCreateBuildTokenResponse = super::shared::BuildsCreateBuildTokenResponseShape;
 
 /// `BuildsCreateTriggerRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsCreateTriggerRequest {
-    /// branch_excludes property.
+    /// `branch_excludes` property.
     pub branch_excludes: Vec<String>,
-    /// branch_includes property.
+    /// `branch_includes` property.
     pub branch_includes: Vec<String>,
-    /// build_caching_enabled property.
-    pub build_caching_enabled: Option<BuildsBuildCachingEnabled>,
-    /// build_command property.
-    pub build_command: BuildsBuildCommand,
-    /// build_token_uuid property.
-    pub build_token_uuid: BuildsBuildTokenUuid,
-    /// deploy_command property.
-    pub deploy_command: BuildsDeployCommand,
-    /// external_script_id property.
-    pub external_script_id: BuildsExternalScriptId,
-    /// path_excludes property.
+    /// `build_caching_enabled` property.
+    pub build_caching_enabled: Option<bool>,
+    /// `build_command` property.
+    pub build_command: String,
+    /// `build_token_uuid` property.
+    pub build_token_uuid: String,
+    /// `deploy_command` property.
+    pub deploy_command: String,
+    /// `external_script_id` property.
+    pub external_script_id: String,
+    /// `path_excludes` property.
     pub path_excludes: Vec<String>,
-    /// path_includes property.
+    /// `path_includes` property.
     pub path_includes: Vec<String>,
-    /// repo_connection_uuid property.
-    pub repo_connection_uuid: BuildsRepoConnectionUuid,
-    /// root_directory property.
-    pub root_directory: BuildsRootDirectory,
-    /// trigger_name property.
-    pub trigger_name: BuildsTriggerName,
+    /// `repo_connection_uuid` property.
+    pub repo_connection_uuid: String,
+    /// `root_directory` property.
+    pub root_directory: String,
+    /// `trigger_name` property.
+    pub trigger_name: String,
 }
 
 /// `BuildsCreatedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsCreatedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsCreatedOn = String;
 
 /// `BuildsCursor` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsCursor {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsCursor = String;
 
 /// `BuildsDeletedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsDeletedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsDeletedOn = String;
 
 /// `BuildsDeployCommand` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsDeployCommand {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsDeployCommand = String;
 
 /// `BuildsEnvironmentVariablesRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsEnvironmentVariablesRequest {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsEnvironmentVariablesRequest = serde_json::Value;
 
 /// `BuildsEnvironmentVariablesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsEnvironmentVariablesResponse {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsEnvironmentVariablesResponse = serde_json::Value;
 
 /// `BuildsExternalScriptId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsExternalScriptId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsExternalScriptId = String;
 
 /// `BuildsGetAccountLimitResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsGetAccountLimitResponse {
-    /// build_minutes_refresh_on property.
+    /// `build_minutes_refresh_on` property.
     pub build_minutes_refresh_on: Option<String>,
-    /// has_reached_build_minutes_limit property.
+    /// `has_reached_build_minutes_limit` property.
     pub has_reached_build_minutes_limit: Option<bool>,
 }
 
 /// `BuildsInsertBuildResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsInsertBuildResponse {
-    /// build_uuid property.
-    pub build_uuid: Option<BuildsBuildUuid>,
-    /// created_on property.
-    pub created_on: Option<BuildsCreatedOn>,
+    /// `build_uuid` property.
+    pub build_uuid: Option<String>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
 }
 
 /// `BuildsLatestBuildsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BuildsLatestBuildsResponse {
-    /// builds property.
-    pub builds: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::BuildsObject`.
+pub type BuildsLatestBuildsResponse = super::shared::BuildsObject;
 
 /// `BuildsListTokensResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BuildsListTokensResponse {
-    /// build_token_name property.
-    pub build_token_name: Option<BuildsBuildTokenName>,
-    /// build_token_uuid property.
-    pub build_token_uuid: Option<BuildsBuildTokenUuid>,
-    /// cloudflare_token_id property.
-    pub cloudflare_token_id: Option<BuildsCloudflareTokenId>,
-    /// owner_type property.
-    pub owner_type: Option<BuildsOwnerType>,
-}
+///
+/// Same shape as `super::shared::BuildsCreateBuildTokenResponseShape`.
+pub type BuildsListTokensResponse = super::shared::BuildsCreateBuildTokenResponseShape;
 
 /// `BuildsModifiedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsModifiedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsModifiedOn = String;
 
 /// `BuildsOwnerType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsOwnerType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsOwnerType = String;
 
 /// `BuildsPaginationInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BuildsPaginationInfo {
-    /// count property.
-    pub count: Option<i64>,
-    /// page property.
-    pub page: Option<i64>,
-    /// per_page property.
-    pub per_page: Option<i64>,
-    /// total_count property.
-    pub total_count: Option<i64>,
-    /// total_pages property.
-    pub total_pages: Option<i64>,
-}
+///
+/// Same shape as `super::shared::RumResultInfoShape`.
+pub type BuildsPaginationInfo = super::shared::RumResultInfoShape;
 
 /// `BuildsPathExcludes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsPathExcludes {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsPathExcludes = Vec<String>;
 
 /// `BuildsPathIncludes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsPathIncludes {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsPathIncludes = Vec<String>;
 
 /// `BuildsProviderAccountId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsProviderAccountId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsProviderAccountId = String;
 
 /// `BuildsProviderAccountName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsProviderAccountName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsProviderAccountName = String;
 
 /// `BuildsRepoConnectionUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsRepoConnectionUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsRepoConnectionUuid = String;
 
 /// `BuildsRepoId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsRepoId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsRepoId = String;
 
 /// `BuildsRepoName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsRepoName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsRepoName = String;
 
 /// `BuildsRootDirectory` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsRootDirectory {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsRootDirectory = String;
 
 /// `BuildsSCMProviderType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsSCMProviderType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsSCMProviderType = String;
 
 /// `BuildsStoppedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsStoppedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsStoppedOn = String;
 
 /// `BuildsTriggerName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsTriggerName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsTriggerName = String;
 
 /// `BuildsTriggerResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsTriggerResponse {
-    /// branch_excludes property.
+    /// `branch_excludes` property.
     pub branch_excludes: Option<Vec<String>>,
-    /// branch_includes property.
+    /// `branch_includes` property.
     pub branch_includes: Option<Vec<String>>,
-    /// build_caching_enabled property.
-    pub build_caching_enabled: Option<BuildsBuildCachingEnabled>,
-    /// build_command property.
-    pub build_command: Option<BuildsBuildCommand>,
-    /// build_token_name property.
-    pub build_token_name: Option<BuildsBuildTokenName>,
-    /// build_token_uuid property.
-    pub build_token_uuid: Option<BuildsBuildTokenUuid>,
-    /// created_on property.
-    pub created_on: Option<BuildsCreatedOn>,
-    /// deleted_on property.
-    pub deleted_on: Option<BuildsDeletedOn>,
-    /// deploy_command property.
-    pub deploy_command: Option<BuildsDeployCommand>,
-    /// external_script_id property.
-    pub external_script_id: Option<BuildsExternalScriptId>,
-    /// modified_on property.
-    pub modified_on: Option<BuildsModifiedOn>,
-    /// path_excludes property.
+    /// `build_caching_enabled` property.
+    pub build_caching_enabled: Option<bool>,
+    /// `build_command` property.
+    pub build_command: Option<String>,
+    /// `build_token_name` property.
+    pub build_token_name: Option<String>,
+    /// `build_token_uuid` property.
+    pub build_token_uuid: Option<String>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `deleted_on` property.
+    pub deleted_on: Option<String>,
+    /// `deploy_command` property.
+    pub deploy_command: Option<String>,
+    /// `external_script_id` property.
+    pub external_script_id: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `path_excludes` property.
     pub path_excludes: Option<Vec<String>>,
-    /// path_includes property.
+    /// `path_includes` property.
     pub path_includes: Option<Vec<String>>,
-    /// repo_connection property.
+    /// `repo_connection` property.
     pub repo_connection: Option<BuildsUpsertRepoConnectionResponse>,
-    /// root_directory property.
-    pub root_directory: Option<BuildsRootDirectory>,
-    /// trigger_name property.
-    pub trigger_name: Option<BuildsTriggerName>,
-    /// trigger_uuid property.
-    pub trigger_uuid: Option<BuildsTriggerUuid>,
+    /// `root_directory` property.
+    pub root_directory: Option<String>,
+    /// `trigger_name` property.
+    pub trigger_name: Option<String>,
+    /// `trigger_uuid` property.
+    pub trigger_uuid: Option<String>,
 }
 
 /// `BuildsTriggerUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BuildsTriggerUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BuildsTriggerUuid = String;
 
 /// `BuildsUpdateTriggerRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsUpdateTriggerRequest {
-    /// branch_excludes property.
+    /// `branch_excludes` property.
     pub branch_excludes: Option<Vec<String>>,
-    /// branch_includes property.
+    /// `branch_includes` property.
     pub branch_includes: Option<Vec<String>>,
-    /// build_caching_enabled property.
-    pub build_caching_enabled: Option<BuildsBuildCachingEnabled>,
-    /// build_command property.
-    pub build_command: Option<BuildsBuildCommand>,
-    /// build_token_uuid property.
-    pub build_token_uuid: Option<BuildsBuildTokenUuid>,
-    /// deploy_command property.
-    pub deploy_command: Option<BuildsDeployCommand>,
-    /// path_excludes property.
+    /// `build_caching_enabled` property.
+    pub build_caching_enabled: Option<bool>,
+    /// `build_command` property.
+    pub build_command: Option<String>,
+    /// `build_token_uuid` property.
+    pub build_token_uuid: Option<String>,
+    /// `deploy_command` property.
+    pub deploy_command: Option<String>,
+    /// `path_excludes` property.
     pub path_excludes: Option<Vec<String>>,
-    /// path_includes property.
+    /// `path_includes` property.
     pub path_includes: Option<Vec<String>>,
-    /// root_directory property.
-    pub root_directory: Option<BuildsRootDirectory>,
-    /// trigger_name property.
-    pub trigger_name: Option<BuildsTriggerName>,
+    /// `root_directory` property.
+    pub root_directory: Option<String>,
+    /// `trigger_name` property.
+    pub trigger_name: Option<String>,
 }
 
 /// `BuildsUpsertRepoConnectionRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsUpsertRepoConnectionRequest {
-    /// provider_account_id property.
-    pub provider_account_id: BuildsProviderAccountId,
-    /// provider_account_name property.
-    pub provider_account_name: BuildsProviderAccountName,
-    /// provider_type property.
-    pub provider_type: BuildsSCMProviderType,
-    /// repo_id property.
-    pub repo_id: BuildsRepoId,
-    /// repo_name property.
-    pub repo_name: BuildsRepoName,
+    /// `provider_account_id` property.
+    pub provider_account_id: String,
+    /// `provider_account_name` property.
+    pub provider_account_name: String,
+    /// `provider_type` property.
+    pub provider_type: String,
+    /// `repo_id` property.
+    pub repo_id: String,
+    /// `repo_name` property.
+    pub repo_name: String,
 }
 
 /// `BuildsUpsertRepoConnectionResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildsUpsertRepoConnectionResponse {
-    /// created_on property.
-    pub created_on: Option<BuildsCreatedOn>,
-    /// deleted_on property.
-    pub deleted_on: Option<BuildsDeletedOn>,
-    /// modified_on property.
-    pub modified_on: Option<BuildsModifiedOn>,
-    /// provider_account_id property.
-    pub provider_account_id: Option<BuildsProviderAccountId>,
-    /// provider_account_name property.
-    pub provider_account_name: Option<BuildsProviderAccountName>,
-    /// provider_type property.
-    pub provider_type: Option<BuildsSCMProviderType>,
-    /// repo_connection_uuid property.
-    pub repo_connection_uuid: Option<BuildsRepoConnectionUuid>,
-    /// repo_id property.
-    pub repo_id: Option<BuildsRepoId>,
-    /// repo_name property.
-    pub repo_name: Option<BuildsRepoName>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `deleted_on` property.
+    pub deleted_on: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `provider_account_id` property.
+    pub provider_account_id: Option<String>,
+    /// `provider_account_name` property.
+    pub provider_account_name: Option<String>,
+    /// `provider_type` property.
+    pub provider_type: Option<String>,
+    /// `repo_connection_uuid` property.
+    pub repo_connection_uuid: Option<String>,
+    /// `repo_id` property.
+    pub repo_id: Option<String>,
+    /// `repo_name` property.
+    pub repo_name: Option<String>,
 }
 
 /// `CancelBuildByUuidResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CancelBuildByUuidResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsCanceledBuildResponse>,
+    pub result: BuildsCanceledBuildResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `CcAccountID` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CcAccountID {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CcAccountID = String;
 
 /// `CcAccountRegistryToken` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcAccountRegistryToken {
-    /// account_id property.
-    pub account_id: CcAccountID,
-    /// password property.
+    /// `account_id` property.
+    pub account_id: String,
+    /// `password` property.
     pub password: Option<String>,
-    /// registry_host property.
+    /// `registry_host` property.
     pub registry_host: String,
-    /// username property.
+    /// `username` property.
     pub username: String,
 }
 
 /// `CcApplicationHealthInstances` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcApplicationHealthInstances {
-    /// active property.
+    /// `active` property.
     pub active: i64,
-    /// assigned property.
+    /// `assigned` property.
     pub assigned: i64,
 }
 
 /// `CcApplicationID` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CcApplicationID {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CcApplicationID = String;
 
 /// `CcApplicationNetwork` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcApplicationNetwork {
-    /// bandwidth_limit_mbps property.
+    /// `bandwidth_limit_mbps` property.
     pub bandwidth_limit_mbps: i64,
 }
 
 /// `CcApplicationRolloutActiveGracePeriod` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CcApplicationRolloutActiveGracePeriod {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CcApplicationRolloutActiveGracePeriod = i64;
 
 /// `CcCustomResourceAllocation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcCustomResourceAllocation {
-    /// disk_mb property.
+    /// `disk_mb` property.
     pub disk_mb: i64,
-    /// memory_mib property.
+    /// `memory_mib` property.
     pub memory_mib: i64,
-    /// vcpu property.
+    /// `vcpu` property.
     pub vcpu: f64,
 }
 
 /// `CcDurableObjectsConfigurationNamespaceId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcDurableObjectsConfigurationNamespaceId {
-    /// namespace_id property.
+    /// `namespace_id` property.
     pub namespace_id: String,
 }
 
 /// `CcGenerateImageRegistryCredentialsResponse201Response` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CcGenerateImageRegistryCredentialsResponse201Response {
-    /// `result` property.
-    pub result: CcAccountRegistryToken,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<CcAccountRegistryToken>`.
+pub type CcGenerateImageRegistryCredentialsResponse201Response =
+    super::shared::ApiEnvelope<CcAccountRegistryToken>;
 
 /// `CcISO8601Timestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CcISO8601Timestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CcISO8601Timestamp = String;
 
 /// `CcImage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CcImage {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CcImage = String;
 
 /// `CcImageRegistryCredentialsConfiguration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcImageRegistryCredentialsConfiguration {
-    /// expiration_minutes property.
+    /// `expiration_minutes` property.
     pub expiration_minutes: i64,
-    /// permissions property.
-    pub permissions: Vec<CcImageRegistryPermissions>,
+    /// `permissions` property.
+    pub permissions: Vec<String>,
 }
 
 /// `CcImageRegistryPermissions` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CcImageRegistryPermissions {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CcImageRegistryPermissions = String;
 
 /// `CcInstanceType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CcInstanceType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CcInstanceType = String;
 
 /// `CcMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CcMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CcMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `CcObservability` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcObservability {
-    /// logs property.
+    /// `logs` property.
     pub logs: Option<CcObservabilityLogs>,
 }
 
 /// `CcObservabilityLogs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CcObservabilityLogs {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
+///
+/// Same shape as `super::shared::EnabledObject2`.
+pub type CcObservabilityLogs = super::shared::EnabledObject2;
 
 /// `CcPublicApplication` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcPublicApplication {
-    /// created_at property.
-    pub created_at: CcISO8601Timestamp,
-    /// durable_object property.
+    /// `created_at` property.
+    pub created_at: String,
+    /// `durable_object` property.
     pub durable_object: Option<CcDurableObjectsConfigurationNamespaceId>,
-    /// health property.
+    /// `health` property.
     pub health: CcApplicationHealthInstances,
-    /// id property.
-    pub id: CcApplicationID,
-    /// image property.
-    pub image: CcImage,
-    /// instance_type property.
-    pub instance_type: CcPublicInstanceType,
-    /// max_instances property.
+    /// `id` property.
+    pub id: String,
+    /// `image` property.
+    pub image: String,
+    /// `instance_type` property.
+    pub instance_type: serde_json::Value,
+    /// `max_instances` property.
     pub max_instances: i64,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// network property.
+    /// `network` property.
     pub network: Option<CcApplicationNetwork>,
-    /// observability property.
+    /// `observability` property.
     pub observability: Option<CcObservability>,
-    /// rollout_active_grace_period property.
-    pub rollout_active_grace_period: Option<CcApplicationRolloutActiveGracePeriod>,
-    /// updated_at property.
-    pub updated_at: CcISO8601Timestamp,
-    /// version property.
+    /// `rollout_active_grace_period` property.
+    pub rollout_active_grace_period: Option<i64>,
+    /// `updated_at` property.
+    pub updated_at: String,
+    /// `version` property.
     pub version: i64,
 }
 
 /// `CcPublicInstanceType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CcPublicInstanceType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CcPublicInstanceType = serde_json::Value;
 
 /// `CcPublicListApplicationsResponse200Response` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CcPublicListApplicationsResponse200Response {
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<CcPublicApplication>>`.
+pub type CcPublicListApplicationsResponse200Response =
+    super::shared::ApiEnvelope<Vec<CcPublicApplication>>;
 
 /// `CcPublicListApplicationsResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcPublicListApplicationsResult {
-    /// result property.
+    /// `result` property.
     pub result: Vec<CcPublicApplication>,
 }
 
 /// `CcV4BaseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CcV4BaseResponse {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type CcV4BaseResponse = super::shared::ErrorsMessagesSuccessObject;
 
 /// `CloudflarePipelinesConnectionSchema` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflarePipelinesConnectionSchema {
-    /// fields property.
+    /// `fields` property.
     pub fields: Option<Vec<Box<CloudflarePipelinesSourceField>>>,
-    /// format property.
+    /// `format` property.
     pub format: Option<serde_json::Value>,
-    /// inferred property.
+    /// `inferred` property.
     pub inferred: Option<bool>,
 }
 
 /// `CloudflarePipelinesDecimalEncoding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CloudflarePipelinesDecimalEncoding {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CloudflarePipelinesDecimalEncoding = String;
 
 /// `CloudflarePipelinesFieldType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CloudflarePipelinesFieldType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CloudflarePipelinesFieldType = serde_json::Value;
 
 /// `CloudflarePipelinesFormat` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CloudflarePipelinesFormat {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CloudflarePipelinesFormat = serde_json::Value;
 
 /// `CloudflarePipelinesJsonFormat` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflarePipelinesJsonFormat {
-    /// decimal_encoding property.
-    pub decimal_encoding: Option<CloudflarePipelinesDecimalEncoding>,
-    /// timestamp_format property.
-    pub timestamp_format: Option<CloudflarePipelinesTimestampFormat>,
-    /// unstructured property.
+    /// `decimal_encoding` property.
+    pub decimal_encoding: Option<String>,
+    /// `timestamp_format` property.
+    pub timestamp_format: Option<String>,
+    /// `unstructured` property.
     pub unstructured: Option<bool>,
 }
 
 /// `CloudflarePipelinesListField` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflarePipelinesListField {
-    /// items property.
+    /// `items` property.
     pub items: Box<CloudflarePipelinesSourceField>,
 }
 
 /// `CloudflarePipelinesParquetCompression` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CloudflarePipelinesParquetCompression {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CloudflarePipelinesParquetCompression = String;
 
 /// `CloudflarePipelinesParquetFormat` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflarePipelinesParquetFormat {
-    /// compression property.
-    pub compression: Option<CloudflarePipelinesParquetCompression>,
-    /// row_group_bytes property.
+    /// `compression` property.
+    pub compression: Option<String>,
+    /// `row_group_bytes` property.
     pub row_group_bytes: Option<i64>,
 }
 
 /// `CloudflarePipelinesPipelineEdge` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflarePipelinesPipelineEdge {
-    /// dest_id property.
+    /// `dest_id` property.
     pub dest_id: i64,
-    /// edge_type property.
+    /// `edge_type` property.
     pub edge_type: String,
-    /// key_type property.
+    /// `key_type` property.
     pub key_type: String,
-    /// src_id property.
+    /// `src_id` property.
     pub src_id: i64,
-    /// value_type property.
+    /// `value_type` property.
     pub value_type: String,
 }
 
 /// `CloudflarePipelinesPipelineGraph` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflarePipelinesPipelineGraph {
-    /// edges property.
+    /// `edges` property.
     pub edges: Vec<CloudflarePipelinesPipelineEdge>,
-    /// nodes property.
+    /// `nodes` property.
     pub nodes: Vec<CloudflarePipelinesPipelineNode>,
 }
 
 /// `CloudflarePipelinesPipelineNode` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflarePipelinesPipelineNode {
-    /// description property.
+    /// `description` property.
     pub description: String,
-    /// node_id property.
+    /// `node_id` property.
     pub node_id: i64,
-    /// operator property.
+    /// `operator` property.
     pub operator: String,
-    /// parallelism property.
+    /// `parallelism` property.
     pub parallelism: i64,
 }
 
@@ -1129,682 +874,515 @@ pub struct CloudflarePipelinesSourceField {
 /// `CloudflarePipelinesStructField` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflarePipelinesStructField {
-    /// fields property.
+    /// `fields` property.
     pub fields: Vec<Box<CloudflarePipelinesSourceField>>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
 }
 
 /// `CloudflarePipelinesTimestampField` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflarePipelinesTimestampField {
-    /// unit property.
-    pub unit: Option<CloudflarePipelinesTimestampUnit>,
+    /// `unit` property.
+    pub unit: Option<String>,
 }
 
 /// `CloudflarePipelinesTimestampFormat` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CloudflarePipelinesTimestampFormat {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CloudflarePipelinesTimestampFormat = String;
 
 /// `CloudflarePipelinesTimestampUnit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CloudflarePipelinesTimestampUnit {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CloudflarePipelinesTimestampUnit = String;
 
 /// `CloudflarePipelinesWorkerPipelinesCommonSuccess` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CloudflarePipelinesWorkerPipelinesCommonSuccess {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CloudflarePipelinesWorkerPipelinesCommonSuccess = bool;
 
 /// `CreateBuildTokenResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateBuildTokenResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsCreateBuildTokenResponse>,
+    pub result: BuildsCreateBuildTokenResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `CreateHyperdriveResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateHyperdriveResponse {
-    /// `result` property.
-    pub result: Option<HyperdriveHyperdriveConfigResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<HyperdriveHyperdriveConfigResponse>`.
+pub type CreateHyperdriveResponse = super::shared::ApiEnvelope<HyperdriveHyperdriveConfigResponse>;
 
 /// `CreateManualBuildResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateManualBuildResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsInsertBuildResponse>,
+    pub result: BuildsInsertBuildResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `CreateTriggerResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateTriggerResponse {
-    /// `result` property.
-    pub result: Option<BuildsTriggerResponse>,
-}
-
-/// `CreateWorkerRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateWorkerRequest {
-}
-
-/// `CreateWorkerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateWorkerResponse {
-    /// `result` property.
-    pub result: WorkersWorker,
-}
-
-/// `CreateWorkerVersionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateWorkerVersionResponse {
-    /// `result` property.
-    pub result: WorkersVersion,
-}
-
-/// `CustomAssetsForAZoneCreateACustomAssetRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomAssetsForAZoneCreateACustomAssetRequest {
-    /// description property.
-    pub description: CustomPagesAssetDescription,
-    /// name property.
-    pub name: CustomPagesAssetName,
-    /// url property.
-    pub url: CustomPagesAssetUrl,
-}
-
-/// `CustomAssetsForAZoneUpdateACustomAssetRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomAssetsForAZoneUpdateACustomAssetRequest {
-    /// description property.
-    pub description: CustomPagesAssetDescription,
-    /// url property.
-    pub url: CustomPagesAssetUrl,
-}
-
-/// `CustomAssetsForAnAccountCreateACustomAssetRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomAssetsForAnAccountCreateACustomAssetRequest {
-    /// description property.
-    pub description: CustomPagesAssetDescription,
-    /// name property.
-    pub name: CustomPagesAssetName,
-    /// url property.
-    pub url: CustomPagesAssetUrl,
-}
-
-/// `CustomAssetsForAnAccountUpdateACustomAssetRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomAssetsForAnAccountUpdateACustomAssetRequest {
-    /// description property.
-    pub description: CustomPagesAssetDescription,
-    /// url property.
-    pub url: CustomPagesAssetUrl,
-}
-
-/// `CustomPagesApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomPagesApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `CustomPagesApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomPagesApiResponseCommon {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
+    /// `messages` property.
+    pub messages: Vec<String>,
+    /// `result` property.
+    pub result: BuildsTriggerResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
     pub success: bool,
 }
 
+/// `CreateWorkerRequest` type.
+///
+/// Same shape as `super::shared::CreateWorkerRequestShape`.
+pub type CreateWorkerRequest = super::shared::CreateWorkerRequestShape;
+
+/// `CreateWorkerResponse` type.
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersWorker>`.
+pub type CreateWorkerResponse = super::shared::ApiEnvelope<WorkersWorker>;
+
+/// `CreateWorkerVersionResponse` type.
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersVersion>`.
+pub type CreateWorkerVersionResponse = super::shared::ApiEnvelope<WorkersVersion>;
+
+/// `CustomAssetsForAZoneCreateACustomAssetRequest` type.
+///
+/// Same shape as `super::shared::DescriptionNameUrlObject`.
+pub type CustomAssetsForAZoneCreateACustomAssetRequest = super::shared::DescriptionNameUrlObject;
+
+/// `CustomAssetsForAZoneUpdateACustomAssetRequest` type.
+///
+/// Same shape as `super::shared::DescriptionUrlObject`.
+pub type CustomAssetsForAZoneUpdateACustomAssetRequest = super::shared::DescriptionUrlObject;
+
+/// `CustomAssetsForAnAccountCreateACustomAssetRequest` type.
+///
+/// Same shape as `super::shared::DescriptionNameUrlObject`.
+pub type CustomAssetsForAnAccountCreateACustomAssetRequest =
+    super::shared::DescriptionNameUrlObject;
+
+/// `CustomAssetsForAnAccountUpdateACustomAssetRequest` type.
+///
+/// Same shape as `super::shared::DescriptionUrlObject`.
+pub type CustomAssetsForAnAccountUpdateACustomAssetRequest = super::shared::DescriptionUrlObject;
+
+/// `CustomPagesApiResponseCollection` type.
+///
+/// Same shape as `super::shared::AddressingApiResponseCollectionShape`.
+pub type CustomPagesApiResponseCollection = super::shared::AddressingApiResponseCollectionShape;
+
+/// `CustomPagesApiResponseCommon` type.
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type CustomPagesApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
+
 /// `CustomPagesApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomPagesApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type CustomPagesApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `CustomPagesAssetDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CustomPagesAssetDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CustomPagesAssetDescription = String;
 
 /// `CustomPagesAssetName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CustomPagesAssetName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CustomPagesAssetName = String;
 
 /// `CustomPagesAssetUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CustomPagesAssetUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CustomPagesAssetUrl = String;
 
 /// `CustomPagesCustomAsset` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CustomPagesCustomAsset {
-    /// description property.
-    pub description: Option<CustomPagesAssetDescription>,
-    /// last_updated property.
-    pub last_updated: Option<CustomPagesTimestamp>,
-    /// name property.
-    pub name: Option<CustomPagesAssetName>,
-    /// size_bytes property.
+    /// `description` property.
+    pub description: Option<String>,
+    /// `last_updated` property.
+    pub last_updated: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `size_bytes` property.
     pub size_bytes: Option<i64>,
-    /// url property.
-    pub url: Option<CustomPagesAssetUrl>,
+    /// `url` property.
+    pub url: Option<String>,
 }
 
 /// `CustomPagesCustomAssetResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomPagesCustomAssetResult {
-    /// `result` property.
-    pub result: Option<CustomPagesCustomAsset>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<CustomPagesCustomAsset>>`.
+pub type CustomPagesCustomAssetResult = super::shared::ApiEnvelope<Option<CustomPagesCustomAsset>>;
 
 /// `CustomPagesCustomAssetResultList` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomPagesCustomAssetResultList {
-    /// `result` property.
-    pub result: Option<Vec<CustomPagesCustomAsset>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<CustomPagesCustomAsset>>>`.
+pub type CustomPagesCustomAssetResultList =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<CustomPagesCustomAsset>>>;
 
 /// `CustomPagesCustomPage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CustomPagesCustomPage {
-    /// created_on property.
-    pub created_on: Option<CustomPagesTimestamp>,
-    /// description property.
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `description` property.
     pub description: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// modified_on property.
-    pub modified_on: Option<CustomPagesTimestamp>,
-    /// preview_target property.
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `preview_target` property.
     pub preview_target: Option<String>,
-    /// required_tokens property.
+    /// `required_tokens` property.
     pub required_tokens: Option<Vec<String>>,
-    /// state property.
-    pub state: Option<CustomPagesState>,
-    /// url property.
-    pub url: Option<CustomPagesUrl>,
+    /// `state` property.
+    pub state: Option<String>,
+    /// `url` property.
+    pub url: Option<String>,
 }
 
 /// `CustomPagesCustomPageResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomPagesCustomPageResult {
-    /// `result` property.
-    pub result: Option<CustomPagesCustomPage>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<CustomPagesCustomPage>>`.
+pub type CustomPagesCustomPageResult = super::shared::ApiEnvelope<Option<CustomPagesCustomPage>>;
 
 /// `CustomPagesCustomPageResultList` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomPagesCustomPageResultList {
-    /// `result` property.
-    pub result: Option<Vec<CustomPagesCustomPage>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<CustomPagesCustomPage>>>`.
+pub type CustomPagesCustomPageResultList =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<CustomPagesCustomPage>>>;
 
 /// `CustomPagesForAZoneUpdateACustomPageRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomPagesForAZoneUpdateACustomPageRequest {
-    /// state property.
-    pub state: CustomPagesState,
-    /// url property.
-    pub url: CustomPagesUrl,
-}
+///
+/// Same shape as `super::shared::StateUrlObject`.
+pub type CustomPagesForAZoneUpdateACustomPageRequest = super::shared::StateUrlObject;
 
 /// `CustomPagesForAnAccountUpdateACustomPageRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CustomPagesForAnAccountUpdateACustomPageRequest {
-    /// state property.
-    pub state: CustomPagesState,
-    /// url property.
-    pub url: CustomPagesUrl,
-}
+///
+/// Same shape as `super::shared::StateUrlObject`.
+pub type CustomPagesForAnAccountUpdateACustomPageRequest = super::shared::StateUrlObject;
 
 /// `CustomPagesMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CustomPagesMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CustomPagesMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `CustomPagesState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CustomPagesState {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CustomPagesState = String;
 
 /// `CustomPagesTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CustomPagesTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CustomPagesTimestamp = String;
 
 /// `CustomPagesUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CustomPagesUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CustomPagesUrl = String;
 
 /// `D1ApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1ApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type D1ApiResponseCommon = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `D1BatchQuery` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1BatchQuery {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1BatchQuery = serde_json::Value;
 
 /// `D1CreateDatabaseRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1CreateDatabaseRequest {
-    /// jurisdiction property.
-    pub jurisdiction: Option<D1Jurisdiction>,
-    /// name property.
-    pub name: D1DatabaseName,
-    /// primary_location_hint property.
-    pub primary_location_hint: Option<D1PrimaryLocationHint>,
+    /// `jurisdiction` property.
+    pub jurisdiction: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `primary_location_hint` property.
+    pub primary_location_hint: Option<String>,
 }
 
 /// `D1CreateDatabaseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1CreateDatabaseResponse {
-    /// `result` property.
-    pub result: Option<D1DatabaseDetailsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<D1DatabaseDetailsResponse>`.
+pub type D1CreateDatabaseResponse = super::shared::ApiEnvelope<D1DatabaseDetailsResponse>;
 
 /// `D1CreatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1CreatedAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1CreatedAt = String;
 
 /// `D1DatabaseDetailsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1DatabaseDetailsResponse {
-    /// created_at property.
-    pub created_at: Option<D1CreatedAt>,
-    /// file_size property.
-    pub file_size: Option<D1FileSize>,
-    /// jurisdiction property.
-    pub jurisdiction: Option<D1JurisdictionNullable>,
-    /// name property.
-    pub name: Option<D1DatabaseName>,
-    /// num_tables property.
-    pub num_tables: Option<D1TableCount>,
-    /// read_replication property.
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `file_size` property.
+    pub file_size: Option<f64>,
+    /// `jurisdiction` property.
+    pub jurisdiction: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `num_tables` property.
+    pub num_tables: Option<f64>,
+    /// `read_replication` property.
     pub read_replication: Option<D1ReadReplicationDetails>,
-    /// uuid property.
-    pub uuid: Option<D1DatabaseIdentifier>,
-    /// version property.
-    pub version: Option<D1DatabaseVersion>,
+    /// `uuid` property.
+    pub uuid: Option<String>,
+    /// `version` property.
+    pub version: Option<String>,
 }
 
 /// `D1DatabaseIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1DatabaseIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1DatabaseIdentifier = String;
 
 /// `D1DatabaseName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1DatabaseName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1DatabaseName = String;
 
 /// `D1DatabaseResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1DatabaseResponse {
-    /// created_at property.
-    pub created_at: Option<D1CreatedAt>,
-    /// jurisdiction property.
-    pub jurisdiction: Option<D1JurisdictionNullable>,
-    /// name property.
-    pub name: Option<D1DatabaseName>,
-    /// uuid property.
-    pub uuid: Option<D1DatabaseIdentifier>,
-    /// version property.
-    pub version: Option<D1DatabaseVersion>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `jurisdiction` property.
+    pub jurisdiction: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `uuid` property.
+    pub uuid: Option<String>,
+    /// `version` property.
+    pub version: Option<String>,
 }
 
 /// `D1DatabaseUpdatePartialRequestBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1DatabaseUpdatePartialRequestBody {
-    /// read_replication property.
+    /// `read_replication` property.
     pub read_replication: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `D1DatabaseUpdateRequestBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1DatabaseUpdateRequestBody {
-    /// read_replication property.
+    /// `read_replication` property.
     pub read_replication: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `D1DatabaseVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1DatabaseVersion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1DatabaseVersion = String;
 
 /// `D1DeleteDatabaseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1DeleteDatabaseResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type D1DeleteDatabaseResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `D1ExportDatabaseRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1ExportDatabaseRequest {
-    /// current_bookmark property.
+    /// `current_bookmark` property.
     pub current_bookmark: Option<String>,
-    /// dump_options property.
+    /// `dump_options` property.
     pub dump_options: Option<D1ExportDatabaseRequestDumpOptions>,
-    /// output_format property.
+    /// `output_format` property.
     pub output_format: String,
 }
 
 /// `D1ExportDatabaseRequestDumpOptions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1ExportDatabaseRequestDumpOptions {
-    /// no_data property.
+    /// `no_data` property.
     pub no_data: Option<bool>,
-    /// no_schema property.
+    /// `no_schema` property.
     pub no_schema: Option<bool>,
-    /// tables property.
+    /// `tables` property.
     pub tables: Option<Vec<String>>,
 }
 
 /// `D1ExportDatabaseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1ExportDatabaseResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type D1ExportDatabaseResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `D1FileSize` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1FileSize {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1FileSize = f64;
 
 /// `D1GetDatabaseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1GetDatabaseResponse {
-    /// `result` property.
-    pub result: Option<D1DatabaseDetailsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<D1DatabaseDetailsResponse>`.
+pub type D1GetDatabaseResponse = super::shared::ApiEnvelope<D1DatabaseDetailsResponse>;
 
 /// `D1ImportDatabaseRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1ImportDatabaseRequest {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1ImportDatabaseRequest = serde_json::Value;
 
 /// `D1ImportDatabaseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1ImportDatabaseResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type D1ImportDatabaseResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `D1Jurisdiction` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1Jurisdiction {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1Jurisdiction = String;
 
 /// `D1JurisdictionNullable` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1JurisdictionNullable {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1JurisdictionNullable = String;
 
 /// `D1ListDatabasesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1ListDatabasesResponse {
-    /// `result` property.
-    pub result: Option<Vec<D1DatabaseResponse>>,
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<D1DatabaseResponse>>`.
+pub type D1ListDatabasesResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<D1DatabaseResponse>>;
 
 /// `D1Messages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1Messages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1Messages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `D1Params` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1Params {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1Params = Vec<String>;
 
 /// `D1PrimaryLocationHint` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1PrimaryLocationHint {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1PrimaryLocationHint = String;
 
 /// `D1QueryDatabaseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1QueryDatabaseResponse {
-    /// `result` property.
-    pub result: Option<Vec<D1QueryResultResponse>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<D1QueryResultResponse>>`.
+pub type D1QueryDatabaseResponse = super::shared::ApiEnvelope<Vec<D1QueryResultResponse>>;
 
 /// `D1QueryMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1QueryMeta {
-    /// changed_db property.
+    /// `changed_db` property.
     pub changed_db: Option<bool>,
-    /// changes property.
+    /// `changes` property.
     pub changes: Option<f64>,
-    /// duration property.
+    /// `duration` property.
     pub duration: Option<f64>,
-    /// last_row_id property.
+    /// `last_row_id` property.
     pub last_row_id: Option<f64>,
-    /// rows_read property.
+    /// `rows_read` property.
     pub rows_read: Option<f64>,
-    /// rows_written property.
+    /// `rows_written` property.
     pub rows_written: Option<f64>,
-    /// served_by_colo property.
-    pub served_by_colo: Option<D1ServedByColo>,
-    /// served_by_primary property.
+    /// `served_by_colo` property.
+    pub served_by_colo: Option<String>,
+    /// `served_by_primary` property.
     pub served_by_primary: Option<bool>,
-    /// served_by_region property.
-    pub served_by_region: Option<D1ServedByRegion>,
-    /// size_after property.
+    /// `served_by_region` property.
+    pub served_by_region: Option<String>,
+    /// `size_after` property.
     pub size_after: Option<f64>,
-    /// timings property.
+    /// `timings` property.
     pub timings: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `D1QueryResultResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1QueryResultResponse {
-    /// meta property.
+    /// `meta` property.
     pub meta: Option<D1QueryMeta>,
-    /// results property.
+    /// `results` property.
     pub results: Option<Vec<serde_json::Value>>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `D1RawDatabaseQueryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1RawDatabaseQueryResponse {
-    /// `result` property.
-    pub result: Option<Vec<D1RawResultResponse>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<D1RawResultResponse>>`.
+pub type D1RawDatabaseQueryResponse = super::shared::ApiEnvelope<Vec<D1RawResultResponse>>;
 
 /// `D1RawResultResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1RawResultResponse {
-    /// meta property.
+    /// `meta` property.
     pub meta: Option<D1QueryMeta>,
-    /// results property.
+    /// `results` property.
     pub results: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `D1ReadReplicationDetails` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1ReadReplicationDetails {
-    /// mode property.
-    pub mode: D1ReadReplicationMode,
+    /// `mode` property.
+    pub mode: String,
 }
 
 /// `D1ReadReplicationMode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1ReadReplicationMode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1ReadReplicationMode = String;
 
 /// `D1ServedByColo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1ServedByColo {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1ServedByColo = String;
 
 /// `D1ServedByRegion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1ServedByRegion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1ServedByRegion = String;
 
 /// `D1SingleQuery` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1SingleQuery {
-    /// params property.
+    /// `params` property.
     pub params: Option<Vec<String>>,
-    /// sql property.
-    pub sql: D1Sql,
+    /// `sql` property.
+    pub sql: String,
 }
 
 /// `D1Sql` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1Sql {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1Sql = String;
 
 /// `D1TableCount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1TableCount {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1TableCount = f64;
 
 /// `D1TimeTravelBookmark` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct D1TimeTravelBookmark {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type D1TimeTravelBookmark = String;
 
 /// `D1TimeTravelGetBookmarkResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1TimeTravelGetBookmarkResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type D1TimeTravelGetBookmarkResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `D1TimeTravelRestoreResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1TimeTravelRestoreResponse {
-    /// bookmark property.
+    /// `bookmark` property.
     pub bookmark: Option<serde_json::Value>,
-    /// message property.
+    /// `message` property.
     pub message: Option<String>,
-    /// previous_bookmark property.
+    /// `previous_bookmark` property.
     pub previous_bookmark: Option<serde_json::Value>,
 }
 
 /// `D1TimeTravelRestoreResponse2` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1TimeTravelRestoreResponse2 {
-    /// `result` property.
-    pub result: Option<D1TimeTravelRestoreResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<D1TimeTravelRestoreResponse>`.
+pub type D1TimeTravelRestoreResponse2 = super::shared::ApiEnvelope<D1TimeTravelRestoreResponse>;
 
 /// `D1UpdateDatabaseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1UpdateDatabaseResponse {
-    /// `result` property.
-    pub result: Option<D1DatabaseDetailsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<D1DatabaseDetailsResponse>`.
+pub type D1UpdateDatabaseResponse = super::shared::ApiEnvelope<D1DatabaseDetailsResponse>;
 
 /// `D1UpdatePartialDatabaseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1UpdatePartialDatabaseResponse {
-    /// `result` property.
-    pub result: Option<D1DatabaseDetailsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<D1DatabaseDetailsResponse>`.
+pub type D1UpdatePartialDatabaseResponse = super::shared::ApiEnvelope<D1DatabaseDetailsResponse>;
 
 /// `DeleteHyperdriveResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteHyperdriveResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DeleteHyperdriveResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DestinationCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationCreateRequest {
-    /// configuration property.
+    /// `configuration` property.
     pub configuration: DestinationCreateRequestConfiguration,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// skipPreflightCheck property.
+    /// `skipPreflightCheck` property.
     #[serde(rename = "skipPreflightCheck")]
     pub skip_preflight_check: Option<bool>,
 }
@@ -1812,476 +1390,437 @@ pub struct DestinationCreateRequest {
 /// `DestinationCreateRequestConfiguration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationCreateRequestConfiguration {
-    /// headers property.
+    /// `headers` property.
     pub headers: serde_json::Value,
-    /// logpushDataset property.
+    /// `logpushDataset` property.
     #[serde(rename = "logpushDataset")]
     pub logpush_dataset: serde_json::Value,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `DestinationCreateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationCreateResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<DestinationCreateResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<DestinationCreateResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: DestinationCreateResponseResult,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `DestinationCreateResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationCreateResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type DestinationCreateResponseErrorsItem = super::shared::MessageObject;
 
 /// `DestinationCreateResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationCreateResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type DestinationCreateResponseMessagesItem = super::shared::MessageObject;
 
 /// `DestinationCreateResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationCreateResponseResult {
-    /// configuration property.
+    /// `configuration` property.
     pub configuration: DestinationCreateResponseResultConfiguration,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// scripts property.
+    /// `scripts` property.
     pub scripts: Vec<String>,
-    /// slug property.
+    /// `slug` property.
     pub slug: String,
 }
 
 /// `DestinationCreateResponseResultConfiguration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationCreateResponseResultConfiguration {
-    /// destination_conf property.
-    pub destination_conf: String,
-    /// logpushDataset property.
-    #[serde(rename = "logpushDataset")]
-    pub logpush_dataset: serde_json::Value,
-    /// logpushJob property.
-    #[serde(rename = "logpushJob")]
-    pub logpush_job: f64,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-    /// url property.
-    pub url: String,
-}
+///
+/// Same shape as `super::shared::DestinationCreateResponseResultConfigurationShape`.
+pub type DestinationCreateResponseResultConfiguration =
+    super::shared::DestinationCreateResponseResultConfigurationShape;
 
 /// `DestinationListResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationListResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<DestinationListResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<DestinationListResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: Vec<DestinationListResponseResultItem>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `DestinationListResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationListResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type DestinationListResponseErrorsItem = super::shared::MessageObject;
 
 /// `DestinationListResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationListResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type DestinationListResponseMessagesItem = super::shared::MessageObject;
 
 /// `DestinationListResponseResultItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationListResponseResultItem {
-    /// configuration property.
+    /// `configuration` property.
     pub configuration: DestinationListResponseResultItemConfiguration,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// scripts property.
+    /// `scripts` property.
     pub scripts: Vec<String>,
-    /// slug property.
+    /// `slug` property.
     pub slug: String,
 }
 
 /// `DestinationListResponseResultItemConfiguration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationListResponseResultItemConfiguration {
-    /// destination_conf property.
+    /// `destination_conf` property.
     pub destination_conf: String,
-    /// headers property.
+    /// `headers` property.
     pub headers: serde_json::Value,
-    /// jobStatus property.
+    /// `jobStatus` property.
     #[serde(rename = "jobStatus")]
     pub job_status: DestinationListResponseResultItemConfigurationJobStatus,
-    /// logpushDataset property.
+    /// `logpushDataset` property.
     #[serde(rename = "logpushDataset")]
     pub logpush_dataset: serde_json::Value,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `DestinationListResponseResultItemConfigurationJobStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationListResponseResultItemConfigurationJobStatus {
-    /// error_message property.
+    /// `error_message` property.
     pub error_message: String,
-    /// last_complete property.
+    /// `last_complete` property.
     pub last_complete: String,
-    /// last_error property.
+    /// `last_error` property.
     pub last_error: String,
 }
 
 /// `DestinationUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationUpdateRequest {
-    /// configuration property.
+    /// `configuration` property.
     pub configuration: DestinationUpdateRequestConfiguration,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
 }
 
 /// `DestinationUpdateRequestConfiguration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationUpdateRequestConfiguration {
-    /// headers property.
+    /// `headers` property.
     pub headers: serde_json::Value,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `DestinationUpdateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationUpdateResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<DestinationUpdateResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<DestinationUpdateResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: DestinationUpdateResponseResult,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `DestinationUpdateResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationUpdateResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type DestinationUpdateResponseErrorsItem = super::shared::MessageObject;
 
 /// `DestinationUpdateResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationUpdateResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type DestinationUpdateResponseMessagesItem = super::shared::MessageObject;
 
 /// `DestinationUpdateResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationUpdateResponseResult {
-    /// configuration property.
+    /// `configuration` property.
     pub configuration: DestinationUpdateResponseResultConfiguration,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// scripts property.
+    /// `scripts` property.
     pub scripts: Vec<String>,
-    /// slug property.
+    /// `slug` property.
     pub slug: String,
 }
 
 /// `DestinationUpdateResponseResultConfiguration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationUpdateResponseResultConfiguration {
-    /// destination_conf property.
-    pub destination_conf: String,
-    /// logpushDataset property.
-    #[serde(rename = "logpushDataset")]
-    pub logpush_dataset: serde_json::Value,
-    /// logpushJob property.
-    #[serde(rename = "logpushJob")]
-    pub logpush_job: f64,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-    /// url property.
-    pub url: String,
-}
+///
+/// Same shape as `super::shared::DestinationCreateResponseResultConfigurationShape`.
+pub type DestinationUpdateResponseResultConfiguration =
+    super::shared::DestinationCreateResponseResultConfigurationShape;
 
 /// `DestinationsDeleteResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationsDeleteResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<DestinationsDeleteResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<DestinationsDeleteResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: Option<DestinationsDeleteResponseResult>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `DestinationsDeleteResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationsDeleteResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type DestinationsDeleteResponseErrorsItem = super::shared::MessageObject;
 
 /// `DestinationsDeleteResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationsDeleteResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type DestinationsDeleteResponseMessagesItem = super::shared::MessageObject;
 
 /// `DestinationsDeleteResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DestinationsDeleteResponseResult {
-    /// configuration property.
+    /// `configuration` property.
     pub configuration: DestinationsDeleteResponseResultConfiguration,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// scripts property.
+    /// `scripts` property.
     pub scripts: Vec<String>,
-    /// slug property.
+    /// `slug` property.
     pub slug: String,
 }
 
 /// `DestinationsDeleteResponseResultConfiguration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DestinationsDeleteResponseResultConfiguration {
-    /// destination_conf property.
-    pub destination_conf: String,
-    /// logpushDataset property.
-    #[serde(rename = "logpushDataset")]
-    pub logpush_dataset: serde_json::Value,
-    /// logpushJob property.
-    #[serde(rename = "logpushJob")]
-    pub logpush_job: f64,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-    /// url property.
-    pub url: String,
-}
+///
+/// Same shape as `super::shared::DestinationCreateResponseResultConfigurationShape`.
+pub type DestinationsDeleteResponseResultConfiguration =
+    super::shared::DestinationCreateResponseResultConfigurationShape;
 
 /// `DurableObjectsNamespaceListNamespacesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DurableObjectsNamespaceListNamespacesResponse {
-    /// `result` property.
-    pub result: Option<Vec<WorkersNamespace>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<WorkersNamespace>>>`.
+pub type DurableObjectsNamespaceListNamespacesResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<WorkersNamespace>>>;
 
 /// `DurableObjectsNamespaceListObjectsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DurableObjectsNamespaceListObjectsResponse {
-    /// `result` property.
-    pub result: Option<Vec<WorkersObject>>,
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<WorkersObject>>>`.
+pub type DurableObjectsNamespaceListObjectsResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<WorkersObject>>>;
 
 /// `EditWorkerRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EditWorkerRequest {
-}
+///
+/// Same shape as `super::shared::CreateWorkerRequestShape`.
+pub type EditWorkerRequest = super::shared::CreateWorkerRequestShape;
 
 /// `EditWorkerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EditWorkerResponse {
-    /// `result` property.
-    pub result: WorkersWorker,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersWorker>`.
+pub type EditWorkerResponse = super::shared::ApiEnvelope<WorkersWorker>;
 
 /// `GetAccountLimitsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetAccountLimitsResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsGetAccountLimitResponse>,
+    pub result: BuildsGetAccountLimitResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `GetBuildByUuidResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetBuildByUuidResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsBuildResponse>,
+    pub result: BuildsBuildResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `GetBuildLogsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetBuildLogsResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsBuildLogsResponse>,
+    pub result: BuildsBuildLogsResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `GetBuildsByVersionIdsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetBuildsByVersionIdsResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsBuildsByVersionResponse>,
+    pub result: BuildsBuildsByVersionResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `GetHyperdriveResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetHyperdriveResponse {
-    /// `result` property.
-    pub result: Option<HyperdriveHyperdriveConfigResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<HyperdriveHyperdriveConfigResponse>`.
+pub type GetHyperdriveResponse = super::shared::ApiEnvelope<HyperdriveHyperdriveConfigResponse>;
 
 /// `GetLatestBuildsByScriptsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetLatestBuildsByScriptsResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsLatestBuildsResponse>,
+    pub result: BuildsLatestBuildsResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponse {
-    /// result property.
-    pub result: GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponseResult,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponseResult>`.
+pub type GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponse =
+    super::shared::ApiEnvelopeSuccess<
+        GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponseResult,
+    >;
 
 /// `GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponseResult {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// failure_reason property.
+    /// `failure_reason` property.
     pub failure_reason: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// modified_at property.
+    /// `modified_at` property.
     pub modified_at: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// sql property.
+    /// `sql` property.
     pub sql: String,
-    /// status property.
+    /// `status` property.
     pub status: String,
-    /// tables property.
-    pub tables: Vec<GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponseResultTablesItem>,
+    /// `tables` property.
+    pub tables:
+        Vec<GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponseResultTablesItem>,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponseResultTablesItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponseResultTablesItem {
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// latest property.
+    /// `latest` property.
     pub latest: i64,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// version property.
+    /// `version` property.
     pub version: i64,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1PipelinesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1PipelinesResponse {
-    /// result property.
+    /// `result` property.
     pub result: Vec<GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultItem>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultInfo,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultInfo {
-    /// count property.
-    pub count: f64,
-    /// page property.
-    pub page: f64,
-    /// per_page property.
-    pub per_page: f64,
-    /// total_count property.
-    pub total_count: f64,
-}
+///
+/// Same shape as `super::shared::AigConfigListEvaluatorsResponseResultInfoShape`.
+pub type GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultInfo =
+    super::shared::AigConfigListEvaluatorsResponseResultInfoShape;
 
 /// `GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultItem {
-    /// created_at property.
-    pub created_at: String,
-    /// id property.
-    pub id: String,
-    /// modified_at property.
-    pub modified_at: String,
-    /// name property.
-    pub name: String,
-    /// sql property.
-    pub sql: String,
-    /// status property.
-    pub status: String,
-}
+///
+/// Same shape as `super::shared::GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultItemShape`.
+pub type GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultItem =
+    super::shared::GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultItemShape;
 
 /// `GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponse {
-    /// result property.
-    pub result: GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult>`.
+pub type GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponse =
+    super::shared::ApiEnvelopeSuccess<
+        GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult,
+    >;
 
 /// `GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult {
-    /// config property.
+    /// `config` property.
     pub config: Option<serde_json::Value>,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// format property.
-    pub format: Option<CloudflarePipelinesFormat>,
-    /// id property.
+    /// `format` property.
+    pub format: Option<serde_json::Value>,
+    /// `id` property.
     pub id: String,
-    /// modified_at property.
+    /// `modified_at` property.
     pub modified_at: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// schema property.
+    /// `schema` property.
     pub schema: Option<CloudflarePipelinesConnectionSchema>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -2289,250 +1828,216 @@ pub struct GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult {
 /// `GetV4AccountsByAccountIdPipelinesV1SinksResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1SinksResponse {
-    /// result property.
+    /// `result` property.
     pub result: Vec<GetV4AccountsByAccountIdPipelinesV1SinksResponseResultItem>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: GetV4AccountsByAccountIdPipelinesV1SinksResponseResultInfo,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1SinksResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1SinksResponseResultInfo {
-    /// count property.
-    pub count: f64,
-    /// page property.
-    pub page: f64,
-    /// per_page property.
-    pub per_page: f64,
-    /// total_count property.
-    pub total_count: f64,
-}
+///
+/// Same shape as `super::shared::AigConfigListEvaluatorsResponseResultInfoShape`.
+pub type GetV4AccountsByAccountIdPipelinesV1SinksResponseResultInfo =
+    super::shared::AigConfigListEvaluatorsResponseResultInfoShape;
 
 /// `GetV4AccountsByAccountIdPipelinesV1SinksResponseResultItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1SinksResponseResultItem {
-    /// config property.
-    pub config: Option<serde_json::Value>,
-    /// created_at property.
-    pub created_at: String,
-    /// format property.
-    pub format: Option<CloudflarePipelinesFormat>,
-    /// id property.
-    pub id: String,
-    /// modified_at property.
-    pub modified_at: String,
-    /// name property.
-    pub name: String,
-    /// schema property.
-    pub schema: Option<CloudflarePipelinesConnectionSchema>,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult`.
+pub type GetV4AccountsByAccountIdPipelinesV1SinksResponseResultItem =
+    GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult;
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse {
-    /// result property.
-    pub result: GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult>`.
+pub type GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse =
+    super::shared::ApiEnvelopeSuccess<
+        GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult,
+    >;
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// endpoint property.
+    /// `endpoint` property.
     pub endpoint: Option<String>,
-    /// format property.
-    pub format: Option<CloudflarePipelinesFormat>,
-    /// http property.
+    /// `format` property.
+    pub format: Option<serde_json::Value>,
+    /// `http` property.
     pub http: GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttp,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// modified_at property.
+    /// `modified_at` property.
     pub modified_at: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// schema property.
+    /// `schema` property.
     pub schema: Option<CloudflarePipelinesConnectionSchema>,
-    /// version property.
+    /// `version` property.
     pub version: i64,
-    /// worker_binding property.
-    pub worker_binding: GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding,
+    /// `worker_binding` property.
+    pub worker_binding:
+        GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttp {
-    /// authentication property.
+    /// `authentication` property.
     pub authentication: bool,
-    /// cors property.
+    /// `cors` property.
     pub cors: Option<GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttpCors>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttpCors` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttpCors {
-    /// origins property.
-    pub origins: Option<Vec<String>>,
-}
+///
+/// Same shape as `super::shared::OriginsObject`.
+pub type GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttpCors =
+    super::shared::OriginsObject;
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding {
-    /// enabled property.
-    pub enabled: bool,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding =
+    super::shared::EnabledObject;
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1StreamsResponse {
-    /// result property.
+    /// `result` property.
     pub result: Vec<GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItem>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultInfo,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultInfo {
-    /// count property.
-    pub count: f64,
-    /// page property.
-    pub page: f64,
-    /// per_page property.
-    pub per_page: f64,
-    /// total_count property.
-    pub total_count: f64,
-}
+///
+/// Same shape as `super::shared::AigConfigListEvaluatorsResponseResultInfoShape`.
+pub type GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultInfo =
+    super::shared::AigConfigListEvaluatorsResponseResultInfoShape;
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItem {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// endpoint property.
+    /// `endpoint` property.
     pub endpoint: Option<String>,
-    /// format property.
-    pub format: Option<CloudflarePipelinesFormat>,
-    /// http property.
+    /// `format` property.
+    pub format: Option<serde_json::Value>,
+    /// `http` property.
     pub http: GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemHttp,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// modified_at property.
+    /// `modified_at` property.
     pub modified_at: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// schema property.
+    /// `schema` property.
     pub schema: Option<CloudflarePipelinesConnectionSchema>,
-    /// version property.
+    /// `version` property.
     pub version: i64,
-    /// worker_binding property.
+    /// `worker_binding` property.
     pub worker_binding: GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemWorkerBinding,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemHttp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemHttp {
-    /// authentication property.
+    /// `authentication` property.
     pub authentication: bool,
-    /// cors property.
+    /// `cors` property.
     pub cors: Option<GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemHttpCors>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
 }
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemHttpCors` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemHttpCors {
-    /// origins property.
-    pub origins: Option<Vec<String>>,
-}
+///
+/// Same shape as `super::shared::OriginsObject`.
+pub type GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemHttpCors =
+    super::shared::OriginsObject;
 
 /// `GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemWorkerBinding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemWorkerBinding {
-    /// enabled property.
-    pub enabled: bool,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type GetV4AccountsByAccountIdPipelinesV1StreamsResponseResultItemWorkerBinding =
+    super::shared::EnabledObject;
 
 /// `GetWorkerConfigAutofillResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetWorkerConfigAutofillResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsConfigAutofillResponse>,
+    pub result: BuildsConfigAutofillResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `GetWorkerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetWorkerResponse {
-    /// `result` property.
-    pub result: WorkersWorker,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersWorker>`.
+pub type GetWorkerResponse = super::shared::ApiEnvelope<WorkersWorker>;
 
 /// `GetWorkerVersionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetWorkerVersionResponse {
-    /// `result` property.
-    pub result: WorkersVersion,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersVersion>`.
+pub type GetWorkerVersionResponse = super::shared::ApiEnvelope<WorkersVersion>;
 
 /// `HyperdriveApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveApiResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `result` property.
+    pub result: serde_json::Value,
     /// `result_info` property.
     pub result_info: Option<HyperdriveResultInfo>,
-}
-
-/// `HyperdriveApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HyperdriveApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
+/// `HyperdriveApiResponseCommon` type.
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type HyperdriveApiResponseCommon = super::shared::ApiEnvelope<serde_json::Value>;
+
 /// `HyperdriveApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HyperdriveApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type HyperdriveApiResponseSingle = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `HyperdriveHyperdriveCaching` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct HyperdriveHyperdriveCaching {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type HyperdriveHyperdriveCaching = serde_json::Value;
 
 /// `HyperdriveHyperdriveCachingCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HyperdriveHyperdriveCachingCommon {
-    /// disabled property.
-    pub disabled: Option<bool>,
-}
+///
+/// Same shape as `super::shared::DisabledObject`.
+pub type HyperdriveHyperdriveCachingCommon = super::shared::DisabledObject;
 
 /// `HyperdriveHyperdriveCachingDisabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HyperdriveHyperdriveCachingDisabled {
-}
+///
+/// Same shape as `super::shared::DisabledObject`.
+pub type HyperdriveHyperdriveCachingDisabled = super::shared::DisabledObject;
 
 /// `HyperdriveHyperdriveCachingEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveHyperdriveCachingEnabled {
+    /// `disabled` property.
+    pub disabled: Option<bool>,
     /// `max_age` property.
     pub max_age: Option<i64>,
     /// `stale_while_revalidate` property.
@@ -2542,982 +2047,736 @@ pub struct HyperdriveHyperdriveCachingEnabled {
 /// `HyperdriveHyperdriveConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveHyperdriveConfig {
-    /// caching property.
-    pub caching: Option<HyperdriveHyperdriveCaching>,
-    /// created_on property.
+    /// `caching` property.
+    pub caching: Option<serde_json::Value>,
+    /// `created_on` property.
     pub created_on: Option<String>,
-    /// id property.
-    pub id: HyperdriveIdentifier,
-    /// modified_on property.
+    /// `id` property.
+    pub id: String,
+    /// `modified_on` property.
     pub modified_on: Option<String>,
-    /// mtls property.
+    /// `mtls` property.
     pub mtls: Option<HyperdriveHyperdriveMtls>,
-    /// name property.
-    pub name: HyperdriveHyperdriveName,
-    /// origin property.
+    /// `name` property.
+    pub name: String,
+    /// `origin` property.
     pub origin: serde_json::Value,
-    /// origin_connection_limit property.
-    pub origin_connection_limit: Option<HyperdriveHyperdriveOriginConnectionLimit>,
+    /// `origin_connection_limit` property.
+    pub origin_connection_limit: Option<i64>,
 }
 
 /// `HyperdriveHyperdriveConfigPatch` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveHyperdriveConfigPatch {
-    /// caching property.
-    pub caching: Option<HyperdriveHyperdriveCaching>,
-    /// mtls property.
+    /// `caching` property.
+    pub caching: Option<serde_json::Value>,
+    /// `mtls` property.
     pub mtls: Option<HyperdriveHyperdriveMtls>,
-    /// name property.
-    pub name: Option<HyperdriveHyperdriveName>,
-    /// origin property.
+    /// `name` property.
+    pub name: Option<String>,
+    /// `origin` property.
     pub origin: Option<serde_json::Value>,
-    /// origin_connection_limit property.
-    pub origin_connection_limit: Option<HyperdriveHyperdriveOriginConnectionLimit>,
+    /// `origin_connection_limit` property.
+    pub origin_connection_limit: Option<i64>,
 }
 
 /// `HyperdriveHyperdriveConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HyperdriveHyperdriveConfigResponse {
-}
+///
+/// Same shape as `HyperdriveHyperdriveConfig`.
+pub type HyperdriveHyperdriveConfigResponse = HyperdriveHyperdriveConfig;
 
 /// `HyperdriveHyperdriveDatabase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HyperdriveHyperdriveDatabase {
-    /// database property.
-    pub database: Option<String>,
-    /// password property.
-    pub password: Option<String>,
-    /// scheme property.
-    pub scheme: Option<HyperdriveHyperdriveScheme>,
-    /// user property.
-    pub user: Option<String>,
-}
+///
+/// Same shape as `super::shared::HyperdriveHyperdriveDatabaseShape`.
+pub type HyperdriveHyperdriveDatabase = super::shared::HyperdriveHyperdriveDatabaseShape;
 
 /// `HyperdriveHyperdriveDatabaseFull` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HyperdriveHyperdriveDatabaseFull {
-}
+///
+/// Same shape as `super::shared::HyperdriveHyperdriveDatabaseShape`.
+pub type HyperdriveHyperdriveDatabaseFull = super::shared::HyperdriveHyperdriveDatabaseShape;
 
 /// `HyperdriveHyperdriveMtls` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveHyperdriveMtls {
-    /// ca_certificate_id property.
+    /// `ca_certificate_id` property.
     pub ca_certificate_id: Option<String>,
-    /// mtls_certificate_id property.
+    /// `mtls_certificate_id` property.
     pub mtls_certificate_id: Option<String>,
-    /// sslmode property.
+    /// `sslmode` property.
     pub sslmode: Option<String>,
 }
 
 /// `HyperdriveHyperdriveName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct HyperdriveHyperdriveName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type HyperdriveHyperdriveName = String;
 
 /// `HyperdriveHyperdriveOriginConnectionLimit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct HyperdriveHyperdriveOriginConnectionLimit {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type HyperdriveHyperdriveOriginConnectionLimit = i64;
 
 /// `HyperdriveHyperdriveScheme` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct HyperdriveHyperdriveScheme {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type HyperdriveHyperdriveScheme = String;
 
 /// `HyperdriveIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct HyperdriveIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type HyperdriveIdentifier = String;
 
 /// `HyperdriveInternetOrigin` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveInternetOrigin {
-    /// host property.
+    /// `host` property.
     pub host: String,
-    /// port property.
+    /// `port` property.
     pub port: i64,
 }
 
 /// `HyperdriveMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct HyperdriveMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type HyperdriveMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `HyperdriveOverAccessOrigin` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveOverAccessOrigin {
-    /// access_client_id property.
+    /// `access_client_id` property.
     pub access_client_id: String,
-    /// access_client_secret property.
+    /// `access_client_secret` property.
     pub access_client_secret: String,
-    /// host property.
+    /// `host` property.
     pub host: String,
 }
 
 /// `HyperdriveResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HyperdriveResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
+///
+/// Same shape as `super::shared::FirewallResultInfoShape`.
+pub type HyperdriveResultInfo = super::shared::FirewallResultInfoShape;
 
 /// `IpAddressManagementServiceBindingsCreateServiceBindingResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IpAddressManagementServiceBindingsCreateServiceBindingResponse {
-    /// `result` property.
-    pub result: Option<AddressingServiceBinding>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<AddressingServiceBinding>>`.
+pub type IpAddressManagementServiceBindingsCreateServiceBindingResponse =
+    super::shared::ApiEnvelope<Option<AddressingServiceBinding>>;
 
 /// `IpAddressManagementServiceBindingsGetServiceBindingResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IpAddressManagementServiceBindingsGetServiceBindingResponse {
-    /// `result` property.
-    pub result: Option<AddressingServiceBinding>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<AddressingServiceBinding>>`.
+pub type IpAddressManagementServiceBindingsGetServiceBindingResponse =
+    super::shared::ApiEnvelope<Option<AddressingServiceBinding>>;
 
 /// `IpAddressManagementServiceBindingsListServiceBindingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IpAddressManagementServiceBindingsListServiceBindingsResponse {
-    /// `result` property.
-    pub result: Option<Vec<AddressingServiceBinding>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<AddressingServiceBinding>>>`.
+pub type IpAddressManagementServiceBindingsListServiceBindingsResponse =
+    super::shared::ApiEnvelope<Option<Vec<AddressingServiceBinding>>>;
 
 /// `IpAddressManagementServiceBindingsListServicesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IpAddressManagementServiceBindingsListServicesResponse {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<serde_json::Value>>>`.
+pub type IpAddressManagementServiceBindingsListServicesResponse =
+    super::shared::ApiEnvelope<Option<Vec<serde_json::Value>>>;
 
 /// `ListBuildTokensResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListBuildTokensResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<Vec<BuildsListTokensResponse>>,
+    pub result: Vec<BuildsListTokensResponse>,
     /// `result_info` property.
     pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ListBuildsByScriptResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListBuildsByScriptResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<Vec<BuildsBuildResponse>>,
+    pub result: Vec<BuildsBuildResponse>,
     /// `result_info` property.
     pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ListEnvironmentVariablesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListEnvironmentVariablesResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsEnvironmentVariablesResponse>,
+    pub result: serde_json::Value,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ListHyperdriveResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListHyperdriveResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<HyperdriveHyperdriveConfigResponse>>,
+    pub result: Vec<HyperdriveHyperdriveConfigResponse>,
+    /// `result_info` property.
+    pub result_info: Option<HyperdriveResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ListTriggersByScriptResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListTriggersByScriptResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<Vec<BuildsTriggerResponse>>,
+    pub result: Vec<BuildsTriggerResponse>,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ListWorkerVersionsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListWorkerVersionsResponse {
-    /// `result` property.
-    pub result: Vec<WorkersVersion>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<WorkersVersion>>`.
+pub type ListWorkerVersionsResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<WorkersVersion>>;
 
 /// `ListWorkersResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListWorkersResponse {
-    /// `result` property.
-    pub result: Vec<WorkersWorker>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<WorkersWorker>>`.
+pub type ListWorkersResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<WorkersWorker>>;
 
 /// `NamespaceWorkerCreateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerCreateRequest {
-    /// name property.
-    pub name: Option<String>,
-}
+///
+/// Same shape as `super::shared::NameObject2`.
+pub type NamespaceWorkerCreateRequest = super::shared::NameObject2;
 
 /// `NamespaceWorkerGetScriptBindingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerGetScriptBindingsResponse {
-    /// `result` property.
-    pub result: Vec<WorkersBindingItem>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<serde_json::Value>>`.
+pub type NamespaceWorkerGetScriptBindingsResponse =
+    super::shared::ApiEnvelope<Vec<serde_json::Value>>;
 
 /// `NamespaceWorkerGetScriptSecretsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerGetScriptSecretsResponse {
-    /// `result` property.
-    pub result: WorkersSecret,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type NamespaceWorkerGetScriptSecretsResponse = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `NamespaceWorkerGetScriptSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerGetScriptSettingsResponse {
-    /// `result` property.
-    pub result: Option<WorkersNamespaceScriptAndVersionSettingsItem>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<WorkersNamespaceScriptAndVersionSettingsItem>>`.
+pub type NamespaceWorkerGetScriptSettingsResponse =
+    super::shared::ApiEnvelope<Option<WorkersNamespaceScriptAndVersionSettingsItem>>;
 
 /// `NamespaceWorkerGetScriptTagsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerGetScriptTagsResponse {
-    /// `result` property.
-    pub result: Option<Vec<WorkersTag>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<String>>>`.
+pub type NamespaceWorkerGetScriptTagsResponse = super::shared::ApiEnvelope<Option<Vec<String>>>;
 
 /// `NamespaceWorkerListScriptSecretsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerListScriptSecretsResponse {
-    /// `result` property.
-    pub result: Vec<WorkersSecret>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<serde_json::Value>>`.
+pub type NamespaceWorkerListScriptSecretsResponse =
+    super::shared::ApiEnvelope<Vec<serde_json::Value>>;
 
 /// `NamespaceWorkerListScriptsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerListScriptsResponse {
-    /// `result` property.
-    pub result: Vec<WorkersNamespaceScriptResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<WorkersNamespaceScriptResponse>>`.
+pub type NamespaceWorkerListScriptsResponse =
+    super::shared::ApiEnvelope<Vec<WorkersNamespaceScriptResponse>>;
 
 /// `NamespaceWorkerPatchNamespaceRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerPatchNamespaceRequest {
-    /// name property.
-    pub name: Option<String>,
-    /// trusted_workers property.
-    pub trusted_workers: Option<WorkersTrustedWorkers>,
-}
+///
+/// Same shape as `super::shared::NameTrustedWorkersObject`.
+pub type NamespaceWorkerPatchNamespaceRequest = super::shared::NameTrustedWorkersObject;
 
 /// `NamespaceWorkerPatchScriptSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerPatchScriptSettingsResponse {
-    /// `result` property.
-    pub result: Option<WorkersNamespaceScriptAndVersionSettingsItem>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<WorkersNamespaceScriptAndVersionSettingsItem>>`.
+pub type NamespaceWorkerPatchScriptSettingsResponse =
+    super::shared::ApiEnvelope<Option<WorkersNamespaceScriptAndVersionSettingsItem>>;
 
 /// `NamespaceWorkerPutNamespaceRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerPutNamespaceRequest {
-    /// name property.
-    pub name: Option<String>,
-    /// trusted_workers property.
-    pub trusted_workers: Option<WorkersTrustedWorkers>,
-}
+///
+/// Same shape as `super::shared::NameTrustedWorkersObject`.
+pub type NamespaceWorkerPutNamespaceRequest = super::shared::NameTrustedWorkersObject;
 
 /// `NamespaceWorkerPutScriptSecretsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerPutScriptSecretsResponse {
-    /// `result` property.
-    pub result: WorkersSecret,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type NamespaceWorkerPutScriptSecretsResponse = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `NamespaceWorkerPutScriptTagsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NamespaceWorkerPutScriptTagsResponse {
-    /// `result` property.
-    pub result: Vec<WorkersTag>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<String>>`.
+pub type NamespaceWorkerPutScriptTagsResponse = super::shared::ApiEnvelope<Vec<String>>;
 
 /// `ObservatoryApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ObservatoryApiResponseCollection {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type ObservatoryApiResponseCollection = super::shared::ErrorsMessagesSuccessObject;
 
 /// `ObservatoryDeviceType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ObservatoryDeviceType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ObservatoryDeviceType = String;
 
 /// `ObservatoryLabeledRegion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ObservatoryLabeledRegion {
-    /// label property.
-    pub label: Option<String>,
-    /// value property.
-    pub value: Option<ObservatoryRegion>,
-}
+///
+/// Same shape as `super::shared::LabelValueObject`.
+pub type ObservatoryLabeledRegion = super::shared::LabelValueObject;
 
 /// `ObservatoryLighthouseErrorCode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ObservatoryLighthouseErrorCode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ObservatoryLighthouseErrorCode = String;
 
 /// `ObservatoryLighthouseReport` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ObservatoryLighthouseReport {
-    /// cls property.
-    pub cls: Option<f64>,
-    /// deviceType property.
-    #[serde(rename = "deviceType")]
-    pub device_type: Option<ObservatoryDeviceType>,
-    /// error property.
-    pub error: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// fcp property.
-    pub fcp: Option<f64>,
-    /// jsonReportUrl property.
-    #[serde(rename = "jsonReportUrl")]
-    pub json_report_url: Option<String>,
-    /// lcp property.
-    pub lcp: Option<f64>,
-    /// performanceScore property.
-    #[serde(rename = "performanceScore")]
-    pub performance_score: Option<f64>,
-    /// si property.
-    pub si: Option<f64>,
-    /// state property.
-    pub state: Option<ObservatoryLighthouseState>,
-    /// tbt property.
-    pub tbt: Option<f64>,
-    /// ttfb property.
-    pub ttfb: Option<f64>,
-    /// tti property.
-    pub tti: Option<f64>,
-}
+///
+/// Same shape as `super::shared::ObservatoryLighthouseReportShape`.
+pub type ObservatoryLighthouseReport = super::shared::ObservatoryLighthouseReportShape;
 
 /// `ObservatoryLighthouseState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ObservatoryLighthouseState {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ObservatoryLighthouseState = String;
 
 /// `ObservatoryMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ObservatoryMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ObservatoryMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `ObservatoryPageTest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ObservatoryPageTest {
-    /// date property.
-    pub date: Option<ObservatoryTimestamp>,
-    /// desktopReport property.
+    /// `date` property.
+    pub date: Option<String>,
+    /// `desktopReport` property.
     #[serde(rename = "desktopReport")]
     pub desktop_report: Option<ObservatoryLighthouseReport>,
-    /// id property.
-    pub id: Option<ObservatoryUuid>,
-    /// mobileReport property.
+    /// `id` property.
+    pub id: Option<String>,
+    /// `mobileReport` property.
     #[serde(rename = "mobileReport")]
     pub mobile_report: Option<ObservatoryLighthouseReport>,
-    /// region property.
+    /// `region` property.
     pub region: Option<ObservatoryLabeledRegion>,
-    /// scheduleFrequency property.
+    /// `scheduleFrequency` property.
     #[serde(rename = "scheduleFrequency")]
-    pub schedule_frequency: Option<ObservatoryScheduleFrequency>,
-    /// url property.
-    pub url: Option<ObservatoryUrl>,
+    pub schedule_frequency: Option<String>,
+    /// `url` property.
+    pub url: Option<String>,
 }
 
 /// `ObservatoryPageTestResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ObservatoryPageTestResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<ObservatoryPageTest>>,
     /// `result_info` property.
     pub result_info: Option<ObservatoryResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ObservatoryPageTestResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ObservatoryPageTestResponseSingle {
-    /// `result` property.
-    pub result: Option<ObservatoryPageTest>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ObservatoryPageTest>>`.
+pub type ObservatoryPageTestResponseSingle =
+    super::shared::ApiEnvelope<Option<ObservatoryPageTest>>;
 
 /// `ObservatoryPagesResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ObservatoryPagesResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<std::collections::HashMap<String, serde_json::Value>>>>`.
+pub type ObservatoryPagesResponseCollection =
+    super::shared::ApiEnvelope<Option<Vec<std::collections::HashMap<String, serde_json::Value>>>>;
 
 /// `ObservatoryRegion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ObservatoryRegion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ObservatoryRegion = String;
 
 /// `ObservatoryResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ObservatoryResultInfo {
-    /// count property.
+    /// `count` property.
     pub count: Option<i64>,
-    /// page property.
+    /// `page` property.
     pub page: Option<i64>,
-    /// per_page property.
+    /// `per_page` property.
     pub per_page: Option<i64>,
-    /// total_count property.
+    /// `total_count` property.
     pub total_count: Option<i64>,
 }
 
 /// `ObservatoryScheduleFrequency` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ObservatoryScheduleFrequency {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ObservatoryScheduleFrequency = String;
 
 /// `ObservatoryTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ObservatoryTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ObservatoryTimestamp = String;
 
 /// `ObservatoryTrend` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ObservatoryTrend {
-    /// cls property.
+    /// `cls` property.
     pub cls: Option<Vec<f64>>,
-    /// fcp property.
+    /// `fcp` property.
     pub fcp: Option<Vec<f64>>,
-    /// lcp property.
+    /// `lcp` property.
     pub lcp: Option<Vec<f64>>,
-    /// performanceScore property.
+    /// `performanceScore` property.
     #[serde(rename = "performanceScore")]
     pub performance_score: Option<Vec<f64>>,
-    /// si property.
+    /// `si` property.
     pub si: Option<Vec<f64>>,
-    /// tbt property.
+    /// `tbt` property.
     pub tbt: Option<Vec<f64>>,
-    /// ttfb property.
+    /// `ttfb` property.
     pub ttfb: Option<Vec<f64>>,
-    /// tti property.
+    /// `tti` property.
     pub tti: Option<Vec<f64>>,
 }
 
 /// `ObservatoryTrendResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ObservatoryTrendResponse {
-    /// `result` property.
-    pub result: Option<ObservatoryTrend>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ObservatoryTrend>>`.
+pub type ObservatoryTrendResponse = super::shared::ApiEnvelope<Option<ObservatoryTrend>>;
 
 /// `ObservatoryUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ObservatoryUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ObservatoryUrl = String;
 
 /// `ObservatoryUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ObservatoryUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ObservatoryUuid = String;
 
 /// `PagesApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::AddressingApiResponseCollectionShape`.
+pub type PagesApiResponseCollection = super::shared::AddressingApiResponseCollectionShape;
 
 /// `PagesApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type PagesApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `PagesBuildConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesBuildConfig {
-    /// build_caching property.
-    pub build_caching: Option<bool>,
-    /// build_command property.
-    pub build_command: Option<String>,
-    /// destination_dir property.
-    pub destination_dir: Option<String>,
-    /// root_dir property.
-    pub root_dir: Option<String>,
-    /// web_analytics_tag property.
-    pub web_analytics_tag: Option<String>,
-    /// web_analytics_token property.
-    pub web_analytics_token: Option<String>,
-}
+///
+/// Same shape as `super::shared::PagesBuildConfigShape`.
+pub type PagesBuildConfig = super::shared::PagesBuildConfigShape;
 
 /// `PagesDeployment` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesDeployment {
-    /// aliases property.
+    /// `aliases` property.
     pub aliases: Option<Vec<String>>,
-    /// build_config property.
+    /// `build_config` property.
     pub build_config: PagesBuildConfig,
-    /// created_on property.
+    /// `created_on` property.
     pub created_on: String,
-    /// deployment_trigger property.
+    /// `deployment_trigger` property.
     pub deployment_trigger: std::collections::HashMap<String, serde_json::Value>,
-    /// env_vars property.
-    pub env_vars: Option<PagesEnvVars>,
-    /// environment property.
+    /// `env_vars` property.
+    pub env_vars: Option<serde_json::Value>,
+    /// `environment` property.
     pub environment: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// is_skipped property.
+    /// `is_skipped` property.
     pub is_skipped: bool,
-    /// latest_stage property.
+    /// `latest_stage` property.
     pub latest_stage: PagesStage,
-    /// modified_on property.
+    /// `modified_on` property.
     pub modified_on: String,
-    /// project_id property.
+    /// `project_id` property.
     pub project_id: String,
-    /// project_name property.
-    pub project_name: PagesProjectName,
-    /// short_id property.
+    /// `project_name` property.
+    pub project_name: String,
+    /// `short_id` property.
     pub short_id: String,
-    /// source property.
+    /// `source` property.
     pub source: PagesSource,
-    /// stages property.
+    /// `stages` property.
     pub stages: Vec<PagesStage>,
-    /// url property.
+    /// `url` property.
     pub url: String,
-    /// uses_functions property.
+    /// `uses_functions` property.
     pub uses_functions: Option<bool>,
 }
 
 /// `PagesDeploymentCreateDeploymentResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDeploymentCreateDeploymentResponse {
-    /// `result` property.
-    pub result: PagesDeployment,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesDeployment>`.
+pub type PagesDeploymentCreateDeploymentResponse = super::shared::ApiEnvelope<PagesDeployment>;
 
 /// `PagesDeploymentDeleteDeploymentResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDeploymentDeleteDeploymentResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type PagesDeploymentDeleteDeploymentResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `PagesDeploymentGetDeploymentInfoResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDeploymentGetDeploymentInfoResponse {
-    /// `result` property.
-    pub result: PagesDeployment,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesDeployment>`.
+pub type PagesDeploymentGetDeploymentInfoResponse = super::shared::ApiEnvelope<PagesDeployment>;
 
 /// `PagesDeploymentGetDeploymentLogsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDeploymentGetDeploymentLogsResponse {
-    /// `result` property.
-    pub result: PagesDeploymentLog,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesDeploymentLog>`.
+pub type PagesDeploymentGetDeploymentLogsResponse = super::shared::ApiEnvelope<PagesDeploymentLog>;
 
 /// `PagesDeploymentGetDeploymentsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDeploymentGetDeploymentsResponse {
-    /// `result` property.
-    pub result: Vec<PagesDeployment>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<PagesDeployment>>`.
+pub type PagesDeploymentGetDeploymentsResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<PagesDeployment>>;
 
 /// `PagesDeploymentLog` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesDeploymentLog {
-    /// data property.
+    /// `data` property.
     pub data: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// includes_container_logs property.
+    /// `includes_container_logs` property.
     pub includes_container_logs: bool,
-    /// total property.
+    /// `total` property.
     pub total: i64,
 }
 
 /// `PagesDeploymentRetryDeploymentResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDeploymentRetryDeploymentResponse {
-    /// `result` property.
-    pub result: PagesDeployment,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesDeployment>`.
+pub type PagesDeploymentRetryDeploymentResponse = super::shared::ApiEnvelope<PagesDeployment>;
 
 /// `PagesDeploymentRollbackDeploymentResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDeploymentRollbackDeploymentResponse {
-    /// `result` property.
-    pub result: PagesDeployment,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesDeployment>`.
+pub type PagesDeploymentRollbackDeploymentResponse = super::shared::ApiEnvelope<PagesDeployment>;
 
 /// `PagesDomain` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesDomain {
-    /// certificate_authority property.
+    /// `certificate_authority` property.
     pub certificate_authority: String,
-    /// created_on property.
+    /// `created_on` property.
     pub created_on: String,
-    /// domain_id property.
+    /// `domain_id` property.
     pub domain_id: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
-    pub name: PagesDomainName,
-    /// status property.
+    /// `name` property.
+    pub name: String,
+    /// `status` property.
     pub status: String,
-    /// validation_data property.
+    /// `validation_data` property.
     pub validation_data: std::collections::HashMap<String, serde_json::Value>,
-    /// verification_data property.
+    /// `verification_data` property.
     pub verification_data: std::collections::HashMap<String, serde_json::Value>,
-    /// zone_tag property.
+    /// `zone_tag` property.
     pub zone_tag: String,
 }
 
 /// `PagesDomainName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct PagesDomainName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type PagesDomainName = String;
 
 /// `PagesDomainsAddDomainRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDomainsAddDomainRequest {
-    /// name property.
-    pub name: PagesDomainName,
-}
+///
+/// Same shape as `super::shared::NameObject`.
+pub type PagesDomainsAddDomainRequest = super::shared::NameObject;
 
 /// `PagesDomainsAddDomainResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDomainsAddDomainResponse {
-    /// `result` property.
-    pub result: PagesDomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesDomain>`.
+pub type PagesDomainsAddDomainResponse = super::shared::ApiEnvelope<PagesDomain>;
 
 /// `PagesDomainsDeleteDomainResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDomainsDeleteDomainResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type PagesDomainsDeleteDomainResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `PagesDomainsGetDomainResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDomainsGetDomainResponse {
-    /// `result` property.
-    pub result: PagesDomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesDomain>`.
+pub type PagesDomainsGetDomainResponse = super::shared::ApiEnvelope<PagesDomain>;
 
 /// `PagesDomainsGetDomainsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDomainsGetDomainsResponse {
-    /// `result` property.
-    pub result: Vec<PagesDomain>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<PagesDomain>>`.
+pub type PagesDomainsGetDomainsResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<PagesDomain>>;
 
 /// `PagesDomainsPatchDomainResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesDomainsPatchDomainResponse {
-    /// `result` property.
-    pub result: PagesDomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesDomain>`.
+pub type PagesDomainsPatchDomainResponse = super::shared::ApiEnvelope<PagesDomain>;
 
 /// `PagesEnvVars` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct PagesEnvVars {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type PagesEnvVars = serde_json::Value;
 
 /// `PagesMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct PagesMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type PagesMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `PagesProject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesProject {
-    /// build_config property.
+    /// `build_config` property.
     pub build_config: Option<PagesBuildConfig>,
-    /// canonical_deployment property.
+    /// `canonical_deployment` property.
     pub canonical_deployment: serde_json::Value,
-    /// created_on property.
+    /// `created_on` property.
     pub created_on: String,
-    /// deployment_configs property.
+    /// `deployment_configs` property.
     pub deployment_configs: std::collections::HashMap<String, serde_json::Value>,
-    /// domains property.
+    /// `domains` property.
     pub domains: Option<Vec<String>>,
-    /// framework property.
+    /// `framework` property.
     pub framework: String,
-    /// framework_version property.
+    /// `framework_version` property.
     pub framework_version: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// latest_deployment property.
+    /// `latest_deployment` property.
     pub latest_deployment: serde_json::Value,
-    /// name property.
-    pub name: PagesProjectName,
-    /// preview_script_name property.
+    /// `name` property.
+    pub name: String,
+    /// `preview_script_name` property.
     pub preview_script_name: String,
-    /// production_branch property.
+    /// `production_branch` property.
     pub production_branch: String,
-    /// production_script_name property.
+    /// `production_script_name` property.
     pub production_script_name: String,
-    /// source property.
+    /// `source` property.
     pub source: Option<PagesSource>,
-    /// subdomain property.
+    /// `subdomain` property.
     pub subdomain: Option<String>,
-    /// uses_functions property.
+    /// `uses_functions` property.
     pub uses_functions: Option<bool>,
 }
 
 /// `PagesProjectCreateProjectRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesProjectCreateProjectRequest {
-    /// build_config property.
+    /// `build_config` property.
     pub build_config: Option<PagesProjectCreateProjectRequestBuildConfig>,
-    /// deployment_configs property.
+    /// `deployment_configs` property.
     pub deployment_configs: Option<PagesProjectCreateProjectRequestDeploymentConfigs>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// production_branch property.
+    /// `production_branch` property.
     pub production_branch: String,
-    /// source property.
+    /// `source` property.
     pub source: Option<PagesProjectCreateProjectRequestSource>,
 }
 
 /// `PagesProjectCreateProjectRequestBuildConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectCreateProjectRequestBuildConfig {
-    /// build_caching property.
-    pub build_caching: Option<bool>,
-    /// build_command property.
-    pub build_command: Option<String>,
-    /// destination_dir property.
-    pub destination_dir: Option<String>,
-    /// root_dir property.
-    pub root_dir: Option<String>,
-    /// web_analytics_tag property.
-    pub web_analytics_tag: Option<String>,
-    /// web_analytics_token property.
-    pub web_analytics_token: Option<String>,
-}
+///
+/// Same shape as `super::shared::PagesBuildConfigShape`.
+pub type PagesProjectCreateProjectRequestBuildConfig = super::shared::PagesBuildConfigShape;
 
 /// `PagesProjectCreateProjectRequestDeploymentConfigs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectCreateProjectRequestDeploymentConfigs {
-    /// preview property.
-    pub preview: Option<serde_json::Value>,
-    /// production property.
-    pub production: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::PreviewProductionObject`.
+pub type PagesProjectCreateProjectRequestDeploymentConfigs = super::shared::PreviewProductionObject;
 
 /// `PagesProjectCreateProjectRequestSource` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesProjectCreateProjectRequestSource {
-    /// config property.
+    /// `config` property.
     pub config: PagesProjectCreateProjectRequestSourceConfig,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `PagesProjectCreateProjectRequestSourceConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectCreateProjectRequestSourceConfig {
-    /// deployments_enabled property.
-    pub deployments_enabled: Option<bool>,
-    /// owner property.
-    pub owner: Option<String>,
-    /// owner_id property.
-    pub owner_id: Option<String>,
-    /// path_excludes property.
-    pub path_excludes: Option<Vec<String>>,
-    /// path_includes property.
-    pub path_includes: Option<Vec<String>>,
-    /// pr_comments_enabled property.
-    pub pr_comments_enabled: Option<bool>,
-    /// preview_branch_excludes property.
-    pub preview_branch_excludes: Option<Vec<String>>,
-    /// preview_branch_includes property.
-    pub preview_branch_includes: Option<Vec<String>>,
-    /// preview_deployment_setting property.
-    pub preview_deployment_setting: Option<String>,
-    /// production_branch property.
-    pub production_branch: Option<String>,
-    /// production_deployments_enabled property.
-    pub production_deployments_enabled: Option<bool>,
-    /// repo_id property.
-    pub repo_id: Option<String>,
-    /// repo_name property.
-    pub repo_name: Option<String>,
-}
+///
+/// Same shape as `super::shared::PagesProjectCreateProjectRequestSourceConfigShape`.
+pub type PagesProjectCreateProjectRequestSourceConfig =
+    super::shared::PagesProjectCreateProjectRequestSourceConfigShape;
 
 /// `PagesProjectCreateProjectResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectCreateProjectResponse {
-    /// `result` property.
-    pub result: PagesProject,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesProject>`.
+pub type PagesProjectCreateProjectResponse = super::shared::ApiEnvelope<PagesProject>;
 
 /// `PagesProjectDeleteProjectResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectDeleteProjectResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type PagesProjectDeleteProjectResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `PagesProjectGetProjectResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectGetProjectResponse {
-    /// `result` property.
-    pub result: PagesProject,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesProject>`.
+pub type PagesProjectGetProjectResponse = super::shared::ApiEnvelope<PagesProject>;
 
 /// `PagesProjectGetProjectsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectGetProjectsResponse {
-    /// `result` property.
-    pub result: Vec<PagesProject>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<PagesProject>>`.
+pub type PagesProjectGetProjectsResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<PagesProject>>;
 
 /// `PagesProjectName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct PagesProjectName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type PagesProjectName = String;
 
 /// `PagesProjectUpdateProjectRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesProjectUpdateProjectRequest {
-    /// build_config property.
+    /// `build_config` property.
     pub build_config: Option<PagesProjectUpdateProjectRequestBuildConfig>,
-    /// deployment_configs property.
+    /// `deployment_configs` property.
     pub deployment_configs: Option<PagesProjectUpdateProjectRequestDeploymentConfigs>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// production_branch property.
+    /// `production_branch` property.
     pub production_branch: Option<String>,
-    /// source property.
+    /// `source` property.
     pub source: Option<PagesProjectUpdateProjectRequestSource>,
 }
 
 /// `PagesProjectUpdateProjectRequestBuildConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectUpdateProjectRequestBuildConfig {
-    /// build_caching property.
-    pub build_caching: Option<bool>,
-    /// build_command property.
-    pub build_command: Option<String>,
-    /// destination_dir property.
-    pub destination_dir: Option<String>,
-    /// root_dir property.
-    pub root_dir: Option<String>,
-    /// web_analytics_tag property.
-    pub web_analytics_tag: Option<String>,
-    /// web_analytics_token property.
-    pub web_analytics_token: Option<String>,
-}
+///
+/// Same shape as `super::shared::PagesBuildConfigShape`.
+pub type PagesProjectUpdateProjectRequestBuildConfig = super::shared::PagesBuildConfigShape;
 
 /// `PagesProjectUpdateProjectRequestDeploymentConfigs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectUpdateProjectRequestDeploymentConfigs {
-    /// preview property.
-    pub preview: Option<serde_json::Value>,
-    /// production property.
-    pub production: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::PreviewProductionObject`.
+pub type PagesProjectUpdateProjectRequestDeploymentConfigs = super::shared::PreviewProductionObject;
 
 /// `PagesProjectUpdateProjectRequestSource` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesProjectUpdateProjectRequestSource {
-    /// config property.
+    /// `config` property.
     pub config: PagesProjectUpdateProjectRequestSourceConfig,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `PagesProjectUpdateProjectRequestSourceConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectUpdateProjectRequestSourceConfig {
-    /// deployments_enabled property.
-    pub deployments_enabled: Option<bool>,
-    /// owner property.
-    pub owner: Option<String>,
-    /// owner_id property.
-    pub owner_id: Option<String>,
-    /// path_excludes property.
-    pub path_excludes: Option<Vec<String>>,
-    /// path_includes property.
-    pub path_includes: Option<Vec<String>>,
-    /// pr_comments_enabled property.
-    pub pr_comments_enabled: Option<bool>,
-    /// preview_branch_excludes property.
-    pub preview_branch_excludes: Option<Vec<String>>,
-    /// preview_branch_includes property.
-    pub preview_branch_includes: Option<Vec<String>>,
-    /// preview_deployment_setting property.
-    pub preview_deployment_setting: Option<String>,
-    /// production_branch property.
-    pub production_branch: Option<String>,
-    /// production_deployments_enabled property.
-    pub production_deployments_enabled: Option<bool>,
-    /// repo_id property.
-    pub repo_id: Option<String>,
-    /// repo_name property.
-    pub repo_name: Option<String>,
-}
+///
+/// Same shape as `super::shared::PagesProjectCreateProjectRequestSourceConfigShape`.
+pub type PagesProjectUpdateProjectRequestSourceConfig =
+    super::shared::PagesProjectCreateProjectRequestSourceConfigShape;
 
 /// `PagesProjectUpdateProjectResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesProjectUpdateProjectResponse {
-    /// `result` property.
-    pub result: PagesProject,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<PagesProject>`.
+pub type PagesProjectUpdateProjectResponse = super::shared::ApiEnvelope<PagesProject>;
 
 /// `PagesPurgeBuildCacheResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PagesPurgeBuildCacheResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type PagesPurgeBuildCacheResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `PagesSource` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesSource {
-    /// config property.
+    /// `config` property.
     pub config: std::collections::HashMap<String, serde_json::Value>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -3525,732 +2784,583 @@ pub struct PagesSource {
 /// `PagesStage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PagesStage {
-    /// ended_on property.
+    /// `ended_on` property.
     pub ended_on: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// started_on property.
+    /// `started_on` property.
     pub started_on: Option<String>,
-    /// status property.
+    /// `status` property.
     pub status: String,
 }
 
 /// `PatchHyperdriveResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PatchHyperdriveResponse {
-    /// `result` property.
-    pub result: Option<HyperdriveHyperdriveConfigResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<HyperdriveHyperdriveConfigResponse>`.
+pub type PatchHyperdriveResponse = super::shared::ApiEnvelope<HyperdriveHyperdriveConfigResponse>;
 
 /// `PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequest {
-    /// http property.
+    /// `http` property.
     pub http: Option<PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestHttp>,
-    /// worker_binding property.
-    pub worker_binding: Option<PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestWorkerBinding>,
+    /// `worker_binding` property.
+    pub worker_binding:
+        Option<PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestWorkerBinding>,
 }
 
 /// `PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestHttp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestHttp {
-    /// authentication property.
+    /// `authentication` property.
     pub authentication: bool,
-    /// cors property.
+    /// `cors` property.
     pub cors: Option<PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestHttpCors>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
 }
 
 /// `PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestHttpCors` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestHttpCors {
-    /// origins property.
-    pub origins: Option<Vec<String>>,
-}
+///
+/// Same shape as `super::shared::OriginsObject`.
+pub type PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestHttpCors =
+    super::shared::OriginsObject;
 
 /// `PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestWorkerBinding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestWorkerBinding {
-    /// enabled property.
-    pub enabled: bool,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdRequestWorkerBinding =
+    super::shared::EnabledObject;
 
 /// `PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse {
-    /// result property.
-    pub result: PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult>`.
+pub type PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse =
+    super::shared::ApiEnvelopeSuccess<
+        PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult,
+    >;
 
 /// `PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResult {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// endpoint property.
+    /// `endpoint` property.
     pub endpoint: Option<String>,
-    /// format property.
-    pub format: Option<CloudflarePipelinesFormat>,
-    /// http property.
+    /// `format` property.
+    pub format: Option<serde_json::Value>,
+    /// `http` property.
     pub http: PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttp,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// modified_at property.
+    /// `modified_at` property.
     pub modified_at: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// version property.
+    /// `version` property.
     pub version: i64,
-    /// worker_binding property.
-    pub worker_binding: PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding,
+    /// `worker_binding` property.
+    pub worker_binding:
+        PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding,
 }
 
 /// `PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttp {
-    /// authentication property.
+    /// `authentication` property.
     pub authentication: bool,
-    /// cors property.
+    /// `cors` property.
     pub cors: Option<PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttpCors>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
 }
 
 /// `PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttpCors` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttpCors {
-    /// origins property.
-    pub origins: Option<Vec<String>>,
-}
+///
+/// Same shape as `super::shared::OriginsObject`.
+pub type PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultHttpCors =
+    super::shared::OriginsObject;
 
 /// `PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding {
-    /// enabled property.
-    pub enabled: bool,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponseResultWorkerBinding =
+    super::shared::EnabledObject;
 
 /// `PostV4AccountsByAccountIdPipelinesV1PipelinesRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostV4AccountsByAccountIdPipelinesV1PipelinesRequest {
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// sql property.
+    /// `sql` property.
     pub sql: String,
 }
 
 /// `PostV4AccountsByAccountIdPipelinesV1PipelinesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1PipelinesResponse {
-    /// result property.
-    pub result: PostV4AccountsByAccountIdPipelinesV1PipelinesResponseResult,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<PostV4AccountsByAccountIdPipelinesV1PipelinesResponseResult>`.
+pub type PostV4AccountsByAccountIdPipelinesV1PipelinesResponse =
+    super::shared::ApiEnvelopeSuccess<PostV4AccountsByAccountIdPipelinesV1PipelinesResponseResult>;
 
 /// `PostV4AccountsByAccountIdPipelinesV1PipelinesResponseResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1PipelinesResponseResult {
-    /// created_at property.
-    pub created_at: String,
-    /// id property.
-    pub id: String,
-    /// modified_at property.
-    pub modified_at: String,
-    /// name property.
-    pub name: String,
-    /// sql property.
-    pub sql: String,
-    /// status property.
-    pub status: String,
-}
+///
+/// Same shape as `super::shared::GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultItemShape`.
+pub type PostV4AccountsByAccountIdPipelinesV1PipelinesResponseResult =
+    super::shared::GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultItemShape;
 
 /// `PostV4AccountsByAccountIdPipelinesV1SinksRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostV4AccountsByAccountIdPipelinesV1SinksRequest {
-    /// config property.
+    /// `config` property.
     pub config: Option<serde_json::Value>,
-    /// format property.
-    pub format: Option<CloudflarePipelinesFormat>,
-    /// name property.
+    /// `format` property.
+    pub format: Option<serde_json::Value>,
+    /// `name` property.
     pub name: String,
-    /// schema property.
+    /// `schema` property.
     pub schema: Option<CloudflarePipelinesConnectionSchema>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `PostV4AccountsByAccountIdPipelinesV1SinksResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1SinksResponse {
-    /// result property.
-    pub result: PostV4AccountsByAccountIdPipelinesV1SinksResponseResult,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<PostV4AccountsByAccountIdPipelinesV1SinksResponseResult>`.
+pub type PostV4AccountsByAccountIdPipelinesV1SinksResponse =
+    super::shared::ApiEnvelopeSuccess<PostV4AccountsByAccountIdPipelinesV1SinksResponseResult>;
 
 /// `PostV4AccountsByAccountIdPipelinesV1SinksResponseResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1SinksResponseResult {
-    /// config property.
-    pub config: Option<serde_json::Value>,
-    /// created_at property.
-    pub created_at: String,
-    /// format property.
-    pub format: Option<CloudflarePipelinesFormat>,
-    /// id property.
-    pub id: String,
-    /// modified_at property.
-    pub modified_at: String,
-    /// name property.
-    pub name: String,
-    /// schema property.
-    pub schema: Option<CloudflarePipelinesConnectionSchema>,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult`.
+pub type PostV4AccountsByAccountIdPipelinesV1SinksResponseResult =
+    GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponseResult;
 
 /// `PostV4AccountsByAccountIdPipelinesV1StreamsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostV4AccountsByAccountIdPipelinesV1StreamsRequest {
-    /// format property.
-    pub format: Option<CloudflarePipelinesFormat>,
-    /// http property.
+    /// `format` property.
+    pub format: Option<serde_json::Value>,
+    /// `http` property.
     pub http: Option<PostV4AccountsByAccountIdPipelinesV1StreamsRequestHttp>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// schema property.
+    /// `schema` property.
     pub schema: Option<CloudflarePipelinesConnectionSchema>,
-    /// worker_binding property.
+    /// `worker_binding` property.
     pub worker_binding: Option<PostV4AccountsByAccountIdPipelinesV1StreamsRequestWorkerBinding>,
 }
 
 /// `PostV4AccountsByAccountIdPipelinesV1StreamsRequestHttp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostV4AccountsByAccountIdPipelinesV1StreamsRequestHttp {
-    /// authentication property.
+    /// `authentication` property.
     pub authentication: bool,
-    /// cors property.
+    /// `cors` property.
     pub cors: Option<PostV4AccountsByAccountIdPipelinesV1StreamsRequestHttpCors>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
 }
 
 /// `PostV4AccountsByAccountIdPipelinesV1StreamsRequestHttpCors` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1StreamsRequestHttpCors {
-    /// origins property.
-    pub origins: Option<Vec<String>>,
-}
+///
+/// Same shape as `super::shared::OriginsObject`.
+pub type PostV4AccountsByAccountIdPipelinesV1StreamsRequestHttpCors = super::shared::OriginsObject;
 
 /// `PostV4AccountsByAccountIdPipelinesV1StreamsRequestWorkerBinding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1StreamsRequestWorkerBinding {
-    /// enabled property.
-    pub enabled: bool,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type PostV4AccountsByAccountIdPipelinesV1StreamsRequestWorkerBinding =
+    super::shared::EnabledObject;
 
 /// `PostV4AccountsByAccountIdPipelinesV1StreamsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1StreamsResponse {
-    /// result property.
-    pub result: PostV4AccountsByAccountIdPipelinesV1StreamsResponseResult,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<PostV4AccountsByAccountIdPipelinesV1StreamsResponseResult>`.
+pub type PostV4AccountsByAccountIdPipelinesV1StreamsResponse =
+    super::shared::ApiEnvelopeSuccess<PostV4AccountsByAccountIdPipelinesV1StreamsResponseResult>;
 
 /// `PostV4AccountsByAccountIdPipelinesV1StreamsResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostV4AccountsByAccountIdPipelinesV1StreamsResponseResult {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// endpoint property.
+    /// `endpoint` property.
     pub endpoint: Option<String>,
-    /// format property.
-    pub format: Option<CloudflarePipelinesFormat>,
-    /// http property.
+    /// `format` property.
+    pub format: Option<serde_json::Value>,
+    /// `http` property.
     pub http: PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultHttp,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// modified_at property.
+    /// `modified_at` property.
     pub modified_at: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// schema property.
+    /// `schema` property.
     pub schema: Option<CloudflarePipelinesConnectionSchema>,
-    /// version property.
+    /// `version` property.
     pub version: i64,
-    /// worker_binding property.
+    /// `worker_binding` property.
     pub worker_binding: PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultWorkerBinding,
 }
 
 /// `PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultHttp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultHttp {
-    /// authentication property.
+    /// `authentication` property.
     pub authentication: bool,
-    /// cors property.
+    /// `cors` property.
     pub cors: Option<PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultHttpCors>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
 }
 
 /// `PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultHttpCors` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultHttpCors {
-    /// origins property.
-    pub origins: Option<Vec<String>>,
-}
+///
+/// Same shape as `super::shared::OriginsObject`.
+pub type PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultHttpCors =
+    super::shared::OriginsObject;
 
 /// `PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultWorkerBinding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultWorkerBinding {
-    /// enabled property.
-    pub enabled: bool,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type PostV4AccountsByAccountIdPipelinesV1StreamsResponseResultWorkerBinding =
+    super::shared::EnabledObject;
 
 /// `PostV4AccountsByAccountIdPipelinesV1ValidateSqlRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostV4AccountsByAccountIdPipelinesV1ValidateSqlRequest {
-    /// sql property.
+    /// `sql` property.
     pub sql: String,
 }
 
 /// `PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponse {
-    /// result property.
-    pub result: PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponseResult,
-    /// success property.
-    pub success: CloudflarePipelinesWorkerPipelinesCommonSuccess,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponseResult>`.
+pub type PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponse =
+    super::shared::ApiEnvelopeSuccess<
+        PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponseResult,
+    >;
 
 /// `PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponseResult {
-    /// graph property.
+    /// `graph` property.
     pub graph: Option<CloudflarePipelinesPipelineGraph>,
-    /// tables property.
+    /// `tables` property.
     pub tables: serde_json::Value,
 }
 
 /// `QueriesDeleteResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesDeleteResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<QueriesDeleteResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<QueriesDeleteResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: WorkersObservabilityQuery,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `QueriesDeleteResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesDeleteResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesDeleteResponseErrorsItem = super::shared::MessageObject;
 
 /// `QueriesDeleteResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesDeleteResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesDeleteResponseMessagesItem = super::shared::MessageObject;
 
 /// `QueriesGetResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesGetResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<QueriesGetResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<QueriesGetResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: WorkersObservabilityQuery,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `QueriesGetResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesGetResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesGetResponseErrorsItem = super::shared::MessageObject;
 
 /// `QueriesGetResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesGetResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesGetResponseMessagesItem = super::shared::MessageObject;
 
 /// `QueriesListResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesListResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<QueriesListResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<QueriesListResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: Vec<WorkersObservabilityQuery>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `QueriesListResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesListResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesListResponseErrorsItem = super::shared::MessageObject;
 
 /// `QueriesListResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesListResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesListResponseMessagesItem = super::shared::MessageObject;
 
 /// `QueriesPatchRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesPatchRequest {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// parameters property.
+    /// `parameters` property.
     pub parameters: QueriesPatchRequestParameters,
 }
 
 /// `QueriesPatchRequestParameters` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesPatchRequestParameters {
-    /// calculations property.
+    /// `calculations` property.
     pub calculations: Option<Vec<QueriesPatchRequestParametersCalculationsItem>>,
-    /// datasets property.
+    /// `datasets` property.
     pub datasets: Option<Vec<String>>,
-    /// filterCombination property.
+    /// `filterCombination` property.
     #[serde(rename = "filterCombination")]
     pub filter_combination: Option<String>,
-    /// filters property.
-    pub filters: Option<Vec<Box<WorkersObservabilityFilterNode>>>,
-    /// groupBys property.
+    /// `filters` property.
+    pub filters: Option<Vec<serde_json::Value>>,
+    /// `groupBys` property.
     #[serde(rename = "groupBys")]
     pub group_bys: Option<Vec<QueriesPatchRequestParametersGroupBysItem>>,
-    /// havings property.
+    /// `havings` property.
     pub havings: Option<Vec<QueriesPatchRequestParametersHavingsItem>>,
-    /// limit property.
+    /// `limit` property.
     pub limit: Option<i64>,
-    /// needle property.
+    /// `needle` property.
     pub needle: Option<QueriesPatchRequestParametersNeedle>,
-    /// orderBy property.
+    /// `orderBy` property.
     #[serde(rename = "orderBy")]
     pub order_by: Option<QueriesPatchRequestParametersOrderBy>,
 }
 
 /// `QueriesPatchRequestParametersCalculationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPatchRequestParametersCalculationsItem {
-    /// alias property.
-    pub alias: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// keyType property.
-    #[serde(rename = "keyType")]
-    pub key_type: Option<String>,
-    /// operator property.
-    pub operator: String,
-}
+///
+/// Same shape as `super::shared::QueriesPatchRequestParametersCalculationsItemShape`.
+pub type QueriesPatchRequestParametersCalculationsItem =
+    super::shared::QueriesPatchRequestParametersCalculationsItemShape;
 
 /// `QueriesPatchRequestParametersGroupBysItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPatchRequestParametersGroupBysItem {
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::TypeValueObject`.
+pub type QueriesPatchRequestParametersGroupBysItem = super::shared::TypeValueObject;
 
 /// `QueriesPatchRequestParametersHavingsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPatchRequestParametersHavingsItem {
-    /// key property.
-    pub key: String,
-    /// operation property.
-    pub operation: String,
-    /// value property.
-    pub value: f64,
-}
+///
+/// Same shape as `super::shared::KeyOperationValueObject`.
+pub type QueriesPatchRequestParametersHavingsItem = super::shared::KeyOperationValueObject;
 
 /// `QueriesPatchRequestParametersNeedle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPatchRequestParametersNeedle {
-    /// isRegex property.
-    #[serde(rename = "isRegex")]
-    pub is_regex: Option<bool>,
-    /// matchCase property.
-    #[serde(rename = "matchCase")]
-    pub match_case: Option<bool>,
-    /// value property.
-    pub value: serde_json::Value,
-}
+///
+/// Same shape as `super::shared::IsRegexMatchCaseValueObject`.
+pub type QueriesPatchRequestParametersNeedle = super::shared::IsRegexMatchCaseValueObject;
 
 /// `QueriesPatchRequestParametersOrderBy` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPatchRequestParametersOrderBy {
-    /// order property.
-    pub order: Option<String>,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::OrderValueObject`.
+pub type QueriesPatchRequestParametersOrderBy = super::shared::OrderValueObject;
 
 /// `QueriesPatchResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesPatchResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<QueriesPatchResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<QueriesPatchResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: WorkersObservabilityQuery,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `QueriesPatchResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPatchResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesPatchResponseErrorsItem = super::shared::MessageObject;
 
 /// `QueriesPatchResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPatchResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesPatchResponseMessagesItem = super::shared::MessageObject;
 
 /// `QueriesPostRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesPostRequest {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// parameters property.
+    /// `parameters` property.
     pub parameters: QueriesPostRequestParameters,
 }
 
 /// `QueriesPostRequestParameters` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesPostRequestParameters {
-    /// calculations property.
+    /// `calculations` property.
     pub calculations: Option<Vec<QueriesPostRequestParametersCalculationsItem>>,
-    /// datasets property.
+    /// `datasets` property.
     pub datasets: Option<Vec<String>>,
-    /// filterCombination property.
+    /// `filterCombination` property.
     #[serde(rename = "filterCombination")]
     pub filter_combination: Option<String>,
-    /// filters property.
-    pub filters: Option<Vec<Box<WorkersObservabilityFilterNode>>>,
-    /// groupBys property.
+    /// `filters` property.
+    pub filters: Option<Vec<serde_json::Value>>,
+    /// `groupBys` property.
     #[serde(rename = "groupBys")]
     pub group_bys: Option<Vec<QueriesPostRequestParametersGroupBysItem>>,
-    /// havings property.
+    /// `havings` property.
     pub havings: Option<Vec<QueriesPostRequestParametersHavingsItem>>,
-    /// limit property.
+    /// `limit` property.
     pub limit: Option<i64>,
-    /// needle property.
+    /// `needle` property.
     pub needle: Option<QueriesPostRequestParametersNeedle>,
-    /// orderBy property.
+    /// `orderBy` property.
     #[serde(rename = "orderBy")]
     pub order_by: Option<QueriesPostRequestParametersOrderBy>,
 }
 
 /// `QueriesPostRequestParametersCalculationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPostRequestParametersCalculationsItem {
-    /// alias property.
-    pub alias: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// keyType property.
-    #[serde(rename = "keyType")]
-    pub key_type: Option<String>,
-    /// operator property.
-    pub operator: String,
-}
+///
+/// Same shape as `super::shared::QueriesPatchRequestParametersCalculationsItemShape`.
+pub type QueriesPostRequestParametersCalculationsItem =
+    super::shared::QueriesPatchRequestParametersCalculationsItemShape;
 
 /// `QueriesPostRequestParametersGroupBysItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPostRequestParametersGroupBysItem {
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::TypeValueObject`.
+pub type QueriesPostRequestParametersGroupBysItem = super::shared::TypeValueObject;
 
 /// `QueriesPostRequestParametersHavingsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPostRequestParametersHavingsItem {
-    /// key property.
-    pub key: String,
-    /// operation property.
-    pub operation: String,
-    /// value property.
-    pub value: f64,
-}
+///
+/// Same shape as `super::shared::KeyOperationValueObject`.
+pub type QueriesPostRequestParametersHavingsItem = super::shared::KeyOperationValueObject;
 
 /// `QueriesPostRequestParametersNeedle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPostRequestParametersNeedle {
-    /// isRegex property.
-    #[serde(rename = "isRegex")]
-    pub is_regex: Option<bool>,
-    /// matchCase property.
-    #[serde(rename = "matchCase")]
-    pub match_case: Option<bool>,
-    /// value property.
-    pub value: serde_json::Value,
-}
+///
+/// Same shape as `super::shared::IsRegexMatchCaseValueObject`.
+pub type QueriesPostRequestParametersNeedle = super::shared::IsRegexMatchCaseValueObject;
 
 /// `QueriesPostRequestParametersOrderBy` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPostRequestParametersOrderBy {
-    /// order property.
-    pub order: Option<String>,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::OrderValueObject`.
+pub type QueriesPostRequestParametersOrderBy = super::shared::OrderValueObject;
 
 /// `QueriesPostResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct QueriesPostResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<QueriesPostResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<QueriesPostResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: WorkersObservabilityQuery,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `QueriesPostResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPostResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesPostResponseErrorsItem = super::shared::MessageObject;
 
 /// `QueriesPostResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct QueriesPostResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type QueriesPostResponseMessagesItem = super::shared::MessageObject;
 
 /// `SpeedCreateTestRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SpeedCreateTestRequest {
-    /// region property.
+    /// `region` property.
     pub region: Option<serde_json::Value>,
 }
 
 /// `TelemetryKeysListRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryKeysListRequest {
-    /// datasets property.
+    /// `datasets` property.
     pub datasets: Option<Vec<String>>,
-    /// filters property.
+    /// `filters` property.
     pub filters: Option<Vec<serde_json::Value>>,
-    /// from property.
+    /// `from` property.
     pub from: Option<f64>,
-    /// keyNeedle property.
+    /// `keyNeedle` property.
     #[serde(rename = "keyNeedle")]
     pub key_needle: Option<TelemetryKeysListRequestKeyNeedle>,
-    /// limit property.
+    /// `limit` property.
     pub limit: Option<f64>,
-    /// needle property.
+    /// `needle` property.
     pub needle: Option<TelemetryKeysListRequestNeedle>,
-    /// to property.
+    /// `to` property.
     pub to: Option<f64>,
 }
 
 /// `TelemetryKeysListRequestKeyNeedle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryKeysListRequestKeyNeedle {
-    /// isRegex property.
-    #[serde(rename = "isRegex")]
-    pub is_regex: Option<bool>,
-    /// matchCase property.
-    #[serde(rename = "matchCase")]
-    pub match_case: Option<bool>,
-    /// value property.
-    pub value: serde_json::Value,
-}
+///
+/// Same shape as `super::shared::IsRegexMatchCaseValueObject`.
+pub type TelemetryKeysListRequestKeyNeedle = super::shared::IsRegexMatchCaseValueObject;
 
 /// `TelemetryKeysListRequestNeedle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryKeysListRequestNeedle {
-    /// isRegex property.
-    #[serde(rename = "isRegex")]
-    pub is_regex: Option<bool>,
-    /// matchCase property.
-    #[serde(rename = "matchCase")]
-    pub match_case: Option<bool>,
-    /// value property.
-    pub value: serde_json::Value,
-}
+///
+/// Same shape as `super::shared::IsRegexMatchCaseValueObject`.
+pub type TelemetryKeysListRequestNeedle = super::shared::IsRegexMatchCaseValueObject;
 
 /// `TelemetryKeysListResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryKeysListResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TelemetryKeysListResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TelemetryKeysListResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: Vec<TelemetryKeysListResponseResultItem>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `TelemetryKeysListResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryKeysListResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type TelemetryKeysListResponseErrorsItem = super::shared::MessageObject;
 
 /// `TelemetryKeysListResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryKeysListResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type TelemetryKeysListResponseMessagesItem = super::shared::MessageObject;
 
 /// `TelemetryKeysListResponseResultItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryKeysListResponseResultItem {
-    /// key property.
+    /// `key` property.
     pub key: String,
-    /// lastSeenAt property.
+    /// `lastSeenAt` property.
     #[serde(rename = "lastSeenAt")]
     pub last_seen_at: f64,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -4258,535 +3368,428 @@ pub struct TelemetryKeysListResponseResultItem {
 /// `TelemetryQueryRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryQueryRequest {
-    /// chart property.
+    /// `chart` property.
     pub chart: Option<bool>,
-    /// compare property.
+    /// `compare` property.
     pub compare: Option<bool>,
-    /// dry property.
+    /// `dry` property.
     pub dry: Option<bool>,
-    /// granularity property.
+    /// `granularity` property.
     pub granularity: Option<f64>,
-    /// ignoreSeries property.
+    /// `ignoreSeries` property.
     #[serde(rename = "ignoreSeries")]
     pub ignore_series: Option<bool>,
-    /// limit property.
+    /// `limit` property.
     pub limit: Option<f64>,
-    /// offset property.
+    /// `offset` property.
     pub offset: Option<String>,
-    /// offsetBy property.
+    /// `offsetBy` property.
     #[serde(rename = "offsetBy")]
     pub offset_by: Option<f64>,
-    /// offsetDirection property.
+    /// `offsetDirection` property.
     #[serde(rename = "offsetDirection")]
     pub offset_direction: Option<String>,
-    /// parameters property.
+    /// `parameters` property.
     pub parameters: Option<TelemetryQueryRequestParameters>,
-    /// queryId property.
+    /// `queryId` property.
     #[serde(rename = "queryId")]
     pub query_id: String,
-    /// timeframe property.
+    /// `timeframe` property.
     pub timeframe: TelemetryQueryRequestTimeframe,
-    /// view property.
+    /// `view` property.
     pub view: Option<String>,
 }
 
 /// `TelemetryQueryRequestParameters` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryQueryRequestParameters {
-    /// calculations property.
+    /// `calculations` property.
     pub calculations: Option<Vec<TelemetryQueryRequestParametersCalculationsItem>>,
-    /// datasets property.
+    /// `datasets` property.
     pub datasets: Option<Vec<String>>,
-    /// filterCombination property.
+    /// `filterCombination` property.
     #[serde(rename = "filterCombination")]
     pub filter_combination: Option<String>,
-    /// filters property.
+    /// `filters` property.
     pub filters: Option<Vec<serde_json::Value>>,
-    /// groupBys property.
+    /// `groupBys` property.
     #[serde(rename = "groupBys")]
     pub group_bys: Option<Vec<TelemetryQueryRequestParametersGroupBysItem>>,
-    /// havings property.
+    /// `havings` property.
     pub havings: Option<Vec<TelemetryQueryRequestParametersHavingsItem>>,
-    /// limit property.
+    /// `limit` property.
     pub limit: Option<i64>,
-    /// needle property.
+    /// `needle` property.
     pub needle: Option<TelemetryQueryRequestParametersNeedle>,
-    /// orderBy property.
+    /// `orderBy` property.
     #[serde(rename = "orderBy")]
     pub order_by: Option<TelemetryQueryRequestParametersOrderBy>,
 }
 
 /// `TelemetryQueryRequestParametersCalculationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryQueryRequestParametersCalculationsItem {
-    /// alias property.
-    pub alias: Option<String>,
-    /// key property.
-    pub key: Option<String>,
-    /// keyType property.
-    #[serde(rename = "keyType")]
-    pub key_type: Option<String>,
-    /// operator property.
-    pub operator: String,
-}
+///
+/// Same shape as `super::shared::QueriesPatchRequestParametersCalculationsItemShape`.
+pub type TelemetryQueryRequestParametersCalculationsItem =
+    super::shared::QueriesPatchRequestParametersCalculationsItemShape;
 
 /// `TelemetryQueryRequestParametersGroupBysItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryQueryRequestParametersGroupBysItem {
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::TypeValueObject`.
+pub type TelemetryQueryRequestParametersGroupBysItem = super::shared::TypeValueObject;
 
 /// `TelemetryQueryRequestParametersHavingsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryQueryRequestParametersHavingsItem {
-    /// key property.
-    pub key: String,
-    /// operation property.
-    pub operation: String,
-    /// value property.
-    pub value: f64,
-}
+///
+/// Same shape as `super::shared::KeyOperationValueObject`.
+pub type TelemetryQueryRequestParametersHavingsItem = super::shared::KeyOperationValueObject;
 
 /// `TelemetryQueryRequestParametersNeedle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryQueryRequestParametersNeedle {
-    /// isRegex property.
-    #[serde(rename = "isRegex")]
-    pub is_regex: Option<bool>,
-    /// matchCase property.
-    #[serde(rename = "matchCase")]
-    pub match_case: Option<bool>,
-    /// value property.
-    pub value: serde_json::Value,
-}
+///
+/// Same shape as `super::shared::IsRegexMatchCaseValueObject`.
+pub type TelemetryQueryRequestParametersNeedle = super::shared::IsRegexMatchCaseValueObject;
 
 /// `TelemetryQueryRequestParametersOrderBy` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryQueryRequestParametersOrderBy {
-    /// order property.
-    pub order: Option<String>,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::OrderValueObject`.
+pub type TelemetryQueryRequestParametersOrderBy = super::shared::OrderValueObject;
 
 /// `TelemetryQueryRequestTimeframe` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryQueryRequestTimeframe {
-    /// from property.
-    pub from: f64,
-    /// to property.
-    pub to: f64,
-}
+///
+/// Same shape as `super::shared::FromToObject`.
+pub type TelemetryQueryRequestTimeframe = super::shared::FromToObject;
 
 /// `TelemetryQueryResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryQueryResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TelemetryQueryResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TelemetryQueryResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: WorkersObservabilityQueryResults,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `TelemetryQueryResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryQueryResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type TelemetryQueryResponseErrorsItem = super::shared::MessageObject;
 
 /// `TelemetryQueryResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryQueryResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type TelemetryQueryResponseMessagesItem = super::shared::MessageObject;
 
 /// `TelemetryValuesListRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryValuesListRequest {
-    /// datasets property.
+    /// `datasets` property.
     pub datasets: Vec<String>,
-    /// filters property.
+    /// `filters` property.
     pub filters: Option<Vec<serde_json::Value>>,
-    /// key property.
+    /// `key` property.
     pub key: String,
-    /// limit property.
+    /// `limit` property.
     pub limit: Option<f64>,
-    /// needle property.
+    /// `needle` property.
     pub needle: Option<TelemetryValuesListRequestNeedle>,
-    /// timeframe property.
+    /// `timeframe` property.
     pub timeframe: TelemetryValuesListRequestTimeframe,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `TelemetryValuesListRequestNeedle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryValuesListRequestNeedle {
-    /// isRegex property.
-    #[serde(rename = "isRegex")]
-    pub is_regex: Option<bool>,
-    /// matchCase property.
-    #[serde(rename = "matchCase")]
-    pub match_case: Option<bool>,
-    /// value property.
-    pub value: serde_json::Value,
-}
+///
+/// Same shape as `super::shared::IsRegexMatchCaseValueObject`.
+pub type TelemetryValuesListRequestNeedle = super::shared::IsRegexMatchCaseValueObject;
 
 /// `TelemetryValuesListRequestTimeframe` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryValuesListRequestTimeframe {
-    /// from property.
-    pub from: f64,
-    /// to property.
-    pub to: f64,
-}
+///
+/// Same shape as `super::shared::FromToObject`.
+pub type TelemetryValuesListRequestTimeframe = super::shared::FromToObject;
 
 /// `TelemetryValuesListResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryValuesListResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TelemetryValuesListResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TelemetryValuesListResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: Vec<TelemetryValuesListResponseResultItem>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `TelemetryValuesListResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryValuesListResponseErrorsItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type TelemetryValuesListResponseErrorsItem = super::shared::MessageObject;
 
 /// `TelemetryValuesListResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TelemetryValuesListResponseMessagesItem {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type TelemetryValuesListResponseMessagesItem = super::shared::MessageObject;
 
 /// `TelemetryValuesListResponseResultItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryValuesListResponseResultItem {
-    /// dataset property.
+    /// `dataset` property.
     pub dataset: String,
-    /// key property.
+    /// `key` property.
     pub key: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// value property.
+    /// `value` property.
     pub value: serde_json::Value,
 }
 
 /// `UpdateHyperdriveResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct UpdateHyperdriveResponse {
-    /// `result` property.
-    pub result: Option<HyperdriveHyperdriveConfigResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<HyperdriveHyperdriveConfigResponse>`.
+pub type UpdateHyperdriveResponse = super::shared::ApiEnvelope<HyperdriveHyperdriveConfigResponse>;
 
 /// `UpdateTriggerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct UpdateTriggerResponse {
-    /// `result` property.
-    pub result: Option<BuildsTriggerResponse>,
-}
+///
+/// Same shape as `CreateTriggerResponse`.
+pub type UpdateTriggerResponse = CreateTriggerResponse;
 
 /// `UpdateWorkerRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct UpdateWorkerRequest {
-}
+///
+/// Same shape as `super::shared::CreateWorkerRequestShape`.
+pub type UpdateWorkerRequest = super::shared::CreateWorkerRequestShape;
 
 /// `UpdateWorkerResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct UpdateWorkerResponse {
-    /// `result` property.
-    pub result: WorkersWorker,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersWorker>`.
+pub type UpdateWorkerResponse = super::shared::ApiEnvelope<WorkersWorker>;
 
 /// `UpsertEnvironmentVariablesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct UpsertEnvironmentVariablesResponse {
-    /// `result` property.
-    pub result: Option<BuildsEnvironmentVariablesResponse>,
-}
+///
+/// Same shape as `ListEnvironmentVariablesResponse`.
+pub type UpsertEnvironmentVariablesResponse = ListEnvironmentVariablesResponse;
 
 /// `UpsertRepoConnectionResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct UpsertRepoConnectionResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
     /// `result` property.
-    pub result: Option<BuildsUpsertRepoConnectionResponse>,
+    pub result: BuildsUpsertRepoConnectionResponse,
+    /// `result_info` property.
+    pub result_info: Option<BuildsPaginationInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `WorkerAccountSettingsCreateWorkerAccountSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerAccountSettingsCreateWorkerAccountSettingsResponse {
-    /// `result` property.
-    pub result: WorkersAccountSettings,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersAccountSettings>`.
+pub type WorkerAccountSettingsCreateWorkerAccountSettingsResponse =
+    super::shared::ApiEnvelope<WorkersAccountSettings>;
 
 /// `WorkerAccountSettingsFetchWorkerAccountSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerAccountSettingsFetchWorkerAccountSettingsResponse {
-    /// `result` property.
-    pub result: WorkersAccountSettings,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersAccountSettings>`.
+pub type WorkerAccountSettingsFetchWorkerAccountSettingsResponse =
+    super::shared::ApiEnvelope<WorkersAccountSettings>;
 
 /// `WorkerCronTriggerGetCronTriggersResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerCronTriggerGetCronTriggersResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type WorkerCronTriggerGetCronTriggersResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `WorkerCronTriggerUpdateCronTriggersResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerCronTriggerUpdateCronTriggersResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type WorkerCronTriggerUpdateCronTriggersResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `WorkerDeploymentsCreateDeploymentResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerDeploymentsCreateDeploymentResponse {
-    /// `result` property.
-    pub result: WorkersDeployment,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersDeployment>`.
+pub type WorkerDeploymentsCreateDeploymentResponse = super::shared::ApiEnvelope<WorkersDeployment>;
 
 /// `WorkerDeploymentsGetDeploymentResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerDeploymentsGetDeploymentResponse {
-    /// `result` property.
-    pub result: WorkersDeployment,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersDeployment>`.
+pub type WorkerDeploymentsGetDeploymentResponse = super::shared::ApiEnvelope<WorkersDeployment>;
 
 /// `WorkerDeploymentsListDeploymentsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerDeploymentsListDeploymentsResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type WorkerDeploymentsListDeploymentsResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `WorkerGetScriptSecretResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerGetScriptSecretResponse {
-    /// `result` property.
-    pub result: Option<WorkersSecret>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type WorkerGetScriptSecretResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `WorkerListScriptSecretsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerListScriptSecretsResponse {
-    /// `result` property.
-    pub result: Option<Vec<WorkersSecret>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<serde_json::Value>>>`.
+pub type WorkerListScriptSecretsResponse =
+    super::shared::ApiEnvelope<Option<Vec<serde_json::Value>>>;
 
 /// `WorkerPlacementListRegionsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerPlacementListRegionsResponse {
-    /// `result` property.
-    pub result: WorkersPlacementRegionsResponse,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersPlacementRegionsResponse>`.
+pub type WorkerPlacementListRegionsResponse =
+    super::shared::ApiEnvelope<WorkersPlacementRegionsResponse>;
 
 /// `WorkerPutScriptSecretResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerPutScriptSecretResponse {
-    /// `result` property.
-    pub result: Option<WorkersSecret>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type WorkerPutScriptSecretResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `WorkerRoutesCreateRouteResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerRoutesCreateRouteResponse {
-    /// `result` property.
-    pub result: WorkersRoute,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersRoute>`.
+pub type WorkerRoutesCreateRouteResponse = super::shared::ApiEnvelope<WorkersRoute>;
 
 /// `WorkerRoutesDeleteRouteResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerRoutesDeleteRouteResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type WorkerRoutesDeleteRouteResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `WorkerRoutesGetRouteResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerRoutesGetRouteResponse {
-    /// `result` property.
-    pub result: WorkersRoute,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersRoute>`.
+pub type WorkerRoutesGetRouteResponse = super::shared::ApiEnvelope<WorkersRoute>;
 
 /// `WorkerRoutesListRoutesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerRoutesListRoutesResponse {
-    /// `result` property.
-    pub result: Vec<WorkersRoute>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<WorkersRoute>>`.
+pub type WorkerRoutesListRoutesResponse = super::shared::ApiEnvelope<Vec<WorkersRoute>>;
 
 /// `WorkerRoutesUpdateRouteResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerRoutesUpdateRouteResponse {
-    /// `result` property.
-    pub result: WorkersRoute,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersRoute>`.
+pub type WorkerRoutesUpdateRouteResponse = super::shared::ApiEnvelope<WorkersRoute>;
 
 /// `WorkerScriptDeleteSubdomainResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerScriptDeleteSubdomainResponse {
-    /// `result` property.
-    pub result: WorkersSubdomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersSubdomain>`.
+pub type WorkerScriptDeleteSubdomainResponse = super::shared::ApiEnvelope<WorkersSubdomain>;
 
 /// `WorkerScriptGetSubdomainResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerScriptGetSubdomainResponse {
-    /// `result` property.
-    pub result: WorkersSubdomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersSubdomain>`.
+pub type WorkerScriptGetSubdomainResponse = super::shared::ApiEnvelope<WorkersSubdomain>;
 
 /// `WorkerScriptPostSubdomainRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkerScriptPostSubdomainRequest {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// previews_enabled property.
+    /// `previews_enabled` property.
     pub previews_enabled: Option<bool>,
 }
 
 /// `WorkerScriptPostSubdomainResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerScriptPostSubdomainResponse {
-    /// `result` property.
-    pub result: WorkersSubdomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersSubdomain>`.
+pub type WorkerScriptPostSubdomainResponse = super::shared::ApiEnvelope<WorkersSubdomain>;
 
 /// `WorkerScriptSearchWorkersResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerScriptSearchWorkersResponse {
-    /// `result` property.
-    pub result: Vec<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type WorkerScriptSearchWorkersResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+        Vec<std::collections::HashMap<String, serde_json::Value>>,
+    >;
 
 /// `WorkerScriptUpdateUsageModelRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkerScriptUpdateUsageModelRequest {
-    /// usage_model property.
-    pub usage_model: Option<WorkersUsageModel>,
-    /// user_limits property.
+    /// `usage_model` property.
+    pub usage_model: Option<String>,
+    /// `user_limits` property.
     pub user_limits: Option<WorkersUserLimits>,
 }
 
 /// `WorkerScriptUploadWorkerModuleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerScriptUploadWorkerModuleResponse {
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersScriptResponseUpload>`.
+pub type WorkerScriptUploadWorkerModuleResponse =
+    super::shared::ApiEnvelope<WorkersScriptResponseUpload>;
 
 /// `WorkerSubdomainCreateSubdomainResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerSubdomainCreateSubdomainResponse {
-    /// `result` property.
-    pub result: WorkersSchemasSubdomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersSchemasSubdomain>`.
+pub type WorkerSubdomainCreateSubdomainResponse =
+    super::shared::ApiEnvelope<WorkersSchemasSubdomain>;
 
 /// `WorkerSubdomainGetSubdomainResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerSubdomainGetSubdomainResponse {
-    /// `result` property.
-    pub result: WorkersSchemasSubdomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersSchemasSubdomain>`.
+pub type WorkerSubdomainGetSubdomainResponse = super::shared::ApiEnvelope<WorkersSchemasSubdomain>;
 
 /// `WorkerTailLogsStartTailResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkerTailLogsStartTailResponse {
-    /// `result` property.
-    pub result: WorkersTail,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersTail>`.
+pub type WorkerTailLogsStartTailResponse = super::shared::ApiEnvelope<WorkersTail>;
 
 /// `Workers200Response` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Workers200Response {
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersScriptResponseUpload>`.
+pub type Workers200Response = super::shared::ApiEnvelope<WorkersScriptResponseUpload>;
 
 /// `WorkersAccountSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersAccountSettings {
-    /// default_usage_model property.
+    /// `default_usage_model` property.
     pub default_usage_model: Option<String>,
-    /// green_compute property.
+    /// `green_compute` property.
     pub green_compute: Option<bool>,
 }
 
 /// `WorkersApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::AddressingApiResponseCollectionShape`.
+pub type WorkersApiResponseCollection = super::shared::AddressingApiResponseCollectionShape;
 
 /// `WorkersApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type WorkersApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `WorkersApiResponseNullResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersApiResponseNullResult {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type WorkersApiResponseNullResult = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `WorkersApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type WorkersApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `WorkersBindingItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersBindingItem {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersBindingItem = serde_json::Value;
 
 /// `WorkersBindingKindAi` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindAi {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NameTypeObject`.
+pub type WorkersBindingKindAi = super::shared::NameTypeObject;
 
 /// `WorkersBindingKindAiSearch` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindAiSearch {
-    /// instance_name property.
+    /// `instance_name` property.
     pub instance_name: String,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// namespace property.
+    /// `name` property.
+    pub name: String,
+    /// `namespace` property.
     pub namespace: Option<String>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -4794,11 +3797,11 @@ pub struct WorkersBindingKindAiSearch {
 /// `WorkersBindingKindAiSearchNamespace` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindAiSearchNamespace {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// namespace property.
+    /// `name` property.
+    pub name: String,
+    /// `namespace` property.
     pub namespace: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -4806,69 +3809,45 @@ pub struct WorkersBindingKindAiSearchNamespace {
 /// `WorkersBindingKindAnalyticsEngine` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindAnalyticsEngine {
-    /// dataset property.
+    /// `dataset` property.
     pub dataset: String,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `WorkersBindingKindAssets` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindAssets {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NameTypeObject`.
+pub type WorkersBindingKindAssets = super::shared::NameTypeObject;
 
 /// `WorkersBindingKindBrowser` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindBrowser {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NameTypeObject`.
+pub type WorkersBindingKindBrowser = super::shared::NameTypeObject;
 
 /// `WorkersBindingKindD1` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindD1 {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::IdNameTypeObject`.
+pub type WorkersBindingKindD1 = super::shared::IdNameTypeObject;
 
 /// `WorkersBindingKindDataBlob` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindDataBlob {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// part property.
-    pub part: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NamePartTypeObject`.
+pub type WorkersBindingKindDataBlob = super::shared::NamePartTypeObject;
 
 /// `WorkersBindingKindDispatchNamespace` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindDispatchNamespace {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// namespace property.
+    /// `name` property.
+    pub name: String,
+    /// `namespace` property.
     pub namespace: String,
-    /// outbound property.
+    /// `outbound` property.
     pub outbound: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -4876,67 +3855,55 @@ pub struct WorkersBindingKindDispatchNamespace {
 /// `WorkersBindingKindDurableObjectNamespace` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindDurableObjectNamespace {
-    /// class_name property.
+    /// `class_name` property.
     pub class_name: Option<String>,
-    /// dispatch_namespace property.
+    /// `dispatch_namespace` property.
     pub dispatch_namespace: Option<String>,
-    /// environment property.
+    /// `environment` property.
     pub environment: Option<String>,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// namespace_id property.
+    /// `name` property.
+    pub name: String,
+    /// `namespace_id` property.
     pub namespace_id: Option<serde_json::Value>,
-    /// script_name property.
+    /// `script_name` property.
     pub script_name: Option<String>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `WorkersBindingKindHyperdrive` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindHyperdrive {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::IdNameTypeObject`.
+pub type WorkersBindingKindHyperdrive = super::shared::IdNameTypeObject;
 
 /// `WorkersBindingKindImages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindImages {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NameTypeObject`.
+pub type WorkersBindingKindImages = super::shared::NameTypeObject;
 
 /// `WorkersBindingKindInherit` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindInherit {
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// old_name property.
+    /// `old_name` property.
     pub old_name: Option<String>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// version_id property.
+    /// `version_id` property.
     pub version_id: Option<String>,
 }
 
 /// `WorkersBindingKindJson` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindJson {
-    /// json property.
+    /// `json` property.
     pub json: serde_json::Value,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -4944,33 +3911,28 @@ pub struct WorkersBindingKindJson {
 /// `WorkersBindingKindKvNamespace` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindKvNamespace {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// namespace_id property.
-    pub namespace_id: WorkersNamespaceIdentifier,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `namespace_id` property.
+    pub namespace_id: String,
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `WorkersBindingKindMedia` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindMedia {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NameTypeObject`.
+pub type WorkersBindingKindMedia = super::shared::NameTypeObject;
 
 /// `WorkersBindingKindMtlsCertificate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindMtlsCertificate {
-    /// certificate_id property.
+    /// `certificate_id` property.
     pub certificate_id: String,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -4978,35 +3940,28 @@ pub struct WorkersBindingKindMtlsCertificate {
 /// `WorkersBindingKindPipelines` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindPipelines {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// pipeline property.
+    /// `name` property.
+    pub name: String,
+    /// `pipeline` property.
     pub pipeline: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `WorkersBindingKindPlainText` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindPlainText {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// text property.
-    pub text: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NameTextTypeObject`.
+pub type WorkersBindingKindPlainText = super::shared::NameTextTypeObject;
 
 /// `WorkersBindingKindQueue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindQueue {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// queue_name property.
+    /// `name` property.
+    pub name: String,
+    /// `queue_name` property.
     pub queue_name: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -5014,13 +3969,13 @@ pub struct WorkersBindingKindQueue {
 /// `WorkersBindingKindR2Bucket` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindR2Bucket {
-    /// bucket_name property.
+    /// `bucket_name` property.
     pub bucket_name: String,
-    /// jurisdiction property.
+    /// `jurisdiction` property.
     pub jurisdiction: Option<String>,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -5028,13 +3983,13 @@ pub struct WorkersBindingKindR2Bucket {
 /// `WorkersBindingKindRatelimit` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindRatelimit {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// namespace_id property.
+    /// `name` property.
+    pub name: String,
+    /// `namespace_id` property.
     pub namespace_id: String,
-    /// simple property.
+    /// `simple` property.
     pub simple: std::collections::HashMap<String, serde_json::Value>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -5042,45 +3997,38 @@ pub struct WorkersBindingKindRatelimit {
 /// `WorkersBindingKindSecretKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindSecretKey {
-    /// algorithm property.
+    /// `algorithm` property.
     pub algorithm: serde_json::Value,
-    /// format property.
+    /// `format` property.
     pub format: String,
-    /// key_base64 property.
+    /// `key_base64` property.
     pub key_base64: Option<String>,
-    /// key_jwk property.
+    /// `key_jwk` property.
     pub key_jwk: Option<serde_json::Value>,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// usages property.
+    /// `usages` property.
     pub usages: Vec<String>,
 }
 
 /// `WorkersBindingKindSecretText` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindSecretText {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// text property.
-    pub text: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NameTextTypeObject`.
+pub type WorkersBindingKindSecretText = super::shared::NameTextTypeObject;
 
 /// `WorkersBindingKindSecretsStoreSecret` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindSecretsStoreSecret {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// secret_name property.
+    /// `name` property.
+    pub name: String,
+    /// `secret_name` property.
     pub secret_name: String,
-    /// store_id property.
+    /// `store_id` property.
     pub store_id: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -5088,15 +4036,15 @@ pub struct WorkersBindingKindSecretsStoreSecret {
 /// `WorkersBindingKindSendEmail` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindSendEmail {
-    /// allowed_destination_addresses property.
+    /// `allowed_destination_addresses` property.
     pub allowed_destination_addresses: Option<Vec<String>>,
-    /// allowed_sender_addresses property.
+    /// `allowed_sender_addresses` property.
     pub allowed_sender_addresses: Option<Vec<String>>,
-    /// destination_address property.
+    /// `destination_address` property.
     pub destination_address: Option<String>,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -5104,63 +4052,51 @@ pub struct WorkersBindingKindSendEmail {
 /// `WorkersBindingKindService` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindService {
-    /// entrypoint property.
+    /// `entrypoint` property.
     pub entrypoint: Option<String>,
-    /// environment property.
+    /// `environment` property.
     pub environment: Option<String>,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// service property.
+    /// `name` property.
+    pub name: String,
+    /// `service` property.
     pub service: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `WorkersBindingKindTextBlob` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindTextBlob {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// part property.
-    pub part: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NamePartTypeObject`.
+pub type WorkersBindingKindTextBlob = super::shared::NamePartTypeObject;
 
 /// `WorkersBindingKindVectorize` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindVectorize {
-    /// index_name property.
+    /// `index_name` property.
     pub index_name: String,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `WorkersBindingKindVersionMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindVersionMetadata {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NameTypeObject`.
+pub type WorkersBindingKindVersionMetadata = super::shared::NameTypeObject;
 
 /// `WorkersBindingKindVpcNetwork` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindVpcNetwork {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// network_id property.
+    /// `name` property.
+    pub name: String,
+    /// `network_id` property.
     pub network_id: Option<String>,
-    /// tunnel_id property.
+    /// `tunnel_id` property.
     pub tunnel_id: Option<String>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -5168,435 +4104,334 @@ pub struct WorkersBindingKindVpcNetwork {
 /// `WorkersBindingKindVpcService` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindVpcService {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// service_id property.
+    /// `name` property.
+    pub name: String,
+    /// `service_id` property.
     pub service_id: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `WorkersBindingKindWasmModule` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersBindingKindWasmModule {
-    /// name property.
-    pub name: WorkersBindingName,
-    /// part property.
-    pub part: String,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `super::shared::NamePartTypeObject`.
+pub type WorkersBindingKindWasmModule = super::shared::NamePartTypeObject;
 
 /// `WorkersBindingKindWorkflow` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersBindingKindWorkflow {
-    /// class_name property.
+    /// `class_name` property.
     pub class_name: Option<String>,
-    /// name property.
-    pub name: WorkersBindingName,
-    /// script_name property.
+    /// `name` property.
+    pub name: String,
+    /// `script_name` property.
     pub script_name: Option<String>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// workflow_name property.
+    /// `workflow_name` property.
     pub workflow_name: String,
 }
 
 /// `WorkersBindingName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersBindingName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersBindingName = String;
 
 /// `WorkersBindings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersBindings {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersBindings = Vec<serde_json::Value>;
 
 /// `WorkersCompatibilityDate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersCompatibilityDate {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersCompatibilityDate = String;
 
 /// `WorkersCompatibilityFlag` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersCompatibilityFlag {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersCompatibilityFlag = String;
 
 /// `WorkersCompatibilityFlags` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersCompatibilityFlags {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersCompatibilityFlags = Vec<String>;
 
 /// `WorkersCompletedUploadAssetsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersCompletedUploadAssetsResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type WorkersCompletedUploadAssetsResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `WorkersCreateAssetsUploadSessionObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersCreateAssetsUploadSessionObject {
-    /// manifest property.
+    /// `manifest` property.
     pub manifest: serde_json::Value,
 }
 
 /// `WorkersCreateAssetsUploadSessionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersCreateAssetsUploadSessionResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type WorkersCreateAssetsUploadSessionResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `WorkersCreatedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersCreatedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersCreatedOn = String;
 
 /// `WorkersCursor` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersCursor {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersCursor = String;
 
 /// `WorkersDeployment` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersDeployment {
-    /// annotations property.
+    /// `annotations` property.
     pub annotations: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// author_email property.
+    /// `author_email` property.
     pub author_email: Option<String>,
-    /// created_on property.
+    /// `created_on` property.
     pub created_on: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// source property.
+    /// `source` property.
     pub source: String,
-    /// strategy property.
+    /// `strategy` property.
     pub strategy: String,
-    /// versions property.
+    /// `versions` property.
     pub versions: Vec<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `WorkersDispatchNamespaceName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersDispatchNamespaceName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersDispatchNamespaceName = String;
 
 /// `WorkersDomain` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersDomain {
-    /// cert_id property.
-    pub cert_id: String,
-    /// environment property.
-    pub environment: String,
-    /// hostname property.
-    pub hostname: String,
-    /// id property.
-    pub id: String,
-    /// service property.
-    pub service: String,
-    /// zone_id property.
-    pub zone_id: String,
-    /// zone_name property.
-    pub zone_name: String,
-}
+///
+/// Same shape as `super::shared::WorkersDomainShape`.
+pub type WorkersDomain = super::shared::WorkersDomainShape;
 
 /// `WorkersDomainsGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersDomainsGetResponse {
-    /// `result` property.
-    pub result: WorkersDomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersDomain>`.
+pub type WorkersDomainsGetResponse = super::shared::ApiEnvelope<WorkersDomain>;
 
 /// `WorkersDomainsListResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersDomainsListResponse {
-    /// `result` property.
-    pub result: Vec<WorkersDomain>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<WorkersDomain>>`.
+pub type WorkersDomainsListResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Vec<WorkersDomain>>;
 
 /// `WorkersDomainsUpdateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersDomainsUpdateRequest {
-}
+///
+/// Same shape as `super::shared::WorkersDomainShape`.
+pub type WorkersDomainsUpdateRequest = super::shared::WorkersDomainShape;
 
 /// `WorkersDomainsUpdateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersDomainsUpdateResponse {
-    /// `result` property.
-    pub result: WorkersDomain,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersDomain>`.
+pub type WorkersDomainsUpdateResponse = super::shared::ApiEnvelope<WorkersDomain>;
 
 /// `WorkersEtag` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersEtag {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersEtag = String;
 
 /// `WorkersHasAssets` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersHasAssets {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersHasAssets = bool;
 
 /// `WorkersHasModules` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersHasModules {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersHasModules = bool;
 
 /// `WorkersIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersIdentifier = String;
 
 /// `WorkersLimits` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersLimits {
-    /// cpu_ms property.
-    pub cpu_ms: Option<i64>,
-}
+///
+/// Same shape as `super::shared::CpuMsObject`.
+pub type WorkersLimits = super::shared::CpuMsObject;
 
 /// `WorkersLogpush` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersLogpush {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersLogpush = bool;
 
 /// `WorkersMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `WorkersModifiedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersModifiedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersModifiedOn = String;
 
 /// `WorkersNamespace` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersNamespace {
-    /// class property.
+    /// `class` property.
     pub class: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// script property.
+    /// `script` property.
     pub script: Option<String>,
-    /// use_sqlite property.
+    /// `use_sqlite` property.
     pub use_sqlite: Option<bool>,
 }
 
 /// `WorkersNamespaceIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersNamespaceIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersNamespaceIdentifier = String;
 
 /// `WorkersNamespaceListResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersNamespaceListResponse {
-    /// `result` property.
-    pub result: Option<Vec<WorkersNamespaceResponse>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<WorkersNamespaceResponse>>>`.
+pub type WorkersNamespaceListResponse =
+    super::shared::ApiEnvelope<Option<Vec<WorkersNamespaceResponse>>>;
 
 /// `WorkersNamespaceResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersNamespaceResponse {
-    /// created_by property.
-    pub created_by: Option<WorkersIdentifier>,
-    /// created_on property.
-    pub created_on: Option<WorkersCreatedOn>,
-    /// modified_by property.
-    pub modified_by: Option<WorkersIdentifier>,
-    /// modified_on property.
-    pub modified_on: Option<WorkersModifiedOn>,
-    /// namespace_id property.
-    pub namespace_id: Option<WorkersUuid>,
-    /// namespace_name property.
-    pub namespace_name: Option<WorkersDispatchNamespaceName>,
-    /// script_count property.
-    pub script_count: Option<WorkersScriptCount>,
-    /// trusted_workers property.
-    pub trusted_workers: Option<WorkersTrustedWorkers>,
+    /// `created_by` property.
+    pub created_by: Option<String>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `modified_by` property.
+    pub modified_by: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `namespace_id` property.
+    pub namespace_id: Option<String>,
+    /// `namespace_name` property.
+    pub namespace_name: Option<String>,
+    /// `script_count` property.
+    pub script_count: Option<i64>,
+    /// `trusted_workers` property.
+    pub trusted_workers: Option<bool>,
 }
 
 /// `WorkersNamespaceScriptAndVersionSettingsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersNamespaceScriptAndVersionSettingsItem {
-    /// bindings property.
+    /// `bindings` property.
     pub bindings: Option<serde_json::Value>,
-    /// compatibility_date property.
+    /// `compatibility_date` property.
     pub compatibility_date: Option<serde_json::Value>,
-    /// compatibility_flags property.
+    /// `compatibility_flags` property.
     pub compatibility_flags: Option<serde_json::Value>,
-    /// limits property.
+    /// `limits` property.
     pub limits: Option<WorkersLimits>,
-    /// logpush property.
-    pub logpush: Option<WorkersLogpush>,
-    /// migrations property.
+    /// `logpush` property.
+    pub logpush: Option<bool>,
+    /// `migrations` property.
     pub migrations: Option<serde_json::Value>,
-    /// observability property.
+    /// `observability` property.
     pub observability: Option<WorkersObservability>,
-    /// placement property.
+    /// `placement` property.
     pub placement: Option<serde_json::Value>,
-    /// tags property.
+    /// `tags` property.
     pub tags: Option<serde_json::Value>,
-    /// tail_consumers property.
+    /// `tail_consumers` property.
     pub tail_consumers: Option<serde_json::Value>,
-    /// usage_model property.
-    pub usage_model: Option<WorkersUsageModel>,
+    /// `usage_model` property.
+    pub usage_model: Option<String>,
 }
 
 /// `WorkersNamespaceScriptDeleteBulkResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersNamespaceScriptDeleteBulkResponse {
-    /// deleted property.
+    /// `deleted` property.
     pub deleted: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// deleted_count property.
+    /// `deleted_count` property.
     pub deleted_count: Option<i64>,
-    /// has_more property.
+    /// `has_more` property.
     pub has_more: Option<bool>,
 }
 
 /// `WorkersNamespaceScriptResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersNamespaceScriptResponse {
-    /// created_on property.
-    pub created_on: Option<WorkersCreatedOn>,
-    /// dispatch_namespace property.
-    pub dispatch_namespace: Option<WorkersDispatchNamespaceName>,
-    /// modified_on property.
-    pub modified_on: Option<WorkersModifiedOn>,
-    /// script property.
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `dispatch_namespace` property.
+    pub dispatch_namespace: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `script` property.
     pub script: Option<WorkersScriptResponse>,
 }
 
 /// `WorkersNamespaceScriptResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersNamespaceScriptResponseSingle {
-    /// `result` property.
-    pub result: WorkersNamespaceScriptResponse,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersNamespaceScriptResponse>`.
+pub type WorkersNamespaceScriptResponseSingle =
+    super::shared::ApiEnvelope<WorkersNamespaceScriptResponse>;
 
 /// `WorkersNamespaceSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersNamespaceSingleResponse {
-    /// `result` property.
-    pub result: Option<WorkersNamespaceResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<WorkersNamespaceResponse>>`.
+pub type WorkersNamespaceSingleResponse =
+    super::shared::ApiEnvelope<Option<WorkersNamespaceResponse>>;
 
 /// `WorkersObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersObject {
-    /// hasStoredData property.
+    /// `hasStoredData` property.
     #[serde(rename = "hasStoredData")]
     pub has_stored_data: Option<bool>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
 }
 
 /// `WorkersObservability` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersObservability {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// head_sampling_rate property.
+    /// `head_sampling_rate` property.
     pub head_sampling_rate: Option<f64>,
-    /// logs property.
+    /// `logs` property.
     pub logs: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// traces property.
+    /// `traces` property.
     pub traces: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `WorkersObservabilityFilterLeaf` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersObservabilityFilterLeaf {
-    /// key property.
+    /// `key` property.
     pub key: String,
-    /// kind property.
+    /// `kind` property.
     pub kind: Option<String>,
-    /// operation property.
+    /// `operation` property.
     pub operation: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// value property.
+    /// `value` property.
     pub value: Option<serde_json::Value>,
 }
 
 /// `WorkersObservabilityFilterNode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersObservabilityFilterNode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersObservabilityFilterNode = serde_json::Value;
 
 /// `WorkersObservabilityPerformanceInformation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersObservabilityPerformanceInformation {
-    /// abr_level property.
+    /// `abr_level` property.
     pub abr_level: Option<f64>,
-    /// bytes_read property.
+    /// `bytes_read` property.
     pub bytes_read: f64,
-    /// elapsed property.
+    /// `elapsed` property.
     pub elapsed: f64,
-    /// rows_read property.
+    /// `rows_read` property.
     pub rows_read: f64,
 }
 
 /// `WorkersObservabilityQuery` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersObservabilityQuery {
-    /// adhoc property.
+    /// `adhoc` property.
     pub adhoc: bool,
-    /// created property.
+    /// `created` property.
     pub created: String,
-    /// createdBy property.
+    /// `createdBy` property.
     #[serde(rename = "createdBy")]
     pub created_by: String,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// parameters property.
+    /// `parameters` property.
     pub parameters: std::collections::HashMap<String, serde_json::Value>,
-    /// updated property.
+    /// `updated` property.
     pub updated: String,
-    /// updatedBy property.
+    /// `updatedBy` property.
     #[serde(rename = "updatedBy")]
     pub updated_by: String,
 }
@@ -5604,49 +4439,49 @@ pub struct WorkersObservabilityQuery {
 /// `WorkersObservabilityQueryResults` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersObservabilityQueryResults {
-    /// agents property.
+    /// `agents` property.
     pub agents: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// calculations property.
+    /// `calculations` property.
     pub calculations: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// compare property.
+    /// `compare` property.
     pub compare: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// events property.
+    /// `events` property.
     pub events: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// invocations property.
+    /// `invocations` property.
     pub invocations: Option<serde_json::Value>,
-    /// run property.
+    /// `run` property.
     pub run: WorkersObservabilityQueryRun,
-    /// statistics property.
+    /// `statistics` property.
     pub statistics: WorkersObservabilityPerformanceInformation,
-    /// traces property.
+    /// `traces` property.
     pub traces: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 /// `WorkersObservabilityQueryRun` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersObservabilityQueryRun {
-    /// accountId property.
+    /// `accountId` property.
     #[serde(rename = "accountId")]
     pub account_id: String,
-    /// created property.
+    /// `created` property.
     pub created: Option<String>,
-    /// dry property.
+    /// `dry` property.
     pub dry: bool,
-    /// granularity property.
+    /// `granularity` property.
     pub granularity: f64,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// query property.
+    /// `query` property.
     pub query: serde_json::Value,
-    /// statistics property.
+    /// `statistics` property.
     pub statistics: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// status property.
+    /// `status` property.
     pub status: String,
-    /// timeframe property.
+    /// `timeframe` property.
     pub timeframe: std::collections::HashMap<String, serde_json::Value>,
-    /// updated property.
+    /// `updated` property.
     pub updated: Option<String>,
-    /// userId property.
+    /// `userId` property.
     #[serde(rename = "userId")]
     pub user_id: String,
 }
@@ -5654,20 +4489,20 @@ pub struct WorkersObservabilityQueryRun {
 /// `WorkersObservabilityTelemetryEvent` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersObservabilityTelemetryEvent {
-    /// $containers property.
+    /// `$containers` property.
     #[serde(rename = "$containers")]
     pub containers: Option<serde_json::Value>,
-    /// $metadata property.
+    /// `$metadata` property.
     #[serde(rename = "$metadata")]
     pub metadata: std::collections::HashMap<String, serde_json::Value>,
-    /// $workers property.
+    /// `$workers` property.
     #[serde(rename = "$workers")]
     pub workers: Option<serde_json::Value>,
-    /// dataset property.
+    /// `dataset` property.
     pub dataset: String,
-    /// source property.
+    /// `source` property.
     pub source: serde_json::Value,
-    /// timestamp property.
+    /// `timestamp` property.
     pub timestamp: i64,
 }
 
@@ -5677,367 +4512,354 @@ pub struct WorkersPlacementInfo {
     /// `last_analyzed_at` property.
     pub last_analyzed_at: Option<String>,
     /// `status` property.
-    pub status: Option<WorkersPlacementStatus>,
+    pub status: Option<String>,
 }
 
 /// `WorkersPlacementInfoNoStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersPlacementInfoNoStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersPlacementInfoNoStatus = serde_json::Value;
 
 /// `WorkersPlacementProvider` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersPlacementProvider {
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// regions property.
+    /// `regions` property.
     pub regions: Vec<WorkersPlacementRegion>,
 }
 
 /// `WorkersPlacementRegion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersPlacementRegion {
-    /// id property.
-    pub id: String,
-}
+///
+/// Same shape as `super::shared::IdObject2`.
+pub type WorkersPlacementRegion = super::shared::IdObject2;
 
 /// `WorkersPlacementRegionsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersPlacementRegionsResponse {
-    /// providers property.
+    /// `providers` property.
     pub providers: Vec<WorkersPlacementProvider>,
 }
 
 /// `WorkersPlacementStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersPlacementStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersPlacementStatus = String;
 
 /// `WorkersPlacementTarget` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersPlacementTarget {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersPlacementTarget = serde_json::Value;
 
 /// `WorkersRoute` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersRoute {
-    /// id property.
+    /// `id` property.
     pub id: serde_json::Value,
-    /// pattern property.
+    /// `pattern` property.
     pub pattern: String,
-    /// script property.
+    /// `script` property.
     pub script: Option<String>,
 }
 
 /// `WorkersSchedule` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersSchedule {
-    /// created_on property.
+    /// `created_on` property.
     pub created_on: Option<String>,
-    /// cron property.
+    /// `cron` property.
     pub cron: String,
-    /// modified_on property.
+    /// `modified_on` property.
     pub modified_on: Option<String>,
 }
 
 /// `WorkersSchemasSubdomain` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersSchemasSubdomain {
-    /// subdomain property.
+    /// `subdomain` property.
     pub subdomain: String,
 }
 
 /// `WorkersScriptAndVersionSettingsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersScriptAndVersionSettingsItem {
-    /// annotations property.
+    /// `annotations` property.
     pub annotations: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// bindings property.
+    /// `bindings` property.
     pub bindings: Option<serde_json::Value>,
-    /// compatibility_date property.
+    /// `compatibility_date` property.
     pub compatibility_date: Option<serde_json::Value>,
-    /// compatibility_flags property.
+    /// `compatibility_flags` property.
     pub compatibility_flags: Option<serde_json::Value>,
-    /// limits property.
+    /// `limits` property.
     pub limits: Option<WorkersLimits>,
-    /// logpush property.
-    pub logpush: Option<WorkersLogpush>,
-    /// migrations property.
+    /// `logpush` property.
+    pub logpush: Option<bool>,
+    /// `migrations` property.
     pub migrations: Option<serde_json::Value>,
-    /// observability property.
+    /// `observability` property.
     pub observability: Option<WorkersObservability>,
-    /// placement property.
+    /// `placement` property.
     pub placement: Option<serde_json::Value>,
-    /// tags property.
+    /// `tags` property.
     pub tags: Option<serde_json::Value>,
-    /// tail_consumers property.
+    /// `tail_consumers` property.
     pub tail_consumers: Option<serde_json::Value>,
-    /// usage_model property.
-    pub usage_model: Option<WorkersUsageModel>,
+    /// `usage_model` property.
+    pub usage_model: Option<String>,
 }
 
 /// `WorkersScriptAndVersionSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersScriptAndVersionSettingsResponse {
-    /// `result` property.
-    pub result: WorkersScriptAndVersionSettingsItem,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersScriptAndVersionSettingsItem>`.
+pub type WorkersScriptAndVersionSettingsResponse =
+    super::shared::ApiEnvelope<WorkersScriptAndVersionSettingsItem>;
 
 /// `WorkersScriptCount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersScriptCount {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersScriptCount = i64;
 
 /// `WorkersScriptName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersScriptName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersScriptName = String;
 
 /// `WorkersScriptResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersScriptResponse {
-    /// compatibility_date property.
-    pub compatibility_date: Option<WorkersCompatibilityDate>,
-    /// compatibility_flags property.
-    pub compatibility_flags: Option<Vec<WorkersCompatibilityFlag>>,
-    /// created_on property.
-    pub created_on: Option<WorkersCreatedOn>,
-    /// etag property.
-    pub etag: Option<WorkersEtag>,
-    /// handlers property.
+    /// `compatibility_date` property.
+    pub compatibility_date: Option<String>,
+    /// `compatibility_flags` property.
+    pub compatibility_flags: Option<Vec<String>>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `etag` property.
+    pub etag: Option<String>,
+    /// `handlers` property.
     pub handlers: Option<Vec<String>>,
-    /// has_assets property.
-    pub has_assets: Option<WorkersHasAssets>,
-    /// has_modules property.
-    pub has_modules: Option<WorkersHasModules>,
-    /// id property.
+    /// `has_assets` property.
+    pub has_assets: Option<bool>,
+    /// `has_modules` property.
+    pub has_modules: Option<bool>,
+    /// `id` property.
     pub id: Option<String>,
-    /// last_deployed_from property.
+    /// `last_deployed_from` property.
     pub last_deployed_from: Option<String>,
-    /// logpush property.
-    pub logpush: Option<WorkersLogpush>,
-    /// migration_tag property.
+    /// `logpush` property.
+    pub logpush: Option<bool>,
+    /// `migration_tag` property.
     pub migration_tag: Option<String>,
-    /// modified_on property.
-    pub modified_on: Option<WorkersModifiedOn>,
-    /// named_handlers property.
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `named_handlers` property.
     pub named_handlers: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// observability property.
+    /// `observability` property.
     pub observability: Option<WorkersObservability>,
-    /// placement property.
+    /// `placement` property.
     pub placement: Option<WorkersPlacementInfo>,
-    /// placement_mode property.
+    /// `placement_mode` property.
     pub placement_mode: Option<serde_json::Value>,
-    /// placement_status property.
+    /// `placement_status` property.
     pub placement_status: Option<serde_json::Value>,
-    /// tag property.
+    /// `tag` property.
     pub tag: Option<String>,
-    /// tags property.
-    pub tags: Option<Vec<WorkersTag>>,
-    /// tail_consumers property.
+    /// `tags` property.
+    pub tags: Option<Vec<String>>,
+    /// `tail_consumers` property.
     pub tail_consumers: Option<Vec<WorkersTailConsumersScript>>,
-    /// usage_model property.
-    pub usage_model: Option<WorkersUsageModel>,
+    /// `usage_model` property.
+    pub usage_model: Option<String>,
 }
 
 /// `WorkersScriptResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersScriptResponseCollection {
-    /// `result` property.
-    pub result: Vec<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Vec<serde_json::Value>>`.
+pub type WorkersScriptResponseCollection = super::shared::ApiEnvelope<Vec<serde_json::Value>>;
 
 /// `WorkersScriptResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersScriptResponseSingle {
-    /// `result` property.
-    pub result: WorkersScriptResponse,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersScriptResponse>`.
+pub type WorkersScriptResponseSingle = super::shared::ApiEnvelope<WorkersScriptResponse>;
 
 /// `WorkersScriptResponseUpload` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersScriptResponseUpload {
+    /// `compatibility_date` property.
+    pub compatibility_date: Option<String>,
+    /// `compatibility_flags` property.
+    pub compatibility_flags: Option<Vec<String>>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
     /// `entry_point` property.
     pub entry_point: Option<String>,
+    /// `etag` property.
+    pub etag: Option<String>,
+    /// `handlers` property.
+    pub handlers: Option<Vec<String>>,
+    /// `has_assets` property.
+    pub has_assets: Option<bool>,
+    /// `has_modules` property.
+    pub has_modules: Option<bool>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `last_deployed_from` property.
+    pub last_deployed_from: Option<String>,
+    /// `logpush` property.
+    pub logpush: Option<bool>,
+    /// `migration_tag` property.
+    pub migration_tag: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `named_handlers` property.
+    pub named_handlers: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// `observability` property.
+    pub observability: Option<WorkersObservability>,
+    /// `placement` property.
+    pub placement: Option<WorkersPlacementInfo>,
+    /// `placement_mode` property.
+    pub placement_mode: Option<serde_json::Value>,
+    /// `placement_status` property.
+    pub placement_status: Option<serde_json::Value>,
     /// `startup_time_ms` property.
     pub startup_time_ms: i64,
+    /// `tag` property.
+    pub tag: Option<String>,
+    /// `tags` property.
+    pub tags: Option<Vec<String>>,
+    /// `tail_consumers` property.
+    pub tail_consumers: Option<Vec<WorkersTailConsumersScript>>,
+    /// `usage_model` property.
+    pub usage_model: Option<String>,
 }
 
 /// `WorkersScriptResponseUploadSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersScriptResponseUploadSingle {
-    /// `result` property.
-    pub result: WorkersScriptResponseUpload,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersScriptResponseUpload>`.
+pub type WorkersScriptResponseUploadSingle =
+    super::shared::ApiEnvelope<WorkersScriptResponseUpload>;
 
 /// `WorkersScriptSettingsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersScriptSettingsItem {
-    /// logpush property.
-    pub logpush: Option<WorkersLogpush>,
-    /// observability property.
+    /// `logpush` property.
+    pub logpush: Option<bool>,
+    /// `observability` property.
     pub observability: Option<serde_json::Value>,
-    /// tags property.
+    /// `tags` property.
     pub tags: Option<serde_json::Value>,
-    /// tail_consumers property.
+    /// `tail_consumers` property.
     pub tail_consumers: Option<Vec<WorkersTailConsumersScript>>,
 }
 
 /// `WorkersScriptSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersScriptSettingsResponse {
-    /// `result` property.
-    pub result: WorkersScriptSettingsItem,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersScriptSettingsItem>`.
+pub type WorkersScriptSettingsResponse = super::shared::ApiEnvelope<WorkersScriptSettingsItem>;
 
 /// `WorkersSecret` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersSecret {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersSecret = serde_json::Value;
 
 /// `WorkersSubdomain` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersSubdomain {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// previews_enabled property.
+    /// `previews_enabled` property.
     pub previews_enabled: bool,
 }
 
 /// `WorkersTag` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersTag {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersTag = String;
 
 /// `WorkersTags` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersTags {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersTags = Vec<String>;
 
 /// `WorkersTail` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersTail {
-    /// expires_at property.
+    /// `expires_at` property.
     pub expires_at: String,
-    /// id property.
+    /// `id` property.
     pub id: serde_json::Value,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `WorkersTailConsumers` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersTailConsumers {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersTailConsumers = Vec<WorkersTailConsumersScript>;
 
 /// `WorkersTailConsumersScript` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersTailConsumersScript {
-    /// environment property.
+    /// `environment` property.
     pub environment: Option<String>,
-    /// namespace property.
+    /// `namespace` property.
     pub namespace: Option<String>,
-    /// service property.
+    /// `service` property.
     pub service: String,
 }
 
 /// `WorkersTrustedWorkers` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersTrustedWorkers {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersTrustedWorkers = bool;
 
 /// `WorkersUsageModel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersUsageModel {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersUsageModel = String;
 
 /// `WorkersUsageModelResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersUsageModelResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type WorkersUsageModelResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `WorkersUserLimits` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersUserLimits {
-    /// cpu_ms property.
-    pub cpu_ms: Option<i64>,
-}
+///
+/// Same shape as `super::shared::CpuMsObject`.
+pub type WorkersUserLimits = super::shared::CpuMsObject;
 
 /// `WorkersUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WorkersUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WorkersUuid = String;
 
 /// `WorkersVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersVersion {
-    /// annotations property.
+    /// `annotations` property.
     pub annotations: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// assets property.
+    /// `assets` property.
     pub assets: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// bindings property.
-    pub bindings: Option<Vec<WorkersBindingItem>>,
-    /// compatibility_date property.
-    pub compatibility_date: Option<WorkersCompatibilityDate>,
-    /// compatibility_flags property.
-    pub compatibility_flags: Option<Vec<WorkersCompatibilityFlag>>,
-    /// created_on property.
+    /// `bindings` property.
+    pub bindings: Option<Vec<serde_json::Value>>,
+    /// `compatibility_date` property.
+    pub compatibility_date: Option<String>,
+    /// `compatibility_flags` property.
+    pub compatibility_flags: Option<Vec<String>>,
+    /// `created_on` property.
     pub created_on: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// limits property.
+    /// `limits` property.
     pub limits: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// main_module property.
+    /// `main_module` property.
     pub main_module: Option<String>,
-    /// migration_tag property.
+    /// `migration_tag` property.
     pub migration_tag: Option<String>,
-    /// migrations property.
+    /// `migrations` property.
     pub migrations: Option<serde_json::Value>,
-    /// modules property.
+    /// `modules` property.
     pub modules: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// number property.
+    /// `number` property.
     pub number: i64,
-    /// placement property.
-    pub placement: Option<WorkersPlacementInfoNoStatus>,
-    /// source property.
+    /// `placement` property.
+    pub placement: Option<serde_json::Value>,
+    /// `source` property.
     pub source: Option<String>,
-    /// startup_time_ms property.
+    /// `startup_time_ms` property.
     pub startup_time_ms: Option<i64>,
-    /// urls property.
+    /// `urls` property.
     pub urls: Vec<String>,
-    /// usage_model property.
+    /// `usage_model` property.
     pub usage_model: Option<String>,
 }
 
 /// `WorkersVersionItemFull` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersVersionItemFull {
+    /// `id` property.
+    pub id: Option<String>,
+    /// `metadata` property.
+    pub metadata: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `number` property.
+    pub number: Option<f64>,
     /// `resources` property.
     pub resources: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -6045,68 +4867,49 @@ pub struct WorkersVersionItemFull {
 /// `WorkersVersionItemShort` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersVersionItemShort {
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// metadata property.
+    /// `metadata` property.
     pub metadata: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// number property.
+    /// `number` property.
     pub number: Option<f64>,
 }
 
 /// `WorkersVersionItemUploaded` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WorkersVersionItemUploaded {
+    /// `id` property.
+    pub id: Option<String>,
+    /// `metadata` property.
+    pub metadata: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `number` property.
+    pub number: Option<f64>,
+    /// `resources` property.
+    pub resources: std::collections::HashMap<String, serde_json::Value>,
     /// `startup_time_ms` property.
     pub startup_time_ms: Option<i64>,
 }
 
 /// `WorkersVersionsListResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersVersionsListResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type WorkersVersionsListResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `WorkersVersionsSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersVersionsSingleResponse {
-    /// `result` property.
-    pub result: WorkersVersionItemFull,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersVersionItemFull>`.
+pub type WorkersVersionsSingleResponse = super::shared::ApiEnvelope<WorkersVersionItemFull>;
 
 /// `WorkersVersionsUploadResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersVersionsUploadResponse {
-    /// `result` property.
-    pub result: WorkersVersionItemUploaded,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<WorkersVersionItemUploaded>`.
+pub type WorkersVersionsUploadResponse = super::shared::ApiEnvelope<WorkersVersionItemUploaded>;
 
 /// `WorkersWorker` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WorkersWorker {
-    /// created_on property.
-    pub created_on: String,
-    /// deployed_on property.
-    pub deployed_on: Option<String>,
-    /// id property.
-    pub id: String,
-    /// logpush property.
-    pub logpush: bool,
-    /// name property.
-    pub name: String,
-    /// observability property.
-    pub observability: std::collections::HashMap<String, serde_json::Value>,
-    /// references property.
-    pub references: std::collections::HashMap<String, serde_json::Value>,
-    /// subdomain property.
-    pub subdomain: std::collections::HashMap<String, serde_json::Value>,
-    /// tags property.
-    pub tags: Vec<String>,
-    /// tail_consumers property.
-    pub tail_consumers: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// updated_on property.
-    pub updated_on: String,
-}
+///
+/// Same shape as `super::shared::CreateWorkerRequestShape`.
+pub type WorkersWorker = super::shared::CreateWorkerRequestShape;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -6140,13 +4943,10 @@ pub struct CustomAssetsForAnAccountCreateACustomAssetArgs {
 }
 
 /// Arguments for [`custom-assets-for-an-account-get-a-custom-asset_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CustomAssetsForAnAccountGetACustomAssetArgs {
-    /// Path parameter: `asset_name`.
-    pub asset_name: String,
-    /// Path parameter: `account_identifier`.
-    pub account_identifier: String,
-}
+///
+/// Same shape as `super::shared::AssetNameAccountIdentifierArgs`.
+pub type CustomAssetsForAnAccountGetACustomAssetArgs =
+    super::shared::AssetNameAccountIdentifierArgs;
 
 /// Arguments for [`custom-assets-for-an-account-update-a-custom-asset_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6160,13 +4960,10 @@ pub struct CustomAssetsForAnAccountUpdateACustomAssetArgs {
 }
 
 /// Arguments for [`custom-assets-for-an-account-delete-a-custom-asset_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CustomAssetsForAnAccountDeleteACustomAssetArgs {
-    /// Path parameter: `asset_name`.
-    pub asset_name: String,
-    /// Path parameter: `account_identifier`.
-    pub account_identifier: String,
-}
+///
+/// Same shape as `super::shared::AssetNameAccountIdentifierArgs`.
+pub type CustomAssetsForAnAccountDeleteACustomAssetArgs =
+    super::shared::AssetNameAccountIdentifierArgs;
 
 /// Arguments for [`custom-pages-for-an-account-get-a-custom-page_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6189,15 +4986,9 @@ pub struct CustomPagesForAnAccountUpdateACustomPageArgs {
 }
 
 /// Arguments for [`access-custom-pages-list-custom-pages_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccessCustomPagesListCustomPagesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdPagePerPageArgs`.
+pub type AccessCustomPagesListCustomPagesArgs = super::shared::AccountIdPagePerPageArgs;
 
 /// Arguments for [`access-custom-pages-create-a-custom-page_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6209,13 +5000,9 @@ pub struct AccessCustomPagesCreateACustomPageArgs {
 }
 
 /// Arguments for [`access-custom-pages-get-a-custom-page_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccessCustomPagesGetACustomPageArgs {
-    /// Path parameter: `custom_page_id`.
-    pub custom_page_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::CustomPageIdAccountIdArgs`.
+pub type AccessCustomPagesGetACustomPageArgs = super::shared::CustomPageIdAccountIdArgs;
 
 /// Arguments for [`access-custom-pages-update-a-custom-page_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6229,22 +5016,15 @@ pub struct AccessCustomPagesUpdateACustomPageArgs {
 }
 
 /// Arguments for [`access-custom-pages-delete-a-custom-page_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AccessCustomPagesDeleteACustomPageArgs {
-    /// Path parameter: `custom_page_id`.
-    pub custom_page_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::CustomPageIdAccountIdArgs`.
+pub type AccessCustomPagesDeleteACustomPageArgs = super::shared::CustomPageIdAccountIdArgs;
 
 /// Arguments for [`ip-address-management-service-bindings-list-service-bindings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct IpAddressManagementServiceBindingsListServiceBindingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `prefix_id`.
-    pub prefix_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPrefixIdArgs`.
+pub type IpAddressManagementServiceBindingsListServiceBindingsArgs =
+    super::shared::AccountIdPrefixIdArgs;
 
 /// Arguments for [`ip-address-management-service-bindings-create-service-binding_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6258,40 +5038,26 @@ pub struct IpAddressManagementServiceBindingsCreateServiceBindingArgs {
 }
 
 /// Arguments for [`ip-address-management-service-bindings-get-service-binding_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct IpAddressManagementServiceBindingsGetServiceBindingArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `prefix_id`.
-    pub prefix_id: String,
-    /// Path parameter: `binding_id`.
-    pub binding_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPrefixIdBindingIdArgs`.
+pub type IpAddressManagementServiceBindingsGetServiceBindingArgs =
+    super::shared::AccountIdPrefixIdBindingIdArgs;
 
 /// Arguments for [`ip-address-management-service-bindings-delete-service-binding_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct IpAddressManagementServiceBindingsDeleteServiceBindingArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `prefix_id`.
-    pub prefix_id: String,
-    /// Path parameter: `binding_id`.
-    pub binding_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPrefixIdBindingIdArgs`.
+pub type IpAddressManagementServiceBindingsDeleteServiceBindingArgs =
+    super::shared::AccountIdPrefixIdBindingIdArgs;
 
 /// Arguments for [`ip-address-management-service-bindings-list-services_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct IpAddressManagementServiceBindingsListServicesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type IpAddressManagementServiceBindingsListServicesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`getAccountLimits_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetAccountLimitsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type GetAccountLimitsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`getBuildsByVersionIds_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6312,22 +5078,14 @@ pub struct GetLatestBuildsByScriptsArgs {
 }
 
 /// Arguments for [`getBuildByUuid_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetBuildByUuidArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `build_uuid`.
-    pub build_uuid: String,
-}
+///
+/// Same shape as `super::shared::AccountIdBuildUuidArgs`.
+pub type GetBuildByUuidArgs = super::shared::AccountIdBuildUuidArgs;
 
 /// Arguments for [`cancelBuildByUuid_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CancelBuildByUuidArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `build_uuid`.
-    pub build_uuid: String,
-}
+///
+/// Same shape as `super::shared::AccountIdBuildUuidArgs`.
+pub type CancelBuildByUuidArgs = super::shared::AccountIdBuildUuidArgs;
 
 /// Arguments for [`getBuildLogs_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6376,15 +5134,9 @@ pub struct GetWorkerConfigAutofillArgs {
 }
 
 /// Arguments for [`listBuildTokens_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ListBuildTokensArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdPagePerPageArgs`.
+pub type ListBuildTokensArgs = super::shared::AccountIdPagePerPageArgs;
 
 /// Arguments for [`createBuildToken_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6425,13 +5177,9 @@ pub struct UpdateTriggerArgs {
 }
 
 /// Arguments for [`deleteTrigger_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteTriggerArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `trigger_uuid`.
-    pub trigger_uuid: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTriggerUuidArgs`.
+pub type DeleteTriggerArgs = super::shared::AccountIdTriggerUuidArgs;
 
 /// Arguments for [`createManualBuild_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6445,13 +5193,9 @@ pub struct CreateManualBuildArgs {
 }
 
 /// Arguments for [`listEnvironmentVariables_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ListEnvironmentVariablesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `trigger_uuid`.
-    pub trigger_uuid: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTriggerUuidArgs`.
+pub type ListEnvironmentVariablesArgs = super::shared::AccountIdTriggerUuidArgs;
 
 /// Arguments for [`upsertEnvironmentVariables_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6476,13 +5220,9 @@ pub struct DeleteEnvironmentVariableArgs {
 }
 
 /// Arguments for [`purgeBuildCache_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PurgeBuildCacheArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `trigger_uuid`.
-    pub trigger_uuid: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTriggerUuidArgs`.
+pub type PurgeBuildCacheArgs = super::shared::AccountIdTriggerUuidArgs;
 
 /// Arguments for [`listBuildsByScript_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6549,13 +5289,9 @@ pub struct D1CreateDatabaseArgs {
 }
 
 /// Arguments for [`d1-get-database_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct D1GetDatabaseArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `database_id`.
-    pub database_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDatabaseIdArgs`.
+pub type D1GetDatabaseArgs = super::shared::AccountIdDatabaseIdArgs;
 
 /// Arguments for [`d1-update-database_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6580,13 +5316,9 @@ pub struct D1UpdatePartialDatabaseArgs {
 }
 
 /// Arguments for [`d1-delete-database_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct D1DeleteDatabaseArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `database_id`.
-    pub database_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDatabaseIdArgs`.
+pub type D1DeleteDatabaseArgs = super::shared::AccountIdDatabaseIdArgs;
 
 /// Arguments for [`d1-export-database_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6622,15 +5354,9 @@ pub struct D1QueryDatabaseArgs {
 }
 
 /// Arguments for [`d1-raw-database-query_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct D1RawDatabaseQueryArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `database_id`.
-    pub database_id: String,
-    /// Request body.
-    pub body: D1BatchQuery,
-}
+///
+/// Same shape as `D1QueryDatabaseArgs`.
+pub type D1RawDatabaseQueryArgs = D1QueryDatabaseArgs;
 
 /// Arguments for [`d1-time-travel-get-bookmark_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6657,11 +5383,9 @@ pub struct D1TimeTravelRestoreArgs {
 }
 
 /// Arguments for [`list-hyperdrive_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ListHyperdriveArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ListHyperdriveArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`create-hyperdrive_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6673,13 +5397,9 @@ pub struct CreateHyperdriveArgs {
 }
 
 /// Arguments for [`get-hyperdrive_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetHyperdriveArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `hyperdrive_id`.
-    pub hyperdrive_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdHyperdriveIdArgs`.
+pub type GetHyperdriveArgs = super::shared::AccountIdHyperdriveIdArgs;
 
 /// Arguments for [`update-hyperdrive_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6704,24 +5424,14 @@ pub struct PatchHyperdriveArgs {
 }
 
 /// Arguments for [`delete-hyperdrive_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteHyperdriveArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `hyperdrive_id`.
-    pub hyperdrive_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdHyperdriveIdArgs`.
+pub type DeleteHyperdriveArgs = super::shared::AccountIdHyperdriveIdArgs;
 
 /// Arguments for [`pages-project-get-projects_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesProjectGetProjectsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdPagePerPageArgs`.
+pub type PagesProjectGetProjectsArgs = super::shared::AccountIdPagePerPageArgs;
 
 /// Arguments for [`pages-project-create-project_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6733,13 +5443,9 @@ pub struct PagesProjectCreateProjectArgs {
 }
 
 /// Arguments for [`pages-project-get-project_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesProjectGetProjectArgs {
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ProjectNameAccountIdArgs`.
+pub type PagesProjectGetProjectArgs = super::shared::ProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-project-update-project_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6753,13 +5459,9 @@ pub struct PagesProjectUpdateProjectArgs {
 }
 
 /// Arguments for [`pages-project-delete-project_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesProjectDeleteProjectArgs {
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ProjectNameAccountIdArgs`.
+pub type PagesProjectDeleteProjectArgs = super::shared::ProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-deployment-get-deployments_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6777,77 +5479,40 @@ pub struct PagesDeploymentGetDeploymentsArgs {
 }
 
 /// Arguments for [`pages-deployment-create-deployment_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDeploymentCreateDeploymentArgs {
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ProjectNameAccountIdArgs`.
+pub type PagesDeploymentCreateDeploymentArgs = super::shared::ProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-deployment-get-deployment-info_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDeploymentGetDeploymentInfoArgs {
-    /// Path parameter: `deployment_id`.
-    pub deployment_id: String,
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DeploymentIdProjectNameAccountIdArgs`.
+pub type PagesDeploymentGetDeploymentInfoArgs = super::shared::DeploymentIdProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-deployment-delete-deployment_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDeploymentDeleteDeploymentArgs {
-    /// Path parameter: `deployment_id`.
-    pub deployment_id: String,
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DeploymentIdProjectNameAccountIdArgs`.
+pub type PagesDeploymentDeleteDeploymentArgs = super::shared::DeploymentIdProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-deployment-get-deployment-logs_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDeploymentGetDeploymentLogsArgs {
-    /// Path parameter: `deployment_id`.
-    pub deployment_id: String,
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DeploymentIdProjectNameAccountIdArgs`.
+pub type PagesDeploymentGetDeploymentLogsArgs = super::shared::DeploymentIdProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-deployment-retry-deployment_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDeploymentRetryDeploymentArgs {
-    /// Path parameter: `deployment_id`.
-    pub deployment_id: String,
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DeploymentIdProjectNameAccountIdArgs`.
+pub type PagesDeploymentRetryDeploymentArgs = super::shared::DeploymentIdProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-deployment-rollback-deployment_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDeploymentRollbackDeploymentArgs {
-    /// Path parameter: `deployment_id`.
-    pub deployment_id: String,
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DeploymentIdProjectNameAccountIdArgs`.
+pub type PagesDeploymentRollbackDeploymentArgs =
+    super::shared::DeploymentIdProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-domains-get-domains_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDomainsGetDomainsArgs {
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ProjectNameAccountIdArgs`.
+pub type PagesDomainsGetDomainsArgs = super::shared::ProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-domains-add-domain_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6861,57 +5526,29 @@ pub struct PagesDomainsAddDomainArgs {
 }
 
 /// Arguments for [`pages-domains-get-domain_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDomainsGetDomainArgs {
-    /// Path parameter: `domain_name`.
-    pub domain_name: String,
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DomainNameProjectNameAccountIdArgs`.
+pub type PagesDomainsGetDomainArgs = super::shared::DomainNameProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-domains-patch-domain_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDomainsPatchDomainArgs {
-    /// Path parameter: `domain_name`.
-    pub domain_name: String,
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DomainNameProjectNameAccountIdArgs`.
+pub type PagesDomainsPatchDomainArgs = super::shared::DomainNameProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-domains-delete-domain_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesDomainsDeleteDomainArgs {
-    /// Path parameter: `domain_name`.
-    pub domain_name: String,
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DomainNameProjectNameAccountIdArgs`.
+pub type PagesDomainsDeleteDomainArgs = super::shared::DomainNameProjectNameAccountIdArgs;
 
 /// Arguments for [`pages-purge-build-cache_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PagesPurgeBuildCacheArgs {
-    /// Path parameter: `project_name`.
-    pub project_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ProjectNameAccountIdArgs`.
+pub type PagesPurgeBuildCacheArgs = super::shared::ProjectNameAccountIdArgs;
 
 /// Arguments for [`getV4AccountsByAccount_idPipelinesV1Pipelines_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1PipelinesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdPagePerPageArgs`.
+pub type GetV4AccountsByAccountIdPipelinesV1PipelinesArgs = super::shared::AccountIdPagePerPageArgs;
 
 /// Arguments for [`postV4AccountsByAccount_idPipelinesV1Pipelines_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6923,35 +5560,22 @@ pub struct PostV4AccountsByAccountIdPipelinesV1PipelinesArgs {
 }
 
 /// Arguments for [`getV4AccountsByAccount_idPipelinesV1PipelinesByPipeline_id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `pipeline_id`.
-    pub pipeline_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPipelineIdArgs`.
+pub type GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdArgs =
+    super::shared::AccountIdPipelineIdArgs;
 
 /// Arguments for [`deleteV4AccountsByAccount_idPipelinesV1PipelinesByPipeline_id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `pipeline_id`.
-    pub pipeline_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPipelineIdArgs`.
+pub type DeleteV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdArgs =
+    super::shared::AccountIdPipelineIdArgs;
 
 /// Arguments for [`getV4AccountsByAccount_idPipelinesV1Sinks_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1SinksArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `pipeline_id`.
-    pub pipeline_id: Option<String>,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-}
+///
+/// Same shape as `super::shared::GetV4AccountsByAccountIdPipelinesV1SinksArgsShape`.
+pub type GetV4AccountsByAccountIdPipelinesV1SinksArgs =
+    super::shared::GetV4AccountsByAccountIdPipelinesV1SinksArgsShape;
 
 /// Arguments for [`postV4AccountsByAccount_idPipelinesV1Sinks_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -6983,17 +5607,10 @@ pub struct DeleteV4AccountsByAccountIdPipelinesV1SinksBySinkIdArgs {
 }
 
 /// Arguments for [`getV4AccountsByAccount_idPipelinesV1Streams_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetV4AccountsByAccountIdPipelinesV1StreamsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `pipeline_id`.
-    pub pipeline_id: Option<String>,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-}
+///
+/// Same shape as `super::shared::GetV4AccountsByAccountIdPipelinesV1SinksArgsShape`.
+pub type GetV4AccountsByAccountIdPipelinesV1StreamsArgs =
+    super::shared::GetV4AccountsByAccountIdPipelinesV1SinksArgsShape;
 
 /// Arguments for [`postV4AccountsByAccount_idPipelinesV1Streams_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7045,11 +5662,9 @@ pub struct PostV4AccountsByAccountIdPipelinesV1ValidateSqlArgs {
 }
 
 /// Arguments for [`worker-account-settings-fetch-worker-account-settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerAccountSettingsFetchWorkerAccountSettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type WorkerAccountSettingsFetchWorkerAccountSettingsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`worker-account-settings-create-worker-account-settings_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7070,11 +5685,9 @@ pub struct WorkerAssetsUploadArgs {
 }
 
 /// Arguments for [`namespace-worker-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type NamespaceWorkerListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`namespace-worker-create_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7086,13 +5699,9 @@ pub struct NamespaceWorkerCreateArgs {
 }
 
 /// Arguments for [`namespace-worker-get-namespace_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerGetNamespaceArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceArgs`.
+pub type NamespaceWorkerGetNamespaceArgs = super::shared::AccountIdDispatchNamespaceArgs;
 
 /// Arguments for [`namespace-worker-put-namespace_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7117,13 +5726,9 @@ pub struct NamespaceWorkerPatchNamespaceArgs {
 }
 
 /// Arguments for [`namespace-worker-delete-namespace_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerDeleteNamespaceArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceArgs`.
+pub type NamespaceWorkerDeleteNamespaceArgs = super::shared::AccountIdDispatchNamespaceArgs;
 
 /// Arguments for [`namespace-worker-list-scripts_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7150,15 +5755,10 @@ pub struct NamespaceWorkerDeleteScriptsArgs {
 }
 
 /// Arguments for [`namespace-worker-script-worker-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerScriptWorkerDetailsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceScriptNameArgs`.
+pub type NamespaceWorkerScriptWorkerDetailsArgs =
+    super::shared::AccountIdDispatchNamespaceScriptNameArgs;
 
 /// Arguments for [`namespace-worker-script-upload-worker-module_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7200,48 +5800,28 @@ pub struct NamespaceWorkerScriptUpdateCreateAssetsUploadSessionArgs {
 }
 
 /// Arguments for [`namespace-worker-get-script-bindings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerGetScriptBindingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceScriptNameArgs`.
+pub type NamespaceWorkerGetScriptBindingsArgs =
+    super::shared::AccountIdDispatchNamespaceScriptNameArgs;
 
 /// Arguments for [`namespace-worker-get-script-content_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerGetScriptContentArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceScriptNameArgs`.
+pub type NamespaceWorkerGetScriptContentArgs =
+    super::shared::AccountIdDispatchNamespaceScriptNameArgs;
 
 /// Arguments for [`namespace-worker-put-script-content_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerPutScriptContentArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceScriptNameArgs`.
+pub type NamespaceWorkerPutScriptContentArgs =
+    super::shared::AccountIdDispatchNamespaceScriptNameArgs;
 
 /// Arguments for [`namespace-worker-list-script-secrets_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerListScriptSecretsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceScriptNameArgs`.
+pub type NamespaceWorkerListScriptSecretsArgs =
+    super::shared::AccountIdDispatchNamespaceScriptNameArgs;
 
 /// Arguments for [`namespace-worker-put-script-secrets_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7257,104 +5837,48 @@ pub struct NamespaceWorkerPutScriptSecretsArgs {
 }
 
 /// Arguments for [`namespace-worker-get-script-secrets_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerGetScriptSecretsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Path parameter: `secret_name`.
-    pub secret_name: String,
-    /// Query parameter: `url_encoded`.
-    pub url_encoded: Option<String>,
-}
+///
+/// Same shape as `super::shared::NamespaceWorkerGetScriptSecretsArgsShape`.
+pub type NamespaceWorkerGetScriptSecretsArgs =
+    super::shared::NamespaceWorkerGetScriptSecretsArgsShape;
 
 /// Arguments for [`namespace-worker-delete-script-secret_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerDeleteScriptSecretArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Path parameter: `secret_name`.
-    pub secret_name: String,
-    /// Query parameter: `url_encoded`.
-    pub url_encoded: Option<String>,
-}
+///
+/// Same shape as `super::shared::NamespaceWorkerGetScriptSecretsArgsShape`.
+pub type NamespaceWorkerDeleteScriptSecretArgs =
+    super::shared::NamespaceWorkerGetScriptSecretsArgsShape;
 
 /// Arguments for [`namespace-worker-get-script-settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerGetScriptSettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceScriptNameArgs`.
+pub type NamespaceWorkerGetScriptSettingsArgs =
+    super::shared::AccountIdDispatchNamespaceScriptNameArgs;
 
 /// Arguments for [`namespace-worker-patch-script-settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerPatchScriptSettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceScriptNameArgs`.
+pub type NamespaceWorkerPatchScriptSettingsArgs =
+    super::shared::AccountIdDispatchNamespaceScriptNameArgs;
 
 /// Arguments for [`namespace-worker-get-script-tags_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerGetScriptTagsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceScriptNameArgs`.
+pub type NamespaceWorkerGetScriptTagsArgs = super::shared::AccountIdDispatchNamespaceScriptNameArgs;
 
 /// Arguments for [`namespace-worker-put-script-tags_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerPutScriptTagsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDispatchNamespaceScriptNameArgs`.
+pub type NamespaceWorkerPutScriptTagsArgs = super::shared::AccountIdDispatchNamespaceScriptNameArgs;
 
 /// Arguments for [`namespace-worker-put-script-tag_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerPutScriptTagArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Path parameter: `tag`.
-    pub tag: String,
-}
+///
+/// Same shape as `super::shared::NamespaceWorkerPutScriptTagArgsShape`.
+pub type NamespaceWorkerPutScriptTagArgs = super::shared::NamespaceWorkerPutScriptTagArgsShape;
 
 /// Arguments for [`namespace-worker-delete-script-tag_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NamespaceWorkerDeleteScriptTagArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dispatch_namespace`.
-    pub dispatch_namespace: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Path parameter: `tag`.
-    pub tag: String,
-}
+///
+/// Same shape as `super::shared::NamespaceWorkerPutScriptTagArgsShape`.
+pub type NamespaceWorkerDeleteScriptTagArgs = super::shared::NamespaceWorkerPutScriptTagArgsShape;
 
 /// Arguments for [`workers.domains.list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7383,33 +5907,19 @@ pub struct WorkersDomainsUpdateArgs {
 }
 
 /// Arguments for [`workers.domains.get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkersDomainsGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `domain_id`.
-    pub domain_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDomainIdArgs`.
+pub type WorkersDomainsGetArgs = super::shared::AccountIdDomainIdArgs;
 
 /// Arguments for [`workers.domains.delete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkersDomainsDeleteArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `domain_id`.
-    pub domain_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDomainIdArgs`.
+pub type WorkersDomainsDeleteArgs = super::shared::AccountIdDomainIdArgs;
 
 /// Arguments for [`durable-objects-namespace-list-namespaces_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DurableObjectsNamespaceListNamespacesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdPagePerPageArgs`.
+pub type DurableObjectsNamespaceListNamespacesArgs = super::shared::AccountIdPagePerPageArgs;
 
 /// Arguments for [`durable-objects-namespace-list-objects_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7425,19 +5935,9 @@ pub struct DurableObjectsNamespaceListObjectsArgs {
 }
 
 /// Arguments for [`destination.list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DestinationListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `perPage`.
-    pub per_page: Option<String>,
-    /// Query parameter: `order`.
-    pub order: Option<String>,
-    /// Query parameter: `orderBy`.
-    pub order_by: Option<String>,
-}
+///
+/// Same shape as `super::shared::DestinationListArgsShape`.
+pub type DestinationListArgs = super::shared::DestinationListArgsShape;
 
 /// Arguments for [`destination.create_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7465,19 +5965,9 @@ pub struct DestinationsDeleteArgs {
 }
 
 /// Arguments for [`queries.list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct QueriesListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `perPage`.
-    pub per_page: Option<String>,
-    /// Query parameter: `order`.
-    pub order: Option<String>,
-    /// Query parameter: `orderBy`.
-    pub order_by: Option<String>,
-}
+///
+/// Same shape as `super::shared::DestinationListArgsShape`.
+pub type QueriesListArgs = super::shared::DestinationListArgsShape;
 
 /// Arguments for [`queries.post_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7489,11 +5979,9 @@ pub struct QueriesPostArgs {
 }
 
 /// Arguments for [`queries.get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct QueriesGetArgs {
-    /// Path parameter: `queryId`.
-    pub query_id: String,
-}
+///
+/// Same shape as `super::shared::QueryIdArgs`.
+pub type QueriesGetArgs = super::shared::QueryIdArgs;
 
 /// Arguments for [`queries.patch_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7505,11 +5993,9 @@ pub struct QueriesPatchArgs {
 }
 
 /// Arguments for [`queries.delete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct QueriesDeleteArgs {
-    /// Path parameter: `queryId`.
-    pub query_id: String,
-}
+///
+/// Same shape as `super::shared::QueryIdArgs`.
+pub type QueriesDeleteArgs = super::shared::QueryIdArgs;
 
 /// Arguments for [`telemetry.keys.list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7539,11 +6025,9 @@ pub struct TelemetryValuesListArgs {
 }
 
 /// Arguments for [`worker-placement-list-regions_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerPlacementListRegionsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type WorkerPlacementListRegionsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`worker-script-list-workers_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7572,24 +6056,14 @@ pub struct WorkerScriptSearchWorkersArgs {
 }
 
 /// Arguments for [`worker-script-download-worker_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptDownloadWorkerArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerScriptDownloadWorkerArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-script-upload-worker-module_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptUploadWorkerModuleArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Query parameter: `bindings_inherit`.
-    pub bindings_inherit: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameBindingsInheritArgs`.
+pub type WorkerScriptUploadWorkerModuleArgs = super::shared::AccountIdScriptNameBindingsInheritArgs;
 
 /// Arguments for [`worker-script-delete-worker_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7614,31 +6088,19 @@ pub struct WorkerScriptUpdateCreateAssetsUploadSessionArgs {
 }
 
 /// Arguments for [`worker-script-put-content_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptPutContentArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerScriptPutContentArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-script-get-content_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptGetContentArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerScriptGetContentArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-deployments-list-deployments_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerDeploymentsListDeploymentsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerDeploymentsListDeploymentsArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-deployments-create-deployment_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7654,35 +6116,19 @@ pub struct WorkerDeploymentsCreateDeploymentArgs {
 }
 
 /// Arguments for [`worker-deployments-get-deployment_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerDeploymentsGetDeploymentArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Path parameter: `deployment_id`.
-    pub deployment_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameDeploymentIdArgs`.
+pub type WorkerDeploymentsGetDeploymentArgs = super::shared::AccountIdScriptNameDeploymentIdArgs;
 
 /// Arguments for [`worker-deployments-delete-deployment_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerDeploymentsDeleteDeploymentArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Path parameter: `deployment_id`.
-    pub deployment_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameDeploymentIdArgs`.
+pub type WorkerDeploymentsDeleteDeploymentArgs = super::shared::AccountIdScriptNameDeploymentIdArgs;
 
 /// Arguments for [`worker-cron-trigger-get-cron-triggers_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerCronTriggerGetCronTriggersArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerCronTriggerGetCronTriggersArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-cron-trigger-update-cron-triggers_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7696,13 +6142,9 @@ pub struct WorkerCronTriggerUpdateCronTriggersArgs {
 }
 
 /// Arguments for [`worker-script-settings-get-settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptSettingsGetSettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerScriptSettingsGetSettingsArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-script-settings-patch-settings_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7716,13 +6158,9 @@ pub struct WorkerScriptSettingsPatchSettingsArgs {
 }
 
 /// Arguments for [`worker-list-script-secrets_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerListScriptSecretsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerListScriptSecretsArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-put-script-secret_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7736,57 +6174,29 @@ pub struct WorkerPutScriptSecretArgs {
 }
 
 /// Arguments for [`worker-get-script-secret_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerGetScriptSecretArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Path parameter: `secret_name`.
-    pub secret_name: String,
-    /// Query parameter: `url_encoded`.
-    pub url_encoded: Option<String>,
-}
+///
+/// Same shape as `super::shared::WorkerGetScriptSecretArgsShape`.
+pub type WorkerGetScriptSecretArgs = super::shared::WorkerGetScriptSecretArgsShape;
 
 /// Arguments for [`worker-delete-script-secret_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerDeleteScriptSecretArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Path parameter: `secret_name`.
-    pub secret_name: String,
-    /// Query parameter: `url_encoded`.
-    pub url_encoded: Option<String>,
-}
+///
+/// Same shape as `super::shared::WorkerGetScriptSecretArgsShape`.
+pub type WorkerDeleteScriptSecretArgs = super::shared::WorkerGetScriptSecretArgsShape;
 
 /// Arguments for [`worker-script-get-settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptGetSettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerScriptGetSettingsArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-script-patch-settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptPatchSettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerScriptPatchSettingsArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-script-get-subdomain_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptGetSubdomainArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerScriptGetSubdomainArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-script-post-subdomain_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7800,22 +6210,14 @@ pub struct WorkerScriptPostSubdomainArgs {
 }
 
 /// Arguments for [`worker-script-delete-subdomain_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptDeleteSubdomainArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerScriptDeleteSubdomainArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-tail-logs-start-tail_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerTailLogsStartTailArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerTailLogsStartTailArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-tail-logs-delete-tail_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7829,13 +6231,9 @@ pub struct WorkerTailLogsDeleteTailArgs {
 }
 
 /// Arguments for [`worker-script-fetch-usage-model_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptFetchUsageModelArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameArgs`.
+pub type WorkerScriptFetchUsageModelArgs = super::shared::AccountIdScriptNameArgs;
 
 /// Arguments for [`worker-script-update-usage-model_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7864,15 +6262,9 @@ pub struct WorkerVersionsListVersionsArgs {
 }
 
 /// Arguments for [`worker-versions-upload-version_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerVersionsUploadVersionArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `script_name`.
-    pub script_name: String,
-    /// Query parameter: `bindings_inherit`.
-    pub bindings_inherit: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdScriptNameBindingsInheritArgs`.
+pub type WorkerVersionsUploadVersionArgs = super::shared::AccountIdScriptNameBindingsInheritArgs;
 
 /// Arguments for [`worker-versions-get-version-detail_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7886,37 +6278,22 @@ pub struct WorkerVersionsGetVersionDetailArgs {
 }
 
 /// Arguments for [`worker-environment-get-script-content_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerEnvironmentGetScriptContentArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `service_name`.
-    pub service_name: String,
-    /// Path parameter: `environment_name`.
-    pub environment_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdServiceNameEnvironmentNameArgs`.
+pub type WorkerEnvironmentGetScriptContentArgs =
+    super::shared::AccountIdServiceNameEnvironmentNameArgs;
 
 /// Arguments for [`worker-environment-put-script-content_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerEnvironmentPutScriptContentArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `service_name`.
-    pub service_name: String,
-    /// Path parameter: `environment_name`.
-    pub environment_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdServiceNameEnvironmentNameArgs`.
+pub type WorkerEnvironmentPutScriptContentArgs =
+    super::shared::AccountIdServiceNameEnvironmentNameArgs;
 
 /// Arguments for [`worker-script-environment-get-settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerScriptEnvironmentGetSettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `service_name`.
-    pub service_name: String,
-    /// Path parameter: `environment_name`.
-    pub environment_name: String,
-}
+///
+/// Same shape as `super::shared::AccountIdServiceNameEnvironmentNameArgs`.
+pub type WorkerScriptEnvironmentGetSettingsArgs =
+    super::shared::AccountIdServiceNameEnvironmentNameArgs;
 
 /// Arguments for [`worker-script-environment-patch-settings_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7932,11 +6309,9 @@ pub struct WorkerScriptEnvironmentPatchSettingsArgs {
 }
 
 /// Arguments for [`worker-subdomain-get-subdomain_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerSubdomainGetSubdomainArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type WorkerSubdomainGetSubdomainArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`worker-subdomain-create-subdomain_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7948,11 +6323,9 @@ pub struct WorkerSubdomainCreateSubdomainArgs {
 }
 
 /// Arguments for [`worker-subdomain-delete-subdomain_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerSubdomainDeleteSubdomainArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type WorkerSubdomainDeleteSubdomainArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`listWorkers_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -7979,13 +6352,9 @@ pub struct CreateWorkerArgs {
 }
 
 /// Arguments for [`getWorker_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetWorkerArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `worker_id`.
-    pub worker_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdWorkerIdArgs`.
+pub type GetWorkerArgs = super::shared::AccountIdWorkerIdArgs;
 
 /// Arguments for [`updateWorker_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -8010,13 +6379,9 @@ pub struct EditWorkerArgs {
 }
 
 /// Arguments for [`deleteWorker_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteWorkerArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `worker_id`.
-    pub worker_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdWorkerIdArgs`.
+pub type DeleteWorkerArgs = super::shared::AccountIdWorkerIdArgs;
 
 /// Arguments for [`listWorkerVersions_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -8096,13 +6461,9 @@ pub struct CustomAssetsForAZoneCreateACustomAssetArgs {
 }
 
 /// Arguments for [`custom-assets-for-a-zone-get-a-custom-asset_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CustomAssetsForAZoneGetACustomAssetArgs {
-    /// Path parameter: `asset_name`.
-    pub asset_name: String,
-    /// Path parameter: `zone_identifier`.
-    pub zone_identifier: String,
-}
+///
+/// Same shape as `super::shared::AssetNameZoneIdentifierArgs`.
+pub type CustomAssetsForAZoneGetACustomAssetArgs = super::shared::AssetNameZoneIdentifierArgs;
 
 /// Arguments for [`custom-assets-for-a-zone-update-a-custom-asset_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -8116,13 +6477,9 @@ pub struct CustomAssetsForAZoneUpdateACustomAssetArgs {
 }
 
 /// Arguments for [`custom-assets-for-a-zone-delete-a-custom-asset_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CustomAssetsForAZoneDeleteACustomAssetArgs {
-    /// Path parameter: `asset_name`.
-    pub asset_name: String,
-    /// Path parameter: `zone_identifier`.
-    pub zone_identifier: String,
-}
+///
+/// Same shape as `super::shared::AssetNameZoneIdentifierArgs`.
+pub type CustomAssetsForAZoneDeleteACustomAssetArgs = super::shared::AssetNameZoneIdentifierArgs;
 
 /// Arguments for [`custom-pages-for-a-zone-get-a-custom-page_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -8145,11 +6502,9 @@ pub struct CustomPagesForAZoneUpdateACustomPageArgs {
 }
 
 /// Arguments for [`speed-list-pages_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SpeedListPagesArgs {
-    /// Path parameter: `zone_id`.
-    pub zone_id: String,
-}
+///
+/// Same shape as `super::shared::ZoneIdArgs`.
+pub type SpeedListPagesArgs = super::shared::ZoneIdArgs;
 
 /// Arguments for [`speed-list-test-history_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -8178,15 +6533,9 @@ pub struct SpeedCreateTestArgs {
 }
 
 /// Arguments for [`speed-delete-tests_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SpeedDeleteTestsArgs {
-    /// Path parameter: `zone_id`.
-    pub zone_id: String,
-    /// Path parameter: `url`.
-    pub url: String,
-    /// Query parameter: `region`.
-    pub region: Option<String>,
-}
+///
+/// Same shape as `super::shared::ZoneIdUrlRegionArgs`.
+pub type SpeedDeleteTestsArgs = super::shared::ZoneIdUrlRegionArgs;
 
 /// Arguments for [`speed-get-test_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -8221,11 +6570,9 @@ pub struct SpeedListPageTrendArgs {
 }
 
 /// Arguments for [`worker-routes-list-routes_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerRoutesListRoutesArgs {
-    /// Path parameter: `zone_id`.
-    pub zone_id: String,
-}
+///
+/// Same shape as `super::shared::ZoneIdArgs`.
+pub type WorkerRoutesListRoutesArgs = super::shared::ZoneIdArgs;
 
 /// Arguments for [`worker-routes-create-route_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -8237,13 +6584,9 @@ pub struct WorkerRoutesCreateRouteArgs {
 }
 
 /// Arguments for [`worker-routes-get-route_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerRoutesGetRouteArgs {
-    /// Path parameter: `route_id`.
-    pub route_id: String,
-    /// Path parameter: `zone_id`.
-    pub zone_id: String,
-}
+///
+/// Same shape as `super::shared::RouteIdZoneIdArgs`.
+pub type WorkerRoutesGetRouteArgs = super::shared::RouteIdZoneIdArgs;
 
 /// Arguments for [`worker-routes-update-route_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -8257,13 +6600,9 @@ pub struct WorkerRoutesUpdateRouteArgs {
 }
 
 /// Arguments for [`worker-routes-delete-route_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct WorkerRoutesDeleteRouteArgs {
-    /// Path parameter: `route_id`.
-    pub route_id: String,
-    /// Path parameter: `zone_id`.
-    pub zone_id: String,
-}
+///
+/// Same shape as `super::shared::RouteIdZoneIdArgs`.
+pub type WorkerRoutesDeleteRouteArgs = super::shared::RouteIdZoneIdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -8300,9 +6639,7 @@ pub async fn custom_pages_for_an_account_list_custom_pages_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/custom_pages",
-        args.account_identifier,
-    );
+    let path = format!("/accounts/{}/custom_pages", args.account_identifier,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8312,20 +6649,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomPageResultList = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8359,9 +6683,7 @@ pub async fn custom_assets_for_an_account_list_custom_assets_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/custom_pages/assets",
-        args.account_identifier,
-    );
+    let path = format!("/accounts/{}/custom_pages/assets", args.account_identifier,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8374,20 +6696,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomAssetResultList = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8421,35 +6730,21 @@ pub async fn custom_assets_for_an_account_create_a_custom_asset_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/custom_pages/assets",
-        args.account_identifier,
-    );
+    let path = format!("/accounts/{}/custom_pages/assets", args.account_identifier,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomAssetResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8483,9 +6778,9 @@ pub async fn custom_assets_for_an_account_get_a_custom_asset_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/custom_pages/assets/{}",
-        args.account_identifier,
-        args.asset_name,
+    let path = format!(
+        "/accounts/{}/custom_pages/assets/{}",
+        args.account_identifier, args.asset_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8496,20 +6791,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomAssetResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8543,36 +6825,24 @@ pub async fn custom_assets_for_an_account_update_a_custom_asset_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/custom_pages/assets/{}",
-        args.account_identifier,
-        args.asset_name,
+    let path = format!(
+        "/accounts/{}/custom_pages/assets/{}",
+        args.account_identifier, args.asset_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomAssetResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8606,9 +6876,9 @@ pub async fn custom_assets_for_an_account_delete_a_custom_asset_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/custom_pages/assets/{}",
-        args.account_identifier,
-        args.asset_name,
+    let path = format!(
+        "/accounts/{}/custom_pages/assets/{}",
+        args.account_identifier, args.asset_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8619,18 +6889,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8664,9 +6923,9 @@ pub async fn custom_pages_for_an_account_get_a_custom_page_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/custom_pages/{}",
-        args.account_identifier,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/custom_pages/{}",
+        args.account_identifier, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8677,20 +6936,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomPageResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8724,36 +6970,24 @@ pub async fn custom_pages_for_an_account_update_a_custom_page_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/custom_pages/{}",
-        args.account_identifier,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/custom_pages/{}",
+        args.account_identifier, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomPageResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8783,13 +7017,14 @@ pub async fn access_custom_pages_list_custom_pages_request<F>(
     args: &AccessCustomPagesListCustomPagesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<AccessCustomPagesComponentsSchemasResponseCollection>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<AccessCustomPagesComponentsSchemasResponseCollection>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/access/custom_pages",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/access/custom_pages", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8802,20 +7037,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AccessCustomPagesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8849,35 +7071,21 @@ pub async fn access_custom_pages_create_a_custom_page_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/access/custom_pages",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/access/custom_pages", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AccessSingleResponseWithoutHtml = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8911,9 +7119,9 @@ pub async fn access_custom_pages_get_a_custom_page_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/access/custom_pages/{}",
-        args.account_id,
-        args.custom_page_id,
+    let path = format!(
+        "/accounts/{}/access/custom_pages/{}",
+        args.account_id, args.custom_page_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8924,20 +7132,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AccessCustomPagesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8971,36 +7166,24 @@ pub async fn access_custom_pages_update_a_custom_page_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/access/custom_pages/{}",
-        args.account_id,
-        args.custom_page_id,
+    let path = format!(
+        "/accounts/{}/access/custom_pages/{}",
+        args.account_id, args.custom_page_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AccessSingleResponseWithoutHtml = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9034,9 +7217,9 @@ pub async fn access_custom_pages_delete_a_custom_page_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/access/custom_pages/{}",
-        args.account_id,
-        args.custom_page_id,
+    let path = format!(
+        "/accounts/{}/access/custom_pages/{}",
+        args.account_id, args.custom_page_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9047,20 +7230,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AccessComponentsSchemasIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9090,13 +7260,16 @@ pub async fn ip_address_management_service_bindings_list_service_bindings_reques
     args: &IpAddressManagementServiceBindingsListServiceBindingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<IpAddressManagementServiceBindingsListServiceBindingsResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<IpAddressManagementServiceBindingsListServiceBindingsResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/prefixes/{}/bindings",
-        args.account_id,
-        args.prefix_id,
+    let path = format!(
+        "/accounts/{}/addressing/prefixes/{}/bindings",
+        args.account_id, args.prefix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9107,20 +7280,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: IpAddressManagementServiceBindingsListServiceBindingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9150,40 +7310,31 @@ pub async fn ip_address_management_service_bindings_create_service_binding_reque
     args: &IpAddressManagementServiceBindingsCreateServiceBindingArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<IpAddressManagementServiceBindingsCreateServiceBindingResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<IpAddressManagementServiceBindingsCreateServiceBindingResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/prefixes/{}/bindings",
-        args.account_id,
-        args.prefix_id,
+    let path = format!(
+        "/accounts/{}/addressing/prefixes/{}/bindings",
+        args.account_id, args.prefix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: IpAddressManagementServiceBindingsCreateServiceBindingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9213,14 +7364,16 @@ pub async fn ip_address_management_service_bindings_get_service_binding_request<
     args: &IpAddressManagementServiceBindingsGetServiceBindingArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<IpAddressManagementServiceBindingsGetServiceBindingResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<IpAddressManagementServiceBindingsGetServiceBindingResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/prefixes/{}/bindings/{}",
-        args.account_id,
-        args.prefix_id,
-        args.binding_id,
+    let path = format!(
+        "/accounts/{}/addressing/prefixes/{}/bindings/{}",
+        args.account_id, args.prefix_id, args.binding_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9231,20 +7384,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: IpAddressManagementServiceBindingsGetServiceBindingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9278,10 +7418,9 @@ pub async fn ip_address_management_service_bindings_delete_service_binding_reque
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/prefixes/{}/bindings/{}",
-        args.account_id,
-        args.prefix_id,
-        args.binding_id,
+    let path = format!(
+        "/accounts/{}/addressing/prefixes/{}/bindings/{}",
+        args.account_id, args.prefix_id, args.binding_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9292,20 +7431,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AddressingApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9335,13 +7461,14 @@ pub async fn ip_address_management_service_bindings_list_services_request<F>(
     args: &IpAddressManagementServiceBindingsListServicesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<IpAddressManagementServiceBindingsListServicesResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<IpAddressManagementServiceBindingsListServicesResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/services",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/addressing/services", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9351,20 +7478,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: IpAddressManagementServiceBindingsListServicesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9398,9 +7512,7 @@ pub async fn get_account_limits_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/account/limits",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/builds/account/limits", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9410,20 +7522,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetAccountLimitsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9457,9 +7556,7 @@ pub async fn get_builds_by_version_ids_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/builds",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/builds/builds", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9471,20 +7568,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetBuildsByVersionIdsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9518,9 +7602,7 @@ pub async fn get_latest_builds_by_scripts_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/builds/latest",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/builds/builds/latest", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9532,20 +7614,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetLatestBuildsByScriptsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9579,9 +7648,9 @@ pub async fn get_build_by_uuid_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/builds/{}",
-        args.account_id,
-        args.build_uuid,
+    let path = format!(
+        "/accounts/{}/builds/builds/{}",
+        args.account_id, args.build_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9592,20 +7661,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetBuildByUuidResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9639,9 +7695,9 @@ pub async fn cancel_build_by_uuid_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/builds/{}/cancel",
-        args.account_id,
-        args.build_uuid,
+    let path = format!(
+        "/accounts/{}/builds/builds/{}/cancel",
+        args.account_id, args.build_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9652,20 +7708,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CancelBuildByUuidResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9699,9 +7742,9 @@ pub async fn get_build_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/builds/{}/logs",
-        args.account_id,
-        args.build_uuid,
+    let path = format!(
+        "/accounts/{}/builds/builds/{}/logs",
+        args.account_id, args.build_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9714,20 +7757,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetBuildLogsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9761,35 +7791,21 @@ pub async fn upsert_repo_connection_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/repos/connections",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/builds/repos/connections", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: UpsertRepoConnectionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9823,9 +7839,9 @@ pub async fn delete_repo_connection_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/repos/connections/{}",
-        args.account_id,
-        args.repo_connection_uuid,
+    let path = format!(
+        "/accounts/{}/builds/repos/connections/{}",
+        args.account_id, args.repo_connection_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9836,20 +7852,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BuildsAPIResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9883,11 +7886,9 @@ pub async fn get_worker_config_autofill_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/repos/{}/{}/{}/config_autofill",
-        args.account_id,
-        args.provider_type,
-        args.provider_account_id,
-        args.repo_id,
+    let path = format!(
+        "/accounts/{}/builds/repos/{}/{}/{}/config_autofill",
+        args.account_id, args.provider_type, args.provider_account_id, args.repo_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9901,20 +7902,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetWorkerConfigAutofillResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9948,9 +7936,7 @@ pub async fn list_build_tokens_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/tokens",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/builds/tokens", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9963,20 +7949,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListBuildTokensResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10010,35 +7983,21 @@ pub async fn create_build_token_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/tokens",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/builds/tokens", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateBuildTokenResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10072,9 +8031,9 @@ pub async fn delete_build_token_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/tokens/{}",
-        args.account_id,
-        args.build_token_uuid,
+    let path = format!(
+        "/accounts/{}/builds/tokens/{}",
+        args.account_id, args.build_token_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10085,20 +8044,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BuildsAPIResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10132,35 +8078,21 @@ pub async fn create_trigger_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/triggers",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/builds/triggers", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateTriggerResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10194,36 +8126,24 @@ pub async fn update_trigger_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/triggers/{}",
-        args.account_id,
-        args.trigger_uuid,
+    let path = format!(
+        "/accounts/{}/builds/triggers/{}",
+        args.account_id, args.trigger_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: UpdateTriggerResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10257,9 +8177,9 @@ pub async fn delete_trigger_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/triggers/{}",
-        args.account_id,
-        args.trigger_uuid,
+    let path = format!(
+        "/accounts/{}/builds/triggers/{}",
+        args.account_id, args.trigger_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10270,20 +8190,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BuildsAPIResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10317,36 +8224,24 @@ pub async fn create_manual_build_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/triggers/{}/builds",
-        args.account_id,
-        args.trigger_uuid,
+    let path = format!(
+        "/accounts/{}/builds/triggers/{}/builds",
+        args.account_id, args.trigger_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateManualBuildResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10380,9 +8275,9 @@ pub async fn list_environment_variables_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/triggers/{}/environment_variables",
-        args.account_id,
-        args.trigger_uuid,
+    let path = format!(
+        "/accounts/{}/builds/triggers/{}/environment_variables",
+        args.account_id, args.trigger_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10393,20 +8288,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListEnvironmentVariablesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10440,36 +8322,24 @@ pub async fn upsert_environment_variables_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/triggers/{}/environment_variables",
-        args.account_id,
-        args.trigger_uuid,
+    let path = format!(
+        "/accounts/{}/builds/triggers/{}/environment_variables",
+        args.account_id, args.trigger_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: UpsertEnvironmentVariablesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10503,10 +8373,9 @@ pub async fn delete_environment_variable_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/triggers/{}/environment_variables/{}",
-        args.account_id,
-        args.trigger_uuid,
-        args.environment_variable_key,
+    let path = format!(
+        "/accounts/{}/builds/triggers/{}/environment_variables/{}",
+        args.account_id, args.trigger_uuid, args.environment_variable_key,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10517,20 +8386,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BuildsAPIResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10564,9 +8420,9 @@ pub async fn purge_build_cache_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/triggers/{}/purge_build_cache",
-        args.account_id,
-        args.trigger_uuid,
+    let path = format!(
+        "/accounts/{}/builds/triggers/{}/purge_build_cache",
+        args.account_id, args.trigger_uuid,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10577,20 +8433,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BuildsAPIResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10624,9 +8467,9 @@ pub async fn list_builds_by_script_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/workers/{}/builds",
-        args.account_id,
-        args.external_script_id,
+    let path = format!(
+        "/accounts/{}/builds/workers/{}/builds",
+        args.account_id, args.external_script_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10640,20 +8483,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListBuildsByScriptResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10687,9 +8517,9 @@ pub async fn list_triggers_by_script_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/builds/workers/{}/triggers",
-        args.account_id,
-        args.external_script_id,
+    let path = format!(
+        "/accounts/{}/builds/workers/{}/triggers",
+        args.account_id, args.external_script_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10700,20 +8530,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListTriggersByScriptResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10747,9 +8564,7 @@ pub async fn public_list_applications_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/containers",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/containers", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10762,20 +8577,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CcPublicListApplicationsResponse200Response = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10805,11 +8607,15 @@ pub async fn generate_image_registry_credentials_request<F>(
     args: &GenerateImageRegistryCredentialsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<CcGenerateImageRegistryCredentialsResponse201Response>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<CcGenerateImageRegistryCredentialsResponse201Response>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/containers/registries/{}/credentials",
+    let path = format!(
+        "/accounts/{{account_id}}/containers/registries/{}/credentials",
         args.domain,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -10817,27 +8623,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CcGenerateImageRegistryCredentialsResponse201Response = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10871,9 +8665,7 @@ pub async fn d1_list_databases_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/d1/database", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10887,20 +8679,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1ListDatabasesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10934,35 +8713,21 @@ pub async fn d1_create_database_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/d1/database", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1CreateDatabaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10996,9 +8761,9 @@ pub async fn d1_get_database_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11009,20 +8774,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1GetDatabaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11056,36 +8808,24 @@ pub async fn d1_update_database_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1UpdateDatabaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11119,36 +8859,24 @@ pub async fn d1_update_partial_database_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1UpdatePartialDatabaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11182,9 +8910,9 @@ pub async fn d1_delete_database_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11195,20 +8923,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1DeleteDatabaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11242,36 +8957,24 @@ pub async fn d1_export_database_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}/export",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}/export",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1ExportDatabaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11305,36 +9008,24 @@ pub async fn d1_import_database_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}/import",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}/import",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1ImportDatabaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11368,36 +9059,24 @@ pub async fn d1_query_database_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}/query",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}/query",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1QueryDatabaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11431,36 +9110,24 @@ pub async fn d1_raw_database_query_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}/raw",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}/raw",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1RawDatabaseQueryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11494,9 +9161,9 @@ pub async fn d1_time_travel_get_bookmark_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}/time_travel/bookmark",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}/time_travel/bookmark",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11509,20 +9176,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1TimeTravelGetBookmarkResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11556,9 +9210,9 @@ pub async fn d1_time_travel_restore_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/d1/database/{}/time_travel/restore",
-        args.account_id,
-        args.database_id,
+    let path = format!(
+        "/accounts/{}/d1/database/{}/time_travel/restore",
+        args.account_id, args.database_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11572,20 +9226,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: D1TimeTravelRestoreResponse2 = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11619,9 +9260,7 @@ pub async fn list_hyperdrive_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/hyperdrive/configs",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/hyperdrive/configs", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -11631,20 +9270,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListHyperdriveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11678,35 +9304,21 @@ pub async fn create_hyperdrive_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/hyperdrive/configs",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/hyperdrive/configs", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateHyperdriveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11740,9 +9352,9 @@ pub async fn get_hyperdrive_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/hyperdrive/configs/{}",
-        args.account_id,
-        args.hyperdrive_id,
+    let path = format!(
+        "/accounts/{}/hyperdrive/configs/{}",
+        args.account_id, args.hyperdrive_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11753,20 +9365,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetHyperdriveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11800,36 +9399,24 @@ pub async fn update_hyperdrive_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/hyperdrive/configs/{}",
-        args.account_id,
-        args.hyperdrive_id,
+    let path = format!(
+        "/accounts/{}/hyperdrive/configs/{}",
+        args.account_id, args.hyperdrive_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: UpdateHyperdriveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11863,36 +9450,24 @@ pub async fn patch_hyperdrive_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/hyperdrive/configs/{}",
-        args.account_id,
-        args.hyperdrive_id,
+    let path = format!(
+        "/accounts/{}/hyperdrive/configs/{}",
+        args.account_id, args.hyperdrive_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PatchHyperdriveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11926,9 +9501,9 @@ pub async fn delete_hyperdrive_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/hyperdrive/configs/{}",
-        args.account_id,
-        args.hyperdrive_id,
+    let path = format!(
+        "/accounts/{}/hyperdrive/configs/{}",
+        args.account_id, args.hyperdrive_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11939,20 +9514,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DeleteHyperdriveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11986,9 +9548,7 @@ pub async fn pages_project_get_projects_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/pages/projects", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -12001,20 +9561,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesProjectGetProjectsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12048,35 +9595,21 @@ pub async fn pages_project_create_project_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/pages/projects", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesProjectCreateProjectResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12110,9 +9643,9 @@ pub async fn pages_project_get_project_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}",
-        args.account_id,
-        args.project_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}",
+        args.account_id, args.project_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12123,20 +9656,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesProjectGetProjectResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12170,36 +9690,24 @@ pub async fn pages_project_update_project_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}",
-        args.account_id,
-        args.project_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}",
+        args.account_id, args.project_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesProjectUpdateProjectResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12233,9 +9741,9 @@ pub async fn pages_project_delete_project_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}",
-        args.account_id,
-        args.project_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}",
+        args.account_id, args.project_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12246,20 +9754,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesProjectDeleteProjectResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12293,9 +9788,9 @@ pub async fn pages_deployment_get_deployments_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/deployments",
-        args.account_id,
-        args.project_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/deployments",
+        args.account_id, args.project_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12310,20 +9805,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDeploymentGetDeploymentsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12357,9 +9839,9 @@ pub async fn pages_deployment_create_deployment_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/deployments",
-        args.account_id,
-        args.project_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/deployments",
+        args.account_id, args.project_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12370,20 +9852,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDeploymentCreateDeploymentResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12417,10 +9886,9 @@ pub async fn pages_deployment_get_deployment_info_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/deployments/{}",
-        args.account_id,
-        args.project_name,
-        args.deployment_id,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/deployments/{}",
+        args.account_id, args.project_name, args.deployment_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12431,20 +9899,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDeploymentGetDeploymentInfoResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12478,10 +9933,9 @@ pub async fn pages_deployment_delete_deployment_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/deployments/{}",
-        args.account_id,
-        args.project_name,
-        args.deployment_id,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/deployments/{}",
+        args.account_id, args.project_name, args.deployment_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12492,20 +9946,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDeploymentDeleteDeploymentResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12539,10 +9980,9 @@ pub async fn pages_deployment_get_deployment_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/deployments/{}/history/logs",
-        args.account_id,
-        args.project_name,
-        args.deployment_id,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/deployments/{}/history/logs",
+        args.account_id, args.project_name, args.deployment_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12553,20 +9993,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDeploymentGetDeploymentLogsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12600,10 +10027,9 @@ pub async fn pages_deployment_retry_deployment_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/deployments/{}/retry",
-        args.account_id,
-        args.project_name,
-        args.deployment_id,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/deployments/{}/retry",
+        args.account_id, args.project_name, args.deployment_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12614,20 +10040,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDeploymentRetryDeploymentResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12661,10 +10074,9 @@ pub async fn pages_deployment_rollback_deployment_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/deployments/{}/rollback",
-        args.account_id,
-        args.project_name,
-        args.deployment_id,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/deployments/{}/rollback",
+        args.account_id, args.project_name, args.deployment_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12675,20 +10087,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDeploymentRollbackDeploymentResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12722,9 +10121,9 @@ pub async fn pages_domains_get_domains_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/domains",
-        args.account_id,
-        args.project_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/domains",
+        args.account_id, args.project_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12735,20 +10134,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDomainsGetDomainsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12782,36 +10168,24 @@ pub async fn pages_domains_add_domain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/domains",
-        args.account_id,
-        args.project_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/domains",
+        args.account_id, args.project_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDomainsAddDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12845,10 +10219,9 @@ pub async fn pages_domains_get_domain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/domains/{}",
-        args.account_id,
-        args.project_name,
-        args.domain_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/domains/{}",
+        args.account_id, args.project_name, args.domain_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12859,20 +10232,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDomainsGetDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12906,10 +10266,9 @@ pub async fn pages_domains_patch_domain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/domains/{}",
-        args.account_id,
-        args.project_name,
-        args.domain_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/domains/{}",
+        args.account_id, args.project_name, args.domain_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12920,20 +10279,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDomainsPatchDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12967,10 +10313,9 @@ pub async fn pages_domains_delete_domain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/domains/{}",
-        args.account_id,
-        args.project_name,
-        args.domain_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/domains/{}",
+        args.account_id, args.project_name, args.domain_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12981,20 +10326,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesDomainsDeleteDomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13028,9 +10360,9 @@ pub async fn pages_purge_build_cache_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pages/projects/{}/purge_build_cache",
-        args.account_id,
-        args.project_name,
+    let path = format!(
+        "/accounts/{}/pages/projects/{}/purge_build_cache",
+        args.account_id, args.project_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13041,20 +10373,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PagesPurgeBuildCacheResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13084,13 +10403,14 @@ pub async fn get_v4_accounts_by_account_id_pipelines_v1_pipelines_request<F>(
     args: &GetV4AccountsByAccountIdPipelinesV1PipelinesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<GetV4AccountsByAccountIdPipelinesV1PipelinesResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<GetV4AccountsByAccountIdPipelinesV1PipelinesResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/pipelines",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/pipelines/v1/pipelines", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13103,20 +10423,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV4AccountsByAccountIdPipelinesV1PipelinesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13146,39 +10453,28 @@ pub async fn post_v4_accounts_by_account_id_pipelines_v1_pipelines_request<F>(
     args: &PostV4AccountsByAccountIdPipelinesV1PipelinesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<PostV4AccountsByAccountIdPipelinesV1PipelinesResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<PostV4AccountsByAccountIdPipelinesV1PipelinesResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/pipelines",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/pipelines/v1/pipelines", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PostV4AccountsByAccountIdPipelinesV1PipelinesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13208,13 +10504,16 @@ pub async fn get_v4_accounts_by_account_id_pipelines_v1_pipelines_by_pipeline_id
     args: &GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/pipelines/{}",
-        args.account_id,
-        args.pipeline_id,
+    let path = format!(
+        "/accounts/{}/pipelines/v1/pipelines/{}",
+        args.account_id, args.pipeline_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13225,20 +10524,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV4AccountsByAccountIdPipelinesV1PipelinesByPipelineIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13272,9 +10558,9 @@ pub async fn delete_v4_accounts_by_account_id_pipelines_v1_pipelines_by_pipeline
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/pipelines/{}",
-        args.account_id,
-        args.pipeline_id,
+    let path = format!(
+        "/accounts/{}/pipelines/v1/pipelines/{}",
+        args.account_id, args.pipeline_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13285,18 +10571,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13330,9 +10605,7 @@ pub async fn get_v4_accounts_by_account_id_pipelines_v1_sinks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/sinks",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/pipelines/v1/sinks", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13346,20 +10619,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV4AccountsByAccountIdPipelinesV1SinksResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13393,35 +10653,21 @@ pub async fn post_v4_accounts_by_account_id_pipelines_v1_sinks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/sinks",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/pipelines/v1/sinks", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PostV4AccountsByAccountIdPipelinesV1SinksResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13451,13 +10697,16 @@ pub async fn get_v4_accounts_by_account_id_pipelines_v1_sinks_by_sink_id_request
     args: &GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/sinks/{}",
-        args.account_id,
-        args.sink_id,
+    let path = format!(
+        "/accounts/{}/pipelines/v1/sinks/{}",
+        args.account_id, args.sink_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13468,20 +10717,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV4AccountsByAccountIdPipelinesV1SinksBySinkIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13515,9 +10751,9 @@ pub async fn delete_v4_accounts_by_account_id_pipelines_v1_sinks_by_sink_id_requ
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/sinks/{}",
-        args.account_id,
-        args.sink_id,
+    let path = format!(
+        "/accounts/{}/pipelines/v1/sinks/{}",
+        args.account_id, args.sink_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13530,18 +10766,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13575,9 +10800,7 @@ pub async fn get_v4_accounts_by_account_id_pipelines_v1_streams_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/streams",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/pipelines/v1/streams", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13591,20 +10814,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV4AccountsByAccountIdPipelinesV1StreamsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13638,35 +10848,21 @@ pub async fn post_v4_accounts_by_account_id_pipelines_v1_streams_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/streams",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/pipelines/v1/streams", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PostV4AccountsByAccountIdPipelinesV1StreamsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13696,13 +10892,16 @@ pub async fn get_v4_accounts_by_account_id_pipelines_v1_streams_by_stream_id_req
     args: &GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/streams/{}",
-        args.account_id,
-        args.stream_id,
+    let path = format!(
+        "/accounts/{}/pipelines/v1/streams/{}",
+        args.account_id, args.stream_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13713,20 +10912,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13756,40 +10942,31 @@ pub async fn patch_v4_accounts_by_account_id_pipelines_v1_streams_by_stream_id_r
     args: &PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/streams/{}",
-        args.account_id,
-        args.stream_id,
+    let path = format!(
+        "/accounts/{}/pipelines/v1/streams/{}",
+        args.account_id, args.stream_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PatchV4AccountsByAccountIdPipelinesV1StreamsByStreamIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13823,9 +11000,9 @@ pub async fn delete_v4_accounts_by_account_id_pipelines_v1_streams_by_stream_id_
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/streams/{}",
-        args.account_id,
-        args.stream_id,
+    let path = format!(
+        "/accounts/{}/pipelines/v1/streams/{}",
+        args.account_id, args.stream_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13838,18 +11015,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13879,39 +11045,28 @@ pub async fn post_v4_accounts_by_account_id_pipelines_v1_validate_sql_request<F>
     args: &PostV4AccountsByAccountIdPipelinesV1ValidateSqlArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/pipelines/v1/validate_sql",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/pipelines/v1/validate_sql", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PostV4AccountsByAccountIdPipelinesV1ValidateSqlResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13941,13 +11096,14 @@ pub async fn worker_account_settings_fetch_worker_account_settings_request<F>(
     args: &WorkerAccountSettingsFetchWorkerAccountSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<WorkerAccountSettingsFetchWorkerAccountSettingsResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<WorkerAccountSettingsFetchWorkerAccountSettingsResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/account-settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/account-settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13957,20 +11113,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerAccountSettingsFetchWorkerAccountSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14000,39 +11143,28 @@ pub async fn worker_account_settings_create_worker_account_settings_request<F>(
     args: &WorkerAccountSettingsCreateWorkerAccountSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<WorkerAccountSettingsCreateWorkerAccountSettingsResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<WorkerAccountSettingsCreateWorkerAccountSettingsResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/account-settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/account-settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerAccountSettingsCreateWorkerAccountSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14066,9 +11198,7 @@ pub async fn worker_assets_upload_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/assets/upload",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/assets/upload", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -14080,20 +11210,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersCompletedUploadAssetsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14127,9 +11244,7 @@ pub async fn namespace_worker_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/dispatch/namespaces", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -14139,20 +11254,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersNamespaceListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14186,35 +11288,21 @@ pub async fn namespace_worker_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/dispatch/namespaces", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersNamespaceSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14248,9 +11336,9 @@ pub async fn namespace_worker_get_namespace_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}",
-        args.account_id,
-        args.dispatch_namespace,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}",
+        args.account_id, args.dispatch_namespace,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -14261,20 +11349,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersNamespaceSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14308,36 +11383,24 @@ pub async fn namespace_worker_put_namespace_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}",
-        args.account_id,
-        args.dispatch_namespace,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}",
+        args.account_id, args.dispatch_namespace,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersNamespaceSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14371,36 +11434,24 @@ pub async fn namespace_worker_patch_namespace_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}",
-        args.account_id,
-        args.dispatch_namespace,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}",
+        args.account_id, args.dispatch_namespace,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersNamespaceSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14434,9 +11485,9 @@ pub async fn namespace_worker_delete_namespace_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}",
-        args.account_id,
-        args.dispatch_namespace,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}",
+        args.account_id, args.dispatch_namespace,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -14447,20 +11498,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseNullResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14494,9 +11532,9 @@ pub async fn namespace_worker_list_scripts_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts",
-        args.account_id,
-        args.dispatch_namespace,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts",
+        args.account_id, args.dispatch_namespace,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -14509,20 +11547,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NamespaceWorkerListScriptsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14556,9 +11581,9 @@ pub async fn namespace_worker_delete_scripts_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts",
-        args.account_id,
-        args.dispatch_namespace,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts",
+        args.account_id, args.dispatch_namespace,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -14572,20 +11597,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersNamespaceScriptDeleteBulkResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14619,10 +11631,9 @@ pub async fn namespace_worker_script_worker_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -14633,20 +11644,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersNamespaceScriptResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14680,10 +11678,9 @@ pub async fn namespace_worker_script_upload_worker_module_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -14696,20 +11693,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: Workers200Response = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14743,10 +11727,9 @@ pub async fn namespace_worker_script_delete_worker_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -14759,20 +11742,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseNullResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14806,37 +11776,24 @@ pub async fn namespace_worker_script_update_create_assets_upload_session_request
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/assets-upload-session",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/assets-upload-session",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersCreateAssetsUploadSessionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14870,10 +11827,9 @@ pub async fn namespace_worker_get_script_bindings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/bindings",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/bindings",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -14884,20 +11840,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NamespaceWorkerGetScriptBindingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14915,6 +11858,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -14927,14 +11875,13 @@ pub async fn namespace_worker_get_script_content_request<F>(
     args: &NamespaceWorkerGetScriptContentArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/content",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/content",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -14945,18 +11892,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -14990,10 +11931,9 @@ pub async fn namespace_worker_put_script_content_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/content",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/content",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15004,20 +11944,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15051,10 +11978,9 @@ pub async fn namespace_worker_list_script_secrets_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/secrets",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/secrets",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15065,20 +11991,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NamespaceWorkerListScriptSecretsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15112,37 +12025,24 @@ pub async fn namespace_worker_put_script_secrets_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/secrets",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/secrets",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NamespaceWorkerPutScriptSecretsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15176,11 +12076,9 @@ pub async fn namespace_worker_get_script_secrets_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/secrets/{}",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
-        args.secret_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/secrets/{}",
+        args.account_id, args.dispatch_namespace, args.script_name, args.secret_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15193,20 +12091,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NamespaceWorkerGetScriptSecretsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15240,11 +12125,9 @@ pub async fn namespace_worker_delete_script_secret_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/secrets/{}",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
-        args.secret_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/secrets/{}",
+        args.account_id, args.dispatch_namespace, args.script_name, args.secret_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15257,20 +12140,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseNullResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15304,10 +12174,9 @@ pub async fn namespace_worker_get_script_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/settings",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/settings",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15318,20 +12187,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NamespaceWorkerGetScriptSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15365,10 +12221,9 @@ pub async fn namespace_worker_patch_script_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/settings",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/settings",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15379,20 +12234,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NamespaceWorkerPatchScriptSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15426,10 +12268,9 @@ pub async fn namespace_worker_get_script_tags_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/tags",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/tags",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15440,20 +12281,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NamespaceWorkerGetScriptTagsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15487,10 +12315,9 @@ pub async fn namespace_worker_put_script_tags_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/tags",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/tags",
+        args.account_id, args.dispatch_namespace, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15501,20 +12328,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NamespaceWorkerPutScriptTagsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15548,11 +12362,9 @@ pub async fn namespace_worker_put_script_tag_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/tags/{}",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
-        args.tag,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/tags/{}",
+        args.account_id, args.dispatch_namespace, args.script_name, args.tag,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15563,20 +12375,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseNullResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15610,11 +12409,9 @@ pub async fn namespace_worker_delete_script_tag_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/tags/{}",
-        args.account_id,
-        args.dispatch_namespace,
-        args.script_name,
-        args.tag,
+    let path = format!(
+        "/accounts/{}/workers/dispatch/namespaces/{}/scripts/{}/tags/{}",
+        args.account_id, args.dispatch_namespace, args.script_name, args.tag,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15625,20 +12422,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseNullResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15672,9 +12456,7 @@ pub async fn workers_domains_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/domains",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/domains", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -15690,20 +12472,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersDomainsListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15737,35 +12506,21 @@ pub async fn workers_domains_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/domains",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/domains", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersDomainsUpdateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15799,9 +12554,9 @@ pub async fn workers_domains_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/domains/{}",
-        args.account_id,
-        args.domain_id,
+    let path = format!(
+        "/accounts/{}/workers/domains/{}",
+        args.account_id, args.domain_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15812,20 +12567,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersDomainsGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15859,9 +12601,9 @@ pub async fn workers_domains_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/domains/{}",
-        args.account_id,
-        args.domain_id,
+    let path = format!(
+        "/accounts/{}/workers/domains/{}",
+        args.account_id, args.domain_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15872,20 +12614,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15919,7 +12648,8 @@ pub async fn durable_objects_namespace_list_namespaces_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/durable_objects/namespaces",
+    let path = format!(
+        "/accounts/{}/workers/durable_objects/namespaces",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -15934,20 +12664,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DurableObjectsNamespaceListNamespacesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15981,9 +12698,9 @@ pub async fn durable_objects_namespace_list_objects_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/durable_objects/namespaces/{}/objects",
-        args.account_id,
-        args.id,
+    let path = format!(
+        "/accounts/{}/workers/durable_objects/namespaces/{}/objects",
+        args.account_id, args.id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -15997,20 +12714,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DurableObjectsNamespaceListObjectsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16044,7 +12748,8 @@ pub async fn destination_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/observability/destinations",
+    let path = format!(
+        "/accounts/{}/workers/observability/destinations",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16061,20 +12766,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DestinationListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16108,7 +12800,8 @@ pub async fn destination_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/observability/destinations",
+    let path = format!(
+        "/accounts/{}/workers/observability/destinations",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16116,27 +12809,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DestinationCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16170,7 +12851,8 @@ pub async fn destination_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/workers/observability/destinations/{}",
+    let path = format!(
+        "/accounts/{{account_id}}/workers/observability/destinations/{}",
         args.slug,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16178,27 +12860,15 @@ where
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DestinationUpdateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16232,7 +12902,8 @@ pub async fn destinations_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/workers/observability/destinations/{}",
+    let path = format!(
+        "/accounts/{{account_id}}/workers/observability/destinations/{}",
         args.slug,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16244,20 +12915,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DestinationsDeleteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16291,7 +12949,8 @@ pub async fn queries_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/observability/queries",
+    let path = format!(
+        "/accounts/{}/workers/observability/queries",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16308,20 +12967,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: QueriesListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16355,7 +13001,8 @@ pub async fn queries_post_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/observability/queries",
+    let path = format!(
+        "/accounts/{}/workers/observability/queries",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16363,27 +13010,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: QueriesPostResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16417,7 +13052,8 @@ pub async fn queries_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/workers/observability/queries/{}",
+    let path = format!(
+        "/accounts/{{account_id}}/workers/observability/queries/{}",
         args.query_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16429,20 +13065,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: QueriesGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16476,7 +13099,8 @@ pub async fn queries_patch_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/workers/observability/queries/{}",
+    let path = format!(
+        "/accounts/{{account_id}}/workers/observability/queries/{}",
         args.query_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16484,27 +13108,15 @@ where
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: QueriesPatchResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16538,7 +13150,8 @@ pub async fn queries_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/workers/observability/queries/{}",
+    let path = format!(
+        "/accounts/{{account_id}}/workers/observability/queries/{}",
         args.query_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16550,20 +13163,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: QueriesDeleteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16597,7 +13197,8 @@ pub async fn telemetry_keys_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/observability/telemetry/keys",
+    let path = format!(
+        "/accounts/{}/workers/observability/telemetry/keys",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16605,27 +13206,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TelemetryKeysListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16659,7 +13248,8 @@ pub async fn telemetry_query_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/observability/telemetry/query",
+    let path = format!(
+        "/accounts/{}/workers/observability/telemetry/query",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16667,27 +13257,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TelemetryQueryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16721,7 +13299,8 @@ pub async fn telemetry_values_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/observability/telemetry/values",
+    let path = format!(
+        "/accounts/{}/workers/observability/telemetry/values",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -16729,27 +13308,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TelemetryValuesListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16783,9 +13350,7 @@ pub async fn worker_placement_list_regions_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/placement/regions",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/placement/regions", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -16795,20 +13360,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerPlacementListRegionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16842,9 +13394,7 @@ pub async fn worker_script_list_workers_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/scripts", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -16856,20 +13406,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16903,9 +13440,7 @@ pub async fn worker_script_search_workers_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts-search",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/scripts-search", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -16921,20 +13456,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerScriptSearchWorkersResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16952,6 +13474,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -16964,13 +13491,13 @@ pub async fn worker_script_download_worker_request<F>(
     args: &WorkerScriptDownloadWorkerArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -16981,18 +13508,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -17026,9 +13547,9 @@ pub async fn worker_script_upload_worker_module_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17041,20 +13562,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerScriptUploadWorkerModuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17088,9 +13596,9 @@ pub async fn worker_script_delete_worker_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17103,20 +13611,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseNullResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17150,36 +13645,24 @@ pub async fn worker_script_update_create_assets_upload_session_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/assets-upload-session",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/assets-upload-session",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersCreateAssetsUploadSessionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17213,9 +13696,9 @@ pub async fn worker_script_put_content_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/content",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/content",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17226,20 +13709,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17257,6 +13727,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -17269,13 +13744,13 @@ pub async fn worker_script_get_content_request<F>(
     args: &WorkerScriptGetContentArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/content/v2",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/content/v2",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17286,18 +13761,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -17331,9 +13800,9 @@ pub async fn worker_deployments_list_deployments_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/deployments",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/deployments",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17344,20 +13813,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerDeploymentsListDeploymentsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17391,9 +13847,9 @@ pub async fn worker_deployments_create_deployment_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/deployments",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/deployments",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17402,27 +13858,15 @@ where
 
     builder = builder.query("force", args.force.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerDeploymentsCreateDeploymentResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17456,10 +13900,9 @@ pub async fn worker_deployments_get_deployment_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/deployments/{}",
-        args.account_id,
-        args.script_name,
-        args.deployment_id,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/deployments/{}",
+        args.account_id, args.script_name, args.deployment_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17470,20 +13913,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerDeploymentsGetDeploymentResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17517,10 +13947,9 @@ pub async fn worker_deployments_delete_deployment_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/deployments/{}",
-        args.account_id,
-        args.script_name,
-        args.deployment_id,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/deployments/{}",
+        args.account_id, args.script_name, args.deployment_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17531,20 +13960,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17578,9 +13994,9 @@ pub async fn worker_cron_trigger_get_cron_triggers_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/schedules",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/schedules",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17591,20 +14007,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerCronTriggerGetCronTriggersResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17638,36 +14041,24 @@ pub async fn worker_cron_trigger_update_cron_triggers_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/schedules",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/schedules",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerCronTriggerUpdateCronTriggersResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17701,9 +14092,9 @@ pub async fn worker_script_settings_get_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/script-settings",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/script-settings",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17714,20 +14105,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17761,36 +14139,24 @@ pub async fn worker_script_settings_patch_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/script-settings",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/script-settings",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17824,9 +14190,9 @@ pub async fn worker_list_script_secrets_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/secrets",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/secrets",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17837,20 +14203,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerListScriptSecretsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17884,36 +14237,24 @@ pub async fn worker_put_script_secret_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/secrets",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/secrets",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerPutScriptSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17947,10 +14288,9 @@ pub async fn worker_get_script_secret_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/secrets/{}",
-        args.account_id,
-        args.script_name,
-        args.secret_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/secrets/{}",
+        args.account_id, args.script_name, args.secret_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -17963,20 +14303,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerGetScriptSecretResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18010,10 +14337,9 @@ pub async fn worker_delete_script_secret_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/secrets/{}",
-        args.account_id,
-        args.script_name,
-        args.secret_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/secrets/{}",
+        args.account_id, args.script_name, args.secret_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18026,20 +14352,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseNullResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18073,9 +14386,9 @@ pub async fn worker_script_get_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/settings",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/settings",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18086,20 +14399,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptAndVersionSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18133,9 +14433,9 @@ pub async fn worker_script_patch_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/settings",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/settings",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18146,20 +14446,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptAndVersionSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18193,9 +14480,9 @@ pub async fn worker_script_get_subdomain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/subdomain",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/subdomain",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18206,20 +14493,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerScriptGetSubdomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18253,36 +14527,24 @@ pub async fn worker_script_post_subdomain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/subdomain",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/subdomain",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerScriptPostSubdomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18316,9 +14578,9 @@ pub async fn worker_script_delete_subdomain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/subdomain",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/subdomain",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18329,20 +14591,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerScriptDeleteSubdomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18376,9 +14625,9 @@ pub async fn worker_tail_logs_start_tail_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/tails",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/tails",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18389,20 +14638,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerTailLogsStartTailResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18436,10 +14672,9 @@ pub async fn worker_tail_logs_delete_tail_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/tails/{}",
-        args.account_id,
-        args.script_name,
-        args.id,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/tails/{}",
+        args.account_id, args.script_name, args.id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18450,20 +14685,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18497,9 +14719,9 @@ pub async fn worker_script_fetch_usage_model_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/usage-model",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/usage-model",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18510,20 +14732,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersUsageModelResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18557,36 +14766,24 @@ pub async fn worker_script_update_usage_model_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/usage-model",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/usage-model",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersUsageModelResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18620,9 +14817,9 @@ pub async fn worker_versions_list_versions_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/versions",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/versions",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18637,20 +14834,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersVersionsListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18684,9 +14868,9 @@ pub async fn worker_versions_upload_version_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/versions",
-        args.account_id,
-        args.script_name,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/versions",
+        args.account_id, args.script_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18699,20 +14883,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersVersionsUploadResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18746,10 +14917,9 @@ pub async fn worker_versions_get_version_detail_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/scripts/{}/versions/{}",
-        args.account_id,
-        args.script_name,
-        args.version_id,
+    let path = format!(
+        "/accounts/{}/workers/scripts/{}/versions/{}",
+        args.account_id, args.script_name, args.version_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18760,20 +14930,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersVersionsSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18791,6 +14948,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -18803,14 +14965,13 @@ pub async fn worker_environment_get_script_content_request<F>(
     args: &WorkerEnvironmentGetScriptContentArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/services/{}/environments/{}/content",
-        args.account_id,
-        args.service_name,
-        args.environment_name,
+    let path = format!(
+        "/accounts/{}/workers/services/{}/environments/{}/content",
+        args.account_id, args.service_name, args.environment_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18821,18 +14982,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -18866,10 +15021,9 @@ pub async fn worker_environment_put_script_content_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/services/{}/environments/{}/content",
-        args.account_id,
-        args.service_name,
-        args.environment_name,
+    let path = format!(
+        "/accounts/{}/workers/services/{}/environments/{}/content",
+        args.account_id, args.service_name, args.environment_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18880,20 +15034,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18927,10 +15068,9 @@ pub async fn worker_script_environment_get_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/services/{}/environments/{}/settings",
-        args.account_id,
-        args.service_name,
-        args.environment_name,
+    let path = format!(
+        "/accounts/{}/workers/services/{}/environments/{}/settings",
+        args.account_id, args.service_name, args.environment_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -18941,20 +15081,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18988,37 +15115,24 @@ pub async fn worker_script_environment_patch_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/services/{}/environments/{}/settings",
-        args.account_id,
-        args.service_name,
-        args.environment_name,
+    let path = format!(
+        "/accounts/{}/workers/services/{}/environments/{}/settings",
+        args.account_id, args.service_name, args.environment_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersScriptSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19052,9 +15166,7 @@ pub async fn worker_subdomain_get_subdomain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/subdomain",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/subdomain", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -19064,20 +15176,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerSubdomainGetSubdomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19111,35 +15210,21 @@ pub async fn worker_subdomain_create_subdomain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/subdomain",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/subdomain", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerSubdomainCreateSubdomainResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19173,9 +15258,7 @@ pub async fn worker_subdomain_delete_subdomain_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/subdomain",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/subdomain", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -19185,18 +15268,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19230,9 +15302,7 @@ pub async fn list_workers_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/workers", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -19247,20 +15317,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListWorkersResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19294,35 +15351,21 @@ pub async fn create_worker_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/workers/workers", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateWorkerResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19356,9 +15399,9 @@ pub async fn get_worker_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers/{}",
-        args.account_id,
-        args.worker_id,
+    let path = format!(
+        "/accounts/{}/workers/workers/{}",
+        args.account_id, args.worker_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -19369,20 +15412,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetWorkerResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19416,36 +15446,24 @@ pub async fn update_worker_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers/{}",
-        args.account_id,
-        args.worker_id,
+    let path = format!(
+        "/accounts/{}/workers/workers/{}",
+        args.account_id, args.worker_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: UpdateWorkerResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19479,36 +15497,24 @@ pub async fn edit_worker_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers/{}",
-        args.account_id,
-        args.worker_id,
+    let path = format!(
+        "/accounts/{}/workers/workers/{}",
+        args.account_id, args.worker_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EditWorkerResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19542,9 +15548,9 @@ pub async fn delete_worker_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers/{}",
-        args.account_id,
-        args.worker_id,
+    let path = format!(
+        "/accounts/{}/workers/workers/{}",
+        args.account_id, args.worker_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -19555,20 +15561,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19602,9 +15595,9 @@ pub async fn list_worker_versions_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers/{}/versions",
-        args.account_id,
-        args.worker_id,
+    let path = format!(
+        "/accounts/{}/workers/workers/{}/versions",
+        args.account_id, args.worker_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -19618,20 +15611,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListWorkerVersionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19665,9 +15645,9 @@ pub async fn create_worker_version_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers/{}/versions",
-        args.account_id,
-        args.worker_id,
+    let path = format!(
+        "/accounts/{}/workers/workers/{}/versions",
+        args.account_id, args.worker_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -19676,27 +15656,15 @@ where
 
     builder = builder.query("deploy", args.deploy.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateWorkerVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19730,10 +15698,9 @@ pub async fn get_worker_version_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers/{}/versions/{}",
-        args.account_id,
-        args.worker_id,
-        args.version_id,
+    let path = format!(
+        "/accounts/{}/workers/workers/{}/versions/{}",
+        args.account_id, args.worker_id, args.version_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -19746,20 +15713,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetWorkerVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19793,10 +15747,9 @@ pub async fn delete_worker_version_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/workers/workers/{}/versions/{}",
-        args.account_id,
-        args.worker_id,
-        args.version_id,
+    let path = format!(
+        "/accounts/{}/workers/workers/{}/versions/{}",
+        args.account_id, args.worker_id, args.version_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -19807,20 +15760,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkersApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19854,9 +15794,7 @@ pub async fn custom_pages_for_a_zone_list_custom_pages_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/custom_pages",
-        args.zone_identifier,
-    );
+    let path = format!("/zones/{}/custom_pages", args.zone_identifier,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -19866,20 +15804,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomPageResultList = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19913,9 +15838,7 @@ pub async fn custom_assets_for_a_zone_list_custom_assets_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/custom_pages/assets",
-        args.zone_identifier,
-    );
+    let path = format!("/zones/{}/custom_pages/assets", args.zone_identifier,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -19928,20 +15851,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomAssetResultList = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19975,35 +15885,21 @@ pub async fn custom_assets_for_a_zone_create_a_custom_asset_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/custom_pages/assets",
-        args.zone_identifier,
-    );
+    let path = format!("/zones/{}/custom_pages/assets", args.zone_identifier,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomAssetResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20037,9 +15933,9 @@ pub async fn custom_assets_for_a_zone_get_a_custom_asset_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/custom_pages/assets/{}",
-        args.zone_identifier,
-        args.asset_name,
+    let path = format!(
+        "/zones/{}/custom_pages/assets/{}",
+        args.zone_identifier, args.asset_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -20050,20 +15946,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomAssetResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20097,36 +15980,24 @@ pub async fn custom_assets_for_a_zone_update_a_custom_asset_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/custom_pages/assets/{}",
-        args.zone_identifier,
-        args.asset_name,
+    let path = format!(
+        "/zones/{}/custom_pages/assets/{}",
+        args.zone_identifier, args.asset_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomAssetResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20160,9 +16031,9 @@ pub async fn custom_assets_for_a_zone_delete_a_custom_asset_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/custom_pages/assets/{}",
-        args.zone_identifier,
-        args.asset_name,
+    let path = format!(
+        "/zones/{}/custom_pages/assets/{}",
+        args.zone_identifier, args.asset_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -20173,18 +16044,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20218,9 +16078,9 @@ pub async fn custom_pages_for_a_zone_get_a_custom_page_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/custom_pages/{}",
-        args.zone_identifier,
-        args.identifier,
+    let path = format!(
+        "/zones/{}/custom_pages/{}",
+        args.zone_identifier, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -20231,20 +16091,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomPage = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20278,36 +16125,24 @@ pub async fn custom_pages_for_a_zone_update_a_custom_page_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/custom_pages/{}",
-        args.zone_identifier,
-        args.identifier,
+    let path = format!(
+        "/zones/{}/custom_pages/{}",
+        args.zone_identifier, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CustomPagesCustomPageResult = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20341,9 +16176,7 @@ pub async fn speed_list_pages_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/speed_api/pages",
-        args.zone_id,
-    );
+    let path = format!("/zones/{}/speed_api/pages", args.zone_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -20353,20 +16186,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ObservatoryPagesResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20400,10 +16220,7 @@ pub async fn speed_list_test_history_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/speed_api/pages/{}/tests",
-        args.zone_id,
-        args.url,
-    );
+    let path = format!("/zones/{}/speed_api/pages/{}/tests", args.zone_id, args.url,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -20417,20 +16234,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ObservatoryPageTestResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20464,36 +16268,21 @@ pub async fn speed_create_test_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/speed_api/pages/{}/tests",
-        args.zone_id,
-        args.url,
-    );
+    let path = format!("/zones/{}/speed_api/pages/{}/tests", args.zone_id, args.url,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ObservatoryPageTestResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20527,10 +16316,7 @@ pub async fn speed_delete_tests_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/speed_api/pages/{}/tests",
-        args.zone_id,
-        args.url,
-    );
+    let path = format!("/zones/{}/speed_api/pages/{}/tests", args.zone_id, args.url,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -20542,20 +16328,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ObservatoryCountResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20589,10 +16362,9 @@ pub async fn speed_get_test_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/speed_api/pages/{}/tests/{}",
-        args.zone_id,
-        args.url,
-        args.test_id,
+    let path = format!(
+        "/zones/{}/speed_api/pages/{}/tests/{}",
+        args.zone_id, args.url, args.test_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -20603,20 +16375,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ObservatoryPageTestResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20650,10 +16409,7 @@ pub async fn speed_list_page_trend_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/speed_api/pages/{}/trend",
-        args.zone_id,
-        args.url,
-    );
+    let path = format!("/zones/{}/speed_api/pages/{}/trend", args.zone_id, args.url,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -20670,20 +16426,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ObservatoryTrendResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20717,9 +16460,7 @@ pub async fn worker_routes_list_routes_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/workers/routes",
-        args.zone_id,
-    );
+    let path = format!("/zones/{}/workers/routes", args.zone_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -20729,20 +16470,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerRoutesListRoutesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20776,35 +16504,21 @@ pub async fn worker_routes_create_route_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/workers/routes",
-        args.zone_id,
-    );
+    let path = format!("/zones/{}/workers/routes", args.zone_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerRoutesCreateRouteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20838,10 +16552,7 @@ pub async fn worker_routes_get_route_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/workers/routes/{}",
-        args.zone_id,
-        args.route_id,
-    );
+    let path = format!("/zones/{}/workers/routes/{}", args.zone_id, args.route_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -20851,20 +16562,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerRoutesGetRouteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20898,36 +16596,21 @@ pub async fn worker_routes_update_route_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/workers/routes/{}",
-        args.zone_id,
-        args.route_id,
-    );
+    let path = format!("/zones/{}/workers/routes/{}", args.zone_id, args.route_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerRoutesUpdateRouteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20961,10 +16644,7 @@ pub async fn worker_routes_delete_route_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/workers/routes/{}",
-        args.zone_id,
-        args.route_id,
-    );
+    let path = format!("/zones/{}/workers/routes/{}", args.zone_id, args.route_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -20974,19 +16654,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: WorkerRoutesDeleteRouteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

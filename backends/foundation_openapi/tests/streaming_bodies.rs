@@ -143,8 +143,14 @@ fn generated_functions_stream_their_bodies() {
         compact.contains("Result<ApiResponse<super::shared::JsonLinesStream<CreateImageInfo>>, super::shared::ApiError>"),
         "{all}"
     );
+    // The status is checked by the shared `send_checked`, which hands the
+    // body back unread.
     assert!(
-        compact.contains("super::shared::JsonLinesStream::new(response.take_body())"),
+        compact.contains("let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;"),
+        "{all}"
+    );
+    assert!(
+        compact.contains("body: super::shared::JsonLinesStream::new(body)"),
         "{all}"
     );
 
@@ -154,7 +160,7 @@ fn generated_functions_stream_their_bodies() {
         "{all}"
     );
     assert!(
-        compact.contains("super::shared::ByteStream::new(response.take_body())"),
+        compact.contains("body: super::shared::ByteStream::new(body)"),
         "{all}"
     );
 
@@ -172,15 +178,11 @@ fn generated_functions_stream_their_bodies() {
         "{all}"
     );
 
-    // Error bodies are read bounded, never collected whole.
-    assert!(
-        compact.contains("super::shared::read_error_body(response.take_body()).await"),
-        "{all}"
-    );
-    assert!(
-        !all.contains("collect_bytes_from_send_safe(response.take_body());\n        let body"),
-        "{all}"
-    );
+    // Every response goes through the shared senders, which read an error
+    // body bounded (`read_error_body`); no generated function collects a body
+    // itself.
+    assert!(!all.contains("collect_bytes_from_send_safe"), "{all}");
+    assert!(!all.contains("response.take_body()"), "{all}");
 
     // An array query parameter is a Vec, sent as one pair per value.
     assert!(compact.contains("pub names: Vec<String>,"), "{all}");
@@ -207,14 +209,17 @@ fn generated_functions_stream_their_bodies() {
         );
     }
 
-    // A JSON document is still parsed as one.
+    // A JSON document is still parsed as one, by the shared `send_json`.
     assert!(
-        compact.contains("let parsed: ImageInspect = serde_json::from_slice"),
+        compact.contains("Result<ApiResponse<ImageInspect>, super::shared::ApiError>"),
+        "{all}"
+    );
+    assert!(
+        compact.contains("super::shared::send_json(client, builder.build()).await"),
         "{all}"
     );
 
-    assert!(
-        shared.contains("read_error_body, with_raw_body, ByteStream, JsonLinesStream"),
-        "{shared}"
-    );
+    for helper in ["send_checked", "send_json", "send_without_body", "with_raw_body", "ByteStream", "JsonLinesStream"] {
+        assert!(shared.contains(helper), "{helper} not re-exported: {shared}");
+    }
 }

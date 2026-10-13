@@ -7,13 +7,17 @@
 
 #![cfg(feature = "hetzner_ssh_keys")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,87 +28,51 @@ use super::shared::ApiResponse;
 /// `CreateSshKeyRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateSshKeyRequest {
-    /// labels property.
+    /// `labels` property.
     pub labels: Option<serde_json::Value>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// public_key property.
+    /// `public_key` property.
     pub public_key: String,
 }
 
 /// `CreateSshKeyResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateSshKeyResponse {
-    /// ssh_key property.
+    /// `ssh_key` property.
     pub ssh_key: CreateSshKeyResponseSshKey,
 }
 
 /// `CreateSshKeyResponseSshKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateSshKeyResponseSshKey {
-    /// created property.
-    pub created: String,
-    /// fingerprint property.
-    pub fingerprint: String,
-    /// id property.
-    pub id: i64,
-    /// labels property.
-    pub labels: serde_json::Value,
-    /// name property.
-    pub name: String,
-    /// public_key property.
-    pub public_key: String,
-}
+///
+/// Same shape as `super::shared::CreateSshKeyResponseSshKeyShape`.
+pub type CreateSshKeyResponseSshKey = super::shared::CreateSshKeyResponseSshKeyShape;
 
 /// `ListSshKeysResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListSshKeysResponse {
-    /// meta property.
+    /// `meta` property.
     pub meta: ListSshKeysResponseMeta,
-    /// ssh_keys property.
+    /// `ssh_keys` property.
     pub ssh_keys: Vec<ListSshKeysResponseSshKeysItem>,
 }
 
 /// `ListSshKeysResponseMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListSshKeysResponseMeta {
-    /// pagination property.
+    /// `pagination` property.
     pub pagination: ListSshKeysResponseMetaPagination,
 }
 
 /// `ListSshKeysResponseMetaPagination` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListSshKeysResponseMetaPagination {
-    /// last_page property.
-    pub last_page: Option<i64>,
-    /// next_page property.
-    pub next_page: Option<i64>,
-    /// page property.
-    pub page: i64,
-    /// per_page property.
-    pub per_page: i64,
-    /// previous_page property.
-    pub previous_page: Option<i64>,
-    /// total_entries property.
-    pub total_entries: Option<i64>,
-}
+///
+/// Same shape as `super::shared::ListServersResponseMetaPaginationShape`.
+pub type ListSshKeysResponseMetaPagination = super::shared::ListServersResponseMetaPaginationShape;
 
 /// `ListSshKeysResponseSshKeysItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListSshKeysResponseSshKeysItem {
-    /// created property.
-    pub created: String,
-    /// fingerprint property.
-    pub fingerprint: String,
-    /// id property.
-    pub id: i64,
-    /// labels property.
-    pub labels: serde_json::Value,
-    /// name property.
-    pub name: String,
-    /// public_key property.
-    pub public_key: String,
-}
+///
+/// Same shape as `super::shared::CreateSshKeyResponseSshKeyShape`.
+pub type ListSshKeysResponseSshKeysItem = super::shared::CreateSshKeyResponseSshKeyShape;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -113,8 +81,8 @@ pub struct ListSshKeysResponseSshKeysItem {
 /// Arguments for [`list_ssh_keys_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ListSshKeysArgs {
-    /// Query parameter: `sort`.
-    pub sort: Option<String>,
+    /// Query parameter: `sort` (one per value).
+    pub sort: Vec<String>,
     /// Query parameter: `name`.
     pub name: Option<String>,
     /// Query parameter: `fingerprint`.
@@ -169,14 +137,15 @@ pub async fn list_ssh_keys_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/ssh_keys",
-    );
+    let path = format!("/ssh_keys",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("sort", args.sort.as_deref());
+    for value in &args.sort {
+        builder = builder.query("sort", Some(value.as_str()));
+    }
     builder = builder.query("name", args.name.as_deref());
     builder = builder.query("fingerprint", args.fingerprint.as_deref());
     builder = builder.query("label_selector", args.label_selector.as_deref());
@@ -187,20 +156,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListSshKeysResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -234,33 +190,19 @@ pub async fn create_ssh_key_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/ssh_keys",
-    );
+    let path = format!("/ssh_keys",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateSshKeyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-
