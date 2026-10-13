@@ -463,6 +463,26 @@ fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<
     field_type.to_string()
 }
 
+/// Serde attribute for a struct whose only field is the opaque JSON map
+/// written by [`write_opaque_map_field`].
+///
+/// WHY: such a struct used to put `#[serde(flatten)]` on its one map field.
+/// For a lone map field, `transparent` gives the same JSON: an object
+/// serializes as the map's entries and any object deserializes into it. But
+/// serde's `flatten` derive is far bigger: it buffers every entry into
+/// `Content` and needs a field-identifier enum. Generated provider APIs have
+/// thousands of these (Cloudflare has 2271), and the `flatten` form was a
+/// large part of why that crate's `rustc` was OOM-killed on 16 GB CI runners.
+const OPAQUE_MAP_STRUCT_ATTR: &str = "#[serde(transparent)]";
+
+/// The single field of an opaque schema's struct: the raw JSON object.
+fn write_opaque_map_field(out: &mut String) -> std::fmt::Result {
+    writeln!(
+        out,
+        "    pub data: std::collections::HashMap<String, serde_json::Value>,"
+    )
+}
+
 /// Transform an OpenAPI path into a Rust format! string.
 /// Converts `{param}` placeholders to `{}` only for params in path_params.
 /// Other braces are escaped as literal braces.
@@ -1121,16 +1141,13 @@ impl UnifiedGenerator {
                     out,
                     "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
                 )?;
+                writeln!(out, "{OPAQUE_MAP_STRUCT_ATTR}")?;
                 writeln!(out, "pub struct {} {{", safe_type_name)?;
                 writeln!(
                     out,
                     "    /// Raw JSON value - full schema generated from `OpenAPI`"
                 )?;
-                writeln!(out, "    #[serde(flatten)]")?;
-                writeln!(
-                    out,
-                    "    pub data: std::collections::HashMap<String, serde_json::Value>,"
-                )?;
+                write_opaque_map_field(&mut out)?;
                 writeln!(out, "}}")?;
                 writeln!(out)?;
             }
@@ -1235,6 +1252,13 @@ impl UnifiedGenerator {
         // so we must emit per-field #[serde(rename)] when the original name differs
         // from the snake_cased field name. A single rename_all can't handle mixed
         // specs like Docker (ApiVersion + architecture in the same schema).
+        //
+        // A schema with neither properties nor allOf is opaque: its struct is
+        // just the raw JSON object (see OPAQUE_MAP_STRUCT_ATTR).
+        let opaque = schema.properties.is_none() && schema.all_of.is_none();
+        if opaque {
+            writeln!(out, "{OPAQUE_MAP_STRUCT_ATTR}")?;
+        }
         writeln!(out, "pub struct {} {{", type_name)?;
 
         // Handle allOf - merge properties from all members
@@ -1318,12 +1342,8 @@ impl UnifiedGenerator {
         // placeholder. (Shared resource types with real schemas are now
         // resolved in generate_shared_module; this fallback only fires for
         // truly unresolvable cases.)
-        if schema.properties.is_none() && schema.all_of.is_none() {
-            writeln!(out, "    #[serde(flatten)]")?;
-            writeln!(
-                out,
-                "    pub data: std::collections::HashMap<String, serde_json::Value>,"
-            )?;
+        if opaque {
+            write_opaque_map_field(out)?;
         }
 
         writeln!(out, "}}")?;
@@ -1770,12 +1790,9 @@ impl UnifiedGenerator {
                     out,
                     "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
                 )?;
+                writeln!(out, "{OPAQUE_MAP_STRUCT_ATTR}")?;
                 writeln!(out, "pub struct {} {{", safe_name)?;
-                writeln!(out, "    #[serde(flatten)]")?;
-                writeln!(
-                    out,
-                    "    pub data: std::collections::HashMap<String, serde_json::Value>,"
-                )?;
+                write_opaque_map_field(&mut out)?;
                 writeln!(out, "}}")?;
                 writeln!(out)?;
             }

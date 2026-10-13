@@ -46,8 +46,8 @@ pub struct PublicIpApiResponseSingle {
 
 /// `PublicIpMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PublicIpMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
