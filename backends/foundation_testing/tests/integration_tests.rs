@@ -56,7 +56,7 @@ fn test_producer_consumer_queue() {
     producer.join().unwrap();
     let sum = consumer.join().unwrap();
 
-    assert_eq!(sum, 0 + 1 + 2 + 3 + 4); // 10
+    assert_eq!(sum, 1 + 2 + 3 + 4); // 0 + 1 + 2 + 3 + 4
 }
 
 #[test]
@@ -70,18 +70,21 @@ fn test_barrier() {
         let counter_clone = Arc::clone(&counter);
         handles.push(thread::spawn(move || {
             counter_clone.fetch_add(1, Ordering::Relaxed);
-            barrier_clone.wait();
-            counter_clone.load(Ordering::Relaxed)
+            let is_leader = barrier_clone.wait();
+            (is_leader, counter_clone.load(Ordering::Relaxed))
         }));
     }
 
-    let results: Vec<usize> = handles
+    let results: Vec<(bool, usize)> = handles
         .into_iter()
         .map(|h| h.join().unwrap())
         .collect();
 
+    // Exactly one thread is the barrier's leader.
+    assert_eq!(results.iter().filter(|(is_leader, _)| *is_leader).count(), 1);
+
     // All threads should see count == 3 after barrier
-    for count in results {
+    for (_, count) in results {
         assert_eq!(count, 3);
     }
 }

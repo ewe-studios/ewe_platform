@@ -18,7 +18,7 @@
 //! // Try to acquire without blocking
 //! if let Some(guard) = mutex.try_lock() {
 //!     println!("Got lock: {}", *guard);
-//! }
+//! };
 //! ```
 
 use core::cell::UnsafeCell;

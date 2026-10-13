@@ -35,13 +35,13 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::`AtomicFlag`;
+    /// use foundation_nostd::primitives::AtomicFlag;
     ///
-    /// let flag = `AtomicFlag`::new(false);
-    /// assert!(!flag.is_`set()`);
+    /// let flag = AtomicFlag::new(false);
+    /// assert!(!flag.is_set());
     ///
-    /// let flag = `AtomicFlag`::new(true);
-    /// assert!(flag.is_`set()`);
+    /// let flag = AtomicFlag::new(true);
+    /// assert!(flag.is_set());
     /// ```
     #[inline]
     #[must_use]
@@ -58,10 +58,10 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::`AtomicFlag`;
+    /// use foundation_nostd::primitives::AtomicFlag;
     ///
-    /// let flag = `AtomicFlag`::new(true);
-    /// assert!(flag.is_`set()`);
+    /// let flag = AtomicFlag::new(true);
+    /// assert!(flag.is_set());
     /// ```
     #[inline]
     pub fn is_set(&self) -> bool {
@@ -76,11 +76,11 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::`AtomicFlag`;
+    /// use foundation_nostd::primitives::AtomicFlag;
     ///
-    /// let flag = `AtomicFlag`::new(false);
-    /// flag.`set()`;
-    /// assert!(flag.is_`set()`);
+    /// let flag = AtomicFlag::new(false);
+    /// flag.set();
+    /// assert!(flag.is_set());
     /// ```
     #[inline]
     pub fn set(&self) {
@@ -94,11 +94,11 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::`AtomicFlag`;
+    /// use foundation_nostd::primitives::AtomicFlag;
     ///
-    /// let flag = `AtomicFlag`::new(true);
-    /// flag.`clear()`;
-    /// assert!(!flag.is_`set()`);
+    /// let flag = AtomicFlag::new(true);
+    /// flag.clear();
+    /// assert!(!flag.is_set());
     /// ```
     #[inline]
     pub fn clear(&self) {
@@ -112,11 +112,11 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::`AtomicFlag`;
+    /// use foundation_nostd::primitives::AtomicFlag;
     ///
-    /// let flag = `AtomicFlag`::new(false);
-    /// assert!(!flag.test_and_`set()`);
-    /// assert!(flag.is_`set()`);
+    /// let flag = AtomicFlag::new(false);
+    /// assert!(!flag.test_and_set());
+    /// assert!(flag.is_set());
     /// ```
     #[inline]
     pub fn test_and_set(&self) -> bool {
@@ -130,11 +130,11 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::`AtomicFlag`;
+    /// use foundation_nostd::primitives::AtomicFlag;
     ///
-    /// let flag = `AtomicFlag`::new(true);
-    /// assert!(flag.test_and_`clear()`);
-    /// assert!(!flag.is_`set()`);
+    /// let flag = AtomicFlag::new(true);
+    /// assert!(flag.test_and_clear());
+    /// assert!(!flag.is_set());
     /// ```
     #[inline]
     pub fn test_and_clear(&self) -> bool {
@@ -152,13 +152,13 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::`AtomicFlag`;
+    /// use foundation_nostd::primitives::AtomicFlag;
     ///
-    /// let flag = `AtomicFlag`::new(false);
+    /// let flag = AtomicFlag::new(false);
     ///
     /// // Successful CAS
     /// assert_eq!(flag.compare_and_swap(false, true), Ok(false));
-    /// assert!(flag.is_`set()`);
+    /// assert!(flag.is_set());
     ///
     /// // Failed CAS - flag is already true
     /// assert_eq!(flag.compare_and_swap(false, true), Err(true));
@@ -182,9 +182,9 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::`AtomicFlag`;
+    /// use foundation_nostd::primitives::AtomicFlag;
     ///
-    /// let flag = `AtomicFlag`::new(true);
+    /// let flag = AtomicFlag::new(true);
     /// assert!(flag.load_relaxed());
     /// ```
     #[inline]
@@ -199,9 +199,9 @@ impl AtomicFlag {
     /// # Examples
     ///
     /// ```
-    /// use foundation_nostd::primitives::`AtomicFlag`;
+    /// use foundation_nostd::primitives::AtomicFlag;
     ///
-    /// let flag = `AtomicFlag`::new(false);
+    /// let flag = AtomicFlag::new(false);
     /// flag.store_relaxed(true);
     /// assert!(flag.load_relaxed());
     /// ```
