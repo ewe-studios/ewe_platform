@@ -58,8 +58,8 @@ pub struct SecurityCenterApiResponseSingle {
 
 /// `SecurityCenterMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecurityCenterMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

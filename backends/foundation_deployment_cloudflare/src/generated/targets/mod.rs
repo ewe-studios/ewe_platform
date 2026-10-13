@@ -55,8 +55,8 @@ pub struct InfraIPInfo {
 
 /// `InfraMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct InfraMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -77,15 +77,15 @@ pub struct InfraTarget {
 
 /// `InfraTargetArray` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct InfraTargetArray {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `InfraTargetId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct InfraTargetId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

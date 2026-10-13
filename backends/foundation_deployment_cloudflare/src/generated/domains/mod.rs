@@ -97,8 +97,8 @@ pub struct EmailSecurityCreateTrustedDomain {
 
 /// `EmailSecurityCreateTrustedDomainRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailSecurityCreateTrustedDomainRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -139,15 +139,15 @@ pub struct EmailSecurityDeleteTrustedDomainResponse {
 
 /// `EmailSecurityDeliveryMode` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailSecurityDeliveryMode {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailSecurityDispositionLabel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailSecurityDispositionLabel {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -273,8 +273,8 @@ pub struct EmailSecurityTrustedDomain {
 
 /// `EmailSecurityTrustedDomainId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailSecurityTrustedDomainId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -433,8 +433,8 @@ pub struct IntelApplication {
 
 /// `IntelCategoriesWithSuperCategoryIdsExampleEmpty` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelCategoriesWithSuperCategoryIdsExampleEmpty {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -458,8 +458,8 @@ pub struct IntelCollectionResponse {
 
 /// `IntelContentCategories` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelContentCategories {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -501,43 +501,43 @@ pub struct IntelDomainHistory {
 
 /// `IntelDomainName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelDomainName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `IntelInheritedContentCategories` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelInheritedContentCategories {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `IntelInheritedFrom` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelInheritedFrom {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `IntelInheritedRiskTypes` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelInheritedRiskTypes {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `IntelMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `IntelPopularityRank` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelPopularityRank {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -552,8 +552,8 @@ pub struct IntelResolvesToRef {
 
 /// `IntelResolvesToRefs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelResolvesToRefs {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -579,15 +579,15 @@ pub struct IntelResultInfo {
 
 /// `IntelRiskScore` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelRiskScore {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `IntelRiskTypes` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelRiskTypes {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -604,8 +604,8 @@ pub struct IntelSchemasApiResponseCommon {
 
 /// `IntelSchemasMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelSchemasMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -618,8 +618,8 @@ pub struct IntelSingleResponse {
 
 /// `IntelStixIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct IntelStixIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -696,8 +696,8 @@ pub struct R2EditManagedDomainRequest {
 
 /// `R2Errors` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2Errors {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -743,8 +743,8 @@ pub struct R2ManagedDomainResponse {
 
 /// `R2Messages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2Messages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1619,15 +1619,15 @@ pub struct RadarGetTldsResponseResultTldsItem {
 
 /// `RegistrarApiAddress` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiAddress {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiAddress2` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiAddress2 {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1662,36 +1662,36 @@ pub struct RegistrarApiApiResponseSingle {
 
 /// `RegistrarApiAutoRenew` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiAutoRenew {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiAvailable` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiAvailable {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiCanRegister` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiCanRegister {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiCity` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiCity {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiContactIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiContactIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1733,29 +1733,29 @@ pub struct RegistrarApiContacts {
 
 /// `RegistrarApiCountry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiCountry {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiCreatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiCreatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiCurrentRegistrar` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiCurrentRegistrar {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiDomainIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiDomainIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1820,64 +1820,64 @@ pub struct RegistrarApiDomains {
 
 /// `RegistrarApiEmail` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiEmail {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiExpiresAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiExpiresAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiFax` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiFax {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiFirstName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiFirstName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiLastName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiLastName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiLocked` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiLocked {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiOrganization` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiOrganization {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiPrivacy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiPrivacy {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1888,8 +1888,8 @@ pub struct RegistrarApiRegistrantContact {
 
 /// `RegistrarApiRegistryStatuses` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiRegistryStatuses {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1908,22 +1908,22 @@ pub struct RegistrarApiResultInfo {
 
 /// `RegistrarApiState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiState {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiSupportedTld` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiSupportedTld {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiTelephone` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiTelephone {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1946,15 +1946,15 @@ pub struct RegistrarApiTransferIn {
 
 /// `RegistrarApiUpdatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiUpdatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RegistrarApiZipcode` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RegistrarApiZipcode {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2005,15 +2005,15 @@ pub struct TeamsDevicesFallbackDomainResponseCollection {
 
 /// `TeamsDevicesIp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TeamsDevicesIp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TeamsDevicesMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TeamsDevicesMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

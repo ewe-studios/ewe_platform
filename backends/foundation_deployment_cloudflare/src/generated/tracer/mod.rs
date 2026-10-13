@@ -111,15 +111,15 @@ pub struct RequestTracerApiResponseCommon {
 
 /// `RequestTracerMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RequestTracerMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RequestTracerTrace` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RequestTracerTrace {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

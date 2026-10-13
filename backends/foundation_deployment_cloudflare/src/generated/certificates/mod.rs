@@ -88,8 +88,8 @@ pub struct TlsCertificatesAndHostnamesAssociationResponseCollection {
 
 /// `TlsCertificatesAndHostnamesCa` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCa {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -153,8 +153,8 @@ pub struct TlsCertificatesAndHostnamesCertificates {
 
 /// `TlsCertificatesAndHostnamesCertificatesComponentsSchemasCertificate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCertificatesComponentsSchemasCertificate {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -183,43 +183,43 @@ pub struct TlsCertificatesAndHostnamesComponentsSchemasCertificateObject {
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasExpiresOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasExpiresOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasPrivateKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasPrivateKey {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCsr` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCsr {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesHostnames` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostnames {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -241,36 +241,36 @@ pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificate
 
 /// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUpdatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUpdatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUploadedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasUploadedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesRequestType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesRequestType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesRequestedValidity` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesRequestedValidity {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -290,50 +290,50 @@ pub struct TlsCertificatesAndHostnamesSchemasCertificateResponseSingle {
 
 /// `TlsCertificatesAndHostnamesSchemasCertificates` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasCertificates {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasExpiresOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasExpiresOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasIssuer` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasIssuer {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasSerialNumber` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasSerialNumber {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesService` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesService {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSignature` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSignature {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

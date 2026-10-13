@@ -122,8 +122,8 @@ pub struct DlpCustomProfile {
 
 /// `DlpCustomProfileArray` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpCustomProfileArray {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -187,8 +187,8 @@ pub struct DlpDataset {
 
 /// `DlpDatasetArray` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpDatasetArray {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -207,8 +207,8 @@ pub struct DlpDatasetColumn {
 
 /// `DlpDatasetColumnArray` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpDatasetColumnArray {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -257,8 +257,8 @@ pub struct DlpDatasetUpload {
 
 /// `DlpDatasetUploadStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpDatasetUploadStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -392,8 +392,8 @@ pub struct DlpDocumentFingerprintEntry {
 
 /// `DlpEmpty` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpEmpty {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -483,8 +483,8 @@ pub struct DlpEntriesUpdatePredefinedEntryResponse {
 
 /// `DlpEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpEntry {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -499,8 +499,8 @@ pub struct DlpEntryConfidence {
 
 /// `DlpEntryOfNewProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpEntryOfNewProfile {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -522,8 +522,8 @@ pub struct DlpEntryUpdate {
 
 /// `DlpEntryUpdateType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpEntryUpdateType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -612,8 +612,8 @@ pub struct DlpLimitsGetResponse {
 
 /// `DlpMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -861,22 +861,22 @@ pub struct DlpPredefinedProfileUpdate {
 
 /// `DlpProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpProfile {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DlpProfileArray` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpProfileArray {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DlpProfileEntryUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlpProfileEntryUpdate {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

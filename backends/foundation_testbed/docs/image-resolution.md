@@ -137,7 +137,7 @@ macOS profiles (`profile.name` starts with `"macos"`) use a different layout: a 
 
 | Change | Details |
 |---|---|
-| Export output updated | After export, prints both the `TESTBED_IMAGE_{PROFILE}=...` env var and `ewe_platform testbed adopt {name} --disk ...` CLI instructions (lines 174-183) |
+| Export output updated | After export, prints both the `TESTBED_IMAGE_{PROFILE}=...` env var and `testbed adopt {name} --disk ...` CLI instructions (lines 174-183) |
 
 ---
 
@@ -198,15 +198,15 @@ The pipeline will attempt to download `https://ci.example.com/images/windows-bui
 
 ```bash
 # 1. Bootstrap a VM (one-time, takes ~10 min)
-ewe_platform testbed bootstrap windows-build
+testbed bootstrap windows-build
 
 # 2. Export it as a pre-bootstrapped image
-ewe_platform testbed export windows-build --version bootstrapped
+testbed export windows-build --version bootstrapped
 
 # Output:
 #   Export complete: .build/export/windows-build-bootstrapped.qcow2
 #   Import (env override): export TESTBED_IMAGE_WINDOWS_BUILD=.build/export/windows-build-bootstrapped.qcow2
-#   Import (adopt): ewe_platform testbed adopt windows-build --disk .build/export/windows-build-bootstrapped.qcow2
+#   Import (adopt): testbed adopt windows-build --disk .build/export/windows-build-bootstrapped.qcow2
 
 # 3. Use the exported image in tests (bootstrap skipped)
 TESTBED_IMAGE_WINDOWS_BUILD=.build/export/windows-build-bootstrapped.qcow2 \

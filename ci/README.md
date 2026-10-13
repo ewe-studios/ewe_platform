@@ -47,6 +47,14 @@ crate's tests need, extra test runs, timeouts, and whether `fmt`, `build`,
 `clippy` or `test` failures fail CI (`enforce`), only warn (`report`), or don't run
 (`off`). A package can also be skipped with a reason. New crates need no entry.
 
+A package can also set environment variables for its cargo commands with an
+`env` table, e.g. `env = { CARGO_BUILD_JOBS = "1" }` for a crate whose rustc
+needs most of the runner's 16 GB (`foundation_deployment_cloudflare`: its lib
+and the lib's unit-test build would otherwise compile at the same time and get
+OOM-killed). `env` merges key by key over `[defaults.env]`, applies to every
+step, and a variable already set in your environment wins, so you can override
+it locally (`CARGO_BUILD_JOBS=4 make ci-package PACKAGE=...`).
+
 ## Running it locally
 
 ```sh

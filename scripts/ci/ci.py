@@ -91,6 +91,8 @@ class Settings:
     test_args: list[str]
     timeout_minutes: int
     reason: str | None
+    # Extra environment for this package's cargo commands (the `env` table).
+    env: dict[str, str] = field(default_factory=dict)
 
 
 def cargo_metadata() -> dict:
@@ -152,7 +154,17 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
 
     settings: dict[str, Settings] = {}
     for name in packages:
-        merged = {**defaults, **overrides.get(name, {})}
+        package = overrides.get(name, {})
+        merged = {**defaults, **package}
+        # `env` merges key by key, so a package adds to [defaults.env] rather
+        # than replacing it.
+        for table, where in ((defaults, "[defaults]"), (package, f"[packages.{name}]")):
+            if not isinstance(table.get("env", {}), dict):
+                raise SystemExit(f"{where}: `env` must be a table of strings")
+        env = {**defaults.get("env", {}), **package.get("env", {})}
+        for key, value in env.items():
+            if not isinstance(value, str):
+                raise SystemExit(f"{name}: env.{key} must be a string, got {value!r}")
         s = Settings(
             skip=merged.get("skip"),
             fmt=merged.get("fmt", "report"),
@@ -163,6 +175,7 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
             test_args=list(merged.get("test-args", [])),
             timeout_minutes=int(merged.get("timeout-minutes", 60)),
             reason=merged.get("reason"),
+            env=env,
         )
         for step in STEPS:
             if getattr(s, step) not in MODES:
@@ -288,7 +301,11 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
         return 0
 
     plan = commands(name, s, profile)
-    env = {**NESTED_BUILD_ENV, **os.environ}
+    # The package's `env` applies to every step. A value already set in the
+    # environment wins, so a bigger machine can still override it locally.
+    env = {**NESTED_BUILD_ENV, **s.env, **os.environ}
+    if s.env:
+        print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(s.env.items())), flush=True)
     failures: list[str] = []
     for step in steps:
         mode = getattr(s, step)
@@ -321,7 +338,8 @@ def cmd_list(_: argparse.Namespace) -> int:
         p, s = packages[name], settings[name]
         status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy} test={s.test}"
         runs = ", ".join(repr(r) for r in s.runs)
-        print(f"{name:36} {status:42} runs=[{runs}]{'  +llama.cpp' if p.needs_llama else ''}")
+        env = "".join(f"  {k}={v}" for k, v in sorted(s.env.items()))
+        print(f"{name:36} {status:42} runs=[{runs}]{'  +llama.cpp' if p.needs_llama else ''}{env}")
     return 0
 
 

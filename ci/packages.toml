@@ -14,6 +14,10 @@
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
 #   reason          = "why"   shown next to report-only failures
+#   env             = { K = "v" }  environment for every cargo command of the
+#                             package (e.g. CARGO_BUILD_JOBS to bound memory).
+#                             Merges key by key over [defaults.env]; a variable
+#                             already set in the caller's environment wins.
 #
 # Run what CI runs, locally:   make ci-package PACKAGE=foundation_ai
 # See every package's settings: make ci-list
@@ -109,3 +113,15 @@ runs = ["", "vms"]
 # never ran. Test that configuration as well. The real-daemon tests stay
 # behind `integration-tests`.
 runs = ["", "docker"]
+# ---------------------------------------------------------------------------
+# Packages that need more memory than the runner has to spare.
+
+[packages.foundation_deployment_cloudflare]
+# ~10 MB of generated API code (≈10k types) in one crate: a single rustc for
+# the lib peaks at ~11 GB (type checking and MIR borrowck, not LLVM).
+# `--all-targets` compiles the lib and its unit-test twin at the same time, so
+# two such rustc processes OOM-killed the 16 GB runner (exit 137). One job at a
+# time keeps the peak to one of them. Serial builds take longer, hence the
+# timeout.
+env = { CARGO_BUILD_JOBS = "1" }
+timeout-minutes = 120

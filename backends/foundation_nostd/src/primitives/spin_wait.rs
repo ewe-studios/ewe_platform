@@ -52,7 +52,7 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut `spin` = SpinWait::new();
+    /// let mut spin = SpinWait::new();
     /// ```
     #[inline]
     #[must_use]
@@ -71,8 +71,8 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut `spin` = SpinWait::new();
-    /// while `spin`.spin() {
+    /// let mut spin = SpinWait::new();
+    /// while spin.spin() {
     ///     // Keep spinning
     /// }
     /// ```
@@ -104,8 +104,8 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut `spin` = SpinWait::new();
-    /// `spin`.spin_once();
+    /// let mut spin = SpinWait::new();
+    /// spin.spin_once();
     /// ```
     #[inline]
     pub fn spin_once(&self) {
@@ -121,11 +121,11 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut `spin` = SpinWait::new();
-    /// while `spin`.spin() {
+    /// let mut spin = SpinWait::new();
+    /// while spin.spin() {
     ///     // Spinning...
     /// }
-    /// `spin`.reset();  // Start fresh
+    /// spin.reset();  // Start fresh
     /// ```
     #[inline]
     pub fn reset(&mut self) {
@@ -141,9 +141,9 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut `spin` = SpinWait::new();
+    /// let mut spin = SpinWait::new();
     /// assert_eq!(spin.counter(), 0);
-    /// `spin`.spin();
+    /// spin.spin();
     /// assert_eq!(spin.counter(), 1);
     /// ```
     #[inline]
@@ -159,9 +159,9 @@ impl SpinWait {
     /// ```
     /// use foundation_nostd::primitives::SpinWait;
     ///
-    /// let mut `spin` = SpinWait::new();
+    /// let mut spin = SpinWait::new();
     /// assert!(!spin.is_exhausted());
-    /// while `spin`.spin() {}
+    /// while spin.spin() {}
     /// assert!(spin.is_exhausted());
     /// ```
     #[inline]

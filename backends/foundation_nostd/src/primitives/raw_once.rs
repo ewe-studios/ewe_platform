@@ -34,7 +34,7 @@ impl RawOnce {
     /// ```
     /// use foundation_nostd::primitives::RawOnce;
     ///
-    /// static INIT: `RawOnce` = RawOnce::new();
+    /// static INIT: RawOnce = RawOnce::new();
     ///
     /// INIT.call_once(|| {
     ///     // Initialization code

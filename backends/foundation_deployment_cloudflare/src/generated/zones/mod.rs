@@ -187,43 +187,43 @@ pub struct AccessAccessGroupRule {
 
 /// `AccessAllowAllHeaders` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessAllowAllHeaders {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessAllowAllMethods` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessAllowAllMethods {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessAllowAllOrigins` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessAllowAllOrigins {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessAllowCredentials` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessAllowCredentials {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessAllowedIdps` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessAllowedIdps {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessAllowedMethods` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessAllowedMethods {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -236,8 +236,8 @@ pub struct AccessAnyValidServiceTokenRule {
 
 /// `AccessAppLauncherVisible` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessAppLauncherVisible {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -252,15 +252,15 @@ pub struct AccessAppSettingsResponse {
 
 /// `AccessApps` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessApps {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessAppsComponentsSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessAppsComponentsSchemasName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -273,8 +273,8 @@ pub struct AccessAppsComponentsSchemasResponseCollection2 {
 
 /// `AccessAppsComponentsSchemasSessionDuration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessAppsComponentsSchemasSessionDuration {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -337,8 +337,8 @@ pub struct AccessCertificateRule {
 
 /// `AccessCertificatesComponentsSchemasName2` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessCertificatesComponentsSchemasName2 {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -358,15 +358,15 @@ pub struct AccessCertificatesComponentsSchemasSingleResponse2 {
 
 /// `AccessClientId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessClientId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessClientSecretVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessClientSecretVersion {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -379,8 +379,8 @@ pub struct AccessCommonNameRule {
 
 /// `AccessComponentsSchemasAud` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessComponentsSchemasAud {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -405,15 +405,15 @@ pub struct AccessComponentsSchemasCertificates {
 
 /// `AccessComponentsSchemasDomain` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessComponentsSchemasDomain {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessComponentsSchemasExclude` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessComponentsSchemasExclude {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -438,29 +438,29 @@ pub struct AccessComponentsSchemasGroups {
 
 /// `AccessComponentsSchemasId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessComponentsSchemasId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessComponentsSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessComponentsSchemasName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessComponentsSchemasRequire` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessComponentsSchemasRequire {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessComponentsSchemasType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessComponentsSchemasType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -473,22 +473,22 @@ pub struct AccessCountryRule {
 
 /// `AccessCustomDenyMessage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessCustomDenyMessage {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessDenyUnmatchedRequests` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessDenyUnmatchedRequests {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessDenyUnmatchedRequestsExemptedZoneNames` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessDenyUnmatchedRequestsExemptedZoneNames {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -522,8 +522,8 @@ pub struct AccessEmailRule {
 
 /// `AccessEnableBindingCookie` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessEnableBindingCookie {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -536,8 +536,8 @@ pub struct AccessEveryoneRule {
 
 /// `AccessExclude` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessExclude {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -550,8 +550,8 @@ pub struct AccessExternalEvaluationRule {
 
 /// `AccessFingerprint` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessFingerprint {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -565,8 +565,8 @@ pub struct AccessGithubOrganizationRule {
 
 /// `AccessGroupsComponentsSchemasName2` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessGroupsComponentsSchemasName2 {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -593,8 +593,8 @@ pub struct AccessGsuiteGroupRule {
 
 /// `AccessHttpOnlyCookieAttribute` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessHttpOnlyCookieAttribute {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -614,8 +614,8 @@ pub struct AccessIdentityProvidersComponentsSchemasSingleResponse {
 
 /// `AccessInclude` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessInclude {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -649,22 +649,22 @@ pub struct AccessLoginMethodRule {
 
 /// `AccessLogoUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessLogoUrl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessMaxAge` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessMaxAge {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -684,8 +684,8 @@ pub struct AccessOktaGroupRule {
 
 /// `AccessOrganizationsComponentsSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessOrganizationsComponentsSchemasName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -731,8 +731,8 @@ pub struct AccessPolicies {
 
 /// `AccessPoliciesComponentsSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessPoliciesComponentsSchemasName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -752,43 +752,43 @@ pub struct AccessPoliciesComponentsSchemasSingleResponse {
 
 /// `AccessPreviousClientSecretExpiresAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessPreviousClientSecretExpiresAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessPublicKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessPublicKey {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessPurposeJustificationPrompt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessPurposeJustificationPrompt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessRequire` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessRequire {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessRule` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessRule {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSameSiteCookieAttribute` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSameSiteCookieAttribute {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -801,15 +801,15 @@ pub struct AccessSamlGroupRule {
 
 /// `AccessSchemasAllowedHeaders` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasAllowedHeaders {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasAllowedOrigins` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasAllowedOrigins {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -838,43 +838,43 @@ pub struct AccessSchemasApprovalGroup {
 
 /// `AccessSchemasApprovalGroups` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasApprovalGroups {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasApprovalRequired` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasApprovalRequired {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasAssociatedHostnames` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasAssociatedHostnames {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasAud` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasAud {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasAuthDomain` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasAuthDomain {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasAutoRedirectToIdentity` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasAutoRedirectToIdentity {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -976,22 +976,22 @@ pub struct AccessSchemasCreateResponse {
 
 /// `AccessSchemasCustomDenyUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasCustomDenyUrl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasDecision` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasDecision {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasDuration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasDuration {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1068,22 +1068,22 @@ pub struct AccessSchemasIdentityProvider {
 
 /// `AccessSchemasIdentityProviders` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasIdentityProviders {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasIsUiReadOnly` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasIsUiReadOnly {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasIsolationRequired` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasIsolationRequired {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1179,8 +1179,8 @@ pub struct AccessSchemasOnetimepin {
 
 /// `AccessSchemasOptionsPreflightBypass` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasOptionsPreflightBypass {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1225,15 +1225,15 @@ pub struct AccessSchemasPolicyCheckResponse {
 
 /// `AccessSchemasPrecedence` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasPrecedence {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessSchemasPurposeJustificationRequired` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasPurposeJustificationRequired {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1401,8 +1401,8 @@ pub struct AccessSchemasSshProps {
 
 /// `AccessSchemasUserSeatExpirationInactiveTime` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessSchemasUserSeatExpirationInactiveTime {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1452,8 +1452,8 @@ pub struct AccessScimConfigMapping {
 
 /// `AccessServiceAuth401Redirect` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessServiceAuth401Redirect {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1466,8 +1466,8 @@ pub struct AccessServiceTokenRule {
 
 /// `AccessServiceTokensComponentsSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessServiceTokensComponentsSchemasName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1494,22 +1494,22 @@ pub struct AccessSingleResponseUpdate {
 
 /// `AccessTimestamp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessTimestamp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessUiReadOnlyToggleReason` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessUiReadOnlyToggleReason {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AccessUseClientlessIsolationAppLauncherUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AccessUseClientlessIsolationAppLauncherUrl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1522,8 +1522,8 @@ pub struct AccessUserRiskScoreRule {
 
 /// `AddressingMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AddressingMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1538,22 +1538,22 @@ pub struct AnalyzeCertificateAnalyzeCertificateRequest {
 
 /// `ApiShieldAction` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldAction {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldApiDiscoveryOrigin` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldApiDiscoveryOrigin {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldApiDiscoveryPatchMultipleRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldApiDiscoveryPatchMultipleRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1566,8 +1566,8 @@ pub struct ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneResponse {
 
 /// `ApiShieldApiDiscoveryState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldApiDiscoveryState {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1630,15 +1630,15 @@ pub struct ApiShieldAuthIdCharacteristicJwtClaim {
 
 /// `ApiShieldAuthIdCharacteristics` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldAuthIdCharacteristics {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldAuthIdTokens` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldAuthIdTokens {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1725,8 +1725,8 @@ pub struct ApiShieldConfigurationSingleResponse {
 
 /// `ApiShieldCookie` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldCookie {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1753,8 +1753,8 @@ pub struct ApiShieldCredentials {
 
 /// `ApiShieldCredentialsJWTKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldCredentialsJWTKey {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1809,8 +1809,8 @@ pub struct ApiShieldCredentialsJWTKeyRSA {
 
 /// `ApiShieldDataPoints` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldDataPoints {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1839,8 +1839,8 @@ pub struct ApiShieldDeleteUserLabelResponse {
 
 /// `ApiShieldDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1875,22 +1875,22 @@ pub struct ApiShieldEditRuleSuccessResponse {
 
 /// `ApiShieldEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldEndpoint` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldEndpoint {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldExpression` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldExpression {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1961,15 +1961,15 @@ pub struct ApiShieldGlobalSettingsUpdateSuccessResponse {
 
 /// `ApiShieldHeader` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldHeader {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldHost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldHost {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1992,29 +1992,29 @@ pub struct ApiShieldLabel {
 
 /// `ApiShieldLabelDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldLabelDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldLabelMappedResources` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldLabelMappedResources {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldLabelMetadata` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldLabelMetadata {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldLabelName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldLabelName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2031,8 +2031,8 @@ pub struct ApiShieldLabelRequest {
 
 /// `ApiShieldLabelSource` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldLabelSource {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2101,15 +2101,15 @@ pub struct ApiShieldListRulesSuccessResponse {
 
 /// `ApiShieldMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldMethod` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldMethod {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2136,15 +2136,15 @@ pub struct ApiShieldObjectWithOperationId {
 
 /// `ApiShieldOpenapi` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldOpenapi {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldOpenapiWithThresholds` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldOpenapiWithThresholds {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2192,8 +2192,8 @@ pub struct ApiShieldOperationFeatureThresholds {
 
 /// `ApiShieldOperationFeatures` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldOperationFeatures {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2255,22 +2255,22 @@ pub struct ApiShieldOperationsPutLabelsToOperationResponse {
 
 /// `ApiShieldP50` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldP50 {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldP90` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldP90 {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldP99` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldP99 {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2315,8 +2315,8 @@ pub struct ApiShieldPatchUserLabelResponse {
 
 /// `ApiShieldPerOperationBulkSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldPerOperationBulkSettings {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2366,8 +2366,8 @@ pub struct ApiShieldPerOperationSettingsListSuccessResponse {
 
 /// `ApiShieldPeriodSeconds` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldPeriodSeconds {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2452,8 +2452,8 @@ pub struct ApiShieldRequestExpressionTemplatesFallthrough {
 
 /// `ApiShieldRequests` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldRequests {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2552,8 +2552,8 @@ pub struct ApiShieldSchemaResponseWithThresholds {
 
 /// `ApiShieldSchemasDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldSchemasDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2578,8 +2578,8 @@ pub struct ApiShieldSchemasTimestamp {
 
 /// `ApiShieldSchemasTitle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldSchemasTitle {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2613,8 +2613,8 @@ pub struct ApiShieldSelectorInclude {
 
 /// `ApiShieldSelectorOperationState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldSelectorOperationState {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2636,22 +2636,22 @@ pub struct ApiShieldStandardOperation {
 
 /// `ApiShieldSuggestedThreshold` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldSuggestedThreshold {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldTimestamp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldTimestamp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldTitle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldTitle {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2678,15 +2678,15 @@ pub struct ApiShieldTokenConfiguration {
 
 /// `ApiShieldTokenSources` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldTokenSources {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ApiShieldTokenType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldTokenType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2704,8 +2704,8 @@ pub struct ApiShieldUpdateConfigCredentialsSuccessResponse {
 
 /// `ApiShieldUuid` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ApiShieldUuid {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2743,8 +2743,8 @@ pub struct ArgoAnalyticsApiResponseSingle {
 
 /// `ArgoAnalyticsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ArgoAnalyticsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2770,22 +2770,22 @@ pub struct ArgoConfigApiResponseSingle {
 
 /// `ArgoConfigEditable` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ArgoConfigEditable {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ArgoConfigMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ArgoConfigMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ArgoConfigModifiedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ArgoConfigModifiedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2811,15 +2811,15 @@ pub struct ArgoConfigResultObject {
 
 /// `ArgoConfigSettingId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ArgoConfigSettingId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ArgoConfigSettingValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ArgoConfigSettingValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2879,22 +2879,22 @@ pub struct BillSubsApiAvailableRatePlan {
 
 /// `BillSubsApiCanSubscribe` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiCanSubscribe {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BillSubsApiComponentValues` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiComponentValues {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BillSubsApiExternallyManaged` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiExternallyManaged {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2905,29 +2905,29 @@ pub struct BillSubsApiFrequencyResponse {
 
 /// `BillSubsApiIsSubscribed` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiIsSubscribed {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BillSubsApiLegacyDiscount` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiLegacyDiscount {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BillSubsApiLegacyId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiLegacyId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BillSubsApiMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2953,22 +2953,22 @@ pub struct BillSubsApiResultInfo {
 
 /// `BillSubsApiSchemasFrequency` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiSchemasFrequency {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BillSubsApiSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiSchemasName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BillSubsApiSchemasPrice` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BillSubsApiSchemasPrice {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -2993,8 +2993,8 @@ pub struct BillSubsApiZoneSubscriptionResponseSingle {
 
 /// `BotManagementAiBotsProtection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementAiBotsProtection {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3016,8 +3016,8 @@ pub struct BotManagementApiResponseSingle {
 
 /// `BotManagementAutoUpdateModel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementAutoUpdateModel {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3040,8 +3040,8 @@ pub struct BotManagementBaseConfig {
 
 /// `BotManagementBmCookieEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementBmCookieEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3076,29 +3076,29 @@ pub struct BotManagementBotManagementResponseBody {
 
 /// `BotManagementCfRobotsVariant` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementCfRobotsVariant {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementConfigSingle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementConfigSingle {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementCrawlerProtection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementCrawlerProtection {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementEnableJs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementEnableJs {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3132,85 +3132,85 @@ pub struct BotManagementFeedbackReport {
 
 /// `BotManagementFeedbackType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementFeedbackType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementFightMode` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementFightMode {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementFightModeTurnedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementFightModeTurnedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementIsRobotsTxtManaged` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementIsRobotsTxtManaged {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementOptimizeWordpress` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementOptimizeWordpress {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementOptimizeWordpressTurnedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementOptimizeWordpressTurnedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementRequestsByAttribute` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementRequestsByAttribute {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementRequestsByScore` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementRequestsByScore {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementRequestsByScoreSrc` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementRequestsByScoreSrc {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementSbfmDefinitelyAutomated` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSbfmDefinitelyAutomated {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementSbfmDefinitelyAutomatedTurnedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSbfmDefinitelyAutomatedTurnedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3231,15 +3231,15 @@ pub struct BotManagementSbfmDefinitelyConfig {
 
 /// `BotManagementSbfmLikelyAutomated` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSbfmLikelyAutomated {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementSbfmLikelyAutomatedTurnedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSbfmLikelyAutomatedTurnedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3262,50 +3262,50 @@ pub struct BotManagementSbfmLikelyConfig {
 
 /// `BotManagementSbfmStaticResourceProtection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSbfmStaticResourceProtection {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementSbfmStaticResourceProtectionTurnedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSbfmStaticResourceProtectionTurnedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementSbfmVerifiedBots` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSbfmVerifiedBots {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementSbfmVerifiedBotsTurnedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSbfmVerifiedBotsTurnedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementSuppressSessionScore` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSuppressSessionScore {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementSuppressSessionScoreTurnedOff` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementSuppressSessionScoreTurnedOff {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `BotManagementUsingLatestModel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct BotManagementUsingLatestModel {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3324,8 +3324,8 @@ pub struct CacheApiResponseSingleId {
 
 /// `CacheMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3372,15 +3372,15 @@ pub struct CachePurgeFlexPurgeByTags {
 
 /// `CachePurgeIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CachePurgeIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `CachePurgeMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CachePurgeMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3474,8 +3474,8 @@ pub struct CacheRulesCacheReserveClear {
 
 /// `CacheRulesCacheReserveClearEndTs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesCacheReserveClearEndTs {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3488,15 +3488,15 @@ pub struct CacheRulesCacheReserveClearResponseValue {
 
 /// `CacheRulesCacheReserveClearStartTs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesCacheReserveClearStartTs {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `CacheRulesCacheReserveClearState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesCacheReserveClearState {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3509,29 +3509,29 @@ pub struct CacheRulesCacheReserveResponseValue {
 
 /// `CacheRulesCacheReserveValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesCacheReserveValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `CacheRulesEditable` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesEditable {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `CacheRulesMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `CacheRulesModifiedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesModifiedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3553,8 +3553,8 @@ pub struct CacheRulesOriginH2MaxStreamsResponseValue {
 
 /// `CacheRulesOriginH2MaxStreamsValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesOriginH2MaxStreamsValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3576,8 +3576,8 @@ pub struct CacheRulesOriginMaxHttpVersionResponseValue {
 
 /// `CacheRulesOriginMaxHttpVersionValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesOriginMaxHttpVersionValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3597,8 +3597,8 @@ pub struct CacheRulesOriginPostQuantumEncryptionResponseValue {
 
 /// `CacheRulesOriginPostQuantumEncryptionValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesOriginPostQuantumEncryptionValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3625,8 +3625,8 @@ pub struct CacheRulesRegionalTieredCacheResponseValue {
 
 /// `CacheRulesRegionalTieredCacheValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesRegionalTieredCacheValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3656,15 +3656,15 @@ pub struct CacheRulesResultObjectDelete {
 
 /// `CacheRulesSettingId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesSettingId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `CacheRulesSettingValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesSettingValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3691,8 +3691,8 @@ pub struct CacheRulesSmartTieredCacheResponseValue {
 
 /// `CacheRulesSmartTieredCacheValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesSmartTieredCacheValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3712,15 +3712,15 @@ pub struct CacheRulesTieredCacheResponseValue {
 
 /// `CacheRulesTieredCacheValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesTieredCacheValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `CacheRulesValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheRulesValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3788,8 +3788,8 @@ pub struct CacheSchemasPatch {
 
 /// `CacheSchemasValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CacheSchemasValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3847,15 +3847,15 @@ pub struct CloudConnectorApiResponseCommon {
 
 /// `CloudConnectorMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CloudConnectorMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `CloudConnectorProvider` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CloudConnectorProvider {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -3878,8 +3878,8 @@ pub struct CloudConnectorRule {
 
 /// `CloudConnectorRules` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct CloudConnectorRules {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4075,22 +4075,22 @@ pub struct DlsApiResponseCommon {
 
 /// `DlsHostname` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlsHostname {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DlsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DlsRegionKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlsRegionKey {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4109,8 +4109,8 @@ pub struct DlsRegionalHostnameResponse {
 
 /// `DlsRouting` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DlsRouting {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4139,29 +4139,29 @@ pub struct DnsAnalyticsByTimeResponse {
 
 /// `DnsAnalyticsData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsAnalyticsData {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsAnalyticsFilters` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsAnalyticsFilters {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsAnalyticsLimit` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsAnalyticsLimit {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsAnalyticsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsAnalyticsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4223,8 +4223,8 @@ pub struct DnsAnalyticsResult {
 
 /// `DnsAnalyticsSince` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsAnalyticsSince {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4237,15 +4237,15 @@ pub struct DnsAnalyticsTableResponse {
 
 /// `DnsAnalyticsTimeDelta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsAnalyticsTimeDelta {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsAnalyticsUntil` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsAnalyticsUntil {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4334,8 +4334,8 @@ pub struct DnsRecordsCNAMERecord {
 
 /// `DnsRecordsComment` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsComment {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4387,15 +4387,15 @@ pub struct DnsRecordsDnsRecordBatchPut {
 
 /// `DnsRecordsDnsRecordPatch` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsDnsRecordPatch {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsRecordsDnsRecordPost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsDnsRecordPost {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4449,15 +4449,15 @@ pub struct DnsRecordsDnsRecordSharedFields {
 
 /// `DnsRecordsDnsRecordWithData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsDnsRecordWithData {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsRecordsDnsRecordWithoutData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsDnsRecordWithoutData {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4580,8 +4580,8 @@ pub struct DnsRecordsHTTPSRecord {
 
 /// `DnsRecordsIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4611,8 +4611,8 @@ pub struct DnsRecordsMXRecord {
 
 /// `DnsRecordsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4640,8 +4640,8 @@ pub struct DnsRecordsNSRecord {
 
 /// `DnsRecordsName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4667,15 +4667,15 @@ pub struct DnsRecordsPTRRecord {
 
 /// `DnsRecordsPriority` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsPriority {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsRecordsProxied` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsProxied {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4760,15 +4760,15 @@ pub struct DnsRecordsTXTRecord {
 
 /// `DnsRecordsTags` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsTags {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsRecordsTtl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsRecordsTtl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4853,15 +4853,15 @@ pub struct DnsSettingsDnsSettingsZoneResponse {
 
 /// `DnsSettingsFlattenAllCnames` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsSettingsFlattenAllCnames {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsSettingsFoundationDns` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsSettingsFoundationDns {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4879,22 +4879,22 @@ pub struct DnsSettingsInternalDnsResponse {
 
 /// `DnsSettingsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsSettingsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsSettingsMultiProvider` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsSettingsMultiProvider {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnsSettingsNsTtl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsSettingsNsTtl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4907,8 +4907,8 @@ pub struct DnsSettingsSchemasDnsResponseSingle {
 
 /// `DnsSettingsSecondaryOverrides` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsSettingsSecondaryOverrides {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4938,15 +4938,15 @@ pub struct DnsSettingsSoaResponse {
 
 /// `DnsSettingsZoneMode` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnsSettingsZoneMode {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecAlgorithm` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecAlgorithm {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -4975,22 +4975,22 @@ pub struct DnssecDeleteDnssecResponseSingle {
 
 /// `DnssecDigest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecDigest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecDigestAlgorithm` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecDigestAlgorithm {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecDigestType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecDigestType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5029,15 +5029,15 @@ pub struct DnssecDnssec {
 
 /// `DnssecDnssecMultiSigner` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecDnssecMultiSigner {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecDnssecPresigned` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecDnssecPresigned {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5050,15 +5050,15 @@ pub struct DnssecDnssecResponseSingle {
 
 /// `DnssecDnssecUseNsec3` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecDnssecUseNsec3 {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecDs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecDs {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5077,50 +5077,50 @@ pub struct DnssecEditDnssecStatusRequest {
 
 /// `DnssecFlags` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecFlags {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecKeyTag` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecKeyTag {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecKeyType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecKeyType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecModifiedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecModifiedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecPublicKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecPublicKey {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `DnssecStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DnssecStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5195,8 +5195,8 @@ pub struct EmailCreateSendingSubdomainProperties {
 
 /// `EmailCreated` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailCreated {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5241,15 +5241,15 @@ pub struct EmailEmailRoutingGetResponseDnsError {
 
 /// `EmailEmailRoutingGetResponseDnsErrors` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailEmailRoutingGetResponseDnsErrors {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailEmailSettingCreated` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailEmailSettingCreated {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5262,50 +5262,50 @@ pub struct EmailEmailSettingDnsRequestBody {
 
 /// `EmailEmailSettingEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailEmailSettingEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailEmailSettingIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailEmailSettingIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailEmailSettingModified` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailEmailSettingModified {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailEmailSettingName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailEmailSettingName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailEmailSettingSkipWizard` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailEmailSettingSkipWizard {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailEmailSettingStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailEmailSettingStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailEmailSettingTag` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailEmailSettingTag {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5339,29 +5339,29 @@ pub struct EmailEmailSettingsResponseSingle {
 
 /// `EmailMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailModified` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailModified {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailRoutingSettingsDisableEmailRoutingDnsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRoutingSettingsDisableEmailRoutingDnsResponse {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailRoutingSettingsEmailRoutingDnsSettingsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRoutingSettingsEmailRoutingDnsSettingsResponse {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5377,8 +5377,8 @@ pub struct EmailRuleAction {
 
 /// `EmailRuleActions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRuleActions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5394,8 +5394,8 @@ pub struct EmailRuleCatchallAction {
 
 /// `EmailRuleCatchallActions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRuleCatchallActions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5409,22 +5409,22 @@ pub struct EmailRuleCatchallMatcher {
 
 /// `EmailRuleCatchallMatchers` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRuleCatchallMatchers {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailRuleEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRuleEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailRuleIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRuleIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5442,22 +5442,22 @@ pub struct EmailRuleMatcher {
 
 /// `EmailRuleMatchers` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRuleMatchers {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailRuleName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRuleName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `EmailRulePriority` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRulePriority {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5489,8 +5489,8 @@ pub struct EmailRuleResponseSingle {
 
 /// `EmailRuleTag` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailRuleTag {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5528,8 +5528,8 @@ pub struct EmailSendingSubdomainConfigError {
 
 /// `EmailSendingSubdomainIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct EmailSendingSubdomainIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5610,43 +5610,43 @@ pub struct EmailUpdateRuleProperties {
 
 /// `FirewallComponentsSchemasIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallComponentsSchemasIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallComponentsSchemasMode` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallComponentsSchemasMode {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallComponentsUaRuleId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallComponentsUaRuleId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallConfigurations` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallConfigurations {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallCreatedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallCreatedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5667,8 +5667,8 @@ pub struct FirewallFirewalluablock {
 
 /// `FirewallFirewalluablockComponentsSchemasDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallFirewalluablockComponentsSchemasDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5688,29 +5688,29 @@ pub struct FirewallFirewalluablockResponseSingle {
 
 /// `FirewallLockdownsComponentsSchemasDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallLockdownsComponentsSchemasDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallLockdownsComponentsSchemasId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallLockdownsComponentsSchemasId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallModifiedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallModifiedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5743,22 +5743,22 @@ pub struct FirewallSchemasIpConfiguration {
 
 /// `FirewallSchemasPaused` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallSchemasPaused {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallSchemasPriority` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallSchemasPriority {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FirewallSchemasUrls` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallSchemasUrls {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5773,8 +5773,8 @@ pub struct FirewallUaConfiguration {
 
 /// `FirewallUrls` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FirewallUrls {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5845,22 +5845,22 @@ pub struct FraudFraudSettingsResponseBody {
 
 /// `FraudMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FraudMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FraudUserProfilesStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FraudUserProfilesStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FraudUsernameExpressions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct FraudUsernameExpressions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5909,15 +5909,15 @@ pub struct GoogleTagGatewayGoogleTagGatewayConfig {
 
 /// `GoogleTagGatewayMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct GoogleTagGatewayMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksAddress` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksAddress {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5952,36 +5952,36 @@ pub struct HealthchecksApiResponseSingle {
 
 /// `HealthchecksCheckRegions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksCheckRegions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksConsecutiveFails` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksConsecutiveFails {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksConsecutiveSuccesses` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksConsecutiveSuccesses {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksFailureReason` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksFailureReason {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6057,29 +6057,29 @@ pub struct HealthchecksIdResponse {
 
 /// `HealthchecksIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksInterval` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksInterval {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6137,8 +6137,8 @@ pub struct HealthchecksResultInfo {
 
 /// `HealthchecksRetries` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksRetries {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6151,15 +6151,15 @@ pub struct HealthchecksSingleResponse {
 
 /// `HealthchecksStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksSuspended` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksSuspended {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6174,22 +6174,22 @@ pub struct HealthchecksTcpConfig {
 
 /// `HealthchecksTimeout` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksTimeout {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksTimestamp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksTimestamp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `HealthchecksType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct HealthchecksType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6451,15 +6451,15 @@ pub struct LoadBalancingAdaptiveRouting {
 
 /// `LoadBalancingComponentsSchemasDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingComponentsSchemasDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingComponentsSchemasEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingComponentsSchemasEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6472,36 +6472,36 @@ pub struct LoadBalancingComponentsSchemasIdResponse {
 
 /// `LoadBalancingComponentsSchemasName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingComponentsSchemasName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingComponentsSchemasZoneName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingComponentsSchemasZoneName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingCountryPools` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingCountryPools {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingDefaultPools` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingDefaultPools {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingFallbackPool` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingFallbackPool {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6558,8 +6558,8 @@ pub struct LoadBalancingLoadBalancer {
 
 /// `LoadBalancingLoadBalancerComponentsSchemasIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingLoadBalancerComponentsSchemasIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6588,29 +6588,29 @@ pub struct LoadBalancingLocationStrategy {
 
 /// `LoadBalancingMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingNetworks` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingNetworks {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingPopPools` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingPopPools {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingProxied` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingProxied {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6625,22 +6625,22 @@ pub struct LoadBalancingRandomSteering {
 
 /// `LoadBalancingRegionPools` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingRegionPools {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingRules` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingRules {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingSessionAffinity` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingSessionAffinity {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6663,22 +6663,22 @@ pub struct LoadBalancingSessionAffinityAttributes {
 
 /// `LoadBalancingSessionAffinityTtl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingSessionAffinityTtl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingSteeringPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingSteeringPolicy {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingTtl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingTtl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6700,15 +6700,15 @@ pub struct LogcontrolApiResponseSingle {
 
 /// `LogcontrolFlag` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogcontrolFlag {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LogcontrolMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogcontrolMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6728,15 +6728,15 @@ pub struct LogcontrolRetentionFlagResponseSingle {
 
 /// `LogpushFields` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogpushFields {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LogpushFilter` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogpushFilter {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6771,43 +6771,43 @@ pub struct LogpushInstantLogsJobResponseSingle {
 
 /// `LogpushMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogpushMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LogpushOwnershipChallenge` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogpushOwnershipChallenge {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LogpushSample` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogpushSample {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LogpushSchemasDestinationConf` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogpushSchemasDestinationConf {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LogpushSchemasFilter` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogpushSchemasFilter {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LogpushSessionId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogpushSessionId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6820,8 +6820,8 @@ pub struct LogshareFieldsResponse {
 
 /// `LogshareLogsResponseJsonLines` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LogshareLogsResponseJsonLines {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6853,8 +6853,8 @@ pub struct ObservatoryCreateScheduleResponse {
 
 /// `ObservatoryDeviceType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ObservatoryDeviceType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6869,8 +6869,8 @@ pub struct ObservatoryLabeledRegion {
 
 /// `ObservatoryLighthouseErrorCode` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ObservatoryLighthouseErrorCode {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6908,15 +6908,15 @@ pub struct ObservatoryLighthouseReport {
 
 /// `ObservatoryLighthouseState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ObservatoryLighthouseState {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ObservatoryMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ObservatoryMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6957,8 +6957,8 @@ pub struct ObservatoryPlanPropertiesInfo {
 
 /// `ObservatoryRegion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ObservatoryRegion {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6975,8 +6975,8 @@ pub struct ObservatorySchedule {
 
 /// `ObservatoryScheduleFrequency` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ObservatoryScheduleFrequency {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6989,22 +6989,22 @@ pub struct ObservatoryScheduleResponseSingle {
 
 /// `ObservatoryTimestamp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ObservatoryTimestamp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ObservatoryUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ObservatoryUrl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ObservatoryUuid` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ObservatoryUuid {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7181,22 +7181,22 @@ pub struct PageShieldCookie {
 
 /// `PageShieldCryptominingScore` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldCryptominingScore {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldFetchedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldFetchedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7250,22 +7250,22 @@ pub struct PageShieldGetZoneSettingsResponse {
 
 /// `PageShieldHash` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldHash {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldJsIntegrityScore` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldJsIntegrityScore {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7299,22 +7299,22 @@ pub struct PageShieldListZoneScriptsResponse {
 
 /// `PageShieldMagecartScore` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldMagecartScore {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldMalwareScore` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldMalwareScore {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7335,36 +7335,36 @@ pub struct PageShieldPolicy {
 
 /// `PageShieldPolicyAction` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldPolicyAction {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldPolicyDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldPolicyDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldPolicyEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldPolicyEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldPolicyExpression` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldPolicyExpression {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldPolicyValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldPolicyValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7485,22 +7485,22 @@ pub struct PageShieldUpdateZoneSettingsResponse {
 
 /// `PageShieldUpdatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldUpdatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldUseCloudflareReportingEndpoint` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldUseCloudflareReportingEndpoint {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `PageShieldUseConnectionUrlPath` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct PageShieldUseConnectionUrlPath {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7727,8 +7727,8 @@ pub struct PutZonesZoneIdLogpushJobsJobIdRequest {
 
 /// `ResourceTaggingDeleteTagsRequestZoneLevel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ResourceTaggingDeleteTagsRequestZoneLevel {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7752,15 +7752,15 @@ pub struct ResourceTaggingDeleteTagsRequestZoneLevelBase {
 
 /// `ResourceTaggingMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ResourceTaggingMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ResourceTaggingSetTagsRequestZoneLevel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ResourceTaggingSetTagsRequestZoneLevel {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7780,22 +7780,22 @@ pub struct ResourceTaggingSetTagsRequestZoneLevelBase {
 
 /// `ResourceTaggingZoneResourceTypeAccessApplicationPolicyEnum` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ResourceTaggingZoneResourceTypeAccessApplicationPolicyEnum {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ResourceTaggingZoneResourceTypeBaseEnum` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ResourceTaggingZoneResourceTypeBaseEnum {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RulesetsErrors` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RulesetsErrors {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7814,8 +7814,8 @@ pub struct RulesetsManagedTransform {
 
 /// `RulesetsManagedTransformId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RulesetsManagedTransformId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7841,8 +7841,8 @@ pub struct RulesetsManagedTransformsResponse {
 
 /// `RulesetsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RulesetsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7880,22 +7880,22 @@ pub struct RumApiResponseCommon {
 
 /// `RumEditable` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RumEditable {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RumId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RumId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RumMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RumMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7926,8 +7926,8 @@ pub struct RumToggleRumRequest {
 
 /// `RumValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct RumValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7949,8 +7949,8 @@ pub struct SecondaryDnsApiResponseSingle {
 
 /// `SecondaryDnsAutoRefreshSeconds` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsAutoRefreshSeconds {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7963,8 +7963,8 @@ pub struct SecondaryDnsDisableTransferResponse {
 
 /// `SecondaryDnsDisableTransferResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsDisableTransferResult {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -7990,8 +7990,8 @@ pub struct SecondaryDnsEnableTransferResponse {
 
 /// `SecondaryDnsEnableTransferResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsEnableTransferResult {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8004,8 +8004,8 @@ pub struct SecondaryDnsForceResponse {
 
 /// `SecondaryDnsForceResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsForceResult {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8018,29 +8018,29 @@ pub struct SecondaryDnsIdResponse {
 
 /// `SecondaryDnsIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SecondaryDnsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SecondaryDnsName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SecondaryDnsPeers` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsPeers {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8053,8 +8053,8 @@ pub struct SecondaryDnsSchemasForceResponse {
 
 /// `SecondaryDnsSchemasForceResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsSchemasForceResult {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8085,15 +8085,15 @@ pub struct SecondaryDnsSingleResponseOutgoing {
 
 /// `SecondaryDnsSoaSerial` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsSoaSerial {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SecondaryDnsTime` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecondaryDnsTime {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8104,8 +8104,8 @@ pub struct SecurityCenterApiResponseSingle {
 
 /// `SecurityCenterMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SecurityCenterMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8171,8 +8171,8 @@ pub struct SmartTieredCachePatchSmartTieredCacheSettingResponse {
 
 /// `SmartshieldAddress` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldAddress {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8223,8 +8223,8 @@ pub struct SmartshieldCacheReserveClear {
 
 /// `SmartshieldCacheReserveClearEndTs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldCacheReserveClearEndTs {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8237,50 +8237,50 @@ pub struct SmartshieldCacheReserveClearResponseValue {
 
 /// `SmartshieldCacheReserveClearStartTs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldCacheReserveClearStartTs {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldCacheReserveClearState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldCacheReserveClearState {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldCheckRegions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldCheckRegions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldConsecutiveFails` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldConsecutiveFails {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldConsecutiveSuccesses` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldConsecutiveSuccesses {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldFailureReason` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldFailureReason {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8349,29 +8349,29 @@ pub struct SmartshieldHttpConfig {
 
 /// `SmartshieldIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldInterval` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldInterval {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8429,8 +8429,8 @@ pub struct SmartshieldResultInfo {
 
 /// `SmartshieldRetries` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldRetries {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8504,15 +8504,15 @@ pub struct SmartshieldSmartShieldSettingsPatchResponse {
 
 /// `SmartshieldStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldSuspended` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldSuspended {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8527,29 +8527,29 @@ pub struct SmartshieldTcpConfig {
 
 /// `SmartshieldTimeout` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldTimeout {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldTimestamp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldTimestamp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SmartshieldType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SmartshieldType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SnippetsErrors` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SnippetsErrors {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8564,8 +8564,8 @@ pub struct SnippetsMessage {
 
 /// `SnippetsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SnippetsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8582,15 +8582,15 @@ pub struct SnippetsNullResponse {
 
 /// `SnippetsPage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SnippetsPage {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SnippetsPerPage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SnippetsPerPage {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8635,8 +8635,8 @@ pub struct SnippetsSnippet {
 
 /// `SnippetsSnippetName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SnippetsSnippetName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8653,8 +8653,8 @@ pub struct SnippetsSnippetResponse {
 
 /// `SnippetsSnippetRules` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SnippetsSnippetRules {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8709,29 +8709,29 @@ pub struct SpectrumAnalyticsColumn {
 
 /// `SpectrumAnalyticsDimensions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumAnalyticsDimensions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumAnalyticsFilters` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumAnalyticsFilters {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumAnalyticsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumAnalyticsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumAnalyticsMetrics` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumAnalyticsMetrics {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8768,15 +8768,15 @@ pub struct SpectrumAnalyticsSince {
 
 /// `SpectrumAnalyticsSort` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumAnalyticsSort {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumAnalyticsTimestamp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumAnalyticsTimestamp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8863,8 +8863,8 @@ pub struct SpectrumConfigAppIdentifier {
 
 /// `SpectrumConfigArgoSmartRouting` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigArgoSmartRouting {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8896,50 +8896,50 @@ pub struct SpectrumConfigDns {
 
 /// `SpectrumConfigDnsName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigDnsName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigDnsTtl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigDnsTtl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigDnsType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigDnsType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigEdgeIps` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigEdgeIps {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigIpFirewall` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigIpFirewall {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8950,8 +8950,8 @@ pub struct SpectrumConfigModified {
 
 /// `SpectrumConfigOriginDirect` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigOriginDirect {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -8969,22 +8969,22 @@ pub struct SpectrumConfigOriginDns {
 
 /// `SpectrumConfigOriginDnsName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigOriginDnsName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigOriginDnsType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigOriginDnsType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigOriginPort` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigOriginPort {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9001,43 +9001,43 @@ pub struct SpectrumConfigPaygoAppConfig {
 
 /// `SpectrumConfigProtocol` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigProtocol {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigProxyProtocol` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigProxyProtocol {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigTimestamp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigTimestamp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigTls` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigTls {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigTrafficType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigTrafficType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `SpectrumConfigUpdateAppConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpectrumConfigUpdateAppConfig {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9076,8 +9076,8 @@ pub struct SpeedCloudflareFonts {
 
 /// `SpeedCloudflareFontsValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpeedCloudflareFontsValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9090,8 +9090,8 @@ pub struct SpeedCloudflareSpeedBrainResponse {
 
 /// `SpeedMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct SpeedMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9131,8 +9131,8 @@ pub struct TeamsDevicesDevicesPolicyCertificatesSingle {
 
 /// `TeamsDevicesMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TeamsDevicesMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9155,8 +9155,8 @@ pub struct TlsCertificatesAndHostnamesAdvancedCertificatePackResponseSingle {
 
 /// `TlsCertificatesAndHostnamesAdvancedType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesAdvancedType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9210,36 +9210,36 @@ pub struct TlsCertificatesAndHostnamesBase {
 
 /// `TlsCertificatesAndHostnamesBrandCheck` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesBrandCheck {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesBundleMethod` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesBundleMethod {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCertId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCertId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCertPackUuid` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCertPackUuid {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCertificate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCertificate {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9252,8 +9252,8 @@ pub struct TlsCertificatesAndHostnamesCertificateAnalyzeResponse {
 
 /// `TlsCertificatesAndHostnamesCertificateAuthority` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCertificateAuthority {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9360,8 +9360,8 @@ pub struct TlsCertificatesAndHostnamesCertificatePackResponseSingle {
 
 /// `TlsCertificatesAndHostnamesCertificatePacksComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCertificatePacksComponentsSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9388,8 +9388,8 @@ pub struct TlsCertificatesAndHostnamesCertificateResponseSingle {
 
 /// `TlsCertificatesAndHostnamesCertificateStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCertificateStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9450,8 +9450,8 @@ pub struct TlsCertificatesAndHostnamesClientCertificateResponseSingle {
 
 /// `TlsCertificatesAndHostnamesClientCertificatesComponentsSchemasCertificate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesClientCertificatesComponentsSchemasCertificate {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9466,36 +9466,36 @@ pub struct TlsCertificatesAndHostnamesClientCertificatesComponentsSchemasCertifi
 
 /// `TlsCertificatesAndHostnamesClientCertificatesComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesClientCertificatesComponentsSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCloudflareBranding` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCloudflareBranding {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCommonName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCommonName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasCertificate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasCertificate {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasCertificateAuthority` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasCertificateAuthority {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9515,57 +9515,57 @@ pub struct TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseSingle
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasCreatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasCreatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasHostname` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasHostname {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasSerialNumber` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasSerialNumber {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasSignature` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasSignature {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasUpdatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasUpdatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesComponentsSchemasUploadedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasUploadedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9578,22 +9578,22 @@ pub struct TlsCertificatesAndHostnamesComponentsSchemasValidationMethod {
 
 /// `TlsCertificatesAndHostnamesConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesConfig {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCountry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCountry {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCreatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCreatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9608,8 +9608,8 @@ pub struct TlsCertificatesAndHostnamesCustomCertAndKey {
 
 /// `TlsCertificatesAndHostnamesCustomCertBundle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCustomCertBundle {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9650,8 +9650,8 @@ pub struct TlsCertificatesAndHostnamesCustomCertificate {
 
 /// `TlsCertificatesAndHostnamesCustomCsrId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCustomCsrId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9662,8 +9662,8 @@ pub struct TlsCertificatesAndHostnamesCustomHostname {
 
 /// `TlsCertificatesAndHostnamesCustomHostnameFallbackOriginComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCustomHostnameFallbackOriginComponentsSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9683,22 +9683,22 @@ pub struct TlsCertificatesAndHostnamesCustomHostnameResponseSingle {
 
 /// `TlsCertificatesAndHostnamesCustomMetadata` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCustomMetadata {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCustomOriginServer` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCustomOriginServer {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesCustomOriginSni` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCustomOriginSni {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9725,8 +9725,8 @@ pub struct TlsCertificatesAndHostnamesCustomTrustStore {
 
 /// `TlsCertificatesAndHostnamesCustomTrustStoreComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesCustomTrustStoreComponentsSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9794,15 +9794,15 @@ pub struct TlsCertificatesAndHostnamesDeleteAdvancedCertificatePackResponseSingl
 
 /// `TlsCertificatesAndHostnamesDeploy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesDeploy {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9815,29 +9815,29 @@ pub struct TlsCertificatesAndHostnamesEnabledResponse {
 
 /// `TlsCertificatesAndHostnamesEnabledWrite` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesEnabledWrite {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesErrors` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesErrors {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesExpiredOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesExpiredOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesExpiresOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesExpiresOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9865,8 +9865,8 @@ pub struct TlsCertificatesAndHostnamesFallbackorigin {
 
 /// `TlsCertificatesAndHostnamesFingerprintSha256` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesFingerprintSha256 {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9879,15 +9879,15 @@ pub struct TlsCertificatesAndHostnamesGeoRestrictions {
 
 /// `TlsCertificatesAndHostnamesHost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHost {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesHostname` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostname {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9954,8 +9954,8 @@ pub struct TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPull {
 
 /// `TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificate {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -9975,22 +9975,22 @@ pub struct TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsS
 
 /// `TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasExpiresOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasExpiresOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10040,57 +10040,57 @@ pub struct TlsCertificatesAndHostnamesHostnameCertidObject {
 
 /// `TlsCertificatesAndHostnamesHostnamePost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostnamePost {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesHostnameTlsSettingsComponentsSchemasCreatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostnameTlsSettingsComponentsSchemasCreatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesHostnameTlsSettingsComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostnameTlsSettingsComponentsSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesHostnameTlsSettingsComponentsSchemasUpdatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHostnameTlsSettingsComponentsSchemasUpdatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesHosts` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesHosts {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesIssuedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesIssuedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesIssuer` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesIssuer {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10101,8 +10101,8 @@ pub struct TlsCertificatesAndHostnamesKeylessCertificate {
 
 /// `TlsCertificatesAndHostnamesKeylessPrivateIp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesKeylessPrivateIp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10138,78 +10138,78 @@ pub struct TlsCertificatesAndHostnamesKeylessTunnel {
 
 /// `TlsCertificatesAndHostnamesKeylessVnetId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesKeylessVnetId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesLocation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesLocation {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesModifiedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesModifiedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesNameWrite` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesNameWrite {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesOrganization` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesOrganization {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesOrganizationalUnit` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesOrganizationalUnit {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesOrigin` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesOrigin {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesOwnershipVerification` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesOwnershipVerification {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesOwnershipVerificationHttp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesOwnershipVerificationHttp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10238,43 +10238,43 @@ pub struct TlsCertificatesAndHostnamesPerHostnameSettingsResponseDelete {
 
 /// `TlsCertificatesAndHostnamesPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesPolicy {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesPolicyRestrictions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesPolicyRestrictions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesPort` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesPort {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesPrimary` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesPrimary {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesPriority` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesPriority {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesPrivateKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesPrivateKey {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10289,15 +10289,15 @@ pub struct TlsCertificatesAndHostnamesQuota {
 
 /// `TlsCertificatesAndHostnamesSchemasCertificate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasCertificate {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasCertificateAuthority` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasCertificateAuthority {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10324,120 +10324,120 @@ pub struct TlsCertificatesAndHostnamesSchemasCertificateObject {
 
 /// `TlsCertificatesAndHostnamesSchemasCreatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasCreatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasCsr` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasCsr {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasExpiresOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasExpiresOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasHostname` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasHostname {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasHostnames` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasHostnames {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasHosts` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasHosts {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasPrivateKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasPrivateKey {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasSignature` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasSignature {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasUpdatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasUpdatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasUploadedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasUploadedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasValidationMethod` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasValidationMethod {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSchemasValidityDays` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSchemasValidityDays {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSerialNumber` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSerialNumber {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10473,22 +10473,22 @@ pub struct TlsCertificatesAndHostnamesSettingObjectDelete {
 
 /// `TlsCertificatesAndHostnamesSignature` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSignature {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSki` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSki {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesSsl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSsl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10515,8 +10515,8 @@ pub struct TlsCertificatesAndHostnamesSslVerificationResponseCollection {
 
 /// `TlsCertificatesAndHostnamesSslpost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesSslpost {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10537,15 +10537,15 @@ pub struct TlsCertificatesAndHostnamesSslsettings {
 
 /// `TlsCertificatesAndHostnamesState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesState {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10558,8 +10558,8 @@ pub struct TlsCertificatesAndHostnamesTotalTlsSettingsResponse {
 
 /// `TlsCertificatesAndHostnamesType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10572,22 +10572,22 @@ pub struct TlsCertificatesAndHostnamesUniversal {
 
 /// `TlsCertificatesAndHostnamesUpdatedAt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesUpdatedAt {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesUploadedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesUploadedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesUuid` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesUuid {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10600,15 +10600,15 @@ pub struct TlsCertificatesAndHostnamesUuidObject {
 
 /// `TlsCertificatesAndHostnamesValidationMethod` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesValidationMethod {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesValidationMethodDefinition` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesValidationMethodDefinition {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10635,15 +10635,15 @@ pub struct TlsCertificatesAndHostnamesValidationRecord {
 
 /// `TlsCertificatesAndHostnamesValidityDays` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesValidityDays {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10670,8 +10670,8 @@ pub struct TlsCertificatesAndHostnamesVerification {
 
 /// `TlsCertificatesAndHostnamesVerificationErrors` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesVerificationErrors {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10686,15 +10686,15 @@ pub struct TlsCertificatesAndHostnamesVerificationInfo {
 
 /// `TlsCertificatesAndHostnamesVerificationStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesVerificationStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesVerificationType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesVerificationType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10705,29 +10705,29 @@ pub struct TlsCertificatesAndHostnamesZoneAuthenticatedOriginPull {
 
 /// `TlsCertificatesAndHostnamesZoneAuthenticatedOriginPullComponentsSchemasCertificate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesZoneAuthenticatedOriginPullComponentsSchemasCertificate {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesZoneAuthenticatedOriginPullComponentsSchemasEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesZoneAuthenticatedOriginPullComponentsSchemasEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesZoneAuthenticatedOriginPullComponentsSchemasExpiresOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesZoneAuthenticatedOriginPullComponentsSchemasExpiresOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `TlsCertificatesAndHostnamesZoneAuthenticatedOriginPullComponentsSchemasStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct TlsCertificatesAndHostnamesZoneAuthenticatedOriginPullComponentsSchemasStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10848,8 +10848,8 @@ pub struct WafProductApiBundleCustomScanId {
 
 /// `WafProductApiBundleCustomScanPayload` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WafProductApiBundleCustomScanPayload {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10876,15 +10876,15 @@ pub struct WafProductApiBundleDetectionId {
 
 /// `WafProductApiBundleIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WafProductApiBundleIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WafProductApiBundleMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WafProductApiBundleMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -10989,15 +10989,15 @@ pub struct WafProductApiBundleStatus {
 
 /// `WaitingroomAdditionalRoutes` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomAdditionalRoutes {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomApiResponseCommon {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11023,64 +11023,64 @@ pub struct WaitingroomCreateRule {
 
 /// `WaitingroomEnabledOriginCommands` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEnabledOriginCommands {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEstimatedQueuedUsers` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEstimatedQueuedUsers {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEstimatedTotalActiveUsers` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEstimatedTotalActiveUsers {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventCustomPageHtml` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventCustomPageHtml {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventDetailsCustomPageHtml` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventDetailsCustomPageHtml {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventDetailsDisableSessionRenewal` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventDetailsDisableSessionRenewal {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventDetailsNewUsersPerMinute` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventDetailsNewUsersPerMinute {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventDetailsQueueingMethod` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventDetailsQueueingMethod {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11130,36 +11130,36 @@ pub struct WaitingroomEventDetailsResult {
 
 /// `WaitingroomEventDetailsSessionDuration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventDetailsSessionDuration {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventDetailsTotalActiveUsers` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventDetailsTotalActiveUsers {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventDisableSessionRenewal` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventDisableSessionRenewal {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventEndTime` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventEndTime {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11172,29 +11172,29 @@ pub struct WaitingroomEventIdResponse {
 
 /// `WaitingroomEventName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventNewUsersPerMinute` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventNewUsersPerMinute {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventPrequeueStartTime` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventPrequeueStartTime {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventQueueingMethod` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventQueueingMethod {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11255,64 +11255,64 @@ pub struct WaitingroomEventResult {
 
 /// `WaitingroomEventSessionDuration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventSessionDuration {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventShuffleAtEventStart` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventShuffleAtEventStart {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventStartTime` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventStartTime {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventSuspended` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventSuspended {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventTotalActiveUsers` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventTotalActiveUsers {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventTurnstileAction` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventTurnstileAction {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomEventTurnstileMode` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomEventTurnstileMode {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomMaxEstimatedTimeMinutes` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomMaxEstimatedTimeMinutes {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11340,8 +11340,8 @@ pub struct WaitingroomPreviewResponse {
 
 /// `WaitingroomPreviewUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomPreviewUrl {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11436,43 +11436,43 @@ pub struct WaitingroomQueryWaitingroom {
 
 /// `WaitingroomRuleAction` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomRuleAction {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomRuleDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomRuleDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomRuleEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomRuleEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomRuleExpression` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomRuleExpression {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomRuleId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomRuleId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomRulePosition` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomRulePosition {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11497,8 +11497,8 @@ pub struct WaitingroomRuleResult {
 
 /// `WaitingroomRuleVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomRuleVersion {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11511,8 +11511,8 @@ pub struct WaitingroomRulesResponseCollection {
 
 /// `WaitingroomSearchEngineCrawlerBypass` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomSearchEngineCrawlerBypass {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11525,15 +11525,15 @@ pub struct WaitingroomSingleResponse {
 
 /// `WaitingroomStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WaitingroomStatusEventId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WaitingroomStatusEventId {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11610,8 +11610,8 @@ pub struct Web3CollectionResponse {
 
 /// `Web3ContentListAction` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3ContentListAction {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11631,8 +11631,8 @@ pub struct Web3ContentListDetailsResponse {
 
 /// `Web3ContentListEntries` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3ContentListEntries {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11663,8 +11663,8 @@ pub struct Web3ContentListEntryCollectionResponse {
 
 /// `Web3ContentListEntryContent` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3ContentListEntryContent {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11682,8 +11682,8 @@ pub struct Web3ContentListEntryCreateRequest {
 
 /// `Web3ContentListEntryDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3ContentListEntryDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11696,8 +11696,8 @@ pub struct Web3ContentListEntrySingleResponse {
 
 /// `Web3ContentListEntryType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3ContentListEntryType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11725,29 +11725,29 @@ pub struct Web3CreateRequest {
 
 /// `Web3Description` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3Description {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `Web3Dnslink` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3Dnslink {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `Web3Identifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3Identifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `Web3Messages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3Messages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11762,8 +11762,8 @@ pub struct Web3ModifyRequest {
 
 /// `Web3Name` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3Name {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11789,22 +11789,22 @@ pub struct Web3SingleResponse {
 
 /// `Web3Status` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3Status {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `Web3Target` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3Target {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `Web3Timestamp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Web3Timestamp {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11842,8 +11842,8 @@ pub struct ZarazApiResponseCommon {
 
 /// `ZarazMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZarazMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11927,8 +11927,8 @@ pub struct ZarazZarazHistoryResponse {
 
 /// `ZarazZarazWorkflow` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZarazZarazWorkflow {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -11957,15 +11957,15 @@ pub struct ZoneActivationApiResponseSingle {
 
 /// `ZoneActivationIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZoneActivationIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZoneActivationMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZoneActivationMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12363,8 +12363,8 @@ pub struct ZoneLockdownUpdateAZoneLockdownRuleRequest {
 
 /// `ZonePurgeRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonePurgeRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12535,15 +12535,15 @@ pub struct Zones0Rtt {
 
 /// `Zones0RttValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct Zones0RttValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesActions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesActions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12558,8 +12558,8 @@ pub struct ZonesAdvancedDdos {
 
 /// `ZonesAdvancedDdosValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesAdvancedDdosValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12574,8 +12574,8 @@ pub struct ZonesAlwaysOnline {
 
 /// `ZonesAlwaysOnlineValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesAlwaysOnlineValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12588,8 +12588,8 @@ pub struct ZonesAlwaysUseHttps {
 
 /// `ZonesAlwaysUseHttpsValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesAlwaysUseHttpsValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12627,8 +12627,8 @@ pub struct ZonesAutomaticHttpsRewrites {
 
 /// `ZonesAutomaticHttpsRewritesValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesAutomaticHttpsRewritesValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12673,8 +12673,8 @@ pub struct ZonesBrotli {
 
 /// `ZonesBrotliValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesBrotliValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12689,8 +12689,8 @@ pub struct ZonesBrowserCacheTtl {
 
 /// `ZonesBrowserCacheTtlValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesBrowserCacheTtlValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12705,8 +12705,8 @@ pub struct ZonesBrowserCheck {
 
 /// `ZonesBrowserCheckValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesBrowserCheckValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12757,8 +12757,8 @@ pub struct ZonesCacheLevel {
 
 /// `ZonesCacheLevelValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesCacheLevelValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12809,8 +12809,8 @@ pub struct ZonesCacheRulesOriginH2MaxStreams {
 
 /// `ZonesCacheRulesOriginH2MaxStreamsValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesCacheRulesOriginH2MaxStreamsValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12825,8 +12825,8 @@ pub struct ZonesCacheRulesOriginMaxHttpVersion {
 
 /// `ZonesCacheRulesOriginMaxHttpVersionValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesCacheRulesOriginMaxHttpVersionValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12850,8 +12850,8 @@ pub struct ZonesChallengeTtl {
 
 /// `ZonesChallengeTtlValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesChallengeTtlValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12866,8 +12866,8 @@ pub struct ZonesChinaNetworkEnabled {
 
 /// `ZonesChinaNetworkEnabledValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesChinaNetworkEnabledValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12882,8 +12882,8 @@ pub struct ZonesCiphers {
 
 /// `ZonesCiphersValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesCiphersValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12898,8 +12898,8 @@ pub struct ZonesCnameFlattening {
 
 /// `ZonesCnameFlatteningValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesCnameFlatteningValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12927,15 +12927,15 @@ pub struct ZonesContentConverter {
 
 /// `ZonesContentConverterValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesContentConverterValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesCreatedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesCreatedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12952,8 +12952,8 @@ pub struct ZonesDevelopmentMode {
 
 /// `ZonesDevelopmentModeValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesDevelopmentModeValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -12996,8 +12996,8 @@ pub struct ZonesEarlyHints {
 
 /// `ZonesEarlyHintsValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesEarlyHintsValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13012,8 +13012,8 @@ pub struct ZonesEdgeCacheTtl {
 
 /// `ZonesEdgeCacheTtlValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesEdgeCacheTtlValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13028,8 +13028,8 @@ pub struct ZonesEmailObfuscation {
 
 /// `ZonesEmailObfuscationValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesEmailObfuscationValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13071,8 +13071,8 @@ pub struct ZonesH2Prioritization {
 
 /// `ZonesH2PrioritizationValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesH2PrioritizationValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13096,8 +13096,8 @@ pub struct ZonesHotlinkProtection {
 
 /// `ZonesHotlinkProtectionValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesHotlinkProtectionValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13112,8 +13112,8 @@ pub struct ZonesHttp2 {
 
 /// `ZonesHttp2Value` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesHttp2Value {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13128,15 +13128,15 @@ pub struct ZonesHttp3 {
 
 /// `ZonesHttp3Value` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesHttp3Value {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13151,8 +13151,8 @@ pub struct ZonesImageResizing {
 
 /// `ZonesImageResizingValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesImageResizingValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13167,8 +13167,8 @@ pub struct ZonesIpGeolocation {
 
 /// `ZonesIpGeolocationValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesIpGeolocationValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13183,8 +13183,8 @@ pub struct ZonesIpv6 {
 
 /// `ZonesIpv6Value` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesIpv6Value {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13199,15 +13199,15 @@ pub struct ZonesMaxUpload {
 
 /// `ZonesMaxUploadValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesMaxUploadValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13222,8 +13222,8 @@ pub struct ZonesMinTlsVersion {
 
 /// `ZonesMinTlsVersionValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesMinTlsVersionValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13238,22 +13238,22 @@ pub struct ZonesMirage {
 
 /// `ZonesMirageValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesMirageValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesModifiedOn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesModifiedOn {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13284,8 +13284,8 @@ pub struct ZonesOpportunisticEncryption {
 
 /// `ZonesOpportunisticEncryptionValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesOpportunisticEncryptionValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13300,8 +13300,8 @@ pub struct ZonesOpportunisticOnion {
 
 /// `ZonesOpportunisticOnionValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesOpportunisticOnionValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13316,8 +13316,8 @@ pub struct ZonesOrangeToOrange {
 
 /// `ZonesOrangeToOrangeValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesOrangeToOrangeValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13332,8 +13332,8 @@ pub struct ZonesOriginErrorPagePassThru {
 
 /// `ZonesOriginErrorPagePassThruValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesOriginErrorPagePassThruValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13358,8 +13358,8 @@ pub struct ZonesPageRule {
 
 /// `ZonesPaused` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesPaused {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13374,8 +13374,8 @@ pub struct ZonesPolish {
 
 /// `ZonesPolishValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesPolishValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13416,15 +13416,15 @@ pub struct ZonesPrefetchPreload {
 
 /// `ZonesPrefetchPreloadValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesPrefetchPreloadValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesPriority` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesPriority {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13439,8 +13439,8 @@ pub struct ZonesPrivacyPass {
 
 /// `ZonesPrivacyPassValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesPrivacyPassValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13455,8 +13455,8 @@ pub struct ZonesProxyReadTimeout {
 
 /// `ZonesProxyReadTimeoutValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesProxyReadTimeoutValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13471,8 +13471,8 @@ pub struct ZonesPseudoIpv4 {
 
 /// `ZonesPseudoIpv4Value` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesPseudoIpv4Value {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13487,8 +13487,8 @@ pub struct ZonesRedirectsForAiTraining {
 
 /// `ZonesRedirectsForAiTrainingValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesRedirectsForAiTrainingValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13503,8 +13503,8 @@ pub struct ZonesReplaceInsecureJs {
 
 /// `ZonesReplaceInsecureJsValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesReplaceInsecureJsValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13537,8 +13537,8 @@ pub struct ZonesResponseBuffering {
 
 /// `ZonesResponseBufferingValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesResponseBufferingValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13568,8 +13568,8 @@ pub struct ZonesRocketLoader {
 
 /// `ZonesRocketLoaderValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesRocketLoaderValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13685,8 +13685,8 @@ pub struct ZonesSchemasEmailObfuscation {
 
 /// `ZonesSchemasIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesSchemasIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13701,8 +13701,8 @@ pub struct ZonesSchemasIpGeolocation {
 
 /// `ZonesSchemasMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesSchemasMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13832,8 +13832,8 @@ pub struct ZonesSecurityLevel {
 
 /// `ZonesSecurityLevelValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesSecurityLevelValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13848,22 +13848,22 @@ pub struct ZonesServerSideExclude {
 
 /// `ZonesServerSideExcludeValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesServerSideExcludeValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesSetting` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesSetting {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesSettingValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesSettingValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13889,8 +13889,8 @@ pub struct ZonesSha1Support {
 
 /// `ZonesSha1SupportValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesSha1SupportValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13905,8 +13905,8 @@ pub struct ZonesSortQueryStringForCache {
 
 /// `ZonesSortQueryStringForCacheValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesSortQueryStringForCacheValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13930,22 +13930,22 @@ pub struct ZonesSslRecommender {
 
 /// `ZonesSslRecommenderEnabled` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesSslRecommenderEnabled {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesSslValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesSslValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13960,15 +13960,15 @@ pub struct ZonesStringConstraint {
 
 /// `ZonesTarget` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesTarget {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesTargets` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesTargets {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13983,8 +13983,8 @@ pub struct ZonesTls12Only {
 
 /// `ZonesTls12OnlyValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesTls12OnlyValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -13999,8 +13999,8 @@ pub struct ZonesTls13 {
 
 /// `ZonesTls13Value` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesTls13Value {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -14015,8 +14015,8 @@ pub struct ZonesTlsClientAuth {
 
 /// `ZonesTlsClientAuthValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesTlsClientAuthValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -14040,8 +14040,8 @@ pub struct ZonesTransformationsAllowedOrigins {
 
 /// `ZonesTransformationsAllowedOriginsValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesTransformationsAllowedOriginsValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -14056,15 +14056,15 @@ pub struct ZonesTrueClientIpHeader {
 
 /// `ZonesTrueClientIpHeaderValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesTrueClientIpHeaderValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `ZonesType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -14079,8 +14079,8 @@ pub struct ZonesUrlTarget {
 
 /// `ZonesVanityNameServers` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesVanityNameServers {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -14095,8 +14095,8 @@ pub struct ZonesWaf {
 
 /// `ZonesWafValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesWafValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -14111,8 +14111,8 @@ pub struct ZonesWebp {
 
 /// `ZonesWebpValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesWebpValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -14127,8 +14127,8 @@ pub struct ZonesWebsockets {
 
 /// `ZonesWebsocketsValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesWebsocketsValue {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -14186,8 +14186,8 @@ pub struct ZonesZone {
 
 /// `ZonesZoneSettingsSingleRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct ZonesZoneSettingsSingleRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

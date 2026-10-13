@@ -137,8 +137,8 @@ pub struct DropletCreate {
 
 /// `DropletCreateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DropletCreateResponse {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -158,8 +158,8 @@ pub struct DropletSingleCreate {
 
 /// `DropletsCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct DropletsCreateRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

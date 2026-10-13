@@ -5568,8 +5568,8 @@ pub struct VectorizeIndexDeleteVectorsByIdV2Response {
 
 /// `VectorizeIndexDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct VectorizeIndexDescription {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5584,8 +5584,8 @@ pub struct VectorizeIndexDimensionConfiguration {
 
 /// `VectorizeIndexDimensions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct VectorizeIndexDimensions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5598,8 +5598,8 @@ pub struct VectorizeIndexGetVectorsByIdRequest {
 
 /// `VectorizeIndexGetVectorsByIdResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct VectorizeIndexGetVectorsByIdResponse {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5657,15 +5657,15 @@ pub struct VectorizeIndexListVectorsResponse {
 
 /// `VectorizeIndexMetric` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct VectorizeIndexMetric {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `VectorizeIndexName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct VectorizeIndexName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5742,15 +5742,15 @@ pub struct VectorizeListVectorsResponse {
 
 /// `VectorizeMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct VectorizeMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `VectorizeMutationUuid` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct VectorizeMutationUuid {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5770,8 +5770,8 @@ pub struct VectorizeUpsertVectorResponse {
 
 /// `VectorizeVectorIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct VectorizeVectorIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -5960,29 +5960,29 @@ pub struct WorkersAiPostRunCfAi4bharatNonomniIndictrans2EnIndic1bRequest {
 
 /// `WorkersAiPostRunCfAisingaporeGemmaSeaLionV427bItRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfAisingaporeGemmaSeaLionV427bItRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfBaaiBgeBaseEnV15Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfBaaiBgeBaseEnV15Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfBaaiBgeLargeEnV15Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfBaaiBgeLargeEnV15Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfBaaiBgeM3Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfBaaiBgeM3Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6006,36 +6006,36 @@ pub struct WorkersAiPostRunCfBaaiBgeRerankerBaseRequestContextsItem {
 
 /// `WorkersAiPostRunCfBaaiBgeSmallEnV15Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfBaaiBgeSmallEnV15Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfBaaiNonomniBgeBaseEnV15Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeBaseEnV15Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfBaaiNonomniBgeLargeEnV15Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeLargeEnV15Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfBaaiNonomniBgeM3Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeM3Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfBaaiNonomniBgeSmallEnV15Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeSmallEnV15Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6287,22 +6287,22 @@ pub struct WorkersAiPostRunCfDeepgramNova3RequestAudio {
 
 /// `WorkersAiPostRunCfDeepseekAiDeepseekMath7bInstructRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfDeepseekAiDeepseekMath7bInstructRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfDeepseekAiDeepseekR1DistillQwen32bRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfDeepseekAiDeepseekR1DistillQwen32bRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfDefogSqlcoder7b2Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfDefogSqlcoder7b2Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6326,8 +6326,8 @@ pub struct WorkersAiPostRunCfFacebookNonomniBartLargeCnnRequest {
 
 /// `WorkersAiPostRunCfFblgitUnaCybertron7bV2Bf16Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfFblgitUnaCybertron7bV2Bf16Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6340,22 +6340,22 @@ pub struct WorkersAiPostRunCfGoogleEmbeddinggemma300mRequest {
 
 /// `WorkersAiPostRunCfGoogleGemma2bItLoraRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfGoogleGemma2bItLoraRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfGoogleGemma312bItRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfGoogleGemma312bItRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfGoogleGemma7bItLoraRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfGoogleGemma7bItLoraRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6382,8 +6382,8 @@ pub struct WorkersAiPostRunCfHuggingfaceNonomniDistilbertSst2Int8Request {
 
 /// `WorkersAiPostRunCfIbmGraniteGranite40HMicroRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfIbmGraniteGranite40HMicroRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6454,92 +6454,92 @@ pub struct WorkersAiPostRunCfLykonDreamshaper8LcmRequest {
 
 /// `WorkersAiPostRunCfMetaLlama27bChatFp16Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama27bChatFp16Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama27bChatInt8Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama27bChatInt8Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama3170bInstructFp8FastRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama3170bInstructFp8FastRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama318bInstructAwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama318bInstructAwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama318bInstructFp8FastRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama318bInstructFp8FastRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama318bInstructFp8Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama318bInstructFp8Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama3211bVisionInstructRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama3211bVisionInstructRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama321bInstructRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama321bInstructRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama323bInstructRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama323bInstructRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama3370bInstructFp8FastRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama3370bInstructFp8FastRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama38bInstructAwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama38bInstructAwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama38bInstructRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama38bInstructRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaLlama4Scout17b16eInstructRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlama4Scout17b16eInstructRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6575,50 +6575,50 @@ pub struct WorkersAiPostRunCfMetaLlamaGuard38bRequest {
 
 /// `WorkersAiPostRunCfMetaLlamaLlama27bChatHfLoraRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaLlamaLlama27bChatHfLoraRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMetaM2m10012bRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMetaM2m10012bRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMicrosoftPhi2Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMicrosoftPhi2Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMistralMistral7bInstructV01Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMistralMistral7bInstructV01Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMistralMistral7bInstructV02LoraRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMistralMistral7bInstructV02LoraRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMistralaiMistralSmall3124bInstructRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMistralaiMistralSmall3124bInstructRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfMoonshotaiKimiK25Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfMoonshotaiKimiK25Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6633,22 +6633,22 @@ pub struct WorkersAiPostRunCfMyshellAiMelottsRequest {
 
 /// `WorkersAiPostRunCfNvidiaNemotron3120bA12bRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfNvidiaNemotron3120bA12bRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfOpenaiGptOss120bRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfOpenaiGptOss120bRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfOpenaiGptOss20bRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfOpenaiGptOss20bRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6683,8 +6683,8 @@ pub struct WorkersAiPostRunCfOpenaiWhisperLargeV3TurboRequest {
 
 /// `WorkersAiPostRunCfOpenchatOpenchat350106Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfOpenchatOpenchat350106Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6697,43 +6697,43 @@ pub struct WorkersAiPostRunCfPfnetPlamoEmbedding1bRequest {
 
 /// `WorkersAiPostRunCfQwenQwen1505bChatRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfQwenQwen1505bChatRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfQwenQwen1514bChatAwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfQwenQwen1514bChatAwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfQwenQwen1518bChatRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfQwenQwen1518bChatRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfQwenQwen157bChatAwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfQwenQwen157bChatAwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfQwenQwen25Coder32bInstructRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfQwenQwen25Coder32bInstructRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfQwenQwen330bA3bFp8Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfQwenQwen330bA3bFp8Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6752,8 +6752,8 @@ pub struct WorkersAiPostRunCfQwenQwen3Embedding06bRequest {
 
 /// `WorkersAiPostRunCfQwenQwq32bRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfQwenQwq32bRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -6840,113 +6840,113 @@ pub struct WorkersAiPostRunCfStabilityaiStableDiffusionXlBase10Request {
 
 /// `WorkersAiPostRunCfTheblokeDiscolmGerman7bV1AwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfTheblokeDiscolmGerman7bV1AwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfTiiuaeFalcon7bInstructRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfTiiuaeFalcon7bInstructRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfTinyllamaTinyllama11bChatV10Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfTinyllamaTinyllama11bChatV10Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunCfZaiOrgGlm47FlashRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunCfZaiOrgGlm47FlashRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfGoogleGemma7bItRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfGoogleGemma7bItRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfMistralMistral7bInstructV02Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfMistralMistral7bInstructV02Request {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfNexusflowStarlingLm7bBetaRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfNexusflowStarlingLm7bBetaRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfNousresearchHermes2ProMistral7bRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfNousresearchHermes2ProMistral7bRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfTheblokeDeepseekCoder67bBaseAwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfTheblokeDeepseekCoder67bBaseAwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfTheblokeDeepseekCoder67bInstructAwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfTheblokeDeepseekCoder67bInstructAwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfTheblokeLlama213bChatAwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfTheblokeLlama213bChatAwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfTheblokeMistral7bInstructV01AwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfTheblokeMistral7bInstructV01AwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfTheblokeNeuralChat7bV31AwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfTheblokeNeuralChat7bV31AwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfTheblokeOpenhermes25Mistral7bAwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfTheblokeOpenhermes25Mistral7bAwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunHfTheblokeZephyr7bBetaAwqRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunHfTheblokeZephyr7bBetaAwqRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersAiPostRunModelRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersAiPostRunModelRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

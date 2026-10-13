@@ -1,9 +1,8 @@
 //! Standalone testbed CLI — VM lifecycle via the Provider trait.
 //!
-//! Install: `cargo install --path backends/foundation_testbed --features cli`
+//! Install: `cargo install --path backends/foundation_deployment_platform --features cli --bin testbed`
 //! Run: `testbed start windows-build`
 
-#![cfg(feature = "vms")]
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_possible_wrap)]
@@ -15,8 +14,8 @@ use foundation_core::valtron::valtron;
 
 #[valtron]
 fn main() {
-    let matches = foundation_testbed::vms::cli::command().get_matches();
-    if let Err(e) = foundation_testbed::vms::cli::run(&matches) {
+    let matches = foundation_deployment_platform::cli::command().get_matches();
+    if let Err(e) = foundation_deployment_platform::cli::run(&matches) {
         eprintln!("error: {e}");
         std::process::exit(1);
     }

@@ -45,8 +45,8 @@ pub struct AbuseReportsMessage {
 
 /// `AbuseReportsMitigatedEntityType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AbuseReportsMitigatedEntityType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -70,15 +70,15 @@ pub struct AbuseReportsMitigationListItem {
 
 /// `AbuseReportsMitigationStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AbuseReportsMitigationStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `AbuseReportsMitigationType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct AbuseReportsMitigationType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

@@ -1,11 +1,14 @@
-//! Standalone CLI for foundation_testbed.
+//! VM testbed CLI (moved here from foundation_testbed, spec-53 Feature 11).
 //!
 //! Provides clap subcommands for VM lifecycle via the Provider trait,
-//! plus provider-specific extras (QEMU snapshots, etc.).
+//! plus provider-specific extras (QEMU snapshots, etc.). Enabled by the
+//! `cli` feature, which implies `vms`.
 //!
 //! Usage:
-//! - Standalone binary: see `src/bin/testbed.rs`
-//! - As part of ewe_platform: `foundation_testbed::cli::command()`
+//! - Standalone `testbed` binary: see `src/bin/testbed.rs`
+//!   (`cargo install --path backends/foundation_deployment_platform --features cli --bin testbed`)
+//! - Embedded in another CLI: `foundation_deployment_platform::cli::command()`
+//!   and `foundation_deployment_platform::cli::run()`
 
 use clap::{ArgMatches, Command};
 

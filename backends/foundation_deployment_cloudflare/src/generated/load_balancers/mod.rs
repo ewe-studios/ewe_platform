@@ -233,8 +233,8 @@ pub struct AccountLoadBalancerSearchSearchResourcesResponse {
 
 /// `LoadBalancingCheckRegions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingCheckRegions {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -247,15 +247,15 @@ pub struct LoadBalancingComponentsSchemasSingleResponse {
 
 /// `LoadBalancingHost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingHost {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -316,22 +316,22 @@ pub struct LoadBalancingMonitorGroupSingleResponse {
 
 /// `LoadBalancingNetworks` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingNetworks {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingOrigins` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingOrigins {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `LoadBalancingPatchPoolsNotificationEmail` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct LoadBalancingPatchPoolsNotificationEmail {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -423,8 +423,8 @@ pub struct MagicTransitApiResponseCommon {
 
 /// `MagicTransitCheckType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicTransitCheckType {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -455,36 +455,36 @@ pub struct MagicTransitEndpointHealthCheckResponseSingle {
 
 /// `MagicTransitMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicTransitMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `MagicTransitUuid` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicTransitUuid {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `MagicVisibilityMnmMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicVisibilityMnmMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `MagicVisibilityMnmMnmConfigRouterIps` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicVisibilityMnmMnmConfigRouterIps {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `MagicVisibilityMnmMnmConfigWarpDevices` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicVisibilityMnmMnmConfigWarpDevices {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -497,8 +497,8 @@ pub struct MagicVisibilityMnmMnmVpcFlowsSingleResponse {
 
 /// `MagicVisibilityMnmMnmVpcFlowsToken` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicVisibilityMnmMnmVpcFlowsToken {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 

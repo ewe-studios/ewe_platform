@@ -33,14 +33,14 @@ echo "✓ Testbed prerequisites satisfied"
 
 [tasks.doctor]
 description = "Run foundation_testbed health check"
-run = "cargo run --release --features cli -- doctor"
+run = "cargo run --release -p foundation_deployment_platform --features cli --bin testbed -- doctor"
 
 [tasks.start]
 description = "Start a VM"
 run = """
 #!/usr/bin/env bash
 PROFILE="${1:-linux-build}"
-cargo run --release -- start "$PROFILE"
+cargo run --release -p foundation_deployment_platform --features cli --bin testbed -- start "$PROFILE"
 """
 
 [tasks.stop]
@@ -48,7 +48,7 @@ description = "Stop a VM"
 run = """
 #!/usr/bin/env bash
 PROFILE="${1:-linux-build}"
-cargo run --release -- stop "$PROFILE"
+cargo run --release -p foundation_deployment_platform --features cli --bin testbed -- stop "$PROFILE"
 """
 
 [tasks.test]
@@ -57,7 +57,7 @@ run = "cargo test"
 
 [tasks.build]
 description = "Build testbed binary (release, with cli feature) — native target"
-run = "cargo build --release --features cli"
+run = "cargo build --release -p foundation_deployment_platform --features cli --bin testbed"
 
 [tasks."cross:build"]
 description = "Cross-compile testbed for x86_64-unknown-linux-musl (uses zig as linker via cargo-zigbuild)"
@@ -74,7 +74,7 @@ if ! rustup target list --installed | grep -q "^${TARGET}$"; then
 fi
 
 cd "$ROOT"
-cargo zigbuild --release --target "$TARGET" --features cli -p foundation_testbed --bin testbed
+cargo zigbuild --release --target "$TARGET" --features cli -p foundation_deployment_platform --bin testbed
 
 BIN="$ROOT/target/$TARGET/release/testbed"
 echo ""
@@ -302,7 +302,7 @@ if [ ! -f "$BIN" ]; then
         echo "                  rustup target add x86_64-unknown-linux-musl"
     fi
     echo ""
-    echo "  Then:  cargo build --release --features cli --target x86_64-unknown-linux-musl -p foundation_testbed --bin testbed"
+    echo "  Then:  cargo build --release --features cli --target x86_64-unknown-linux-musl -p foundation_deployment_platform --bin testbed"
     exit 1
 fi
 IP=$(hcloud server ip "$NAME")

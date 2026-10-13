@@ -3,6 +3,16 @@
 //! Tests start real servers on loopback sockets and drive them with H1Transport.
 //! Follows the pattern from server_socket_tests.rs (server setup) and
 //! router_dispatch_tests.rs (router patterns).
+//!
+//! Thread budget: the in-process `HttpServer` submits its connection handlers to
+//! the SAME global valtron pool the client uses. On that pool the async test body
+//! blocks one task worker while awaiting the response head, and the HTTP/1.1
+//! client blocks another in a socket read (up to its 3s read timeout). With
+//! `threads = 4` (only 2 task workers) the server's handler never got a worker:
+//! the request starved, the read timed out, and — before the
+//! `GetRequestIntroTask` fix — the client retried that read forever, hanging CI.
+//! `threads = 8` (4 task workers) matches `server_socket_tests.rs`, and
+//! `timeout` bounds every test so a regression fails instead of hanging.
 
 use std::sync::Arc;
 
@@ -400,7 +410,7 @@ fn build_request_descriptor(
 
 /// WHY: Connect unary via proto codec is the most basic RPC shape.
 /// WHAT: POST a proto-encoded message, verify 200 + matching echo + content-type.
-#[valtron_test(seed = 28101, threads = 4)]
+#[valtron_test(seed = 28101, threads = 8, timeout = 60_000)]
 async fn connect_unary_post_proto_success() {
     let (transport, server) = connect_transport();
 
@@ -447,7 +457,7 @@ async fn connect_unary_post_proto_success() {
 
 /// WHY: JSON codec is the second mandatory codec (Connect spec).
 /// WHAT: POST a JSON-encoded message, verify 200 + matching echo + content-type.
-#[valtron_test(seed = 28102, threads = 4)]
+#[valtron_test(seed = 28102, threads = 8, timeout = 60_000)]
 async fn connect_unary_post_json_success() {
     let (transport, server) = connect_transport();
 
@@ -494,7 +504,7 @@ async fn connect_unary_post_json_success() {
 
 /// WHY: Handler errors must be rendered correctly per Connect spec.
 /// WHAT: Handler returns permission_denied, verify HTTP 403 + JSON error body.
-#[valtron_test(seed = 28103, threads = 4)]
+#[valtron_test(seed = 28103, threads = 8, timeout = 60_000)]
 async fn connect_unary_error() {
     let serve = error_serve();
     let server = start_server(serve);
@@ -547,7 +557,7 @@ async fn connect_unary_error() {
 
 /// WHY: Connect GET for NoSideEffects endpoints serves idempotent RPCs.
 /// WHAT: GET with message in query params, verify 200 + correct echo.
-#[valtron_test(seed = 28104, threads = 4)]
+#[valtron_test(seed = 28104, threads = 8, timeout = 60_000)]
 async fn connect_unary_get_success() {
     use base64::engine::general_purpose::URL_SAFE_NO_PAD;
     use base64::Engine as _;
@@ -614,7 +624,7 @@ async fn connect_unary_get_success() {
 
 /// WHY: Unregistered paths must return 404.
 /// WHAT: POST to an unregistered path.
-#[valtron_test(seed = 28105, threads = 4)]
+#[valtron_test(seed = 28105, threads = 8, timeout = 60_000)]
 async fn connect_unary_unknown_path_404() {
     let (transport, server) = connect_transport();
 
@@ -651,7 +661,7 @@ async fn connect_unary_unknown_path_404() {
 
 /// WHY: Wrong HTTP method must return 405 with Allow header.
 /// WHAT: GET to a POST-only endpoint.
-#[valtron_test(seed = 28106, threads = 4)]
+#[valtron_test(seed = 28106, threads = 8, timeout = 60_000)]
 async fn connect_unary_wrong_method_405() {
     let serve = echo_post_only_serve(); // NoSideEffects NOT set
     let server = start_server(serve);
@@ -693,7 +703,7 @@ async fn connect_unary_wrong_method_405() {
 
 /// WHY: Server-streaming is a fundamental Connect streaming pattern.
 /// WHAT: Send one request, receive multiple response frames with EndStream.
-#[valtron_test(seed = 28107, threads = 4)]
+#[valtron_test(seed = 28107, threads = 8, timeout = 60_000)]
 async fn connect_server_stream_success() {
     let serve = list_serve();
     let server = start_server(serve);
@@ -752,7 +762,7 @@ async fn connect_server_stream_success() {
 
 /// WHY: Client-streaming lets callers send multiple request messages.
 /// WHAT: Send two messages, get a single response with count.
-#[valtron_test(seed = 28108, threads = 4)]
+#[valtron_test(seed = 28108, threads = 8, timeout = 60_000)]
 async fn connect_client_stream_success() {
     let serve = client_stream_echo_serve();
     let server = start_server(serve);
@@ -809,7 +819,7 @@ async fn connect_client_stream_success() {
 
 /// WHY: Streaming errors must be reported via EndStream frame.
 /// WHAT: Handler sends first frame then fails; verify error in EndStream.
-#[valtron_test(seed = 28109, threads = 4)]
+#[valtron_test(seed = 28109, threads = 8, timeout = 60_000)]
 async fn connect_server_stream_error() {
     let serve = error_stream_serve();
     let server = start_server(serve);
@@ -859,7 +869,7 @@ async fn connect_server_stream_error() {
 
 /// WHY: gRPC-Web unary is how browsers call RPCs.
 /// WHAT: Send gRPC-Web enveloped proto request, verify grpc-status trailer.
-#[valtron_test(seed = 28110, threads = 4)]
+#[valtron_test(seed = 28110, threads = 8, timeout = 60_000)]
 async fn grpc_web_unary_proto_success() {
     let (transport, server) = connect_transport();
 
@@ -913,7 +923,7 @@ async fn grpc_web_unary_proto_success() {
 
 /// WHY: gRPC-Web errors must carry grpc-status + grpc-message in trailers.
 /// WHAT: Handler returns error, verify grpc-status + grpc-message in body.
-#[valtron_test(seed = 28111, threads = 4)]
+#[valtron_test(seed = 28111, threads = 8, timeout = 60_000)]
 async fn grpc_web_unary_error() {
     let serve = error_serve(); // returns permission_denied
     let server = start_server(serve);
@@ -972,7 +982,7 @@ async fn grpc_web_unary_error() {
 
 /// WHY: gRPC-Web server-streaming with 0x80 trailer frame.
 /// WHAT: Enveloped frames with trailer, verify all items + grpc-status.
-#[valtron_test(seed = 28112, threads = 4)]
+#[valtron_test(seed = 28112, threads = 8, timeout = 60_000)]
 async fn grpc_web_server_stream_success() {
     let serve = list_serve(); // 3 items
     let server = start_server(serve);
@@ -1032,7 +1042,7 @@ async fn grpc_web_server_stream_success() {
 
 /// WHY: Custom request headers must be visible to the handler.
 /// WHAT: Send custom x-custom-* headers, verify they echo back.
-#[valtron_test(seed = 28113, threads = 4)]
+#[valtron_test(seed = 28113, threads = 8, timeout = 60_000)]
 async fn request_headers_reach_handler() {
     let serve = echo_with_header_serve();
     let server = start_server(serve);
@@ -1099,7 +1109,7 @@ async fn request_headers_reach_handler() {
 
 /// WHY: Headers set by the handler must be visible to the client.
 /// WHAT: Verify custom response header from handler is present.
-#[valtron_test(seed = 28114, threads = 4)]
+#[valtron_test(seed = 28114, threads = 8, timeout = 60_000)]
 async fn response_headers_reach_client() {
     let serve = echo_with_trailer_serve();
     let server = start_server(serve);
@@ -1147,7 +1157,7 @@ async fn response_headers_reach_client() {
 /// WHY: Trailers set by the handler must be visible to the client (via Trailer-
 /// prefixed headers for Connect unary).
 /// WHAT: Verify custom trailer from handler is present as trailer-* header.
-#[valtron_test(seed = 28115, threads = 4)]
+#[valtron_test(seed = 28115, threads = 8, timeout = 60_000)]
 async fn response_trailers_reach_client() {
     let serve = echo_with_trailer_serve();
     let server = start_server(serve);
@@ -1198,7 +1208,7 @@ async fn response_trailers_reach_client() {
 
 /// WHY: Each Connect error code must map to the correct HTTP status (Decision 03).
 /// WHAT: Verify the Code::http_status() mapping for all codes.
-#[valtron_test(seed = 28116, threads = 4)]
+#[valtron_test(seed = 28116, threads = 8, timeout = 60_000)]
 async fn error_code_to_http_status() {
     // Test code → HTTP status mappings (Decision 03 table).
     let cases: Vec<(Code, u16, &str)> = vec![
@@ -1246,7 +1256,7 @@ async fn error_code_to_http_status() {
 
 /// WHY: Streaming EndStreamResponse must carry the error correctly.
 /// WHAT: Handler returns error, verify EndStream frame with error details.
-#[valtron_test(seed = 28117, threads = 4)]
+#[valtron_test(seed = 28117, threads = 8, timeout = 60_000)]
 async fn error_end_stream() {
     let serve = error_stream_serve();
     let server = start_server(serve);
@@ -1325,7 +1335,7 @@ async fn error_end_stream() {
 
 /// WHY: Unknown codecs must return 415 with Accept-Post listing supported codecs.
 /// WHAT: POST with application/xml (unsupported), verify 415 + Accept-Post.
-#[valtron_test(seed = 28118, threads = 4)]
+#[valtron_test(seed = 28118, threads = 8, timeout = 60_000)]
 async fn unsupported_codec_415() {
     let (transport, server) = connect_transport();
 

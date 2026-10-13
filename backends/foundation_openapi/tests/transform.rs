@@ -782,7 +782,7 @@ fn a_oneof_response_is_named_rather_than_dropped() {
     use foundation_openapi::resolve_response_refs;
 
     // DO's droplet_create response is a `oneOf` (one droplet, or many). We do not
-    // generate Rust enums for unions — the type comes out as a flattened
+    // generate Rust enums for unions — the type comes out as an opaque
     // HashMap — but hoisting it anyway is the difference between handing the
     // caller the JSON and handing them `()` with the body discarded.
     let mut spec = json!({
