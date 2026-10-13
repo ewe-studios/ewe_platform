@@ -1,6 +1,7 @@
 pub mod client_classifier;
 pub mod errors;
 pub mod extensions;
+pub mod framing;
 pub mod impls;
 pub mod latency_tracker;
 pub mod load_tracker;

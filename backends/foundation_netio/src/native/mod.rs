@@ -2,6 +2,7 @@
 
 pub mod connection;
 pub mod raw_stream;
+pub mod readiness;
 pub mod ssl;
 
 /// QUIC listener (F35 — D12 §9): bind a UDP socket and accept QUIC connections

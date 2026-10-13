@@ -27,6 +27,7 @@ use foundation_core::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineAction,
     TaskIterator, TaskStatus,
 };
+use foundation_core::io::ioutils::ReadTimeoutOperations;
 use std::io::Write;
 use std::sync::Arc;
 
@@ -69,6 +70,9 @@ pub struct SendRequestTask<R>(
     Arc<HttpConnectionPool<R>>,
     Uri,
     usize,
+    /// Whether the response is handed over with the socket left non-blocking.
+    /// See [`SendRequestTask::with_nonblocking_handoff`].
+    bool,
 )
 where
     R: DnsResolver + Send + 'static;
@@ -96,7 +100,62 @@ where
             pool,
             parsed_uri,
             max_redirects as usize,
+            false,
         )
+    }
+
+    /// Hand the response over with the socket still non-blocking.
+    ///
+    /// WHY: by default the response is handed to a *synchronous* body reader
+    /// (`RequestIntro::Success` consumers, `body_reader::collect_string`), whose
+    /// retry budget assumes blocking reads with a read timeout. So the socket is
+    /// switched back to blocking first. A caller that streams the body from a
+    /// valtron task and parks on readiness itself (the `HttpExchangeTask`)
+    /// keeps the socket non-blocking instead.
+    #[must_use]
+    pub fn with_nonblocking_handoff(mut self) -> Self {
+        self.5 = true;
+        self
+    }
+
+    /// Prepare a final `RequestIntro` for its consumer (see
+    /// [`Self::with_nonblocking_handoff`]).
+    fn hand_off(&self, intro: RequestIntro) -> RequestIntro {
+        let RequestIntro::Success {
+            stream,
+            mut conn,
+            intro,
+            headers,
+        } = intro
+        else {
+            return intro;
+        };
+        if !self.5 {
+            match conn.is_nonblocking() {
+                Ok(false) => {}
+                Ok(true) => {
+                    if let Err(err) = conn.set_nonblocking(false) {
+                        tracing::error!("Failed to restore blocking mode for the body: {}", err);
+                        return RequestIntro::Failed(HttpClientError::IoError(err));
+                    }
+                    let timeout = self.1.blocking_body_read_timeout();
+                    if let Err(err) = conn.stream_mut().set_read_timeout_as(timeout) {
+                        tracing::error!("Failed to set the body read timeout: {}", err);
+                        return RequestIntro::Failed(HttpClientError::IoError(err));
+                    }
+                }
+                Err(err) => {
+                    tracing::error!("Failed to read the socket mode: {}", err);
+                    return RequestIntro::Failed(HttpClientError::IoError(err));
+                }
+            }
+        }
+        RequestIntro::Success {
+            stream,
+            conn,
+            intro,
+            headers,
+        }
     }
 
     #[must_use]
@@ -419,7 +478,8 @@ where
                                     InlineAction::new(
                                         foundation_core::valtron::InlineActionBehaviour::LiftWithParent,
                                         GetRequestIntroTask::new(stream)
-                                            .with_body_config(self.1.into_simple_http_body()),
+                                            .with_body_config(self.1.into_simple_http_body())
+                                            .with_head_timeout(self.1.response_head_timeout()),
                                         self.1.inline_processing_timeout,
                                     );
 
@@ -442,7 +502,8 @@ where
                                     InlineAction::new(
                                         foundation_core::valtron::InlineActionBehaviour::LiftWithParent,
                                         GetRequestIntroTask::new(conn)
-                                            .with_body_config(self.1.into_simple_http_body()),
+                                            .with_body_config(self.1.into_simple_http_body())
+                                            .with_head_timeout(self.1.response_head_timeout()),
                                         self.1.inline_processing_timeout,
                                     );
 
@@ -547,13 +608,13 @@ where
                         // if not redirect, yield here
                         if !is_redirect {
                             self.0 = Some(SendRequestState::Done);
-                            return Some(TaskStatus::Ready(inner));
+                            return Some(TaskStatus::Ready(self.hand_off(inner)));
                         }
 
                         // should we not follow body response redirect if so, yield here.
                         if is_redirect && !self.1.redirect.follow_other_redirects_response {
                             self.0 = Some(SendRequestState::Done);
-                            return Some(TaskStatus::Ready(inner));
+                            return Some(TaskStatus::Ready(self.hand_off(inner)));
                         }
 
                         // Check redirect limit
@@ -699,7 +760,7 @@ where
                     }
 
                     self.0 = Some(SendRequestState::Done);
-                    Some(TaskStatus::Ready(inner))
+                    Some(TaskStatus::Ready(self.hand_off(inner)))
                 }
             },
             SendRequestState::Done => None,

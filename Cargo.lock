@@ -5235,6 +5235,7 @@ dependencies = [
  "futures-core",
  "futures-lite",
  "js-sys",
+ "libc",
  "memchr",
  "native-tls",
  "ntest",

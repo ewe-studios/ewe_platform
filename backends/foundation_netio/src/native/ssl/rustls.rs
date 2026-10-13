@@ -280,6 +280,82 @@ impl<T> RustlsStream<T> {
     }
 }
 
+impl<T> RustlsStream<T> {
+    /// Put the wrapped socket into (or out of) non-blocking mode.
+    ///
+    /// WHY: rustls handles a non-blocking socket correctly. A write either takes
+    /// the plaintext or returns `WouldBlock` without taking it, a flush leaves any
+    /// unsent TLS records queued, and the handshake makes progress across
+    /// `WouldBlock`s. So the TLS client can park on readiness the same way plain
+    /// TCP does.
+    ///
+    /// # Errors
+    /// The socket's `fcntl` error, or an error if the stream mutex is poisoned.
+    pub fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()> {
+        let guard = self
+            .0
+            .lock()
+            .map_err(|e| std::io::Error::other(format!("Mutex poisoned: {e}")))?;
+        guard.sock.set_nonblocking(nonblocking)
+    }
+
+    /// Whether the wrapped socket is in non-blocking mode.
+    ///
+    /// # Errors
+    /// The socket's error, or an error if the stream mutex is poisoned.
+    pub fn is_nonblocking(&self) -> std::io::Result<bool> {
+        let guard = self
+            .0
+            .lock()
+            .map_err(|e| std::io::Error::other(format!("Mutex poisoned: {e}")))?;
+        guard.sock.is_nonblocking()
+    }
+
+    /// Whether the wrapped socket can be driven non-blocking with readiness
+    /// parking. rustls itself always can; the socket underneath decides.
+    #[must_use]
+    pub fn supports_nonblocking_io(&self) -> bool {
+        self.0
+            .lock()
+            .is_ok_and(|guard| guard.sock.supports_nonblocking_io())
+    }
+}
+
+impl<T, D> RustlsStream<T>
+where
+    T: core::ops::Deref<Target = rustls::ConnectionCommon<D>>,
+{
+    /// The readiness a task stalled on this TLS stream must wait for.
+    ///
+    /// WHY: the I/O call the caller made does not say which way the socket must
+    /// turn. A plaintext *read* can stall on a TLS record rustls still has to
+    /// *write* (a handshake message or an alert). A plaintext *write* can stall
+    /// mid-handshake waiting for the server's reply, which needs the socket
+    /// *readable*. Parking on the wrong direction either never wakes or wakes at
+    /// once and spins. So the TLS session's own state picks the direction:
+    /// pending TLS output means writable, a handshake still waiting on the
+    /// peer means readable, and otherwise the caller's `interest` stands.
+    ///
+    /// Returns `None` if the mutex is poisoned or the socket cannot report
+    /// readiness.
+    #[must_use]
+    pub fn readiness(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> Option<foundation_core::valtron::EventReadinessPtr> {
+        use crate::native::readiness::IoInterest;
+        let guard = self.0.lock().ok()?;
+        let effective = if guard.conn.wants_write() {
+            IoInterest::Writable
+        } else if guard.conn.is_handshaking() {
+            IoInterest::Readable
+        } else {
+            interest
+        };
+        guard.sock.readiness(effective)
+    }
+}
+
 impl<T> Clone for RustlsStream<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())

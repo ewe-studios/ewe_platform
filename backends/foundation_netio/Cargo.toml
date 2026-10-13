@@ -74,6 +74,11 @@ openssl = { version = "0.10", optional = true }
 socket2 = { version = "0.6", optional = true }
 quinn-proto = { version = "0.11", optional = true, features = ["rustls", "ring"] }
 
+# poll(2) for socket readiness: the H1 client parks its non-blocking sockets on
+# `TaskStatus::Depends(SocketReadiness)` instead of blocking a worker in a read.
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 [dev-dependencies]
 # F52: wasm-bindgen browser tests via foundation_testbed (wasm32-only).
 # All wasm-bindgen ecosystem re-exported by foundation_testbed.

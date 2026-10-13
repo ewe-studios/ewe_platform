@@ -1,4 +1,5 @@
 mod http_exchange_task;
+pub mod nonblocking;
 mod request_intro;
 mod request_redirect;
 mod request_stream;
