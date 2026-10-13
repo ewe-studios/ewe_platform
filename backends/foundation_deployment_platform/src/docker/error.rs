@@ -54,6 +54,11 @@ pub enum DockerError {
     #[display("Image push failed: {_0}")]
     ImagePush(String),
 
+    /// Image load failed (the archive was not a valid image tarball), reported
+    /// inside the daemon's `200` progress stream.
+    #[display("Image load failed: {_0}")]
+    ImageLoad(String),
+
     /// Image build failed (a Dockerfile instruction returned non-zero, a COPY
     /// source was missing, the base image could not be resolved).
     #[display("Image build failed: {_0}")]
@@ -132,6 +137,7 @@ pub fn classify_docker_client_err(
         // knows it) builds `ImagePull` itself where it matters.
         De::PullFailed(m) => DockerError::ImagePull { image: operation.to_string(), reason: m },
         De::PushFailed(m) => DockerError::ImagePush(format!("{operation}: {m}")),
+        De::LoadFailed(m) => DockerError::ImageLoad(format!("{operation}: {m}")),
     }
 }
 

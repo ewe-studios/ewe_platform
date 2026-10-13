@@ -2,10 +2,8 @@
 
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddr};
-use std::time::{Duration, Instant};
 
-use foundation_core::valtron::sleep_async;
-use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
+use foundation_deployment_docker::streaming::decoder::LogOutput;
 
 use foundation_deployment_docker::client::{
     ContainerCreateBody, ContainerHostConfig, NetworkingConfig,
@@ -15,7 +13,7 @@ use foundation_deployment_docker::generated::json::{
     ContainerConfig as GenContainerConfig, DeviceMapping, HostConfig, PortMap, Resources,
 };
 use foundation_deployment_docker::DockerClient;
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
 use crate::docker::config::{parse_memory_bytes, ContainerConfig};
 use crate::docker::network::NetworkHandle;
@@ -352,7 +350,7 @@ impl ContainerHandle {
     /// # Errors
     /// Returns [`DockerError::Connection`] if the daemon rejects the request.
     pub async fn logs_async(&self) -> DockerResult<String> {
-        let raw = self
+        let mut frames = self
             .docker
             .container_logs(
                 &self.container_id,
@@ -367,15 +365,15 @@ impl ContainerHandle {
             .await
             .map_err(|e| docker_err(classify_docker_client_err("container_logs", e)))?;
 
-        let mut decoder = LogFrameDecoder::new();
-        decoder.feed(&raw);
+        // Decoded frame by frame as the body arrives; stdout and stderr are
+        // returned interleaved, as before, so both go to the one string.
         let mut out = String::new();
-        while let Some(frame) = decoder.decode() {
-            match frame {
+        while let Some(frame) = frames.next().await {
+            match frame.map_err(|e| docker_err(classify_docker_client_err("container_logs", e)))? {
                 LogOutput::StdOut { message } | LogOutput::StdErr { message } => {
                     out.push_str(&String::from_utf8_lossy(&message));
                 }
-                _ => continue,
+                LogOutput::StdIn { .. } | LogOutput::Console { .. } => {}
             }
         }
         Ok(out)
@@ -419,9 +417,14 @@ impl ContainerHandle {
             .map_err(|e| docker_err(classify_docker_client_err("exec_create", e)))?;
         // Attached (not detached): the call returns once the command has
         // exited, with its multiplexed stdout/stderr as the body.
-        let raw = self
-            .docker
+        let mut out = ExecOutput { exit_code: 0, stdout: String::new(), stderr: String::new() };
+        // The command's output, decoded as it streams; the daemon ends the
+        // stream when the command exits.
+        self.docker
             .exec_start(&exec.id, false)
+            .await
+            .map_err(|e| docker_err(classify_docker_client_err("exec_start", e)))?
+            .read_into(&mut out.stdout, &mut out.stderr)
             .await
             .map_err(|e| docker_err(classify_docker_client_err("exec_start", e)))?;
         let info = self
@@ -429,7 +432,7 @@ impl ContainerHandle {
             .exec_inspect(&exec.id)
             .await
             .map_err(|e| docker_err(classify_docker_client_err("exec_inspect", e)))?;
-        let exit_code = info
+        out.exit_code = info
             .get("ExitCode")
             .and_then(serde_json::Value::as_i64)
             .ok_or_else(|| {
@@ -438,16 +441,6 @@ impl ContainerHandle {
                 )))
             })?;
 
-        let mut decoder = LogFrameDecoder::new();
-        decoder.feed(&raw);
-        let mut out = ExecOutput { exit_code, stdout: String::new(), stderr: String::new() };
-        while let Some(frame) = decoder.decode() {
-            match frame {
-                LogOutput::StdOut { message } => out.stdout.push_str(&String::from_utf8_lossy(&message)),
-                LogOutput::StdErr { message } => out.stderr.push_str(&String::from_utf8_lossy(&message)),
-                _ => continue,
-            }
-        }
         Ok(out)
     }
 
@@ -498,9 +491,13 @@ impl ContainerHandle {
         let (repo, tag) = Self::split_image_tag(image);
         info!(image = %image, "pulling image");
 
-        // Returns once the daemon has finished the pull (the progress stream
-        // is read to its end), so the image exists when `create` runs.
-        let progress = docker
+        let map_pull_err = |e| match e {
+            foundation_deployment_docker::DockerError::PullFailed(reason) => {
+                docker_err(DockerError::ImagePull { image: image.to_string(), reason })
+            }
+            other => docker_err(classify_docker_client_err("image_pull", other)),
+        };
+        let mut progress = docker
             .image_pull(
                 Some(&repo),
                 None, // from_src
@@ -510,13 +507,20 @@ impl ContainerHandle {
                 None, // platform
             )
             .await
-            .map_err(|e| match e {
-                foundation_deployment_docker::DockerError::PullFailed(reason) => {
-                    docker_err(DockerError::ImagePull { image: image.to_string(), reason })
-                }
-                other => docker_err(classify_docker_client_err("image_pull", other)),
-            })?;
-        info!(image = %image, progress_bytes = progress.len(), "pulled image");
+            .map_err(map_pull_err)?;
+
+        // The daemon pulls while it streams this progress, and reports a failed
+        // pull inside it: read it to its end, item by item, so the image exists
+        // when `create` runs and a failure surfaces as `ImagePull`.
+        let mut items = 0usize;
+        while let Some(item) = progress.next().await {
+            let item = item.map_err(map_pull_err)?;
+            items += 1;
+            if let Some(status) = item.status.as_deref() {
+                debug!(image = %image, layer = item.id.as_deref().unwrap_or(""), "{status}");
+            }
+        }
+        info!(image = %image, progress_items = items, "pulled image");
 
         Ok(())
     }
@@ -524,11 +528,11 @@ impl ContainerHandle {
     /// Split `"alpine:latest"` into `("alpine", Some("latest"))`. A registry port
     /// colon (e.g. `"localhost:5000/img"`) is not a tag separator.
     fn split_image_tag(image: &str) -> (String, Option<String>) {
-        // The last segment is after the final `/`. If it contains `:`, that's the tag.
+        // Only a colon in the last path segment separates a tag; one before a
+        // `/` is a registry port.
         let last_segment = image.rsplit('/').next().unwrap_or(image);
-        if let Some((repo, tag)) = image.rsplit_once(':') {
-            // Only split if the colon is in the last path segment (not a registry port).
-            if repo.rsplit('/').next().map_or(true, |s| !s.contains(':')) {
+        if last_segment.contains(':') {
+            if let Some((repo, tag)) = image.rsplit_once(':') {
                 return (repo.to_string(), Some(tag.to_string()));
             }
         }
@@ -775,6 +779,18 @@ impl std::fmt::Debug for ContainerHandle {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_image_tag_is_split_off_but_a_registry_port_is_not() {
+        let split = ContainerHandle::split_image_tag;
+        assert_eq!(split("alpine:latest"), ("alpine".to_string(), Some("latest".to_string())));
+        assert_eq!(split("alpine"), ("alpine".to_string(), None));
+        assert_eq!(split("localhost:5000/img"), ("localhost:5000/img".to_string(), None));
+        assert_eq!(
+            split("localhost:5000/team/img:v2"),
+            ("localhost:5000/team/img".to_string(), Some("v2".to_string()))
+        );
+    }
 
     #[test]
     fn gateway_of_a_bridge_network_job_container() {
