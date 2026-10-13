@@ -48,7 +48,10 @@ pub use api_catalog::{
     ApiCatalog, ApiCatalogBuilder, ApiInfo,
 };
 pub use classifier::OperationTypeClassifier;
-pub use endpoint::{EndpointInfo, OperationEffect, OperationType, ResponseType};
+pub use endpoint::{
+    EndpointInfo, OperationEffect, OperationType, RawRequestBody, ResponseType,
+    JSON_LINES_MEDIA_TYPES,
+};
 pub use extractor::EndpointExtractor;
 pub use normalizer::{
     normalize_spec, process_spec, NormalizedEndpoint, NormalizedSpec, ProcessError,

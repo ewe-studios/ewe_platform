@@ -6,7 +6,7 @@
 //!
 //! HOW: String templates for each endpoint unit, grouped into modules.
 
-use crate::{sanitize_identifier, to_pascal_case, to_snake_case, EndpointInfo};
+use crate::{sanitize_identifier, to_pascal_case, to_snake_case, EndpointInfo, ResponseType};
 use std::collections::HashSet;
 use std::fmt::Write as FmtWrite;
 use std::fs;
@@ -53,6 +53,54 @@ fn regex_shared_type_names(content: &str) -> Vec<String> {
         }
     }
     names
+}
+
+/// How deep `allOf` members are followed through `$ref`s before giving up — a
+/// guard against a reference cycle, far past any real spec's nesting.
+const MAX_ALL_OF_DEPTH: usize = 16;
+
+/// Merge one `allOf` member's properties (and required names) into the
+/// composed type's.
+///
+/// A member is an inline object, a `$ref` to one, or itself an `allOf`. The
+/// `$ref` case is the common one — Docker's `ContainerCreateRequest` is
+/// `allOf: [$ref ContainerConfig, {HostConfig, NetworkingConfig}]` — and it was
+/// skipped: only inline properties were merged, so the composed type lost every
+/// field of the type it extends.
+fn collect_all_of_member(
+    member: &crate::spec::Schema,
+    schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+    properties: &mut std::collections::BTreeMap<String, (String, crate::spec::Schema)>,
+    required: &mut std::collections::HashSet<String>,
+    depth: usize,
+) {
+    if depth > MAX_ALL_OF_DEPTH {
+        return;
+    }
+    if let Some(ref_path) = &member.ref_path {
+        let name = ref_path
+            .trim_start_matches("#/components/schemas/")
+            .trim_start_matches("#/schemas/");
+        if let Some(target) = schemas.get(name) {
+            collect_all_of_member(target, schemas, properties, required, depth + 1);
+        }
+        return;
+    }
+    if let Some(nested) = &member.all_of {
+        for inner in nested {
+            collect_all_of_member(inner, schemas, properties, required, depth + 1);
+        }
+    }
+    if let Some(props) = &member.properties {
+        for (k, v) in props {
+            // Deduplicate by snake_case field name to avoid duplicates like
+            // "Version" and "version"; a later member's definition wins.
+            properties.insert(field_ident(k), (k.clone(), v.clone()));
+        }
+    }
+    for r in &member.required {
+        required.insert(r.clone());
+    }
 }
 
 /// Rust keywords that must be escaped when used as identifiers.
@@ -1247,8 +1295,14 @@ impl UnifiedGenerator {
             for param in &ep.query_params {
                 let param_name =
                     escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                writeln!(out, "    /// Query parameter: `{}`.", param)?;
-                writeln!(out, "    pub {}: Option<String>,", param_name)?;
+                if ep.array_query_params.contains(param) {
+                    // An array is sent as one `name=value` pair per value.
+                    writeln!(out, "    /// Query parameter: `{}` (one per value).", param)?;
+                    writeln!(out, "    pub {}: Vec<String>,", param_name)?;
+                } else {
+                    writeln!(out, "    /// Query parameter: `{}`.", param)?;
+                    writeln!(out, "    pub {}: Option<String>,", param_name)?;
+                }
             }
             if let Some(rt) = &ep.request_type {
                 writeln!(out, "    /// Request body.")?;
@@ -1324,16 +1378,7 @@ impl UnifiedGenerator {
             let mut required: std::collections::HashSet<String> = std::collections::HashSet::new();
 
             for member in all_of {
-                if let Some(props) = &member.properties {
-                    for (k, v) in props {
-                        // Deduplicate by snake_case field name to avoid duplicates like "Version" and "version"
-                        let field_name = field_ident(k);
-                        all_properties.insert(field_name, (k.clone(), v.clone()));
-                    }
-                }
-                for r in &member.required {
-                    required.insert(r.clone());
-                }
+                collect_all_of_member(member, schemas, &mut all_properties, &mut required, 0);
             }
 
             // Generate fields from merged properties
@@ -1471,11 +1516,17 @@ impl UnifiedGenerator {
         _group: &ApiGroup,
     ) -> Result<(), GenError> {
         let fn_prefix = to_snake_case(&sanitize_identifier(&ep.operation_id));
-        let return_type = ep
-            .response_type
-            .as_ref()
-            .map(|rt| rt.as_rust_type().to_string())
-            .unwrap_or_else(|| "()".to_string());
+        // A streamed body is handed back unread — as a stream of items or of
+        // bytes — never collected: it can be unbounded (a tar archive, a
+        // followed log) or be how the server reports progress on work it does
+        // while it writes (a JSON-lines pull or build).
+        let streaming = ep.response_type.as_ref().filter(|rt| rt.is_streaming());
+        let return_type = match ep.response_type.as_ref() {
+            Some(ResponseType::JsonLines(item)) => format!("super::shared::JsonLinesStream<{item}>"),
+            Some(ResponseType::Binary) => "super::shared::ByteStream".to_string(),
+            Some(rt) => rt.as_rust_type().to_string(),
+            None => "()".to_string(),
+        };
 
         let args_name = format!(
             "{}Args",
@@ -1510,7 +1561,31 @@ impl UnifiedGenerator {
             out,
             "/// * `args` - Request arguments (path params, query params, body)"
         )?;
+        if let Some(raw) = &ep.raw_request_body {
+            writeln!(
+                out,
+                "/// * `body` - Request body, sent as-is as `{}`{}",
+                raw.media_type,
+                if raw.required { "" } else { " (`None` sends none)" }
+            )?;
+        }
         writeln!(out, "/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)")?;
+        if let Some(rt) = streaming {
+            writeln!(out, "///")?;
+            writeln!(out, "/// # Response body")?;
+            writeln!(out, "///")?;
+            match rt {
+                ResponseType::JsonLines(item) => writeln!(
+                    out,
+                    "/// Returned unread, as a stream of `{item}`, one per line: read it with `.next().await`."
+                )?,
+                _ => writeln!(
+                    out,
+                    "/// Returned unread, as a stream of byte chunks: read it with `.next().await`."
+                )?,
+            }
+            writeln!(out, "/// The status is checked before the body is touched.")?;
+        }
         writeln!(out, "///")?;
         writeln!(out, "/// # Example")?;
         writeln!(out, "///")?;
@@ -1539,6 +1614,13 @@ impl UnifiedGenerator {
         // should pass that value; for Docker the caller derives it from
         // DockerClient::base_url().
         writeln!(out, "    base_url: &str,")?;
+        if let Some(raw) = &ep.raw_request_body {
+            if raw.required {
+                writeln!(out, "    body: foundation_netio::shared::http::SendSafeBody,")?;
+            } else {
+                writeln!(out, "    body: Option<foundation_netio::shared::http::SendSafeBody>,")?;
+            }
+        }
         writeln!(out, "    builder_mod: Option<F>,")?;
         writeln!(out, ") -> Result<ApiResponse<{}>, super::shared::ApiError>", return_type)?;
         writeln!(out, "where")?;
@@ -1574,10 +1656,16 @@ impl UnifiedGenerator {
         // Structured query params from args (None values are skipped).
         for qp in &ep.query_params {
             let safe_qp = escape_rust_keyword(&to_snake_case(&sanitize_identifier(qp)));
-            writeln!(
-                out,
-                "    builder = builder.query(\"{qp}\", args.{safe_qp}.as_deref());"
-            )?;
+            if ep.array_query_params.contains(qp) {
+                writeln!(out, "    for value in &args.{safe_qp} {{")?;
+                writeln!(out, "        builder = builder.query(\"{qp}\", Some(value.as_str()));")?;
+                writeln!(out, "    }}")?;
+            } else {
+                writeln!(
+                    out,
+                    "    builder = builder.query(\"{qp}\", args.{safe_qp}.as_deref());"
+                )?;
+            }
         }
         if !ep.query_params.is_empty() {
             writeln!(out)?;
@@ -1587,6 +1675,26 @@ impl UnifiedGenerator {
         if ep.request_type.is_some() {
             writeln!(out, "    builder = builder.body_json(&args.body)")?;
             writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;")?;
+            writeln!(out)?;
+        }
+
+        // A non-JSON body (tar archive, raw bytes) goes on as-is.
+        if let Some(raw) = &ep.raw_request_body {
+            if raw.required {
+                writeln!(
+                    out,
+                    "    builder = super::shared::with_raw_body(builder, \"{}\", body);",
+                    raw.media_type
+                )?;
+            } else {
+                writeln!(out, "    if let Some(body) = body {{")?;
+                writeln!(
+                    out,
+                    "        builder = super::shared::with_raw_body(builder, \"{}\", body);",
+                    raw.media_type
+                )?;
+                writeln!(out, "    }}")?;
+            }
             writeln!(out)?;
         }
 
@@ -1614,12 +1722,20 @@ impl UnifiedGenerator {
         // A status number alone does not say what to fix: Hetzner's
         // `{"error":{"code":"invalid_input","message":"server_type cx99 does not
         // exist"}}` is the whole diagnosis, and it was being thrown away.
-        writeln!(out, "        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());")?;
-        writeln!(out, "        let body = (!error_bytes.is_empty())")?;
-        writeln!(out, "            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());")?;
+        //
+        // Only so much of it, though: `read_error_body` stops at
+        // `MAX_ERROR_BODY`. An error body is read for its message; one that is
+        // not short is not a message, and must not cost unbounded memory.
+        writeln!(out, "        let body = super::shared::read_error_body(response.take_body()).await;")?;
         writeln!(out, "        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers, body }});")?;
         writeln!(out, "    }}")?;
-        if return_type == "()" {
+        if let Some(rt) = streaming {
+            let constructor = match rt {
+                ResponseType::JsonLines(_) => "super::shared::JsonLinesStream::new",
+                _ => "super::shared::ByteStream::new",
+            };
+            writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: {constructor}(response.take_body()) }})")?;
+        } else if return_type == "()" {
             writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: () }})")?;
         } else {
             writeln!(out, "    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());")?;
@@ -1723,6 +1839,9 @@ impl UnifiedGenerator {
             "// Re-export common API types from foundation_deployment"
         )?;
         writeln!(out, "pub use {common_path}::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation}};")?;
+        // Streaming bodies and the bounded error-body read the `*_request`
+        // functions use (see `generate_endpoint_client_functions`).
+        writeln!(out, "pub use {common_path}::{{read_error_body, with_raw_body, ByteStream, JsonLinesStream}};")?;
         writeln!(out)?;
         writeln!(out, "// Imports for shared resource types")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
