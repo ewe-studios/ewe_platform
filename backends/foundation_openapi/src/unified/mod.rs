@@ -14,4 +14,6 @@ mod analyzer;
 mod generator;
 
 pub use analyzer::{analyze_spec, AnalysisOptions, AnalysisResult, ApiGroup};
-pub use generator::{GenError, UnifiedGenerator};
+pub use generator::{
+    rewrite_features_for_groups, FeatureRewriteError, GenError, UnifiedGenerator,
+};
