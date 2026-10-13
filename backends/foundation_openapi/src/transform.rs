@@ -330,7 +330,7 @@ fn is_inline_object(schema: &Value) -> bool {
         return true;
     }
     // A `oneOf`/`anyOf` is a union, and we do not generate Rust enums for them —
-    // the generator emits a flattened `HashMap<String, Value>` instead. Hoisting
+    // the generator emits an opaque `HashMap<String, Value>` wrapper instead. Hoisting
     // it anyway is still worth it: DigitalOcean's `droplet_create` response is a
     // `oneOf` (one droplet, or many), and left unhoisted the endpoint's return
     // type resolves to `()` and THE BODY IS DISCARDED ENTIRELY. Named-but-opaque

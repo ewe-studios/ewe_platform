@@ -185,3 +185,30 @@ fn test_zone_deserialization() {
     assert!(matches!(zone.status, ZoneStatus::Active));
     assert_eq!(zone.name_servers.len(), 2);
 }
+
+// ── Opaque generated types ──
+//
+// A schema with no properties is generated as a struct holding the raw JSON
+// object (`#[serde(transparent)]` over a map). On the wire it must be exactly
+// that object: its keys, not `{"data": ...}`.
+
+#[test]
+fn test_opaque_generated_type_is_the_json_object() {
+    use foundation_deployment_cloudflare::generated::dns::AccessMessages;
+
+    let json = serde_json::json!({ "code": 1000, "message": "ok", "nested": { "a": [1, 2] } });
+    let parsed: AccessMessages = serde_json::from_value(json.clone()).unwrap();
+    assert_eq!(parsed.data.len(), 3);
+    assert_eq!(parsed.data["code"], serde_json::json!(1000));
+    assert_eq!(parsed.data["nested"], serde_json::json!({ "a": [1, 2] }));
+
+    assert_eq!(serde_json::to_value(&parsed).unwrap(), json);
+}
+
+#[test]
+fn test_opaque_generated_type_rejects_a_non_object() {
+    use foundation_deployment_cloudflare::generated::dns::AccessMessages;
+
+    assert!(serde_json::from_value::<AccessMessages>(serde_json::json!([1, 2])).is_err());
+    assert!(serde_json::from_value::<AccessMessages>(serde_json::json!("text")).is_err());
+}

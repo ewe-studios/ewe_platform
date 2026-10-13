@@ -94,22 +94,22 @@ pub struct MagicVisibilityPcapsApiResponseCommon {
 
 /// `MagicVisibilityPcapsMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicVisibilityPcapsMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `MagicVisibilityPcapsPcapsDestinationConf` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicVisibilityPcapsPcapsDestinationConf {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `MagicVisibilityPcapsPcapsOwnershipChallenge` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct MagicVisibilityPcapsPcapsOwnershipChallenge {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -210,8 +210,8 @@ pub struct R2BucketConfig {
 
 /// `R2BucketLocation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2BucketLocation {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -237,8 +237,8 @@ pub struct R2BucketLockRuleConfig {
 
 /// `R2BucketName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2BucketName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -295,15 +295,15 @@ pub struct R2CreateTempAccessCredentialsResponse {
 
 /// `R2DataCatalogApiResponseErrors` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2DataCatalogApiResponseErrors {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `R2DataCatalogApiResponseMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2DataCatalogApiResponseMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -320,8 +320,8 @@ pub struct R2DataCatalogApiResponseSingle {
 
 /// `R2DataCatalogApiResponseSuccess` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2DataCatalogApiResponseSuccess {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -394,8 +394,8 @@ pub struct R2DataCatalogCatalogMaintenanceConfigResponse {
 
 /// `R2DataCatalogCatalogMaintenanceState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2DataCatalogCatalogMaintenanceState {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -406,15 +406,15 @@ pub struct R2DataCatalogCatalogMaintenanceUpdateRequest {
 
 /// `R2DataCatalogCatalogStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2DataCatalogCatalogStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `R2DataCatalogCatalogTargetFileSize` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2DataCatalogCatalogTargetFileSize {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -429,8 +429,8 @@ pub struct R2DataCatalogCompactionUpdateParams {
 
 /// `R2DataCatalogCredentialStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2DataCatalogCredentialStatus {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -458,8 +458,8 @@ pub struct R2DataCatalogNamespaceDetails {
 
 /// `R2DataCatalogNamespaceIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2DataCatalogNamespaceIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -608,8 +608,8 @@ pub struct R2EnableSippyS3 {
 
 /// `R2Errors` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2Errors {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -691,8 +691,8 @@ pub struct R2GetEventNotificationConfigsResponse {
 
 /// `R2Jurisdiction` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2Jurisdiction {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -749,8 +749,8 @@ pub struct R2LocalUploadsConfiguration {
 
 /// `R2Messages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2Messages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -824,8 +824,8 @@ pub struct R2PutBucketLockConfigurationResponse {
 
 /// `R2PutBucketSippyConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2PutBucketSippyConfigRequest {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -863,8 +863,8 @@ pub struct R2QueuesConfig {
 
 /// `R2R2Action` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2R2Action {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -903,8 +903,8 @@ pub struct R2Sippy {
 
 /// `R2StorageClass` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct R2StorageClass {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -984,8 +984,8 @@ pub struct UpdateTableMaintenanceConfigResponse {
 
 /// `WorkersKvAny` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersKvAny {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1032,8 +1032,8 @@ pub struct WorkersKvCreateRenameNamespaceBody {
 
 /// `WorkersKvCursor` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersKvCursor {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1059,15 +1059,15 @@ pub struct WorkersKvKey {
 
 /// `WorkersKvKeyName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersKvKeyName {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `WorkersKvKeyNameBulk` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersKvKeyNameBulk {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1078,8 +1078,8 @@ pub struct WorkersKvListMetadata {
 
 /// `WorkersKvMessages` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersKvMessages {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1137,8 +1137,8 @@ pub struct WorkersKvNamespaceGetMultipleKeyValuePairsResponse {
 
 /// `WorkersKvNamespaceIdentifier` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersKvNamespaceIdentifier {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
@@ -1174,8 +1174,8 @@ pub struct WorkersKvNamespaceRenameANamespaceResponse {
 
 /// `WorkersKvNamespaceTitle` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct WorkersKvNamespaceTitle {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
