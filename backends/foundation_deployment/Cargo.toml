@@ -26,6 +26,8 @@ workspace = true
 
 [dependencies]
 base85rs = "0.1"
+bytes = "1"
+futures-core = "0.3"
 dirs = "5.0"
 http = "1.4.0"
 regex = "1.10"

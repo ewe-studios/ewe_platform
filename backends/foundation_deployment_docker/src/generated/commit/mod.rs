@@ -24,29 +24,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `HealthConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HealthConfig {
-    /// Interval property.
-    #[serde(rename = "Interval")]
-    pub interval: Option<i64>,
-    /// Retries property.
-    #[serde(rename = "Retries")]
-    pub retries: Option<i64>,
-    /// StartInterval property.
-    #[serde(rename = "StartInterval")]
-    pub start_interval: Option<i64>,
-    /// StartPeriod property.
-    #[serde(rename = "StartPeriod")]
-    pub start_period: Option<i64>,
-    /// Test property.
-    #[serde(rename = "Test")]
-    pub test: Option<Vec<String>>,
-    /// Timeout property.
-    #[serde(rename = "Timeout")]
-    pub timeout: Option<i64>,
-}
-
 /// `ContainerConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerConfig {
@@ -122,6 +99,29 @@ pub struct ContainerConfig {
     /// WorkingDir property.
     #[serde(rename = "WorkingDir")]
     pub working_dir: Option<String>,
+}
+
+/// `HealthConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HealthConfig {
+    /// Interval property.
+    #[serde(rename = "Interval")]
+    pub interval: Option<i64>,
+    /// Retries property.
+    #[serde(rename = "Retries")]
+    pub retries: Option<i64>,
+    /// StartInterval property.
+    #[serde(rename = "StartInterval")]
+    pub start_interval: Option<i64>,
+    /// StartPeriod property.
+    #[serde(rename = "StartPeriod")]
+    pub start_period: Option<i64>,
+    /// Test property.
+    #[serde(rename = "Test")]
+    pub test: Option<Vec<String>>,
+    /// Timeout property.
+    #[serde(rename = "Timeout")]
+    pub timeout: Option<i64>,
 }
 
 // =============================================================================
@@ -212,7 +212,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IDResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

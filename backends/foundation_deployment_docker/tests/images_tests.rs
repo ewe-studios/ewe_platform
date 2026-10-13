@@ -13,13 +13,15 @@
 #![cfg(all(unix, feature = "docker"))]
 
 use std::io::{Read, Write};
-use std::os::unix::net::UnixListener;
+use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{mpsc, Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment_docker::DockerClient;
+use foundation_deployment::providers::common::MAX_ERROR_BODY;
+use foundation_deployment_docker::{DockerClient, DockerError};
 
 fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
@@ -88,38 +90,30 @@ fn images_route(method: &str, path: &str) -> (u16, String) {
 }
 
 /// Start a mock Docker daemon on `socket_path`. Serves until `stop` is set.
-fn mock_images_daemon(
+fn mock_images_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
+    mock_images_daemon_gated(socket_path, stop, None);
+}
+
+/// [`mock_images_daemon`], plus a `gate` the `fromImage=gated` pull waits on
+/// between its first progress line and the rest.
+fn mock_images_daemon_gated(
     socket_path: PathBuf,
     stop: Arc<AtomicBool>,
+    gate: Option<mpsc::Receiver<()>>,
 ) {
     let listener = UnixListener::bind(&socket_path).expect("bind mock docker socket");
     listener
         .set_nonblocking(true)
         .expect("set nonblocking");
+    let gate = Arc::new(Mutex::new(gate));
     std::thread::spawn(move || {
         while !stop.load(Ordering::Relaxed) {
             match listener.accept() {
-                Ok((mut stream, _)) => {
-                    let mut buf = [0u8; 8192];
-                    let n = stream.read(&mut buf).unwrap_or(0);
-                    let req = String::from_utf8_lossy(&buf[..n]);
-                    let first = req.lines().next().unwrap_or("");
-                    let mut parts = first.split_whitespace();
-                    let method = parts.next().unwrap_or("");
-                    let path = parts.next().unwrap_or("");
-                    let (status, body) = images_route(method, path);
-                    let reason = match status {
-                        201 => "Created",
-                        204 => "No Content",
-                        _ => "OK",
-                    };
-                    let response = format!(
-                        "HTTP/1.1 {status} {reason}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
-                        body.len(),
-                        body
-                    );
-                    let _ = stream.write_all(response.as_bytes());
-                    let _ = stream.flush();
+                Ok((stream, _)) => {
+                    let gate = Arc::clone(&gate);
+                    // One thread per connection: a streaming answer must not
+                    // hold up the next request.
+                    std::thread::spawn(move || serve(stream, &gate));
                 }
                 Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                     std::thread::yield_now();
@@ -130,29 +124,120 @@ fn mock_images_daemon(
     });
 }
 
-/// The pull happens while the daemon streams progress, so `image_pull` must
-/// read the stream to its end (it used to return as soon as the headers came
-/// back, with an empty body, before the image existed).
+/// Answer one request on `stream`.
+fn serve(mut stream: UnixStream, gate: &Mutex<Option<mpsc::Receiver<()>>>) {
+    stream.set_nonblocking(false).expect("blocking connection");
+    let mut buf = [0u8; 8192];
+    let n = stream.read(&mut buf).unwrap_or(0);
+    let req = String::from_utf8_lossy(&buf[..n]);
+    let first = req.lines().next().unwrap_or("");
+    let mut parts = first.split_whitespace();
+    let method = parts.next().unwrap_or("");
+    let path = parts.next().unwrap_or("");
+
+    if method == "POST" && path.contains("images/create?") && path.contains("fromImage=gated") {
+        // A chunked progress stream that stalls after its first line until the
+        // test, having received that line, opens the gate — or 5s pass, in
+        // which case the stream says so.
+        let _ = stream.write_all(b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n");
+        write_chunk(&mut stream, b"{\"status\":\"first\"}\n");
+        let opened = gate
+            .lock()
+            .expect("gate lock")
+            .take()
+            .is_some_and(|rx| rx.recv_timeout(Duration::from_secs(5)).is_ok());
+        let rest: &[u8] = if opened {
+            b"{\"status\":\"second\"}\n{\"status\":\"Status: Downloaded newer image for gated:latest\"}\n"
+        } else {
+            b"{\"status\":\"the client never asked for the rest\"}\n"
+        };
+        write_chunk(&mut stream, rest);
+        let _ = stream.write_all(b"0\r\n\r\n");
+        let _ = stream.flush();
+        return;
+    }
+
+    if method == "POST" && path.contains("images/create?") && path.contains("fromImage=huge-error") {
+        // A 500 whose body never ends in practice: the client must answer from
+        // the status and a bounded read, not wait for (or buffer) the body.
+        let total = HUGE_ERROR_BODY;
+        let head = format!(
+            "HTTP/1.1 500 Internal Server Error\r\nContent-Length: {total}\r\nConnection: close\r\n\r\n"
+        );
+        if stream.write_all(head.as_bytes()).is_err() {
+            return;
+        }
+        let block = [b'e'; 64 * 1024];
+        let mut written = 0;
+        while written < total {
+            let n = block.len().min(total - written);
+            // Fails once the client has read what it wants and hung up.
+            if stream.write_all(&block[..n]).is_err() {
+                return;
+            }
+            written += n;
+        }
+        return;
+    }
+
+    let (status, body) = images_route(method, path);
+    let reason = match status {
+        201 => "Created",
+        204 => "No Content",
+        _ => "OK",
+    };
+    let response = format!(
+        "HTTP/1.1 {status} {reason}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+        body.len(),
+        body
+    );
+    let _ = stream.write_all(response.as_bytes());
+    let _ = stream.flush();
+}
+
+/// The size of the `fromImage=huge-error` error body: far more than any
+/// error message, and more than a client should ever hold.
+const HUGE_ERROR_BODY: usize = 256 * 1024 * 1024;
+
+fn write_chunk(stream: &mut UnixStream, data: &[u8]) {
+    let _ = stream.write_all(format!("{:x}\r\n", data.len()).as_bytes());
+    let _ = stream.write_all(data);
+    let _ = stream.write_all(b"\r\n");
+    let _ = stream.flush();
+}
+
+/// A pull's progress comes back as a stream of typed items, read as they
+/// arrive; the pull has finished when the stream ends.
 #[valtron_test]
-async fn image_pull_reads_the_progress_stream_to_the_end() {
+async fn image_pull_streams_typed_progress_items() {
     let socket = temp_socket_path("image_pull");
     let stop = Arc::new(AtomicBool::new(false));
     mock_images_daemon(socket.clone(), stop.clone());
 
     let client = DockerClient::connect_unix(&socket);
-    let progress = client
+    let mut progress = client
         .image_pull(Some("alpine"), None, None, Some("latest"), None, None)
         .await
-        .expect("image_pull should succeed");
-    let text = String::from_utf8(progress).expect("utf-8 progress");
-    assert!(text.contains("Downloaded newer image for alpine:latest"), "{text}");
+        .expect("image_pull should start");
+    let mut statuses = Vec::new();
+    while let Some(item) = progress.next().await {
+        let item = item.expect("a progress item");
+        statuses.push(item.status.expect("every line has a status"));
+    }
+    assert_eq!(
+        statuses,
+        vec![
+            "Pulling from library/alpine".to_string(),
+            "Status: Downloaded newer image for alpine:latest".to_string(),
+        ]
+    );
 
     stop.store(true, Ordering::Relaxed);
     let _ = std::fs::remove_file(&socket);
 }
 
-/// A failed pull is a `200` whose stream carries `{"error": …}`: that must be
-/// an error, not a success.
+/// A failed pull is a `200` whose stream carries `errorDetail`: reading the
+/// stream to its end must yield that as `PullFailed`, not success.
 #[valtron_test]
 async fn image_pull_reports_an_error_in_the_stream() {
     let socket = temp_socket_path("image_pull_err");
@@ -160,16 +245,86 @@ async fn image_pull_reports_an_error_in_the_stream() {
     mock_images_daemon(socket.clone(), stop.clone());
 
     let client = DockerClient::connect_unix(&socket);
-    let err = client
+    let progress = client
         .image_pull(Some("missing"), None, None, Some("latest"), None, None)
         .await
-        .expect_err("a pull that reports an error must fail");
-    match err {
-        foundation_deployment_docker::DockerError::PullFailed(m) => {
-            assert_eq!(m, "pull access denied for missing");
-        }
+        .expect("the daemon answers 200: the failure is in the stream");
+    match progress.finish().await {
+        Err(DockerError::PullFailed(m)) => assert_eq!(m, "pull access denied for missing"),
         other => panic!("expected PullFailed, got {other:?}"),
     }
+
+    stop.store(true, Ordering::Relaxed);
+    let _ = std::fs::remove_file(&socket);
+}
+
+/// The status is checked before the body: a non-2xx answer is an error read
+/// from at most a bounded prefix of its body, however large that body is.
+#[valtron_test]
+async fn image_pull_checks_the_status_before_the_body() {
+    let socket = temp_socket_path("image_pull_500");
+    let stop = Arc::new(AtomicBool::new(false));
+    mock_images_daemon(socket.clone(), stop.clone());
+
+    let client = DockerClient::connect_unix(&socket);
+    let started = Instant::now();
+    let err = client
+        .image_pull(Some("huge-error"), None, None, Some("latest"), None, None)
+        .await
+        .expect_err("a 500 is an error");
+    match err {
+        DockerError::Api { status, message } => {
+            assert_eq!(status, 500);
+            assert!(
+                message.len() <= MAX_ERROR_BODY,
+                "read {} bytes of the error body; at most {MAX_ERROR_BODY} should be",
+                message.len()
+            );
+            assert!(message.starts_with("eeee"), "{}", &message[..message.len().min(64)]);
+        }
+        other => panic!("expected Api, got {other:?}"),
+    }
+    assert!(
+        started.elapsed() < Duration::from_secs(30),
+        "the {HUGE_ERROR_BODY}-byte error body was read rather than abandoned"
+    );
+
+    stop.store(true, Ordering::Relaxed);
+    let _ = std::fs::remove_file(&socket);
+}
+
+/// The progress stream is not buffered: the first item is handed out while the
+/// daemon is still holding back the rest, which it sends only once the test has
+/// that first item. A client that read the body whole would wait for the rest
+/// (and see the daemon's "never asked" line after its timeout instead).
+#[valtron_test]
+async fn image_pull_hands_out_items_before_the_body_has_ended() {
+    let socket = temp_socket_path("image_pull_gated");
+    let stop = Arc::new(AtomicBool::new(false));
+    let (open_gate, gate) = mpsc::channel();
+    mock_images_daemon_gated(socket.clone(), stop.clone(), Some(gate));
+
+    let client = DockerClient::connect_unix(&socket);
+    let mut progress = client
+        .image_pull(Some("gated"), None, None, Some("latest"), None, None)
+        .await
+        .expect("image_pull should start");
+
+    let first = progress.next().await.expect("a first item").expect("valid");
+    assert_eq!(first.status.as_deref(), Some("first"));
+    open_gate.send(()).expect("the daemon is waiting on the gate");
+
+    let mut rest = Vec::new();
+    while let Some(item) = progress.next().await {
+        rest.push(item.expect("valid").status.unwrap_or_default());
+    }
+    assert_eq!(
+        rest,
+        vec![
+            "second".to_string(),
+            "Status: Downloaded newer image for gated:latest".to_string(),
+        ]
+    );
 
     stop.store(true, Ordering::Relaxed);
     let _ = std::fs::remove_file(&socket);

@@ -6,19 +6,23 @@
 
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
+mod common;
+
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
 
 /// One fresh client per test — no shared state, no pool interference.
-fn client() -> DockerClient {
-    DockerClient::connect_unix("/var/run/docker.sock")
+/// A client for the local daemon, with `alpine:latest` pulled (the tests
+/// create containers from it; a cold daemon does not have it).
+async fn client() -> DockerClient {
+    common::client_with_alpine().await
 }
 
 // ── Read-only: inspect + history + search ──────────────────────────────
 
 #[valtron_test]
 async fn image_inspect_alpine() {
-    let c = client();
+    let c = client().await;
     let info = c.image_inspect("alpine:latest").await.expect("image_inspect");
     // Id must be a non-empty string (SHA256 hash).
     assert!(
@@ -36,7 +40,7 @@ async fn image_inspect_alpine() {
 
 #[valtron_test]
 async fn image_history() {
-    let c = client();
+    let c = client().await;
     let history = c.image_history("alpine:latest").await.expect("image_history");
     let arr = history
         .as_array()
@@ -46,7 +50,7 @@ async fn image_history() {
 
 #[valtron_test]
 async fn image_search() {
-    let c = client();
+    let c = client().await;
     let results = c
         .image_search(Some("alpine"), None, None)
         .await
@@ -66,7 +70,7 @@ async fn image_search() {
 
 #[valtron_test]
 async fn image_tag_then_delete() {
-    let c = client();
+    let c = client().await;
     // Tag alpine:latest as ewe-it-img-test:latest
     c.image_tag("alpine:latest", Some("ewe-it-img-test"), Some("latest"))
         .await
@@ -79,7 +83,7 @@ async fn image_tag_then_delete() {
 
 #[valtron_test]
 async fn image_delete_untagged() {
-    let c = client();
+    let c = client().await;
     // Tag alpine as ewe-it-img-del:test
     c.image_tag("alpine:latest", Some("ewe-it-img-del"), Some("test"))
         .await
@@ -99,7 +103,7 @@ async fn image_delete_untagged() {
 
 #[valtron_test]
 async fn image_prune_ok() {
-    let c = client();
+    let c = client().await;
     c.image_prune(None).await.expect("image_prune");
 }
 
@@ -107,7 +111,7 @@ async fn image_prune_ok() {
 async fn distribution_inspect_alpine() {
     // Inspect alpine:latest on Docker Hub — requires auth but should return
     // a response (could be 200 with descriptor data or 401 if no creds).
-    let c = client();
+    let c = client().await;
     match c.distribution_inspect("alpine:latest").await {
         Ok(d) => {
             let digest = d.descriptor.digest.unwrap_or_default();
@@ -122,6 +126,6 @@ async fn distribution_inspect_alpine() {
 
 #[valtron_test]
 async fn build_prune_ok() {
-    let c = client();
+    let c = client().await;
     c.build_prune(None, None, None, None).await.expect("build_prune");
 }

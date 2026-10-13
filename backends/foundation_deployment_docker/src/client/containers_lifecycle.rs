@@ -3,9 +3,8 @@
 //!
 //! WHY: These are the remaining container endpoints from the Docker Engine API
 //! (v1.53) that complete the container lifecycle surface. Binary-stream endpoints
-//! (logs, export, archive, attach) return raw `Vec<u8>` because the generated
-//! functions either parse the body as JSON or discard it — neither is correct for
-//! tar/multiplexed log streams.
+//! (logs, export, archive, attach) return their body unread, as an async stream:
+//! a followed log never ends, and a container's filesystem can be gigabytes.
 //!
 //! WHAT: One `impl DockerClient` block with a method per endpoint, following the
 //! same pattern as `client/mod.rs` — construct the generated `Args` struct, call
@@ -14,13 +13,19 @@
 //! HOW: State-mutating commands (restart, kill, rename, resize, prune) use the
 //! generated async functions that return `ApiResponse<()>`. Query endpoints (top,
 //! stats, changes, list) use the generated functions and return the deserialized
-//! body. Binary-stream endpoints bypass the generated layer for raw byte collection.
+//! body. Binary-stream endpoints use the generated functions too, which check the
+//! status and hand back the body unread; it is wrapped in a [`LogStream`]
+//! (multiplexed stdout/stderr) or a [`ByteBody`] (tar archives).
 
-use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::PreparedRequestBuilder;
 
+use crate::client::body::{ByteBody, LogStream};
 use crate::error::DockerError;
+use crate::generated::archive::{container_archive_request, ContainerArchiveArgs};
+use crate::generated::attach::{container_attach_request, ContainerAttachArgs};
+use crate::generated::export::{container_export_request, ContainerExportArgs};
+use crate::generated::logs::{container_logs_request, ContainerLogsArgs};
 use crate::generated::shared::ApiError;
 use crate::generated::update::{container_update_request, ContainerUpdateArgs, ContainerUpdateResponse};
 
@@ -161,18 +166,18 @@ impl DockerClient {
 
     // ── container_logs ──────────────────────────────────────────────────
 
-    /// Get container logs (`GET /containers/{id}/logs`).
+    /// Get a container's logs (`GET /containers/{id}/logs`).
     ///
-    /// WHY: Docker log output is a multiplexed binary stream (`[stream_id; 4 bytes]
-    /// [length; 4 bytes] [payload; length bytes] ...`), not JSON. The generated
-    /// function parses the body as `serde_json::Value`, so we bypass it and
-    /// collect raw bytes directly.
+    /// WHY: With `follow`, the daemon keeps the stream open for as long as the
+    /// container runs; even without it, a chatty container's log is unbounded.
     ///
-    /// WHAT: Returns the raw multiplexed log stream bytes.
+    /// WHAT: Returns the log unread, as a [`LogStream`] of demultiplexed
+    /// stdout/stderr frames (for a container without a TTY).
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    /// Returns [`DockerError`] on transport failure or non-2xx status (checked
+    /// before the body is read); read errors come out of the stream.
     pub async fn container_logs(
         &self,
         id: &str,
@@ -183,29 +188,20 @@ impl DockerClient {
         until: Option<&str>,
         timestamps: bool,
         tail: Option<&str>,
-    ) -> Result<Vec<u8>, DockerError> {
-        let endpoint_url = format!("{}/containers/{id}/logs", self.api_url().await?);
-
-        let mut builder = PreparedRequestBuilder::get(&endpoint_url)
-            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-        builder = builder.query("follow", Some(follow.to_string()).as_deref());
-        builder = builder.query("stdout", Some(stdout.to_string()).as_deref());
-        builder = builder.query("stderr", Some(stderr.to_string()).as_deref());
-        builder = builder.query("since", since);
-        builder = builder.query("until", until);
-        builder = builder.query("timestamps", Some(timestamps.to_string()).as_deref());
-        builder = builder.query("tail", tail);
-
-        let response = self.http().send_async(builder.build()).await
-            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
-
-        let status: usize = response.get_status().into();
-        let headers = response.get_headers_ref().clone();
-        if status < 200 || status >= 300 {
-            return Err(ApiError::HttpStatus { code: status as u16, headers, body: None }.into());
-        }
-        Ok(collect_bytes_from_send_safe(response.take_body()))
+    ) -> Result<LogStream, DockerError> {
+        let args = ContainerLogsArgs {
+            id: id.to_string(),
+            follow: Some(follow.to_string()),
+            stdout: Some(stdout.to_string()),
+            stderr: Some(stderr.to_string()),
+            since: since.map(str::to_string),
+            until: until.map(str::to_string),
+            timestamps: Some(timestamps.to_string()),
+            tail: tail.map(str::to_string),
+        };
+        let response =
+            container_logs_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        Ok(LogStream::new(response.body))
     }
 
     // ── container_stats ─────────────────────────────────────────────────
@@ -235,29 +231,18 @@ impl DockerClient {
     /// Export a container's filesystem as a tar archive (`GET
     /// /containers/{id}/export`).
     ///
-    /// WHY: The generated function returns `ApiResponse<()>` (discarding the
-    /// tar stream body). We bypass it to collect raw bytes.
-    ///
-    /// WHAT: Returns the raw tar stream bytes.
+    /// WHAT: Returns the archive unread, as a [`ByteBody`] of chunks — write it
+    /// where it is going chunk by chunk; a filesystem can be gigabytes.
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn container_export(&self, id: &str) -> Result<Vec<u8>, DockerError> {
-        let endpoint_url = format!("{}/containers/{id}/export", self.api_url().await?);
-
-        let builder = PreparedRequestBuilder::get(&endpoint_url)
-            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-        let response = self.http().send_async(builder.build()).await
-            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
-
-        let status: usize = response.get_status().into();
-        let headers = response.get_headers_ref().clone();
-        if status < 200 || status >= 300 {
-            return Err(ApiError::HttpStatus { code: status as u16, headers, body: None }.into());
-        }
-        Ok(collect_bytes_from_send_safe(response.take_body()))
+    /// Returns [`DockerError`] on transport failure or non-2xx status (checked
+    /// before the body is read); read errors come out of the stream.
+    pub async fn container_export(&self, id: &str) -> Result<ByteBody, DockerError> {
+        let args = ContainerExportArgs { id: id.to_string() };
+        let response =
+            container_export_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        Ok(ByteBody::new(response.body))
     }
 
     // ── container_archive ───────────────────────────────────────────────
@@ -265,46 +250,37 @@ impl DockerClient {
     /// Get an archive of a file or directory in a container (`GET
     /// /containers/{id}/archive`).
     ///
-    /// WHY: The generated function returns `ApiResponse<()>` (discarding the
-    /// tar stream body). We bypass it to collect raw bytes.
-    ///
-    /// WHAT: Returns the raw tar archive bytes.
+    /// WHAT: Returns the tar archive unread, as a [`ByteBody`] of chunks.
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn container_archive(&self, id: &str, path: &str) -> Result<Vec<u8>, DockerError> {
-        let endpoint_url = format!("{}/containers/{id}/archive", self.api_url().await?);
-
-        let mut builder = PreparedRequestBuilder::get(&endpoint_url)
-            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-        builder = builder.query("path", Some(path));
-
-        let response = self.http().send_async(builder.build()).await
-            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
-
-        let status: usize = response.get_status().into();
-        let headers = response.get_headers_ref().clone();
-        if status < 200 || status >= 300 {
-            return Err(ApiError::HttpStatus { code: status as u16, headers, body: None }.into());
-        }
-        Ok(collect_bytes_from_send_safe(response.take_body()))
+    /// Returns [`DockerError`] on transport failure or non-2xx status (checked
+    /// before the body is read); read errors come out of the stream.
+    pub async fn container_archive(&self, id: &str, path: &str) -> Result<ByteBody, DockerError> {
+        let args = ContainerArchiveArgs {
+            id: id.to_string(),
+            path: Some(path.to_string()),
+        };
+        let response =
+            container_archive_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        Ok(ByteBody::new(response.body))
     }
 
     // ── container_attach ────────────────────────────────────────────────
 
     /// Attach to a container's stdio (`POST /containers/{id}/attach`).
     ///
-    /// WHY: The generated function returns `ApiResponse<()>` (discarding the
-    /// multiplexed stream body). We bypass it to collect raw bytes. The upgrade
-    /// to WebSocket for interactive sessions is handled via the `ws` module.
+    /// WHY: With `stream`, the daemon keeps this open for as long as the
+    /// container runs. The upgrade to WebSocket for interactive sessions is
+    /// handled via the `ws` module.
     ///
-    /// WHAT: Returns the raw multiplexed stream bytes.
+    /// WHAT: Returns the output unread, as a [`LogStream`] of demultiplexed
+    /// frames (for a container without a TTY).
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    /// Returns [`DockerError`] on transport failure or non-2xx status (checked
+    /// before the body is read); read errors come out of the stream.
     pub async fn container_attach(
         &self,
         id: &str,
@@ -314,28 +290,19 @@ impl DockerClient {
         stdin: bool,
         stdout: bool,
         stderr: bool,
-    ) -> Result<Vec<u8>, DockerError> {
-        let endpoint_url = format!("{}/containers/{id}/attach", self.api_url().await?);
-
-        let mut builder = PreparedRequestBuilder::post(&endpoint_url)
-            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-        builder = builder.query("detachKeys", detach_keys);
-        builder = builder.query("logs", Some(logs.to_string()).as_deref());
-        builder = builder.query("stream", Some(stream.to_string()).as_deref());
-        builder = builder.query("stdin", Some(stdin.to_string()).as_deref());
-        builder = builder.query("stdout", Some(stdout.to_string()).as_deref());
-        builder = builder.query("stderr", Some(stderr.to_string()).as_deref());
-
-        let response = self.http().send_async(builder.build()).await
-            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
-
-        let status: usize = response.get_status().into();
-        let headers = response.get_headers_ref().clone();
-        if status < 200 || status >= 300 {
-            return Err(ApiError::HttpStatus { code: status as u16, headers, body: None }.into());
-        }
-        Ok(collect_bytes_from_send_safe(response.take_body()))
+    ) -> Result<LogStream, DockerError> {
+        let args = ContainerAttachArgs {
+            id: id.to_string(),
+            detach_keys: detach_keys.map(str::to_string),
+            logs: Some(logs.to_string()),
+            stream: Some(stream.to_string()),
+            stdin: Some(stdin.to_string()),
+            stdout: Some(stdout.to_string()),
+            stderr: Some(stderr.to_string()),
+        };
+        let response =
+            container_attach_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        Ok(LogStream::new(response.body))
     }
 
     // ── container_list ──────────────────────────────────────────────────
@@ -391,31 +358,29 @@ impl DockerClient {
     ///
     /// WHY: Matches bollard's `update_container` — lets callers change CPU,
     /// memory, restart-policy and other `HostConfig`-style limits on a running
-    /// container without recreating it. The generated function models the
-    /// request body only via `builder_mod`, so we inject the JSON config here.
+    /// container without recreating it.
     ///
     /// WHAT: `config` is the Docker `ContainerUpdate` body (a `HostConfig`
-    /// subset plus `RestartPolicy`). Returns the `ContainerUpdateResponse`
-    /// (any warnings emitted by the daemon).
+    /// subset plus `RestartPolicy`), read into the generated
+    /// `ContainerUpdateRequest`. Returns the `ContainerUpdateResponse` (any
+    /// warnings emitted by the daemon).
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    /// Returns [`DockerError::JsonParse`] if `config` does not fit the
+    /// `ContainerUpdateRequest` schema, and [`DockerError`] on transport
+    /// failure or non-2xx status.
     pub async fn update_container(
         &self,
         id: &str,
         config: serde_json::Value,
     ) -> Result<ContainerUpdateResponse, DockerError> {
-        let args = ContainerUpdateArgs { id: id.to_string() };
-        let response = container_update_request(
-            self.http(),
-            &args,
-            &self.api_url().await?,
-            Some(move |b: &mut PreparedRequestBuilder| {
-                let _ = b.set_body_json(&config);
-            }),
-        )
-        .await?;
+        let args = ContainerUpdateArgs {
+            id: id.to_string(),
+            body: super::generated_body("container update", config)?,
+        };
+        let response =
+            container_update_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 

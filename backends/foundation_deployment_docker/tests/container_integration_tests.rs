@@ -9,19 +9,23 @@
 
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
+mod common;
+
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
 
 /// One fresh client per test — no shared state, no pool interference.
-fn client() -> DockerClient {
-    DockerClient::connect_unix("/var/run/docker.sock")
+/// A client for the local daemon, with `alpine:latest` pulled (the tests
+/// create containers from it; a cold daemon does not have it).
+async fn client() -> DockerClient {
+    common::client_with_alpine().await
 }
 
 // ── container_list_with_filters ─────────────────────────────────────────
 
 #[valtron_test]
 async fn container_list_with_filters() {
-    let c = client();
+    let c = client().await;
     let name = "ewe-it-ct-list";
     let id = c
         .create_container(
@@ -53,7 +57,7 @@ async fn container_list_with_filters() {
 
 #[valtron_test]
 async fn container_kill() {
-    let c = client();
+    let c = client().await;
     let id = c
         .create_container(
             &serde_json::json!({"Image": "alpine:latest", "Cmd": ["sleep", "30"]}),
@@ -80,7 +84,7 @@ async fn container_kill() {
 
 #[valtron_test]
 async fn container_pause_then_unpause() {
-    let c = client();
+    let c = client().await;
     let id = c
         .create_container(
             &serde_json::json!({"Image": "alpine:latest", "Cmd": ["sleep", "30"]}),
@@ -116,7 +120,7 @@ async fn container_pause_then_unpause() {
 
 #[valtron_test]
 async fn container_prune() {
-    let c = client();
+    let c = client().await;
     let id = c
         .create_container(
             &serde_json::json!({"Image": "alpine:latest", "Cmd": ["true"]}),
@@ -136,7 +140,7 @@ async fn container_prune() {
 
 #[valtron_test]
 async fn container_resize_tty() {
-    let c = client();
+    let c = client().await;
     let id = c
         .create_container(
             &serde_json::json!({"Image": "alpine:latest", "Cmd": ["sleep", "30"]}),
@@ -158,7 +162,7 @@ async fn container_resize_tty() {
 
 #[valtron_test]
 async fn container_wait() {
-    let c = client();
+    let c = client().await;
     let id = c
         .create_container(
             &serde_json::json!({"Image": "alpine:latest", "Cmd": ["sleep", "5"]}),
@@ -185,7 +189,7 @@ async fn container_changes() {
     let _ = std::process::Command::new("docker")
         .args(["rm", "-f", "ewe-it-ct-changes"])
         .output();
-    let c = client();
+    let c = client().await;
     let id = c
         .create_container(
             &serde_json::json!({"Image": "alpine:latest", "Cmd": ["sleep", "30"]}),

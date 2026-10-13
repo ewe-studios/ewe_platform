@@ -24,48 +24,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `NodeStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeStatus {
-    /// Addr property.
-    #[serde(rename = "Addr")]
-    pub addr: Option<String>,
-    /// Message property.
-    #[serde(rename = "Message")]
-    pub message: Option<String>,
-    /// State property.
-    #[serde(rename = "State")]
-    pub state: Option<NodeState>,
-}
-
-/// `ManagerStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ManagerStatus {
-    /// Addr property.
-    #[serde(rename = "Addr")]
-    pub addr: Option<String>,
-    /// Leader property.
-    #[serde(rename = "Leader")]
-    pub leader: Option<bool>,
-    /// Reachability property.
-    #[serde(rename = "Reachability")]
-    pub reachability: Option<Reachability>,
-}
-
-/// `Reachability` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Reachability {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `NodeState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeState {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `EngineDescription` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EngineDescription {
@@ -82,40 +40,23 @@ pub struct EngineDescription {
 
 /// `GenericResources` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
 pub struct GenericResources {
-    #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `Platform` type.
+/// `ManagerStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Platform {
-    /// Architecture property.
-    #[serde(rename = "Architecture")]
-    pub architecture: Option<String>,
-    /// OS property.
-    #[serde(rename = "OS")]
-    pub os: Option<String>,
-}
-
-/// `NodeDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeDescription {
-    /// Engine property.
-    #[serde(rename = "Engine")]
-    pub engine: Option<EngineDescription>,
-    /// Hostname property.
-    #[serde(rename = "Hostname")]
-    pub hostname: Option<String>,
-    /// Platform property.
-    #[serde(rename = "Platform")]
-    pub platform: Option<Platform>,
-    /// Resources property.
-    #[serde(rename = "Resources")]
-    pub resources: Option<ResourceObject>,
-    /// TLSInfo property.
-    #[serde(rename = "TLSInfo")]
-    pub tls_info: Option<TLSInfo>,
+pub struct ManagerStatus {
+    /// Addr property.
+    #[serde(rename = "Addr")]
+    pub addr: Option<String>,
+    /// Leader property.
+    #[serde(rename = "Leader")]
+    pub leader: Option<bool>,
+    /// Reachability property.
+    #[serde(rename = "Reachability")]
+    pub reachability: Option<Reachability>,
 }
 
 /// `Node` type.
@@ -147,6 +88,82 @@ pub struct Node {
     pub version: Option<ObjectVersion>,
 }
 
+/// `NodeDescription` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NodeDescription {
+    /// Engine property.
+    #[serde(rename = "Engine")]
+    pub engine: Option<EngineDescription>,
+    /// Hostname property.
+    #[serde(rename = "Hostname")]
+    pub hostname: Option<String>,
+    /// Platform property.
+    #[serde(rename = "Platform")]
+    pub platform: Option<Platform>,
+    /// Resources property.
+    #[serde(rename = "Resources")]
+    pub resources: Option<ResourceObject>,
+    /// TLSInfo property.
+    #[serde(rename = "TLSInfo")]
+    pub tls_info: Option<TLSInfo>,
+}
+
+/// `NodeSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NodeSpec {
+    /// Availability property.
+    #[serde(rename = "Availability")]
+    pub availability: Option<String>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Role property.
+    #[serde(rename = "Role")]
+    pub role: Option<String>,
+}
+
+/// `NodeState` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
+pub struct NodeState {
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `NodeStatus` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NodeStatus {
+    /// Addr property.
+    #[serde(rename = "Addr")]
+    pub addr: Option<String>,
+    /// Message property.
+    #[serde(rename = "Message")]
+    pub message: Option<String>,
+    /// State property.
+    #[serde(rename = "State")]
+    pub state: Option<NodeState>,
+}
+
+/// `Platform` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Platform {
+    /// Architecture property.
+    #[serde(rename = "Architecture")]
+    pub architecture: Option<String>,
+    /// OS property.
+    #[serde(rename = "OS")]
+    pub os: Option<String>,
+}
+
+/// `Reachability` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
+pub struct Reachability {
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `ResourceObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceObject {
@@ -173,23 +190,6 @@ pub struct TLSInfo {
     /// TrustRoot property.
     #[serde(rename = "TrustRoot")]
     pub trust_root: Option<String>,
-}
-
-/// `NodeSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NodeSpec {
-    /// Availability property.
-    #[serde(rename = "Availability")]
-    pub availability: Option<String>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Role property.
-    #[serde(rename = "Role")]
-    pub role: Option<String>,
 }
 
 // =============================================================================
@@ -273,7 +273,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -329,7 +330,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: Node = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -387,7 +389,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }

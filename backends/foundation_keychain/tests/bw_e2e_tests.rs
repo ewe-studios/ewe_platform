@@ -97,7 +97,15 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     // ── 1. Start server ──────────────────────────────────────────────────
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let p = StorageProvider::new(StorageBackend::Turso { url: "sqlite::memory:".into() }).expect("db");
+    // A throwaway file in a temp dir, as the other keychain tests use. Turso
+    // reads its URL as a path, so `sqlite::memory:` wrote a file of that name
+    // into the crate directory on every run.
+    let db_dir = tempfile::tempdir().expect("tempdir");
+    let db_path = db_dir.path().join("bw_e2e.db");
+    let p = StorageProvider::new(StorageBackend::Turso {
+        url: db_path.to_str().expect("utf-8 temp path").to_string(),
+    })
+    .expect("db");
     let store: Arc<dyn AsyncQueryStore> = Arc::new(p);
     let sdb = Arc::clone(&store);
     block_on_future(async move { apply_schema(sdb.as_ref()).await }).expect("schema");

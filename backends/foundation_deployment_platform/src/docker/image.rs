@@ -166,7 +166,7 @@ impl DockerFileConfig {
 
         let context = self.context_tar()?;
 
-        let outcome = docker
+        let build = docker
             .image_build(
                 &context,
                 &ImageBuildOptions {
@@ -183,9 +183,12 @@ impl DockerFileConfig {
             )
             .await
             .map_err(map_docker_client_err)?;
+        // The daemon builds while it streams the output, and reports a failed
+        // build inside it: read it to its end (each line is logged, not kept).
+        let image_id = build.image_id().await.map_err(map_docker_client_err)?;
 
         // Prefer the digest the daemon reported; fall back to inspecting the tag.
-        let sha256 = match outcome.image_id {
+        let sha256 = match image_id {
             Some(id) => id,
             None => image_sha(&docker, &self.tag).await?.unwrap_or_default(),
         };

@@ -24,33 +24,144 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SwarmSpec` type.
+/// `ClusterInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SwarmSpec {
-    /// CAConfig property.
-    #[serde(rename = "CAConfig")]
-    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Dispatcher property.
-    #[serde(rename = "Dispatcher")]
-    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// EncryptionConfig property.
-    #[serde(rename = "EncryptionConfig")]
-    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Orchestration property.
-    #[serde(rename = "Orchestration")]
-    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Raft property.
-    #[serde(rename = "Raft")]
-    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// TaskDefaults property.
-    #[serde(rename = "TaskDefaults")]
-    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
+pub struct ClusterInfo {
+    /// CreatedAt property.
+    #[serde(rename = "CreatedAt")]
+    pub created_at: Option<String>,
+    /// DataPathPort property.
+    #[serde(rename = "DataPathPort")]
+    pub data_path_port: Option<i64>,
+    /// DefaultAddrPool property.
+    #[serde(rename = "DefaultAddrPool")]
+    pub default_addr_pool: Option<Vec<String>>,
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+    /// RootRotationInProgress property.
+    #[serde(rename = "RootRotationInProgress")]
+    pub root_rotation_in_progress: Option<bool>,
+    /// Spec property.
+    #[serde(rename = "Spec")]
+    pub spec: Option<SwarmSpec>,
+    /// SubnetSize property.
+    #[serde(rename = "SubnetSize")]
+    pub subnet_size: Option<i64>,
+    /// TLSInfo property.
+    #[serde(rename = "TLSInfo")]
+    pub tls_info: Option<TLSInfo>,
+    /// UpdatedAt property.
+    #[serde(rename = "UpdatedAt")]
+    pub updated_at: Option<String>,
+    /// Version property.
+    #[serde(rename = "Version")]
+    pub version: Option<ObjectVersion>,
+}
+
+/// `Commit` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Commit {
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+}
+
+/// `ContainerdInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerdInfo {
+    /// Address property.
+    #[serde(rename = "Address")]
+    pub address: Option<String>,
+    /// Namespaces property.
+    #[serde(rename = "Namespaces")]
+    pub namespaces: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `DeviceInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeviceInfo {
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+    /// Source property.
+    #[serde(rename = "Source")]
+    pub source: Option<String>,
+}
+
+/// `FirewallInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FirewallInfo {
+    /// Driver property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// Info property.
+    #[serde(rename = "Info")]
+    pub info: Option<Vec<Vec<String>>>,
+}
+
+/// `GenericResources` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
+pub struct GenericResources {
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `LocalNodeState` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+#[serde(transparent)]
+pub struct LocalNodeState {
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `NRIInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NRIInfo {
+    /// Info property.
+    #[serde(rename = "Info")]
+    pub info: Option<Vec<Vec<String>>>,
+}
+
+/// `PeerNode` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PeerNode {
+    /// Addr property.
+    #[serde(rename = "Addr")]
+    pub addr: Option<String>,
+    /// NodeID property.
+    #[serde(rename = "NodeID")]
+    pub node_id: Option<String>,
+}
+
+/// `PluginsInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PluginsInfo {
+    /// Authorization property.
+    #[serde(rename = "Authorization")]
+    pub authorization: Option<Vec<String>>,
+    /// Log property.
+    #[serde(rename = "Log")]
+    pub log: Option<Vec<String>>,
+    /// Network property.
+    #[serde(rename = "Network")]
+    pub network: Option<Vec<String>>,
+    /// Volume property.
+    #[serde(rename = "Volume")]
+    pub volume: Option<Vec<String>>,
+}
+
+/// `RegistryServiceConfig` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistryServiceConfig {
+    /// IndexConfigs property.
+    #[serde(rename = "IndexConfigs")]
+    pub index_configs: Option<serde_json::Value>,
+    /// InsecureRegistryCIDRs property.
+    #[serde(rename = "InsecureRegistryCIDRs")]
+    pub insecure_registry_cid_rs: Option<Vec<String>>,
+    /// Mirrors property.
+    #[serde(rename = "Mirrors")]
+    pub mirrors: Option<Vec<String>>,
 }
 
 /// `SwarmInfo` type.
@@ -83,6 +194,35 @@ pub struct SwarmInfo {
     /// RemoteManagers property.
     #[serde(rename = "RemoteManagers")]
     pub remote_managers: Option<Vec<PeerNode>>,
+}
+
+/// `SwarmSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SwarmSpec {
+    /// CAConfig property.
+    #[serde(rename = "CAConfig")]
+    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Dispatcher property.
+    #[serde(rename = "Dispatcher")]
+    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// EncryptionConfig property.
+    #[serde(rename = "EncryptionConfig")]
+    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Orchestration property.
+    #[serde(rename = "Orchestration")]
+    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Raft property.
+    #[serde(rename = "Raft")]
+    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// TaskDefaults property.
+    #[serde(rename = "TaskDefaults")]
+    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `SystemInfo` type.
@@ -276,70 +416,6 @@ pub struct SystemInfo {
     pub warnings: Option<Vec<String>>,
 }
 
-/// `ClusterInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ClusterInfo {
-    /// CreatedAt property.
-    #[serde(rename = "CreatedAt")]
-    pub created_at: Option<String>,
-    /// DataPathPort property.
-    #[serde(rename = "DataPathPort")]
-    pub data_path_port: Option<i64>,
-    /// DefaultAddrPool property.
-    #[serde(rename = "DefaultAddrPool")]
-    pub default_addr_pool: Option<Vec<String>>,
-    /// ID property.
-    #[serde(rename = "ID")]
-    pub id: Option<String>,
-    /// RootRotationInProgress property.
-    #[serde(rename = "RootRotationInProgress")]
-    pub root_rotation_in_progress: Option<bool>,
-    /// Spec property.
-    #[serde(rename = "Spec")]
-    pub spec: Option<SwarmSpec>,
-    /// SubnetSize property.
-    #[serde(rename = "SubnetSize")]
-    pub subnet_size: Option<i64>,
-    /// TLSInfo property.
-    #[serde(rename = "TLSInfo")]
-    pub tls_info: Option<TLSInfo>,
-    /// UpdatedAt property.
-    #[serde(rename = "UpdatedAt")]
-    pub updated_at: Option<String>,
-    /// Version property.
-    #[serde(rename = "Version")]
-    pub version: Option<ObjectVersion>,
-}
-
-/// `LocalNodeState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LocalNodeState {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `PeerNode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PeerNode {
-    /// Addr property.
-    #[serde(rename = "Addr")]
-    pub addr: Option<String>,
-    /// NodeID property.
-    #[serde(rename = "NodeID")]
-    pub node_id: Option<String>,
-}
-
-/// `FirewallInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallInfo {
-    /// Driver property.
-    #[serde(rename = "Driver")]
-    pub driver: Option<String>,
-    /// Info property.
-    #[serde(rename = "Info")]
-    pub info: Option<Vec<Vec<String>>>,
-}
-
 /// `TLSInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TLSInfo {
@@ -352,82 +428,6 @@ pub struct TLSInfo {
     /// TrustRoot property.
     #[serde(rename = "TrustRoot")]
     pub trust_root: Option<String>,
-}
-
-/// `ContainerdInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainerdInfo {
-    /// Address property.
-    #[serde(rename = "Address")]
-    pub address: Option<String>,
-    /// Namespaces property.
-    #[serde(rename = "Namespaces")]
-    pub namespaces: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `GenericResources` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GenericResources {
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DeviceInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeviceInfo {
-    /// ID property.
-    #[serde(rename = "ID")]
-    pub id: Option<String>,
-    /// Source property.
-    #[serde(rename = "Source")]
-    pub source: Option<String>,
-}
-
-/// `PluginsInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PluginsInfo {
-    /// Authorization property.
-    #[serde(rename = "Authorization")]
-    pub authorization: Option<Vec<String>>,
-    /// Log property.
-    #[serde(rename = "Log")]
-    pub log: Option<Vec<String>>,
-    /// Network property.
-    #[serde(rename = "Network")]
-    pub network: Option<Vec<String>>,
-    /// Volume property.
-    #[serde(rename = "Volume")]
-    pub volume: Option<Vec<String>>,
-}
-
-/// `Commit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Commit {
-    /// ID property.
-    #[serde(rename = "ID")]
-    pub id: Option<String>,
-}
-
-/// `RegistryServiceConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RegistryServiceConfig {
-    /// IndexConfigs property.
-    #[serde(rename = "IndexConfigs")]
-    pub index_configs: Option<serde_json::Value>,
-    /// InsecureRegistryCIDRs property.
-    #[serde(rename = "InsecureRegistryCIDRs")]
-    pub insecure_registry_cid_rs: Option<Vec<String>>,
-    /// Mirrors property.
-    #[serde(rename = "Mirrors")]
-    pub mirrors: Option<Vec<String>>,
-}
-
-/// `NRIInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NRIInfo {
-    /// Info property.
-    #[serde(rename = "Info")]
-    pub info: Option<Vec<Vec<String>>>,
 }
 
 // =============================================================================
@@ -491,7 +491,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: SystemInfo = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

@@ -21,7 +21,32 @@
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::client::build_context::ContextTar;
 use foundation_deployment_docker::client::images::ImageBuildOptions;
+use foundation_deployment_docker::client::body::ProgressStream;
+use foundation_deployment_docker::generated::shared::BuildInfo;
 use foundation_deployment_docker::{DockerClient, DockerError};
+
+/// What a build printed, and the image it reported.
+#[derive(Debug)]
+struct BuildOutcome {
+    logs: String,
+    image_id: Option<String>,
+}
+
+/// Read a build's stream to its end, keeping its output — fine in a test,
+/// where the log is the thing under test.
+async fn read_build(mut stream: ProgressStream<BuildInfo>) -> Result<BuildOutcome, DockerError> {
+    let mut outcome = BuildOutcome { logs: String::new(), image_id: None };
+    while let Some(item) = stream.next().await {
+        let item = item?;
+        if let Some(text) = item.stream {
+            outcome.logs.push_str(&text);
+        }
+        if let Some(id) = item.aux.and_then(|aux| aux.id) {
+            outcome.image_id = Some(id);
+        }
+    }
+    Ok(outcome)
+}
 
 fn client() -> DockerClient {
     DockerClient::connect_unix("/var/run/docker.sock")
@@ -57,7 +82,8 @@ async fn builds_an_inline_dockerfile_and_tags_it() {
             },
         )
         .await
-        .expect("build should succeed");
+        .expect("build should start");
+    let outcome = read_build(outcome).await.expect("build should succeed");
 
     assert!(
         outcome.logs.contains("FROM alpine:3"),
@@ -102,7 +128,8 @@ async fn context_directory_files_are_uploaded_and_copyable() {
             },
         )
         .await
-        .expect("build with a context should succeed");
+        .expect("build with a context should start");
+    let outcome = read_build(outcome).await.expect("build with a context should succeed");
 
     // `RUN cat` echoes the file's content into the build log, so this proves the
     // bytes made it from the host into the image.
@@ -139,7 +166,8 @@ async fn build_args_reach_the_build() {
             },
         )
         .await
-        .expect("build should succeed");
+        .expect("build should start");
+    let outcome = read_build(outcome).await.expect("build should succeed");
 
     assert!(
         outcome.logs.contains("arg-was-delivered"),
@@ -176,9 +204,10 @@ async fn a_failing_build_is_an_error_not_a_success() {
                 ..Default::default()
             },
         )
-        .await;
+        .await
+        .expect("the daemon answers 200: a failed build is reported in the stream");
 
-    match result {
+    match read_build(result).await {
         Err(DockerError::BuildFailed(msg)) => {
             assert!(
                 msg.contains('7') || msg.to_lowercase().contains("non-zero"),

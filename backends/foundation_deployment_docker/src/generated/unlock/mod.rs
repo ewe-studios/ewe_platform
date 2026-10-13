@@ -21,6 +21,14 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `SwarmUnlockRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SwarmUnlockRequest {
+    /// UnlockKey property.
+    #[serde(rename = "UnlockKey")]
+    pub unlock_key: Option<String>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -28,6 +36,8 @@ use super::shared::ApiResponse;
 /// Arguments for [`SwarmUnlock_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SwarmUnlockArgs {
+    /// Request body.
+    pub body: SwarmUnlockRequest,
 }
 
 // =============================================================================
@@ -58,7 +68,7 @@ pub struct SwarmUnlockArgs {
 /// ```
 pub async fn swarm_unlock_request<F>(
     client: DynNetClient,
-    _args: &SwarmUnlockArgs,
+    args: &SwarmUnlockArgs,
     base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<()>, super::shared::ApiError>
@@ -72,6 +82,9 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -82,7 +95,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }

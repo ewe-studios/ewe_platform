@@ -29,15 +29,18 @@ pub struct ConfigReference {
     pub network: Option<String>,
 }
 
-/// `PeerInfo` type.
+/// `IPAM` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PeerInfo {
-    /// IP property.
-    #[serde(rename = "IP")]
-    pub ip: Option<String>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
+pub struct IPAM {
+    /// Config property.
+    #[serde(rename = "Config")]
+    pub config: Option<Vec<IPAMConfig>>,
+    /// Driver property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// Options property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
 }
 
 /// `IPAMConfig` type.
@@ -57,9 +60,12 @@ pub struct IPAMConfig {
     pub subnet: Option<String>,
 }
 
-/// `NetworkInspect` type.
+/// `IPAMStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NetworkInspect {
+pub struct IPAMStatus {
+    /// Subnets property.
+    #[serde(rename = "Subnets")]
+    pub subnets: Option<serde_json::Value>,
 }
 
 /// `Network` type.
@@ -115,6 +121,59 @@ pub struct Network {
     pub scope: Option<String>,
 }
 
+/// `NetworkInspect` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NetworkInspect {
+    /// `Attachable` property.
+    #[serde(rename = "Attachable")]
+    pub attachable: Option<bool>,
+    /// `ConfigFrom` property.
+    #[serde(rename = "ConfigFrom")]
+    pub config_from: Option<ConfigReference>,
+    /// `ConfigOnly` property.
+    #[serde(rename = "ConfigOnly")]
+    pub config_only: Option<bool>,
+    /// `Created` property.
+    #[serde(rename = "Created")]
+    pub created: Option<String>,
+    /// `Driver` property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// `EnableIPv4` property.
+    #[serde(rename = "EnableIPv4")]
+    pub enable_i_pv4: Option<bool>,
+    /// `EnableIPv6` property.
+    #[serde(rename = "EnableIPv6")]
+    pub enable_i_pv6: Option<bool>,
+    /// `Id` property.
+    #[serde(rename = "Id")]
+    pub id: Option<String>,
+    /// `Ingress` property.
+    #[serde(rename = "Ingress")]
+    pub ingress: Option<bool>,
+    /// `Internal` property.
+    #[serde(rename = "Internal")]
+    pub internal: Option<bool>,
+    /// `IPAM` property.
+    #[serde(rename = "IPAM")]
+    pub ipam: Option<IPAM>,
+    /// `Labels` property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// `Name` property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// `Options` property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
+    /// `Peers` property.
+    #[serde(rename = "Peers")]
+    pub peers: Option<Vec<PeerInfo>>,
+    /// `Scope` property.
+    #[serde(rename = "Scope")]
+    pub scope: Option<String>,
+}
+
 /// `NetworkStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkStatus {
@@ -123,26 +182,15 @@ pub struct NetworkStatus {
     pub ipam: Option<IPAMStatus>,
 }
 
-/// `IPAM` type.
+/// `PeerInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IPAM {
-    /// Config property.
-    #[serde(rename = "Config")]
-    pub config: Option<Vec<IPAMConfig>>,
-    /// Driver property.
-    #[serde(rename = "Driver")]
-    pub driver: Option<String>,
-    /// Options property.
-    #[serde(rename = "Options")]
-    pub options: Option<serde_json::Value>,
-}
-
-/// `IPAMStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IPAMStatus {
-    /// Subnets property.
-    #[serde(rename = "Subnets")]
-    pub subnets: Option<serde_json::Value>,
+pub struct PeerInfo {
+    /// IP property.
+    #[serde(rename = "IP")]
+    pub ip: Option<String>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
 }
 
 // =============================================================================
@@ -228,7 +276,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -287,7 +336,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: NetworkInspect = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
@@ -343,7 +393,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     Ok(ApiResponse { status: status as u16, headers, body: () })
 }

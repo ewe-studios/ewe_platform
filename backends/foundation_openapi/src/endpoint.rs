@@ -59,8 +59,15 @@ pub struct EndpointInfo {
     pub path_params: Vec<String>,
     /// Query parameter names
     pub query_params: Vec<String>,
-    /// Request body type name (if any)
+    /// The query parameters (a subset of [`Self::query_params`]) whose schema
+    /// is an array: each value is sent as its own `name=value` pair.
+    pub array_query_params: Vec<String>,
+    /// Request body type name (if any) — a JSON body.
     pub request_type: Option<String>,
+    /// A request body that is not JSON (a tar archive, raw bytes, plain
+    /// text), sent as-is rather than serialized. `None` when the body is JSON
+    /// (see [`Self::request_type`]) or there is none.
+    pub raw_request_body: Option<RawRequestBody>,
     /// Response type discriminator
     pub response_type: Option<ResponseType>,
     /// Error response types by status code
@@ -77,6 +84,22 @@ pub struct EndpointInfo {
     pub deprecated: bool,
 }
 
+/// A non-JSON request body: what the caller hands over as bytes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RawRequestBody {
+    /// The media type the body is sent as (e.g. `application/x-tar`).
+    pub media_type: String,
+    /// Whether the operation requires a body.
+    pub required: bool,
+}
+
+/// Media types whose body is a stream of JSON documents, one per line.
+pub const JSON_LINES_MEDIA_TYPES: &[&str] = &[
+    "application/jsonl",
+    "application/x-ndjson",
+    "application/json-seq",
+];
+
 /// Response type discriminator.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ResponseType {
@@ -86,16 +109,25 @@ pub enum ResponseType {
     JsonValue,
     /// No content (204 responses)
     NoContent,
+    /// A stream of JSON documents, one per line, each of the named generated
+    /// type (`application/jsonl` and kin). Read incrementally, never as one
+    /// document: the stream can be unbounded, and its producer often does the
+    /// work while it writes it.
+    JsonLines(String),
+    /// A body that is not JSON (a tar archive, octet stream, multiplexed log
+    /// stream, plain text), handed to the caller unread.
+    Binary,
 }
 
 impl ResponseType {
-    /// Get the Rust type string for this response type.
+    /// Get the Rust type string for this response type. For
+    /// [`ResponseType::JsonLines`] that is the type of one item.
     #[must_use]
     pub fn as_rust_type(&self) -> &str {
         match self {
-            ResponseType::Generated(name) => name,
+            ResponseType::Generated(name) | ResponseType::JsonLines(name) => name,
             ResponseType::JsonValue => "serde_json::Value",
-            ResponseType::NoContent => "()",
+            ResponseType::NoContent | ResponseType::Binary => "()",
         }
     }
 
@@ -103,6 +135,13 @@ impl ResponseType {
     #[must_use]
     pub fn is_generated(&self) -> bool {
         matches!(self, ResponseType::Generated(_))
+    }
+
+    /// Whether the body is a stream the caller reads incrementally
+    /// ([`ResponseType::JsonLines`] or [`ResponseType::Binary`]).
+    #[must_use]
+    pub fn is_streaming(&self) -> bool {
+        matches!(self, ResponseType::JsonLines(_) | ResponseType::Binary)
     }
 }
 
@@ -258,6 +297,21 @@ impl EndpointInfo {
         (path_params, query_params)
     }
 
+    /// The names of the query parameters whose schema is an array.
+    #[must_use]
+    pub fn extract_array_query_params(parameters: &[Parameter]) -> Vec<String> {
+        parameters
+            .iter()
+            .filter(|p| p.ref_path.is_none() && p.parameter_in.as_deref() == Some("query"))
+            .filter(|p| {
+                p.schema
+                    .as_ref()
+                    .is_some_and(|s| s.schema_type.as_deref() == Some("array"))
+            })
+            .filter_map(|p| p.name.clone())
+            .collect()
+    }
+
     /// Extract parameters by location from GCP method parameters.
     #[must_use]
     pub fn extract_gcp_parameters(
@@ -305,7 +359,9 @@ impl EndpointInfo {
             path: String::new(),
             path_params: Vec::new(),
             query_params: Vec::new(),
+            array_query_params: Vec::new(),
             request_type: None,
+            raw_request_body: None,
             response_type: None,
             error_types: BTreeMap::new(),
             success_codes: Vec::new(),

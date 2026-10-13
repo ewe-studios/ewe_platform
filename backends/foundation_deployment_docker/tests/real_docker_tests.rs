@@ -12,6 +12,8 @@
 
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
+mod common;
+
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
 
@@ -28,7 +30,7 @@ async fn real_docker_version() {
 async fn real_docker_lifecycle_stop_while_running() {
     // WHY: stop on a RUNNING container verifies the full blocking lifecycle —
     // create → start → stop (waits for exit) → remove.
-    let client = DockerClient::connect_unix("/var/run/docker.sock");
+    let client = common::client_with_alpine().await;
 
     let id = client
         .create_container(
@@ -58,7 +60,7 @@ async fn real_docker_stop_already_exited_handles_304() {
     // WHY: Docker returns 304 Not Modified when the container is already
     // exited — our `stop_container` wrapper treats 304 as success (the
     // desired state is reached).
-    let client = DockerClient::connect_unix("/var/run/docker.sock");
+    let client = common::client_with_alpine().await;
 
     let id = client
         .create_container(
@@ -93,7 +95,7 @@ async fn real_docker_stop_already_exited_handles_304() {
 /// DockerClient issue). Re-enable when netio connection reuse is fixed.
 #[ignore = "netio dial-after-close bug (container removed; test logic is correct)"]
 async fn real_docker_pause_unpause() {
-    let client = DockerClient::connect_unix("/var/run/docker.sock");
+    let client = common::client_with_alpine().await;
 
     let id = client
         .create_container(

@@ -6,19 +6,23 @@
 
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
+mod common;
+
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
 
 /// One fresh client per test — no shared state, no pool interference.
-fn client() -> DockerClient {
-    DockerClient::connect_unix("/var/run/docker.sock")
+/// A client for the local daemon, with `alpine:latest` pulled (the tests
+/// create containers from it; a cold daemon does not have it).
+async fn client() -> DockerClient {
+    common::client_with_alpine().await
 }
 
 // ── Network tests ──────────────────────────────────────────────────────
 
 #[valtron_test]
 async fn network_inspect_default_bridge() {
-    let c = client();
+    let c = client().await;
     // The "bridge" network always exists on any Docker daemon.
     let _net = c
         .network_inspect("bridge", None, None)
@@ -28,7 +32,7 @@ async fn network_inspect_default_bridge() {
 
 #[valtron_test]
 async fn network_connect_then_disconnect() {
-    let c = client();
+    let c = client().await;
 
     // Create a sleep container to connect.
     let ctr = c
@@ -65,7 +69,7 @@ async fn network_connect_then_disconnect() {
 
 #[valtron_test]
 async fn network_prune() {
-    let c = client();
+    let c = client().await;
     c.network_prune(None).await.expect("prune networks");
 }
 
@@ -73,7 +77,7 @@ async fn network_prune() {
 
 #[valtron_test]
 async fn volume_inspect_created() {
-    let c = client();
+    let c = client().await;
 
     let cfg = serde_json::json!({"Name":"ewe-it-nv-inspect","Driver":"local"});
     let vol = c.volume_create(cfg).await.expect("create volume");
@@ -93,7 +97,7 @@ async fn volume_inspect_created() {
 
 #[valtron_test]
 async fn volume_prune() {
-    let c = client();
+    let c = client().await;
     c.volume_prune(None).await.expect("prune volumes");
 }
 
@@ -101,7 +105,7 @@ async fn volume_prune() {
 
 #[valtron_test]
 async fn exec_inspect() {
-    let c = client();
+    let c = client().await;
 
     let ctr = c
         .create_container(
@@ -133,7 +137,7 @@ async fn exec_inspect() {
 
 #[valtron_test]
 async fn exec_resize() {
-    let c = client();
+    let c = client().await;
 
     let ctr = c
         .create_container(
@@ -150,7 +154,14 @@ async fn exec_resize() {
         .expect("exec create");
 
     // Start exec before resize — Docker returns 500 if exec hasn't been started
-    let _ = c.exec_start(&exec_id.id, true).await;
+    // Detached: the daemon answers at once, with an empty body.
+    let (mut stdout, mut stderr) = (String::new(), String::new());
+    c.exec_start(&exec_id.id, true)
+        .await
+        .expect("exec start")
+        .read_into(&mut stdout, &mut stderr)
+        .await
+        .expect("a detached start has no output to fail on");
     c.exec_resize(&exec_id.id, 40, 120)
         .await
         .expect("exec resize");
@@ -163,18 +174,23 @@ async fn exec_resize() {
 
 #[valtron_test]
 async fn system_events() {
-    let c = client();
+    let c = client().await;
     // `/events` is an infinite stream unless bounded — with no `until` the
-    // daemon holds the connection open forever and `collect_bytes` never
-    // returns (this hung the suite). `until=<now>` makes Docker replay events
+    // daemon holds the connection open forever and the stream never ends
+    // (collecting it hung the suite). `until=<now>` makes Docker replay events
     // up to this instant and close the stream, so the call terminates.
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .expect("system clock before UNIX epoch")
         .as_secs()
         .to_string();
-    let _ = c
+    let mut events = c
         .system_events(None, Some(&now), None)
         .await
         .expect("system events");
+    // Every replayed event must parse as the generated `EventMessage`.
+    while let Some(event) = events.next().await {
+        let event = event.expect("a typed event");
+        assert!(event.r#type.is_some() || event.action.is_some(), "{event:?}");
+    }
 }

@@ -5,6 +5,7 @@
 
 // Re-export common API types from foundation_deployment
 pub use foundation_deployment::providers::common::{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation};
+pub use foundation_deployment::providers::common::{read_error_body, with_raw_body, ByteStream, JsonLinesStream};
 
 // Imports for shared resource types
 use foundation_macros::JsonHash;
@@ -13,6 +14,25 @@ use serde::{Deserialize, Serialize};
 // =============================================================================
 // SHARED RESOURCE TYPES
 // =============================================================================
+
+/// `BuildInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BuildInfo {
+    /// aux property.
+    pub aux: Option<ImageID>,
+    /// errorDetail property.
+    #[serde(rename = "errorDetail")]
+    pub error_detail: Option<ErrorDetail>,
+    /// id property.
+    pub id: Option<String>,
+    /// progressDetail property.
+    #[serde(rename = "progressDetail")]
+    pub progress_detail: Option<ProgressDetail>,
+    /// status property.
+    pub status: Option<String>,
+    /// stream property.
+    pub stream: Option<String>,
+}
 
 /// `IDResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -117,6 +137,23 @@ pub struct ClusterVolumeSpec {
     pub group: Option<String>,
 }
 
+/// `ErrorDetail` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ErrorDetail {
+    /// code property.
+    pub code: Option<i64>,
+    /// message property.
+    pub message: Option<String>,
+}
+
+/// `ImageID` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ImageID {
+    /// ID property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+}
+
 /// `ObjectVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ObjectVersion {
@@ -183,6 +220,15 @@ pub struct PluginMount {
     /// Type property.
     #[serde(rename = "Type")]
     pub r#type: String,
+}
+
+/// `ProgressDetail` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ProgressDetail {
+    /// current property.
+    pub current: Option<i64>,
+    /// total property.
+    pub total: Option<i64>,
 }
 
 /// `Topology` type.

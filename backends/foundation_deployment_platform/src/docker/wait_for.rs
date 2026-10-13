@@ -16,7 +16,7 @@ use std::net::{Ipv4Addr, SocketAddr, TcpStream, UdpSocket};
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::sleep_async;
-use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
+use foundation_deployment_docker::streaming::decoder::LogOutput;
 use foundation_deployment_docker::DockerClient;
 use foundation_netio::http::SimpleHttpClient;
 use crate::docker::error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
@@ -220,9 +220,8 @@ fn udp_probe(addr: SocketAddr) -> bool {
 }
 
 /// Scan container stdout logs for a message. Polls via
-/// [`DockerClient::container_logs`] (follow=false) with
-/// [`LogFrameDecoder`] — no real-time streaming needed for a readiness
-/// check.
+/// [`DockerClient::container_logs`] (follow=false), reading the frames as they
+/// stream — no real-time following needed for a readiness check.
 async fn wait_for_stdout(
     client: &DockerClient,
     container_id: &str,
@@ -232,7 +231,7 @@ async fn wait_for_stdout(
     let start = Instant::now();
 
     loop {
-        let raw = client
+        let mut frames = client
             .container_logs(
                 container_id,
                 false, // follow
@@ -248,15 +247,17 @@ async fn wait_for_stdout(
                 docker_err(classify_docker_client_err("container_logs", e))
             })?;
 
-        let mut decoder = LogFrameDecoder::new();
-        decoder.feed(&raw);
-        while let Some(frame) = decoder.decode() {
+        // Frame by frame as the log streams; stop reading as soon as the
+        // message shows up.
+        while let Some(frame) = frames.next().await {
+            let frame = frame
+                .map_err(|e| docker_err(classify_docker_client_err("container_logs", e)))?;
             let text = match frame {
                 LogOutput::StdOut { message: msg }
                 | LogOutput::StdErr { message: msg } => {
                     String::from_utf8_lossy(&msg).to_string()
                 }
-                _ => continue,
+                LogOutput::StdIn { .. } | LogOutput::Console { .. } => continue,
             };
             if text.contains(message) {
                 return Ok(());

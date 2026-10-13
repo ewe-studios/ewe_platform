@@ -10,11 +10,25 @@
 
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
+mod common;
+
 use foundation_core::valtron::valtron_test;
+use foundation_deployment_docker::client::body::ByteBody;
 use foundation_deployment_docker::DockerClient;
 
-fn client() -> DockerClient {
-    DockerClient::connect_unix("/var/run/docker.sock")
+/// Collect a small archive (one file) whole — fine in a test.
+async fn read_all(mut body: ByteBody) -> Vec<u8> {
+    let mut out = Vec::new();
+    while let Some(chunk) = body.next().await {
+        out.extend_from_slice(&chunk.expect("archive chunk"));
+    }
+    out
+}
+
+/// A client for the local daemon, with `alpine:latest` pulled (the tests
+/// create containers from it; a cold daemon does not have it).
+async fn client() -> DockerClient {
+    common::client_with_alpine().await
 }
 
 /// Create + start a long-lived alpine container, returning its id.
@@ -37,26 +51,30 @@ async fn start_alpine(c: &DockerClient, name: &str) -> String {
 
 #[valtron_test]
 async fn upload_and_download_archive_round_trips() {
-    let c = client();
+    let c = client().await;
     let id = start_alpine(&c, "ewe-it-upload").await;
 
     // Download an existing file as a valid tar straight from Docker, then
     // upload that exact tar into /tmp and read it back — avoids constructing
     // tar bytes by hand while exercising both PUT and GET archive paths.
-    let tar = c
-        .container_archive(&id, "/etc/hostname")
-        .await
-        .expect("download /etc/hostname");
+    let tar = read_all(
+        c.container_archive(&id, "/etc/hostname")
+            .await
+            .expect("download /etc/hostname"),
+    )
+    .await;
     assert!(!tar.is_empty(), "downloaded tar should be non-empty");
 
     c.upload_to_container(&id, "/tmp", tar.clone(), Some(false), Some(false))
         .await
         .expect("upload tar into /tmp");
 
-    let back = c
-        .container_archive(&id, "/tmp/hostname")
-        .await
-        .expect("download /tmp/hostname after upload");
+    let back = read_all(
+        c.container_archive(&id, "/tmp/hostname")
+            .await
+            .expect("download /tmp/hostname after upload"),
+    )
+    .await;
     assert!(!back.is_empty(), "re-downloaded tar should be non-empty");
 
     let _ = c.remove_container(&id, true).await;
@@ -66,7 +84,7 @@ async fn upload_and_download_archive_round_trips() {
 
 #[valtron_test]
 async fn get_container_archive_info_ok() {
-    let c = client();
+    let c = client().await;
     let id = start_alpine(&c, "ewe-it-archive-info").await;
 
     let stat = c
@@ -89,7 +107,7 @@ async fn get_container_archive_info_ok() {
 
 #[valtron_test]
 async fn update_container_cpu_shares() {
-    let c = client();
+    let c = client().await;
     let id = start_alpine(&c, "ewe-it-update").await;
 
     // CpuShares is a safe, cgroup-independent knob to flip on any host.
@@ -104,14 +122,18 @@ async fn update_container_cpu_shares() {
 
 #[valtron_test]
 async fn export_images_alpine() {
-    let c = client();
+    let c = client().await;
     // alpine:latest is present — every other test pulls/uses it.
-    let tar = c
+    // Counted as it streams, not collected: an image tarball can be large.
+    let len = c
         .export_images(&["alpine:latest"])
         .await
-        .expect("export alpine:latest");
+        .expect("export alpine:latest")
+        .drain()
+        .await
+        .expect("read the exported tar");
     assert!(
-        tar.len() > 512,
+        len > 512,
         "exported image tar should be larger than one tar block"
     );
 }

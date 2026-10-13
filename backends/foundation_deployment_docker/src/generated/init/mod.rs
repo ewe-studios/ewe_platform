@@ -21,6 +21,64 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `SwarmInitRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SwarmInitRequest {
+    /// AdvertiseAddr property.
+    #[serde(rename = "AdvertiseAddr")]
+    pub advertise_addr: Option<String>,
+    /// DataPathAddr property.
+    #[serde(rename = "DataPathAddr")]
+    pub data_path_addr: Option<String>,
+    /// DataPathPort property.
+    #[serde(rename = "DataPathPort")]
+    pub data_path_port: Option<i64>,
+    /// DefaultAddrPool property.
+    #[serde(rename = "DefaultAddrPool")]
+    pub default_addr_pool: Option<Vec<String>>,
+    /// ForceNewCluster property.
+    #[serde(rename = "ForceNewCluster")]
+    pub force_new_cluster: Option<bool>,
+    /// ListenAddr property.
+    #[serde(rename = "ListenAddr")]
+    pub listen_addr: Option<String>,
+    /// Spec property.
+    #[serde(rename = "Spec")]
+    pub spec: Option<SwarmSpec>,
+    /// SubnetSize property.
+    #[serde(rename = "SubnetSize")]
+    pub subnet_size: Option<i64>,
+}
+
+/// `SwarmSpec` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SwarmSpec {
+    /// CAConfig property.
+    #[serde(rename = "CAConfig")]
+    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Dispatcher property.
+    #[serde(rename = "Dispatcher")]
+    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// EncryptionConfig property.
+    #[serde(rename = "EncryptionConfig")]
+    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Labels property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// Name property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// Orchestration property.
+    #[serde(rename = "Orchestration")]
+    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// Raft property.
+    #[serde(rename = "Raft")]
+    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// TaskDefaults property.
+    #[serde(rename = "TaskDefaults")]
+    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -28,6 +86,8 @@ use super::shared::ApiResponse;
 /// Arguments for [`SwarmInit_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SwarmInitArgs {
+    /// Request body.
+    pub body: SwarmInitRequest,
 }
 
 // =============================================================================
@@ -58,7 +118,7 @@ pub struct SwarmInitArgs {
 /// ```
 pub async fn swarm_init_request<F>(
     client: DynNetClient,
-    _args: &SwarmInitArgs,
+    args: &SwarmInitArgs,
     base_url: &str,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
@@ -72,6 +132,9 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -82,7 +145,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

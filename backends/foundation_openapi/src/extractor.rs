@@ -7,7 +7,7 @@
 //! HOW: Iterates paths (`OpenAPI`) or resources (GCP) and extracts operation metadata.
 
 use crate::classifier::OperationTypeClassifier;
-use crate::endpoint::{EndpointInfo, GcpParameter, OperationType, ResponseType};
+use crate::endpoint::{EndpointInfo, GcpParameter, OperationType, RawRequestBody, ResponseType};
 use crate::spec::{GcpMethod, OpenApiSpec, Operation, Response, Schema};
 use crate::type_resolver::TypeResolver;
 use std::collections::{BTreeMap, HashSet};
@@ -142,6 +142,12 @@ impl EndpointExtractor {
             (Vec::new(), Vec::new())
         };
 
+        let array_query_params = operation
+            .parameters
+            .as_deref()
+            .map(EndpointInfo::extract_array_query_params)
+            .unwrap_or_default();
+
         // Use path template params if parameter array didn't provide path params
         if param_path.is_empty() && !path_params.is_empty() {
             param_path.clone_from(&path_params);
@@ -156,6 +162,26 @@ impl EndpointExtractor {
             .and_then(|media| media.schema.as_ref())
             .and_then(|schema| self.resolver.resolve_request_body_type(schema));
 
+        // A body with no JSON form is sent raw (a tar archive, plain text).
+        // Form and multipart bodies are structured, not raw bytes, and are left
+        // to their own handling.
+        let raw_request_body = operation.request_body.as_ref().and_then(|rb| {
+            let content = rb.content.as_ref()?;
+            if content.contains_key("application/json") {
+                return None;
+            }
+            content
+                .keys()
+                .find(|media_type| {
+                    media_type.as_str() != "application/x-www-form-urlencoded"
+                        && !media_type.starts_with("multipart/")
+                })
+                .map(|media_type| RawRequestBody {
+                    media_type: media_type.clone(),
+                    required: rb.required,
+                })
+        });
+
         // Extract response type from success status codes
         let (response_type, success_codes, error_types) =
             self.extract_responses(&operation.responses);
@@ -166,7 +192,9 @@ impl EndpointExtractor {
             path: path.to_string(),
             path_params: param_path,
             query_params: param_query,
+            array_query_params,
             request_type,
+            raw_request_body,
             response_type,
             error_types,
             success_codes,
@@ -359,7 +387,9 @@ impl EndpointExtractor {
             path: path.to_string(),
             path_params,
             query_params,
+            array_query_params: Vec::new(),
             request_type,
+            raw_request_body: None,
             response_type,
             error_types: BTreeMap::new(), // GCP typically uses a common error type
             success_codes: vec!["200".to_string()],

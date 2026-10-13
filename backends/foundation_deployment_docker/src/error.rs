@@ -52,6 +52,11 @@ pub enum DockerError {
     #[display("docker push failed: {_0}")]
     PushFailed(String),
 
+    /// An image load (`POST /images/load`) failed, reported inside the `200`
+    /// progress stream.
+    #[display("docker image load failed: {_0}")]
+    LoadFailed(String),
+
     /// The Docker daemon socket could not be resolved or is unavailable.
     #[display("docker unavailable: {_0}")]
     Unavailable(String),

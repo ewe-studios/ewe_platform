@@ -24,6 +24,44 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `ContainerExecRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerExecRequest {
+    /// AttachStderr property.
+    #[serde(rename = "AttachStderr")]
+    pub attach_stderr: Option<bool>,
+    /// AttachStdin property.
+    #[serde(rename = "AttachStdin")]
+    pub attach_stdin: Option<bool>,
+    /// AttachStdout property.
+    #[serde(rename = "AttachStdout")]
+    pub attach_stdout: Option<bool>,
+    /// Cmd property.
+    #[serde(rename = "Cmd")]
+    pub cmd: Option<Vec<String>>,
+    /// ConsoleSize property.
+    #[serde(rename = "ConsoleSize")]
+    pub console_size: Option<Vec<i64>>,
+    /// DetachKeys property.
+    #[serde(rename = "DetachKeys")]
+    pub detach_keys: Option<String>,
+    /// Env property.
+    #[serde(rename = "Env")]
+    pub env: Option<Vec<String>>,
+    /// Privileged property.
+    #[serde(rename = "Privileged")]
+    pub privileged: Option<bool>,
+    /// Tty property.
+    #[serde(rename = "Tty")]
+    pub tty: Option<bool>,
+    /// User property.
+    #[serde(rename = "User")]
+    pub user: Option<String>,
+    /// WorkingDir property.
+    #[serde(rename = "WorkingDir")]
+    pub working_dir: Option<String>,
+}
+
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
@@ -33,6 +71,8 @@ use super::shared::ApiResponse;
 pub struct ContainerExecArgs {
     /// Path parameter: `id`.
     pub id: String,
+    /// Request body.
+    pub body: ContainerExecRequest,
 }
 
 // =============================================================================
@@ -78,6 +118,9 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder.body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -88,7 +131,8 @@ where
     let status: usize = response.get_status().into();
     let headers = response.get_headers_ref().clone();
     if status < 200 || status >= 300 {
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body: None });
+        let body = super::shared::read_error_body(response.take_body()).await;
+        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
     }
     let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
     let parsed: IDResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;

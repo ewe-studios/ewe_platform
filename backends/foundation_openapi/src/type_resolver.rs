@@ -213,7 +213,9 @@ impl TypeResolver {
     #[must_use]
     pub fn get_response_type(&self, response: &Response) -> Option<ResponseType> {
         let content = response.content.as_ref()?;
-        let media_type = content.get("application/json")?;
+        let Some(media_type) = content.get("application/json") else {
+            return self.get_streaming_response_type(content);
+        };
         let schema = media_type.schema.as_ref()?;
 
         // Check if this is a generatable type
@@ -242,6 +244,36 @@ impl TypeResolver {
         } else {
             Some(ResponseType::JsonValue)
         }
+    }
+
+    /// The response type of a body that is not a single JSON document.
+    ///
+    /// A JSON-lines media type ([`crate::endpoint::JSON_LINES_MEDIA_TYPES`])
+    /// whose schema names a generatable type is a stream of that type; any
+    /// other media type that carries a schema is a byte stream. Returns `None`
+    /// when no media type has a schema (nothing is said about the body).
+    fn get_streaming_response_type(
+        &self,
+        content: &BTreeMap<String, crate::spec::MediaType>,
+    ) -> Option<ResponseType> {
+        for json_lines in crate::endpoint::JSON_LINES_MEDIA_TYPES {
+            let Some(schema) = content.get(*json_lines).and_then(|m| m.schema.as_ref()) else {
+                continue;
+            };
+            if let Some(ref_path) = &schema.ref_path {
+                if Self::check_schema_generatable(schema, self.schemas.as_ref()) {
+                    let type_name = ref_path
+                        .trim_start_matches("#/components/schemas/")
+                        .trim_start_matches("#/schemas/");
+                    let normalized = Self::to_pascal_case(type_name);
+                    return Some(ResponseType::JsonLines(Self::rename_if_keyword(normalized)));
+                }
+            }
+        }
+        content
+            .values()
+            .any(|m| m.schema.is_some())
+            .then_some(ResponseType::Binary)
     }
 
     /// Normalize type name to Rust `PascalCase`.
