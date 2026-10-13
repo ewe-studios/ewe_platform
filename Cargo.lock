@@ -241,6 +241,7 @@ dependencies = [
  "foundation_ai",
  "foundation_compact",
  "foundation_core",
+ "foundation_errstacks",
  "foundation_repl",
  "tracing",
  "tracing-subscriber",

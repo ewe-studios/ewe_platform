@@ -59,6 +59,19 @@ let agent = builder
     .build()?;
 ```
 
+A single local GGUF model is the same shape — the repo id, and an optional
+config (`None` is the default: CPU, `q4_k_m`, the `HuggingFace` cache dir):
+
+```rust
+use foundation_ai::agentic::AgentSession;
+use foundation_ai::harness::RouterPreset;
+
+let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
+let agent = AgentSession::builder(preset)       // the preset's model is the session's model
+    .with_system_prompt("You are a helpful assistant.")
+    .build()?;
+```
+
 Harness presets available:
 
 | Constructor | Main model | Memory model | Provider |
@@ -66,14 +79,20 @@ Harness presets available:
 | `RouterPreset::claude(key)` | Claude Opus | Claude Sonnet | Anthropic |
 | `RouterPreset::openai_chat(key)` | GPT-4o | GPT-4o-mini | OpenAI Chat |
 | `RouterPreset::openai_responses(key)` | GPT-4o | GPT-4o-mini | OpenAI Responses |
+| `RouterPreset::hugging_face(repo, None)` | any one GGUF repo | — | Llama.cpp (GGUF), config as given |
+| `RouterPreset::huggingface_cpu(repo, None)` | any one GGUF repo | — | Llama.cpp (GGUF), forced to CPU |
+| `RouterPreset::huggingface_gpu(repo, None)` | any one GGUF repo | — | Llama.cpp (GGUF), forced to GPU, all layers offloaded |
 | `RouterPreset::glm52_gemma(None, None)` | GLM 5.2 | Gemma 4 E2B | Llama.cpp (GGUF) |
 | `RouterPreset::qwen36_gemma(None, None)` | Qwen 3.6 | Gemma 4 E2B | Llama.cpp (GGUF) |
 | `RouterPreset::gemma(None, None)` | Gemma 4 26B | Gemma 4 E2B | Llama.cpp (GGUF) |
 | `RouterPreset::candle_llama(repo, None)` | one safetensors | — | Candle |
 
-Each returns a `RouterPreset`; `.into_agent_builder()` turns it into an
-`AgentSessionBuilder` with the models set (add `.with_session_id(id)` to pick
-the session).
+Each returns a `RouterPreset`. `AgentSession::builder(preset)` (or
+`preset.into_agent_builder()`) turns it into an `AgentSessionBuilder` with the
+preset's primary/memory/fallback models set, so there is no `with_model` to
+call; `with_model` still overrides. Add `.with_session_id(id)` to pick the
+session. Context, memory and error-policy configs default; set them only to
+change them.
 
 ### 1b. Manual: No Helpers, From Scratch
 
@@ -278,6 +297,9 @@ use foundation_ai::harness::providers::Glm52;
 // Preset (Glm52, Qwen36, Gemma4E2b, Gemma4_26b, Ornith10):
 let provider = Glm52::q4_k_m(None)?;  // Q3_K_M / Q4_K_M / Q5_K_M / Q8_0
 
+// Defaults with a different cache dir:
+let provider = Glm52::q4_k_m(Some(HuggingFaceGGUFConfig::with_cache_dir("/path/to/model/cache")))?;
+
 // Custom config:
 let config = HuggingFaceGGUFConfig::builder()
     .default_quantization("Q4_K_M")
@@ -286,6 +308,11 @@ let config = HuggingFaceGGUFConfig::builder()
     .build();
 let provider = HuggingFaceGGUFProvider::new(config)?;
 ```
+
+For an agent you rarely need the provider itself: `RouterPreset::hugging_face(repo, config)`
+builds it and names the model in one call, and `huggingface_cpu` / `huggingface_gpu`
+force the backend (`config.on_cpu()` / `config.on_gpu()`) while keeping the rest of
+the config.
 
 GPU features: `metal` (Apple), `vulkan`, `cuda`/`cuda_static`.
 
@@ -559,6 +586,7 @@ agent.end()?;  // flush buffers, drain queues, persist
 ```
 Harness path (fastest):
   RouterPreset::claude(key)?.into_agent_builder() → .build()
+  AgentSession::builder(RouterPreset::huggingface_cpu(repo, None)?) → .build()
 
 Manual path (full control):
   Provider + RoutableProviderBox → ProviderRouter::builder()

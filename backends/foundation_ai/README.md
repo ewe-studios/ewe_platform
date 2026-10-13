@@ -106,6 +106,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+A local GGUF model is the same few lines — no API key, and the preset's model
+is the session's model:
+
+```rust
+use foundation_ai::agentic::AgentSession;
+use foundation_ai::harness::RouterPreset;
+
+let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
+let agent = AgentSession::builder(preset)
+    .with_system_prompt("You are a helpful assistant.")
+    .build()?;
+```
+
 Prefer the raw `Model` trait, a different provider, or a manual `ProviderRouter`?
 That's all in **[Getting Started: Providers](docs/getting-started/01-providers.md)**.
 

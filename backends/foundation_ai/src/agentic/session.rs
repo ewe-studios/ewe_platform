@@ -38,6 +38,7 @@ use crate::agentic::tool_impl::ToolCallManager;
 use crate::agentic::toolshed::{SessionParts, ToolShed};
 use crate::agentic::turn::{Answer, Turn, TurnStream};
 use crate::agentic::ErrorPolicy;
+use crate::harness::RouterPreset;
 use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord};
 
 // ---------------------------------------------------------------------------
@@ -143,13 +144,29 @@ impl AgentSession {
     /// [`with_memory_store`](AgentSessionBuilder::with_memory_store) (each
     /// changes the builder's type) and pick the session with
     /// [`with_session_id`](AgentSessionBuilder::with_session_id).
+    ///
+    /// Takes a [`RouterPreset`], a [`ProviderRouter`], or a single provider.
+    /// A preset's primary/memory/fallback models become the session's models
+    /// (`with_model` and friends override them); a bare router or provider
+    /// carries no model, so `build()` then fails with "no model set" unless
+    /// `with_model` is called.
     #[must_use]
-    pub fn builder(router: impl Into<ProviderRouter>) -> AgentSessionBuilder {
-        AgentSessionBuilder::new(
-            router.into(),
+    pub fn builder(router: impl Into<RouterPreset>) -> AgentSessionBuilder {
+        let RouterPreset {
+            router,
+            primary_model,
+            memory_model,
+            fallback_models,
+        } = router.into();
+        let mut builder = AgentSessionBuilder::new(
+            router,
             MemoryDocumentStore::new(),
             KvMemoryStore::new(MemoryStorage::new()),
-        )
+        );
+        builder.model = primary_model;
+        builder.memory_model = memory_model;
+        builder.fallback_models = fallback_models;
+        builder
     }
 }
 
@@ -377,8 +394,9 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
     /// (2) budget is retrieved and applied to the ledger. If any check fails,
     /// no valtron task is scheduled.
     /// # Errors
-    /// Returns [`AgenticError::Session`] (`"no model set"`) if
-    /// [`with_model`](Self::with_model) was never called, and
+    /// Returns [`AgenticError::Session`] (`"no model set"`) if neither the
+    /// preset passed to [`AgentSession::builder`] nor
+    /// [`with_model`](Self::with_model) set a primary model, and
     /// [`ErrorTrace<AgenticError>`] if preflight checks fail.
     pub fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
         // A session runs on a model the caller chose; there is no silent

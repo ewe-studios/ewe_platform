@@ -179,14 +179,16 @@ pub struct RouterPreset {
 }
 
 impl RouterPreset {
-    /// Bridge into an [`AgentSessionBuilder`], applying the preset's
-    /// primary/memory/fallback models. The builder starts on the in-memory
+    /// Bridge into an [`AgentSessionBuilder`] whose models are the preset's
+    /// primary/memory/fallback models — the same as
+    /// `AgentSession::builder(preset)`. The builder starts on the in-memory
     /// stores and a fresh session id; continue with `with_session_id`,
     /// `with_doc_store` / `with_memory_store`, and the other `with_*` methods.
+    /// `with_model` / `with_memory_model` / `with_fallback_models` override
+    /// the preset's choice.
     #[must_use]
     pub fn into_agent_builder(self) -> AgentSessionBuilder {
-        let builder = AgentSession::builder(self.router.clone());
-        self.apply_models(builder)
+        AgentSession::builder(self)
     }
 
     /// [`into_agent_builder`](Self::into_agent_builder) over explicit stores.
@@ -209,22 +211,38 @@ impl RouterPreset {
             .with_doc_store(doc_store)
             .with_memory_store(memory_store)
     }
+}
 
-    fn apply_models<D, M>(self, builder: AgentSessionBuilder<D, M>) -> AgentSessionBuilder<D, M>
-    where
-        D: DocumentStore + 'static,
-        M: MemoryStore + 'static,
-    {
-        let mut builder = builder;
-        if let Some(primary) = self.primary_model {
-            builder = builder.with_model(primary);
+/// A bare router is a preset with no models: `AgentSession::builder(router)`
+/// then needs `with_model`.
+impl From<ProviderRouter> for RouterPreset {
+    fn from(router: ProviderRouter) -> Self {
+        RouterPreset {
+            router,
+            primary_model: None,
+            memory_model: None,
+            fallback_models: Vec::new(),
         }
-        if let Some(memory) = self.memory_model {
-            builder = builder.with_memory_model(memory);
-        }
-        if !self.fallback_models.is_empty() {
-            builder = builder.with_fallback_models(self.fallback_models);
-        }
-        builder
+    }
+}
+
+/// A single provider is a preset with no models, routed as
+/// `ProviderRouter::from(provider)`: `AgentSession::builder(provider)` then
+/// needs `with_model`.
+///
+/// `ModelProvider` is a local trait that neither `RouterPreset` nor
+/// `ProviderRouter` implements, so this doesn't overlap with
+/// `impl<T> From<T> for T` or `From<ProviderRouter>`.
+///
+/// # Panics
+/// Panics if the provider cannot describe itself (see
+/// [`RoutableProviderBox::new`]).
+impl<P> From<P> for RouterPreset
+where
+    P: ModelProvider + Send + Sync + 'static,
+    P::Model: Send + Sync,
+{
+    fn from(provider: P) -> Self {
+        ProviderRouter::from(provider).into()
     }
 }
