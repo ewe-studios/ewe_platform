@@ -13,47 +13,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use super::analyzer::ApiGroup;
-
-/// Scan a shared module's content and extract all struct/enum type names it defines.
-fn regex_shared_type_names(content: &str) -> Vec<String> {
-    let mut names = Vec::new();
-    for line in content.lines() {
-        let trimmed = line.trim();
-        // Match "pub struct TypeName" or "pub enum TypeName"
-        if let Some(rest) = trimmed
-            .strip_prefix("pub struct ")
-            .or_else(|| trimmed.strip_prefix("pub enum "))
-        {
-            if let Some(name) = rest.split_whitespace().next() {
-                let clean = name.trim_end_matches('{').trim_end();
-                if !clean.is_empty()
-                    && clean
-                        .chars()
-                        .next()
-                        .map(|c| c.is_uppercase() || c == '_')
-                        .unwrap_or(false)
-                {
-                    names.push(clean.to_string());
-                }
-            }
-        }
-        // Also match "pub use crate::providers::common::{..., Empty, Operation, ...};"
-        if trimmed.starts_with("pub use crate::providers::common::") {
-            if let Some(start) = trimmed.find('{') {
-                if let Some(end) = trimmed.find('}') {
-                    let between = &trimmed[start + 1..end];
-                    for item in between.split(',') {
-                        let item = item.trim();
-                        if !item.is_empty() && !item.starts_with('_') {
-                            names.push(item.to_string());
-                        }
-                    }
-                }
-            }
-        }
-    }
-    names
-}
+use super::emit::{self, Field, ModuleFile, TypeDef, ARGS_DERIVES, SCHEMA_DERIVES};
 
 /// How deep `allOf` members are followed through `$ref`s before giving up — a
 /// guard against a reference cycle, far past any real spec's nesting.
@@ -510,24 +470,10 @@ fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<
     field_type.to_string()
 }
 
-/// Serde attribute for a struct whose only field is the opaque JSON map
-/// written by [`write_opaque_map_field`].
-///
-/// WHY: such a struct used to put `#[serde(flatten)]` on its one map field.
-/// For a lone map field, `transparent` gives the same JSON: an object
-/// serializes as the map's entries and any object deserializes into it. But
-/// serde's `flatten` derive is far bigger: it buffers every entry into
-/// `Content` and needs a field-identifier enum. Generated provider APIs have
-/// thousands of these (Cloudflare has 2271), and the `flatten` form was a
-/// large part of why that crate's `rustc` was OOM-killed on 16 GB CI runners.
-const OPAQUE_MAP_STRUCT_ATTR: &str = "#[serde(transparent)]";
-
-/// The single field of an opaque schema's struct: the raw JSON object.
-fn write_opaque_map_field(out: &mut String) -> std::fmt::Result {
-    writeln!(
-        out,
-        "    pub data: std::collections::HashMap<String, serde_json::Value>,"
-    )
+/// Whether `ty` mentions the identifier `name` (as a whole word).
+fn type_ident_in(ty: &str, name: &str) -> bool {
+    ty.split(|c: char| !(c.is_alphanumeric() || c == '_'))
+        .any(|ident| ident == name)
 }
 
 /// Transform an OpenAPI path into a Rust format! string.
@@ -784,14 +730,33 @@ pub fn rewrite_features_for_groups(
         toml_edit::value(array)
     };
 
+    let mut added = false;
     for feature in &group_features {
         // A group feature that already exists keeps whatever it enables.
         if features.get(feature).is_none() {
             features.insert(feature, feature_list(&[]));
+            added = true;
         }
     }
-    set_feature(features, &provider_feature, feature_list(&group_features));
-    set_feature(features, &all_feature, feature_list(&group_features));
+    // `<provider>` and `<provider>_all` enable every group, and keep whatever
+    // else was written into them by hand (Docker's `docker` also enables
+    // `dep:tar`).
+    for umbrella in [&provider_feature, &all_feature] {
+        let mut entries: Vec<String> = features
+            .get(umbrella)
+            .and_then(toml_edit::Item::as_array)
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str())
+                    // Group features are re-listed below; anything else stays.
+                    .filter(|e| !e.starts_with(&group_prefix))
+                    .map(str::to_string)
+                    .collect()
+            })
+            .unwrap_or_default();
+        entries.extend(group_features.iter().cloned());
+        added |= set_feature(features, umbrella, feature_list(&entries));
+    }
 
     if let Some(parent) = parent_feature {
         // Every sub-provider feature (`gcp_admin`, `gcp_cloudkms`, …): exactly
@@ -805,11 +770,14 @@ pub fn rewrite_features_for_groups(
             })
             .collect();
         sub_providers.sort();
-        set_feature(features, &parent, feature_list(&sub_providers));
+        added |= set_feature(features, &parent, feature_list(&sub_providers));
     }
 
-    // New keys were appended; keep the table sorted as the manifests are.
-    features.sort_values();
+    // New keys were appended at the end; place them in order. A manifest that
+    // gained nothing is not re-sorted (its hand-written order stays).
+    if added {
+        features.sort_values();
+    }
 
     Ok(doc.to_string())
 }
@@ -819,7 +787,9 @@ pub fn rewrite_features_for_groups(
 ///
 /// A feature that already lists exactly these entries is left as it is, so
 /// regenerating an up-to-date crate does not reformat its manifest.
-fn set_feature(features: &mut dyn toml_edit::TableLike, key: &str, item: toml_edit::Item) {
+///
+/// Returns whether the key is new.
+fn set_feature(features: &mut dyn toml_edit::TableLike, key: &str, item: toml_edit::Item) -> bool {
     let entries = |item: &toml_edit::Item| -> Option<Vec<String>> {
         item.as_array().map(|a| {
             a.iter()
@@ -827,12 +797,47 @@ fn set_feature(features: &mut dyn toml_edit::TableLike, key: &str, item: toml_ed
                 .collect()
         })
     };
+    let sorted = |v: Option<Vec<String>>| {
+        v.map(|mut v| {
+            v.sort();
+            v
+        })
+    };
     match features.get_mut(key) {
-        Some(existing) if entries(existing) == entries(&item) => {}
-        Some(existing) => *existing = item,
+        // Same entries in any order: leave the hand-written order alone.
+        Some(existing) if sorted(entries(existing)) == sorted(entries(&item)) => false,
+        Some(existing) => {
+            *existing = item;
+            false
+        }
         None => {
             features.insert(key, item);
+            true
         }
+    }
+}
+
+/// Format generated files with `rustfmt`.
+///
+/// The edition matters: `rustfmt` run on a bare file assumes Rust 2015, where
+/// `async fn` does not parse — so every run used to fail, and the failure was
+/// discarded (`let _ = …output()`), leaving the code unformatted without anyone
+/// knowing. A formatter that cannot run is now an error.
+fn format_files(paths: &[PathBuf]) -> Result<(), GenError> {
+    if paths.is_empty() {
+        return Ok(());
+    }
+    let output = std::process::Command::new("rustfmt")
+        .args(["--edition", "2021"])
+        .args(paths)
+        .output()
+        .map_err(|e| GenError::Rustfmt(format!("could not run rustfmt: {e}")))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(GenError::Rustfmt(
+            String::from_utf8_lossy(&output.stderr).into_owned(),
+        ))
     }
 }
 
@@ -862,6 +867,8 @@ pub enum GenError {
     AnalysisFailed(String),
     #[display("fmt error: {_0}")]
     FmtError(std::fmt::Error),
+    #[display("rustfmt failed on the generated code: {_0}")]
+    Rustfmt(String),
 }
 
 impl std::error::Error for GenError {}
@@ -917,22 +924,39 @@ impl UnifiedGenerator {
         fs::create_dir_all(&generated_dir)?;
 
         // Generate shared/ module (always needed for ApiError/ApiResponse types)
-        self.generate_shared_module(&analysis, &generated_dir)?;
+        let shared = self.generate_shared_module(&analysis)?;
+        let shared_names = shared.type_names();
 
-        // Generate one module per group
+        // Generate one module per group.
+        let mut modules = vec![shared];
         for group in &analysis.groups {
-            self.generate_group_module(
+            let module = self.generate_group_module(
                 provider,
                 group,
                 &analysis.shared_resources,
                 &analysis.schemas,
-                &generated_dir,
+                &shared_names,
             )?;
+            modules.push(module);
+        }
+
+        // Collapse the duplicates (see `emit`), then write and format.
+        emit::shrink(&mut modules, 0);
+        let mut written = Vec::with_capacity(modules.len());
+        for module in &modules {
+            let path = generated_dir.join(&module.rel_path);
+            if let Some(dir) = path.parent() {
+                fs::create_dir_all(dir)?;
+            }
+            fs::write(&path, module.render()?)?;
+            written.push(path);
         }
 
         // Generate generated/mod.rs with feature guards — this becomes the
         // single entry point for all generated code.
         self.generate_provider_mod(provider, &analysis.groups, &analysis.shared_resources, &generated_dir)?;
+        written.push(generated_dir.join("mod.rs"));
+        format_files(&written)?;
 
         // For monolith providers, write a thin parent mod.rs that just re-exports
         // `generated/`. Only create it if the file doesn't already exist (so
@@ -978,13 +1002,12 @@ impl UnifiedGenerator {
         group: &ApiGroup,
         shared_resources: &[String],
         schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
-        output_dir: &Path,
-    ) -> Result<(), GenError> {
+        actual_shared_types: &HashSet<String>,
+    ) -> Result<ModuleFile, GenError> {
         // Sanitize group name for use as directory/file name
         let safe_name = sanitize_group_name(&group.name);
         let safe_name = sanitize_module_name(&safe_name);
-        let group_dir = output_dir.join(&safe_name);
-        fs::create_dir_all(&group_dir)?;
+        let mut module = ModuleFile::new(format!("{safe_name}/mod.rs"));
 
         let mut out = String::new();
 
@@ -1141,18 +1164,6 @@ impl UnifiedGenerator {
             }
         }
 
-        // Scan the actual shared module file to get all types it defines.
-        // This is more reliable than relying on the analyzer's shared_resources list.
-        let shared_mod_path = output_dir.join("shared").join("mod.rs");
-        let mut actual_shared_types: std::collections::HashSet<String> =
-            std::collections::HashSet::new();
-        if let Ok(shared_content) = std::fs::read_to_string(&shared_mod_path) {
-            // Match "pub struct TypeName" and "pub enum TypeName" patterns
-            for cap in regex_shared_type_names(&shared_content) {
-                actual_shared_types.insert(cap);
-            }
-        }
-
         // Add shared types found during transitive collection that weren't caught by direct endpoint check
         for type_name in &all_types {
             if (shared_resources.contains(type_name) || actual_shared_types.contains(type_name))
@@ -1207,6 +1218,9 @@ impl UnifiedGenerator {
         )?;
         writeln!(out)?;
 
+        // Everything so far is the module header and imports.
+        module.raw(std::mem::take(&mut out));
+
         // Build dependency graph to detect recursive types (types that reference themselves)
         let type_deps = build_type_dependencies(schemas);
         let recursive_types = find_recursive_types(&type_deps);
@@ -1230,47 +1244,29 @@ impl UnifiedGenerator {
 
             // Try to find the schema for this type (may be PascalCase while
             // schemas use the original spec key convention)
-            if let Some(schema) = Self::resolve_schema_key(type_name, schemas) {
-                // Generate proper struct from schema, wrapping recursive refs in Box<>
-                self.generate_type_from_schema(
-                    &mut out,
+            let def = match Self::resolve_schema_key(type_name, schemas) {
+                Some(schema) => {
+                    self.type_def_from_schema(&safe_type_name, schema, schemas, &recursive_types)
+                }
+                // No schema to say what it is: any JSON value.
+                None => TypeDef::alias(
                     &safe_type_name,
-                    schema,
-                    schemas,
-                    &recursive_types,
-                )?;
-            } else {
-                // No schema found - generate placeholder struct
-                writeln!(out, "/// `{}` response type.", safe_type_name)?;
-                writeln!(
-                    out,
-                    "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
-                )?;
-                writeln!(out, "{OPAQUE_MAP_STRUCT_ATTR}")?;
-                writeln!(out, "pub struct {} {{", safe_type_name)?;
-                writeln!(
-                    out,
-                    "    /// Raw JSON value - full schema generated from `OpenAPI`"
-                )?;
-                write_opaque_map_field(&mut out)?;
-                writeln!(out, "}}")?;
-                writeln!(out)?;
-            }
+                    &format!("`{safe_type_name}` type (no schema in the spec)."),
+                    "serde_json::Value",
+                ),
+            };
+            module.push(def);
 
             generated_types.insert(safe_type_name.clone());
         }
 
         // Generate Args types per endpoint
-        writeln!(
-            out,
-            "// ============================================================================="
-        )?;
-        writeln!(out, "// ARGS TYPES (per-endpoint)")?;
-        writeln!(
-            out,
-            "// ============================================================================="
-        )?;
-        writeln!(out)?;
+        module.raw(
+            "// =============================================================================\n\
+             // ARGS TYPES (per-endpoint)\n\
+             // =============================================================================\n\n"
+                .to_string(),
+        );
 
         for ep in &group.endpoints {
             let args_name = format!(
@@ -1282,35 +1278,44 @@ impl UnifiedGenerator {
             // unconditionally takes `args: &{Op}Args`, so a param-less endpoint
             // still needs the (empty) struct to exist, otherwise its function
             // references an undefined type (`E0425`).
-            writeln!(out, "/// Arguments for [`{}_request`].", ep.operation_id)?;
-            writeln!(out, "#[derive(Debug, Clone, Default, Serialize, JsonHash)]")?;
-            writeln!(out, "pub struct {} {{", args_name)?;
-
+            let mut fields = Vec::new();
             for param in &ep.path_params {
-                let param_name =
-                    escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                writeln!(out, "    /// Path parameter: `{}`.", param)?;
-                writeln!(out, "    pub {}: String,", param_name)?;
+                fields.push(Field {
+                    doc: format!("Path parameter: `{param}`."),
+                    attrs: Vec::new(),
+                    name: escape_rust_keyword(&to_snake_case(&sanitize_identifier(param))),
+                    ty: "String".to_string(),
+                });
             }
             for param in &ep.query_params {
-                let param_name =
-                    escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                if ep.array_query_params.contains(param) {
-                    // An array is sent as one `name=value` pair per value.
-                    writeln!(out, "    /// Query parameter: `{param}` (one per value).")?;
-                    writeln!(out, "    pub {param_name}: Vec<String>,")?;
+                let name = escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
+                // An array is sent as one `name=value` pair per value.
+                let (doc, ty) = if ep.array_query_params.contains(param) {
+                    (format!("Query parameter: `{param}` (one per value)."), "Vec<String>")
                 } else {
-                    writeln!(out, "    /// Query parameter: `{param}`.")?;
-                    writeln!(out, "    pub {param_name}: Option<String>,")?;
-                }
+                    (format!("Query parameter: `{param}`."), "Option<String>")
+                };
+                fields.push(Field {
+                    doc,
+                    attrs: Vec::new(),
+                    name,
+                    ty: ty.to_string(),
+                });
             }
             if let Some(rt) = &ep.request_type {
-                writeln!(out, "    /// Request body.")?;
-                writeln!(out, "    pub body: {},", rt)?;
+                fields.push(Field {
+                    doc: "Request body.".to_string(),
+                    attrs: Vec::new(),
+                    name: "body".to_string(),
+                    ty: rt.clone(),
+                });
             }
-
-            writeln!(out, "}}")?;
-            writeln!(out)?;
+            module.push(TypeDef::structure(
+                &args_name,
+                &format!("Arguments for [`{}_request`].", ep.operation_id),
+                ARGS_DERIVES,
+                fields,
+            ));
         }
 
         // Generate client functions per endpoint
@@ -1328,50 +1333,76 @@ impl UnifiedGenerator {
         for ep in &group.endpoints {
             self.generate_endpoint_client_functions(&mut out, ep, group)?;
         }
+        module.raw(out);
 
-        // Write output
-        let output_path = group_dir.join("mod.rs");
-        fs::write(&output_path, out)?;
-
-        // Format
-        let _ = std::process::Command::new("rustfmt")
-            .arg(&output_path)
-            .output();
-
-        Ok(())
+        Ok(module)
     }
 
-    /// Generate a type definition from an OpenAPI schema.
-    fn generate_type_from_schema(
+    /// The type a schema generates: a struct for an object with properties
+    /// (or an `allOf`), and an alias for everything else.
+    ///
+    /// **Why an alias, and why that alias:** a schema without properties is a
+    /// string, a number, a list, a free-form map or a union — and its name is
+    /// part of the API (fields and endpoints refer to it). It used to become
+    /// `struct Name { #[serde(flatten)] data: HashMap<String, Value> }` whatever it
+    /// actually was, so `latitude: Option<LoadBalancingLatitude>` could not
+    /// deserialize the number Cloudflare sends, and an `AccessMessages` list
+    /// could not deserialize a list. Now the name aliases what the schema says:
+    /// `String`, `i64`, `f64`, `bool`, `Vec<Item>`, and `serde_json::Value` for a
+    /// free-form map or a union (no wrapper type around a map).
+    fn type_def_from_schema(
         &self,
-        out: &mut String,
         type_name: &str,
         schema: &crate::spec::Schema,
         schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
         recursive_types: &std::collections::HashSet<String>,
-    ) -> Result<(), GenError> {
+    ) -> TypeDef {
         use crate::spec::Schema as SpecSchema;
         use std::collections::BTreeMap;
 
-        writeln!(out, "/// `{}` type.", type_name)?;
-        writeln!(
-            out,
-            "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
-        )?;
+        let doc = format!("`{type_name}` type.");
+        if let Some(target) = self.plain_rust_type(schema, schemas) {
+            // `type A = Vec<A>` is an infinitely sized alias; such a schema can
+            // only be described as JSON.
+            let target = if type_ident_in(&target, type_name) {
+                "serde_json::Value".to_string()
+            } else {
+                target
+            };
+            return TypeDef::alias(type_name, &doc, &target);
+        }
+
         // WHY: OpenAPI specs use mixed naming conventions (PascalCase, camelCase,
         // snake_case). We convert all property names to snake_case for Rust fields,
         // so we must emit per-field #[serde(rename)] when the original name differs
         // from the snake_cased field name. A single rename_all can't handle mixed
         // specs like Docker (ApiVersion + architecture in the same schema).
-        //
-        // A schema with neither properties nor allOf is opaque: its struct is
-        // just the raw JSON object (see OPAQUE_MAP_STRUCT_ATTR).
-        let opaque = schema.properties.is_none() && schema.all_of.is_none();
-        if opaque {
-            writeln!(out, "{OPAQUE_MAP_STRUCT_ATTR}")?;
-        }
-        writeln!(out, "pub struct {} {{", type_name)?;
+        let field = |field_name: &str, prop_name: &str, prop_schema: &SpecSchema, required: bool| {
+            let rust_type = self.schema_to_rust_type(prop_schema, schemas);
+            let rust_type = maybe_box_type(&rust_type, recursive_types);
+            // `required` and `nullable` say different things: the first that
+            // the key is always present, the second that its value may be
+            // null. A field can be both — Hetzner's pagination `next_page`
+            // is always there and is null on the last page. Only a field
+            // that is required AND not nullable can be a bare T.
+            let is_required = required && !is_nullable(prop_schema, schemas);
+            Field {
+                doc: format!("`{prop_name}` property."),
+                attrs: if prop_name == field_name {
+                    Vec::new()
+                } else {
+                    vec![format!("#[serde(rename = \"{prop_name}\")]")]
+                },
+                name: field_name.to_string(),
+                ty: if is_required {
+                    rust_type
+                } else {
+                    format!("Option<{rust_type}>")
+                },
+            }
+        };
 
+        let mut fields = Vec::new();
         // Handle allOf - merge properties from all members
         if let Some(all_of) = &schema.all_of {
             let mut all_properties: BTreeMap<String, (String, SpecSchema)> = BTreeMap::new();
@@ -1381,77 +1412,58 @@ impl UnifiedGenerator {
                 collect_all_of_member(member, schemas, &mut all_properties, &mut required, 0);
             }
 
-            // Generate fields from merged properties
             for (field_name, (prop_name, prop_schema)) in &all_properties {
-                let rust_type = self.schema_to_rust_type(prop_schema, schemas);
-                let rust_type = maybe_box_type(&rust_type, recursive_types);
-                // `required` and `nullable` say different things: the first that
-                // the key is always present, the second that its value may be
-                // null. A field can be both — Hetzner's pagination `next_page`
-                // is always there and is null on the last page. Only a field
-                // that is required AND not nullable can be a bare T.
-                let is_required = required.contains(prop_name) && !is_nullable(prop_schema, schemas);
-
-                writeln!(out, "    /// `{}` property.", prop_name)?;
-                // Emit per-field serde rename when the snake_cased field name
-                // differs from the original property name (handles PascalCase,
-                // camelCase, and mixed-casing specs like Docker).
-                if prop_name.as_str() != field_name.as_str() {
-                    writeln!(out, "    #[serde(rename = \"{}\")]", prop_name)?;
-                }
-                if is_required {
-                    writeln!(out, "    pub {}: {},", field_name, rust_type)?;
-                } else {
-                    writeln!(out, "    pub {}: Option<{}>,", field_name, rust_type)?;
-                }
+                fields.push(field(field_name, prop_name, prop_schema, required.contains(prop_name)));
             }
         }
         // Handle object with properties
         else if let Some(properties) = &schema.properties {
             let required: std::collections::HashSet<String> =
                 schema.required.iter().cloned().collect();
-            let mut generated_fields: BTreeMap<String, (String, &SpecSchema)> = BTreeMap::new();
+            let mut generated_fields: HashSet<String> = HashSet::new();
 
             for (prop_name, prop_schema) in properties {
                 let field_name = field_ident(prop_name);
                 // Skip if we already generated this field (handles "Version" vs "version" duplicates)
-                if generated_fields.contains_key(&field_name) {
+                if !generated_fields.insert(field_name.clone()) {
                     continue;
                 }
-                generated_fields.insert(field_name.clone(), (prop_name.clone(), prop_schema));
-
-                let rust_type = self.schema_to_rust_type(prop_schema, schemas);
-                let rust_type = maybe_box_type(&rust_type, recursive_types);
-                // See the allOf branch above: required means "the key is there",
-                // nullable means "the value may be null". Both can hold.
-                let is_required = required.contains(prop_name) && !is_nullable(prop_schema, schemas);
-
-                writeln!(out, "    /// {} property.", prop_name)?;
-                // Emit per-field serde rename when the snake_cased field name
-                // differs from the original property name.
-                if prop_name != &field_name {
-                    writeln!(out, "    #[serde(rename = \"{}\")]", prop_name)?;
-                }
-                if is_required {
-                    writeln!(out, "    pub {}: {},", field_name, rust_type)?;
-                } else {
-                    writeln!(out, "    pub {}: Option<{}>,", field_name, rust_type)?;
-                }
+                fields.push(field(&field_name, prop_name, prop_schema, required.contains(prop_name)));
             }
         }
 
-        // If no properties were generated, the schema is opaque — emit a
-        // placeholder. (Shared resource types with real schemas are now
-        // resolved in generate_shared_module; this fallback only fires for
-        // truly unresolvable cases.)
-        if opaque {
-            write_opaque_map_field(out)?;
+        TypeDef::structure(type_name, &doc, SCHEMA_DERIVES, fields)
+    }
+
+    /// The Rust type for a schema that does not generate a struct, or `None`
+    /// for one that does (an object with properties, or an `allOf`).
+    ///
+    /// A free-form map (`type: object` with no properties, or with an empty
+    /// `properties` plus `additionalProperties`), a `oneOf`/`anyOf`, and a schema
+    /// with no type are all `serde_json::Value`.
+    fn plain_rust_type(
+        &self,
+        schema: &crate::spec::Schema,
+        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+    ) -> Option<String> {
+        if schema.all_of.is_some() {
+            return None;
         }
-
-        writeln!(out, "}}")?;
-        writeln!(out)?;
-
-        Ok(())
+        if let Some(properties) = &schema.properties {
+            // `properties: {}` is an empty object (a struct with no fields)
+            // unless further keys are allowed, in which case it is a map.
+            return (properties.is_empty() && schema.additional_properties == Some(true))
+                .then(|| "serde_json::Value".to_string());
+        }
+        if schema.ref_path.is_some() {
+            return Some(self.schema_to_rust_type(schema, schemas));
+        }
+        Some(match schema.schema_type.as_deref() {
+            Some("string" | "integer" | "number" | "boolean" | "array") => {
+                self.schema_to_rust_type(schema, schemas)
+            }
+            _ => "serde_json::Value".to_string(),
+        })
     }
 
     /// Convert an OpenAPI schema to a Rust type string.
@@ -1472,6 +1484,16 @@ impl UnifiedGenerator {
             if let Some(target) = schemas.get(ref_name) {
                 if target.schema_type.as_deref() == Some("array") {
                     return self.schema_to_rust_type(target, schemas);
+                }
+                // A named string/number/boolean, free-form map or union is just
+                // that type: use it directly, so a field reads `Option<f64>`
+                // rather than an alias name, and structs made of such fields
+                // compare equal across modules (see `emit`). A `$ref` to a `$ref`
+                // keeps the name: following chains could loop.
+                if target.ref_path.is_none() {
+                    if let Some(plain) = self.plain_rust_type(target, schemas) {
+                        return plain;
+                    }
                 }
             }
 
@@ -1704,43 +1726,23 @@ impl UnifiedGenerator {
         writeln!(out, "    }}")?;
         writeln!(out)?;
 
-        // Send asynchronously and parse the response.
-        //
-        // Not `let mut`: `take_body(self)` consumes the response, and the error
-        // branch below returns — so the two `take_body` calls never coexist and
-        // no binding needs to be mutable. Marking it `mut` cost 2442 "does not
-        // need to be mutable" warnings in cloudflare alone.
-        writeln!(out, "    let response = client.send_async(builder.build()).await")?;
-        writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;")?;
-        writeln!(out)?;
-        writeln!(out, "    let status: usize = response.get_status().into();")?;
-        writeln!(out, "    let headers = response.get_headers_ref().clone();")?;
-        writeln!(out, "    if status < 200 || status >= 300 {{")?;
-        // Read the error body. It was `None`, unconditionally — which discarded
-        // every vendor's error detail before any caller could see it, and left
-        // ApiError::HttpStatus with a field that was structurally always empty.
-        // A status number alone does not say what to fix: Hetzner's
-        // `{"error":{"code":"invalid_input","message":"server_type cx99 does not
-        // exist"}}` is the whole diagnosis, and it was being thrown away.
-        //
-        // Only so much of it, though: `read_error_body` stops at
-        // `MAX_ERROR_BODY`. An error body is read for its message; one that is
-        // not short is not a message, and must not cost unbounded memory.
-        writeln!(out, "        let body = super::shared::read_error_body(response.take_body()).await;")?;
-        writeln!(out, "        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers, body }});")?;
-        writeln!(out, "    }}")?;
+        // Send, check the status, parse — in shared generic functions
+        // (`common::send_json` and friends), not a copy per endpoint:
+        // thousands of copies of the same async body were much of what a
+        // large provider crate's `rustc` spent its memory on. A non-2xx status
+        // becomes `ApiError::HttpStatus` with the vendor's error body, read up
+        // to `MAX_ERROR_BODY` (see `common::send_checked`).
         if let Some(rt) = streaming {
             let constructor = match rt {
                 ResponseType::JsonLines(_) => "super::shared::JsonLinesStream::new",
                 _ => "super::shared::ByteStream::new",
             };
-            writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: {constructor}(response.take_body()) }})")?;
+            writeln!(out, "    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;")?;
+            writeln!(out, "    Ok(ApiResponse {{ status, headers, body: {constructor}(body) }})")?;
         } else if return_type == "()" {
-            writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: () }})")?;
+            writeln!(out, "    super::shared::send_without_body(client, builder.build()).await")?;
         } else {
-            writeln!(out, "    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());")?;
-            writeln!(out, "    let parsed: {} = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
-            writeln!(out, "    Ok(ApiResponse {{ status: status as u16, headers, body: parsed }})")?;
+            writeln!(out, "    super::shared::send_json(client, builder.build()).await")?;
         }
         writeln!(out, "}}")?;
         writeln!(out)?;
@@ -1803,10 +1805,8 @@ impl UnifiedGenerator {
     fn generate_shared_module(
         &self,
         analysis: &super::analyzer::AnalysisResult,
-        output_dir: &Path,
-    ) -> Result<(), GenError> {
-        let shared_dir = output_dir.join("shared");
-        fs::create_dir_all(&shared_dir)?;
+    ) -> Result<ModuleFile, GenError> {
+        let mut module = ModuleFile::new("shared/mod.rs");
 
         // Build dependency graph across ALL schemas (including shared ones) so we
         // detect mutually recursive types that need Box wrapping.
@@ -1839,9 +1839,9 @@ impl UnifiedGenerator {
             "// Re-export common API types from foundation_deployment"
         )?;
         writeln!(out, "pub use {common_path}::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation}};")?;
-        // Streaming bodies and the bounded error-body read the `*_request`
-        // functions use (see `generate_endpoint_client_functions`).
-        writeln!(out, "pub use {common_path}::{{read_error_body, with_raw_body, ByteStream, JsonLinesStream}};")?;
+        // Sending, streaming bodies and the bounded error-body read the
+        // `*_request` functions use (see `generate_endpoint_client_functions`).
+        writeln!(out, "pub use {common_path}::{{read_error_body, send_checked, send_json, send_without_body, with_raw_body, ByteStream, JsonLinesStream}};")?;
         writeln!(out)?;
         writeln!(out, "// Imports for shared resource types")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
@@ -1857,6 +1857,7 @@ impl UnifiedGenerator {
             "// ============================================================================="
         )?;
         writeln!(out)?;
+        module.raw(std::mem::take(&mut out));
 
         // Transitively expand the shared resource list so that any type referenced
         // by a shared struct's fields (nested objects, array element types, etc.)
@@ -1948,34 +1949,24 @@ impl UnifiedGenerator {
             // Schemas are keyed by original spec names (usually snake_case);
             // shared_resources stores PascalCase names. resolve_schema_key
             // tries multiple naming conventions.
-            if let Some(schema) = Self::resolve_schema_key(type_name, &analysis.schemas) {
-                // Generate a properly typed struct from the OpenAPI schema.
-                self.generate_type_from_schema(
-                    &mut out,
+            let def = match Self::resolve_schema_key(type_name, &analysis.schemas) {
+                Some(schema) => self.type_def_from_schema(
                     &safe_name,
                     schema,
                     &analysis.schemas,
                     &recursive_types,
-                )?;
-            } else {
-                // No schema found — emit a placeholder HashMap wrapper so the
-                // generated code still compiles (callers should investigate
-                // why the schema wasn't resolved).
-                writeln!(out, "/// Shared type: `{}`.", safe_name)?;
-                writeln!(
-                    out,
-                    "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
-                )?;
-                writeln!(out, "{OPAQUE_MAP_STRUCT_ATTR}")?;
-                writeln!(out, "pub struct {} {{", safe_name)?;
-                write_opaque_map_field(&mut out)?;
-                writeln!(out, "}}")?;
-                writeln!(out)?;
-            }
+                ),
+                // No schema to say what it is: any JSON value.
+                None => TypeDef::alias(
+                    &safe_name,
+                    &format!("Shared type `{safe_name}` (no schema in the spec)."),
+                    "serde_json::Value",
+                ),
+            };
+            module.push(def);
         }
 
-        fs::write(shared_dir.join("mod.rs"), out)?;
-        Ok(())
+        Ok(module)
     }
 
     /// Generate provider mod.rs with feature guards.
@@ -2121,4 +2112,63 @@ mod tests {
         // Cloudflare's snake_case keys, via the existing rule.
         assert!(UnifiedGenerator::resolve_schema_key("ExactOther", &schemas).is_some());
     }
+
+    fn schemas(json: serde_json::Value) -> std::collections::BTreeMap<String, crate::spec::Schema> {
+        serde_json::from_value(json).unwrap()
+    }
+
+    fn generate(name: &str, schemas: &std::collections::BTreeMap<String, crate::spec::Schema>) -> String {
+        let generator = UnifiedGenerator::new(std::path::PathBuf::from("unused"));
+        let def = generator.type_def_from_schema(
+            name,
+            &schemas[name],
+            schemas,
+            &std::collections::HashSet::new(),
+        );
+        let mut module = super::ModuleFile::new("m/mod.rs");
+        module.push(def);
+        module.render().unwrap()
+    }
+
+    #[test]
+    fn an_all_of_member_given_by_ref_contributes_its_fields() {
+        let schemas = schemas(serde_json::json!({
+            "api_response_common": {
+                "type": "object",
+                "required": ["success", "errors"],
+                "properties": {
+                    "success": { "type": "boolean" },
+                    "errors": { "type": "array", "items": { "type": "string" } }
+                }
+            },
+            "zone_response": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/api_response_common" },
+                    { "properties": { "result": { "type": "string" } } }
+                ]
+            }
+        }));
+        let out = generate("zone_response", &schemas);
+        assert!(out.contains("pub success: bool,"), "{out}");
+        assert!(out.contains("pub errors: Vec<String>,"), "{out}");
+        assert!(out.contains("pub result: Option<String>,"), "{out}");
+    }
+
+    #[test]
+    fn schemas_without_properties_alias_what_they_are() {
+        let schemas = schemas(serde_json::json!({
+            "latitude": { "type": "number" },
+            "messages": { "type": "array", "items": { "type": "string" } },
+            "free_form": { "type": "object" },
+            "either": { "oneOf": [{ "type": "string" }, { "type": "integer" }] },
+            "empty": { "type": "object", "properties": {} }
+        }));
+        assert!(generate("latitude", &schemas).contains("pub type latitude = f64;"));
+        assert!(generate("messages", &schemas).contains("pub type messages = Vec<String>;"));
+        assert!(generate("free_form", &schemas).contains("pub type free_form = serde_json::Value;"));
+        assert!(generate("either", &schemas).contains("pub type either = serde_json::Value;"));
+        // An object with no fields is a struct (merged into `EmptyObject` later).
+        assert!(generate("empty", &schemas).contains("pub struct empty {"));
+    }
 }
+

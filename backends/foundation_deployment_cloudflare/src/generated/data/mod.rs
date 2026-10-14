@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_data")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -22,274 +26,255 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `DlpApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DlpApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DlpApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DlpApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DlpContextAwareness` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpContextAwareness {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// skip property.
+    /// `skip` property.
     pub skip: DlpSkipConfig,
 }
 
 /// `DlpCustomEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpCustomEntry {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// pattern property.
+    /// `pattern` property.
     pub pattern: DlpPattern,
-    /// profile_id property.
+    /// `profile_id` property.
     pub profile_id: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `DlpCustomEntryUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpCustomEntryUpdate {
+    /// `description` property.
+    pub description: Option<String>,
     /// `enabled` property.
     pub enabled: bool,
+    /// `name` property.
+    pub name: String,
+    /// `pattern` property.
+    pub pattern: DlpPattern,
 }
 
 /// `DlpCustomEntryUpdateType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpCustomEntryUpdateType {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// pattern property.
+    /// `pattern` property.
     pub pattern: DlpPattern,
 }
 
 /// `DlpCustomProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpCustomProfile {
-    /// ai_context_enabled property.
+    /// `ai_context_enabled` property.
     pub ai_context_enabled: Option<bool>,
-    /// allowed_match_count property.
+    /// `allowed_match_count` property.
     pub allowed_match_count: i64,
-    /// confidence_threshold property.
+    /// `confidence_threshold` property.
     pub confidence_threshold: Option<serde_json::Value>,
-    /// context_awareness property.
+    /// `context_awareness` property.
     pub context_awareness: Option<DlpContextAwareness>,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// data_classes property.
+    /// `data_classes` property.
     pub data_classes: Option<Vec<String>>,
-    /// data_tags property.
+    /// `data_tags` property.
     pub data_tags: Option<Vec<String>>,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// entries property.
-    pub entries: Option<Vec<DlpEntry>>,
-    /// id property.
+    /// `entries` property.
+    pub entries: Option<Vec<serde_json::Value>>,
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// ocr_enabled property.
+    /// `ocr_enabled` property.
     pub ocr_enabled: bool,
-    /// sensitivity_levels property.
+    /// `sensitivity_levels` property.
     pub sensitivity_levels: Option<Vec<DlpSensitivityLevelRef>>,
-    /// shared_entries property.
-    pub shared_entries: Option<Vec<DlpEntry>>,
-    /// updated_at property.
+    /// `shared_entries` property.
+    pub shared_entries: Option<Vec<serde_json::Value>>,
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `DlpCustomProfileArray` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpCustomProfileArray {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpCustomProfileArray = Vec<DlpCustomProfile>;
 
 /// `DlpCustomProfileUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpCustomProfileUpdate {
-    /// ai_context_enabled property.
+    /// `ai_context_enabled` property.
     pub ai_context_enabled: Option<bool>,
-    /// allowed_match_count property.
+    /// `allowed_match_count` property.
     pub allowed_match_count: Option<i64>,
-    /// confidence_threshold property.
+    /// `confidence_threshold` property.
     pub confidence_threshold: Option<String>,
-    /// context_awareness property.
+    /// `context_awareness` property.
     pub context_awareness: Option<DlpContextAwareness>,
-    /// data_classes property.
+    /// `data_classes` property.
     pub data_classes: Option<Vec<String>>,
-    /// data_tags property.
+    /// `data_tags` property.
     pub data_tags: Option<Vec<String>>,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// entries property.
-    pub entries: Option<Vec<DlpProfileEntryUpdate>>,
-    /// name property.
+    /// `entries` property.
+    pub entries: Option<Vec<serde_json::Value>>,
+    /// `name` property.
     pub name: String,
-    /// ocr_enabled property.
+    /// `ocr_enabled` property.
     pub ocr_enabled: Option<bool>,
-    /// sensitivity_levels property.
+    /// `sensitivity_levels` property.
     pub sensitivity_levels: Option<Vec<DlpSensitivityLevelRef>>,
-    /// shared_entries property.
+    /// `shared_entries` property.
     pub shared_entries: Option<Vec<DlpSharedEntryUpdate>>,
 }
 
 /// `DlpDataset` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDataset {
-    /// case_sensitive property.
+    /// `case_sensitive` property.
     pub case_sensitive: Option<bool>,
-    /// columns property.
+    /// `columns` property.
     pub columns: Vec<DlpDatasetColumn>,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// encoding_version property.
+    /// `encoding_version` property.
     pub encoding_version: i64,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// num_cells property.
+    /// `num_cells` property.
     pub num_cells: i64,
-    /// secret property.
+    /// `secret` property.
     pub secret: bool,
-    /// status property.
-    pub status: DlpDatasetUploadStatus,
-    /// updated_at property.
+    /// `status` property.
+    pub status: String,
+    /// `updated_at` property.
     pub updated_at: String,
-    /// uploads property.
+    /// `uploads` property.
     pub uploads: Vec<DlpDatasetUpload>,
 }
 
 /// `DlpDatasetArray` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpDatasetArray {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpDatasetArray = Vec<DlpDataset>;
 
 /// `DlpDatasetColumn` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDatasetColumn {
-    /// entry_id property.
+    /// `entry_id` property.
     pub entry_id: String,
-    /// header_name property.
+    /// `header_name` property.
     pub header_name: String,
-    /// num_cells property.
+    /// `num_cells` property.
     pub num_cells: i64,
-    /// upload_status property.
-    pub upload_status: DlpDatasetUploadStatus,
+    /// `upload_status` property.
+    pub upload_status: String,
 }
 
 /// `DlpDatasetColumnArray` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpDatasetColumnArray {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpDatasetColumnArray = Vec<DlpDatasetColumn>;
 
 /// `DlpDatasetCreation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDatasetCreation {
-    /// dataset property.
+    /// `dataset` property.
     pub dataset: DlpDataset,
-    /// encoding_version property.
+    /// `encoding_version` property.
     pub encoding_version: i64,
-    /// max_cells property.
+    /// `max_cells` property.
     pub max_cells: i64,
-    /// secret property.
+    /// `secret` property.
     pub secret: Option<String>,
-    /// version property.
+    /// `version` property.
     pub version: i64,
 }
 
 /// `DlpDatasetNewVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDatasetNewVersion {
-    /// case_sensitive property.
+    /// `case_sensitive` property.
     pub case_sensitive: Option<bool>,
-    /// columns property.
+    /// `columns` property.
     pub columns: Option<Vec<DlpDatasetColumn>>,
-    /// encoding_version property.
+    /// `encoding_version` property.
     pub encoding_version: i64,
-    /// max_cells property.
+    /// `max_cells` property.
     pub max_cells: i64,
-    /// secret property.
+    /// `secret` property.
     pub secret: Option<String>,
-    /// version property.
+    /// `version` property.
     pub version: i64,
 }
 
 /// `DlpDatasetUpload` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDatasetUpload {
-    /// num_cells property.
+    /// `num_cells` property.
     pub num_cells: i64,
-    /// status property.
-    pub status: DlpDatasetUploadStatus,
-    /// version property.
+    /// `status` property.
+    pub status: String,
+    /// `version` property.
     pub version: i64,
 }
 
 /// `DlpDatasetUploadStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpDatasetUploadStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpDatasetUploadStatus = String;
 
 /// `DlpDatasetsCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDatasetsCreateRequest {
-    /// case_sensitive property.
+    /// `case_sensitive` property.
     pub case_sensitive: Option<bool>,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// encoding_version property.
+    /// `encoding_version` property.
     pub encoding_version: Option<i64>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// secret property.
+    /// `secret` property.
     pub secret: Option<bool>,
 }
 
 /// `DlpDatasetsCreateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpDatasetsCreateResponse {
-    /// `result` property.
-    pub result: Option<DlpDatasetCreation>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDatasetCreation>>`.
+pub type DlpDatasetsCreateResponse = super::shared::ApiEnvelope<Option<DlpDatasetCreation>>;
 
 /// `DlpDatasetsCreateVersionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpDatasetsCreateVersionResponse {
-    /// `result` property.
-    pub result: Option<DlpDatasetNewVersion>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDatasetNewVersion>>`.
+pub type DlpDatasetsCreateVersionResponse =
+    super::shared::ApiEnvelope<Option<DlpDatasetNewVersion>>;
 
 /// `DlpDatasetsDefineColumnsRequestItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -301,237 +286,191 @@ pub struct DlpDatasetsDefineColumnsRequestItem {
 }
 
 /// `DlpDatasetsDefineColumnsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpDatasetsDefineColumnsResponse {
-    /// `result` property.
-    pub result: Option<Vec<DlpDatasetColumn>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<DlpDatasetColumn>>>`.
+pub type DlpDatasetsDefineColumnsResponse =
+    super::shared::ApiEnvelope<Option<Vec<DlpDatasetColumn>>>;
 
 /// `DlpDatasetsReadAllResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpDatasetsReadAllResponse {
-    /// `result` property.
-    pub result: Option<Vec<DlpDataset>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<DlpDataset>>>`.
+pub type DlpDatasetsReadAllResponse = super::shared::ApiEnvelope<Option<Vec<DlpDataset>>>;
 
 /// `DlpDatasetsReadResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpDatasetsReadResponse {
-    /// `result` property.
-    pub result: Option<DlpDataset>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDataset>>`.
+pub type DlpDatasetsReadResponse = super::shared::ApiEnvelope<Option<DlpDataset>>;
 
 /// `DlpDatasetsUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDatasetsUpdateRequest {
-    /// case_sensitive property.
+    /// `case_sensitive` property.
     pub case_sensitive: Option<bool>,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
 }
 
 /// `DlpDatasetsUpdateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpDatasetsUpdateResponse {
-    /// `result` property.
-    pub result: Option<DlpDataset>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDataset>>`.
+pub type DlpDatasetsUpdateResponse = super::shared::ApiEnvelope<Option<DlpDataset>>;
 
 /// `DlpDatasetsUploadDatasetColumnResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpDatasetsUploadDatasetColumnResponse {
-    /// `result` property.
-    pub result: Option<DlpDatasetColumn>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDatasetColumn>>`.
+pub type DlpDatasetsUploadDatasetColumnResponse =
+    super::shared::ApiEnvelope<Option<DlpDatasetColumn>>;
 
 /// `DlpDatasetsUploadVersionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpDatasetsUploadVersionResponse {
-    /// `result` property.
-    pub result: Option<DlpDataset>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDataset>>`.
+pub type DlpDatasetsUploadVersionResponse = super::shared::ApiEnvelope<Option<DlpDataset>>;
 
 /// `DlpDlpSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDlpSettings {
-    /// ai_context_analysis property.
+    /// `ai_context_analysis` property.
     pub ai_context_analysis: bool,
-    /// ocr property.
+    /// `ocr` property.
     pub ocr: bool,
-    /// payload_logging property.
+    /// `payload_logging` property.
     pub payload_logging: DlpPayloadLogSetting,
 }
 
 /// `DlpDlpSettingsUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDlpSettingsUpdate {
-    /// ai_context_analysis property.
+    /// `ai_context_analysis` property.
     pub ai_context_analysis: Option<bool>,
-    /// ocr property.
+    /// `ocr` property.
     pub ocr: Option<bool>,
-    /// payload_logging property.
+    /// `payload_logging` property.
     pub payload_logging: Option<serde_json::Value>,
 }
 
 /// `DlpDocumentFingerprintEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpDocumentFingerprintEntry {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `DlpEmpty` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEmpty {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEmpty = serde_json::Value;
 
 /// `DlpEntriesCreateEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesCreateEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpCustomEntry>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpCustomEntry>>`.
+pub type DlpEntriesCreateEntryResponse = super::shared::ApiEnvelope<Option<DlpCustomEntry>>;
 
 /// `DlpEntriesCreateIntegrationEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesCreateIntegrationEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpIntegrationEntry>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpIntegrationEntry>>`.
+pub type DlpEntriesCreateIntegrationEntryResponse =
+    super::shared::ApiEnvelope<Option<DlpIntegrationEntry>>;
 
 /// `DlpEntriesCreatePredefinedEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesCreatePredefinedEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpPredefinedEntry>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpPredefinedEntry>>`.
+pub type DlpEntriesCreatePredefinedEntryResponse =
+    super::shared::ApiEnvelope<Option<DlpPredefinedEntry>>;
 
 /// `DlpEntriesDeleteEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesDeleteEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpEmpty>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpEntriesDeleteEntryResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpEntriesDeleteIntegrationEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesDeleteIntegrationEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpEmpty>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpEntriesDeleteIntegrationEntryResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpEntriesDeletePredefinedEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesDeletePredefinedEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpEmpty>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpEntriesDeletePredefinedEntryResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpEntriesGetDlpEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesGetDlpEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpEntryWithSharedProfiles>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpEntryWithSharedProfiles>>`.
+pub type DlpEntriesGetDlpEntryResponse =
+    super::shared::ApiEnvelope<Option<DlpEntryWithSharedProfiles>>;
 
 /// `DlpEntriesListAllEntriesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesListAllEntriesResponse {
-    /// `result` property.
-    pub result: Option<Vec<DlpEntryWithUploadStatus>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<DlpEntryWithUploadStatus>>>`.
+pub type DlpEntriesListAllEntriesResponse =
+    super::shared::ApiEnvelope<Option<Vec<DlpEntryWithUploadStatus>>>;
 
 /// `DlpEntriesUpdateCustomEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesUpdateCustomEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpCustomEntry>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpCustomEntry>>`.
+pub type DlpEntriesUpdateCustomEntryResponse = super::shared::ApiEnvelope<Option<DlpCustomEntry>>;
 
 /// `DlpEntriesUpdateEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesUpdateEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpEntry>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpEntriesUpdateEntryResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpEntriesUpdateIntegrationEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesUpdateIntegrationEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpIntegrationEntry>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpIntegrationEntry>>`.
+pub type DlpEntriesUpdateIntegrationEntryResponse =
+    super::shared::ApiEnvelope<Option<DlpIntegrationEntry>>;
 
 /// `DlpEntriesUpdatePredefinedEntryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntriesUpdatePredefinedEntryResponse {
-    /// `result` property.
-    pub result: Option<DlpPredefinedEntry>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpPredefinedEntry>>`.
+pub type DlpEntriesUpdatePredefinedEntryResponse =
+    super::shared::ApiEnvelope<Option<DlpPredefinedEntry>>;
 
 /// `DlpEntry` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEntry {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEntry = serde_json::Value;
 
 /// `DlpEntryConfidence` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpEntryConfidence {
-    /// ai_context_available property.
+    /// `ai_context_available` property.
     pub ai_context_available: bool,
-    /// available property.
+    /// `available` property.
     pub available: bool,
 }
 
 /// `DlpEntryOfNewProfile` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEntryOfNewProfile {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEntryOfNewProfile = serde_json::Value;
 
 /// `DlpEntryProfile` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntryProfile {
-    /// id property.
-    pub id: String,
-    /// name property.
-    pub name: String,
-}
+///
+/// Same shape as `super::shared::IdNameObject2`.
+pub type DlpEntryProfile = super::shared::IdNameObject2;
 
 /// `DlpEntryUpdate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEntryUpdate {
-    /// `enabled` property.
-    pub enabled: bool,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type DlpEntryUpdate = super::shared::EnabledObject;
 
 /// `DlpEntryUpdateType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEntryUpdateType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEntryUpdateType = serde_json::Value;
 
 /// `DlpEntryWithSharedProfiles` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpEntryWithSharedProfiles {
     /// `profiles` property.
     pub profiles: Vec<DlpEntryProfile>,
+    /// `upload_status` property.
+    pub upload_status: Option<serde_json::Value>,
 }
 
 /// `DlpEntryWithUploadStatus` type.
@@ -544,525 +483,478 @@ pub struct DlpEntryWithUploadStatus {
 /// `DlpExactDataEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpExactDataEntry {
-    /// case_sensitive property.
+    /// `case_sensitive` property.
     pub case_sensitive: bool,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// secret property.
+    /// `secret` property.
     pub secret: bool,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `DlpIntegrationEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpIntegrationEntry {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// profile_id property.
+    /// `profile_id` property.
     pub profile_id: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `DlpIntegrationProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpIntegrationProfile {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// entries property.
-    pub entries: Vec<DlpEntry>,
-    /// id property.
+    /// `entries` property.
+    pub entries: Vec<serde_json::Value>,
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// shared_entries property.
-    pub shared_entries: Vec<DlpEntry>,
-    /// updated_at property.
+    /// `shared_entries` property.
+    pub shared_entries: Vec<serde_json::Value>,
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `DlpLimits` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpLimits {
-    /// max_dataset_cells property.
+    /// `max_dataset_cells` property.
     pub max_dataset_cells: i64,
 }
 
 /// `DlpLimitsGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpLimitsGetResponse {
-    /// `result` property.
-    pub result: Option<DlpLimits>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpLimits>>`.
+pub type DlpLimitsGetResponse = super::shared::ApiEnvelope<Option<DlpLimits>>;
 
 /// `DlpMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `DlpNewCustomEntry` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpNewCustomEntry {
-    /// description property.
-    pub description: Option<String>,
-    /// enabled property.
-    pub enabled: bool,
-    /// name property.
-    pub name: String,
-    /// pattern property.
-    pub pattern: DlpPattern,
-}
+///
+/// Same shape as `DlpCustomEntryUpdate`.
+pub type DlpNewCustomEntry = DlpCustomEntryUpdate;
 
 /// `DlpNewCustomEntryWithId` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewCustomEntryWithId {
+    /// `description` property.
+    pub description: Option<String>,
+    /// `enabled` property.
+    pub enabled: bool,
     /// `entry_id` property.
     pub entry_id: String,
+    /// `name` property.
+    pub name: String,
+    /// `pattern` property.
+    pub pattern: DlpPattern,
 }
 
 /// `DlpNewCustomProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewCustomProfile {
-    /// ai_context_enabled property.
+    /// `ai_context_enabled` property.
     pub ai_context_enabled: Option<bool>,
-    /// allowed_match_count property.
+    /// `allowed_match_count` property.
     pub allowed_match_count: Option<i64>,
-    /// confidence_threshold property.
+    /// `confidence_threshold` property.
     pub confidence_threshold: Option<String>,
-    /// context_awareness property.
+    /// `context_awareness` property.
     pub context_awareness: Option<DlpContextAwareness>,
-    /// data_classes property.
+    /// `data_classes` property.
     pub data_classes: Option<Vec<String>>,
-    /// data_tags property.
+    /// `data_tags` property.
     pub data_tags: Option<Vec<String>>,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// entries property.
-    pub entries: Option<Vec<DlpEntryOfNewProfile>>,
-    /// name property.
+    /// `entries` property.
+    pub entries: Option<Vec<serde_json::Value>>,
+    /// `name` property.
     pub name: String,
-    /// ocr_enabled property.
+    /// `ocr_enabled` property.
     pub ocr_enabled: Option<bool>,
-    /// sensitivity_levels property.
+    /// `sensitivity_levels` property.
     pub sensitivity_levels: Option<Vec<DlpSensitivityLevelRef>>,
-    /// shared_entries property.
+    /// `shared_entries` property.
     pub shared_entries: Option<Vec<DlpNewSharedEntry>>,
 }
 
 /// `DlpNewEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewEntry {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// pattern property.
+    /// `pattern` property.
     pub pattern: DlpPattern,
-    /// profile_id property.
+    /// `profile_id` property.
     pub profile_id: Option<String>,
 }
 
 /// `DlpNewPredefinedEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewPredefinedEntry {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// entry_id property.
+    /// `entry_id` property.
     pub entry_id: String,
-    /// profile_id property.
+    /// `profile_id` property.
     pub profile_id: Option<String>,
 }
 
 /// `DlpNewPredefinedProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewPredefinedProfile {
+    /// `ai_context_enabled` property.
+    pub ai_context_enabled: Option<bool>,
+    /// `allowed_match_count` property.
+    pub allowed_match_count: Option<i64>,
+    /// `confidence_threshold` property.
+    pub confidence_threshold: Option<String>,
+    /// `context_awareness` property.
+    pub context_awareness: Option<DlpContextAwareness>,
+    /// `entries` property.
+    pub entries: Option<Vec<DlpPredefinedProfileEntryUpdate>>,
+    /// `ocr_enabled` property.
+    pub ocr_enabled: Option<bool>,
     /// `profile_id` property.
     pub profile_id: String,
 }
 
 /// `DlpNewSharedEntry` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpNewSharedEntry {
-    /// enabled property.
-    pub enabled: bool,
-    /// entry_id property.
-    pub entry_id: String,
-}
+///
+/// Same shape as `super::shared::EnabledEntryIdObject`.
+pub type DlpNewSharedEntry = super::shared::EnabledEntryIdObject;
 
 /// `DlpNewWordListEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewWordListEntry {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// words property.
+    /// `words` property.
     pub words: Vec<String>,
 }
 
 /// `DlpPattern` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpPattern {
-    /// regex property.
+    /// `regex` property.
     pub regex: String,
-    /// validation property.
+    /// `validation` property.
     pub validation: Option<serde_json::Value>,
 }
 
 /// `DlpPatternValidateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpPatternValidateResponse {
-    /// `result` property.
-    pub result: Option<DlpRegexValidationResult>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpRegexValidationResult>>`.
+pub type DlpPatternValidateResponse = super::shared::ApiEnvelope<Option<DlpRegexValidationResult>>;
 
 /// `DlpPayloadLogSetting` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpPayloadLogSetting {
-    /// masking_level property.
-    pub masking_level: Option<serde_json::Value>,
-    /// public_key property.
-    pub public_key: Option<String>,
-    /// updated_at property.
-    pub updated_at: String,
-}
+///
+/// Same shape as `super::shared::MaskingLevelPublicKeyUpdatedAtObject`.
+pub type DlpPayloadLogSetting = super::shared::MaskingLevelPublicKeyUpdatedAtObject;
 
 /// `DlpPredefinedEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedEntry {
-    /// confidence property.
+    /// `confidence` property.
     pub confidence: DlpEntryConfidence,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// profile_id property.
+    /// `profile_id` property.
     pub profile_id: Option<String>,
-    /// variant property.
+    /// `variant` property.
     pub variant: Option<serde_json::Value>,
 }
 
 /// `DlpPredefinedEntryUpdate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpPredefinedEntryUpdate {
-    /// enabled property.
-    pub enabled: bool,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type DlpPredefinedEntryUpdate = super::shared::EnabledObject;
 
 /// `DlpPredefinedProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedProfile {
-    /// ai_context_enabled property.
+    /// `ai_context_enabled` property.
     pub ai_context_enabled: Option<bool>,
-    /// allowed_match_count property.
+    /// `allowed_match_count` property.
     pub allowed_match_count: i64,
-    /// confidence_threshold property.
+    /// `confidence_threshold` property.
     pub confidence_threshold: Option<serde_json::Value>,
-    /// context_awareness property.
+    /// `context_awareness` property.
     pub context_awareness: Option<DlpContextAwareness>,
-    /// entries property.
-    pub entries: Vec<DlpEntry>,
-    /// id property.
+    /// `entries` property.
+    pub entries: Vec<serde_json::Value>,
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// ocr_enabled property.
+    /// `ocr_enabled` property.
     pub ocr_enabled: Option<bool>,
-    /// open_access property.
+    /// `open_access` property.
     pub open_access: Option<bool>,
 }
 
 /// `DlpPredefinedProfileConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedProfileConfig {
-    /// ai_context_enabled property.
+    /// `ai_context_enabled` property.
     pub ai_context_enabled: Option<bool>,
-    /// allowed_match_count property.
+    /// `allowed_match_count` property.
     pub allowed_match_count: i64,
-    /// confidence_threshold property.
+    /// `confidence_threshold` property.
     pub confidence_threshold: Option<String>,
-    /// enabled_entries property.
+    /// `enabled_entries` property.
     pub enabled_entries: Vec<String>,
-    /// entries property.
-    pub entries: Vec<DlpEntry>,
-    /// id property.
+    /// `entries` property.
+    pub entries: Vec<serde_json::Value>,
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// ocr_enabled property.
+    /// `ocr_enabled` property.
     pub ocr_enabled: Option<bool>,
-    /// open_access property.
+    /// `open_access` property.
     pub open_access: Option<bool>,
 }
 
 /// `DlpPredefinedProfileConfigUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedProfileConfigUpdate {
-    /// ai_context_enabled property.
+    /// `ai_context_enabled` property.
     pub ai_context_enabled: Option<bool>,
-    /// allowed_match_count property.
+    /// `allowed_match_count` property.
     pub allowed_match_count: Option<i64>,
-    /// confidence_threshold property.
+    /// `confidence_threshold` property.
     pub confidence_threshold: Option<String>,
-    /// enabled_entries property.
+    /// `enabled_entries` property.
     pub enabled_entries: Option<Vec<String>>,
-    /// entries property.
+    /// `entries` property.
     pub entries: Option<Vec<DlpPredefinedProfileEntryUpdate>>,
-    /// ocr_enabled property.
+    /// `ocr_enabled` property.
     pub ocr_enabled: Option<bool>,
 }
 
 /// `DlpPredefinedProfileEntryUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedProfileEntryUpdate {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// id property.
+    /// `id` property.
     pub id: String,
 }
 
 /// `DlpPredefinedProfileUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedProfileUpdate {
-    /// ai_context_enabled property.
+    /// `ai_context_enabled` property.
     pub ai_context_enabled: Option<bool>,
-    /// allowed_match_count property.
+    /// `allowed_match_count` property.
     pub allowed_match_count: Option<i64>,
-    /// confidence_threshold property.
+    /// `confidence_threshold` property.
     pub confidence_threshold: Option<String>,
-    /// context_awareness property.
+    /// `context_awareness` property.
     pub context_awareness: Option<DlpContextAwareness>,
-    /// entries property.
+    /// `entries` property.
     pub entries: Option<Vec<DlpPredefinedProfileEntryUpdate>>,
-    /// ocr_enabled property.
+    /// `ocr_enabled` property.
     pub ocr_enabled: Option<bool>,
 }
 
 /// `DlpProfile` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpProfile {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpProfile = serde_json::Value;
 
 /// `DlpProfileArray` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpProfileArray {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpProfileArray = Vec<serde_json::Value>;
 
 /// `DlpProfileEntryUpdate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpProfileEntryUpdate {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpProfileEntryUpdate = serde_json::Value;
 
 /// `DlpProfilesCreateCustomProfilesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesCreateCustomProfilesResponse {
-    /// `result` property.
-    pub result: Option<DlpProfile>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpProfilesCreateCustomProfilesResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpProfilesCreatePredefinedProfileConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesCreatePredefinedProfileConfigResponse {
-    /// `result` property.
-    pub result: Option<DlpPredefinedProfileConfig>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpPredefinedProfileConfig>>`.
+pub type DlpProfilesCreatePredefinedProfileConfigResponse =
+    super::shared::ApiEnvelope<Option<DlpPredefinedProfileConfig>>;
 
 /// `DlpProfilesCreatePredefinedProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesCreatePredefinedProfileResponse {
-    /// `result` property.
-    pub result: Option<DlpProfile>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpProfilesCreatePredefinedProfileResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpProfilesDeleteCustomProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesDeleteCustomProfileResponse {
-    /// `result` property.
-    pub result: Option<DlpEmpty>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpProfilesDeleteCustomProfileResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpProfilesDeletePredefinedProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesDeletePredefinedProfileResponse {
-    /// `result` property.
-    pub result: Option<DlpEmpty>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpProfilesDeletePredefinedProfileResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpProfilesGetCustomProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesGetCustomProfileResponse {
-    /// `result` property.
-    pub result: Option<DlpProfile>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpProfilesGetCustomProfileResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpProfilesGetDlpProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesGetDlpProfileResponse {
-    /// `result` property.
-    pub result: Option<DlpProfile>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpProfilesGetDlpProfileResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpProfilesGetPredefinedProfileConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesGetPredefinedProfileConfigResponse {
-    /// `result` property.
-    pub result: Option<DlpPredefinedProfileConfig>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpPredefinedProfileConfig>>`.
+pub type DlpProfilesGetPredefinedProfileConfigResponse =
+    super::shared::ApiEnvelope<Option<DlpPredefinedProfileConfig>>;
 
 /// `DlpProfilesGetPredefinedProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesGetPredefinedProfileResponse {
-    /// `result` property.
-    pub result: Option<DlpProfile>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpProfilesGetPredefinedProfileResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpProfilesListAllCustomProfilesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesListAllCustomProfilesResponse {
-    /// `result` property.
-    pub result: Option<Vec<DlpCustomProfile>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<DlpCustomProfile>>>`.
+pub type DlpProfilesListAllCustomProfilesResponse =
+    super::shared::ApiEnvelope<Option<Vec<DlpCustomProfile>>>;
 
 /// `DlpProfilesListAllProfilesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesListAllProfilesResponse {
-    /// `result` property.
-    pub result: Option<Vec<DlpProfile>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<serde_json::Value>>>`.
+pub type DlpProfilesListAllProfilesResponse =
+    super::shared::ApiEnvelope<Option<Vec<serde_json::Value>>>;
 
 /// `DlpProfilesUpdateCustomProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesUpdateCustomProfileResponse {
-    /// `result` property.
-    pub result: Option<DlpProfile>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpProfilesUpdateCustomProfileResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpProfilesUpdatePredefinedProfileConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesUpdatePredefinedProfileConfigResponse {
-    /// `result` property.
-    pub result: Option<DlpPredefinedProfileConfig>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpPredefinedProfileConfig>>`.
+pub type DlpProfilesUpdatePredefinedProfileConfigResponse =
+    super::shared::ApiEnvelope<Option<DlpPredefinedProfileConfig>>;
 
 /// `DlpProfilesUpdatePredefinedProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpProfilesUpdatePredefinedProfileResponse {
-    /// `result` property.
-    pub result: Option<DlpProfile>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpProfilesUpdatePredefinedProfileResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpRegexValidationQuery` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpRegexValidationQuery {
-    /// max_match_bytes property.
+    /// `max_match_bytes` property.
     pub max_match_bytes: Option<i64>,
-    /// regex property.
+    /// `regex` property.
     pub regex: String,
 }
 
 /// `DlpRegexValidationResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpRegexValidationResult {
-    /// valid property.
+    /// `valid` property.
     pub valid: bool,
 }
 
 /// `DlpSensitivityLevelRef` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpSensitivityLevelRef {
-    /// group_id property.
+    /// `group_id` property.
     pub group_id: String,
-    /// level_id property.
+    /// `level_id` property.
     pub level_id: String,
 }
 
 /// `DlpSettingsDeleteResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpSettingsDeleteResponse {
-    /// `result` property.
-    pub result: Option<DlpDlpSettings>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDlpSettings>>`.
+pub type DlpSettingsDeleteResponse = super::shared::ApiEnvelope<Option<DlpDlpSettings>>;
 
 /// `DlpSettingsEditResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpSettingsEditResponse {
-    /// `result` property.
-    pub result: Option<DlpDlpSettings>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDlpSettings>>`.
+pub type DlpSettingsEditResponse = super::shared::ApiEnvelope<Option<DlpDlpSettings>>;
 
 /// `DlpSettingsGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpSettingsGetResponse {
-    /// `result` property.
-    pub result: Option<DlpDlpSettings>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDlpSettings>>`.
+pub type DlpSettingsGetResponse = super::shared::ApiEnvelope<Option<DlpDlpSettings>>;
 
 /// `DlpSettingsUpdateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpSettingsUpdateResponse {
-    /// `result` property.
-    pub result: Option<DlpDlpSettings>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpDlpSettings>>`.
+pub type DlpSettingsUpdateResponse = super::shared::ApiEnvelope<Option<DlpDlpSettings>>;
 
 /// `DlpSharedEntryUpdate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpSharedEntryUpdate {
-    /// enabled property.
-    pub enabled: bool,
-    /// entry_id property.
-    pub entry_id: String,
-}
+///
+/// Same shape as `super::shared::EnabledEntryIdObject`.
+pub type DlpSharedEntryUpdate = super::shared::EnabledEntryIdObject;
 
 /// `DlpSkipConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpSkipConfig {
-    /// files property.
+    /// `files` property.
     pub files: bool,
 }
 
 /// `DlpWordListEntry` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpWordListEntry {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// profile_id property.
+    /// `profile_id` property.
     pub profile_id: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
-    /// word_list property.
+    /// `word_list` property.
     pub word_list: serde_json::Value,
 }
 
@@ -1071,11 +963,9 @@ pub struct DlpWordListEntry {
 // =============================================================================
 
 /// Arguments for [`dlp-datasets-read-all_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpDatasetsReadAllArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpDatasetsReadAllArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-datasets-create_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1087,13 +977,9 @@ pub struct DlpDatasetsCreateArgs {
 }
 
 /// Arguments for [`dlp-datasets-read_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpDatasetsReadArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dataset_id`.
-    pub dataset_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDatasetIdArgs`.
+pub type DlpDatasetsReadArgs = super::shared::AccountIdDatasetIdArgs;
 
 /// Arguments for [`dlp-datasets-update_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1107,22 +993,14 @@ pub struct DlpDatasetsUpdateArgs {
 }
 
 /// Arguments for [`dlp-datasets-delete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpDatasetsDeleteArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dataset_id`.
-    pub dataset_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDatasetIdArgs`.
+pub type DlpDatasetsDeleteArgs = super::shared::AccountIdDatasetIdArgs;
 
 /// Arguments for [`dlp-datasets-create-version_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpDatasetsCreateVersionArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dataset_id`.
-    pub dataset_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDatasetIdArgs`.
+pub type DlpDatasetsCreateVersionArgs = super::shared::AccountIdDatasetIdArgs;
 
 /// Arguments for [`dlp-datasets-upload-version_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1162,11 +1040,9 @@ pub struct DlpDatasetsUploadDatasetColumnArgs {
 }
 
 /// Arguments for [`dlp-entries-list-all-entries_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEntriesListAllEntriesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpEntriesListAllEntriesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-entries-create-entry_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1209,51 +1085,29 @@ pub struct DlpEntriesUpdateIntegrationEntryArgs {
 }
 
 /// Arguments for [`dlp-entries-delete-integration-entry_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEntriesDeleteIntegrationEntryArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `entry_id`.
-    pub entry_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdEntryIdArgs`.
+pub type DlpEntriesDeleteIntegrationEntryArgs = super::shared::AccountIdEntryIdArgs;
 
 /// Arguments for [`dlp-entries-create-predefined-entry_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEntriesCreatePredefinedEntryArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Request body.
-    pub body: DlpNewPredefinedEntry,
-}
+///
+/// Same shape as `DlpEntriesCreateIntegrationEntryArgs`.
+pub type DlpEntriesCreatePredefinedEntryArgs = DlpEntriesCreateIntegrationEntryArgs;
 
 /// Arguments for [`dlp-entries-update-predefined-entry_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEntriesUpdatePredefinedEntryArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `entry_id`.
-    pub entry_id: String,
-    /// Request body.
-    pub body: DlpPredefinedEntryUpdate,
-}
+///
+/// Same shape as `DlpEntriesUpdateIntegrationEntryArgs`.
+pub type DlpEntriesUpdatePredefinedEntryArgs = DlpEntriesUpdateIntegrationEntryArgs;
 
 /// Arguments for [`dlp-entries-delete-predefined-entry_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEntriesDeletePredefinedEntryArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `entry_id`.
-    pub entry_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdEntryIdArgs`.
+pub type DlpEntriesDeletePredefinedEntryArgs = super::shared::AccountIdEntryIdArgs;
 
 /// Arguments for [`dlp-entries-get-dlp-entry_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEntriesGetDlpEntryArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `entry_id`.
-    pub entry_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdEntryIdArgs`.
+pub type DlpEntriesGetDlpEntryArgs = super::shared::AccountIdEntryIdArgs;
 
 /// Arguments for [`dlp-entries-update-entry_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1267,20 +1121,14 @@ pub struct DlpEntriesUpdateEntryArgs {
 }
 
 /// Arguments for [`dlp-entries-delete-entry_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEntriesDeleteEntryArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `entry_id`.
-    pub entry_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdEntryIdArgs`.
+pub type DlpEntriesDeleteEntryArgs = super::shared::AccountIdEntryIdArgs;
 
 /// Arguments for [`dlp-limits-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpLimitsGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpLimitsGetArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-pattern-validate_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1301,11 +1149,9 @@ pub struct DlpProfilesListAllProfilesArgs {
 }
 
 /// Arguments for [`dlp-profiles-list-all-custom-profiles_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpProfilesListAllCustomProfilesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpProfilesListAllCustomProfilesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-profiles-create-custom-profiles_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1317,13 +1163,9 @@ pub struct DlpProfilesCreateCustomProfilesArgs {
 }
 
 /// Arguments for [`dlp-profiles-get-custom-profile_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpProfilesGetCustomProfileArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `profile_id`.
-    pub profile_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdProfileIdArgs`.
+pub type DlpProfilesGetCustomProfileArgs = super::shared::AccountIdProfileIdArgs;
 
 /// Arguments for [`dlp-profiles-update-custom-profile_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1337,13 +1179,9 @@ pub struct DlpProfilesUpdateCustomProfileArgs {
 }
 
 /// Arguments for [`dlp-profiles-delete-custom-profile_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpProfilesDeleteCustomProfileArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `profile_id`.
-    pub profile_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdProfileIdArgs`.
+pub type DlpProfilesDeleteCustomProfileArgs = super::shared::AccountIdProfileIdArgs;
 
 /// Arguments for [`dlp-profiles-create-predefined-profile_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1355,13 +1193,9 @@ pub struct DlpProfilesCreatePredefinedProfileArgs {
 }
 
 /// Arguments for [`dlp-profiles-get-predefined-profile_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpProfilesGetPredefinedProfileArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `profile_id`.
-    pub profile_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdProfileIdArgs`.
+pub type DlpProfilesGetPredefinedProfileArgs = super::shared::AccountIdProfileIdArgs;
 
 /// Arguments for [`dlp-profiles-update-predefined-profile_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1375,22 +1209,14 @@ pub struct DlpProfilesUpdatePredefinedProfileArgs {
 }
 
 /// Arguments for [`dlp-profiles-delete-predefined-profile_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpProfilesDeletePredefinedProfileArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `profile_id`.
-    pub profile_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdProfileIdArgs`.
+pub type DlpProfilesDeletePredefinedProfileArgs = super::shared::AccountIdProfileIdArgs;
 
 /// Arguments for [`dlp-profiles-get-predefined-profile-config_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpProfilesGetPredefinedProfileConfigArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `profile_id`.
-    pub profile_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdProfileIdArgs`.
+pub type DlpProfilesGetPredefinedProfileConfigArgs = super::shared::AccountIdProfileIdArgs;
 
 /// Arguments for [`dlp-profiles-create-predefined-profile-config_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1404,31 +1230,20 @@ pub struct DlpProfilesCreatePredefinedProfileConfigArgs {
 }
 
 /// Arguments for [`dlp-profiles-update-predefined-profile-config_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpProfilesUpdatePredefinedProfileConfigArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `profile_id`.
-    pub profile_id: String,
-    /// Request body.
-    pub body: DlpPredefinedProfileConfigUpdate,
-}
+///
+/// Same shape as `DlpProfilesCreatePredefinedProfileConfigArgs`.
+pub type DlpProfilesUpdatePredefinedProfileConfigArgs =
+    DlpProfilesCreatePredefinedProfileConfigArgs;
 
 /// Arguments for [`dlp-profiles-get-dlp-profile_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpProfilesGetDlpProfileArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `profile_id`.
-    pub profile_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdProfileIdArgs`.
+pub type DlpProfilesGetDlpProfileArgs = super::shared::AccountIdProfileIdArgs;
 
 /// Arguments for [`dlp-settings-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpSettingsGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpSettingsGetArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-settings-update_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1440,20 +1255,14 @@ pub struct DlpSettingsUpdateArgs {
 }
 
 /// Arguments for [`dlp-settings-edit_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpSettingsEditArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Request body.
-    pub body: DlpDlpSettingsUpdate,
-}
+///
+/// Same shape as `DlpSettingsUpdateArgs`.
+pub type DlpSettingsEditArgs = DlpSettingsUpdateArgs;
 
 /// Arguments for [`dlp-settings-delete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpSettingsDeleteArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpSettingsDeleteArgs = super::shared::AccountIdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -1490,9 +1299,7 @@ pub async fn dlp_datasets_read_all_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/datasets",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/datasets", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1502,20 +1309,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpDatasetsReadAllResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1549,35 +1343,21 @@ pub async fn dlp_datasets_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/datasets",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/datasets", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpDatasetsCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1611,9 +1391,9 @@ pub async fn dlp_datasets_read_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/datasets/{}",
-        args.account_id,
-        args.dataset_id,
+    let path = format!(
+        "/accounts/{}/dlp/datasets/{}",
+        args.account_id, args.dataset_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1624,20 +1404,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpDatasetsReadResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1671,36 +1438,24 @@ pub async fn dlp_datasets_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/datasets/{}",
-        args.account_id,
-        args.dataset_id,
+    let path = format!(
+        "/accounts/{}/dlp/datasets/{}",
+        args.account_id, args.dataset_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpDatasetsUpdateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1734,9 +1489,9 @@ pub async fn dlp_datasets_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/datasets/{}",
-        args.account_id,
-        args.dataset_id,
+    let path = format!(
+        "/accounts/{}/dlp/datasets/{}",
+        args.account_id, args.dataset_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1747,18 +1502,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1792,9 +1536,9 @@ pub async fn dlp_datasets_create_version_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/datasets/{}/upload",
-        args.account_id,
-        args.dataset_id,
+    let path = format!(
+        "/accounts/{}/dlp/datasets/{}/upload",
+        args.account_id, args.dataset_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1805,20 +1549,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpDatasetsCreateVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1834,6 +1565,7 @@ where
 ///
 /// * `client` - HTTP client for making the request
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Request body, sent as-is as `application/octet-stream`
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -1847,39 +1579,28 @@ pub async fn dlp_datasets_upload_version_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsUploadVersionArgs,
     base_url: &str,
+    body: foundation_netio::shared::http::SendSafeBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DlpDatasetsUploadVersionResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/datasets/{}/upload/{}",
-        args.account_id,
-        args.dataset_id,
-        args.version,
+    let path = format!(
+        "/accounts/{}/dlp/datasets/{}/upload/{}",
+        args.account_id, args.dataset_id, args.version,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = super::shared::with_raw_body(builder, "application/octet-stream", body);
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpDatasetsUploadVersionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1913,37 +1634,24 @@ pub async fn dlp_datasets_define_columns_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/datasets/{}/versions/{}",
-        args.account_id,
-        args.dataset_id,
-        args.version,
+    let path = format!(
+        "/accounts/{}/dlp/datasets/{}/versions/{}",
+        args.account_id, args.dataset_id, args.version,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpDatasetsDefineColumnsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1959,6 +1667,7 @@ where
 ///
 /// * `client` - HTTP client for making the request
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Request body, sent as-is as `application/octet-stream`
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -1972,40 +1681,28 @@ pub async fn dlp_datasets_upload_dataset_column_request<F>(
     client: DynNetClient,
     args: &DlpDatasetsUploadDatasetColumnArgs,
     base_url: &str,
+    body: foundation_netio::shared::http::SendSafeBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DlpDatasetsUploadDatasetColumnResponse>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/datasets/{}/versions/{}/entries/{}",
-        args.account_id,
-        args.dataset_id,
-        args.version,
-        args.entry_id,
+    let path = format!(
+        "/accounts/{}/dlp/datasets/{}/versions/{}/entries/{}",
+        args.account_id, args.dataset_id, args.version, args.entry_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = super::shared::with_raw_body(builder, "application/octet-stream", body);
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpDatasetsUploadDatasetColumnResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2039,9 +1736,7 @@ pub async fn dlp_entries_list_all_entries_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/entries", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2051,20 +1746,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesListAllEntriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2098,35 +1780,21 @@ pub async fn dlp_entries_create_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/entries", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesCreateEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2160,36 +1828,24 @@ pub async fn dlp_entries_update_custom_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/custom/{}",
-        args.account_id,
-        args.entry_id,
+    let path = format!(
+        "/accounts/{}/dlp/entries/custom/{}",
+        args.account_id, args.entry_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesUpdateCustomEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2223,35 +1879,21 @@ pub async fn dlp_entries_create_integration_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/integration",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/entries/integration", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesCreateIntegrationEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2285,36 +1927,24 @@ pub async fn dlp_entries_update_integration_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/integration/{}",
-        args.account_id,
-        args.entry_id,
+    let path = format!(
+        "/accounts/{}/dlp/entries/integration/{}",
+        args.account_id, args.entry_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesUpdateIntegrationEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2348,9 +1978,9 @@ pub async fn dlp_entries_delete_integration_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/integration/{}",
-        args.account_id,
-        args.entry_id,
+    let path = format!(
+        "/accounts/{}/dlp/entries/integration/{}",
+        args.account_id, args.entry_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2361,20 +1991,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesDeleteIntegrationEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2408,35 +2025,21 @@ pub async fn dlp_entries_create_predefined_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/predefined",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/entries/predefined", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesCreatePredefinedEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2470,36 +2073,24 @@ pub async fn dlp_entries_update_predefined_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/predefined/{}",
-        args.account_id,
-        args.entry_id,
+    let path = format!(
+        "/accounts/{}/dlp/entries/predefined/{}",
+        args.account_id, args.entry_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesUpdatePredefinedEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2533,9 +2124,9 @@ pub async fn dlp_entries_delete_predefined_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/predefined/{}",
-        args.account_id,
-        args.entry_id,
+    let path = format!(
+        "/accounts/{}/dlp/entries/predefined/{}",
+        args.account_id, args.entry_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2546,20 +2137,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesDeletePredefinedEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2593,9 +2171,9 @@ pub async fn dlp_entries_get_dlp_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/{}",
-        args.account_id,
-        args.entry_id,
+    let path = format!(
+        "/accounts/{}/dlp/entries/{}",
+        args.account_id, args.entry_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2606,20 +2184,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesGetDlpEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2653,36 +2218,24 @@ pub async fn dlp_entries_update_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/{}",
-        args.account_id,
-        args.entry_id,
+    let path = format!(
+        "/accounts/{}/dlp/entries/{}",
+        args.account_id, args.entry_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesUpdateEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2716,9 +2269,9 @@ pub async fn dlp_entries_delete_entry_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/entries/{}",
-        args.account_id,
-        args.entry_id,
+    let path = format!(
+        "/accounts/{}/dlp/entries/{}",
+        args.account_id, args.entry_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2729,20 +2282,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEntriesDeleteEntryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2776,9 +2316,7 @@ pub async fn dlp_limits_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/limits",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/limits", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2788,20 +2326,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpLimitsGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2835,35 +2360,21 @@ pub async fn dlp_pattern_validate_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/patterns/validate",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/patterns/validate", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpPatternValidateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2897,9 +2408,7 @@ pub async fn dlp_profiles_list_all_profiles_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/profiles", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2911,20 +2420,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesListAllProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2958,9 +2454,7 @@ pub async fn dlp_profiles_list_all_custom_profiles_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/custom",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/profiles/custom", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2970,20 +2464,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesListAllCustomProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3017,35 +2498,21 @@ pub async fn dlp_profiles_create_custom_profiles_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/custom",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/profiles/custom", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesCreateCustomProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3079,9 +2546,9 @@ pub async fn dlp_profiles_get_custom_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/custom/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/custom/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3092,20 +2559,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesGetCustomProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3139,36 +2593,24 @@ pub async fn dlp_profiles_update_custom_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/custom/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/custom/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesUpdateCustomProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3202,9 +2644,9 @@ pub async fn dlp_profiles_delete_custom_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/custom/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/custom/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3215,20 +2657,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesDeleteCustomProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3262,35 +2691,21 @@ pub async fn dlp_profiles_create_predefined_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/predefined",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/profiles/predefined", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesCreatePredefinedProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3324,9 +2739,9 @@ pub async fn dlp_profiles_get_predefined_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/predefined/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/predefined/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3337,20 +2752,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesGetPredefinedProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3384,36 +2786,24 @@ pub async fn dlp_profiles_update_predefined_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/predefined/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/predefined/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesUpdatePredefinedProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3447,9 +2837,9 @@ pub async fn dlp_profiles_delete_predefined_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/predefined/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/predefined/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3460,20 +2850,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesDeletePredefinedProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3507,9 +2884,9 @@ pub async fn dlp_profiles_get_predefined_profile_config_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/predefined/{}/config",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/predefined/{}/config",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3520,20 +2897,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesGetPredefinedProfileConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3567,36 +2931,24 @@ pub async fn dlp_profiles_create_predefined_profile_config_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/predefined/{}/config",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/predefined/{}/config",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesCreatePredefinedProfileConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3630,36 +2982,24 @@ pub async fn dlp_profiles_update_predefined_profile_config_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/predefined/{}/config",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/predefined/{}/config",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesUpdatePredefinedProfileConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3693,9 +3033,9 @@ pub async fn dlp_profiles_get_dlp_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/profiles/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/dlp/profiles/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3706,20 +3046,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpProfilesGetDlpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3753,9 +3080,7 @@ pub async fn dlp_settings_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -3765,20 +3090,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpSettingsGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3812,35 +3124,21 @@ pub async fn dlp_settings_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpSettingsUpdateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3874,35 +3172,21 @@ pub async fn dlp_settings_edit_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpSettingsEditResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3936,9 +3220,7 @@ pub async fn dlp_settings_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -3948,19 +3230,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpSettingsDeleteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

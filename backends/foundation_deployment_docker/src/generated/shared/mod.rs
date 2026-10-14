@@ -4,8 +4,13 @@
 //! DO NOT EDIT MANUALLY.
 
 // Re-export common API types from foundation_deployment
-pub use foundation_deployment::providers::common::{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation};
-pub use foundation_deployment::providers::common::{read_error_body, with_raw_body, ByteStream, JsonLinesStream};
+pub use foundation_deployment::providers::common::{
+    read_error_body, send_checked, send_json, send_without_body, with_raw_body, ByteStream,
+    JsonLinesStream,
+};
+pub use foundation_deployment::providers::common::{
+    ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,
+};
 
 // Imports for shared resource types
 use foundation_macros::JsonHash;
@@ -18,26 +23,26 @@ use serde::{Deserialize, Serialize};
 /// `BuildInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BuildInfo {
-    /// aux property.
+    /// `aux` property.
     pub aux: Option<ImageID>,
-    /// errorDetail property.
+    /// `errorDetail` property.
     #[serde(rename = "errorDetail")]
     pub error_detail: Option<ErrorDetail>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// progressDetail property.
+    /// `progressDetail` property.
     #[serde(rename = "progressDetail")]
     pub progress_detail: Option<ProgressDetail>,
-    /// status property.
+    /// `status` property.
     pub status: Option<String>,
-    /// stream property.
+    /// `stream` property.
     pub stream: Option<String>,
 }
 
 /// `IDResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IDResponse {
-    /// Id property.
+    /// `Id` property.
     #[serde(rename = "Id")]
     pub id: String,
 }
@@ -45,22 +50,22 @@ pub struct IDResponse {
 /// `Plugin` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Plugin {
-    /// Config property.
+    /// `Config` property.
     #[serde(rename = "Config")]
     pub config: std::collections::HashMap<String, serde_json::Value>,
-    /// Enabled property.
+    /// `Enabled` property.
     #[serde(rename = "Enabled")]
     pub enabled: bool,
-    /// Id property.
+    /// `Id` property.
     #[serde(rename = "Id")]
     pub id: Option<String>,
-    /// Name property.
+    /// `Name` property.
     #[serde(rename = "Name")]
     pub name: String,
-    /// PluginReference property.
+    /// `PluginReference` property.
     #[serde(rename = "PluginReference")]
     pub plugin_reference: Option<String>,
-    /// Settings property.
+    /// `Settings` property.
     #[serde(rename = "Settings")]
     pub settings: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -68,34 +73,34 @@ pub struct Plugin {
 /// `Volume` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Volume {
-    /// ClusterVolume property.
+    /// `ClusterVolume` property.
     #[serde(rename = "ClusterVolume")]
     pub cluster_volume: Option<ClusterVolume>,
-    /// CreatedAt property.
+    /// `CreatedAt` property.
     #[serde(rename = "CreatedAt")]
     pub created_at: Option<String>,
-    /// Driver property.
+    /// `Driver` property.
     #[serde(rename = "Driver")]
     pub driver: String,
-    /// Labels property.
+    /// `Labels` property.
     #[serde(rename = "Labels")]
     pub labels: serde_json::Value,
-    /// Mountpoint property.
+    /// `Mountpoint` property.
     #[serde(rename = "Mountpoint")]
     pub mountpoint: String,
-    /// Name property.
+    /// `Name` property.
     #[serde(rename = "Name")]
     pub name: String,
-    /// Options property.
+    /// `Options` property.
     #[serde(rename = "Options")]
     pub options: serde_json::Value,
-    /// Scope property.
+    /// `Scope` property.
     #[serde(rename = "Scope")]
     pub scope: String,
-    /// Status property.
+    /// `Status` property.
     #[serde(rename = "Status")]
     pub status: Option<serde_json::Value>,
-    /// UsageData property.
+    /// `UsageData` property.
     #[serde(rename = "UsageData")]
     pub usage_data: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
@@ -103,25 +108,25 @@ pub struct Volume {
 /// `ClusterVolume` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ClusterVolume {
-    /// CreatedAt property.
+    /// `CreatedAt` property.
     #[serde(rename = "CreatedAt")]
     pub created_at: Option<String>,
-    /// ID property.
+    /// `ID` property.
     #[serde(rename = "ID")]
     pub id: Option<String>,
-    /// Info property.
+    /// `Info` property.
     #[serde(rename = "Info")]
     pub info: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// PublishStatus property.
+    /// `PublishStatus` property.
     #[serde(rename = "PublishStatus")]
     pub publish_status: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// Spec property.
+    /// `Spec` property.
     #[serde(rename = "Spec")]
     pub spec: Option<ClusterVolumeSpec>,
-    /// UpdatedAt property.
+    /// `UpdatedAt` property.
     #[serde(rename = "UpdatedAt")]
     pub updated_at: Option<String>,
-    /// Version property.
+    /// `Version` property.
     #[serde(rename = "Version")]
     pub version: Option<ObjectVersion>,
 }
@@ -129,10 +134,10 @@ pub struct ClusterVolume {
 /// `ClusterVolumeSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ClusterVolumeSpec {
-    /// AccessMode property.
+    /// `AccessMode` property.
     #[serde(rename = "AccessMode")]
     pub access_mode: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Group property.
+    /// `Group` property.
     #[serde(rename = "Group")]
     pub group: Option<String>,
 }
@@ -140,24 +145,21 @@ pub struct ClusterVolumeSpec {
 /// `ErrorDetail` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ErrorDetail {
-    /// code property.
+    /// `code` property.
     pub code: Option<i64>,
-    /// message property.
+    /// `message` property.
     pub message: Option<String>,
 }
 
 /// `ImageID` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImageID {
-    /// ID property.
-    #[serde(rename = "ID")]
-    pub id: Option<String>,
-}
+///
+/// Same shape as `IdObject`.
+pub type ImageID = IdObject;
 
 /// `ObjectVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ObjectVersion {
-    /// Index property.
+    /// `Index` property.
     #[serde(rename = "Index")]
     pub index: Option<i64>,
 }
@@ -165,16 +167,16 @@ pub struct ObjectVersion {
 /// `PluginDevice` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PluginDevice {
-    /// Description property.
+    /// `Description` property.
     #[serde(rename = "Description")]
     pub description: String,
-    /// Name property.
+    /// `Name` property.
     #[serde(rename = "Name")]
     pub name: String,
-    /// Path property.
+    /// `Path` property.
     #[serde(rename = "Path")]
     pub path: String,
-    /// Settable property.
+    /// `Settable` property.
     #[serde(rename = "Settable")]
     pub settable: Vec<String>,
 }
@@ -182,16 +184,16 @@ pub struct PluginDevice {
 /// `PluginEnv` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PluginEnv {
-    /// Description property.
+    /// `Description` property.
     #[serde(rename = "Description")]
     pub description: String,
-    /// Name property.
+    /// `Name` property.
     #[serde(rename = "Name")]
     pub name: String,
-    /// Settable property.
+    /// `Settable` property.
     #[serde(rename = "Settable")]
     pub settable: Vec<String>,
-    /// Value property.
+    /// `Value` property.
     #[serde(rename = "Value")]
     pub value: String,
 }
@@ -199,25 +201,25 @@ pub struct PluginEnv {
 /// `PluginMount` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PluginMount {
-    /// Description property.
+    /// `Description` property.
     #[serde(rename = "Description")]
     pub description: String,
-    /// Destination property.
+    /// `Destination` property.
     #[serde(rename = "Destination")]
     pub destination: String,
-    /// Name property.
+    /// `Name` property.
     #[serde(rename = "Name")]
     pub name: String,
-    /// Options property.
+    /// `Options` property.
     #[serde(rename = "Options")]
     pub options: Vec<String>,
-    /// Settable property.
+    /// `Settable` property.
     #[serde(rename = "Settable")]
     pub settable: Vec<String>,
-    /// Source property.
+    /// `Source` property.
     #[serde(rename = "Source")]
     pub source: String,
-    /// Type property.
+    /// `Type` property.
     #[serde(rename = "Type")]
     pub r#type: String,
 }
@@ -225,17 +227,454 @@ pub struct PluginMount {
 /// `ProgressDetail` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ProgressDetail {
-    /// current property.
+    /// `current` property.
     pub current: Option<i64>,
-    /// total property.
+    /// `total` property.
     pub total: Option<i64>,
 }
 
 /// `Topology` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Topology {
-    /// Segments property.
+    /// `Segments` property.
     #[serde(rename = "Segments")]
     pub segments: Option<serde_json::Value>,
 }
 
+// =============================================================================
+// SHARED SHAPES
+// =============================================================================
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AliasesDriverOptsTargetObject {
+    /// `Aliases` property.
+    #[serde(rename = "Aliases")]
+    pub aliases: Option<Vec<String>>,
+    /// `DriverOpts` property.
+    #[serde(rename = "DriverOpts")]
+    pub driver_opts: Option<serde_json::Value>,
+    /// `Target` property.
+    #[serde(rename = "Target")]
+    pub target: Option<String>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ArchitectureOsObject {
+    /// `Architecture` property.
+    #[serde(rename = "Architecture")]
+    pub architecture: Option<String>,
+    /// `OS` property.
+    #[serde(rename = "OS")]
+    pub os: Option<String>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BuildCacheDiskUsageShape {
+    /// `ActiveCount` property.
+    #[serde(rename = "ActiveCount")]
+    pub active_count: Option<i64>,
+    /// `Items` property.
+    #[serde(rename = "Items")]
+    pub items: Option<Vec<serde_json::Value>>,
+    /// `Reclaimable` property.
+    #[serde(rename = "Reclaimable")]
+    pub reclaimable: Option<i64>,
+    /// `TotalCount` property.
+    #[serde(rename = "TotalCount")]
+    pub total_count: Option<i64>,
+    /// `TotalSize` property.
+    #[serde(rename = "TotalSize")]
+    pub total_size: Option<i64>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CertIssuerPublicKeyCertIssuerSubjectTrustRootObject {
+    /// `CertIssuerPublicKey` property.
+    #[serde(rename = "CertIssuerPublicKey")]
+    pub cert_issuer_public_key: Option<String>,
+    /// `CertIssuerSubject` property.
+    #[serde(rename = "CertIssuerSubject")]
+    pub cert_issuer_subject: Option<String>,
+    /// `TrustRoot` property.
+    #[serde(rename = "TrustRoot")]
+    pub trust_root: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CgroupPermissionsPathInContainerPathOnHostObject {
+    /// `CgroupPermissions` property.
+    #[serde(rename = "CgroupPermissions")]
+    pub cgroup_permissions: Option<String>,
+    /// `PathInContainer` property.
+    #[serde(rename = "PathInContainer")]
+    pub path_in_container: Option<String>,
+    /// `PathOnHost` property.
+    #[serde(rename = "PathOnHost")]
+    pub path_on_host: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ContainerAttachArgsShape {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Query parameter: `detachKeys`.
+    pub detach_keys: Option<String>,
+    /// Query parameter: `logs`.
+    pub logs: Option<String>,
+    /// Query parameter: `stream`.
+    pub stream: Option<String>,
+    /// Query parameter: `stdin`.
+    pub stdin: Option<String>,
+    /// Query parameter: `stdout`.
+    pub stdout: Option<String>,
+    /// Query parameter: `stderr`.
+    pub stderr: Option<String>,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DescriptionNameValueObject {
+    /// `Description` property.
+    #[serde(rename = "Description")]
+    pub description: Option<String>,
+    /// `Name` property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// `Value` property.
+    #[serde(rename = "Value")]
+    pub value: Option<Vec<String>>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeviceRequestShape {
+    /// `Capabilities` property.
+    #[serde(rename = "Capabilities")]
+    pub capabilities: Option<Vec<Vec<String>>>,
+    /// `Count` property.
+    #[serde(rename = "Count")]
+    pub count: Option<i64>,
+    /// `DeviceIDs` property.
+    #[serde(rename = "DeviceIDs")]
+    pub device_i_ds: Option<Vec<String>>,
+    /// `Driver` property.
+    #[serde(rename = "Driver")]
+    pub driver: Option<String>,
+    /// `Options` property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct EmptyArgs {}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EndpointPortConfigShape {
+    /// `Name` property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// `Protocol` property.
+    #[serde(rename = "Protocol")]
+    pub protocol: Option<String>,
+    /// `PublishMode` property.
+    #[serde(rename = "PublishMode")]
+    pub publish_mode: Option<String>,
+    /// `PublishedPort` property.
+    #[serde(rename = "PublishedPort")]
+    pub published_port: Option<i64>,
+    /// `TargetPort` property.
+    #[serde(rename = "TargetPort")]
+    pub target_port: Option<i64>,
+}
+
+/// A shape 11 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct FiltersArgs {
+    /// Query parameter: `filters`.
+    pub filters: Option<String>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GenericResourcesMemoryBytesNanoCpUsObject {
+    /// `GenericResources` property.
+    #[serde(rename = "GenericResources")]
+    pub generic_resources: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// `MemoryBytes` property.
+    #[serde(rename = "MemoryBytes")]
+    pub memory_bytes: Option<i64>,
+    /// `NanoCPUs` property.
+    #[serde(rename = "NanoCPUs")]
+    pub nano_cp_us: Option<i64>,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HealthConfigShape {
+    /// `Interval` property.
+    #[serde(rename = "Interval")]
+    pub interval: Option<i64>,
+    /// `Retries` property.
+    #[serde(rename = "Retries")]
+    pub retries: Option<i64>,
+    /// `StartInterval` property.
+    #[serde(rename = "StartInterval")]
+    pub start_interval: Option<i64>,
+    /// `StartPeriod` property.
+    #[serde(rename = "StartPeriod")]
+    pub start_period: Option<i64>,
+    /// `Test` property.
+    #[serde(rename = "Test")]
+    pub test: Option<Vec<String>>,
+    /// `Timeout` property.
+    #[serde(rename = "Timeout")]
+    pub timeout: Option<i64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IPAMConfigShape {
+    /// `AuxiliaryAddresses` property.
+    #[serde(rename = "AuxiliaryAddresses")]
+    pub auxiliary_addresses: Option<serde_json::Value>,
+    /// `Gateway` property.
+    #[serde(rename = "Gateway")]
+    pub gateway: Option<String>,
+    /// `IPRange` property.
+    #[serde(rename = "IPRange")]
+    pub ip_range: Option<String>,
+    /// `Subnet` property.
+    #[serde(rename = "Subnet")]
+    pub subnet: Option<String>,
+}
+
+/// A shape 13 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdArgs {
+    /// Path parameter: `id`.
+    pub id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdHWArgs {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Query parameter: `h`.
+    pub h: Option<String>,
+    /// Query parameter: `w`.
+    pub w: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdObject {
+    /// `ID` property.
+    #[serde(rename = "ID")]
+    pub id: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdSignalTArgs {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Query parameter: `signal`.
+    pub signal: Option<String>,
+    /// Query parameter: `t`.
+    pub t: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MaximumRetryCountNameObject {
+    /// `MaximumRetryCount` property.
+    #[serde(rename = "MaximumRetryCount")]
+    pub maximum_retry_count: Option<i64>,
+    /// `Name` property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MemoryBytesNanoCpUsPidsObject {
+    /// `MemoryBytes` property.
+    #[serde(rename = "MemoryBytes")]
+    pub memory_bytes: Option<i64>,
+    /// `NanoCPUs` property.
+    #[serde(rename = "NanoCPUs")]
+    pub nano_cp_us: Option<i64>,
+    /// `Pids` property.
+    #[serde(rename = "Pids")]
+    pub pids: Option<i64>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MountShape {
+    /// `BindOptions` property.
+    #[serde(rename = "BindOptions")]
+    pub bind_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `Consistency` property.
+    #[serde(rename = "Consistency")]
+    pub consistency: Option<String>,
+    /// `ImageOptions` property.
+    #[serde(rename = "ImageOptions")]
+    pub image_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `ReadOnly` property.
+    #[serde(rename = "ReadOnly")]
+    pub read_only: Option<bool>,
+    /// `Source` property.
+    #[serde(rename = "Source")]
+    pub source: Option<String>,
+    /// `Target` property.
+    #[serde(rename = "Target")]
+    pub target: Option<String>,
+    /// `TmpfsOptions` property.
+    #[serde(rename = "TmpfsOptions")]
+    pub tmpfs_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `Type` property.
+    #[serde(rename = "Type")]
+    pub r#type: Option<serde_json::Value>,
+    /// `VolumeOptions` property.
+    #[serde(rename = "VolumeOptions")]
+    pub volume_options: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct NameArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct NameForceArgs {
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `force`.
+    pub force: Option<String>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameOptionsObject {
+    /// `Name` property.
+    #[serde(rename = "Name")]
+    pub name: String,
+    /// `Options` property.
+    #[serde(rename = "Options")]
+    pub options: Option<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NetworkObject {
+    /// `Network` property.
+    #[serde(rename = "Network")]
+    pub network: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NodeSpecShape {
+    /// `Availability` property.
+    #[serde(rename = "Availability")]
+    pub availability: Option<String>,
+    /// `Labels` property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// `Name` property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// `Role` property.
+    #[serde(rename = "Role")]
+    pub role: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PathRateObject {
+    /// `Path` property.
+    #[serde(rename = "Path")]
+    pub path: Option<String>,
+    /// `Rate` property.
+    #[serde(rename = "Rate")]
+    pub rate: Option<i64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ServiceLogsArgsShape {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Query parameter: `details`.
+    pub details: Option<String>,
+    /// Query parameter: `follow`.
+    pub follow: Option<String>,
+    /// Query parameter: `stdout`.
+    pub stdout: Option<String>,
+    /// Query parameter: `stderr`.
+    pub stderr: Option<String>,
+    /// Query parameter: `since`.
+    pub since: Option<String>,
+    /// Query parameter: `timestamps`.
+    pub timestamps: Option<String>,
+    /// Query parameter: `tail`.
+    pub tail: Option<String>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SwarmSpecShape {
+    /// `CAConfig` property.
+    #[serde(rename = "CAConfig")]
+    pub ca_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `Dispatcher` property.
+    #[serde(rename = "Dispatcher")]
+    pub dispatcher: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `EncryptionConfig` property.
+    #[serde(rename = "EncryptionConfig")]
+    pub encryption_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `Labels` property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// `Name` property.
+    #[serde(rename = "Name")]
+    pub name: Option<String>,
+    /// `Orchestration` property.
+    #[serde(rename = "Orchestration")]
+    pub orchestration: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `Raft` property.
+    #[serde(rename = "Raft")]
+    pub raft: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `TaskDefaults` property.
+    #[serde(rename = "TaskDefaults")]
+    pub task_defaults: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UnlockKeyObject {
+    /// `UnlockKey` property.
+    #[serde(rename = "UnlockKey")]
+    pub unlock_key: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WarningsObject {
+    /// `Warnings` property.
+    #[serde(rename = "Warnings")]
+    pub warnings: Option<Vec<String>>,
+}

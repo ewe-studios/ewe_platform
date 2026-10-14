@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_df")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -22,101 +26,41 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `BuildCacheDiskUsage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BuildCacheDiskUsage {
-    /// ActiveCount property.
-    #[serde(rename = "ActiveCount")]
-    pub active_count: Option<i64>,
-    /// Items property.
-    #[serde(rename = "Items")]
-    pub items: Option<Vec<serde_json::Value>>,
-    /// Reclaimable property.
-    #[serde(rename = "Reclaimable")]
-    pub reclaimable: Option<i64>,
-    /// TotalCount property.
-    #[serde(rename = "TotalCount")]
-    pub total_count: Option<i64>,
-    /// TotalSize property.
-    #[serde(rename = "TotalSize")]
-    pub total_size: Option<i64>,
-}
+///
+/// Same shape as `super::shared::BuildCacheDiskUsageShape`.
+pub type BuildCacheDiskUsage = super::shared::BuildCacheDiskUsageShape;
 
 /// `ContainersDiskUsage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ContainersDiskUsage {
-    /// ActiveCount property.
-    #[serde(rename = "ActiveCount")]
-    pub active_count: Option<i64>,
-    /// Items property.
-    #[serde(rename = "Items")]
-    pub items: Option<Vec<serde_json::Value>>,
-    /// Reclaimable property.
-    #[serde(rename = "Reclaimable")]
-    pub reclaimable: Option<i64>,
-    /// TotalCount property.
-    #[serde(rename = "TotalCount")]
-    pub total_count: Option<i64>,
-    /// TotalSize property.
-    #[serde(rename = "TotalSize")]
-    pub total_size: Option<i64>,
-}
+///
+/// Same shape as `super::shared::BuildCacheDiskUsageShape`.
+pub type ContainersDiskUsage = super::shared::BuildCacheDiskUsageShape;
 
 /// `ImagesDiskUsage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesDiskUsage {
-    /// ActiveCount property.
-    #[serde(rename = "ActiveCount")]
-    pub active_count: Option<i64>,
-    /// Items property.
-    #[serde(rename = "Items")]
-    pub items: Option<Vec<serde_json::Value>>,
-    /// Reclaimable property.
-    #[serde(rename = "Reclaimable")]
-    pub reclaimable: Option<i64>,
-    /// TotalCount property.
-    #[serde(rename = "TotalCount")]
-    pub total_count: Option<i64>,
-    /// TotalSize property.
-    #[serde(rename = "TotalSize")]
-    pub total_size: Option<i64>,
-}
+///
+/// Same shape as `super::shared::BuildCacheDiskUsageShape`.
+pub type ImagesDiskUsage = super::shared::BuildCacheDiskUsageShape;
 
 /// `SystemDataUsageResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SystemDataUsageResponse {
-    /// BuildCacheUsage property.
+    /// `BuildCacheUsage` property.
     #[serde(rename = "BuildCacheUsage")]
     pub build_cache_usage: Option<BuildCacheDiskUsage>,
-    /// ContainerUsage property.
+    /// `ContainerUsage` property.
     #[serde(rename = "ContainerUsage")]
     pub container_usage: Option<ContainersDiskUsage>,
-    /// ImageUsage property.
+    /// `ImageUsage` property.
     #[serde(rename = "ImageUsage")]
     pub image_usage: Option<ImagesDiskUsage>,
-    /// VolumeUsage property.
+    /// `VolumeUsage` property.
     #[serde(rename = "VolumeUsage")]
     pub volume_usage: Option<VolumesDiskUsage>,
 }
 
 /// `VolumesDiskUsage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct VolumesDiskUsage {
-    /// ActiveCount property.
-    #[serde(rename = "ActiveCount")]
-    pub active_count: Option<i64>,
-    /// Items property.
-    #[serde(rename = "Items")]
-    pub items: Option<Vec<serde_json::Value>>,
-    /// Reclaimable property.
-    #[serde(rename = "Reclaimable")]
-    pub reclaimable: Option<i64>,
-    /// TotalCount property.
-    #[serde(rename = "TotalCount")]
-    pub total_count: Option<i64>,
-    /// TotalSize property.
-    #[serde(rename = "TotalSize")]
-    pub total_size: Option<i64>,
-}
+///
+/// Same shape as `super::shared::BuildCacheDiskUsageShape`.
+pub type VolumesDiskUsage = super::shared::BuildCacheDiskUsageShape;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -166,8 +110,7 @@ pub async fn system_data_usage_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/system/df",
-    );
+    let path = format!("/system/df",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -182,17 +125,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SystemDataUsageResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

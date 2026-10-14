@@ -7,17 +7,20 @@
 
 #![cfg(feature = "cloudflare_network")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::AddressingApiResponseCommon;
-use super::shared::TunnelSubnetResponseSingle;
 use super::shared::TunnelApiResponseCommon;
 use super::shared::TunnelCreatedAt;
 use super::shared::TunnelDeletedAt;
@@ -27,6 +30,7 @@ use super::shared::TunnelSubnetId;
 use super::shared::TunnelSubnetIpNetwork;
 use super::shared::TunnelSubnetIsDefaultNetwork;
 use super::shared::TunnelSubnetName;
+use super::shared::TunnelSubnetResponseSingle;
 use super::shared::TunnelSubnetType;
 
 use super::shared::ApiResponse;
@@ -36,352 +40,274 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `AddressingApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AddressingApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type AddressingApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `AddressingAsnPrependCount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingAsnPrependCount {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingAsnPrependCount = i64;
 
 /// `AddressingAutoAdvertiseWithdraw` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingAutoAdvertiseWithdraw {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingAutoAdvertiseWithdraw = bool;
 
 /// `AddressingBgpOnDemand` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AddressingBgpOnDemand {
-    /// advertised property.
-    pub advertised: Option<AddressingSchemasAdvertised>,
-    /// advertised_modified_at property.
-    pub advertised_modified_at: Option<AddressingModifiedAtNullable>,
-    /// on_demand_enabled property.
-    pub on_demand_enabled: Option<AddressingSchemasOnDemandEnabled>,
-    /// on_demand_locked property.
-    pub on_demand_locked: Option<AddressingSchemasOnDemandLocked>,
+    /// `advertised` property.
+    pub advertised: Option<bool>,
+    /// `advertised_modified_at` property.
+    pub advertised_modified_at: Option<String>,
+    /// `on_demand_enabled` property.
+    pub on_demand_enabled: Option<bool>,
+    /// `on_demand_locked` property.
+    pub on_demand_locked: Option<bool>,
 }
 
 /// `AddressingBgpPrefixCreate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AddressingBgpPrefixCreate {
-    /// cidr property.
-    pub cidr: AddressingCidr,
+    /// `cidr` property.
+    pub cidr: String,
 }
 
 /// `AddressingBgpPrefixIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingBgpPrefixIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingBgpPrefixIdentifier = String;
 
 /// `AddressingBgpPrefixUpdateAdvertisement` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AddressingBgpPrefixUpdateAdvertisement {
-    /// asn_prepend_count property.
-    pub asn_prepend_count: Option<AddressingAsnPrependCount>,
-    /// auto_advertise_withdraw property.
-    pub auto_advertise_withdraw: Option<AddressingAutoAdvertiseWithdraw>,
-    /// on_demand property.
+    /// `asn_prepend_count` property.
+    pub asn_prepend_count: Option<i64>,
+    /// `auto_advertise_withdraw` property.
+    pub auto_advertise_withdraw: Option<bool>,
+    /// `on_demand` property.
     pub on_demand: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `AddressingBgpSignalOpts` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AddressingBgpSignalOpts {
-    /// enabled property.
-    pub enabled: Option<AddressingBgpSignalingEnabled>,
-    /// modified_at property.
-    pub modified_at: Option<AddressingBgpSignalingModifiedAt>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `modified_at` property.
+    pub modified_at: Option<String>,
 }
 
 /// `AddressingBgpSignalingEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingBgpSignalingEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingBgpSignalingEnabled = bool;
 
 /// `AddressingBgpSignalingModifiedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingBgpSignalingModifiedAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingBgpSignalingModifiedAt = String;
 
 /// `AddressingCidr` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingCidr {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingCidr = String;
 
 /// `AddressingIpamBgpPrefixes` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AddressingIpamBgpPrefixes {
-    /// asn property.
-    pub asn: Option<AddressingSchemasAsn>,
-    /// asn_prepend_count property.
-    pub asn_prepend_count: Option<AddressingAsnPrependCount>,
-    /// auto_advertise_withdraw property.
-    pub auto_advertise_withdraw: Option<AddressingAutoAdvertiseWithdraw>,
-    /// bgp_signal_opts property.
+    /// `asn` property.
+    pub asn: Option<i64>,
+    /// `asn_prepend_count` property.
+    pub asn_prepend_count: Option<i64>,
+    /// `auto_advertise_withdraw` property.
+    pub auto_advertise_withdraw: Option<bool>,
+    /// `bgp_signal_opts` property.
     pub bgp_signal_opts: Option<AddressingBgpSignalOpts>,
-    /// cidr property.
-    pub cidr: Option<AddressingCidr>,
-    /// created_at property.
-    pub created_at: Option<AddressingTimestamp>,
-    /// id property.
-    pub id: Option<AddressingBgpPrefixIdentifier>,
-    /// modified_at property.
-    pub modified_at: Option<AddressingTimestamp>,
-    /// on_demand property.
+    /// `cidr` property.
+    pub cidr: Option<String>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `modified_at` property.
+    pub modified_at: Option<String>,
+    /// `on_demand` property.
     pub on_demand: Option<AddressingBgpOnDemand>,
 }
 
 /// `AddressingMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `AddressingModifiedAtNullable` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingModifiedAtNullable {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingModifiedAtNullable = String;
 
 /// `AddressingResponseCollectionBgp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AddressingResponseCollectionBgp {
-    /// `result` property.
-    pub result: Option<Vec<AddressingIpamBgpPrefixes>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<AddressingIpamBgpPrefixes>>>`.
+pub type AddressingResponseCollectionBgp =
+    super::shared::ApiEnvelope<Option<Vec<AddressingIpamBgpPrefixes>>>;
 
 /// `AddressingSchemasAdvertised` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingSchemasAdvertised {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingSchemasAdvertised = bool;
 
 /// `AddressingSchemasAsn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingSchemasAsn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingSchemasAsn = i64;
 
 /// `AddressingSchemasOnDemandEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingSchemasOnDemandEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingSchemasOnDemandEnabled = bool;
 
 /// `AddressingSchemasOnDemandLocked` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingSchemasOnDemandLocked {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingSchemasOnDemandLocked = bool;
 
 /// `AddressingSingleResponseBgp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AddressingSingleResponseBgp {
-    /// `result` property.
-    pub result: Option<AddressingIpamBgpPrefixes>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<AddressingIpamBgpPrefixes>>`.
+pub type AddressingSingleResponseBgp =
+    super::shared::ApiEnvelope<Option<AddressingIpamBgpPrefixes>>;
 
 /// `AddressingTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AddressingTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AddressingTimestamp = String;
 
 /// `CloudflareTunnelConfigurationPutConfigurationRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflareTunnelConfigurationPutConfigurationRequest {
-    /// config property.
+    /// `config` property.
     pub config: Option<TunnelConfig>,
 }
 
 /// `CloudflareTunnelCreateACloudflareTunnelRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflareTunnelCreateACloudflareTunnelRequest {
-    /// config_src property.
-    pub config_src: Option<TunnelConfigSrc>,
-    /// name property.
-    pub name: TunnelTunnelName,
-    /// tunnel_secret property.
-    pub tunnel_secret: Option<TunnelTunnelSecret>,
+    /// `config_src` property.
+    pub config_src: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `tunnel_secret` property.
+    pub tunnel_secret: Option<String>,
 }
 
 /// `CloudflareTunnelCreateAWarpConnectorTunnelRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflareTunnelCreateAWarpConnectorTunnelRequest {
-    /// ha property.
+    /// `ha` property.
     pub ha: Option<bool>,
-    /// name property.
-    pub name: TunnelTunnelName,
+    /// `name` property.
+    pub name: String,
 }
 
 /// `CloudflareTunnelGetACloudflareTunnelManagementTokenRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflareTunnelGetACloudflareTunnelManagementTokenRequest {
-    /// resources property.
-    pub resources: Vec<TunnelManagementResources>,
+    /// `resources` property.
+    pub resources: Vec<String>,
 }
 
 /// `CloudflareTunnelManualFailoverWarpConnectorTunnelRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CloudflareTunnelManualFailoverWarpConnectorTunnelRequest {
-    /// client_id property.
-    pub client_id: TunnelClientIdInput,
+    /// `client_id` property.
+    pub client_id: String,
 }
 
 /// `CloudflareTunnelUpdateACloudflareTunnelRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CloudflareTunnelUpdateACloudflareTunnelRequest {
-    /// name property.
-    pub name: Option<TunnelTunnelName>,
-    /// tunnel_secret property.
-    pub tunnel_secret: Option<TunnelTunnelSecret>,
-}
+///
+/// Same shape as `super::shared::NameTunnelSecretObject`.
+pub type CloudflareTunnelUpdateACloudflareTunnelRequest = super::shared::NameTunnelSecretObject;
 
 /// `CloudflareTunnelUpdateAWarpConnectorTunnelRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CloudflareTunnelUpdateAWarpConnectorTunnelRequest {
-    /// name property.
-    pub name: Option<TunnelTunnelName>,
-    /// tunnel_secret property.
-    pub tunnel_secret: Option<TunnelTunnelSecret>,
-}
+///
+/// Same shape as `super::shared::NameTunnelSecretObject`.
+pub type CloudflareTunnelUpdateAWarpConnectorTunnelRequest = super::shared::NameTunnelSecretObject;
 
 /// `ConnectivityServicesGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConnectivityServicesGetResponse {
-    /// `result` property.
-    pub result: Option<InfraServiceConfig>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type ConnectivityServicesGetResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `ConnectivityServicesListResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConnectivityServicesListResponse {
-    /// `result` property.
-    pub result: Option<Vec<InfraServiceConfig>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<serde_json::Value>>>`.
+pub type ConnectivityServicesListResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<serde_json::Value>>>;
 
 /// `ConnectivityServicesPostResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConnectivityServicesPostResponse {
-    /// `result` property.
-    pub result: Option<InfraServiceConfig>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type ConnectivityServicesPostResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `ConnectivityServicesPutResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConnectivityServicesPutResponse {
-    /// `result` property.
-    pub result: Option<InfraServiceConfig>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type ConnectivityServicesPutResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `CreateDexRuleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateDexRuleResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringDexRule>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringDexRule>>`.
+pub type CreateDexRuleResponse =
+    super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringDexRule>>;
 
 /// `DeleteDexRuleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteDexRuleResponse {
-    /// `result` property.
-    pub result: Option<bool>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<bool>>`.
+pub type DeleteDexRuleResponse = super::shared::ApiEnvelope<Option<bool>>;
 
 /// `DexEndpointsHttpTestDetailsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DexEndpointsHttpTestDetailsResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringHttpDetailsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringHttpDetailsResponse>>`.
+pub type DexEndpointsHttpTestDetailsResponse =
+    super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringHttpDetailsResponse>>;
 
 /// `DexEndpointsHttpTestPercentilesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DexEndpointsHttpTestPercentilesResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringHttpDetailsPercentilesResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringHttpDetailsPercentilesResponse>>`.
+pub type DexEndpointsHttpTestPercentilesResponse =
+    super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringHttpDetailsPercentilesResponse>>;
 
 /// `DexEndpointsListColosResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DexEndpointsListColosResponse {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<std::collections::HashMap<String, serde_json::Value>>>>`.
+pub type DexEndpointsListColosResponse =
+    super::shared::ApiEnvelope<Option<Vec<std::collections::HashMap<String, serde_json::Value>>>>;
 
 /// `DexEndpointsListTestsOverviewResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DexEndpointsListTestsOverviewResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringTestsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringTestsResponse>>`.
+pub type DexEndpointsListTestsOverviewResponse =
+    super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringTestsResponse>>;
 
 /// `DexEndpointsTestsUniqueDevicesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DexEndpointsTestsUniqueDevicesResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringUniqueDevicesResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringUniqueDevicesResponse>>`.
+pub type DexEndpointsTestsUniqueDevicesResponse =
+    super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringUniqueDevicesResponse>>;
 
 /// `DexEndpointsTracerouteTestDetailsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DexEndpointsTracerouteTestDetailsResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringTracerouteDetailsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringTracerouteDetailsResponse>>`.
+pub type DexEndpointsTracerouteTestDetailsResponse =
+    super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringTracerouteDetailsResponse>>;
 
 /// `DexEndpointsTracerouteTestNetworkPathResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DexEndpointsTracerouteTestNetworkPathResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringTracerouteTestNetworkPathResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringTracerouteTestNetworkPathResponse>>`.
+pub type DexEndpointsTracerouteTestNetworkPathResponse = super::shared::ApiEnvelope<
+    Option<DigitalExperienceMonitoringTracerouteTestNetworkPathResponse>,
+>;
 
 /// `DexEndpointsTracerouteTestPercentilesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DexEndpointsTracerouteTestPercentilesResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringTracerouteDetailsPercentilesResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringTracerouteDetailsPercentilesResponse>>`.
+pub type DexEndpointsTracerouteTestPercentilesResponse = super::shared::ApiEnvelope<
+    Option<DigitalExperienceMonitoringTracerouteDetailsPercentilesResponse>,
+>;
 
 /// `DexEndpointsTracerouteTestResultNetworkPathResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DexEndpointsTracerouteTestResultNetworkPathResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringTracerouteTestResultNetworkPathResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringTracerouteTestResultNetworkPathResponse>>`.
+pub type DexEndpointsTracerouteTestResultNetworkPathResponse = super::shared::ApiEnvelope<
+    Option<DigitalExperienceMonitoringTracerouteTestResultNetworkPathResponse>,
+>;
 
 /// `DigitalExperienceMonitoringAggregateStat` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringAggregateStat {
-    /// avgMs property.
+    /// `avgMs` property.
     #[serde(rename = "avgMs")]
     pub avg_ms: Option<i64>,
-    /// deltaPct property.
+    /// `deltaPct` property.
     #[serde(rename = "deltaPct")]
     pub delta_pct: Option<f64>,
-    /// timePeriod property.
+    /// `timePeriod` property.
     #[serde(rename = "timePeriod")]
     pub time_period: DigitalExperienceMonitoringAggregateTimePeriod,
 }
@@ -389,200 +315,182 @@ pub struct DigitalExperienceMonitoringAggregateStat {
 /// `DigitalExperienceMonitoringAggregateTimePeriod` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringAggregateTimePeriod {
-    /// units property.
+    /// `units` property.
     pub units: String,
-    /// value property.
+    /// `value` property.
     pub value: i64,
 }
 
 /// `DigitalExperienceMonitoringAggregateTimeSlot` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringAggregateTimeSlot {
-    /// avgMs property.
+    /// `avgMs` property.
     #[serde(rename = "avgMs")]
     pub avg_ms: i64,
-    /// timestamp property.
+    /// `timestamp` property.
     pub timestamp: String,
 }
 
 /// `DigitalExperienceMonitoringApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::AddressingApiResponseCollectionShape`.
+pub type DigitalExperienceMonitoringApiResponseCollection =
+    super::shared::AddressingApiResponseCollectionShape;
 
 /// `DigitalExperienceMonitoringApiResponseCollectionCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringApiResponseCollectionCommon {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<serde_json::Value>>>`.
+pub type DigitalExperienceMonitoringApiResponseCollectionCommon =
+    super::shared::ApiEnvelope<Option<Vec<serde_json::Value>>>;
 
 /// `DigitalExperienceMonitoringApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DigitalExperienceMonitoringApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DigitalExperienceMonitoringApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DigitalExperienceMonitoringApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DigitalExperienceMonitoringColo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringColo {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringColo = String;
 
 /// `DigitalExperienceMonitoringColosResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringColosResponse {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringColosResponse =
+    Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `DigitalExperienceMonitoringCommandsDevicesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringCommandsDevicesResponse {
-    /// devices property.
+    /// `devices` property.
     pub devices: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 /// `DigitalExperienceMonitoringCpuPctByApp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringCpuPctByApp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringCpuPctByApp =
+    Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `DigitalExperienceMonitoringCreateRuleBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringCreateRuleBody {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// match property.
+    /// `match` property.
     #[serde(rename = "match")]
     pub r#match: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
 }
 
 /// `DigitalExperienceMonitoringDevice` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDevice {
-    /// alwaysOn property.
+    /// `alwaysOn` property.
     #[serde(rename = "alwaysOn")]
     pub always_on: Option<bool>,
-    /// batteryCharging property.
+    /// `batteryCharging` property.
     #[serde(rename = "batteryCharging")]
     pub battery_charging: Option<bool>,
-    /// batteryCycles property.
+    /// `batteryCycles` property.
     #[serde(rename = "batteryCycles")]
     pub battery_cycles: Option<i64>,
-    /// batteryPct property.
+    /// `batteryPct` property.
     #[serde(rename = "batteryPct")]
     pub battery_pct: Option<f64>,
-    /// colo property.
-    pub colo: DigitalExperienceMonitoringColo,
-    /// connectionType property.
+    /// `colo` property.
+    pub colo: String,
+    /// `connectionType` property.
     #[serde(rename = "connectionType")]
     pub connection_type: Option<String>,
-    /// cpuPct property.
+    /// `cpuPct` property.
     #[serde(rename = "cpuPct")]
     pub cpu_pct: Option<f64>,
-    /// cpuPctByApp property.
+    /// `cpuPctByApp` property.
     #[serde(rename = "cpuPctByApp")]
     pub cpu_pct_by_app: Option<Vec<Vec<std::collections::HashMap<String, serde_json::Value>>>>,
-    /// deviceId property.
+    /// `deviceId` property.
     #[serde(rename = "deviceId")]
     pub device_id: String,
-    /// deviceIpv4 property.
+    /// `deviceIpv4` property.
     #[serde(rename = "deviceIpv4")]
     pub device_ipv4: Option<DigitalExperienceMonitoringIpInfo>,
-    /// deviceIpv6 property.
+    /// `deviceIpv6` property.
     #[serde(rename = "deviceIpv6")]
     pub device_ipv6: Option<DigitalExperienceMonitoringIpInfo>,
-    /// deviceName property.
+    /// `deviceName` property.
     #[serde(rename = "deviceName")]
     pub device_name: Option<String>,
-    /// diskReadBps property.
+    /// `diskReadBps` property.
     #[serde(rename = "diskReadBps")]
     pub disk_read_bps: Option<i64>,
-    /// diskUsagePct property.
+    /// `diskUsagePct` property.
     #[serde(rename = "diskUsagePct")]
     pub disk_usage_pct: Option<f64>,
-    /// diskWriteBps property.
+    /// `diskWriteBps` property.
     #[serde(rename = "diskWriteBps")]
     pub disk_write_bps: Option<i64>,
-    /// dohSubdomain property.
+    /// `dohSubdomain` property.
     #[serde(rename = "dohSubdomain")]
     pub doh_subdomain: Option<String>,
-    /// estimatedLossPct property.
+    /// `estimatedLossPct` property.
     #[serde(rename = "estimatedLossPct")]
     pub estimated_loss_pct: Option<f64>,
-    /// firewallEnabled property.
+    /// `firewallEnabled` property.
     #[serde(rename = "firewallEnabled")]
     pub firewall_enabled: Option<bool>,
-    /// gatewayIpv4 property.
+    /// `gatewayIpv4` property.
     #[serde(rename = "gatewayIpv4")]
     pub gateway_ipv4: Option<DigitalExperienceMonitoringIpInfo>,
-    /// gatewayIpv6 property.
+    /// `gatewayIpv6` property.
     #[serde(rename = "gatewayIpv6")]
     pub gateway_ipv6: Option<DigitalExperienceMonitoringIpInfo>,
-    /// handshakeLatencyMs property.
+    /// `handshakeLatencyMs` property.
     #[serde(rename = "handshakeLatencyMs")]
     pub handshake_latency_ms: Option<f64>,
-    /// ispIpv4 property.
+    /// `ispIpv4` property.
     #[serde(rename = "ispIpv4")]
     pub isp_ipv4: Option<DigitalExperienceMonitoringIpInfo>,
-    /// ispIpv6 property.
+    /// `ispIpv6` property.
     #[serde(rename = "ispIpv6")]
     pub isp_ipv6: Option<DigitalExperienceMonitoringIpInfo>,
-    /// metal property.
+    /// `metal` property.
     pub metal: Option<String>,
-    /// mode property.
-    pub mode: DigitalExperienceMonitoringMode,
-    /// networkRcvdBps property.
+    /// `mode` property.
+    pub mode: String,
+    /// `networkRcvdBps` property.
     #[serde(rename = "networkRcvdBps")]
     pub network_rcvd_bps: Option<i64>,
-    /// networkSentBps property.
+    /// `networkSentBps` property.
     #[serde(rename = "networkSentBps")]
     pub network_sent_bps: Option<i64>,
-    /// networkSsid property.
+    /// `networkSsid` property.
     #[serde(rename = "networkSsid")]
     pub network_ssid: Option<String>,
-    /// personEmail property.
+    /// `personEmail` property.
     #[serde(rename = "personEmail")]
-    pub person_email: Option<DigitalExperienceMonitoringPersonEmail>,
-    /// platform property.
-    pub platform: DigitalExperienceMonitoringPlatform,
-    /// ramAvailableKb property.
+    pub person_email: Option<String>,
+    /// `platform` property.
+    pub platform: String,
+    /// `ramAvailableKb` property.
     #[serde(rename = "ramAvailableKb")]
     pub ram_available_kb: Option<i64>,
-    /// ramUsedPct property.
+    /// `ramUsedPct` property.
     #[serde(rename = "ramUsedPct")]
     pub ram_used_pct: Option<f64>,
-    /// ramUsedPctByApp property.
+    /// `ramUsedPctByApp` property.
     #[serde(rename = "ramUsedPctByApp")]
     pub ram_used_pct_by_app: Option<Vec<Vec<std::collections::HashMap<String, serde_json::Value>>>>,
-    /// status property.
-    pub status: DigitalExperienceMonitoringStatus,
-    /// switchLocked property.
+    /// `status` property.
+    pub status: String,
+    /// `switchLocked` property.
     #[serde(rename = "switchLocked")]
     pub switch_locked: Option<bool>,
-    /// timestamp property.
-    pub timestamp: DigitalExperienceMonitoringTimestamp,
-    /// version property.
-    pub version: DigitalExperienceMonitoringVersion,
-    /// wifiStrengthDbm property.
+    /// `timestamp` property.
+    pub timestamp: String,
+    /// `version` property.
+    pub version: String,
+    /// `wifiStrengthDbm` property.
     #[serde(rename = "wifiStrengthDbm")]
     pub wifi_strength_dbm: Option<i64>,
 }
@@ -590,184 +498,161 @@ pub struct DigitalExperienceMonitoringDevice {
 /// `DigitalExperienceMonitoringDeviceDexTestSchemasData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDeviceDexTestSchemasData {
-    /// host property.
+    /// `host` property.
     pub host: String,
-    /// kind property.
+    /// `kind` property.
     pub kind: String,
-    /// method property.
+    /// `method` property.
     pub method: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringDeviceDexTestSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringDeviceDexTestSchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringDeviceDexTestSchemasDescription = String;
 
 /// `DigitalExperienceMonitoringDeviceDexTestSchemasEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringDeviceDexTestSchemasEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringDeviceDexTestSchemasEnabled = bool;
 
 /// `DigitalExperienceMonitoringDeviceDexTestSchemasHttp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDeviceDexTestSchemasHttp {
-    /// data property.
+    /// `data` property.
     pub data: DigitalExperienceMonitoringDeviceDexTestSchemasData,
-    /// description property.
-    pub description: Option<DigitalExperienceMonitoringDeviceDexTestSchemasDescription>,
-    /// enabled property.
-    pub enabled: DigitalExperienceMonitoringDeviceDexTestSchemasEnabled,
-    /// interval property.
-    pub interval: DigitalExperienceMonitoringDeviceDexTestSchemasInterval,
-    /// name property.
-    pub name: DigitalExperienceMonitoringDeviceDexTestSchemasName,
-    /// target_policies property.
+    /// `description` property.
+    pub description: Option<String>,
+    /// `enabled` property.
+    pub enabled: bool,
+    /// `interval` property.
+    pub interval: String,
+    /// `name` property.
+    pub name: String,
+    /// `target_policies` property.
     pub target_policies: Option<Vec<DigitalExperienceMonitoringDexTargetPolicy>>,
-    /// targeted property.
+    /// `targeted` property.
     pub targeted: Option<bool>,
-    /// test_id property.
-    pub test_id: Option<DigitalExperienceMonitoringSchemasTestId>,
+    /// `test_id` property.
+    pub test_id: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringDeviceDexTestSchemasInterval` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringDeviceDexTestSchemasInterval {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringDeviceDexTestSchemasInterval = String;
 
 /// `DigitalExperienceMonitoringDeviceDexTestSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringDeviceDexTestSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringDeviceDexTestSchemasName = String;
 
 /// `DigitalExperienceMonitoringDeviceDexTestTargetPolicies` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringDeviceDexTestTargetPolicies {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringDeviceDexTestTargetPolicies =
+    Vec<DigitalExperienceMonitoringDexTargetPolicy>;
 
 /// `DigitalExperienceMonitoringDexDeleteResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringDexDeleteResponseCollection {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type DigitalExperienceMonitoringDexDeleteResponseCollection =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `DigitalExperienceMonitoringDexResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringDexResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<DigitalExperienceMonitoringDeviceDexTestSchemasHttp>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<DigitalExperienceMonitoringDeviceDexTestSchemasHttp>>>`.
+pub type DigitalExperienceMonitoringDexResponseCollection =
+    super::shared::ApiEnvelope<Option<Vec<DigitalExperienceMonitoringDeviceDexTestSchemasHttp>>>;
 
 /// `DigitalExperienceMonitoringDexRule` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDexRule {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// id property.
-    pub id: DigitalExperienceMonitoringUuid,
-    /// match property.
+    /// `id` property.
+    pub id: String,
+    /// `match` property.
     #[serde(rename = "match")]
     pub r#match: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// targeted_tests property.
+    /// `targeted_tests` property.
     pub targeted_tests: Option<Vec<DigitalExperienceMonitoringDexTargetedTest>>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringDexSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringDexSingleResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringDeviceDexTestSchemasHttp>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringDeviceDexTestSchemasHttp>>`.
+pub type DigitalExperienceMonitoringDexSingleResponse =
+    super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringDeviceDexTestSchemasHttp>>;
 
 /// `DigitalExperienceMonitoringDexTargetPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDexTargetPolicy {
-    /// default property.
+    /// `default` property.
     pub default: Option<bool>,
-    /// id property.
-    pub id: DigitalExperienceMonitoringUuid,
-    /// name property.
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
     pub name: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringDexTargetedTest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDexTargetedTest {
-    /// data property.
+    /// `data` property.
     pub data: DigitalExperienceMonitoringDeviceDexTestSchemasData,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// test_id property.
+    /// `test_id` property.
     pub test_id: String,
 }
 
 /// `DigitalExperienceMonitoringFleetStatusDevicesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringFleetStatusDevicesResponse {
-    /// `result` property.
-    pub result: Option<Vec<DigitalExperienceMonitoringDevice>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<DigitalExperienceMonitoringDevice>>>`.
+pub type DigitalExperienceMonitoringFleetStatusDevicesResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+        Option<Vec<DigitalExperienceMonitoringDevice>>,
+    >;
 
 /// `DigitalExperienceMonitoringFleetStatusLiveResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringFleetStatusLiveResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type DigitalExperienceMonitoringFleetStatusLiveResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `DigitalExperienceMonitoringFleetStatusOverTimeResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringFleetStatusOverTimeResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type DigitalExperienceMonitoringFleetStatusOverTimeResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+        Option<std::collections::HashMap<String, serde_json::Value>>,
+    >;
 
 /// `DigitalExperienceMonitoringGetCommandsQuotaResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringGetCommandsQuotaResponse {
-    /// quota property.
+    /// `quota` property.
     pub quota: f64,
-    /// quota_usage property.
+    /// `quota_usage` property.
     pub quota_usage: f64,
-    /// reset_time property.
+    /// `reset_time` property.
     pub reset_time: String,
 }
 
 /// `DigitalExperienceMonitoringGetCommandsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringGetCommandsResponse {
-    /// commands property.
-    pub commands: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
+///
+/// Same shape as `super::shared::CommandsObject`.
+pub type DigitalExperienceMonitoringGetCommandsResponse = super::shared::CommandsObject;
 
 /// `DigitalExperienceMonitoringHttpDetailsPercentilesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringHttpDetailsPercentilesResponse {
-    /// dnsResponseTimeMs property.
+    /// `dnsResponseTimeMs` property.
     #[serde(rename = "dnsResponseTimeMs")]
     pub dns_response_time_ms: Option<DigitalExperienceMonitoringPercentiles>,
-    /// resourceFetchTimeMs property.
+    /// `resourceFetchTimeMs` property.
     #[serde(rename = "resourceFetchTimeMs")]
     pub resource_fetch_time_ms: Option<DigitalExperienceMonitoringPercentiles>,
-    /// serverResponseTimeMs property.
+    /// `serverResponseTimeMs` property.
     #[serde(rename = "serverResponseTimeMs")]
     pub server_response_time_ms: Option<DigitalExperienceMonitoringPercentiles>,
 }
@@ -775,207 +660,175 @@ pub struct DigitalExperienceMonitoringHttpDetailsPercentilesResponse {
 /// `DigitalExperienceMonitoringHttpDetailsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringHttpDetailsResponse {
-    /// host property.
+    /// `host` property.
     pub host: Option<String>,
-    /// httpStats property.
+    /// `httpStats` property.
     #[serde(rename = "httpStats")]
     pub http_stats: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// httpStatsByColo property.
+    /// `httpStatsByColo` property.
     #[serde(rename = "httpStatsByColo")]
     pub http_stats_by_colo: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// interval property.
+    /// `interval` property.
     pub interval: Option<String>,
-    /// kind property.
+    /// `kind` property.
     pub kind: Option<serde_json::Value>,
-    /// method property.
+    /// `method` property.
     pub method: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// target_policies property.
+    /// `target_policies` property.
     pub target_policies: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// targeted property.
+    /// `targeted` property.
     pub targeted: Option<bool>,
 }
 
 /// `DigitalExperienceMonitoringIpInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringIpInfo {
-    /// address property.
+    /// `address` property.
     pub address: Option<String>,
-    /// asn property.
+    /// `asn` property.
     pub asn: Option<i64>,
-    /// aso property.
+    /// `aso` property.
     pub aso: Option<String>,
-    /// location property.
+    /// `location` property.
     pub location: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// netmask property.
+    /// `netmask` property.
     pub netmask: Option<String>,
-    /// version property.
+    /// `version` property.
     pub version: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringListRulesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringListRulesResponse {
-    /// rules property.
+    /// `rules` property.
     pub rules: Option<Vec<DigitalExperienceMonitoringDexRule>>,
 }
 
 /// `DigitalExperienceMonitoringLiveStat` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringLiveStat {
-    /// uniqueDevicesTotal property.
+    /// `uniqueDevicesTotal` property.
     #[serde(rename = "uniqueDevicesTotal")]
-    pub unique_devices_total: Option<DigitalExperienceMonitoringUniqueDevicesTotal>,
-    /// value property.
+    pub unique_devices_total: Option<f64>,
+    /// `value` property.
     pub value: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringMessages =
+    Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `DigitalExperienceMonitoringMode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringMode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringMode = String;
 
 /// `DigitalExperienceMonitoringPatchRuleBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringPatchRuleBody {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// match property.
+    /// `match` property.
     #[serde(rename = "match")]
     pub r#match: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringPercentiles` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringPercentiles {
-    /// p50 property.
+    /// `p50` property.
     pub p50: Option<f64>,
-    /// p90 property.
+    /// `p90` property.
     pub p90: Option<f64>,
-    /// p95 property.
+    /// `p95` property.
     pub p95: Option<f64>,
-    /// p99 property.
+    /// `p99` property.
     pub p99: Option<f64>,
 }
 
 /// `DigitalExperienceMonitoringPersonEmail` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringPersonEmail {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringPersonEmail = String;
 
 /// `DigitalExperienceMonitoringPlatform` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringPlatform {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringPlatform = String;
 
 /// `DigitalExperienceMonitoringPostCommandsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DigitalExperienceMonitoringPostCommandsResponse {
-    /// commands property.
-    pub commands: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
+///
+/// Same shape as `super::shared::CommandsObject`.
+pub type DigitalExperienceMonitoringPostCommandsResponse = super::shared::CommandsObject;
 
 /// `DigitalExperienceMonitoringRamUsedPctByApp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringRamUsedPctByApp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringRamUsedPctByApp =
+    Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `DigitalExperienceMonitoringSchemasAggregateStat` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringSchemasAggregateStat {
-    /// timestamp property.
-    pub timestamp: Option<DigitalExperienceMonitoringTimestamp>,
-    /// uniqueDevicesTotal property.
+    /// `timestamp` property.
+    pub timestamp: Option<String>,
+    /// `uniqueDevicesTotal` property.
     #[serde(rename = "uniqueDevicesTotal")]
-    pub unique_devices_total: Option<DigitalExperienceMonitoringUniqueDevicesTotal>,
-    /// value property.
+    pub unique_devices_total: Option<f64>,
+    /// `value` property.
     pub value: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringSchemasTestId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringSchemasTestId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringSchemasTestId = String;
 
 /// `DigitalExperienceMonitoringStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringStatus = String;
 
 /// `DigitalExperienceMonitoringTestStatOverTime` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringTestStatOverTime {
-    /// avg property.
+    /// `avg` property.
     pub avg: Option<i64>,
-    /// max property.
+    /// `max` property.
     pub max: Option<i64>,
-    /// min property.
+    /// `min` property.
     pub min: Option<i64>,
-    /// slots property.
+    /// `slots` property.
     pub slots: Vec<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `DigitalExperienceMonitoringTestStatPctOverTime` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringTestStatPctOverTime {
-    /// avg property.
+    /// `avg` property.
     pub avg: Option<f64>,
-    /// max property.
+    /// `max` property.
     pub max: Option<f64>,
-    /// min property.
+    /// `min` property.
     pub min: Option<f64>,
-    /// slots property.
+    /// `slots` property.
     pub slots: Vec<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `DigitalExperienceMonitoringTestsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringTestsResponse {
-    /// overviewMetrics property.
+    /// `overviewMetrics` property.
     #[serde(rename = "overviewMetrics")]
     pub overview_metrics: std::collections::HashMap<String, serde_json::Value>,
-    /// tests property.
+    /// `tests` property.
     pub tests: Vec<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `DigitalExperienceMonitoringTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringTimestamp = String;
 
 /// `DigitalExperienceMonitoringTimingAggregates` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringTimingAggregates {
-    /// avgMs property.
+    /// `avgMs` property.
     #[serde(rename = "avgMs")]
     pub avg_ms: Option<i64>,
-    /// history property.
+    /// `history` property.
     pub history: Vec<DigitalExperienceMonitoringAggregateStat>,
-    /// overTime property.
+    /// `overTime` property.
     #[serde(rename = "overTime")]
     pub over_time: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
@@ -983,13 +836,13 @@ pub struct DigitalExperienceMonitoringTimingAggregates {
 /// `DigitalExperienceMonitoringTracerouteDetailsPercentilesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringTracerouteDetailsPercentilesResponse {
-    /// hopsCount property.
+    /// `hopsCount` property.
     #[serde(rename = "hopsCount")]
     pub hops_count: Option<DigitalExperienceMonitoringPercentiles>,
-    /// packetLossPct property.
+    /// `packetLossPct` property.
     #[serde(rename = "packetLossPct")]
     pub packet_loss_pct: Option<DigitalExperienceMonitoringPercentiles>,
-    /// roundTripTimeMs property.
+    /// `roundTripTimeMs` property.
     #[serde(rename = "roundTripTimeMs")]
     pub round_trip_time_ms: Option<DigitalExperienceMonitoringPercentiles>,
 }
@@ -997,22 +850,22 @@ pub struct DigitalExperienceMonitoringTracerouteDetailsPercentilesResponse {
 /// `DigitalExperienceMonitoringTracerouteDetailsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringTracerouteDetailsResponse {
-    /// host property.
+    /// `host` property.
     pub host: String,
-    /// interval property.
+    /// `interval` property.
     pub interval: String,
-    /// kind property.
+    /// `kind` property.
     pub kind: serde_json::Value,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// target_policies property.
+    /// `target_policies` property.
     pub target_policies: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// targeted property.
+    /// `targeted` property.
     pub targeted: Option<bool>,
-    /// tracerouteStats property.
+    /// `tracerouteStats` property.
     #[serde(rename = "tracerouteStats")]
     pub traceroute_stats: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// tracerouteStatsByColo property.
+    /// `tracerouteStatsByColo` property.
     #[serde(rename = "tracerouteStatsByColo")]
     pub traceroute_stats_by_colo: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
@@ -1020,39 +873,39 @@ pub struct DigitalExperienceMonitoringTracerouteDetailsResponse {
 /// `DigitalExperienceMonitoringTracerouteTestNetworkPathResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringTracerouteTestNetworkPathResponse {
-    /// deviceName property.
+    /// `deviceName` property.
     #[serde(rename = "deviceName")]
     pub device_name: Option<String>,
-    /// id property.
-    pub id: DigitalExperienceMonitoringUuid,
-    /// interval property.
+    /// `id` property.
+    pub id: String,
+    /// `interval` property.
     pub interval: Option<String>,
-    /// kind property.
+    /// `kind` property.
     pub kind: Option<serde_json::Value>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// networkPath property.
+    /// `networkPath` property.
     #[serde(rename = "networkPath")]
     pub network_path: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// url property.
+    /// `url` property.
     pub url: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringTracerouteTestResultNetworkPathResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringTracerouteTestResultNetworkPathResponse {
-    /// deviceName property.
+    /// `deviceName` property.
     #[serde(rename = "deviceName")]
     pub device_name: Option<String>,
-    /// hops property.
+    /// `hops` property.
     pub hops: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// resultId property.
+    /// `resultId` property.
     #[serde(rename = "resultId")]
-    pub result_id: DigitalExperienceMonitoringUuid,
-    /// testId property.
+    pub result_id: String,
+    /// `testId` property.
     #[serde(rename = "testId")]
-    pub test_id: Option<DigitalExperienceMonitoringUuid>,
-    /// testName property.
+    pub test_id: Option<String>,
+    /// `testName` property.
     #[serde(rename = "testName")]
     pub test_name: Option<String>,
 }
@@ -1060,585 +913,518 @@ pub struct DigitalExperienceMonitoringTracerouteTestResultNetworkPathResponse {
 /// `DigitalExperienceMonitoringUniqueDevicesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringUniqueDevicesResponse {
-    /// uniqueDevicesTotal property.
+    /// `uniqueDevicesTotal` property.
     #[serde(rename = "uniqueDevicesTotal")]
     pub unique_devices_total: i64,
 }
 
 /// `DigitalExperienceMonitoringUniqueDevicesTotal` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringUniqueDevicesTotal {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringUniqueDevicesTotal = f64;
 
 /// `DigitalExperienceMonitoringUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringUuid = String;
 
 /// `DigitalExperienceMonitoringVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringVersion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringVersion = String;
 
 /// `DigitalExperienceMonitoringWarpConfigChangeEvent` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringWarpConfigChangeEvent {
-    /// device_id property.
-    pub device_id: Option<DigitalExperienceMonitoringUuid>,
-    /// device_registration property.
-    pub device_registration: Option<DigitalExperienceMonitoringUuid>,
-    /// from property.
+    /// `device_id` property.
+    pub device_id: Option<String>,
+    /// `device_registration` property.
+    pub device_registration: Option<String>,
+    /// `from` property.
     pub from: Option<DigitalExperienceMonitoringWarpConfigDetails>,
-    /// hostname property.
+    /// `hostname` property.
     pub hostname: Option<String>,
-    /// serial_number property.
+    /// `serial_number` property.
     pub serial_number: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<DigitalExperienceMonitoringTimestamp>,
-    /// to property.
+    /// `timestamp` property.
+    pub timestamp: Option<String>,
+    /// `to` property.
     pub to: Option<DigitalExperienceMonitoringWarpConfigDetails>,
-    /// user_email property.
+    /// `user_email` property.
     pub user_email: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringWarpConfigDetails` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringWarpConfigDetails {
-    /// account_name property.
+    /// `account_name` property.
     pub account_name: Option<String>,
-    /// account_tag property.
-    pub account_tag: Option<DigitalExperienceMonitoringUuid>,
-    /// config_name property.
+    /// `account_tag` property.
+    pub account_tag: Option<String>,
+    /// `config_name` property.
     pub config_name: Option<String>,
 }
 
 /// `DigitalExperienceMonitoringWarpEventsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DigitalExperienceMonitoringWarpEventsResponse {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DigitalExperienceMonitoringWarpEventsResponse = Vec<serde_json::Value>;
 
 /// `DigitalExperienceMonitoringWarpToggleChangeEvent` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringWarpToggleChangeEvent {
-    /// account_name property.
+    /// `account_name` property.
     pub account_name: Option<String>,
-    /// account_tag property.
+    /// `account_tag` property.
     pub account_tag: Option<String>,
-    /// device_id property.
-    pub device_id: Option<DigitalExperienceMonitoringUuid>,
-    /// device_registration property.
-    pub device_registration: Option<DigitalExperienceMonitoringUuid>,
-    /// hostname property.
+    /// `device_id` property.
+    pub device_id: Option<String>,
+    /// `device_registration` property.
+    pub device_registration: Option<String>,
+    /// `hostname` property.
     pub hostname: Option<String>,
-    /// serial_number property.
+    /// `serial_number` property.
     pub serial_number: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<DigitalExperienceMonitoringTimestamp>,
-    /// toggle property.
+    /// `timestamp` property.
+    pub timestamp: Option<String>,
+    /// `toggle` property.
     pub toggle: Option<String>,
-    /// user_email property.
+    /// `user_email` property.
     pub user_email: Option<String>,
 }
 
 /// `GetCommandsEligibleDevicesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetCommandsEligibleDevicesResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringCommandsDevicesResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<DigitalExperienceMonitoringCommandsDevicesResponse>>`.
+pub type GetCommandsEligibleDevicesResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+        Option<DigitalExperienceMonitoringCommandsDevicesResponse>,
+    >;
 
 /// `GetCommandsQuotaResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetCommandsQuotaResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringGetCommandsQuotaResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<DigitalExperienceMonitoringGetCommandsQuotaResponse>>`.
+pub type GetCommandsQuotaResponse = super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+    Option<DigitalExperienceMonitoringGetCommandsQuotaResponse>,
+>;
 
 /// `GetCommandsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetCommandsResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringGetCommandsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<DigitalExperienceMonitoringGetCommandsResponse>>`.
+pub type GetCommandsResponse = super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+    Option<DigitalExperienceMonitoringGetCommandsResponse>,
+>;
 
 /// `GetDexRuleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetDexRuleResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringDexRule>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringDexRule>>`.
+pub type GetDexRuleResponse =
+    super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringDexRule>>;
 
 /// `GetEventAggregateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetEventAggregateResponse {
-    /// aggregateBy property.
+    /// `aggregateBy` property.
     #[serde(rename = "aggregateBy")]
     pub aggregate_by: String,
-    /// aggregations property.
+    /// `aggregations` property.
     pub aggregations: Vec<serde_json::Value>,
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Option<GetEventAggregateResponseDateRange>,
-    /// total property.
+    /// `total` property.
     pub total: f64,
 }
 
 /// `GetEventAggregateResponseDateRange` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetEventAggregateResponseDateRange {
-    /// endDate property.
+    /// `endDate` property.
     #[serde(rename = "endDate")]
     pub end_date: Option<String>,
-    /// startDate property.
+    /// `startDate` property.
     #[serde(rename = "startDate")]
     pub start_date: Option<String>,
 }
 
 /// `InfraApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::AddressingApiResponseCollectionShape`.
+pub type InfraApiResponseCollection = super::shared::AddressingApiResponseCollectionShape;
 
 /// `InfraApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type InfraApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `InfraApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct InfraApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type InfraApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `InfraApiTlsSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraApiTlsSettings {
-    /// cert_verification_mode property.
+    /// `cert_verification_mode` property.
     pub cert_verification_mode: String,
 }
 
 /// `InfraConnectivityServiceArray` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct InfraConnectivityServiceArray {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type InfraConnectivityServiceArray = Vec<serde_json::Value>;
 
 /// `InfraDualStackHost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraDualStackHost {
-    /// ipv4 property.
+    /// `ipv4` property.
     pub ipv4: String,
-    /// ipv6 property.
+    /// `ipv6` property.
     pub ipv6: String,
-    /// network property.
+    /// `network` property.
     pub network: InfraNetwork,
 }
 
 /// `InfraHostnameHost` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraHostnameHost {
-    /// hostname property.
+    /// `hostname` property.
     pub hostname: String,
-    /// resolver_network property.
+    /// `resolver_network` property.
     pub resolver_network: InfraResolverNetwork,
 }
 
 /// `InfraHttpServiceConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraHttpServiceConfig {
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `host` property.
+    pub host: serde_json::Value,
     /// `http_port` property.
     pub http_port: Option<i64>,
     /// `https_port` property.
     pub https_port: Option<i64>,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// `service_id` property.
+    pub service_id: Option<String>,
+    /// `tls_settings` property.
+    pub tls_settings: Option<serde_json::Value>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
 }
 
 /// `InfraIPv4Host` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraIPv4Host {
-    /// ipv4 property.
+    /// `ipv4` property.
     pub ipv4: String,
-    /// network property.
+    /// `network` property.
     pub network: InfraNetwork,
 }
 
 /// `InfraIPv6Host` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraIPv6Host {
-    /// ipv6 property.
+    /// `ipv6` property.
     pub ipv6: String,
-    /// network property.
+    /// `network` property.
     pub network: InfraNetwork,
 }
 
 /// `InfraMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct InfraMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type InfraMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `InfraNetwork` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraNetwork {
-    /// tunnel_id property.
+    /// `tunnel_id` property.
     pub tunnel_id: String,
 }
 
 /// `InfraResolverNetwork` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraResolverNetwork {
-    /// resolver_ips property.
+    /// `resolver_ips` property.
     pub resolver_ips: Option<Vec<String>>,
-    /// tunnel_id property.
+    /// `tunnel_id` property.
     pub tunnel_id: String,
 }
 
 /// `InfraServiceCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraServiceCommon {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// host property.
-    pub host: InfraServiceHost,
-    /// name property.
+    /// `host` property.
+    pub host: serde_json::Value,
+    /// `name` property.
     pub name: String,
-    /// service_id property.
+    /// `service_id` property.
     pub service_id: Option<String>,
-    /// tls_settings property.
+    /// `tls_settings` property.
     pub tls_settings: Option<serde_json::Value>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: InfraServiceType,
-    /// updated_at property.
+    pub r#type: String,
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `InfraServiceConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct InfraServiceConfig {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type InfraServiceConfig = serde_json::Value;
 
 /// `InfraServiceHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct InfraServiceHost {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type InfraServiceHost = serde_json::Value;
 
 /// `InfraServiceType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct InfraServiceType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type InfraServiceType = String;
 
 /// `InfraTcpServiceConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct InfraTcpServiceConfig {
     /// `app_protocol` property.
     pub app_protocol: Option<String>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `host` property.
+    pub host: serde_json::Value,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// `service_id` property.
+    pub service_id: Option<String>,
     /// `tcp_port` property.
     pub tcp_port: Option<i64>,
+    /// `tls_settings` property.
+    pub tls_settings: Option<serde_json::Value>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
 }
 
 /// `ListDexRulesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListDexRulesResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringListRulesResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<DigitalExperienceMonitoringListRulesResponse>>`.
+pub type ListDexRulesResponse = super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+    Option<DigitalExperienceMonitoringListRulesResponse>,
+>;
 
 /// `ListWarpChangeEventsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListWarpChangeEventsResponse {
-    /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<serde_json::Value>>>`.
+pub type ListWarpChangeEventsResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<serde_json::Value>>>;
 
 /// `MagicAllowNullCipher` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicAllowNullCipher {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicAllowNullCipher = bool;
 
 /// `MagicApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type MagicApiResponseCommon = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `MagicApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicApiResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type MagicApiResponseSingle = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `MagicAutomaticReturnRouting` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicAutomaticReturnRouting {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicAutomaticReturnRouting = bool;
 
 /// `MagicBgpConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicBgpConfig {
-    /// customer_asn property.
+    /// `customer_asn` property.
     pub customer_asn: i64,
-    /// extra_prefixes property.
+    /// `extra_prefixes` property.
     pub extra_prefixes: Option<Vec<String>>,
-    /// md5_key property.
+    /// `md5_key` property.
     pub md5_key: Option<String>,
 }
 
 /// `MagicBgpStatusWithState` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicBgpStatusWithState {
-    /// bgp_state property.
+    /// `bgp_state` property.
     pub bgp_state: Option<String>,
-    /// cf_speaker_ip property.
+    /// `cf_speaker_ip` property.
     pub cf_speaker_ip: Option<String>,
-    /// cf_speaker_port property.
+    /// `cf_speaker_port` property.
     pub cf_speaker_port: Option<i64>,
-    /// customer_speaker_ip property.
+    /// `customer_speaker_ip` property.
     pub customer_speaker_ip: Option<String>,
-    /// customer_speaker_port property.
+    /// `customer_speaker_port` property.
     pub customer_speaker_port: Option<i64>,
-    /// state property.
+    /// `state` property.
     pub state: String,
-    /// tcp_established property.
+    /// `tcp_established` property.
     pub tcp_established: bool,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `MagicCloudflareGreEndpoint` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicCloudflareGreEndpoint {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicCloudflareGreEndpoint = String;
 
 /// `MagicCloudflareIpsecEndpoint` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicCloudflareIpsecEndpoint {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicCloudflareIpsecEndpoint = String;
 
 /// `MagicComponentsSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicComponentsSchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicComponentsSchemasDescription = String;
 
 /// `MagicComponentsSchemasModifiedTunnelsCollectionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicComponentsSchemasModifiedTunnelsCollectionResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type MagicComponentsSchemasModifiedTunnelsCollectionResponse =
+    super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `MagicComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicComponentsSchemasName = String;
 
 /// `MagicComponentsSchemasTunnelModifiedResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicComponentsSchemasTunnelModifiedResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type MagicComponentsSchemasTunnelModifiedResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicComponentsSchemasTunnelSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicComponentsSchemasTunnelSingleResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type MagicComponentsSchemasTunnelSingleResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicComponentsSchemasTunnelsCollectionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicComponentsSchemasTunnelsCollectionResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type MagicComponentsSchemasTunnelsCollectionResponse =
+    super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `MagicCreateGreTunnelRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicCreateGreTunnelRequest {
-    /// automatic_return_routing property.
-    pub automatic_return_routing: Option<MagicAutomaticReturnRouting>,
-    /// bgp property.
+    /// `automatic_return_routing` property.
+    pub automatic_return_routing: Option<bool>,
+    /// `bgp` property.
     pub bgp: Option<MagicBgpConfig>,
-    /// cloudflare_gre_endpoint property.
-    pub cloudflare_gre_endpoint: MagicCloudflareGreEndpoint,
-    /// customer_gre_endpoint property.
-    pub customer_gre_endpoint: MagicCustomerGreEndpoint,
-    /// description property.
-    pub description: Option<MagicSchemasDescription>,
-    /// health_check property.
+    /// `cloudflare_gre_endpoint` property.
+    pub cloudflare_gre_endpoint: String,
+    /// `customer_gre_endpoint` property.
+    pub customer_gre_endpoint: String,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `health_check` property.
     pub health_check: Option<MagicTunnelHealthCheck>,
-    /// interface_address property.
-    pub interface_address: MagicInterfaceAddress,
-    /// interface_address6 property.
-    pub interface_address6: Option<MagicInterfaceAddress6>,
-    /// mtu property.
-    pub mtu: Option<MagicMtu>,
-    /// name property.
-    pub name: MagicGreTunnelName,
-    /// ttl property.
-    pub ttl: Option<MagicTtl>,
+    /// `interface_address` property.
+    pub interface_address: String,
+    /// `interface_address6` property.
+    pub interface_address6: Option<String>,
+    /// `mtu` property.
+    pub mtu: Option<i64>,
+    /// `name` property.
+    pub name: String,
+    /// `ttl` property.
+    pub ttl: Option<i64>,
 }
 
 /// `MagicCreateGreTunnelResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicCreateGreTunnelResponse {
-    /// `result` property.
-    pub result: Option<MagicGreTunnel>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<MagicGreTunnel>`.
+pub type MagicCreateGreTunnelResponse = super::shared::ApiEnvelope<MagicGreTunnel>;
 
 /// `MagicCustomRemoteIdentities` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicCustomRemoteIdentities {
-    /// fqdn_id property.
+    /// `fqdn_id` property.
     pub fqdn_id: Option<String>,
 }
 
 /// `MagicCustomerGreEndpoint` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicCustomerGreEndpoint {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicCustomerGreEndpoint = String;
 
 /// `MagicCustomerIpsecEndpoint` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicCustomerIpsecEndpoint {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicCustomerIpsecEndpoint = String;
 
 /// `MagicGre` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicGre {
-    /// cloudflare_endpoint property.
+    /// `cloudflare_endpoint` property.
     pub cloudflare_endpoint: Option<String>,
 }
 
 /// `MagicGreTunnel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicGreTunnel {
-    /// automatic_return_routing property.
-    pub automatic_return_routing: Option<MagicAutomaticReturnRouting>,
-    /// bgp property.
+    /// `automatic_return_routing` property.
+    pub automatic_return_routing: Option<bool>,
+    /// `bgp` property.
     pub bgp: Option<MagicBgpConfig>,
-    /// bgp_status property.
+    /// `bgp_status` property.
     pub bgp_status: Option<MagicBgpStatusWithState>,
-    /// cloudflare_gre_endpoint property.
-    pub cloudflare_gre_endpoint: MagicCloudflareGreEndpoint,
-    /// created_on property.
-    pub created_on: Option<MagicSchemasCreatedOn>,
-    /// customer_gre_endpoint property.
-    pub customer_gre_endpoint: MagicCustomerGreEndpoint,
-    /// description property.
-    pub description: Option<MagicSchemasDescription>,
-    /// health_check property.
+    /// `cloudflare_gre_endpoint` property.
+    pub cloudflare_gre_endpoint: String,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `customer_gre_endpoint` property.
+    pub customer_gre_endpoint: String,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `health_check` property.
     pub health_check: Option<MagicTunnelHealthCheck>,
-    /// id property.
-    pub id: MagicSchemasIdentifier,
-    /// interface_address property.
-    pub interface_address: MagicInterfaceAddress,
-    /// interface_address6 property.
-    pub interface_address6: Option<MagicInterfaceAddress6>,
-    /// modified_on property.
-    pub modified_on: Option<MagicSchemasModifiedOn>,
-    /// mtu property.
-    pub mtu: Option<MagicMtu>,
-    /// name property.
-    pub name: MagicGreTunnelName,
-    /// ttl property.
-    pub ttl: Option<MagicTtl>,
+    /// `id` property.
+    pub id: String,
+    /// `interface_address` property.
+    pub interface_address: String,
+    /// `interface_address6` property.
+    pub interface_address6: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `mtu` property.
+    pub mtu: Option<i64>,
+    /// `name` property.
+    pub name: String,
+    /// `ttl` property.
+    pub ttl: Option<i64>,
 }
 
 /// `MagicGreTunnelAddSingleRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicGreTunnelAddSingleRequest {
-    /// automatic_return_routing property.
-    pub automatic_return_routing: Option<MagicAutomaticReturnRouting>,
-    /// cloudflare_gre_endpoint property.
-    pub cloudflare_gre_endpoint: MagicCloudflareGreEndpoint,
-    /// customer_gre_endpoint property.
-    pub customer_gre_endpoint: MagicCustomerGreEndpoint,
-    /// description property.
-    pub description: Option<MagicSchemasDescription>,
-    /// health_check property.
+    /// `automatic_return_routing` property.
+    pub automatic_return_routing: Option<bool>,
+    /// `cloudflare_gre_endpoint` property.
+    pub cloudflare_gre_endpoint: String,
+    /// `customer_gre_endpoint` property.
+    pub customer_gre_endpoint: String,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `health_check` property.
     pub health_check: Option<MagicTunnelHealthCheck>,
-    /// interface_address property.
-    pub interface_address: MagicInterfaceAddress,
-    /// interface_address6 property.
-    pub interface_address6: Option<MagicInterfaceAddress6>,
-    /// mtu property.
-    pub mtu: Option<MagicMtu>,
-    /// name property.
-    pub name: MagicGreTunnelName,
-    /// ttl property.
-    pub ttl: Option<MagicTtl>,
+    /// `interface_address` property.
+    pub interface_address: String,
+    /// `interface_address6` property.
+    pub interface_address6: Option<String>,
+    /// `mtu` property.
+    pub mtu: Option<i64>,
+    /// `name` property.
+    pub name: String,
+    /// `ttl` property.
+    pub ttl: Option<i64>,
 }
 
 /// `MagicGreTunnelName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicGreTunnelName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicGreTunnelName = String;
 
 /// `MagicGreTunnelUpdateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicGreTunnelUpdateRequest {
-}
+///
+/// Same shape as `MagicGreTunnelAddSingleRequest`.
+pub type MagicGreTunnelUpdateRequest = MagicGreTunnelAddSingleRequest;
 
 /// `MagicHealthCheckBase` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicHealthCheckBase {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// rate property.
+    /// `rate` property.
     pub rate: Option<String>,
-    /// target property.
+    /// `target` property.
     pub target: Option<serde_json::Value>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: Option<String>,
 }
@@ -1646,426 +1432,338 @@ pub struct MagicHealthCheckBase {
 /// `MagicInterconnect` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicInterconnect {
-    /// automatic_return_routing property.
-    pub automatic_return_routing: Option<MagicAutomaticReturnRouting>,
-    /// colo_name property.
-    pub colo_name: Option<MagicComponentsSchemasName>,
-    /// created_on property.
-    pub created_on: Option<MagicSchemasCreatedOn>,
-    /// description property.
-    pub description: Option<MagicInterconnectComponentsSchemasDescription>,
-    /// gre property.
+    /// `automatic_return_routing` property.
+    pub automatic_return_routing: Option<bool>,
+    /// `colo_name` property.
+    pub colo_name: Option<String>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `gre` property.
     pub gre: Option<MagicGre>,
-    /// health_check property.
+    /// `health_check` property.
     pub health_check: Option<MagicInterconnectHealthCheck>,
-    /// id property.
-    pub id: Option<MagicSchemasIdentifier>,
-    /// interface_address property.
-    pub interface_address: Option<MagicInterfaceAddress>,
-    /// interface_address6 property.
-    pub interface_address6: Option<MagicInterfaceAddress6>,
-    /// modified_on property.
-    pub modified_on: Option<MagicSchemasModifiedOn>,
-    /// mtu property.
-    pub mtu: Option<MagicSchemasMtu>,
-    /// name property.
-    pub name: Option<MagicComponentsSchemasName>,
-    /// virtual_port_reservation_id property.
+    /// `id` property.
+    pub id: Option<String>,
+    /// `interface_address` property.
+    pub interface_address: Option<String>,
+    /// `interface_address6` property.
+    pub interface_address6: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `mtu` property.
+    pub mtu: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `virtual_port_reservation_id` property.
     pub virtual_port_reservation_id: Option<serde_json::Value>,
 }
 
 /// `MagicInterconnectComponentsSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicInterconnectComponentsSchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicInterconnectComponentsSchemasDescription = String;
 
 /// `MagicInterconnectHealthCheck` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicInterconnectHealthCheck {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicInterconnectHealthCheck = MagicHealthCheckBase;
 
 /// `MagicInterconnectTunnelUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicInterconnectTunnelUpdateRequest {
-    /// automatic_return_routing property.
-    pub automatic_return_routing: Option<MagicAutomaticReturnRouting>,
-    /// description property.
-    pub description: Option<MagicInterconnectComponentsSchemasDescription>,
-    /// gre property.
+    /// `automatic_return_routing` property.
+    pub automatic_return_routing: Option<bool>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `gre` property.
     pub gre: Option<MagicGre>,
-    /// health_check property.
+    /// `health_check` property.
     pub health_check: Option<MagicInterconnectHealthCheck>,
-    /// interface_address property.
-    pub interface_address: Option<MagicInterfaceAddress>,
-    /// interface_address6 property.
-    pub interface_address6: Option<MagicInterfaceAddress6>,
-    /// mtu property.
-    pub mtu: Option<MagicSchemasMtu>,
-    /// name property.
-    pub name: Option<MagicComponentsSchemasName>,
+    /// `interface_address` property.
+    pub interface_address: Option<String>,
+    /// `interface_address6` property.
+    pub interface_address6: Option<String>,
+    /// `mtu` property.
+    pub mtu: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
 }
 
 /// `MagicInterfaceAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicInterfaceAddress {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicInterfaceAddress = String;
 
 /// `MagicInterfaceAddress6` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicInterfaceAddress6 {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicInterfaceAddress6 = String;
 
 /// `MagicIpsecTunnel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicIpsecTunnel {
-    /// allow_null_cipher property.
-    pub allow_null_cipher: Option<MagicAllowNullCipher>,
-    /// automatic_return_routing property.
-    pub automatic_return_routing: Option<MagicAutomaticReturnRouting>,
-    /// bgp property.
+    /// `allow_null_cipher` property.
+    pub allow_null_cipher: Option<bool>,
+    /// `automatic_return_routing` property.
+    pub automatic_return_routing: Option<bool>,
+    /// `bgp` property.
     pub bgp: Option<MagicBgpConfig>,
-    /// bgp_status property.
+    /// `bgp_status` property.
     pub bgp_status: Option<MagicBgpStatusWithState>,
-    /// cloudflare_endpoint property.
-    pub cloudflare_endpoint: MagicCloudflareIpsecEndpoint,
-    /// created_on property.
-    pub created_on: Option<MagicSchemasCreatedOn>,
-    /// custom_remote_identities property.
+    /// `cloudflare_endpoint` property.
+    pub cloudflare_endpoint: String,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `custom_remote_identities` property.
     pub custom_remote_identities: Option<MagicCustomRemoteIdentities>,
-    /// customer_endpoint property.
-    pub customer_endpoint: Option<MagicCustomerIpsecEndpoint>,
-    /// description property.
-    pub description: Option<MagicComponentsSchemasDescription>,
-    /// health_check property.
+    /// `customer_endpoint` property.
+    pub customer_endpoint: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `health_check` property.
     pub health_check: Option<MagicTunnelHealthCheck>,
-    /// id property.
-    pub id: MagicSchemasIdentifier,
-    /// interface_address property.
-    pub interface_address: MagicInterfaceAddress,
-    /// interface_address6 property.
-    pub interface_address6: Option<MagicInterfaceAddress6>,
-    /// modified_on property.
-    pub modified_on: Option<MagicSchemasModifiedOn>,
-    /// name property.
-    pub name: MagicIpsecTunnelName,
-    /// psk_metadata property.
+    /// `id` property.
+    pub id: String,
+    /// `interface_address` property.
+    pub interface_address: String,
+    /// `interface_address6` property.
+    pub interface_address6: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `psk_metadata` property.
     pub psk_metadata: Option<MagicPskMetadata>,
-    /// replay_protection property.
-    pub replay_protection: Option<MagicReplayProtection>,
+    /// `replay_protection` property.
+    pub replay_protection: Option<bool>,
 }
 
 /// `MagicIpsecTunnelAddRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicIpsecTunnelAddRequest {
+    /// `automatic_return_routing` property.
+    pub automatic_return_routing: Option<bool>,
+    /// `bgp` property.
+    pub bgp: Option<MagicBgpConfig>,
+    /// `cloudflare_endpoint` property.
+    pub cloudflare_endpoint: String,
+    /// `custom_remote_identities` property.
+    pub custom_remote_identities: Option<MagicCustomRemoteIdentities>,
+    /// `customer_endpoint` property.
+    pub customer_endpoint: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `health_check` property.
+    pub health_check: Option<MagicTunnelHealthCheck>,
+    /// `interface_address` property.
+    pub interface_address: String,
+    /// `interface_address6` property.
+    pub interface_address6: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `psk` property.
+    pub psk: Option<String>,
+    /// `replay_protection` property.
+    pub replay_protection: Option<bool>,
 }
 
 /// `MagicIpsecTunnelAddSingleRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicIpsecTunnelAddSingleRequest {
-    /// automatic_return_routing property.
-    pub automatic_return_routing: Option<MagicAutomaticReturnRouting>,
-    /// bgp property.
-    pub bgp: Option<MagicBgpConfig>,
-    /// cloudflare_endpoint property.
-    pub cloudflare_endpoint: MagicCloudflareIpsecEndpoint,
-    /// custom_remote_identities property.
-    pub custom_remote_identities: Option<MagicCustomRemoteIdentities>,
-    /// customer_endpoint property.
-    pub customer_endpoint: Option<MagicCustomerIpsecEndpoint>,
-    /// description property.
-    pub description: Option<MagicComponentsSchemasDescription>,
-    /// health_check property.
-    pub health_check: Option<MagicTunnelHealthCheck>,
-    /// interface_address property.
-    pub interface_address: MagicInterfaceAddress,
-    /// interface_address6 property.
-    pub interface_address6: Option<MagicInterfaceAddress6>,
-    /// name property.
-    pub name: MagicIpsecTunnelName,
-    /// psk property.
-    pub psk: Option<MagicPsk>,
-    /// replay_protection property.
-    pub replay_protection: Option<MagicReplayProtection>,
-}
+///
+/// Same shape as `MagicIpsecTunnelAddRequest`.
+pub type MagicIpsecTunnelAddSingleRequest = MagicIpsecTunnelAddRequest;
 
 /// `MagicIpsecTunnelName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicIpsecTunnelName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicIpsecTunnelName = String;
 
 /// `MagicMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicModifiedTunnelsCollectionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicModifiedTunnelsCollectionResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type MagicModifiedTunnelsCollectionResponse = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `MagicMtu` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicMtu {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicMtu = i64;
 
 /// `MagicPsk` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicPsk {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicPsk = String;
 
 /// `MagicPskGenerationResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicPskGenerationResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type MagicPskGenerationResponse = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `MagicPskMetadata` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicPskMetadata {
-    /// last_generated_on property.
-    pub last_generated_on: Option<MagicSchemasModifiedOn>,
+    /// `last_generated_on` property.
+    pub last_generated_on: Option<String>,
 }
 
 /// `MagicReplayProtection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicReplayProtection {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicReplayProtection = bool;
 
 /// `MagicSchemasCreateIpsecTunnelResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicSchemasCreateIpsecTunnelResponse {
-    /// `result` property.
-    pub result: Option<MagicIpsecTunnel>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<MagicIpsecTunnel>`.
+pub type MagicSchemasCreateIpsecTunnelResponse = super::shared::ApiEnvelope<MagicIpsecTunnel>;
 
 /// `MagicSchemasCreatedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicSchemasCreatedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicSchemasCreatedOn = String;
 
 /// `MagicSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicSchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicSchemasDescription = String;
 
 /// `MagicSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicSchemasIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicSchemasIdentifier = String;
 
 /// `MagicSchemasModifiedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicSchemasModifiedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicSchemasModifiedOn = String;
 
 /// `MagicSchemasModifiedTunnelsCollectionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicSchemasModifiedTunnelsCollectionResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type MagicSchemasModifiedTunnelsCollectionResponse =
+    super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `MagicSchemasMtu` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicSchemasMtu {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicSchemasMtu = i64;
 
 /// `MagicSchemasTunnelDeletedResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicSchemasTunnelDeletedResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type MagicSchemasTunnelDeletedResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicSchemasTunnelModifiedResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicSchemasTunnelModifiedResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type MagicSchemasTunnelModifiedResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicSchemasTunnelSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicSchemasTunnelSingleResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type MagicSchemasTunnelSingleResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicSchemasTunnelsCollectionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicSchemasTunnelsCollectionResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type MagicSchemasTunnelsCollectionResponse = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `MagicTtl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTtl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTtl = i64;
 
 /// `MagicTunnelDeletedResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTunnelDeletedResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type MagicTunnelDeletedResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicTunnelHealthCheck` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicTunnelHealthCheck {
     /// `direction` property.
     pub direction: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+    /// `rate` property.
+    pub rate: Option<String>,
+    /// `target` property.
+    pub target: Option<serde_json::Value>,
 }
 
 /// `MagicTunnelModifiedResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTunnelModifiedResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type MagicTunnelModifiedResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicTunnelSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTunnelSingleResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type MagicTunnelSingleResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicTunnelsCollectionResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTunnelsCollectionResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type MagicTunnelsCollectionResponse = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `NscAccountTag` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct NscAccountTag {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type NscAccountTag = String;
 
 /// `NscApiBandwidth` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct NscApiBandwidth {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type NscApiBandwidth = String;
 
 /// `NscBgpControl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscBgpControl {
-    /// customer_asn property.
+    /// `customer_asn` property.
     pub customer_asn: i64,
-    /// extra_prefixes property.
+    /// `extra_prefixes` property.
     pub extra_prefixes: Vec<String>,
-    /// md5_key property.
+    /// `md5_key` property.
     pub md5_key: Option<String>,
 }
 
 /// `NscCloudflareSite` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct NscCloudflareSite {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type NscCloudflareSite = String;
 
 /// `NscCni` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscCni {
-    /// account property.
-    pub account: NscAccountTag,
-    /// bgp property.
+    /// `account` property.
+    pub account: String,
+    /// `bgp` property.
     pub bgp: Option<NscBgpControl>,
-    /// cust_ip property.
+    /// `cust_ip` property.
     pub cust_ip: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// interconnect property.
+    /// `interconnect` property.
     pub interconnect: String,
-    /// magic property.
+    /// `magic` property.
     pub magic: NscMagicSettings,
-    /// p2p_ip property.
+    /// `p2p_ip` property.
     pub p2p_ip: String,
 }
 
 /// `NscCniCreate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscCniCreate {
-    /// account property.
-    pub account: NscAccountTag,
-    /// bgp property.
+    /// `account` property.
+    pub account: String,
+    /// `bgp` property.
     pub bgp: Option<NscBgpControl>,
-    /// interconnect property.
+    /// `interconnect` property.
     pub interconnect: String,
-    /// magic property.
+    /// `magic` property.
     pub magic: NscMagicSettings,
 }
 
 /// `NscCniList` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscCniList {
-    /// items property.
+    /// `items` property.
     pub items: Vec<NscCni>,
-    /// next property.
+    /// `next` property.
     pub next: Option<i64>,
 }
 
 /// `NscFacilityInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscFacilityInfo {
-    /// address property.
+    /// `address` property.
     pub address: Vec<String>,
-    /// name property.
+    /// `name` property.
     pub name: String,
 }
 
 /// `NscInterconnect` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct NscInterconnect {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type NscInterconnect = serde_json::Value;
 
 /// `NscInterconnectCreate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct NscInterconnectCreate {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type NscInterconnectCreate = serde_json::Value;
 
 /// `NscInterconnectCreateGcpPartnerBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -2073,7 +1771,7 @@ pub struct NscInterconnectCreateGcpPartnerBody {
     /// `account` property.
     pub account: String,
     /// `bandwidth` property.
-    pub bandwidth: NscApiBandwidth,
+    pub bandwidth: String,
     /// `pairing_key` property.
     pub pairing_key: String,
     /// `type` property.
@@ -2110,15 +1808,15 @@ pub struct NscInterconnectGcpPartnerBody {
     /// `region` property.
     pub region: String,
     /// `speed` property.
-    pub speed: Option<NscApiBandwidth>,
+    pub speed: Option<String>,
 }
 
 /// `NscInterconnectList` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscInterconnectList {
-    /// items property.
-    pub items: Vec<NscInterconnect>,
-    /// next property.
+    /// `items` property.
+    pub items: Vec<serde_json::Value>,
+    /// `next` property.
     pub next: Option<i64>,
 }
 
@@ -2137,7 +1835,7 @@ pub struct NscInterconnectPhysicalBody {
     #[serde(rename = "type")]
     pub r#type: String,
     /// `site` property.
-    pub site: NscCloudflareSite,
+    pub site: String,
     /// `slot_id` property.
     pub slot_id: String,
     /// `speed` property.
@@ -2147,467 +1845,386 @@ pub struct NscInterconnectPhysicalBody {
 /// `NscMagicSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscMagicSettings {
-    /// conduit_name property.
+    /// `conduit_name` property.
     pub conduit_name: String,
-    /// description property.
+    /// `description` property.
     pub description: String,
-    /// mtu property.
+    /// `mtu` property.
     pub mtu: i64,
 }
 
 /// `NscSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscSettings {
-    /// default_asn property.
+    /// `default_asn` property.
     pub default_asn: i64,
 }
 
 /// `NscSettingsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscSettingsRequest {
-    /// default_asn property.
+    /// `default_asn` property.
     pub default_asn: Option<i64>,
 }
 
 /// `NscSlotInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscSlotInfo {
-    /// account property.
-    pub account: Option<NscAccountTag>,
-    /// facility property.
+    /// `account` property.
+    pub account: Option<String>,
+    /// `facility` property.
     pub facility: NscFacilityInfo,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// occupied property.
+    /// `occupied` property.
     pub occupied: bool,
-    /// site property.
+    /// `site` property.
     pub site: String,
-    /// speed property.
+    /// `speed` property.
     pub speed: String,
 }
 
 /// `NscSlotList` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NscSlotList {
-    /// items property.
+    /// `items` property.
     pub items: Vec<NscSlotInfo>,
-    /// next property.
+    /// `next` property.
     pub next: Option<i64>,
 }
 
 /// `NscStatusInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct NscStatusInfo {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type NscStatusInfo = serde_json::Value;
 
 /// `PostCommandsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostCommandsRequest {
-    /// commands property.
+    /// `commands` property.
     pub commands: Vec<PostCommandsRequestCommandsItem>,
 }
 
 /// `PostCommandsRequestCommandsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostCommandsRequestCommandsItem {
-    /// command_args property.
+    /// `command_args` property.
     pub command_args: Option<PostCommandsRequestCommandsItemCommandArgs>,
-    /// command_type property.
+    /// `command_type` property.
     pub command_type: String,
-    /// device_id property.
+    /// `device_id` property.
     pub device_id: String,
-    /// registration_id property.
+    /// `registration_id` property.
     pub registration_id: Option<String>,
-    /// user_email property.
+    /// `user_email` property.
     pub user_email: String,
 }
 
 /// `PostCommandsRequestCommandsItemCommandArgs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostCommandsRequestCommandsItemCommandArgs {
-    /// interfaces property.
+    /// `interfaces` property.
     pub interfaces: Option<Vec<String>>,
-    /// max-file-size-mb property.
+    /// `max-file-size-mb` property.
     #[serde(rename = "max-file-size-mb")]
     pub max_file_size_mb: Option<f64>,
-    /// packet-size-bytes property.
+    /// `packet-size-bytes` property.
     #[serde(rename = "packet-size-bytes")]
     pub packet_size_bytes: Option<f64>,
-    /// test-all-routes property.
+    /// `test-all-routes` property.
     #[serde(rename = "test-all-routes")]
     pub test_all_routes: Option<bool>,
-    /// time-limit-min property.
+    /// `time-limit-min` property.
     #[serde(rename = "time-limit-min")]
     pub time_limit_min: Option<f64>,
 }
 
 /// `PostCommandsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostCommandsResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringPostCommandsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<DigitalExperienceMonitoringPostCommandsResponse>>`.
+pub type PostCommandsResponse = super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+    Option<DigitalExperienceMonitoringPostCommandsResponse>,
+>;
 
 /// `R2SlurperApiV4Error` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct R2SlurperApiV4Error {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type R2SlurperApiV4Error = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `R2SlurperApiV4Message` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct R2SlurperApiV4Message {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type R2SlurperApiV4Message = Vec<String>;
 
 /// `R2SlurperApiV4Success` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2SlurperApiV4Success {
-    /// errors property.
-    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// messages property.
-    pub messages: Option<Vec<String>>,
-    /// success property.
-    pub success: Option<bool>,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject2`.
+pub type R2SlurperApiV4Success = super::shared::ErrorsMessagesSuccessObject2;
 
 /// `R2SlurperConnectivityResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperConnectivityResponse {
-    /// connectivityStatus property.
+    /// `connectivityStatus` property.
     #[serde(rename = "connectivityStatus")]
     pub connectivity_status: Option<String>,
 }
 
 /// `R2SlurperGCSLikeCredsSchema` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2SlurperGCSLikeCredsSchema {
-    /// clientEmail property.
-    #[serde(rename = "clientEmail")]
-    pub client_email: String,
-    /// privateKey property.
-    #[serde(rename = "privateKey")]
-    pub private_key: String,
-}
+///
+/// Same shape as `super::shared::ClientEmailPrivateKeyObject`.
+pub type R2SlurperGCSLikeCredsSchema = super::shared::ClientEmailPrivateKeyObject;
 
 /// `R2SlurperGCSSourceSchema` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperGCSSourceSchema {
-    /// bucket property.
+    /// `bucket` property.
     pub bucket: String,
-    /// keys property.
+    /// `keys` property.
     pub keys: Option<Vec<String>>,
-    /// pathPrefix property.
+    /// `pathPrefix` property.
     #[serde(rename = "pathPrefix")]
     pub path_prefix: Option<String>,
-    /// secret property.
+    /// `secret` property.
     pub secret: R2SlurperGCSLikeCredsSchema,
-    /// vendor property.
+    /// `vendor` property.
     pub vendor: String,
 }
 
 /// `R2SlurperJobProgressResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperJobProgressResponse {
-    /// createdAt property.
+    /// `createdAt` property.
     #[serde(rename = "createdAt")]
     pub created_at: Option<String>,
-    /// failedObjects property.
+    /// `failedObjects` property.
     #[serde(rename = "failedObjects")]
     pub failed_objects: Option<i64>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// objects property.
+    /// `objects` property.
     pub objects: Option<i64>,
-    /// skippedObjects property.
+    /// `skippedObjects` property.
     #[serde(rename = "skippedObjects")]
     pub skipped_objects: Option<i64>,
-    /// status property.
-    pub status: Option<R2SlurperJobStatus>,
-    /// transferredObjects property.
+    /// `status` property.
+    pub status: Option<String>,
+    /// `transferredObjects` property.
     #[serde(rename = "transferredObjects")]
     pub transferred_objects: Option<i64>,
 }
 
 /// `R2SlurperJobStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct R2SlurperJobStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type R2SlurperJobStatus = String;
 
 /// `R2SlurperJurisdiction` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct R2SlurperJurisdiction {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type R2SlurperJurisdiction = String;
 
 /// `R2SlurperR2SourceSchema` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperR2SourceSchema {
-    /// bucket property.
+    /// `bucket` property.
     pub bucket: String,
-    /// jurisdiction property.
-    pub jurisdiction: Option<R2SlurperJurisdiction>,
-    /// keys property.
+    /// `jurisdiction` property.
+    pub jurisdiction: Option<String>,
+    /// `keys` property.
     pub keys: Option<Vec<String>>,
-    /// pathPrefix property.
+    /// `pathPrefix` property.
     #[serde(rename = "pathPrefix")]
     pub path_prefix: Option<String>,
-    /// secret property.
+    /// `secret` property.
     pub secret: R2SlurperS3LikeCredsSchema,
-    /// vendor property.
+    /// `vendor` property.
     pub vendor: String,
 }
 
 /// `R2SlurperR2TargetSchema` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperR2TargetSchema {
-    /// bucket property.
+    /// `bucket` property.
     pub bucket: String,
-    /// jurisdiction property.
-    pub jurisdiction: Option<R2SlurperJurisdiction>,
-    /// secret property.
+    /// `jurisdiction` property.
+    pub jurisdiction: Option<String>,
+    /// `secret` property.
     pub secret: R2SlurperS3LikeCredsSchema,
-    /// vendor property.
+    /// `vendor` property.
     pub vendor: String,
 }
 
 /// `R2SlurperS3LikeCredsSchema` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2SlurperS3LikeCredsSchema {
-    /// accessKeyId property.
-    #[serde(rename = "accessKeyId")]
-    pub access_key_id: String,
-    /// secretAccessKey property.
-    #[serde(rename = "secretAccessKey")]
-    pub secret_access_key: String,
-}
+///
+/// Same shape as `super::shared::AccessKeyIdSecretAccessKeyObject`.
+pub type R2SlurperS3LikeCredsSchema = super::shared::AccessKeyIdSecretAccessKeyObject;
 
 /// `R2SlurperS3SourceSchema` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperS3SourceSchema {
-    /// bucket property.
+    /// `bucket` property.
     pub bucket: String,
-    /// endpoint property.
+    /// `endpoint` property.
     pub endpoint: Option<String>,
-    /// keys property.
+    /// `keys` property.
     pub keys: Option<Vec<String>>,
-    /// pathPrefix property.
+    /// `pathPrefix` property.
     #[serde(rename = "pathPrefix")]
     pub path_prefix: Option<String>,
-    /// region property.
+    /// `region` property.
     pub region: Option<String>,
-    /// secret property.
+    /// `secret` property.
     pub secret: R2SlurperS3LikeCredsSchema,
-    /// vendor property.
+    /// `vendor` property.
     pub vendor: String,
 }
 
 /// `R2SlurperSourceJobSchema` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct R2SlurperSourceJobSchema {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type R2SlurperSourceJobSchema = serde_json::Value;
 
 /// `RadarGetBgpHijacksEventsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpHijacksEventsResponse {
-    /// result property.
+    /// `result` property.
     pub result: RadarGetBgpHijacksEventsResponseResult,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: RadarGetBgpHijacksEventsResponseResultInfo,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `RadarGetBgpHijacksEventsResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpHijacksEventsResponseResult {
-    /// asn_info property.
+    /// `asn_info` property.
     pub asn_info: Vec<RadarGetBgpHijacksEventsResponseResultAsnInfoItem>,
-    /// events property.
+    /// `events` property.
     pub events: Vec<RadarGetBgpHijacksEventsResponseResultEventsItem>,
-    /// total_monitors property.
+    /// `total_monitors` property.
     pub total_monitors: i64,
 }
 
 /// `RadarGetBgpHijacksEventsResponseResultAsnInfoItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpHijacksEventsResponseResultAsnInfoItem {
-    /// asn property.
-    pub asn: i64,
-    /// country_code property.
-    pub country_code: String,
-    /// org_name property.
-    pub org_name: String,
-}
+///
+/// Same shape as `super::shared::AsnCountryCodeOrgNameObject`.
+pub type RadarGetBgpHijacksEventsResponseResultAsnInfoItem =
+    super::shared::AsnCountryCodeOrgNameObject;
 
 /// `RadarGetBgpHijacksEventsResponseResultEventsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpHijacksEventsResponseResultEventsItem {
-    /// confidence_score property.
+    /// `confidence_score` property.
     pub confidence_score: i64,
-    /// duration property.
+    /// `duration` property.
     pub duration: i64,
-    /// event_type property.
+    /// `event_type` property.
     pub event_type: i64,
-    /// hijack_msgs_count property.
+    /// `hijack_msgs_count` property.
     pub hijack_msgs_count: i64,
-    /// hijacker_asn property.
+    /// `hijacker_asn` property.
     pub hijacker_asn: i64,
-    /// hijacker_country property.
+    /// `hijacker_country` property.
     pub hijacker_country: String,
-    /// id property.
+    /// `id` property.
     pub id: i64,
-    /// is_stale property.
+    /// `is_stale` property.
     pub is_stale: bool,
-    /// max_hijack_ts property.
+    /// `max_hijack_ts` property.
     pub max_hijack_ts: String,
-    /// max_msg_ts property.
+    /// `max_msg_ts` property.
     pub max_msg_ts: String,
-    /// min_hijack_ts property.
+    /// `min_hijack_ts` property.
     pub min_hijack_ts: String,
-    /// on_going_count property.
+    /// `on_going_count` property.
     pub on_going_count: i64,
-    /// peer_asns property.
+    /// `peer_asns` property.
     pub peer_asns: Vec<i64>,
-    /// peer_ip_count property.
+    /// `peer_ip_count` property.
     pub peer_ip_count: i64,
-    /// prefixes property.
+    /// `prefixes` property.
     pub prefixes: Vec<String>,
-    /// tags property.
+    /// `tags` property.
     pub tags: Vec<RadarGetBgpHijacksEventsResponseResultEventsItemTagsItem>,
-    /// victim_asns property.
+    /// `victim_asns` property.
     pub victim_asns: Vec<i64>,
-    /// victim_countries property.
+    /// `victim_countries` property.
     pub victim_countries: Vec<String>,
 }
 
 /// `RadarGetBgpHijacksEventsResponseResultEventsItemTagsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpHijacksEventsResponseResultEventsItemTagsItem {
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// score property.
+    /// `score` property.
     pub score: i64,
 }
 
 /// `RadarGetBgpHijacksEventsResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpHijacksEventsResponseResultInfo {
-    /// count property.
-    pub count: i64,
-    /// page property.
-    pub page: i64,
-    /// per_page property.
-    pub per_page: i64,
-    /// total_count property.
-    pub total_count: i64,
-}
+///
+/// Same shape as `super::shared::AiSearchInstanceListJobLogsResponseResultInfoShape`.
+pub type RadarGetBgpHijacksEventsResponseResultInfo =
+    super::shared::AiSearchInstanceListJobLogsResponseResultInfoShape;
 
 /// `RadarGetBgpIpsTimeseriesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpIpsTimeseriesResponse {
-    /// result property.
-    pub result: RadarGetBgpIpsTimeseriesResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpIpsTimeseriesResponseResult>`.
+pub type RadarGetBgpIpsTimeseriesResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpIpsTimeseriesResponseResult>;
 
 /// `RadarGetBgpIpsTimeseriesResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpIpsTimeseriesResponseResultMeta,
-    /// serie_0 property.
+    /// `serie_0` property.
     pub serie_0: RadarGetBgpIpsTimeseriesResponseResultSerie0,
 }
 
 /// `RadarGetBgpIpsTimeseriesResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesResponseResultMeta {
-    /// aggInterval property.
+    /// `aggInterval` property.
     #[serde(rename = "aggInterval")]
     pub agg_interval: String,
-    /// confidenceInfo property.
+    /// `confidenceInfo` property.
     #[serde(rename = "confidenceInfo")]
     pub confidence_info: RadarGetBgpIpsTimeseriesResponseResultMetaConfidenceInfo,
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetBgpIpsTimeseriesResponseResultMetaDateRangeItem>,
-    /// delay property.
+    /// `delay` property.
     pub delay: Option<RadarGetBgpIpsTimeseriesResponseResultMetaDelay>,
-    /// lastUpdated property.
+    /// `lastUpdated` property.
     #[serde(rename = "lastUpdated")]
     pub last_updated: String,
-    /// normalization property.
+    /// `normalization` property.
     pub normalization: String,
-    /// units property.
+    /// `units` property.
     pub units: Vec<RadarGetBgpIpsTimeseriesResponseResultMetaUnitsItem>,
 }
 
 /// `RadarGetBgpIpsTimeseriesResponseResultMetaConfidenceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesResponseResultMetaConfidenceInfo {
-    /// annotations property.
+    /// `annotations` property.
     pub annotations: Vec<RadarGetBgpIpsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
-    /// level property.
+    /// `level` property.
     pub level: i64,
 }
 
 /// `RadarGetBgpIpsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpIpsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
-    /// dataSource property.
-    #[serde(rename = "dataSource")]
-    pub data_source: String,
-    /// description property.
-    pub description: String,
-    /// endDate property.
-    #[serde(rename = "endDate")]
-    pub end_date: String,
-    /// eventType property.
-    #[serde(rename = "eventType")]
-    pub event_type: String,
-    /// isInstantaneous property.
-    #[serde(rename = "isInstantaneous")]
-    pub is_instantaneous: bool,
-    /// linkedUrl property.
-    #[serde(rename = "linkedUrl")]
-    pub linked_url: String,
-    /// startDate property.
-    #[serde(rename = "startDate")]
-    pub start_date: String,
-}
+///
+/// Same shape as `super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape`.
+pub type RadarGetBgpIpsTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem =
+    super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape;
 
 /// `RadarGetBgpIpsTimeseriesResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpIpsTimeseriesResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetBgpIpsTimeseriesResponseResultMetaDateRangeItem =
+    super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetBgpIpsTimeseriesResponseResultMetaDelay` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesResponseResultMetaDelay {
-    /// asn_data property.
+    /// `asn_data` property.
     pub asn_data: RadarGetBgpIpsTimeseriesResponseResultMetaDelayAsnData,
-    /// country_data property.
+    /// `country_data` property.
     pub country_data: RadarGetBgpIpsTimeseriesResponseResultMetaDelayCountryData,
-    /// healthy property.
+    /// `healthy` property.
     pub healthy: bool,
-    /// nowTs property.
+    /// `nowTs` property.
     #[serde(rename = "nowTs")]
     pub now_ts: f64,
 }
@@ -2615,285 +2232,248 @@ pub struct RadarGetBgpIpsTimeseriesResponseResultMetaDelay {
 /// `RadarGetBgpIpsTimeseriesResponseResultMetaDelayAsnData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesResponseResultMetaDelayAsnData {
-    /// delaySecs property.
+    /// `delaySecs` property.
     #[serde(rename = "delaySecs")]
     pub delay_secs: f64,
-    /// delayStr property.
+    /// `delayStr` property.
     #[serde(rename = "delayStr")]
     pub delay_str: String,
-    /// healthy property.
+    /// `healthy` property.
     pub healthy: bool,
-    /// latest property.
+    /// `latest` property.
     pub latest: RadarGetBgpIpsTimeseriesResponseResultMetaDelayAsnDataLatest,
 }
 
 /// `RadarGetBgpIpsTimeseriesResponseResultMetaDelayAsnDataLatest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesResponseResultMetaDelayAsnDataLatest {
-    /// entries_count property.
+    /// `entries_count` property.
     pub entries_count: f64,
-    /// path property.
+    /// `path` property.
     pub path: String,
-    /// timestamp property.
+    /// `timestamp` property.
     pub timestamp: f64,
 }
 
 /// `RadarGetBgpIpsTimeseriesResponseResultMetaDelayCountryData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesResponseResultMetaDelayCountryData {
-    /// delaySecs property.
+    /// `delaySecs` property.
     #[serde(rename = "delaySecs")]
     pub delay_secs: f64,
-    /// delayStr property.
+    /// `delayStr` property.
     #[serde(rename = "delayStr")]
     pub delay_str: String,
-    /// healthy property.
+    /// `healthy` property.
     pub healthy: bool,
-    /// latest property.
+    /// `latest` property.
     pub latest: RadarGetBgpIpsTimeseriesResponseResultMetaDelayCountryDataLatest,
 }
 
 /// `RadarGetBgpIpsTimeseriesResponseResultMetaDelayCountryDataLatest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesResponseResultMetaDelayCountryDataLatest {
-    /// count property.
+    /// `count` property.
     pub count: f64,
-    /// timestamp property.
+    /// `timestamp` property.
     pub timestamp: f64,
 }
 
 /// `RadarGetBgpIpsTimeseriesResponseResultMetaUnitsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpIpsTimeseriesResponseResultMetaUnitsItem {
-    /// name property.
-    pub name: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::NameValueObject`.
+pub type RadarGetBgpIpsTimeseriesResponseResultMetaUnitsItem = super::shared::NameValueObject;
 
 /// `RadarGetBgpIpsTimeseriesResponseResultSerie0` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesResponseResultSerie0 {
-    /// ipv4 property.
+    /// `ipv4` property.
     pub ipv4: Vec<String>,
-    /// ipv6 property.
+    /// `ipv6` property.
     pub ipv6: Vec<String>,
-    /// timestamps property.
+    /// `timestamps` property.
     pub timestamps: Vec<String>,
 }
 
 /// `RadarGetBgpPfx2AsMoasResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpPfx2AsMoasResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpPfx2AsMoasResponseResultMeta,
-    /// moas property.
+    /// `moas` property.
     pub moas: Vec<RadarGetBgpPfx2AsMoasResponseResultMoasItem>,
 }
 
 /// `RadarGetBgpPfx2AsMoasResponseResultMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpPfx2AsMoasResponseResultMeta {
-    /// data_time property.
-    pub data_time: String,
-    /// query_time property.
-    pub query_time: String,
-    /// total_peers property.
-    pub total_peers: i64,
-}
+///
+/// Same shape as `super::shared::DataTimeQueryTimeTotalPeersObject`.
+pub type RadarGetBgpPfx2AsMoasResponseResultMeta = super::shared::DataTimeQueryTimeTotalPeersObject;
 
 /// `RadarGetBgpPfx2AsMoasResponseResultMoasItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpPfx2AsMoasResponseResultMoasItem {
-    /// origins property.
+    /// `origins` property.
     pub origins: Vec<RadarGetBgpPfx2AsMoasResponseResultMoasItemOriginsItem>,
-    /// prefix property.
+    /// `prefix` property.
     pub prefix: String,
 }
 
 /// `RadarGetBgpPfx2AsMoasResponseResultMoasItemOriginsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpPfx2AsMoasResponseResultMoasItemOriginsItem {
-    /// origin property.
+    /// `origin` property.
     pub origin: i64,
-    /// peer_count property.
+    /// `peer_count` property.
     pub peer_count: i64,
-    /// rpki_validation property.
+    /// `rpki_validation` property.
     pub rpki_validation: String,
 }
 
 /// `RadarGetBgpPfx2AsResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpPfx2AsResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpPfx2AsResponseResultMeta,
-    /// prefix_origins property.
+    /// `prefix_origins` property.
     pub prefix_origins: Vec<RadarGetBgpPfx2AsResponseResultPrefixOriginsItem>,
 }
 
 /// `RadarGetBgpPfx2AsResponseResultMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpPfx2AsResponseResultMeta {
-    /// data_time property.
-    pub data_time: String,
-    /// query_time property.
-    pub query_time: String,
-    /// total_peers property.
-    pub total_peers: i64,
-}
+///
+/// Same shape as `super::shared::DataTimeQueryTimeTotalPeersObject`.
+pub type RadarGetBgpPfx2AsResponseResultMeta = super::shared::DataTimeQueryTimeTotalPeersObject;
 
 /// `RadarGetBgpPfx2AsResponseResultPrefixOriginsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpPfx2AsResponseResultPrefixOriginsItem {
-    /// origin property.
+    /// `origin` property.
     pub origin: i64,
-    /// peer_count property.
+    /// `peer_count` property.
     pub peer_count: i64,
-    /// prefix property.
+    /// `prefix` property.
     pub prefix: String,
-    /// rpki_validation property.
+    /// `rpki_validation` property.
     pub rpki_validation: String,
 }
 
 /// `RadarGetBgpPfx2asMoasResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpPfx2asMoasResponse {
-    /// result property.
-    pub result: RadarGetBgpPfx2AsMoasResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpPfx2AsMoasResponseResult>`.
+pub type RadarGetBgpPfx2asMoasResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpPfx2AsMoasResponseResult>;
 
 /// `RadarGetBgpPfx2asResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpPfx2asResponse {
-    /// result property.
-    pub result: RadarGetBgpPfx2AsResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpPfx2AsResponseResult>`.
+pub type RadarGetBgpPfx2asResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpPfx2AsResponseResult>;
 
 /// `RadarGetBgpRouteLeakEventsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRouteLeakEventsResponse {
-    /// result property.
+    /// `result` property.
     pub result: RadarGetBgpRouteLeakEventsResponseResult,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: RadarGetBgpRouteLeakEventsResponseResultInfo,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `RadarGetBgpRouteLeakEventsResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRouteLeakEventsResponseResult {
-    /// asn_info property.
+    /// `asn_info` property.
     pub asn_info: Vec<RadarGetBgpRouteLeakEventsResponseResultAsnInfoItem>,
-    /// events property.
+    /// `events` property.
     pub events: Vec<RadarGetBgpRouteLeakEventsResponseResultEventsItem>,
 }
 
 /// `RadarGetBgpRouteLeakEventsResponseResultAsnInfoItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRouteLeakEventsResponseResultAsnInfoItem {
-    /// asn property.
-    pub asn: i64,
-    /// country_code property.
-    pub country_code: String,
-    /// org_name property.
-    pub org_name: String,
-}
+///
+/// Same shape as `super::shared::AsnCountryCodeOrgNameObject`.
+pub type RadarGetBgpRouteLeakEventsResponseResultAsnInfoItem =
+    super::shared::AsnCountryCodeOrgNameObject;
 
 /// `RadarGetBgpRouteLeakEventsResponseResultEventsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRouteLeakEventsResponseResultEventsItem {
-    /// countries property.
+    /// `countries` property.
     pub countries: Vec<String>,
-    /// detected_ts property.
+    /// `detected_ts` property.
     pub detected_ts: String,
-    /// finished property.
+    /// `finished` property.
     pub finished: bool,
-    /// id property.
+    /// `id` property.
     pub id: i64,
-    /// leak_asn property.
+    /// `leak_asn` property.
     pub leak_asn: i64,
-    /// leak_count property.
+    /// `leak_count` property.
     pub leak_count: i64,
-    /// leak_seg property.
+    /// `leak_seg` property.
     pub leak_seg: Vec<i64>,
-    /// leak_type property.
+    /// `leak_type` property.
     pub leak_type: i64,
-    /// max_ts property.
+    /// `max_ts` property.
     pub max_ts: String,
-    /// min_ts property.
+    /// `min_ts` property.
     pub min_ts: String,
-    /// origin_count property.
+    /// `origin_count` property.
     pub origin_count: i64,
-    /// peer_count property.
+    /// `peer_count` property.
     pub peer_count: i64,
-    /// prefix_count property.
+    /// `prefix_count` property.
     pub prefix_count: i64,
 }
 
 /// `RadarGetBgpRouteLeakEventsResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRouteLeakEventsResponseResultInfo {
-    /// count property.
-    pub count: i64,
-    /// page property.
-    pub page: i64,
-    /// per_page property.
-    pub per_page: i64,
-    /// total_count property.
-    pub total_count: i64,
-}
+///
+/// Same shape as `super::shared::AiSearchInstanceListJobLogsResponseResultInfoShape`.
+pub type RadarGetBgpRouteLeakEventsResponseResultInfo =
+    super::shared::AiSearchInstanceListJobLogsResponseResultInfoShape;
 
 /// `RadarGetBgpRoutesAsnsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRoutesAsnsResponse {
-    /// result property.
-    pub result: RadarGetBgpRoutesAsnsResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpRoutesAsnsResponseResult>`.
+pub type RadarGetBgpRoutesAsnsResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpRoutesAsnsResponseResult>;
 
 /// `RadarGetBgpRoutesAsnsResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesAsnsResponseResult {
-    /// asns property.
+    /// `asns` property.
     pub asns: Vec<RadarGetBgpRoutesAsnsResponseResultAsnsItem>,
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpRoutesAsnsResponseResultMeta,
 }
 
 /// `RadarGetBgpRoutesAsnsResponseResultAsnsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesAsnsResponseResultAsnsItem {
-    /// asn property.
+    /// `asn` property.
     pub asn: i64,
-    /// coneSize property.
+    /// `coneSize` property.
     #[serde(rename = "coneSize")]
     pub cone_size: i64,
-    /// country property.
+    /// `country` property.
     pub country: String,
-    /// ipv4Count property.
+    /// `ipv4Count` property.
     #[serde(rename = "ipv4Count")]
     pub ipv4_count: i64,
-    /// ipv6Count property.
+    /// `ipv6Count` property.
     #[serde(rename = "ipv6Count")]
     pub ipv6_count: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// pfxsCount property.
+    /// `pfxsCount` property.
     #[serde(rename = "pfxsCount")]
     pub pfxs_count: i64,
-    /// rpkiInvalid property.
+    /// `rpkiInvalid` property.
     #[serde(rename = "rpkiInvalid")]
     pub rpki_invalid: i64,
-    /// rpkiUnknown property.
+    /// `rpkiUnknown` property.
     #[serde(rename = "rpkiUnknown")]
     pub rpki_unknown: i64,
-    /// rpkiValid property.
+    /// `rpkiValid` property.
     #[serde(rename = "rpkiValid")]
     pub rpki_valid: i64,
 }
@@ -2901,147 +2481,130 @@ pub struct RadarGetBgpRoutesAsnsResponseResultAsnsItem {
 /// `RadarGetBgpRoutesAsnsResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesAsnsResponseResultMeta {
-    /// dataTime property.
+    /// `dataTime` property.
     #[serde(rename = "dataTime")]
     pub data_time: String,
-    /// queryTime property.
+    /// `queryTime` property.
     #[serde(rename = "queryTime")]
     pub query_time: String,
-    /// totalPeers property.
+    /// `totalPeers` property.
     #[serde(rename = "totalPeers")]
     pub total_peers: i64,
 }
 
 /// `RadarGetBgpRoutesStatsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRoutesStatsResponse {
-    /// result property.
-    pub result: RadarGetBgpRoutesStatsResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpRoutesStatsResponseResult>`.
+pub type RadarGetBgpRoutesStatsResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpRoutesStatsResponseResult>;
 
 /// `RadarGetBgpRoutesStatsResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesStatsResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpRoutesStatsResponseResultMeta,
-    /// stats property.
+    /// `stats` property.
     pub stats: RadarGetBgpRoutesStatsResponseResultStats,
 }
 
 /// `RadarGetBgpRoutesStatsResponseResultMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRoutesStatsResponseResultMeta {
-    /// data_time property.
-    pub data_time: String,
-    /// query_time property.
-    pub query_time: String,
-    /// total_peers property.
-    pub total_peers: i64,
-}
+///
+/// Same shape as `super::shared::DataTimeQueryTimeTotalPeersObject`.
+pub type RadarGetBgpRoutesStatsResponseResultMeta =
+    super::shared::DataTimeQueryTimeTotalPeersObject;
 
 /// `RadarGetBgpRoutesStatsResponseResultStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesStatsResponseResultStats {
-    /// distinct_origins property.
+    /// `distinct_origins` property.
     pub distinct_origins: i64,
-    /// distinct_origins_ipv4 property.
+    /// `distinct_origins_ipv4` property.
     pub distinct_origins_ipv4: i64,
-    /// distinct_origins_ipv6 property.
+    /// `distinct_origins_ipv6` property.
     pub distinct_origins_ipv6: i64,
-    /// distinct_prefixes property.
+    /// `distinct_prefixes` property.
     pub distinct_prefixes: i64,
-    /// distinct_prefixes_ipv4 property.
+    /// `distinct_prefixes_ipv4` property.
     pub distinct_prefixes_ipv4: i64,
-    /// distinct_prefixes_ipv6 property.
+    /// `distinct_prefixes_ipv6` property.
     pub distinct_prefixes_ipv6: i64,
-    /// routes_invalid property.
+    /// `routes_invalid` property.
     pub routes_invalid: i64,
-    /// routes_invalid_ipv4 property.
+    /// `routes_invalid_ipv4` property.
     pub routes_invalid_ipv4: i64,
-    /// routes_invalid_ipv6 property.
+    /// `routes_invalid_ipv6` property.
     pub routes_invalid_ipv6: i64,
-    /// routes_total property.
+    /// `routes_total` property.
     pub routes_total: i64,
-    /// routes_total_ipv4 property.
+    /// `routes_total_ipv4` property.
     pub routes_total_ipv4: i64,
-    /// routes_total_ipv6 property.
+    /// `routes_total_ipv6` property.
     pub routes_total_ipv6: i64,
-    /// routes_unknown property.
+    /// `routes_unknown` property.
     pub routes_unknown: i64,
-    /// routes_unknown_ipv4 property.
+    /// `routes_unknown_ipv4` property.
     pub routes_unknown_ipv4: i64,
-    /// routes_unknown_ipv6 property.
+    /// `routes_unknown_ipv6` property.
     pub routes_unknown_ipv6: i64,
-    /// routes_valid property.
+    /// `routes_valid` property.
     pub routes_valid: i64,
-    /// routes_valid_ipv4 property.
+    /// `routes_valid_ipv4` property.
     pub routes_valid_ipv4: i64,
-    /// routes_valid_ipv6 property.
+    /// `routes_valid_ipv6` property.
     pub routes_valid_ipv6: i64,
 }
 
 /// `RadarGetBgpRpkiAspaChangesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRpkiAspaChangesResponse {
-    /// result property.
-    pub result: RadarGetBgpRpkiAspaChangesResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpRpkiAspaChangesResponseResult>`.
+pub type RadarGetBgpRpkiAspaChangesResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpRpkiAspaChangesResponseResult>;
 
 /// `RadarGetBgpRpkiAspaChangesResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaChangesResponseResult {
-    /// asnInfo property.
+    /// `asnInfo` property.
     #[serde(rename = "asnInfo")]
     pub asn_info: RadarGetBgpRpkiAspaChangesResponseResultAsnInfo,
-    /// changes property.
+    /// `changes` property.
     pub changes: Vec<RadarGetBgpRpkiAspaChangesResponseResultChangesItem>,
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpRpkiAspaChangesResponseResultMeta,
 }
 
 /// `RadarGetBgpRpkiAspaChangesResponseResultAsnInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaChangesResponseResultAsnInfo {
-    /// 13335 property.
+    /// `13335` property.
     #[serde(rename = "13335")]
     pub field_13335: RadarGetBgpRpkiAspaChangesResponseResultAsnInfo13335,
 }
 
 /// `RadarGetBgpRpkiAspaChangesResponseResultAsnInfo13335` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRpkiAspaChangesResponseResultAsnInfo13335 {
-    /// asn property.
-    pub asn: i64,
-    /// country property.
-    pub country: String,
-    /// name property.
-    pub name: String,
-}
+///
+/// Same shape as `super::shared::AsnCountryNameObject`.
+pub type RadarGetBgpRpkiAspaChangesResponseResultAsnInfo13335 = super::shared::AsnCountryNameObject;
 
 /// `RadarGetBgpRpkiAspaChangesResponseResultChangesItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaChangesResponseResultChangesItem {
-    /// customersAdded property.
+    /// `customersAdded` property.
     #[serde(rename = "customersAdded")]
     pub customers_added: i64,
-    /// customersRemoved property.
+    /// `customersRemoved` property.
     #[serde(rename = "customersRemoved")]
     pub customers_removed: i64,
-    /// date property.
+    /// `date` property.
     pub date: String,
-    /// entries property.
+    /// `entries` property.
     pub entries: Vec<RadarGetBgpRpkiAspaChangesResponseResultChangesItemEntriesItem>,
-    /// providersAdded property.
+    /// `providersAdded` property.
     #[serde(rename = "providersAdded")]
     pub providers_added: i64,
-    /// providersRemoved property.
+    /// `providersRemoved` property.
     #[serde(rename = "providersRemoved")]
     pub providers_removed: i64,
-    /// totalCount property.
+    /// `totalCount` property.
     #[serde(rename = "totalCount")]
     pub total_count: i64,
 }
@@ -3049,161 +2612,131 @@ pub struct RadarGetBgpRpkiAspaChangesResponseResultChangesItem {
 /// `RadarGetBgpRpkiAspaChangesResponseResultChangesItemEntriesItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaChangesResponseResultChangesItemEntriesItem {
-    /// customerAsn property.
+    /// `customerAsn` property.
     #[serde(rename = "customerAsn")]
     pub customer_asn: i64,
-    /// providers property.
+    /// `providers` property.
     pub providers: Vec<i64>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
 
 /// `RadarGetBgpRpkiAspaChangesResponseResultMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRpkiAspaChangesResponseResultMeta {
-    /// dataTime property.
-    #[serde(rename = "dataTime")]
-    pub data_time: String,
-    /// queryTime property.
-    #[serde(rename = "queryTime")]
-    pub query_time: String,
-}
+///
+/// Same shape as `super::shared::DataTimeQueryTimeObject`.
+pub type RadarGetBgpRpkiAspaChangesResponseResultMeta = super::shared::DataTimeQueryTimeObject;
 
 /// `RadarGetBgpRpkiAspaSnapshotResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRpkiAspaSnapshotResponse {
-    /// result property.
-    pub result: RadarGetBgpRpkiAspaSnapshotResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpRpkiAspaSnapshotResponseResult>`.
+pub type RadarGetBgpRpkiAspaSnapshotResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpRpkiAspaSnapshotResponseResult>;
 
 /// `RadarGetBgpRpkiAspaSnapshotResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaSnapshotResponseResult {
-    /// asnInfo property.
+    /// `asnInfo` property.
     #[serde(rename = "asnInfo")]
     pub asn_info: RadarGetBgpRpkiAspaSnapshotResponseResultAsnInfo,
-    /// aspaObjects property.
+    /// `aspaObjects` property.
     #[serde(rename = "aspaObjects")]
     pub aspa_objects: Vec<RadarGetBgpRpkiAspaSnapshotResponseResultAspaObjectsItem>,
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpRpkiAspaSnapshotResponseResultMeta,
 }
 
 /// `RadarGetBgpRpkiAspaSnapshotResponseResultAsnInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaSnapshotResponseResultAsnInfo {
-    /// 13335 property.
+    /// `13335` property.
     #[serde(rename = "13335")]
     pub field_13335: RadarGetBgpRpkiAspaSnapshotResponseResultAsnInfo13335,
 }
 
 /// `RadarGetBgpRpkiAspaSnapshotResponseResultAsnInfo13335` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRpkiAspaSnapshotResponseResultAsnInfo13335 {
-    /// asn property.
-    pub asn: i64,
-    /// country property.
-    pub country: String,
-    /// name property.
-    pub name: String,
-}
+///
+/// Same shape as `super::shared::AsnCountryNameObject`.
+pub type RadarGetBgpRpkiAspaSnapshotResponseResultAsnInfo13335 =
+    super::shared::AsnCountryNameObject;
 
 /// `RadarGetBgpRpkiAspaSnapshotResponseResultAspaObjectsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaSnapshotResponseResultAspaObjectsItem {
-    /// customerAsn property.
+    /// `customerAsn` property.
     #[serde(rename = "customerAsn")]
     pub customer_asn: i64,
-    /// providers property.
+    /// `providers` property.
     pub providers: Vec<i64>,
 }
 
 /// `RadarGetBgpRpkiAspaSnapshotResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaSnapshotResponseResultMeta {
-    /// dataTime property.
+    /// `dataTime` property.
     #[serde(rename = "dataTime")]
     pub data_time: String,
-    /// queryTime property.
+    /// `queryTime` property.
     #[serde(rename = "queryTime")]
     pub query_time: String,
-    /// totalCount property.
+    /// `totalCount` property.
     #[serde(rename = "totalCount")]
     pub total_count: i64,
 }
 
 /// `RadarGetBgpRpkiAspaTimeseriesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRpkiAspaTimeseriesResponse {
-    /// result property.
-    pub result: RadarGetBgpRpkiAspaTimeseriesResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpRpkiAspaTimeseriesResponseResult>`.
+pub type RadarGetBgpRpkiAspaTimeseriesResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpRpkiAspaTimeseriesResponseResult>;
 
 /// `RadarGetBgpRpkiAspaTimeseriesResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaTimeseriesResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpRpkiAspaTimeseriesResponseResultMeta,
-    /// serie_0 property.
+    /// `serie_0` property.
     pub serie_0: RadarGetBgpRpkiAspaTimeseriesResponseResultSerie0,
 }
 
 /// `RadarGetBgpRpkiAspaTimeseriesResponseResultMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRpkiAspaTimeseriesResponseResultMeta {
-    /// dataTime property.
-    #[serde(rename = "dataTime")]
-    pub data_time: String,
-    /// queryTime property.
-    #[serde(rename = "queryTime")]
-    pub query_time: String,
-}
+///
+/// Same shape as `super::shared::DataTimeQueryTimeObject`.
+pub type RadarGetBgpRpkiAspaTimeseriesResponseResultMeta = super::shared::DataTimeQueryTimeObject;
 
 /// `RadarGetBgpRpkiAspaTimeseriesResponseResultSerie0` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRpkiAspaTimeseriesResponseResultSerie0 {
-    /// timestamps property.
-    pub timestamps: Vec<String>,
-    /// values property.
-    pub values: Vec<String>,
-}
+///
+/// Same shape as `super::shared::TimestampsValuesObject`.
+pub type RadarGetBgpRpkiAspaTimeseriesResponseResultSerie0 = super::shared::TimestampsValuesObject;
 
 /// `RadarGetBgpTimeseriesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTimeseriesResponse {
-    /// result property.
-    pub result: RadarGetBgpTimeseriesResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpTimeseriesResponseResult>`.
+pub type RadarGetBgpTimeseriesResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpTimeseriesResponseResult>;
 
 /// `RadarGetBgpTimeseriesResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTimeseriesResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpTimeseriesResponseResultMeta,
-    /// serie_0 property.
+    /// `serie_0` property.
     pub serie_0: RadarGetBgpTimeseriesResponseResultSerie0,
 }
 
 /// `RadarGetBgpTimeseriesResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTimeseriesResponseResultMeta {
-    /// aggInterval property.
+    /// `aggInterval` property.
     #[serde(rename = "aggInterval")]
     pub agg_interval: String,
-    /// confidenceInfo property.
+    /// `confidenceInfo` property.
     #[serde(rename = "confidenceInfo")]
     pub confidence_info: RadarGetBgpTimeseriesResponseResultMetaConfidenceInfo,
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetBgpTimeseriesResponseResultMetaDateRangeItem>,
-    /// lastUpdated property.
+    /// `lastUpdated` property.
     #[serde(rename = "lastUpdated")]
     pub last_updated: String,
 }
@@ -3211,1393 +2744,1050 @@ pub struct RadarGetBgpTimeseriesResponseResultMeta {
 /// `RadarGetBgpTimeseriesResponseResultMetaConfidenceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTimeseriesResponseResultMetaConfidenceInfo {
-    /// annotations property.
+    /// `annotations` property.
     pub annotations: Vec<RadarGetBgpTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem>,
-    /// level property.
+    /// `level` property.
     pub level: i64,
 }
 
 /// `RadarGetBgpTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem {
-    /// dataSource property.
-    #[serde(rename = "dataSource")]
-    pub data_source: String,
-    /// description property.
-    pub description: String,
-    /// endDate property.
-    #[serde(rename = "endDate")]
-    pub end_date: String,
-    /// eventType property.
-    #[serde(rename = "eventType")]
-    pub event_type: String,
-    /// isInstantaneous property.
-    #[serde(rename = "isInstantaneous")]
-    pub is_instantaneous: bool,
-    /// linkedUrl property.
-    #[serde(rename = "linkedUrl")]
-    pub linked_url: String,
-    /// startDate property.
-    #[serde(rename = "startDate")]
-    pub start_date: String,
-}
+///
+/// Same shape as `super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape`.
+pub type RadarGetBgpTimeseriesResponseResultMetaConfidenceInfoAnnotationsItem =
+    super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape;
 
 /// `RadarGetBgpTimeseriesResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTimeseriesResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetBgpTimeseriesResponseResultMetaDateRangeItem =
+    super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetBgpTimeseriesResponseResultSerie0` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTimeseriesResponseResultSerie0 {
-    /// timestamps property.
-    pub timestamps: Vec<String>,
-    /// values property.
-    pub values: Vec<String>,
-}
+///
+/// Same shape as `super::shared::TimestampsValuesObject`.
+pub type RadarGetBgpTimeseriesResponseResultSerie0 = super::shared::TimestampsValuesObject;
 
 /// `RadarGetBgpTopAsesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTopAsesResponse {
-    /// result property.
-    pub result: RadarGetBgpTopAsesResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpTopAsesResponseResult>`.
+pub type RadarGetBgpTopAsesResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpTopAsesResponseResult>;
 
 /// `RadarGetBgpTopAsesResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTopAsesResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpTopAsesResponseResultMeta,
-    /// top_0 property.
+    /// `top_0` property.
     pub top_0: Vec<RadarGetBgpTopAsesResponseResultTop0Item>,
 }
 
 /// `RadarGetBgpTopAsesResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTopAsesResponseResultMeta {
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetBgpTopAsesResponseResultMetaDateRangeItem>,
 }
 
 /// `RadarGetBgpTopAsesResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTopAsesResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetBgpTopAsesResponseResultMetaDateRangeItem = super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetBgpTopAsesResponseResultTop0Item` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTopAsesResponseResultTop0Item {
-    /// ASName property.
+    /// `ASName` property.
     #[serde(rename = "ASName")]
     pub as_name: String,
-    /// asn property.
+    /// `asn` property.
     pub asn: i64,
-    /// value property.
+    /// `value` property.
     pub value: String,
 }
 
 /// `RadarGetBgpTopAsnsByPrefixesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTopAsnsByPrefixesResponse {
-    /// result property.
-    pub result: RadarGetBgpTopAsnsByPrefixesResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpTopAsnsByPrefixesResponseResult>`.
+pub type RadarGetBgpTopAsnsByPrefixesResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpTopAsnsByPrefixesResponseResult>;
 
 /// `RadarGetBgpTopAsnsByPrefixesResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTopAsnsByPrefixesResponseResult {
-    /// asns property.
+    /// `asns` property.
     pub asns: Vec<RadarGetBgpTopAsnsByPrefixesResponseResultAsnsItem>,
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpTopAsnsByPrefixesResponseResultMeta,
 }
 
 /// `RadarGetBgpTopAsnsByPrefixesResponseResultAsnsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTopAsnsByPrefixesResponseResultAsnsItem {
-    /// asn property.
+    /// `asn` property.
     pub asn: i64,
-    /// country property.
+    /// `country` property.
     pub country: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// pfxs_count property.
+    /// `pfxs_count` property.
     pub pfxs_count: i64,
 }
 
 /// `RadarGetBgpTopAsnsByPrefixesResponseResultMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTopAsnsByPrefixesResponseResultMeta {
-    /// data_time property.
-    pub data_time: String,
-    /// query_time property.
-    pub query_time: String,
-    /// total_peers property.
-    pub total_peers: i64,
-}
+///
+/// Same shape as `super::shared::DataTimeQueryTimeTotalPeersObject`.
+pub type RadarGetBgpTopAsnsByPrefixesResponseResultMeta =
+    super::shared::DataTimeQueryTimeTotalPeersObject;
 
 /// `RadarGetBgpTopPrefixesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTopPrefixesResponse {
-    /// result property.
-    pub result: RadarGetBgpTopPrefixesResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpTopPrefixesResponseResult>`.
+pub type RadarGetBgpTopPrefixesResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpTopPrefixesResponseResult>;
 
 /// `RadarGetBgpTopPrefixesResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTopPrefixesResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpTopPrefixesResponseResultMeta,
-    /// top_0 property.
+    /// `top_0` property.
     pub top_0: Vec<RadarGetBgpTopPrefixesResponseResultTop0Item>,
 }
 
 /// `RadarGetBgpTopPrefixesResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTopPrefixesResponseResultMeta {
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetBgpTopPrefixesResponseResultMetaDateRangeItem>,
 }
 
 /// `RadarGetBgpTopPrefixesResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpTopPrefixesResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetBgpTopPrefixesResponseResultMetaDateRangeItem =
+    super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetBgpTopPrefixesResponseResultTop0Item` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpTopPrefixesResponseResultTop0Item {
-    /// prefix property.
+    /// `prefix` property.
     pub prefix: String,
-    /// value property.
+    /// `value` property.
     pub value: String,
 }
 
 /// `RadarGetQualityIndexSummaryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetQualityIndexSummaryResponse {
-    /// result property.
-    pub result: RadarGetQualityIndexSummaryResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetQualityIndexSummaryResponseResult>`.
+pub type RadarGetQualityIndexSummaryResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetQualityIndexSummaryResponseResult>;
 
 /// `RadarGetQualityIndexSummaryResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetQualityIndexSummaryResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetQualityIndexSummaryResponseResultMeta,
-    /// summary_0 property.
+    /// `summary_0` property.
     pub summary_0: RadarGetQualityIndexSummaryResponseResultSummary0,
 }
 
 /// `RadarGetQualityIndexSummaryResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetQualityIndexSummaryResponseResultMeta {
-    /// confidenceInfo property.
+    /// `confidenceInfo` property.
     #[serde(rename = "confidenceInfo")]
     pub confidence_info: RadarGetQualityIndexSummaryResponseResultMetaConfidenceInfo,
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetQualityIndexSummaryResponseResultMetaDateRangeItem>,
-    /// lastUpdated property.
+    /// `lastUpdated` property.
     #[serde(rename = "lastUpdated")]
     pub last_updated: String,
-    /// normalization property.
+    /// `normalization` property.
     pub normalization: String,
-    /// units property.
+    /// `units` property.
     pub units: Vec<RadarGetQualityIndexSummaryResponseResultMetaUnitsItem>,
 }
 
 /// `RadarGetQualityIndexSummaryResponseResultMetaConfidenceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetQualityIndexSummaryResponseResultMetaConfidenceInfo {
-    /// annotations property.
-    pub annotations: Vec<RadarGetQualityIndexSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
-    /// level property.
+    /// `annotations` property.
+    pub annotations:
+        Vec<RadarGetQualityIndexSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// `level` property.
     pub level: i64,
 }
 
 /// `RadarGetQualityIndexSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetQualityIndexSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
-    /// dataSource property.
-    #[serde(rename = "dataSource")]
-    pub data_source: String,
-    /// description property.
-    pub description: String,
-    /// endDate property.
-    #[serde(rename = "endDate")]
-    pub end_date: String,
-    /// eventType property.
-    #[serde(rename = "eventType")]
-    pub event_type: String,
-    /// isInstantaneous property.
-    #[serde(rename = "isInstantaneous")]
-    pub is_instantaneous: bool,
-    /// linkedUrl property.
-    #[serde(rename = "linkedUrl")]
-    pub linked_url: String,
-    /// startDate property.
-    #[serde(rename = "startDate")]
-    pub start_date: String,
-}
+///
+/// Same shape as `super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape`.
+pub type RadarGetQualityIndexSummaryResponseResultMetaConfidenceInfoAnnotationsItem =
+    super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape;
 
 /// `RadarGetQualityIndexSummaryResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetQualityIndexSummaryResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetQualityIndexSummaryResponseResultMetaDateRangeItem =
+    super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetQualityIndexSummaryResponseResultMetaUnitsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetQualityIndexSummaryResponseResultMetaUnitsItem {
-    /// name property.
-    pub name: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::NameValueObject`.
+pub type RadarGetQualityIndexSummaryResponseResultMetaUnitsItem = super::shared::NameValueObject;
 
 /// `RadarGetQualityIndexSummaryResponseResultSummary0` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetQualityIndexSummaryResponseResultSummary0 {
-    /// p25 property.
+    /// `p25` property.
     pub p25: String,
-    /// p50 property.
+    /// `p50` property.
     pub p50: String,
-    /// p75 property.
+    /// `p75` property.
     pub p75: String,
 }
 
 /// `RadarGetQualityIndexTimeseriesGroupResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetQualityIndexTimeseriesGroupResponse {
-    /// result property.
-    pub result: RadarGetQualityIndexTimeseriesGroupResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetQualityIndexTimeseriesGroupResponseResult>`.
+pub type RadarGetQualityIndexTimeseriesGroupResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetQualityIndexTimeseriesGroupResponseResult>;
 
 /// `RadarGetQualityIndexTimeseriesGroupResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetQualityIndexTimeseriesGroupResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetQualityIndexTimeseriesGroupResponseResultMeta,
-    /// serie_0 property.
+    /// `serie_0` property.
     pub serie_0: RadarGetQualityIndexTimeseriesGroupResponseResultSerie0,
 }
 
 /// `RadarGetQualityIndexTimeseriesGroupResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetQualityIndexTimeseriesGroupResponseResultMeta {
-    /// aggInterval property.
+    /// `aggInterval` property.
     #[serde(rename = "aggInterval")]
     pub agg_interval: String,
-    /// confidenceInfo property.
+    /// `confidenceInfo` property.
     #[serde(rename = "confidenceInfo")]
     pub confidence_info: RadarGetQualityIndexTimeseriesGroupResponseResultMetaConfidenceInfo,
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetQualityIndexTimeseriesGroupResponseResultMetaDateRangeItem>,
-    /// lastUpdated property.
+    /// `lastUpdated` property.
     #[serde(rename = "lastUpdated")]
     pub last_updated: String,
-    /// normalization property.
+    /// `normalization` property.
     pub normalization: String,
-    /// units property.
+    /// `units` property.
     pub units: Vec<RadarGetQualityIndexTimeseriesGroupResponseResultMetaUnitsItem>,
 }
 
 /// `RadarGetQualityIndexTimeseriesGroupResponseResultMetaConfidenceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetQualityIndexTimeseriesGroupResponseResultMetaConfidenceInfo {
-    /// annotations property.
-    pub annotations: Vec<RadarGetQualityIndexTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
-    /// level property.
+    /// `annotations` property.
+    pub annotations:
+        Vec<RadarGetQualityIndexTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// `level` property.
     pub level: i64,
 }
 
 /// `RadarGetQualityIndexTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetQualityIndexTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
-    /// dataSource property.
-    #[serde(rename = "dataSource")]
-    pub data_source: String,
-    /// description property.
-    pub description: String,
-    /// endDate property.
-    #[serde(rename = "endDate")]
-    pub end_date: String,
-    /// eventType property.
-    #[serde(rename = "eventType")]
-    pub event_type: String,
-    /// isInstantaneous property.
-    #[serde(rename = "isInstantaneous")]
-    pub is_instantaneous: bool,
-    /// linkedUrl property.
-    #[serde(rename = "linkedUrl")]
-    pub linked_url: String,
-    /// startDate property.
-    #[serde(rename = "startDate")]
-    pub start_date: String,
-}
+///
+/// Same shape as `super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape`.
+pub type RadarGetQualityIndexTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem =
+    super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape;
 
 /// `RadarGetQualityIndexTimeseriesGroupResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetQualityIndexTimeseriesGroupResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetQualityIndexTimeseriesGroupResponseResultMetaDateRangeItem =
+    super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetQualityIndexTimeseriesGroupResponseResultMetaUnitsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetQualityIndexTimeseriesGroupResponseResultMetaUnitsItem {
-    /// name property.
-    pub name: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::NameValueObject`.
+pub type RadarGetQualityIndexTimeseriesGroupResponseResultMetaUnitsItem =
+    super::shared::NameValueObject;
 
 /// `RadarGetQualityIndexTimeseriesGroupResponseResultSerie0` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetQualityIndexTimeseriesGroupResponseResultSerie0 {
-    /// p25 property.
+    /// `p25` property.
     pub p25: Vec<String>,
-    /// p50 property.
+    /// `p50` property.
     pub p50: Vec<String>,
-    /// p75 property.
+    /// `p75` property.
     pub p75: Vec<String>,
-    /// timestamps property.
+    /// `timestamps` property.
     pub timestamps: Vec<String>,
 }
 
 /// `SlurperCheckSourceConnectivityResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SlurperCheckSourceConnectivityResponse {
-    /// `result` property.
-    pub result: Option<R2SlurperConnectivityResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope3<Option<R2SlurperConnectivityResponse>>`.
+pub type SlurperCheckSourceConnectivityResponse =
+    super::shared::ApiEnvelope3<Option<R2SlurperConnectivityResponse>>;
 
 /// `SlurperCheckTargetConnectivityResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SlurperCheckTargetConnectivityResponse {
-    /// `result` property.
-    pub result: Option<R2SlurperConnectivityResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope3<Option<R2SlurperConnectivityResponse>>`.
+pub type SlurperCheckTargetConnectivityResponse =
+    super::shared::ApiEnvelope3<Option<R2SlurperConnectivityResponse>>;
 
 /// `SlurperGetJobProgressResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SlurperGetJobProgressResponse {
-    /// `result` property.
-    pub result: Option<R2SlurperJobProgressResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope3<Option<R2SlurperJobProgressResponse>>`.
+pub type SlurperGetJobProgressResponse =
+    super::shared::ApiEnvelope3<Option<R2SlurperJobProgressResponse>>;
 
 /// `SpectrumAnalyticsApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SpectrumAnalyticsApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type SpectrumAnalyticsApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `SpectrumAnalyticsApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SpectrumAnalyticsApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type SpectrumAnalyticsApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `SpectrumAnalyticsMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct SpectrumAnalyticsMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type SpectrumAnalyticsMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `SpectrumAnalyticsQueryResponseAggregate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SpectrumAnalyticsQueryResponseAggregate {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<std::collections::HashMap<String, serde_json::Value>>>>`.
+pub type SpectrumAnalyticsQueryResponseAggregate =
+    super::shared::ApiEnvelope<Option<Vec<std::collections::HashMap<String, serde_json::Value>>>>;
 
 /// `TeamsDevicesApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type TeamsDevicesApiResponseCommon = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `TeamsDevicesApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApiResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type TeamsDevicesApiResponseSingle = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `TeamsDevicesDisconnect` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesDisconnect {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesDisconnect = bool;
 
 /// `TeamsDevicesGlobalWarpOverride` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesGlobalWarpOverride {
-    /// disconnect property.
-    pub disconnect: Option<TeamsDevicesDisconnect>,
-    /// timestamp property.
-    pub timestamp: Option<TeamsDevicesTimestamp>,
+    /// `disconnect` property.
+    pub disconnect: Option<bool>,
+    /// `timestamp` property.
+    pub timestamp: Option<String>,
 }
 
 /// `TeamsDevicesGlobalWarpOverrideRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesGlobalWarpOverrideRequest {
-    /// disconnect property.
-    pub disconnect: TeamsDevicesDisconnect,
-    /// justification property.
-    pub justification: Option<TeamsDevicesJustification>,
+    /// `disconnect` property.
+    pub disconnect: bool,
+    /// `justification` property.
+    pub justification: Option<String>,
 }
 
 /// `TeamsDevicesGlobalWarpOverrideResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesGlobalWarpOverrideResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesGlobalWarpOverride>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TeamsDevicesGlobalWarpOverride>`.
+pub type TeamsDevicesGlobalWarpOverrideResponse =
+    super::shared::ApiEnvelope<TeamsDevicesGlobalWarpOverride>;
 
 /// `TeamsDevicesJustification` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesJustification {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesJustification = String;
 
 /// `TeamsDevicesMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `TeamsDevicesTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesTimestamp = String;
 
 /// `TunnelAccountId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelAccountId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelAccountId = String;
 
 /// `TunnelApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelApiResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<TunnelResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TunnelArch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelArch {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelArch = String;
 
 /// `TunnelCfdTunnel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelCfdTunnel {
-    /// account_tag property.
-    pub account_tag: Option<TunnelAccountId>,
-    /// config_src property.
-    pub config_src: Option<TunnelConfigSrc>,
-    /// connections property.
+    /// `account_tag` property.
+    pub account_tag: Option<String>,
+    /// `config_src` property.
+    pub config_src: Option<String>,
+    /// `connections` property.
     pub connections: Option<Vec<TunnelSchemasConnection>>,
-    /// conns_active_at property.
-    pub conns_active_at: Option<TunnelConnsActiveAt>,
-    /// conns_inactive_at property.
-    pub conns_inactive_at: Option<TunnelConnsInactiveAt>,
-    /// created_at property.
-    pub created_at: Option<TunnelCreatedAt>,
-    /// deleted_at property.
-    pub deleted_at: Option<TunnelDeletedAt>,
-    /// id property.
-    pub id: Option<TunnelTunnelId>,
-    /// metadata property.
-    pub metadata: Option<TunnelMetadata>,
-    /// name property.
-    pub name: Option<TunnelTunnelName>,
-    /// remote_config property.
-    pub remote_config: Option<TunnelRemoteConfig>,
-    /// status property.
-    pub status: Option<TunnelStatus>,
-    /// tun_type property.
-    pub tun_type: Option<TunnelTunnelType>,
+    /// `conns_active_at` property.
+    pub conns_active_at: Option<String>,
+    /// `conns_inactive_at` property.
+    pub conns_inactive_at: Option<String>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `deleted_at` property.
+    pub deleted_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `metadata` property.
+    pub metadata: Option<serde_json::Value>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `remote_config` property.
+    pub remote_config: Option<bool>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `tun_type` property.
+    pub tun_type: Option<String>,
 }
 
 /// `TunnelCfdTunnelResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelCfdTunnelResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TunnelCfdTunnel>>,
+    pub result: Vec<TunnelCfdTunnel>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TunnelCfdTunnelResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelCfdTunnelResponseSingle {
-    /// `result` property.
-    pub result: Option<TunnelCfdTunnel>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TunnelCfdTunnel>`.
+pub type TunnelCfdTunnelResponseSingle = super::shared::ApiEnvelope<TunnelCfdTunnel>;
 
 /// `TunnelClientId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelClientId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelClientId = String;
 
 /// `TunnelClientIdInput` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelClientIdInput {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelClientIdInput = String;
 
 /// `TunnelColoName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelColoName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelColoName = String;
 
 /// `TunnelConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelConfig {
-    /// ingress property.
+    /// `ingress` property.
     pub ingress: Option<Vec<TunnelIngressRule>>,
-    /// originRequest property.
+    /// `originRequest` property.
     #[serde(rename = "originRequest")]
     pub origin_request: Option<TunnelOriginRequest>,
-    /// warp-routing property.
+    /// `warp-routing` property.
     #[serde(rename = "warp-routing")]
     pub warp_routing: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `TunnelConfigSrc` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelConfigSrc {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelConfigSrc = String;
 
 /// `TunnelConfigVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelConfigVersion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelConfigVersion = i64;
 
 /// `TunnelConfiguration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelConfiguration {
-    /// account_id property.
-    pub account_id: Option<TunnelIdentifier>,
-    /// config property.
+    /// `account_id` property.
+    pub account_id: Option<String>,
+    /// `config` property.
     pub config: Option<TunnelConfig>,
-    /// created_at property.
-    pub created_at: Option<TunnelTimestamp>,
-    /// source property.
-    pub source: Option<TunnelSchemasConfigSrc>,
-    /// tunnel_id property.
-    pub tunnel_id: Option<TunnelSchemasTunnelId>,
-    /// version property.
-    pub version: Option<TunnelSchemasConfigVersion>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `source` property.
+    pub source: Option<String>,
+    /// `tunnel_id` property.
+    pub tunnel_id: Option<String>,
+    /// `version` property.
+    pub version: Option<i64>,
 }
 
 /// `TunnelConfigurationResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelConfigurationResponse {
-    /// `result` property.
-    pub result: Option<TunnelConfiguration>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<TunnelConfiguration>>`.
+pub type TunnelConfigurationResponse = super::shared::ApiEnvelope<Option<TunnelConfiguration>>;
 
 /// `TunnelConnectionId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelConnectionId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelConnectionId = String;
 
 /// `TunnelConnections` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelConnections {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelConnections = Vec<TunnelSchemasConnection>;
 
 /// `TunnelConnectionsDeprecated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelConnectionsDeprecated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelConnectionsDeprecated = Vec<TunnelSchemasConnection>;
 
 /// `TunnelConnsActiveAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelConnsActiveAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelConnsActiveAt = String;
 
 /// `TunnelConnsInactiveAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelConnsInactiveAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelConnsInactiveAt = String;
 
 /// `TunnelEmptyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelEmptyResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type TunnelEmptyResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `TunnelFeatures` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelFeatures {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelFeatures = Vec<String>;
 
 /// `TunnelHaStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelHaStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelHaStatus = String;
 
 /// `TunnelIcmpProxyEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelIcmpProxyEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelIcmpProxyEnabled = bool;
 
 /// `TunnelIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelIdentifier = String;
 
 /// `TunnelIngressRule` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelIngressRule {
-    /// hostname property.
+    /// `hostname` property.
     pub hostname: String,
-    /// originRequest property.
+    /// `originRequest` property.
     #[serde(rename = "originRequest")]
     pub origin_request: Option<TunnelOriginRequest>,
-    /// path property.
+    /// `path` property.
     pub path: Option<String>,
-    /// service property.
+    /// `service` property.
     pub service: String,
 }
 
 /// `TunnelIpNetwork` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelIpNetwork {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelIpNetwork = String;
 
 /// `TunnelIsDefaultNetwork` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelIsDefaultNetwork {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelIsDefaultNetwork = bool;
 
 /// `TunnelIsDefaultNetworkOptional` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelIsDefaultNetworkOptional {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelIsDefaultNetworkOptional = bool;
 
 /// `TunnelIsPendingReconnect` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelIsPendingReconnect {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelIsPendingReconnect = bool;
 
 /// `TunnelManagementResources` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelManagementResources {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelManagementResources = String;
 
 /// `TunnelMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `TunnelMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelMetadata {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelMetadata = serde_json::Value;
 
 /// `TunnelOfframpWarpEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelOfframpWarpEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelOfframpWarpEnabled = bool;
 
 /// `TunnelOriginRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelOriginRequest {
-    /// access property.
+    /// `access` property.
     pub access: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// caPool property.
+    /// `caPool` property.
     #[serde(rename = "caPool")]
     pub ca_pool: Option<String>,
-    /// connectTimeout property.
+    /// `connectTimeout` property.
     #[serde(rename = "connectTimeout")]
     pub connect_timeout: Option<i64>,
-    /// disableChunkedEncoding property.
+    /// `disableChunkedEncoding` property.
     #[serde(rename = "disableChunkedEncoding")]
     pub disable_chunked_encoding: Option<bool>,
-    /// http2Origin property.
+    /// `http2Origin` property.
     #[serde(rename = "http2Origin")]
     pub http2_origin: Option<bool>,
-    /// httpHostHeader property.
+    /// `httpHostHeader` property.
     #[serde(rename = "httpHostHeader")]
     pub http_host_header: Option<String>,
-    /// keepAliveConnections property.
+    /// `keepAliveConnections` property.
     #[serde(rename = "keepAliveConnections")]
     pub keep_alive_connections: Option<i64>,
-    /// keepAliveTimeout property.
+    /// `keepAliveTimeout` property.
     #[serde(rename = "keepAliveTimeout")]
     pub keep_alive_timeout: Option<i64>,
-    /// matchSNItoHost property.
+    /// `matchSNItoHost` property.
     #[serde(rename = "matchSNItoHost")]
     pub match_sn_ito_host: Option<bool>,
-    /// noHappyEyeballs property.
+    /// `noHappyEyeballs` property.
     #[serde(rename = "noHappyEyeballs")]
     pub no_happy_eyeballs: Option<bool>,
-    /// noTLSVerify property.
+    /// `noTLSVerify` property.
     #[serde(rename = "noTLSVerify")]
     pub no_tls_verify: Option<bool>,
-    /// originServerName property.
+    /// `originServerName` property.
     #[serde(rename = "originServerName")]
     pub origin_server_name: Option<String>,
-    /// proxyType property.
+    /// `proxyType` property.
     #[serde(rename = "proxyType")]
     pub proxy_type: Option<String>,
-    /// tcpKeepAlive property.
+    /// `tcpKeepAlive` property.
     #[serde(rename = "tcpKeepAlive")]
     pub tcp_keep_alive: Option<i64>,
-    /// tlsTimeout property.
+    /// `tlsTimeout` property.
     #[serde(rename = "tlsTimeout")]
     pub tls_timeout: Option<i64>,
 }
 
 /// `TunnelRemoteConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelRemoteConfig {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelRemoteConfig = bool;
 
 /// `TunnelResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
+///
+/// Same shape as `super::shared::FirewallResultInfoShape`.
+pub type TunnelResultInfo = super::shared::FirewallResultInfoShape;
 
 /// `TunnelRoute` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelRoute {
-    /// comment property.
-    pub comment: Option<TunnelRouteComment>,
-    /// created_at property.
-    pub created_at: Option<TunnelCreatedAt>,
-    /// deleted_at property.
-    pub deleted_at: Option<TunnelDeletedAt>,
-    /// id property.
-    pub id: Option<TunnelRouteId>,
-    /// network property.
-    pub network: Option<TunnelIpNetwork>,
-    /// tunnel_id property.
-    pub tunnel_id: Option<TunnelTunnelId>,
-    /// virtual_network_id property.
-    pub virtual_network_id: Option<TunnelVirtualNetworkId>,
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `deleted_at` property.
+    pub deleted_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `network` property.
+    pub network: Option<String>,
+    /// `tunnel_id` property.
+    pub tunnel_id: Option<String>,
+    /// `virtual_network_id` property.
+    pub virtual_network_id: Option<String>,
 }
 
 /// `TunnelRouteComment` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelRouteComment {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelRouteComment = String;
 
 /// `TunnelRouteCreateATunnelRouteRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelRouteCreateATunnelRouteRequest {
-    /// comment property.
-    pub comment: Option<TunnelRouteComment>,
-    /// network property.
-    pub network: TunnelIpNetwork,
-    /// tunnel_id property.
-    pub tunnel_id: TunnelTunnelId,
-    /// virtual_network_id property.
-    pub virtual_network_id: Option<TunnelVirtualNetworkIdComputedOptional>,
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `network` property.
+    pub network: String,
+    /// `tunnel_id` property.
+    pub tunnel_id: String,
+    /// `virtual_network_id` property.
+    pub virtual_network_id: Option<String>,
 }
 
 /// `TunnelRouteId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelRouteId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelRouteId = String;
 
 /// `TunnelRouteResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelRouteResponseSingle {
-    /// `result` property.
-    pub result: Option<TunnelRoute>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TunnelRoute>`.
+pub type TunnelRouteResponseSingle = super::shared::ApiEnvelope<TunnelRoute>;
 
 /// `TunnelRouteUpdateATunnelRouteRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelRouteUpdateATunnelRouteRequest {
-    /// comment property.
-    pub comment: Option<TunnelRouteComment>,
-    /// network property.
-    pub network: Option<TunnelIpNetwork>,
-    /// tunnel_id property.
-    pub tunnel_id: Option<TunnelTunnelId>,
-    /// virtual_network_id property.
-    pub virtual_network_id: Option<TunnelVirtualNetworkIdComputedOptional>,
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `network` property.
+    pub network: Option<String>,
+    /// `tunnel_id` property.
+    pub tunnel_id: Option<String>,
+    /// `virtual_network_id` property.
+    pub virtual_network_id: Option<String>,
 }
 
 /// `TunnelRunAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelRunAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelRunAt = String;
 
 /// `TunnelSchemasApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelSchemasApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type TunnelSchemasApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `TunnelSchemasApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelSchemasApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type TunnelSchemasApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `TunnelSchemasConfigSrc` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSchemasConfigSrc {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSchemasConfigSrc = String;
 
 /// `TunnelSchemasConfigVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSchemasConfigVersion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSchemasConfigVersion = i64;
 
 /// `TunnelSchemasConnection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelSchemasConnection {
-    /// client_id property.
-    pub client_id: Option<TunnelClientId>,
-    /// client_version property.
-    pub client_version: Option<TunnelVersion>,
-    /// colo_name property.
-    pub colo_name: Option<TunnelColoName>,
-    /// id property.
-    pub id: Option<TunnelConnectionId>,
-    /// is_pending_reconnect property.
-    pub is_pending_reconnect: Option<TunnelIsPendingReconnect>,
-    /// opened_at property.
-    pub opened_at: Option<String>,
-    /// origin_ip property.
-    pub origin_ip: Option<serde_json::Value>,
-    /// uuid property.
-    pub uuid: Option<TunnelConnectionId>,
-}
+///
+/// Same shape as `super::shared::TunnelSchemasConnectionShape`.
+pub type TunnelSchemasConnection = super::shared::TunnelSchemasConnectionShape;
 
 /// `TunnelSchemasMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSchemasMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSchemasMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `TunnelSchemasTunnelId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSchemasTunnelId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSchemasTunnelId = String;
 
 /// `TunnelSchemasWarpConnectorConnection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelSchemasWarpConnectorConnection {
-    /// client_id property.
-    pub client_id: Option<TunnelClientId>,
-    /// client_version property.
-    pub client_version: Option<TunnelVersion>,
-    /// colo_name property.
-    pub colo_name: Option<TunnelColoName>,
-    /// id property.
-    pub id: Option<TunnelConnectionId>,
-    /// opened_at property.
+    /// `client_id` property.
+    pub client_id: Option<String>,
+    /// `client_version` property.
+    pub client_version: Option<String>,
+    /// `colo_name` property.
+    pub colo_name: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `opened_at` property.
     pub opened_at: Option<String>,
-    /// origin_ip property.
+    /// `origin_ip` property.
     pub origin_ip: Option<serde_json::Value>,
 }
 
 /// `TunnelStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelStatus = String;
 
 /// `TunnelSubnetResponseSingleNullable` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelSubnetResponseSingleNullable {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type TunnelSubnetResponseSingleNullable =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `TunnelTeamnet` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTeamnet {
-    /// comment property.
-    pub comment: Option<TunnelRouteComment>,
-    /// created_at property.
-    pub created_at: Option<TunnelCreatedAt>,
-    /// deleted_at property.
-    pub deleted_at: Option<TunnelDeletedAt>,
-    /// id property.
-    pub id: Option<TunnelRouteId>,
-    /// network property.
-    pub network: Option<TunnelIpNetwork>,
-    /// tun_type property.
-    pub tun_type: Option<TunnelTunnelType>,
-    /// tunnel_id property.
-    pub tunnel_id: Option<TunnelTunnelId>,
-    /// tunnel_name property.
-    pub tunnel_name: Option<TunnelTunnelName>,
-    /// virtual_network_id property.
-    pub virtual_network_id: Option<TunnelVirtualNetworkIdComputedOptional>,
-    /// virtual_network_name property.
-    pub virtual_network_name: Option<TunnelVirtualNetworkName>,
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `deleted_at` property.
+    pub deleted_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `network` property.
+    pub network: Option<String>,
+    /// `tun_type` property.
+    pub tun_type: Option<String>,
+    /// `tunnel_id` property.
+    pub tunnel_id: Option<String>,
+    /// `tunnel_name` property.
+    pub tunnel_name: Option<String>,
+    /// `virtual_network_id` property.
+    pub virtual_network_id: Option<String>,
+    /// `virtual_network_name` property.
+    pub virtual_network_name: Option<String>,
 }
 
 /// `TunnelTeamnetResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTeamnetResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TunnelTeamnet>>,
+    pub result: Vec<TunnelTeamnet>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TunnelTeamnetResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelTeamnetResponseSingle {
-    /// `result` property.
-    pub result: Option<TunnelTeamnet>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TunnelTeamnet>`.
+pub type TunnelTeamnetResponseSingle = super::shared::ApiEnvelope<TunnelTeamnet>;
 
 /// `TunnelTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelTimestamp = String;
 
 /// `TunnelTunnelClient` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelClient {
-    /// arch property.
-    pub arch: Option<TunnelArch>,
-    /// config_version property.
-    pub config_version: Option<TunnelConfigVersion>,
-    /// conns property.
+    /// `arch` property.
+    pub arch: Option<String>,
+    /// `config_version` property.
+    pub config_version: Option<i64>,
+    /// `conns` property.
     pub conns: Option<Vec<TunnelSchemasConnection>>,
-    /// features property.
+    /// `features` property.
     pub features: Option<Vec<String>>,
-    /// id property.
-    pub id: Option<TunnelConnectionId>,
-    /// run_at property.
-    pub run_at: Option<TunnelRunAt>,
-    /// version property.
-    pub version: Option<TunnelVersion>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `run_at` property.
+    pub run_at: Option<String>,
+    /// `version` property.
+    pub version: Option<String>,
 }
 
 /// `TunnelTunnelClientResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelTunnelClientResponse {
-    /// `result` property.
-    pub result: Option<TunnelTunnelClient>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TunnelTunnelClient>`.
+pub type TunnelTunnelClientResponse = super::shared::ApiEnvelope<TunnelTunnelClient>;
 
 /// `TunnelTunnelConnectionsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelConnectionsResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TunnelTunnelClient>>,
+    pub result: Vec<TunnelTunnelClient>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TunnelTunnelId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelTunnelId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelTunnelId = String;
 
 /// `TunnelTunnelName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelTunnelName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelTunnelName = String;
 
 /// `TunnelTunnelResponseToken` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelTunnelResponseToken {
-    /// `result` property.
-    pub result: Option<TunnelTunnelToken>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<String>`.
+pub type TunnelTunnelResponseToken = super::shared::ApiEnvelope<String>;
 
 /// `TunnelTunnelSecret` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelTunnelSecret {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelTunnelSecret = String;
 
 /// `TunnelTunnelToken` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelTunnelToken {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelTunnelToken = String;
 
 /// `TunnelTunnelType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelTunnelType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelTunnelType = String;
 
 /// `TunnelTunnelWarpConnectorClient` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelWarpConnectorClient {
-    /// arch property.
-    pub arch: Option<TunnelArch>,
-    /// conns property.
+    /// `arch` property.
+    pub arch: Option<String>,
+    /// `conns` property.
     pub conns: Option<Vec<TunnelSchemasWarpConnectorConnection>>,
-    /// features property.
+    /// `features` property.
     pub features: Option<Vec<String>>,
-    /// ha_status property.
-    pub ha_status: Option<TunnelHaStatus>,
-    /// id property.
-    pub id: Option<TunnelClientId>,
-    /// run_at property.
-    pub run_at: Option<TunnelRunAt>,
-    /// version property.
-    pub version: Option<TunnelVersion>,
+    /// `ha_status` property.
+    pub ha_status: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `run_at` property.
+    pub run_at: Option<String>,
+    /// `version` property.
+    pub version: Option<String>,
 }
 
 /// `TunnelTunnelWarpConnectorClientResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelTunnelWarpConnectorClientResponse {
-    /// `result` property.
-    pub result: Option<TunnelTunnelWarpConnectorClient>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TunnelTunnelWarpConnectorClient>`.
+pub type TunnelTunnelWarpConnectorClientResponse =
+    super::shared::ApiEnvelope<TunnelTunnelWarpConnectorClient>;
 
 /// `TunnelTunnelWarpConnectorConnectionsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelWarpConnectorConnectionsResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TunnelTunnelWarpConnectorClient>>,
+    pub result: Vec<TunnelTunnelWarpConnectorClient>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TunnelVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelVersion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelVersion = String;
 
 /// `TunnelVirtualNetwork` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelVirtualNetwork {
-    /// comment property.
-    pub comment: TunnelVirtualNetworkComment,
-    /// created_at property.
-    pub created_at: TunnelCreatedAt,
-    /// deleted_at property.
-    pub deleted_at: Option<TunnelDeletedAt>,
-    /// id property.
-    pub id: TunnelVirtualNetworkId,
-    /// is_default_network property.
-    pub is_default_network: TunnelIsDefaultNetwork,
-    /// name property.
-    pub name: TunnelVirtualNetworkName,
+    /// `comment` property.
+    pub comment: String,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `deleted_at` property.
+    pub deleted_at: Option<String>,
+    /// `id` property.
+    pub id: String,
+    /// `is_default_network` property.
+    pub is_default_network: bool,
+    /// `name` property.
+    pub name: String,
 }
 
 /// `TunnelVirtualNetworkComment` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelVirtualNetworkComment {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelVirtualNetworkComment = String;
 
 /// `TunnelVirtualNetworkCreateAVirtualNetworkRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelVirtualNetworkCreateAVirtualNetworkRequest {
-    /// comment property.
-    pub comment: Option<TunnelVirtualNetworkComment>,
-    /// is_default property.
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `is_default` property.
     pub is_default: Option<bool>,
-    /// is_default_network property.
-    pub is_default_network: Option<TunnelIsDefaultNetworkOptional>,
-    /// name property.
-    pub name: TunnelVirtualNetworkName,
+    /// `is_default_network` property.
+    pub is_default_network: Option<bool>,
+    /// `name` property.
+    pub name: String,
 }
 
 /// `TunnelVirtualNetworkGetRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelVirtualNetworkGetRequest {
-    /// comment property.
-    pub comment: Option<TunnelVirtualNetworkComment>,
-    /// is_default_network property.
-    pub is_default_network: Option<TunnelIsDefaultNetwork>,
-    /// name property.
-    pub name: Option<TunnelVirtualNetworkName>,
-}
+///
+/// Same shape as `super::shared::CommentIsDefaultNetworkNameObject`.
+pub type TunnelVirtualNetworkGetRequest = super::shared::CommentIsDefaultNetworkNameObject;
 
 /// `TunnelVirtualNetworkId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelVirtualNetworkId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelVirtualNetworkId = String;
 
 /// `TunnelVirtualNetworkIdComputedOptional` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelVirtualNetworkIdComputedOptional {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelVirtualNetworkIdComputedOptional = String;
 
 /// `TunnelVirtualNetworkName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelVirtualNetworkName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelVirtualNetworkName = String;
 
 /// `TunnelVirtualNetworkUpdateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelVirtualNetworkUpdateRequest {
-    /// comment property.
-    pub comment: Option<TunnelVirtualNetworkComment>,
-    /// is_default_network property.
-    pub is_default_network: Option<TunnelIsDefaultNetworkOptional>,
-    /// name property.
-    pub name: Option<TunnelVirtualNetworkName>,
-}
+///
+/// Same shape as `super::shared::CommentIsDefaultNetworkNameObject`.
+pub type TunnelVirtualNetworkUpdateRequest = super::shared::CommentIsDefaultNetworkNameObject;
 
 /// `TunnelVnetResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelVnetResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TunnelVirtualNetwork>>,
+    pub result: Vec<TunnelVirtualNetwork>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TunnelVnetResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelVnetResponseSingle {
-    /// `result` property.
-    pub result: Option<TunnelVirtualNetwork>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TunnelVirtualNetwork>`.
+pub type TunnelVnetResponseSingle = super::shared::ApiEnvelope<TunnelVirtualNetwork>;
 
 /// `TunnelWarpConnectorConnections` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelWarpConnectorConnections {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelWarpConnectorConnections = Vec<TunnelSchemasWarpConnectorConnection>;
 
 /// `TunnelWarpConnectorResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelWarpConnectorResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TunnelWarpConnectorTunnel>>,
+    pub result: Vec<TunnelWarpConnectorTunnel>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TunnelWarpConnectorResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelWarpConnectorResponseSingle {
-    /// `result` property.
-    pub result: Option<TunnelWarpConnectorTunnel>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TunnelWarpConnectorTunnel>`.
+pub type TunnelWarpConnectorResponseSingle = super::shared::ApiEnvelope<TunnelWarpConnectorTunnel>;
 
 /// `TunnelWarpConnectorTunnel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelWarpConnectorTunnel {
-    /// account_tag property.
-    pub account_tag: Option<TunnelAccountId>,
-    /// connections property.
+    /// `account_tag` property.
+    pub account_tag: Option<String>,
+    /// `connections` property.
     pub connections: Option<Vec<TunnelSchemasConnection>>,
-    /// conns_active_at property.
-    pub conns_active_at: Option<TunnelConnsActiveAt>,
-    /// conns_inactive_at property.
-    pub conns_inactive_at: Option<TunnelConnsInactiveAt>,
-    /// created_at property.
-    pub created_at: Option<TunnelCreatedAt>,
-    /// deleted_at property.
-    pub deleted_at: Option<TunnelDeletedAt>,
-    /// id property.
-    pub id: Option<TunnelTunnelId>,
-    /// metadata property.
-    pub metadata: Option<TunnelMetadata>,
-    /// name property.
-    pub name: Option<TunnelTunnelName>,
-    /// status property.
-    pub status: Option<TunnelStatus>,
-    /// tun_type property.
-    pub tun_type: Option<TunnelTunnelType>,
+    /// `conns_active_at` property.
+    pub conns_active_at: Option<String>,
+    /// `conns_inactive_at` property.
+    pub conns_inactive_at: Option<String>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `deleted_at` property.
+    pub deleted_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `metadata` property.
+    pub metadata: Option<serde_json::Value>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `tun_type` property.
+    pub tun_type: Option<String>,
 }
 
 /// `TunnelZeroTrustConnectivitySettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelZeroTrustConnectivitySettingsResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type TunnelZeroTrustConnectivitySettingsResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `UpdateDexRuleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct UpdateDexRuleResponse {
-    /// `result` property.
-    pub result: Option<DigitalExperienceMonitoringDexRule>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringDexRule>>`.
+pub type UpdateDexRuleResponse =
+    super::shared::ApiEnvelope<Option<DigitalExperienceMonitoringDexRule>>;
 
 /// `ZeroTrustAccountsPatchConnectivitySettingsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustAccountsPatchConnectivitySettingsRequest {
-    /// icmp_proxy_enabled property.
-    pub icmp_proxy_enabled: Option<TunnelIcmpProxyEnabled>,
-    /// offramp_warp_enabled property.
-    pub offramp_warp_enabled: Option<TunnelOfframpWarpEnabled>,
+    /// `icmp_proxy_enabled` property.
+    pub icmp_proxy_enabled: Option<bool>,
+    /// `offramp_warp_enabled` property.
+    pub offramp_warp_enabled: Option<bool>,
 }
 
 /// `ZeroTrustNetworksSubnetCreateWarpRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustNetworksSubnetCreateWarpRequest {
-    /// comment property.
-    pub comment: Option<TunnelSubnetComment>,
-    /// is_default_network property.
-    pub is_default_network: Option<TunnelSubnetIsDefaultNetwork>,
-    /// name property.
-    pub name: TunnelSubnetName,
-    /// network property.
-    pub network: TunnelSubnetIpNetwork,
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `is_default_network` property.
+    pub is_default_network: Option<bool>,
+    /// `name` property.
+    pub name: String,
+    /// `network` property.
+    pub network: String,
 }
 
 /// `ZeroTrustNetworksSubnetUpdateWarpRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustNetworksSubnetUpdateWarpRequest {
-    /// comment property.
-    pub comment: Option<TunnelSubnetComment>,
-    /// is_default_network property.
-    pub is_default_network: Option<TunnelSubnetIsDefaultNetwork>,
-    /// name property.
-    pub name: Option<TunnelSubnetName>,
-    /// network property.
-    pub network: Option<TunnelSubnetIpNetwork>,
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `is_default_network` property.
+    pub is_default_network: Option<bool>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `network` property.
+    pub network: Option<String>,
 }
 
 // =============================================================================
@@ -4605,13 +3795,9 @@ pub struct ZeroTrustNetworksSubnetUpdateWarpRequest {
 // =============================================================================
 
 /// Arguments for [`ip-address-management-prefixes-list-bgp-prefixes_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct IpAddressManagementPrefixesListBgpPrefixesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `prefix_id`.
-    pub prefix_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPrefixIdArgs`.
+pub type IpAddressManagementPrefixesListBgpPrefixesArgs = super::shared::AccountIdPrefixIdArgs;
 
 /// Arguments for [`ip-address-management-prefixes-create-bgp-prefix_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4625,15 +3811,10 @@ pub struct IpAddressManagementPrefixesCreateBgpPrefixArgs {
 }
 
 /// Arguments for [`ip-address-management-prefixes-fetch-bgp-prefix_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct IpAddressManagementPrefixesFetchBgpPrefixArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `prefix_id`.
-    pub prefix_id: String,
-    /// Path parameter: `bgp_prefix_id`.
-    pub bgp_prefix_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPrefixIdBgpPrefixIdArgs`.
+pub type IpAddressManagementPrefixesFetchBgpPrefixArgs =
+    super::shared::AccountIdPrefixIdBgpPrefixIdArgs;
 
 /// Arguments for [`ip-address-management-prefixes-update-bgp-prefix_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4649,44 +3830,16 @@ pub struct IpAddressManagementPrefixesUpdateBgpPrefixArgs {
 }
 
 /// Arguments for [`ip-address-management-prefixes-delete-bgp-prefix_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct IpAddressManagementPrefixesDeleteBgpPrefixArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `prefix_id`.
-    pub prefix_id: String,
-    /// Path parameter: `bgp_prefix_id`.
-    pub bgp_prefix_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPrefixIdBgpPrefixIdArgs`.
+pub type IpAddressManagementPrefixesDeleteBgpPrefixArgs =
+    super::shared::AccountIdPrefixIdBgpPrefixIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-list-cloudflare-tunnels_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelListCloudflareTunnelsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `is_deleted`.
-    pub is_deleted: Option<String>,
-    /// Query parameter: `existed_at`.
-    pub existed_at: Option<String>,
-    /// Query parameter: `uuid`.
-    pub uuid: Option<String>,
-    /// Query parameter: `was_active_at`.
-    pub was_active_at: Option<String>,
-    /// Query parameter: `was_inactive_at`.
-    pub was_inactive_at: Option<String>,
-    /// Query parameter: `include_prefix`.
-    pub include_prefix: Option<String>,
-    /// Query parameter: `exclude_prefix`.
-    pub exclude_prefix: Option<String>,
-    /// Query parameter: `status`.
-    pub status: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-}
+///
+/// Same shape as `super::shared::CloudflareTunnelListCloudflareTunnelsArgsShape`.
+pub type CloudflareTunnelListCloudflareTunnelsArgs =
+    super::shared::CloudflareTunnelListCloudflareTunnelsArgsShape;
 
 /// Arguments for [`cloudflare-tunnel-create-a-cloudflare-tunnel_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4698,13 +3851,9 @@ pub struct CloudflareTunnelCreateACloudflareTunnelArgs {
 }
 
 /// Arguments for [`cloudflare-tunnel-get-a-cloudflare-tunnel_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelGetACloudflareTunnelArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdArgs`.
+pub type CloudflareTunnelGetACloudflareTunnelArgs = super::shared::AccountIdTunnelIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-update-a-cloudflare-tunnel_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4718,22 +3867,14 @@ pub struct CloudflareTunnelUpdateACloudflareTunnelArgs {
 }
 
 /// Arguments for [`cloudflare-tunnel-delete-a-cloudflare-tunnel_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelDeleteACloudflareTunnelArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdArgs`.
+pub type CloudflareTunnelDeleteACloudflareTunnelArgs = super::shared::AccountIdTunnelIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-configuration-get-configuration_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelConfigurationGetConfigurationArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdArgs`.
+pub type CloudflareTunnelConfigurationGetConfigurationArgs = super::shared::AccountIdTunnelIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-configuration-put-configuration_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4747,13 +3888,9 @@ pub struct CloudflareTunnelConfigurationPutConfigurationArgs {
 }
 
 /// Arguments for [`cloudflare-tunnel-list-cloudflare-tunnel-connections_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelListCloudflareTunnelConnectionsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdArgs`.
+pub type CloudflareTunnelListCloudflareTunnelConnectionsArgs = super::shared::AccountIdTunnelIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-clean-up-cloudflare-tunnel-connections_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4767,15 +3904,10 @@ pub struct CloudflareTunnelCleanUpCloudflareTunnelConnectionsArgs {
 }
 
 /// Arguments for [`cloudflare-tunnel-get-cloudflare-tunnel-connector_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelGetCloudflareTunnelConnectorArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-    /// Path parameter: `connector_id`.
-    pub connector_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdConnectorIdArgs`.
+pub type CloudflareTunnelGetCloudflareTunnelConnectorArgs =
+    super::shared::AccountIdTunnelIdConnectorIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-get-a-cloudflare-tunnel-management-token_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4789,13 +3921,9 @@ pub struct CloudflareTunnelGetACloudflareTunnelManagementTokenArgs {
 }
 
 /// Arguments for [`cloudflare-tunnel-get-a-cloudflare-tunnel-token_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelGetACloudflareTunnelTokenArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdArgs`.
+pub type CloudflareTunnelGetACloudflareTunnelTokenArgs = super::shared::AccountIdTunnelIdArgs;
 
 /// Arguments for [`get_EventAggregate_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4804,8 +3932,8 @@ pub struct GetEventAggregateArgs {
     pub account_id: String,
     /// Query parameter: `aggregateBy`.
     pub aggregate_by: Option<String>,
-    /// Query parameter: `datasetId`.
-    pub dataset_id: Option<String>,
+    /// Query parameter: `datasetId` (one per value).
+    pub dataset_id: Vec<String>,
     /// Query parameter: `startDate`.
     pub start_date: Option<String>,
     /// Query parameter: `endDate`.
@@ -4841,13 +3969,9 @@ pub struct CreateCniArgs {
 }
 
 /// Arguments for [`get_cni_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetCniArgs {
-    /// Path parameter: `cni`.
-    pub cni: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::CniAccountIdArgs`.
+pub type GetCniArgs = super::shared::CniAccountIdArgs;
 
 /// Arguments for [`update_cni_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4861,13 +3985,9 @@ pub struct UpdateCniArgs {
 }
 
 /// Arguments for [`delete_cni_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteCniArgs {
-    /// Path parameter: `cni`.
-    pub cni: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::CniAccountIdArgs`.
+pub type DeleteCniArgs = super::shared::CniAccountIdArgs;
 
 /// Arguments for [`list_interconnects_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4894,47 +4014,29 @@ pub struct CreateInterconnectArgs {
 }
 
 /// Arguments for [`get_interconnect_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetInterconnectArgs {
-    /// Path parameter: `icon`.
-    pub icon: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IconAccountIdArgs`.
+pub type GetInterconnectArgs = super::shared::IconAccountIdArgs;
 
 /// Arguments for [`delete_interconnect_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteInterconnectArgs {
-    /// Path parameter: `icon`.
-    pub icon: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IconAccountIdArgs`.
+pub type DeleteInterconnectArgs = super::shared::IconAccountIdArgs;
 
 /// Arguments for [`get_interconnect_loa_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetInterconnectLoaArgs {
-    /// Path parameter: `icon`.
-    pub icon: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IconAccountIdArgs`.
+pub type GetInterconnectLoaArgs = super::shared::IconAccountIdArgs;
 
 /// Arguments for [`get_interconnect_status_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetInterconnectStatusArgs {
-    /// Path parameter: `icon`.
-    pub icon: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IconAccountIdArgs`.
+pub type GetInterconnectStatusArgs = super::shared::IconAccountIdArgs;
 
 /// Arguments for [`get_settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetSettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type GetSettingsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`update_settings_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4996,13 +4098,9 @@ pub struct ConnectivityServicesPostArgs {
 }
 
 /// Arguments for [`connectivity-services-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ConnectivityServicesGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `service_id`.
-    pub service_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdServiceIdArgs`.
+pub type ConnectivityServicesGetArgs = super::shared::AccountIdServiceIdArgs;
 
 /// Arguments for [`connectivity-services-put_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5016,20 +4114,14 @@ pub struct ConnectivityServicesPutArgs {
 }
 
 /// Arguments for [`connectivity-services-delete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ConnectivityServicesDeleteArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `service_id`.
-    pub service_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdServiceIdArgs`.
+pub type ConnectivityServicesDeleteArgs = super::shared::AccountIdServiceIdArgs;
 
 /// Arguments for [`devices-resilience-retrieve-global-warp-override_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicesResilienceRetrieveGlobalWarpOverrideArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DevicesResilienceRetrieveGlobalWarpOverrideArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`devices-resilience-set-global-warp-override_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5086,24 +4178,14 @@ pub struct PostCommandsArgs {
 }
 
 /// Arguments for [`get-commands-eligible-devices_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetCommandsEligibleDevicesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-    /// Query parameter: `search`.
-    pub search: Option<String>,
-}
+///
+/// Same shape as `super::shared::McpPortalsApiListPortalsArgsShape`.
+pub type GetCommandsEligibleDevicesArgs = super::shared::McpPortalsApiListPortalsArgsShape;
 
 /// Arguments for [`get-commands-quota_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetCommandsQuotaArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type GetCommandsQuotaArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`get-commands-command-id-downloads-filename_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5141,13 +4223,9 @@ pub struct DeviceDexTestCreateDeviceDexTestArgs {
 }
 
 /// Arguments for [`device-dex-test-get-device-dex-test_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeviceDexTestGetDeviceDexTestArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dex_test_id`.
-    pub dex_test_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDexTestIdArgs`.
+pub type DeviceDexTestGetDeviceDexTestArgs = super::shared::AccountIdDexTestIdArgs;
 
 /// Arguments for [`device-dex-test-update-device-dex-test_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5161,13 +4239,9 @@ pub struct DeviceDexTestUpdateDeviceDexTestArgs {
 }
 
 /// Arguments for [`device-dex-test-delete-device-dex-test_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeviceDexTestDeleteDeviceDexTestArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `dex_test_id`.
-    pub dex_test_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDexTestIdArgs`.
+pub type DeviceDexTestDeleteDeviceDexTestArgs = super::shared::AccountIdDexTestIdArgs;
 
 /// Arguments for [`devices-live-status_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5240,40 +4314,15 @@ pub struct DexFleetStatusOverTimeArgs {
 }
 
 /// Arguments for [`dex-endpoints-http-test-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DexEndpointsHttpTestDetailsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `test_id`.
-    pub test_id: String,
-    /// Query parameter: `deviceId`.
-    pub device_id: Option<String>,
-    /// Query parameter: `from`.
-    pub from: Option<String>,
-    /// Query parameter: `to`.
-    pub to: Option<String>,
-    /// Query parameter: `interval`.
-    pub interval: Option<String>,
-    /// Query parameter: `colo`.
-    pub colo: Option<String>,
-}
+///
+/// Same shape as `super::shared::DexEndpointsHttpTestDetailsArgsShape`.
+pub type DexEndpointsHttpTestDetailsArgs = super::shared::DexEndpointsHttpTestDetailsArgsShape;
 
 /// Arguments for [`dex-endpoints-http-test-percentiles_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DexEndpointsHttpTestPercentilesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `test_id`.
-    pub test_id: String,
-    /// Query parameter: `deviceId`.
-    pub device_id: Option<String>,
-    /// Query parameter: `from`.
-    pub from: Option<String>,
-    /// Query parameter: `to`.
-    pub to: Option<String>,
-    /// Query parameter: `colo`.
-    pub colo: Option<String>,
-}
+///
+/// Same shape as `super::shared::DexEndpointsHttpTestPercentilesArgsShape`.
+pub type DexEndpointsHttpTestPercentilesArgs =
+    super::shared::DexEndpointsHttpTestPercentilesArgsShape;
 
 /// Arguments for [`list-dex-rules_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5302,13 +4351,9 @@ pub struct CreateDexRuleArgs {
 }
 
 /// Arguments for [`get-dex-rule_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetDexRuleArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `rule_id`.
-    pub rule_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdRuleIdArgs`.
+pub type GetDexRuleArgs = super::shared::AccountIdRuleIdArgs;
 
 /// Arguments for [`update-dex-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5322,13 +4367,9 @@ pub struct UpdateDexRuleArgs {
 }
 
 /// Arguments for [`delete-dex-rule_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteDexRuleArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `rule_id`.
-    pub rule_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdRuleIdArgs`.
+pub type DeleteDexRuleArgs = super::shared::AccountIdRuleIdArgs;
 
 /// Arguments for [`dex-endpoints-list-tests-overview_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5339,8 +4380,8 @@ pub struct DexEndpointsListTestsOverviewArgs {
     pub colo: Option<String>,
     /// Query parameter: `testName`.
     pub test_name: Option<String>,
-    /// Query parameter: `deviceId`.
-    pub device_id: Option<String>,
+    /// Query parameter: `deviceId` (one per value).
+    pub device_id: Vec<String>,
     /// Query parameter: `page`.
     pub page: Option<String>,
     /// Query parameter: `per_page`.
@@ -5356,8 +4397,8 @@ pub struct DexEndpointsTestsUniqueDevicesArgs {
     pub account_id: String,
     /// Query parameter: `testName`.
     pub test_name: Option<String>,
-    /// Query parameter: `deviceId`.
-    pub device_id: Option<String>,
+    /// Query parameter: `deviceId` (one per value).
+    pub device_id: Vec<String>,
 }
 
 /// Arguments for [`dex-endpoints-traceroute-test-result-network-path_request`].
@@ -5370,23 +4411,10 @@ pub struct DexEndpointsTracerouteTestResultNetworkPathArgs {
 }
 
 /// Arguments for [`dex-endpoints-traceroute-test-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DexEndpointsTracerouteTestDetailsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `test_id`.
-    pub test_id: String,
-    /// Query parameter: `deviceId`.
-    pub device_id: Option<String>,
-    /// Query parameter: `from`.
-    pub from: Option<String>,
-    /// Query parameter: `to`.
-    pub to: Option<String>,
-    /// Query parameter: `interval`.
-    pub interval: Option<String>,
-    /// Query parameter: `colo`.
-    pub colo: Option<String>,
-}
+///
+/// Same shape as `super::shared::DexEndpointsHttpTestDetailsArgsShape`.
+pub type DexEndpointsTracerouteTestDetailsArgs =
+    super::shared::DexEndpointsHttpTestDetailsArgsShape;
 
 /// Arguments for [`dex-endpoints-traceroute-test-network-path_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5406,21 +4434,10 @@ pub struct DexEndpointsTracerouteTestNetworkPathArgs {
 }
 
 /// Arguments for [`dex-endpoints-traceroute-test-percentiles_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DexEndpointsTracerouteTestPercentilesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `test_id`.
-    pub test_id: String,
-    /// Query parameter: `deviceId`.
-    pub device_id: Option<String>,
-    /// Query parameter: `from`.
-    pub from: Option<String>,
-    /// Query parameter: `to`.
-    pub to: Option<String>,
-    /// Query parameter: `colo`.
-    pub colo: Option<String>,
-}
+///
+/// Same shape as `super::shared::DexEndpointsHttpTestPercentilesArgsShape`.
+pub type DexEndpointsTracerouteTestPercentilesArgs =
+    super::shared::DexEndpointsHttpTestPercentilesArgsShape;
 
 /// Arguments for [`list-warp-change-events_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5448,18 +4465,14 @@ pub struct ListWarpChangeEventsArgs {
 }
 
 /// Arguments for [`magic-interconnects-list-interconnects_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicInterconnectsListInterconnectsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type MagicInterconnectsListInterconnectsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`magic-interconnects-update-multiple-interconnects_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicInterconnectsUpdateMultipleInterconnectsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type MagicInterconnectsUpdateMultipleInterconnectsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`magic-interconnects-list-interconnect-details_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5482,11 +4495,9 @@ pub struct MagicInterconnectsUpdateInterconnectArgs {
 }
 
 /// Arguments for [`magic-gre-tunnels-list-gre-tunnels_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicGreTunnelsListGreTunnelsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type MagicGreTunnelsListGreTunnelsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`magic-gre-tunnels-create-gre-tunnels_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5498,20 +4509,14 @@ pub struct MagicGreTunnelsCreateGreTunnelsArgs {
 }
 
 /// Arguments for [`magic-gre-tunnels-update-multiple-gre-tunnels_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicGreTunnelsUpdateMultipleGreTunnelsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type MagicGreTunnelsUpdateMultipleGreTunnelsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`magic-gre-tunnels-list-gre-tunnel-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicGreTunnelsListGreTunnelDetailsArgs {
-    /// Path parameter: `gre_tunnel_id`.
-    pub gre_tunnel_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::GreTunnelIdAccountIdArgs`.
+pub type MagicGreTunnelsListGreTunnelDetailsArgs = super::shared::GreTunnelIdAccountIdArgs;
 
 /// Arguments for [`magic-gre-tunnels-update-gre-tunnel_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5525,20 +4530,14 @@ pub struct MagicGreTunnelsUpdateGreTunnelArgs {
 }
 
 /// Arguments for [`magic-gre-tunnels-delete-gre-tunnel_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicGreTunnelsDeleteGreTunnelArgs {
-    /// Path parameter: `gre_tunnel_id`.
-    pub gre_tunnel_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::GreTunnelIdAccountIdArgs`.
+pub type MagicGreTunnelsDeleteGreTunnelArgs = super::shared::GreTunnelIdAccountIdArgs;
 
 /// Arguments for [`magic-ipsec-tunnels-list-ipsec-tunnels_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicIpsecTunnelsListIpsecTunnelsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type MagicIpsecTunnelsListIpsecTunnelsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`magic-ipsec-tunnels-create-ipsec-tunnels_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5550,20 +4549,14 @@ pub struct MagicIpsecTunnelsCreateIpsecTunnelsArgs {
 }
 
 /// Arguments for [`magic-ipsec-tunnels-update-multiple-ipsec-tunnels_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicIpsecTunnelsUpdateMultipleIpsecTunnelsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type MagicIpsecTunnelsUpdateMultipleIpsecTunnelsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`magic-ipsec-tunnels-list-ipsec-tunnel-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicIpsecTunnelsListIpsecTunnelDetailsArgs {
-    /// Path parameter: `ipsec_tunnel_id`.
-    pub ipsec_tunnel_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IpsecTunnelIdAccountIdArgs`.
+pub type MagicIpsecTunnelsListIpsecTunnelDetailsArgs = super::shared::IpsecTunnelIdAccountIdArgs;
 
 /// Arguments for [`magic-ipsec-tunnels-update-ipsec-tunnel_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5577,31 +4570,20 @@ pub struct MagicIpsecTunnelsUpdateIpsecTunnelArgs {
 }
 
 /// Arguments for [`magic-ipsec-tunnels-delete-ipsec-tunnel_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicIpsecTunnelsDeleteIpsecTunnelArgs {
-    /// Path parameter: `ipsec_tunnel_id`.
-    pub ipsec_tunnel_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IpsecTunnelIdAccountIdArgs`.
+pub type MagicIpsecTunnelsDeleteIpsecTunnelArgs = super::shared::IpsecTunnelIdAccountIdArgs;
 
 /// Arguments for [`magic-ipsec-tunnels-generate-pre-shared-key-(-psk)-for-ipsec-tunnels_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MagicIpsecTunnelsGeneratePreSharedKeyPskForIpsecTunnelsArgs {
-    /// Path parameter: `ipsec_tunnel_id`.
-    pub ipsec_tunnel_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IpsecTunnelIdAccountIdArgs`.
+pub type MagicIpsecTunnelsGeneratePreSharedKeyPskForIpsecTunnelsArgs =
+    super::shared::IpsecTunnelIdAccountIdArgs;
 
 /// Arguments for [`slurper-get-job-progress_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct SlurperGetJobProgressArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `job_id`.
-    pub job_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdJobIdArgs`.
+pub type SlurperGetJobProgressArgs = super::shared::AccountIdJobIdArgs;
 
 /// Arguments for [`slurper-check-source-connectivity_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5693,13 +4675,9 @@ pub struct TunnelRouteUpdateATunnelRouteArgs {
 }
 
 /// Arguments for [`tunnel-route-delete-a-tunnel-route_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct TunnelRouteDeleteATunnelRouteArgs {
-    /// Path parameter: `route_id`.
-    pub route_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::RouteIdAccountIdArgs`.
+pub type TunnelRouteDeleteATunnelRouteArgs = super::shared::RouteIdAccountIdArgs;
 
 /// Arguments for [`tunnel-virtual-network-list-virtual-networks_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5759,33 +4737,10 @@ pub struct TunnelVirtualNetworkDeleteArgs {
 }
 
 /// Arguments for [`cloudflare-tunnel-list-warp-connector-tunnels_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelListWarpConnectorTunnelsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `is_deleted`.
-    pub is_deleted: Option<String>,
-    /// Query parameter: `existed_at`.
-    pub existed_at: Option<String>,
-    /// Query parameter: `uuid`.
-    pub uuid: Option<String>,
-    /// Query parameter: `was_active_at`.
-    pub was_active_at: Option<String>,
-    /// Query parameter: `was_inactive_at`.
-    pub was_inactive_at: Option<String>,
-    /// Query parameter: `include_prefix`.
-    pub include_prefix: Option<String>,
-    /// Query parameter: `exclude_prefix`.
-    pub exclude_prefix: Option<String>,
-    /// Query parameter: `status`.
-    pub status: Option<String>,
-    /// Query parameter: `per_page`.
-    pub per_page: Option<String>,
-    /// Query parameter: `page`.
-    pub page: Option<String>,
-}
+///
+/// Same shape as `super::shared::CloudflareTunnelListCloudflareTunnelsArgsShape`.
+pub type CloudflareTunnelListWarpConnectorTunnelsArgs =
+    super::shared::CloudflareTunnelListCloudflareTunnelsArgsShape;
 
 /// Arguments for [`cloudflare-tunnel-create-a-warp-connector-tunnel_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5797,13 +4752,9 @@ pub struct CloudflareTunnelCreateAWarpConnectorTunnelArgs {
 }
 
 /// Arguments for [`cloudflare-tunnel-get-a-warp-connector-tunnel_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelGetAWarpConnectorTunnelArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdArgs`.
+pub type CloudflareTunnelGetAWarpConnectorTunnelArgs = super::shared::AccountIdTunnelIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-update-a-warp-connector-tunnel_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5817,33 +4768,21 @@ pub struct CloudflareTunnelUpdateAWarpConnectorTunnelArgs {
 }
 
 /// Arguments for [`cloudflare-tunnel-delete-a-warp-connector-tunnel_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelDeleteAWarpConnectorTunnelArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdArgs`.
+pub type CloudflareTunnelDeleteAWarpConnectorTunnelArgs = super::shared::AccountIdTunnelIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-list-warp-connector-tunnel-connections_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelListWarpConnectorTunnelConnectionsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdArgs`.
+pub type CloudflareTunnelListWarpConnectorTunnelConnectionsArgs =
+    super::shared::AccountIdTunnelIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-get-warp-connector-tunnel-connector_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelGetWarpConnectorTunnelConnectorArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-    /// Path parameter: `connector_id`.
-    pub connector_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdConnectorIdArgs`.
+pub type CloudflareTunnelGetWarpConnectorTunnelConnectorArgs =
+    super::shared::AccountIdTunnelIdConnectorIdArgs;
 
 /// Arguments for [`cloudflare-tunnel-manual-failover-warp-connector-tunnel_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5857,20 +4796,14 @@ pub struct CloudflareTunnelManualFailoverWarpConnectorTunnelArgs {
 }
 
 /// Arguments for [`cloudflare-tunnel-get-a-warp-connector-tunnel-token_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareTunnelGetAWarpConnectorTunnelTokenArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `tunnel_id`.
-    pub tunnel_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdTunnelIdArgs`.
+pub type CloudflareTunnelGetAWarpConnectorTunnelTokenArgs = super::shared::AccountIdTunnelIdArgs;
 
 /// Arguments for [`zero-trust-accounts-get-connectivity-settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsGetConnectivitySettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustAccountsGetConnectivitySettingsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-accounts-patch-connectivity-settings_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5891,13 +4824,9 @@ pub struct ZeroTrustNetworksSubnetCreateWarpArgs {
 }
 
 /// Arguments for [`zero-trust-networks-subnet-get-warp_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustNetworksSubnetGetWarpArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `subnet_id`.
-    pub subnet_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdSubnetIdArgs`.
+pub type ZeroTrustNetworksSubnetGetWarpArgs = super::shared::AccountIdSubnetIdArgs;
 
 /// Arguments for [`zero-trust-networks-subnet-update-warp_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5911,13 +4840,9 @@ pub struct ZeroTrustNetworksSubnetUpdateWarpArgs {
 }
 
 /// Arguments for [`zero-trust-networks-subnet-delete-warp_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustNetworksSubnetDeleteWarpArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `subnet_id`.
-    pub subnet_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdSubnetIdArgs`.
+pub type ZeroTrustNetworksSubnetDeleteWarpArgs = super::shared::AccountIdSubnetIdArgs;
 
 /// Arguments for [`radar-get-bgp-hijacks-events_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -5959,20 +4884,20 @@ pub struct RadarGetBgpHijacksEventsArgs {
 /// Arguments for [`radar-get-bgp-ips-timeseries_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesArgs {
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `asn`.
-    pub asn: Option<String>,
-    /// Query parameter: `location`.
-    pub location: Option<String>,
-    /// Query parameter: `ipVersion`.
-    pub ip_version: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
     /// Query parameter: `includeDelay`.
     pub include_delay: Option<String>,
     /// Query parameter: `format`.
@@ -6099,12 +5024,12 @@ pub struct RadarGetBgpRpkiAspaTimeseriesArgs {
     pub date_start: Option<String>,
     /// Query parameter: `dateEnd`.
     pub date_end: Option<String>,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `rir`.
-    pub rir: Option<String>,
-    /// Query parameter: `location`.
-    pub location: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `rir` (one per value).
+    pub rir: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -6114,20 +5039,20 @@ pub struct RadarGetBgpRpkiAspaTimeseriesArgs {
 pub struct RadarGetBgpTimeseriesArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `prefix`.
-    pub prefix: Option<String>,
-    /// Query parameter: `updateType`.
-    pub update_type: Option<String>,
-    /// Query parameter: `asn`.
-    pub asn: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `prefix` (one per value).
+    pub prefix: Vec<String>,
+    /// Query parameter: `updateType` (one per value).
+    pub update_type: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -6137,20 +5062,20 @@ pub struct RadarGetBgpTimeseriesArgs {
 pub struct RadarGetBgpTopAsesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `asn`.
-    pub asn: Option<String>,
-    /// Query parameter: `prefix`.
-    pub prefix: Option<String>,
-    /// Query parameter: `updateType`.
-    pub update_type: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `prefix` (one per value).
+    pub prefix: Vec<String>,
+    /// Query parameter: `updateType` (one per value).
+    pub update_type: Vec<String>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -6171,18 +5096,18 @@ pub struct RadarGetBgpTopAsnsByPrefixesArgs {
 pub struct RadarGetBgpTopPrefixesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `asn`.
-    pub asn: Option<String>,
-    /// Query parameter: `updateType`.
-    pub update_type: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `updateType` (one per value).
+    pub update_type: Vec<String>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -6190,20 +5115,20 @@ pub struct RadarGetBgpTopPrefixesArgs {
 /// Arguments for [`radar-get-quality-index-summary_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetQualityIndexSummaryArgs {
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `asn`.
-    pub asn: Option<String>,
-    /// Query parameter: `location`.
-    pub location: Option<String>,
-    /// Query parameter: `continent`.
-    pub continent: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
     /// Query parameter: `metric`.
     pub metric: Option<String>,
     /// Query parameter: `format`.
@@ -6215,20 +5140,20 @@ pub struct RadarGetQualityIndexSummaryArgs {
 pub struct RadarGetQualityIndexTimeseriesGroupArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `asn`.
-    pub asn: Option<String>,
-    /// Query parameter: `location`.
-    pub location: Option<String>,
-    /// Query parameter: `continent`.
-    pub continent: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
     /// Query parameter: `interpolation`.
     pub interpolation: Option<String>,
     /// Query parameter: `metric`.
@@ -6283,9 +5208,9 @@ pub async fn ip_address_management_prefixes_list_bgp_prefixes_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/prefixes/{}/bgp/prefixes",
-        args.account_id,
-        args.prefix_id,
+    let path = format!(
+        "/accounts/{}/addressing/prefixes/{}/bgp/prefixes",
+        args.account_id, args.prefix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6296,20 +5221,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AddressingResponseCollectionBgp = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6343,36 +5255,24 @@ pub async fn ip_address_management_prefixes_create_bgp_prefix_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/prefixes/{}/bgp/prefixes",
-        args.account_id,
-        args.prefix_id,
+    let path = format!(
+        "/accounts/{}/addressing/prefixes/{}/bgp/prefixes",
+        args.account_id, args.prefix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AddressingSingleResponseBgp = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6406,10 +5306,9 @@ pub async fn ip_address_management_prefixes_fetch_bgp_prefix_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/prefixes/{}/bgp/prefixes/{}",
-        args.account_id,
-        args.prefix_id,
-        args.bgp_prefix_id,
+    let path = format!(
+        "/accounts/{}/addressing/prefixes/{}/bgp/prefixes/{}",
+        args.account_id, args.prefix_id, args.bgp_prefix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6420,20 +5319,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AddressingSingleResponseBgp = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6467,37 +5353,24 @@ pub async fn ip_address_management_prefixes_update_bgp_prefix_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/prefixes/{}/bgp/prefixes/{}",
-        args.account_id,
-        args.prefix_id,
-        args.bgp_prefix_id,
+    let path = format!(
+        "/accounts/{}/addressing/prefixes/{}/bgp/prefixes/{}",
+        args.account_id, args.prefix_id, args.bgp_prefix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AddressingSingleResponseBgp = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6531,10 +5404,9 @@ pub async fn ip_address_management_prefixes_delete_bgp_prefix_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/addressing/prefixes/{}/bgp/prefixes/{}",
-        args.account_id,
-        args.prefix_id,
-        args.bgp_prefix_id,
+    let path = format!(
+        "/accounts/{}/addressing/prefixes/{}/bgp/prefixes/{}",
+        args.account_id, args.prefix_id, args.bgp_prefix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6545,20 +5417,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AddressingApiResponseCommon = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6592,9 +5451,7 @@ pub async fn cloudflare_tunnel_list_cloudflare_tunnels_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/cfd_tunnel", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -6616,20 +5473,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelCfdTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6663,35 +5507,21 @@ pub async fn cloudflare_tunnel_create_a_cloudflare_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/cfd_tunnel", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelCfdTunnelResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6725,9 +5555,9 @@ pub async fn cloudflare_tunnel_get_a_cloudflare_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6738,20 +5568,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelCfdTunnelResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6785,36 +5602,24 @@ pub async fn cloudflare_tunnel_update_a_cloudflare_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelCfdTunnelResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6848,9 +5653,9 @@ pub async fn cloudflare_tunnel_delete_a_cloudflare_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6861,20 +5666,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelCfdTunnelResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6908,9 +5700,9 @@ pub async fn cloudflare_tunnel_configuration_get_configuration_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}/configurations",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}/configurations",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6921,20 +5713,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelConfigurationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6968,36 +5747,24 @@ pub async fn cloudflare_tunnel_configuration_put_configuration_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}/configurations",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}/configurations",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelConfigurationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7031,9 +5798,9 @@ pub async fn cloudflare_tunnel_list_cloudflare_tunnel_connections_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}/connections",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}/connections",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7044,20 +5811,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelTunnelConnectionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7091,9 +5845,9 @@ pub async fn cloudflare_tunnel_clean_up_cloudflare_tunnel_connections_request<F>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}/connections",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}/connections",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7106,20 +5860,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7153,10 +5894,9 @@ pub async fn cloudflare_tunnel_get_cloudflare_tunnel_connector_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}/connectors/{}",
-        args.account_id,
-        args.tunnel_id,
-        args.connector_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}/connectors/{}",
+        args.account_id, args.tunnel_id, args.connector_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7167,20 +5907,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelTunnelClientResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7214,36 +5941,24 @@ pub async fn cloudflare_tunnel_get_a_cloudflare_tunnel_management_token_request<
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}/management",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}/management",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelTunnelResponseToken = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7277,9 +5992,9 @@ pub async fn cloudflare_tunnel_get_a_cloudflare_tunnel_token_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cfd_tunnel/{}/token",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/cfd_tunnel/{}/token",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7290,20 +6005,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelTunnelResponseToken = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7337,7 +6039,8 @@ pub async fn get_event_aggregate_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cloudforce-one/events/aggregate",
+    let path = format!(
+        "/accounts/{}/cloudforce-one/events/aggregate",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -7346,7 +6049,9 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("aggregateBy", args.aggregate_by.as_deref());
-    builder = builder.query("datasetId", args.dataset_id.as_deref());
+    for value in &args.dataset_id {
+        builder = builder.query("datasetId", Some(value.as_str()));
+    }
     builder = builder.query("startDate", args.start_date.as_deref());
     builder = builder.query("endDate", args.end_date.as_deref());
     builder = builder.query("groupByDate", args.group_by_date.as_deref());
@@ -7356,20 +6061,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetEventAggregateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7403,9 +6095,7 @@ pub async fn list_cnis_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/cnis",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/cni/cnis", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -7420,20 +6110,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscCniList = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7467,35 +6144,21 @@ pub async fn create_cni_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/cnis",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/cni/cnis", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscCni = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7529,10 +6192,7 @@ pub async fn get_cni_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/cnis/{}",
-        args.account_id,
-        args.cni,
-    );
+    let path = format!("/accounts/{}/cni/cnis/{}", args.account_id, args.cni,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -7542,20 +6202,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscCni = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7589,36 +6236,21 @@ pub async fn update_cni_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/cnis/{}",
-        args.account_id,
-        args.cni,
-    );
+    let path = format!("/accounts/{}/cni/cnis/{}", args.account_id, args.cni,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscCni = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7652,10 +6284,7 @@ pub async fn delete_cni_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/cnis/{}",
-        args.account_id,
-        args.cni,
-    );
+    let path = format!("/accounts/{}/cni/cnis/{}", args.account_id, args.cni,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -7665,18 +6294,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7710,9 +6328,7 @@ pub async fn list_interconnects_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/interconnects",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/cni/interconnects", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -7727,20 +6343,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscInterconnectList = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7774,35 +6377,21 @@ pub async fn create_interconnect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/interconnects",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/cni/interconnects", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscInterconnect = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7836,9 +6425,9 @@ pub async fn get_interconnect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/interconnects/{}",
-        args.account_id,
-        args.icon,
+    let path = format!(
+        "/accounts/{}/cni/interconnects/{}",
+        args.account_id, args.icon,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7849,20 +6438,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscInterconnect = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7896,9 +6472,9 @@ pub async fn delete_interconnect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/interconnects/{}",
-        args.account_id,
-        args.icon,
+    let path = format!(
+        "/accounts/{}/cni/interconnects/{}",
+        args.account_id, args.icon,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7909,18 +6485,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7954,9 +6519,9 @@ pub async fn get_interconnect_loa_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/interconnects/{}/loa",
-        args.account_id,
-        args.icon,
+    let path = format!(
+        "/accounts/{}/cni/interconnects/{}/loa",
+        args.account_id, args.icon,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7967,18 +6532,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8012,9 +6566,9 @@ pub async fn get_interconnect_status_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/interconnects/{}/status",
-        args.account_id,
-        args.icon,
+    let path = format!(
+        "/accounts/{}/cni/interconnects/{}/status",
+        args.account_id, args.icon,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8025,20 +6579,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscStatusInfo = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8072,9 +6613,7 @@ pub async fn get_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/cni/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8084,20 +6623,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscSettings = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8131,35 +6657,21 @@ pub async fn update_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/cni/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscSettings = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8193,9 +6705,7 @@ pub async fn list_slots_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/slots",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/cni/slots", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8212,20 +6722,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscSlotList = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8259,10 +6756,7 @@ pub async fn get_slot_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/cni/slots/{}",
-        args.account_id,
-        args.slot,
-    );
+    let path = format!("/accounts/{}/cni/slots/{}", args.account_id, args.slot,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8272,20 +6766,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NscSlotInfo = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8319,7 +6800,8 @@ pub async fn connectivity_services_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/connectivity/directory/services",
+    let path = format!(
+        "/accounts/{}/connectivity/directory/services",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -8335,20 +6817,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ConnectivityServicesListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8382,7 +6851,8 @@ pub async fn connectivity_services_post_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/connectivity/directory/services",
+    let path = format!(
+        "/accounts/{}/connectivity/directory/services",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -8390,27 +6860,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ConnectivityServicesPostResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8444,9 +6902,9 @@ pub async fn connectivity_services_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/connectivity/directory/services/{}",
-        args.account_id,
-        args.service_id,
+    let path = format!(
+        "/accounts/{}/connectivity/directory/services/{}",
+        args.account_id, args.service_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8457,20 +6915,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ConnectivityServicesGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8504,36 +6949,24 @@ pub async fn connectivity_services_put_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/connectivity/directory/services/{}",
-        args.account_id,
-        args.service_id,
+    let path = format!(
+        "/accounts/{}/connectivity/directory/services/{}",
+        args.account_id, args.service_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ConnectivityServicesPutResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8567,9 +7000,9 @@ pub async fn connectivity_services_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/connectivity/directory/services/{}",
-        args.account_id,
-        args.service_id,
+    let path = format!(
+        "/accounts/{}/connectivity/directory/services/{}",
+        args.account_id, args.service_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8580,18 +7013,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8625,7 +7047,8 @@ pub async fn devices_resilience_retrieve_global_warp_override_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/resilience/disconnect",
+    let path = format!(
+        "/accounts/{}/devices/resilience/disconnect",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -8637,20 +7060,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesGlobalWarpOverrideResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8684,7 +7094,8 @@ pub async fn devices_resilience_set_global_warp_override_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/resilience/disconnect",
+    let path = format!(
+        "/accounts/{}/devices/resilience/disconnect",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -8692,27 +7103,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesGlobalWarpOverrideResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8746,9 +7145,7 @@ pub async fn dex_endpoints_list_colos_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/colos",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/colos", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8762,20 +7159,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DexEndpointsListColosResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8809,9 +7193,7 @@ pub async fn get_commands_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/commands",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/commands", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8830,20 +7212,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetCommandsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8877,35 +7246,21 @@ pub async fn post_commands_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/commands",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/commands", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PostCommandsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8939,9 +7294,7 @@ pub async fn get_commands_eligible_devices_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/commands/devices",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/commands/devices", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8955,20 +7308,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetCommandsEligibleDevicesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9002,9 +7342,7 @@ pub async fn get_commands_quota_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/commands/quota",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/commands/quota", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9014,20 +7352,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetCommandsQuotaResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9045,6 +7370,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -9057,14 +7387,13 @@ pub async fn get_commands_command_id_downloads_filename_request<F>(
     args: &GetCommandsCommandIdDownloadsFilenameArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/commands/{}/downloads/{}",
-        args.account_id,
-        args.command_id,
-        args.filename,
+    let path = format!(
+        "/accounts/{}/dex/commands/{}/downloads/{}",
+        args.account_id, args.command_id, args.filename,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9075,18 +7404,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -9120,9 +7443,7 @@ pub async fn device_dex_test_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/devices/dex_tests",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/devices/dex_tests", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9137,20 +7458,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DigitalExperienceMonitoringDexResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9184,35 +7492,21 @@ pub async fn device_dex_test_create_device_dex_test_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/devices/dex_tests",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/devices/dex_tests", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DigitalExperienceMonitoringDexSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9246,9 +7540,9 @@ pub async fn device_dex_test_get_device_dex_test_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/devices/dex_tests/{}",
-        args.account_id,
-        args.dex_test_id,
+    let path = format!(
+        "/accounts/{}/dex/devices/dex_tests/{}",
+        args.account_id, args.dex_test_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9259,20 +7553,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DigitalExperienceMonitoringDexSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9306,36 +7587,24 @@ pub async fn device_dex_test_update_device_dex_test_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/devices/dex_tests/{}",
-        args.account_id,
-        args.dex_test_id,
+    let path = format!(
+        "/accounts/{}/dex/devices/dex_tests/{}",
+        args.account_id, args.dex_test_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DigitalExperienceMonitoringDexSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9365,13 +7634,16 @@ pub async fn device_dex_test_delete_device_dex_test_request<F>(
     args: &DeviceDexTestDeleteDeviceDexTestArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<DigitalExperienceMonitoringDexDeleteResponseCollection>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<DigitalExperienceMonitoringDexDeleteResponseCollection>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/devices/dex_tests/{}",
-        args.account_id,
-        args.dex_test_id,
+    let path = format!(
+        "/accounts/{}/dex/devices/dex_tests/{}",
+        args.account_id, args.dex_test_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9382,20 +7654,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DigitalExperienceMonitoringDexDeleteResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9429,9 +7688,9 @@ pub async fn devices_live_status_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/devices/{}/fleet-status/live",
-        args.account_id,
-        args.device_id,
+    let path = format!(
+        "/accounts/{}/dex/devices/{}/fleet-status/live",
+        args.account_id, args.device_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9446,20 +7705,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DigitalExperienceMonitoringDevice = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9489,13 +7735,14 @@ pub async fn dex_fleet_status_devices_request<F>(
     args: &DexFleetStatusDevicesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<DigitalExperienceMonitoringFleetStatusDevicesResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<DigitalExperienceMonitoringFleetStatusDevicesResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/fleet-status/devices",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/fleet-status/devices", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9518,20 +7765,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DigitalExperienceMonitoringFleetStatusDevicesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9565,9 +7799,7 @@ pub async fn dex_fleet_status_live_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/fleet-status/live",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/fleet-status/live", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9579,20 +7811,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DigitalExperienceMonitoringFleetStatusLiveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9622,13 +7841,14 @@ pub async fn dex_fleet_status_over_time_request<F>(
     args: &DexFleetStatusOverTimeArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<DigitalExperienceMonitoringFleetStatusOverTimeResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<DigitalExperienceMonitoringFleetStatusOverTimeResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/fleet-status/over-time",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/fleet-status/over-time", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9643,20 +7863,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DigitalExperienceMonitoringFleetStatusOverTimeResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9690,16 +7897,18 @@ pub async fn dex_endpoints_http_test_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/http-tests/{}",
-        args.account_id,
-        args.test_id,
+    let path = format!(
+        "/accounts/{}/dex/http-tests/{}",
+        args.account_id, args.test_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("deviceId", args.device_id.as_deref());
+    for value in &args.device_id {
+        builder = builder.query("deviceId", Some(value.as_str()));
+    }
     builder = builder.query("from", args.from.as_deref());
     builder = builder.query("to", args.to.as_deref());
     builder = builder.query("interval", args.interval.as_deref());
@@ -9709,20 +7918,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DexEndpointsHttpTestDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9756,16 +7952,18 @@ pub async fn dex_endpoints_http_test_percentiles_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/http-tests/{}/percentiles",
-        args.account_id,
-        args.test_id,
+    let path = format!(
+        "/accounts/{}/dex/http-tests/{}/percentiles",
+        args.account_id, args.test_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("deviceId", args.device_id.as_deref());
+    for value in &args.device_id {
+        builder = builder.query("deviceId", Some(value.as_str()));
+    }
     builder = builder.query("from", args.from.as_deref());
     builder = builder.query("to", args.to.as_deref());
     builder = builder.query("colo", args.colo.as_deref());
@@ -9774,20 +7972,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DexEndpointsHttpTestPercentilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9821,9 +8006,7 @@ pub async fn list_dex_rules_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/rules",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/rules", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9839,20 +8022,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListDexRulesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9886,35 +8056,21 @@ pub async fn create_dex_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/rules",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/rules", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateDexRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9948,10 +8104,7 @@ pub async fn get_dex_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/rules/{}",
-        args.account_id,
-        args.rule_id,
-    );
+    let path = format!("/accounts/{}/dex/rules/{}", args.account_id, args.rule_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9961,20 +8114,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetDexRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10008,36 +8148,21 @@ pub async fn update_dex_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/rules/{}",
-        args.account_id,
-        args.rule_id,
-    );
+    let path = format!("/accounts/{}/dex/rules/{}", args.account_id, args.rule_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: UpdateDexRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10071,10 +8196,7 @@ pub async fn delete_dex_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/rules/{}",
-        args.account_id,
-        args.rule_id,
-    );
+    let path = format!("/accounts/{}/dex/rules/{}", args.account_id, args.rule_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -10084,20 +8206,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DeleteDexRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10131,9 +8240,7 @@ pub async fn dex_endpoints_list_tests_overview_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/tests/overview",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/tests/overview", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10141,7 +8248,9 @@ where
 
     builder = builder.query("colo", args.colo.as_deref());
     builder = builder.query("testName", args.test_name.as_deref());
-    builder = builder.query("deviceId", args.device_id.as_deref());
+    for value in &args.device_id {
+        builder = builder.query("deviceId", Some(value.as_str()));
+    }
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("kind", args.kind.as_deref());
@@ -10150,20 +8259,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DexEndpointsListTestsOverviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10197,35 +8293,22 @@ pub async fn dex_endpoints_tests_unique_devices_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/tests/unique-devices",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/tests/unique-devices", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("testName", args.test_name.as_deref());
-    builder = builder.query("deviceId", args.device_id.as_deref());
+    for value in &args.device_id {
+        builder = builder.query("deviceId", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DexEndpointsTestsUniqueDevicesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10259,9 +8342,9 @@ pub async fn dex_endpoints_traceroute_test_result_network_path_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/traceroute-test-results/{}/network-path",
-        args.account_id,
-        args.test_result_id,
+    let path = format!(
+        "/accounts/{}/dex/traceroute-test-results/{}/network-path",
+        args.account_id, args.test_result_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10272,20 +8355,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DexEndpointsTracerouteTestResultNetworkPathResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10319,16 +8389,18 @@ pub async fn dex_endpoints_traceroute_test_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/traceroute-tests/{}",
-        args.account_id,
-        args.test_id,
+    let path = format!(
+        "/accounts/{}/dex/traceroute-tests/{}",
+        args.account_id, args.test_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("deviceId", args.device_id.as_deref());
+    for value in &args.device_id {
+        builder = builder.query("deviceId", Some(value.as_str()));
+    }
     builder = builder.query("from", args.from.as_deref());
     builder = builder.query("to", args.to.as_deref());
     builder = builder.query("interval", args.interval.as_deref());
@@ -10338,20 +8410,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DexEndpointsTracerouteTestDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10385,9 +8444,9 @@ pub async fn dex_endpoints_traceroute_test_network_path_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/traceroute-tests/{}/network-path",
-        args.account_id,
-        args.test_id,
+    let path = format!(
+        "/accounts/{}/dex/traceroute-tests/{}/network-path",
+        args.account_id, args.test_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10403,20 +8462,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DexEndpointsTracerouteTestNetworkPathResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10450,16 +8496,18 @@ pub async fn dex_endpoints_traceroute_test_percentiles_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/traceroute-tests/{}/percentiles",
-        args.account_id,
-        args.test_id,
+    let path = format!(
+        "/accounts/{}/dex/traceroute-tests/{}/percentiles",
+        args.account_id, args.test_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("deviceId", args.device_id.as_deref());
+    for value in &args.device_id {
+        builder = builder.query("deviceId", Some(value.as_str()));
+    }
     builder = builder.query("from", args.from.as_deref());
     builder = builder.query("to", args.to.as_deref());
     builder = builder.query("colo", args.colo.as_deref());
@@ -10468,20 +8516,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DexEndpointsTracerouteTestPercentilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10515,9 +8550,7 @@ pub async fn list_warp_change_events_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dex/warp-change-events",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dex/warp-change-events", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10537,20 +8570,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListWarpChangeEventsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10584,9 +8604,7 @@ pub async fn magic_interconnects_list_interconnects_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cf_interconnects",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/cf_interconnects", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10596,20 +8614,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicComponentsSchemasTunnelsCollectionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10639,13 +8644,14 @@ pub async fn magic_interconnects_update_multiple_interconnects_request<F>(
     args: &MagicInterconnectsUpdateMultipleInterconnectsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<MagicComponentsSchemasModifiedTunnelsCollectionResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<MagicComponentsSchemasModifiedTunnelsCollectionResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cf_interconnects",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/cf_interconnects", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
@@ -10655,20 +8661,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicComponentsSchemasModifiedTunnelsCollectionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10702,9 +8695,9 @@ pub async fn magic_interconnects_list_interconnect_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cf_interconnects/{}",
-        args.account_id,
-        args.cf_interconnect_id,
+    let path = format!(
+        "/accounts/{}/magic/cf_interconnects/{}",
+        args.account_id, args.cf_interconnect_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10715,20 +8708,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicComponentsSchemasTunnelSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10762,36 +8742,24 @@ pub async fn magic_interconnects_update_interconnect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cf_interconnects/{}",
-        args.account_id,
-        args.cf_interconnect_id,
+    let path = format!(
+        "/accounts/{}/magic/cf_interconnects/{}",
+        args.account_id, args.cf_interconnect_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicComponentsSchemasTunnelModifiedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10825,9 +8793,7 @@ pub async fn magic_gre_tunnels_list_gre_tunnels_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/gre_tunnels",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/gre_tunnels", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10837,20 +8803,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTunnelsCollectionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10884,35 +8837,21 @@ pub async fn magic_gre_tunnels_create_gre_tunnels_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/gre_tunnels",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/gre_tunnels", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicCreateGreTunnelResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10946,9 +8885,7 @@ pub async fn magic_gre_tunnels_update_multiple_gre_tunnels_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/gre_tunnels",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/gre_tunnels", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
@@ -10958,20 +8895,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicModifiedTunnelsCollectionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11005,9 +8929,9 @@ pub async fn magic_gre_tunnels_list_gre_tunnel_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/gre_tunnels/{}",
-        args.account_id,
-        args.gre_tunnel_id,
+    let path = format!(
+        "/accounts/{}/magic/gre_tunnels/{}",
+        args.account_id, args.gre_tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11018,20 +8942,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTunnelSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11065,36 +8976,24 @@ pub async fn magic_gre_tunnels_update_gre_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/gre_tunnels/{}",
-        args.account_id,
-        args.gre_tunnel_id,
+    let path = format!(
+        "/accounts/{}/magic/gre_tunnels/{}",
+        args.account_id, args.gre_tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTunnelModifiedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11128,9 +9027,9 @@ pub async fn magic_gre_tunnels_delete_gre_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/gre_tunnels/{}",
-        args.account_id,
-        args.gre_tunnel_id,
+    let path = format!(
+        "/accounts/{}/magic/gre_tunnels/{}",
+        args.account_id, args.gre_tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11141,20 +9040,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTunnelDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11188,9 +9074,7 @@ pub async fn magic_ipsec_tunnels_list_ipsec_tunnels_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/ipsec_tunnels",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/ipsec_tunnels", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -11200,20 +9084,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicSchemasTunnelsCollectionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11247,35 +9118,21 @@ pub async fn magic_ipsec_tunnels_create_ipsec_tunnels_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/ipsec_tunnels",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/ipsec_tunnels", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicSchemasCreateIpsecTunnelResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11309,9 +9166,7 @@ pub async fn magic_ipsec_tunnels_update_multiple_ipsec_tunnels_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/ipsec_tunnels",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/ipsec_tunnels", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
@@ -11321,20 +9176,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicSchemasModifiedTunnelsCollectionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11368,9 +9210,9 @@ pub async fn magic_ipsec_tunnels_list_ipsec_tunnel_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/ipsec_tunnels/{}",
-        args.account_id,
-        args.ipsec_tunnel_id,
+    let path = format!(
+        "/accounts/{}/magic/ipsec_tunnels/{}",
+        args.account_id, args.ipsec_tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11381,20 +9223,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicSchemasTunnelSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11428,36 +9257,24 @@ pub async fn magic_ipsec_tunnels_update_ipsec_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/ipsec_tunnels/{}",
-        args.account_id,
-        args.ipsec_tunnel_id,
+    let path = format!(
+        "/accounts/{}/magic/ipsec_tunnels/{}",
+        args.account_id, args.ipsec_tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicSchemasTunnelModifiedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11491,9 +9308,9 @@ pub async fn magic_ipsec_tunnels_delete_ipsec_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/ipsec_tunnels/{}",
-        args.account_id,
-        args.ipsec_tunnel_id,
+    let path = format!(
+        "/accounts/{}/magic/ipsec_tunnels/{}",
+        args.account_id, args.ipsec_tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11504,20 +9321,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicSchemasTunnelDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11551,9 +9355,9 @@ pub async fn magic_ipsec_tunnels_generate_pre_shared_key_psk_for_ipsec_tunnels_r
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/ipsec_tunnels/{}/psk_generate",
-        args.account_id,
-        args.ipsec_tunnel_id,
+    let path = format!(
+        "/accounts/{}/magic/ipsec_tunnels/{}/psk_generate",
+        args.account_id, args.ipsec_tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11564,20 +9368,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicPskGenerationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11611,9 +9402,9 @@ pub async fn slurper_get_job_progress_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/slurper/jobs/{}/progress",
-        args.account_id,
-        args.job_id,
+    let path = format!(
+        "/accounts/{}/slurper/jobs/{}/progress",
+        args.account_id, args.job_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11624,20 +9415,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SlurperGetJobProgressResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11671,7 +9449,8 @@ pub async fn slurper_check_source_connectivity_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/slurper/source/connectivity-precheck",
+    let path = format!(
+        "/accounts/{}/slurper/source/connectivity-precheck",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -11679,27 +9458,15 @@ where
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SlurperCheckSourceConnectivityResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11733,7 +9500,8 @@ pub async fn slurper_check_target_connectivity_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/slurper/target/connectivity-precheck",
+    let path = format!(
+        "/accounts/{}/slurper/target/connectivity-precheck",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -11741,27 +9509,15 @@ where
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SlurperCheckTargetConnectivityResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11795,9 +9551,7 @@ pub async fn tunnel_route_list_tunnel_routes_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/routes",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/teamnet/routes", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -11819,20 +9573,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelTeamnetResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11866,35 +9607,21 @@ pub async fn tunnel_route_create_a_tunnel_route_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/routes",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/teamnet/routes", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelRouteResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11928,9 +9655,9 @@ pub async fn tunnel_route_get_tunnel_route_by_ip_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/routes/ip/{}",
-        args.account_id,
-        args.ip,
+    let path = format!(
+        "/accounts/{}/teamnet/routes/ip/{}",
+        args.account_id, args.ip,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11938,26 +9665,16 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("virtual_network_id", args.virtual_network_id.as_deref());
-    builder = builder.query("default_virtual_network_fallback", args.default_virtual_network_fallback.as_deref());
+    builder = builder.query(
+        "default_virtual_network_fallback",
+        args.default_virtual_network_fallback.as_deref(),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelTeamnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11991,9 +9708,9 @@ pub async fn tunnel_route_get_tunnel_route_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/routes/{}",
-        args.account_id,
-        args.route_id,
+    let path = format!(
+        "/accounts/{}/teamnet/routes/{}",
+        args.account_id, args.route_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12004,20 +9721,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelRouteResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12051,36 +9755,24 @@ pub async fn tunnel_route_update_a_tunnel_route_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/routes/{}",
-        args.account_id,
-        args.route_id,
+    let path = format!(
+        "/accounts/{}/teamnet/routes/{}",
+        args.account_id, args.route_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelRouteResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12114,9 +9806,9 @@ pub async fn tunnel_route_delete_a_tunnel_route_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/routes/{}",
-        args.account_id,
-        args.route_id,
+    let path = format!(
+        "/accounts/{}/teamnet/routes/{}",
+        args.account_id, args.route_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12127,20 +9819,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelRouteResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12174,9 +9853,7 @@ pub async fn tunnel_virtual_network_list_virtual_networks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/virtual_networks",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/teamnet/virtual_networks", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -12192,20 +9869,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelVnetResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12239,35 +9903,21 @@ pub async fn tunnel_virtual_network_create_a_virtual_network_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/virtual_networks",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/teamnet/virtual_networks", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelVnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12301,36 +9951,24 @@ pub async fn tunnel_virtual_network_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/virtual_networks/{}",
-        args.account_id,
-        args.virtual_network_id,
+    let path = format!(
+        "/accounts/{}/teamnet/virtual_networks/{}",
+        args.account_id, args.virtual_network_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelVnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12364,36 +10002,24 @@ pub async fn tunnel_virtual_network_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/virtual_networks/{}",
-        args.account_id,
-        args.virtual_network_id,
+    let path = format!(
+        "/accounts/{}/teamnet/virtual_networks/{}",
+        args.account_id, args.virtual_network_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelVnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12427,9 +10053,9 @@ pub async fn tunnel_virtual_network_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/teamnet/virtual_networks/{}",
-        args.account_id,
-        args.virtual_network_id,
+    let path = format!(
+        "/accounts/{}/teamnet/virtual_networks/{}",
+        args.account_id, args.virtual_network_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12440,20 +10066,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelVnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12487,9 +10100,7 @@ pub async fn cloudflare_tunnel_list_warp_connector_tunnels_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/warp_connector",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/warp_connector", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -12511,20 +10122,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelWarpConnectorResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12558,35 +10156,21 @@ pub async fn cloudflare_tunnel_create_a_warp_connector_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/warp_connector",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/warp_connector", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelWarpConnectorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12620,9 +10204,9 @@ pub async fn cloudflare_tunnel_get_a_warp_connector_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/warp_connector/{}",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/warp_connector/{}",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12633,20 +10217,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelWarpConnectorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12680,36 +10251,24 @@ pub async fn cloudflare_tunnel_update_a_warp_connector_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/warp_connector/{}",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/warp_connector/{}",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelWarpConnectorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12743,9 +10302,9 @@ pub async fn cloudflare_tunnel_delete_a_warp_connector_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/warp_connector/{}",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/warp_connector/{}",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12756,20 +10315,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelWarpConnectorResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12803,9 +10349,9 @@ pub async fn cloudflare_tunnel_list_warp_connector_tunnel_connections_request<F>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/warp_connector/{}/connections",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/warp_connector/{}/connections",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12816,20 +10362,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelTunnelWarpConnectorConnectionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12863,10 +10396,9 @@ pub async fn cloudflare_tunnel_get_warp_connector_tunnel_connector_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/warp_connector/{}/connectors/{}",
-        args.account_id,
-        args.tunnel_id,
-        args.connector_id,
+    let path = format!(
+        "/accounts/{}/warp_connector/{}/connectors/{}",
+        args.account_id, args.tunnel_id, args.connector_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -12877,20 +10409,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelTunnelWarpConnectorClientResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12924,36 +10443,24 @@ pub async fn cloudflare_tunnel_manual_failover_warp_connector_tunnel_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/warp_connector/{}/failover",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/warp_connector/{}/failover",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -12987,9 +10494,9 @@ pub async fn cloudflare_tunnel_get_a_warp_connector_tunnel_token_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/warp_connector/{}/token",
-        args.account_id,
-        args.tunnel_id,
+    let path = format!(
+        "/accounts/{}/warp_connector/{}/token",
+        args.account_id, args.tunnel_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13000,20 +10507,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelTunnelResponseToken = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13047,7 +10541,8 @@ pub async fn zero_trust_accounts_get_connectivity_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zerotrust/connectivity_settings",
+    let path = format!(
+        "/accounts/{}/zerotrust/connectivity_settings",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -13059,20 +10554,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelZeroTrustConnectivitySettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13106,7 +10588,8 @@ pub async fn zero_trust_accounts_patch_connectivity_settings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zerotrust/connectivity_settings",
+    let path = format!(
+        "/accounts/{}/zerotrust/connectivity_settings",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -13114,27 +10597,15 @@ where
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelZeroTrustConnectivitySettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13168,35 +10639,21 @@ pub async fn zero_trust_networks_subnet_create_warp_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zerotrust/subnets/warp",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/zerotrust/subnets/warp", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelSubnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13230,9 +10687,9 @@ pub async fn zero_trust_networks_subnet_get_warp_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zerotrust/subnets/warp/{}",
-        args.account_id,
-        args.subnet_id,
+    let path = format!(
+        "/accounts/{}/zerotrust/subnets/warp/{}",
+        args.account_id, args.subnet_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13243,20 +10700,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelSubnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13290,36 +10734,24 @@ pub async fn zero_trust_networks_subnet_update_warp_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zerotrust/subnets/warp/{}",
-        args.account_id,
-        args.subnet_id,
+    let path = format!(
+        "/accounts/{}/zerotrust/subnets/warp/{}",
+        args.account_id, args.subnet_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelSubnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13353,9 +10785,9 @@ pub async fn zero_trust_networks_subnet_delete_warp_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zerotrust/subnets/warp/{}",
-        args.account_id,
-        args.subnet_id,
+    let path = format!(
+        "/accounts/{}/zerotrust/subnets/warp/{}",
+        args.account_id, args.subnet_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -13366,20 +10798,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelSubnetResponseSingleNullable = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13413,8 +10832,7 @@ pub async fn radar_get_bgp_hijacks_events_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/hijacks/events",
-    );
+    let path = format!("/radar/bgp/hijacks/events",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13441,20 +10859,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpHijacksEventsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13488,20 +10893,33 @@ pub async fn radar_get_bgp_ips_timeseries_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/ips/timeseries",
-    );
+    let path = format!("/radar/bgp/ips/timeseries",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("asn", args.asn.as_deref());
-    builder = builder.query("location", args.location.as_deref());
-    builder = builder.query("ipVersion", args.ip_version.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.asn {
+        builder = builder.query("asn", Some(value.as_str()));
+    }
+    for value in &args.location {
+        builder = builder.query("location", Some(value.as_str()));
+    }
+    for value in &args.ip_version {
+        builder = builder.query("ipVersion", Some(value.as_str()));
+    }
     builder = builder.query("includeDelay", args.include_delay.as_deref());
     builder = builder.query("format", args.format.as_deref());
 
@@ -13509,20 +10927,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpIpsTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13556,8 +10961,7 @@ pub async fn radar_get_bgp_route_leak_events_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/leaks/events",
-    );
+    let path = format!("/radar/bgp/leaks/events",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13580,20 +10984,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpRouteLeakEventsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13627,8 +11018,7 @@ pub async fn radar_get_bgp_routes_asns_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/routes/ases",
-    );
+    let path = format!("/radar/bgp/routes/ases",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13644,20 +11034,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpRoutesAsnsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13691,8 +11068,7 @@ pub async fn radar_get_bgp_pfx2as_moas_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/routes/moas",
-    );
+    let path = format!("/radar/bgp/routes/moas",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13707,20 +11083,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpPfx2asMoasResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13754,8 +11117,7 @@ pub async fn radar_get_bgp_pfx2as_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/routes/pfx2as",
-    );
+    let path = format!("/radar/bgp/routes/pfx2as",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13771,20 +11133,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpPfx2asResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13818,8 +11167,7 @@ pub async fn radar_get_bgp_routes_stats_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/routes/stats",
-    );
+    let path = format!("/radar/bgp/routes/stats",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13833,20 +11181,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpRoutesStatsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13880,8 +11215,7 @@ pub async fn radar_get_bgp_rpki_aspa_changes_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/rpki/aspa/changes",
-    );
+    let path = format!("/radar/bgp/rpki/aspa/changes",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13897,20 +11231,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpRpkiAspaChangesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -13944,8 +11265,7 @@ pub async fn radar_get_bgp_rpki_aspa_snapshot_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/rpki/aspa/snapshot",
-    );
+    let path = format!("/radar/bgp/rpki/aspa/snapshot",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -13961,20 +11281,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpRpkiAspaSnapshotResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14008,8 +11315,7 @@ pub async fn radar_get_bgp_rpki_aspa_timeseries_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/rpki/aspa/timeseries",
-    );
+    let path = format!("/radar/bgp/rpki/aspa/timeseries",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -14017,29 +11323,22 @@ where
 
     builder = builder.query("dateStart", args.date_start.as_deref());
     builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("rir", args.rir.as_deref());
-    builder = builder.query("location", args.location.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.rir {
+        builder = builder.query("rir", Some(value.as_str()));
+    }
+    for value in &args.location {
+        builder = builder.query("location", Some(value.as_str()));
+    }
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpRpkiAspaTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14073,41 +11372,41 @@ pub async fn radar_get_bgp_timeseries_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/timeseries",
-    );
+    let path = format!("/radar/bgp/timeseries",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("aggInterval", args.agg_interval.as_deref());
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("prefix", args.prefix.as_deref());
-    builder = builder.query("updateType", args.update_type.as_deref());
-    builder = builder.query("asn", args.asn.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.prefix {
+        builder = builder.query("prefix", Some(value.as_str()));
+    }
+    for value in &args.update_type {
+        builder = builder.query("updateType", Some(value.as_str()));
+    }
+    for value in &args.asn {
+        builder = builder.query("asn", Some(value.as_str()));
+    }
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpTimeseriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14141,41 +11440,41 @@ pub async fn radar_get_bgp_top_ases_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/top/ases",
-    );
+    let path = format!("/radar/bgp/top/ases",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("limit", args.limit.as_deref());
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("asn", args.asn.as_deref());
-    builder = builder.query("prefix", args.prefix.as_deref());
-    builder = builder.query("updateType", args.update_type.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.asn {
+        builder = builder.query("asn", Some(value.as_str()));
+    }
+    for value in &args.prefix {
+        builder = builder.query("prefix", Some(value.as_str()));
+    }
+    for value in &args.update_type {
+        builder = builder.query("updateType", Some(value.as_str()));
+    }
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpTopAsesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14209,8 +11508,7 @@ pub async fn radar_get_bgp_top_asns_by_prefixes_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/top/ases/prefixes",
-    );
+    let path = format!("/radar/bgp/top/ases/prefixes",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -14224,20 +11522,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpTopAsnsByPrefixesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14271,40 +11556,38 @@ pub async fn radar_get_bgp_top_prefixes_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/top/prefixes",
-    );
+    let path = format!("/radar/bgp/top/prefixes",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("limit", args.limit.as_deref());
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("asn", args.asn.as_deref());
-    builder = builder.query("updateType", args.update_type.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.asn {
+        builder = builder.query("asn", Some(value.as_str()));
+    }
+    for value in &args.update_type {
+        builder = builder.query("updateType", Some(value.as_str()));
+    }
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpTopPrefixesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14338,20 +11621,33 @@ pub async fn radar_get_quality_index_summary_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/quality/iqi/summary",
-    );
+    let path = format!("/radar/quality/iqi/summary",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("asn", args.asn.as_deref());
-    builder = builder.query("location", args.location.as_deref());
-    builder = builder.query("continent", args.continent.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.asn {
+        builder = builder.query("asn", Some(value.as_str()));
+    }
+    for value in &args.location {
+        builder = builder.query("location", Some(value.as_str()));
+    }
+    for value in &args.continent {
+        builder = builder.query("continent", Some(value.as_str()));
+    }
     builder = builder.query("metric", args.metric.as_deref());
     builder = builder.query("format", args.format.as_deref());
 
@@ -14359,20 +11655,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetQualityIndexSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14406,21 +11689,34 @@ pub async fn radar_get_quality_index_timeseries_group_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/quality/iqi/timeseries_groups",
-    );
+    let path = format!("/radar/quality/iqi/timeseries_groups",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("aggInterval", args.agg_interval.as_deref());
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("asn", args.asn.as_deref());
-    builder = builder.query("location", args.location.as_deref());
-    builder = builder.query("continent", args.continent.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.asn {
+        builder = builder.query("asn", Some(value.as_str()));
+    }
+    for value in &args.location {
+        builder = builder.query("location", Some(value.as_str()));
+    }
+    for value in &args.continent {
+        builder = builder.query("continent", Some(value.as_str()));
+    }
     builder = builder.query("interpolation", args.interpolation.as_deref());
     builder = builder.query("metric", args.metric.as_deref());
     builder = builder.query("format", args.format.as_deref());
@@ -14429,20 +11725,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetQualityIndexTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14476,7 +11759,8 @@ pub async fn spectrum_aggregate_analytics_get_current_aggregated_analytics_reque
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/zones/{}/spectrum/analytics/aggregate/current",
+    let path = format!(
+        "/zones/{}/spectrum/analytics/aggregate/current",
         args.zone_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -14491,19 +11775,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SpectrumAnalyticsQueryResponseAggregate = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

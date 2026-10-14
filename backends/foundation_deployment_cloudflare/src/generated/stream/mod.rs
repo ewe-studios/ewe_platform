@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_stream")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,1343 +28,875 @@ use super::shared::ApiResponse;
 /// `StreamAccessRules` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamAccessRules {
-    /// action property.
+    /// `action` property.
     pub action: Option<String>,
-    /// country property.
+    /// `country` property.
     pub country: Option<Vec<String>>,
-    /// ip property.
+    /// `ip` property.
     pub ip: Option<Vec<String>>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: Option<String>,
 }
 
 /// `StreamAddAudioTrackResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamAddAudioTrackResponse {
-    /// `result` property.
-    pub result: Option<StreamAdditionalAudio>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<StreamAdditionalAudio>>`.
+pub type StreamAddAudioTrackResponse = super::shared::ApiEnvelope<Option<StreamAdditionalAudio>>;
 
 /// `StreamAdditionalAudio` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamAdditionalAudio {
-    /// default property.
-    pub default: Option<StreamAudioDefault>,
-    /// label property.
-    pub label: Option<StreamAudioLabel>,
-    /// status property.
-    pub status: Option<StreamAudioState>,
-    /// uid property.
-    pub uid: Option<StreamIdentifier>,
+    /// `default` property.
+    pub default: Option<bool>,
+    /// `label` property.
+    pub label: Option<String>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `uid` property.
+    pub uid: Option<String>,
 }
 
 /// `StreamAllowedOrigins` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamAllowedOrigins {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamAllowedOrigins = Vec<String>;
 
 /// `StreamApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type StreamApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `StreamApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type StreamApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `StreamAudioDefault` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamAudioDefault {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamAudioDefault = bool;
 
 /// `StreamAudioLabel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamAudioLabel {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamAudioLabel = String;
 
 /// `StreamAudioState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamAudioState {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamAudioState = String;
 
 /// `StreamCaptionStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamCaptionStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamCaptionStatus = String;
 
 /// `StreamCaptions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamCaptions {
-    /// generated property.
-    pub generated: Option<StreamGeneratedCaption>,
-    /// label property.
-    pub label: Option<StreamLabel>,
-    /// language property.
-    pub language: Option<StreamLanguage>,
-    /// status property.
-    pub status: Option<StreamCaptionStatus>,
+    /// `generated` property.
+    pub generated: Option<bool>,
+    /// `label` property.
+    pub label: Option<String>,
+    /// `language` property.
+    pub language: Option<String>,
+    /// `status` property.
+    pub status: Option<String>,
 }
 
 /// `StreamClipResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamClipResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamClipping>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<StreamClipping>>`.
+pub type StreamClipResponseSingle = super::shared::ApiEnvelope<Option<StreamClipping>>;
 
 /// `StreamClippedFromVideoUid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamClippedFromVideoUid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamClippedFromVideoUid = String;
 
 /// `StreamClipping` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamClipping {
-    /// allowedOrigins property.
+    /// `allowedOrigins` property.
     #[serde(rename = "allowedOrigins")]
     pub allowed_origins: Option<Vec<String>>,
-    /// clippedFromVideoUID property.
+    /// `clippedFromVideoUID` property.
     #[serde(rename = "clippedFromVideoUID")]
-    pub clipped_from_video_uid: Option<StreamClippedFromVideoUid>,
-    /// created property.
-    pub created: Option<StreamClippingCreated>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// endTimeSeconds property.
+    pub clipped_from_video_uid: Option<String>,
+    /// `created` property.
+    pub created: Option<String>,
+    /// `creator` property.
+    pub creator: Option<String>,
+    /// `endTimeSeconds` property.
     #[serde(rename = "endTimeSeconds")]
-    pub end_time_seconds: Option<StreamEndTimeSeconds>,
-    /// maxDurationSeconds property.
+    pub end_time_seconds: Option<i64>,
+    /// `maxDurationSeconds` property.
     #[serde(rename = "maxDurationSeconds")]
-    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// modified property.
-    pub modified: Option<StreamLiveInputModified>,
-    /// playback property.
+    pub max_duration_seconds: Option<i64>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `playback` property.
     pub playback: Option<StreamPlayback>,
-    /// preview property.
-    pub preview: Option<StreamPreview>,
-    /// requireSignedURLs property.
+    /// `preview` property.
+    pub preview: Option<String>,
+    /// `requireSignedURLs` property.
     #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// startTimeSeconds property.
+    pub require_signed_ur_ls: Option<bool>,
+    /// `startTimeSeconds` property.
     #[serde(rename = "startTimeSeconds")]
-    pub start_time_seconds: Option<StreamStartTimeSeconds>,
-    /// status property.
-    pub status: Option<StreamMediaState>,
-    /// thumbnailTimestampPct property.
+    pub start_time_seconds: Option<i64>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `thumbnailTimestampPct` property.
     #[serde(rename = "thumbnailTimestampPct")]
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// watermark property.
+    pub thumbnail_timestamp_pct: Option<f64>,
+    /// `watermark` property.
     pub watermark: Option<StreamWatermarkAtUpload>,
 }
 
 /// `StreamClippingCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamClippingCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamClippingCreated = String;
 
 /// `StreamCopyAudioTrack` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamCopyAudioTrack {
-    /// label property.
-    pub label: StreamAudioLabel,
-    /// url property.
+    /// `label` property.
+    pub label: String,
+    /// `url` property.
     pub url: Option<String>,
 }
 
 /// `StreamCreateInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamCreateInputRequest {
-    /// defaultCreator property.
+    /// `defaultCreator` property.
     #[serde(rename = "defaultCreator")]
-    pub default_creator: Option<StreamLiveInputDefaultCreator>,
-    /// deleteRecordingAfterDays property.
+    pub default_creator: Option<String>,
+    /// `deleteRecordingAfterDays` property.
     #[serde(rename = "deleteRecordingAfterDays")]
-    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
-    /// enabled property.
-    pub enabled: Option<StreamLiveInputEnabled>,
-    /// meta property.
-    pub meta: Option<StreamLiveInputMetadata>,
-    /// recording property.
+    pub delete_recording_after_days: Option<f64>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `recording` property.
     pub recording: Option<StreamLiveInputRecordingSettings>,
 }
 
 /// `StreamCreateOutputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamCreateOutputRequest {
-    /// enabled property.
-    pub enabled: Option<StreamOutputEnabled>,
-    /// streamKey property.
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `streamKey` property.
     #[serde(rename = "streamKey")]
-    pub stream_key: StreamOutputStreamKey,
-    /// url property.
-    pub url: StreamOutputUrl,
+    pub stream_key: String,
+    /// `url` property.
+    pub url: String,
 }
 
 /// `StreamCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamCreated = String;
 
 /// `StreamCreator` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamCreator {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamCreator = String;
 
 /// `StreamDeletedResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDeletedResponse {
-    /// `result` property.
-    pub result: Option<String>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<String>>`.
+pub type StreamDeletedResponse = super::shared::ApiEnvelope<Option<String>>;
 
 /// `StreamDirectUploadRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamDirectUploadRequest {
-    /// allowedOrigins property.
+    /// `allowedOrigins` property.
     #[serde(rename = "allowedOrigins")]
     pub allowed_origins: Option<Vec<String>>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// expiry property.
+    /// `creator` property.
+    pub creator: Option<String>,
+    /// `expiry` property.
     pub expiry: Option<String>,
-    /// maxDurationSeconds property.
+    /// `maxDurationSeconds` property.
     #[serde(rename = "maxDurationSeconds")]
-    pub max_duration_seconds: StreamMaxDurationSeconds,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// requireSignedURLs property.
+    pub max_duration_seconds: i64,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `requireSignedURLs` property.
     #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// scheduledDeletion property.
+    pub require_signed_ur_ls: Option<bool>,
+    /// `scheduledDeletion` property.
     #[serde(rename = "scheduledDeletion")]
-    pub scheduled_deletion: Option<StreamScheduledDeletion>,
-    /// thumbnailTimestampPct property.
+    pub scheduled_deletion: Option<String>,
+    /// `thumbnailTimestampPct` property.
     #[serde(rename = "thumbnailTimestampPct")]
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// watermark property.
+    pub thumbnail_timestamp_pct: Option<f64>,
+    /// `watermark` property.
     pub watermark: Option<StreamWatermarkAtUpload>,
 }
 
 /// `StreamDirectUploadResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDirectUploadResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type StreamDirectUploadResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `StreamDownloadPercentComplete` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamDownloadPercentComplete {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamDownloadPercentComplete = f64;
 
 /// `StreamDownloadStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamDownloadStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamDownloadStatus = String;
 
 /// `StreamDownloadUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamDownloadUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamDownloadUrl = String;
 
 /// `StreamDownloadedFrom` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamDownloadedFrom {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamDownloadedFrom = String;
 
 /// `StreamDownloads` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamDownloads {
-    /// percentComplete property.
+    /// `percentComplete` property.
     #[serde(rename = "percentComplete")]
-    pub percent_complete: Option<StreamDownloadPercentComplete>,
-    /// status property.
-    pub status: Option<StreamDownloadStatus>,
-    /// url property.
-    pub url: Option<StreamDownloadUrl>,
+    pub percent_complete: Option<f64>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `url` property.
+    pub url: Option<String>,
 }
 
 /// `StreamDownloadsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDownloadsResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type StreamDownloadsResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `StreamDownloadsResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamDownloadsResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamDownloads>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<StreamDownloads>>`.
+pub type StreamDownloadsResponseSingle = super::shared::ApiEnvelope<Option<StreamDownloads>>;
 
 /// `StreamDuration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamDuration {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamDuration = f64;
 
 /// `StreamEditAudioTrack` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamEditAudioTrack {
-    /// default property.
-    pub default: Option<StreamAudioDefault>,
-    /// label property.
-    pub label: Option<StreamAudioLabel>,
+    /// `default` property.
+    pub default: Option<bool>,
+    /// `label` property.
+    pub label: Option<String>,
 }
 
 /// `StreamEndTimeSeconds` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamEndTimeSeconds {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamEndTimeSeconds = i64;
 
 /// `StreamErrorReasonCode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamErrorReasonCode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamErrorReasonCode = String;
 
 /// `StreamErrorReasonText` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamErrorReasonText {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamErrorReasonText = String;
 
 /// `StreamGeneratedCaption` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamGeneratedCaption {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamGeneratedCaption = bool;
 
 /// `StreamHeight` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamHeight {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamHeight = i64;
 
 /// `StreamIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamIdentifier = String;
 
 /// `StreamInput` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInput {
-    /// height property.
-    pub height: Option<i64>,
-    /// width property.
-    pub width: Option<i64>,
-}
+///
+/// Same shape as `super::shared::HeightWidthObject`.
+pub type StreamInput = super::shared::HeightWidthObject;
 
 /// `StreamInputRtmps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputRtmps {
-    /// streamKey property.
-    #[serde(rename = "streamKey")]
-    pub stream_key: Option<StreamInputRtmpsStreamKey>,
-    /// url property.
-    pub url: Option<StreamInputRtmpsUrl>,
-}
+///
+/// Same shape as `super::shared::StreamKeyUrlObject`.
+pub type StreamInputRtmps = super::shared::StreamKeyUrlObject;
 
 /// `StreamInputRtmpsStreamKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputRtmpsStreamKey {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputRtmpsStreamKey = String;
 
 /// `StreamInputRtmpsUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputRtmpsUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputRtmpsUrl = String;
 
 /// `StreamInputSrt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputSrt {
-    /// passphrase property.
-    pub passphrase: Option<StreamInputSrtStreamPassphrase>,
-    /// streamId property.
-    #[serde(rename = "streamId")]
-    pub stream_id: Option<StreamInputSrtStreamId>,
-    /// url property.
-    pub url: Option<StreamInputSrtUrl>,
-}
+///
+/// Same shape as `super::shared::PassphraseStreamIdUrlObject`.
+pub type StreamInputSrt = super::shared::PassphraseStreamIdUrlObject;
 
 /// `StreamInputSrtStreamId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputSrtStreamId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputSrtStreamId = String;
 
 /// `StreamInputSrtStreamPassphrase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputSrtStreamPassphrase {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputSrtStreamPassphrase = String;
 
 /// `StreamInputSrtUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputSrtUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputSrtUrl = String;
 
 /// `StreamInputWebrtc` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputWebrtc {
-    /// url property.
-    pub url: Option<StreamInputWebrtcUrl>,
-}
+///
+/// Same shape as `super::shared::UrlObject`.
+pub type StreamInputWebrtc = super::shared::UrlObject;
 
 /// `StreamInputWebrtcUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputWebrtcUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputWebrtcUrl = String;
 
 /// `StreamJwk` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamJwk {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamJwk = String;
 
 /// `StreamKeyGenerationResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamKeyGenerationResponse {
-    /// `result` property.
-    pub result: Option<StreamKeys>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<StreamKeys>>`.
+pub type StreamKeyGenerationResponse = super::shared::ApiEnvelope<Option<StreamKeys>>;
 
 /// `StreamKeyResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamKeyResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<std::collections::HashMap<String, serde_json::Value>>>>`.
+pub type StreamKeyResponseCollection =
+    super::shared::ApiEnvelope<Option<Vec<std::collections::HashMap<String, serde_json::Value>>>>;
 
 /// `StreamKeys` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamKeys {
-    /// created property.
-    pub created: Option<StreamSigningKeyCreated>,
-    /// id property.
-    pub id: Option<StreamSchemasIdentifier>,
-    /// jwk property.
-    pub jwk: Option<StreamJwk>,
-    /// pem property.
-    pub pem: Option<StreamPem>,
+    /// `created` property.
+    pub created: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `jwk` property.
+    pub jwk: Option<String>,
+    /// `pem` property.
+    pub pem: Option<String>,
 }
 
 /// `StreamLabel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLabel {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLabel = String;
 
 /// `StreamLanguage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLanguage {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLanguage = String;
 
 /// `StreamLanguageResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLanguageResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<StreamCaptions>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<StreamCaptions>>>`.
+pub type StreamLanguageResponseCollection = super::shared::ApiEnvelope<Option<Vec<StreamCaptions>>>;
 
 /// `StreamLanguageResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLanguageResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamCaptions>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<StreamCaptions>>`.
+pub type StreamLanguageResponseSingle = super::shared::ApiEnvelope<Option<StreamCaptions>>;
 
 /// `StreamListAudioTrackResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamListAudioTrackResponse {
-    /// `result` property.
-    pub result: Option<Vec<StreamAdditionalAudio>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<StreamAdditionalAudio>>>`.
+pub type StreamListAudioTrackResponse =
+    super::shared::ApiEnvelope<Option<Vec<StreamAdditionalAudio>>>;
 
 /// `StreamLiveInput` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamLiveInput {
-    /// created property.
-    pub created: Option<StreamLiveInputCreated>,
-    /// deleteRecordingAfterDays property.
+    /// `created` property.
+    pub created: Option<String>,
+    /// `deleteRecordingAfterDays` property.
     #[serde(rename = "deleteRecordingAfterDays")]
-    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
-    /// enabled property.
-    pub enabled: Option<StreamLiveInputEnabled>,
-    /// meta property.
-    pub meta: Option<StreamLiveInputMetadata>,
-    /// modified property.
-    pub modified: Option<StreamLiveInputModified>,
-    /// recording property.
+    pub delete_recording_after_days: Option<f64>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `recording` property.
     pub recording: Option<StreamLiveInputRecordingSettings>,
-    /// rtmps property.
+    /// `rtmps` property.
     pub rtmps: Option<StreamInputRtmps>,
-    /// rtmpsPlayback property.
+    /// `rtmpsPlayback` property.
     #[serde(rename = "rtmpsPlayback")]
     pub rtmps_playback: Option<StreamPlaybackRtmps>,
-    /// srt property.
+    /// `srt` property.
     pub srt: Option<StreamInputSrt>,
-    /// srtPlayback property.
+    /// `srtPlayback` property.
     #[serde(rename = "srtPlayback")]
     pub srt_playback: Option<StreamPlaybackSrt>,
-    /// status property.
-    pub status: Option<StreamLiveInputStatus>,
-    /// uid property.
-    pub uid: Option<StreamLiveInputIdentifier>,
-    /// webRTC property.
+    /// `status` property.
+    pub status: Option<String>,
+    /// `uid` property.
+    pub uid: Option<String>,
+    /// `webRTC` property.
     #[serde(rename = "webRTC")]
     pub web_rtc: Option<StreamInputWebrtc>,
-    /// webRTCPlayback property.
+    /// `webRTCPlayback` property.
     #[serde(rename = "webRTCPlayback")]
     pub web_rtc_playback: Option<StreamPlaybackWebrtc>,
 }
 
 /// `StreamLiveInputCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputCreated = String;
 
 /// `StreamLiveInputDefaultCreator` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputDefaultCreator {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputDefaultCreator = String;
 
 /// `StreamLiveInputEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputEnabled = bool;
 
 /// `StreamLiveInputIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputIdentifier = String;
 
 /// `StreamLiveInputMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputMetadata {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputMetadata = serde_json::Value;
 
 /// `StreamLiveInputModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputModified {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputModified = String;
 
 /// `StreamLiveInputObjectWithoutUrl` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamLiveInputObjectWithoutUrl {
-    /// created property.
-    pub created: Option<StreamLiveInputCreated>,
-    /// deleteRecordingAfterDays property.
+    /// `created` property.
+    pub created: Option<String>,
+    /// `deleteRecordingAfterDays` property.
     #[serde(rename = "deleteRecordingAfterDays")]
-    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
-    /// enabled property.
-    pub enabled: Option<StreamLiveInputEnabled>,
-    /// meta property.
-    pub meta: Option<StreamLiveInputMetadata>,
-    /// modified property.
-    pub modified: Option<StreamLiveInputModified>,
-    /// uid property.
-    pub uid: Option<StreamLiveInputIdentifier>,
+    pub delete_recording_after_days: Option<f64>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `uid` property.
+    pub uid: Option<String>,
 }
 
 /// `StreamLiveInputRecordingAllowedOrigins` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingAllowedOrigins {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingAllowedOrigins = Vec<String>;
 
 /// `StreamLiveInputRecordingDeletion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingDeletion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingDeletion = f64;
 
 /// `StreamLiveInputRecordingHideLiveViewerCount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingHideLiveViewerCount {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingHideLiveViewerCount = bool;
 
 /// `StreamLiveInputRecordingMode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingMode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingMode = String;
 
 /// `StreamLiveInputRecordingRequireSignedURLs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingRequireSignedURLs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingRequireSignedURLs = bool;
 
 /// `StreamLiveInputRecordingSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputRecordingSettings {
-    /// allowedOrigins property.
-    #[serde(rename = "allowedOrigins")]
-    pub allowed_origins: Option<Vec<String>>,
-    /// hideLiveViewerCount property.
-    #[serde(rename = "hideLiveViewerCount")]
-    pub hide_live_viewer_count: Option<StreamLiveInputRecordingHideLiveViewerCount>,
-    /// mode property.
-    pub mode: Option<StreamLiveInputRecordingMode>,
-    /// requireSignedURLs property.
-    #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<StreamLiveInputRecordingRequireSignedURLs>,
-    /// timeoutSeconds property.
-    #[serde(rename = "timeoutSeconds")]
-    pub timeout_seconds: Option<StreamLiveInputRecordingTimeoutSeconds>,
-}
+///
+/// Same shape as `super::shared::StreamLiveInputRecordingSettingsShape`.
+pub type StreamLiveInputRecordingSettings = super::shared::StreamLiveInputRecordingSettingsShape;
 
 /// `StreamLiveInputRecordingTimeoutSeconds` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingTimeoutSeconds {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingTimeoutSeconds = i64;
 
 /// `StreamLiveInputResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputResponseCollection {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type StreamLiveInputResponseCollection =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `StreamLiveInputResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamLiveInput>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<StreamLiveInput>>`.
+pub type StreamLiveInputResponseSingle = super::shared::ApiEnvelope<Option<StreamLiveInput>>;
 
 /// `StreamLiveInputStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputStatus = String;
 
 /// `StreamMaxDurationSeconds` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamMaxDurationSeconds {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamMaxDurationSeconds = i64;
 
 /// `StreamMediaMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamMediaMetadata {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamMediaMetadata = serde_json::Value;
 
 /// `StreamMediaState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamMediaState {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamMediaState = String;
 
 /// `StreamMediaStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamMediaStatus {
-    /// errorReasonCode property.
-    #[serde(rename = "errorReasonCode")]
-    pub error_reason_code: Option<StreamErrorReasonCode>,
-    /// errorReasonText property.
-    #[serde(rename = "errorReasonText")]
-    pub error_reason_text: Option<StreamErrorReasonText>,
-    /// pctComplete property.
-    #[serde(rename = "pctComplete")]
-    pub pct_complete: Option<StreamPctComplete>,
-    /// state property.
-    pub state: Option<StreamMediaState>,
-}
+///
+/// Same shape as `super::shared::StreamMediaStatusShape`.
+pub type StreamMediaStatus = super::shared::StreamMediaStatusShape;
 
 /// `StreamMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `StreamModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamModified {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamModified = String;
 
 /// `StreamName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamName = String;
 
 /// `StreamNotificationUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamNotificationUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamNotificationUrl = String;
 
 /// `StreamOneTimeUploadExpiry` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamOneTimeUploadExpiry {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamOneTimeUploadExpiry = String;
 
 /// `StreamOpacity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamOpacity {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamOpacity = f64;
 
 /// `StreamOutput` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamOutput {
-    /// enabled property.
-    pub enabled: Option<StreamOutputEnabled>,
-    /// streamKey property.
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `streamKey` property.
     #[serde(rename = "streamKey")]
-    pub stream_key: Option<StreamOutputStreamKey>,
-    /// uid property.
-    pub uid: Option<StreamOutputIdentifier>,
-    /// url property.
-    pub url: Option<StreamOutputUrl>,
+    pub stream_key: Option<String>,
+    /// `uid` property.
+    pub uid: Option<String>,
+    /// `url` property.
+    pub url: Option<String>,
 }
 
 /// `StreamOutputEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamOutputEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamOutputEnabled = bool;
 
 /// `StreamOutputIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamOutputIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamOutputIdentifier = String;
 
 /// `StreamOutputResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOutputResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<StreamOutput>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<StreamOutput>>>`.
+pub type StreamOutputResponseCollection = super::shared::ApiEnvelope<Option<Vec<StreamOutput>>>;
 
 /// `StreamOutputResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamOutputResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamOutput>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<StreamOutput>>`.
+pub type StreamOutputResponseSingle = super::shared::ApiEnvelope<Option<StreamOutput>>;
 
 /// `StreamOutputStreamKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamOutputStreamKey {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamOutputStreamKey = String;
 
 /// `StreamOutputUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamOutputUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamOutputUrl = String;
 
 /// `StreamPadding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPadding {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPadding = f64;
 
 /// `StreamPctComplete` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPctComplete {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPctComplete = String;
 
 /// `StreamPem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPem {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPem = String;
 
 /// `StreamPlayback` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlayback {
-    /// dash property.
-    pub dash: Option<String>,
-    /// hls property.
-    pub hls: Option<String>,
-}
+///
+/// Same shape as `super::shared::DashHlsObject`.
+pub type StreamPlayback = super::shared::DashHlsObject;
 
 /// `StreamPlaybackRtmps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackRtmps {
-    /// streamKey property.
-    #[serde(rename = "streamKey")]
-    pub stream_key: Option<StreamPlaybackRtmpsStreamKey>,
-    /// url property.
-    pub url: Option<StreamPlaybackRtmpsUrl>,
-}
+///
+/// Same shape as `super::shared::StreamKeyUrlObject`.
+pub type StreamPlaybackRtmps = super::shared::StreamKeyUrlObject;
 
 /// `StreamPlaybackRtmpsStreamKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackRtmpsStreamKey {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackRtmpsStreamKey = String;
 
 /// `StreamPlaybackRtmpsUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackRtmpsUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackRtmpsUrl = String;
 
 /// `StreamPlaybackSrt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackSrt {
-    /// passphrase property.
-    pub passphrase: Option<StreamPlaybackSrtStreamPassphrase>,
-    /// streamId property.
-    #[serde(rename = "streamId")]
-    pub stream_id: Option<StreamPlaybackSrtStreamId>,
-    /// url property.
-    pub url: Option<StreamPlaybackSrtUrl>,
-}
+///
+/// Same shape as `super::shared::PassphraseStreamIdUrlObject`.
+pub type StreamPlaybackSrt = super::shared::PassphraseStreamIdUrlObject;
 
 /// `StreamPlaybackSrtStreamId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackSrtStreamId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackSrtStreamId = String;
 
 /// `StreamPlaybackSrtStreamPassphrase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackSrtStreamPassphrase {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackSrtStreamPassphrase = String;
 
 /// `StreamPlaybackSrtUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackSrtUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackSrtUrl = String;
 
 /// `StreamPlaybackWebrtc` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackWebrtc {
-    /// url property.
-    pub url: Option<StreamPlaybackWebrtcUrl>,
-}
+///
+/// Same shape as `super::shared::UrlObject`.
+pub type StreamPlaybackWebrtc = super::shared::UrlObject;
 
 /// `StreamPlaybackWebrtcUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackWebrtcUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackWebrtcUrl = String;
 
 /// `StreamPosition` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPosition {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPosition = String;
 
 /// `StreamPreview` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPreview {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPreview = String;
 
 /// `StreamReadyToStream` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamReadyToStream {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamReadyToStream = bool;
 
 /// `StreamReadyToStreamAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamReadyToStreamAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamReadyToStreamAt = String;
 
 /// `StreamRequireSignedURLs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamRequireSignedURLs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamRequireSignedURLs = bool;
 
 /// `StreamScale` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamScale {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamScale = f64;
 
 /// `StreamScheduledDeletion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamScheduledDeletion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamScheduledDeletion = String;
 
 /// `StreamSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamSchemasIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamSchemasIdentifier = String;
 
 /// `StreamSignedTokenRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamSignedTokenRequest {
-    /// accessRules property.
+    /// `accessRules` property.
     #[serde(rename = "accessRules")]
     pub access_rules: Option<Vec<StreamAccessRules>>,
-    /// downloadable property.
+    /// `downloadable` property.
     pub downloadable: Option<bool>,
-    /// exp property.
+    /// `exp` property.
     pub exp: Option<i64>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// nbf property.
+    /// `nbf` property.
     pub nbf: Option<i64>,
-    /// pem property.
+    /// `pem` property.
     pub pem: Option<String>,
 }
 
 /// `StreamSignedTokenResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamSignedTokenResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type StreamSignedTokenResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `StreamSigningKeyCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamSigningKeyCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamSigningKeyCreated = String;
 
 /// `StreamSize` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamSize {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamSize = f64;
 
 /// `StreamStartTimeSeconds` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamStartTimeSeconds {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamStartTimeSeconds = i64;
 
 /// `StreamStorageUseResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamStorageUseResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type StreamStorageUseResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse {
-    /// `result` property.
-    pub result: Option<String>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<String>>`.
+pub type StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse =
+    super::shared::ApiEnvelope<Option<String>>;
 
 /// `StreamThumbnailTimestampPct` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamThumbnailTimestampPct {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamThumbnailTimestampPct = f64;
 
 /// `StreamThumbnailUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamThumbnailUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamThumbnailUrl = String;
 
 /// `StreamUpdateInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamUpdateInputRequest {
-    /// defaultCreator property.
-    #[serde(rename = "defaultCreator")]
-    pub default_creator: Option<StreamLiveInputDefaultCreator>,
-    /// deleteRecordingAfterDays property.
-    #[serde(rename = "deleteRecordingAfterDays")]
-    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
-    /// enabled property.
-    pub enabled: Option<StreamLiveInputEnabled>,
-    /// meta property.
-    pub meta: Option<StreamLiveInputMetadata>,
-    /// recording property.
-    pub recording: Option<StreamLiveInputRecordingSettings>,
-}
+///
+/// Same shape as `StreamCreateInputRequest`.
+pub type StreamUpdateInputRequest = StreamCreateInputRequest;
 
 /// `StreamUpdateOutputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamUpdateOutputRequest {
-    /// enabled property.
-    pub enabled: StreamOutputEnabled,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type StreamUpdateOutputRequest = super::shared::EnabledObject;
 
 /// `StreamUploaded` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamUploaded {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamUploaded = String;
 
 /// `StreamVideoClipStandard` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideoClipStandard {
-    /// allowedOrigins property.
+    /// `allowedOrigins` property.
     #[serde(rename = "allowedOrigins")]
     pub allowed_origins: Option<Vec<String>>,
-    /// clippedFromVideoUID property.
+    /// `clippedFromVideoUID` property.
     #[serde(rename = "clippedFromVideoUID")]
-    pub clipped_from_video_uid: StreamClippedFromVideoUid,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// endTimeSeconds property.
+    pub clipped_from_video_uid: String,
+    /// `creator` property.
+    pub creator: Option<String>,
+    /// `endTimeSeconds` property.
     #[serde(rename = "endTimeSeconds")]
-    pub end_time_seconds: StreamEndTimeSeconds,
-    /// maxDurationSeconds property.
+    pub end_time_seconds: i64,
+    /// `maxDurationSeconds` property.
     #[serde(rename = "maxDurationSeconds")]
-    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
-    /// requireSignedURLs property.
+    pub max_duration_seconds: Option<i64>,
+    /// `requireSignedURLs` property.
     #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// startTimeSeconds property.
+    pub require_signed_ur_ls: Option<bool>,
+    /// `startTimeSeconds` property.
     #[serde(rename = "startTimeSeconds")]
-    pub start_time_seconds: StreamStartTimeSeconds,
-    /// thumbnailTimestampPct property.
+    pub start_time_seconds: i64,
+    /// `thumbnailTimestampPct` property.
     #[serde(rename = "thumbnailTimestampPct")]
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// watermark property.
+    pub thumbnail_timestamp_pct: Option<f64>,
+    /// `watermark` property.
     pub watermark: Option<StreamWatermarkAtUpload>,
 }
 
 /// `StreamVideoCopyRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideoCopyRequest {
-    /// allowedOrigins property.
+    /// `allowedOrigins` property.
     #[serde(rename = "allowedOrigins")]
     pub allowed_origins: Option<Vec<String>>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// requireSignedURLs property.
+    /// `creator` property.
+    pub creator: Option<String>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `requireSignedURLs` property.
     #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// scheduledDeletion property.
+    pub require_signed_ur_ls: Option<bool>,
+    /// `scheduledDeletion` property.
     #[serde(rename = "scheduledDeletion")]
-    pub scheduled_deletion: Option<StreamScheduledDeletion>,
-    /// thumbnailTimestampPct property.
+    pub scheduled_deletion: Option<String>,
+    /// `thumbnailTimestampPct` property.
     #[serde(rename = "thumbnailTimestampPct")]
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// url property.
+    pub thumbnail_timestamp_pct: Option<f64>,
+    /// `url` property.
     pub url: String,
-    /// watermark property.
+    /// `watermark` property.
     pub watermark: Option<StreamWatermarkAtUpload>,
 }
 
 /// `StreamVideoResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamVideoResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamVideos>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<StreamVideos>>`.
+pub type StreamVideoResponseSingle = super::shared::ApiEnvelope<Option<StreamVideos>>;
 
 /// `StreamVideoUpdate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideoUpdate {
-    /// allowedOrigins property.
+    /// `allowedOrigins` property.
     #[serde(rename = "allowedOrigins")]
     pub allowed_origins: Option<Vec<String>>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// maxDurationSeconds property.
+    /// `creator` property.
+    pub creator: Option<String>,
+    /// `maxDurationSeconds` property.
     #[serde(rename = "maxDurationSeconds")]
-    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// requireSignedURLs property.
+    pub max_duration_seconds: Option<i64>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `requireSignedURLs` property.
     #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// scheduledDeletion property.
+    pub require_signed_ur_ls: Option<bool>,
+    /// `scheduledDeletion` property.
     #[serde(rename = "scheduledDeletion")]
-    pub scheduled_deletion: Option<StreamScheduledDeletion>,
-    /// thumbnailTimestampPct property.
+    pub scheduled_deletion: Option<String>,
+    /// `thumbnailTimestampPct` property.
     #[serde(rename = "thumbnailTimestampPct")]
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// uploadExpiry property.
+    pub thumbnail_timestamp_pct: Option<f64>,
+    /// `uploadExpiry` property.
     #[serde(rename = "uploadExpiry")]
-    pub upload_expiry: Option<StreamOneTimeUploadExpiry>,
+    pub upload_expiry: Option<String>,
 }
 
 /// `StreamVideos` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideos {
-    /// allowedOrigins property.
+    /// `allowedOrigins` property.
     #[serde(rename = "allowedOrigins")]
     pub allowed_origins: Option<Vec<String>>,
-    /// created property.
-    pub created: Option<StreamCreated>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// duration property.
-    pub duration: Option<StreamDuration>,
-    /// input property.
+    /// `created` property.
+    pub created: Option<String>,
+    /// `creator` property.
+    pub creator: Option<String>,
+    /// `duration` property.
+    pub duration: Option<f64>,
+    /// `input` property.
     pub input: Option<StreamInput>,
-    /// liveInput property.
+    /// `liveInput` property.
     #[serde(rename = "liveInput")]
-    pub live_input: Option<StreamLiveInput>,
-    /// maxDurationSeconds property.
+    pub live_input: Option<String>,
+    /// `maxDurationSeconds` property.
     #[serde(rename = "maxDurationSeconds")]
-    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// modified property.
-    pub modified: Option<StreamModified>,
-    /// playback property.
+    pub max_duration_seconds: Option<i64>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `playback` property.
     pub playback: Option<StreamPlayback>,
-    /// preview property.
-    pub preview: Option<StreamPreview>,
-    /// readyToStream property.
+    /// `preview` property.
+    pub preview: Option<String>,
+    /// `readyToStream` property.
     #[serde(rename = "readyToStream")]
-    pub ready_to_stream: Option<StreamReadyToStream>,
-    /// readyToStreamAt property.
+    pub ready_to_stream: Option<bool>,
+    /// `readyToStreamAt` property.
     #[serde(rename = "readyToStreamAt")]
-    pub ready_to_stream_at: Option<StreamReadyToStreamAt>,
-    /// requireSignedURLs property.
+    pub ready_to_stream_at: Option<String>,
+    /// `requireSignedURLs` property.
     #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// scheduledDeletion property.
+    pub require_signed_ur_ls: Option<bool>,
+    /// `scheduledDeletion` property.
     #[serde(rename = "scheduledDeletion")]
-    pub scheduled_deletion: Option<StreamScheduledDeletion>,
-    /// size property.
-    pub size: Option<StreamSize>,
-    /// status property.
+    pub scheduled_deletion: Option<String>,
+    /// `size` property.
+    pub size: Option<f64>,
+    /// `status` property.
     pub status: Option<StreamMediaStatus>,
-    /// thumbnail property.
-    pub thumbnail: Option<StreamThumbnailUrl>,
-    /// thumbnailTimestampPct property.
+    /// `thumbnail` property.
+    pub thumbnail: Option<String>,
+    /// `thumbnailTimestampPct` property.
     #[serde(rename = "thumbnailTimestampPct")]
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// uid property.
-    pub uid: Option<StreamIdentifier>,
-    /// uploadExpiry property.
+    pub thumbnail_timestamp_pct: Option<f64>,
+    /// `uid` property.
+    pub uid: Option<String>,
+    /// `uploadExpiry` property.
     #[serde(rename = "uploadExpiry")]
-    pub upload_expiry: Option<StreamOneTimeUploadExpiry>,
-    /// uploaded property.
-    pub uploaded: Option<StreamUploaded>,
-    /// watermark property.
+    pub upload_expiry: Option<String>,
+    /// `uploaded` property.
+    pub uploaded: Option<String>,
+    /// `watermark` property.
     pub watermark: Option<StreamWatermarks>,
 }
 
 /// `StreamWatermarkAtUpload` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamWatermarkAtUpload {
-    /// uid property.
+    /// `uid` property.
     pub uid: Option<String>,
 }
 
 /// `StreamWatermarkCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamWatermarkCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamWatermarkCreated = String;
 
 /// `StreamWatermarkIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamWatermarkIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamWatermarkIdentifier = String;
 
 /// `StreamWatermarkProfileDeleteWatermarkProfilesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarkProfileDeleteWatermarkProfilesResponse {
-    /// `result` property.
-    pub result: Option<String>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<String>>`.
+pub type StreamWatermarkProfileDeleteWatermarkProfilesResponse =
+    super::shared::ApiEnvelope<Option<String>>;
 
 /// `StreamWatermarkResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarkResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<StreamWatermarks>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<StreamWatermarks>>>`.
+pub type StreamWatermarkResponseCollection =
+    super::shared::ApiEnvelope<Option<Vec<StreamWatermarks>>>;
 
 /// `StreamWatermarkResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarkResponseSingle {
-    /// `result` property.
-    pub result: Option<StreamWatermarks>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<StreamWatermarks>>`.
+pub type StreamWatermarkResponseSingle = super::shared::ApiEnvelope<Option<StreamWatermarks>>;
 
 /// `StreamWatermarkSize` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamWatermarkSize {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamWatermarkSize = f64;
 
 /// `StreamWatermarks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarks {
-    /// created property.
-    pub created: Option<StreamWatermarkCreated>,
-    /// downloadedFrom property.
-    #[serde(rename = "downloadedFrom")]
-    pub downloaded_from: Option<StreamDownloadedFrom>,
-    /// height property.
-    pub height: Option<StreamHeight>,
-    /// name property.
-    pub name: Option<StreamName>,
-    /// opacity property.
-    pub opacity: Option<StreamOpacity>,
-    /// padding property.
-    pub padding: Option<StreamPadding>,
-    /// position property.
-    pub position: Option<StreamPosition>,
-    /// scale property.
-    pub scale: Option<StreamScale>,
-    /// size property.
-    pub size: Option<StreamWatermarkSize>,
-    /// uid property.
-    pub uid: Option<StreamWatermarkIdentifier>,
-    /// width property.
-    pub width: Option<StreamWidth>,
-}
+///
+/// Same shape as `super::shared::StreamWatermarksShape`.
+pub type StreamWatermarks = super::shared::StreamWatermarksShape;
 
 /// `StreamWebhookRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamWebhookRequest {
-    /// notificationUrl property.
+    /// `notificationUrl` property.
     #[serde(rename = "notificationUrl")]
-    pub notification_url: StreamNotificationUrl,
+    pub notification_url: String,
 }
 
 /// `StreamWebhookResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWebhookResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type StreamWebhookResponseSingle = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `StreamWidth` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamWidth {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamWidth = i64;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -1394,27 +930,19 @@ pub struct StreamVideosUploadVideosViaDirectUploadUrLsArgs {
 }
 
 /// Arguments for [`stream-signing-keys-list-signing-keys_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamSigningKeysListSigningKeysArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type StreamSigningKeysListSigningKeysArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`stream-signing-keys-create-signing-keys_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamSigningKeysCreateSigningKeysArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type StreamSigningKeysCreateSigningKeysArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`stream-signing-keys-delete-signing-keys_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamSigningKeysDeleteSigningKeysArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamSigningKeysDeleteSigningKeysArgs = super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`stream-live-inputs-list-live-inputs_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1435,13 +963,9 @@ pub struct StreamLiveInputsCreateALiveInputArgs {
 }
 
 /// Arguments for [`stream-live-inputs-retrieve-a-live-input_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamLiveInputsRetrieveALiveInputArgs {
-    /// Path parameter: `live_input_identifier`.
-    pub live_input_identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LiveInputIdentifierAccountIdArgs`.
+pub type StreamLiveInputsRetrieveALiveInputArgs = super::shared::LiveInputIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-live-inputs-update-a-live-input_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1455,40 +979,25 @@ pub struct StreamLiveInputsUpdateALiveInputArgs {
 }
 
 /// Arguments for [`stream-live-inputs-delete-a-live-input_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamLiveInputsDeleteALiveInputArgs {
-    /// Path parameter: `live_input_identifier`.
-    pub live_input_identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LiveInputIdentifierAccountIdArgs`.
+pub type StreamLiveInputsDeleteALiveInputArgs = super::shared::LiveInputIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-live-inputs-disable-a-live-input_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamLiveInputsDisableALiveInputArgs {
-    /// Path parameter: `live_input_identifier`.
-    pub live_input_identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LiveInputIdentifierAccountIdArgs`.
+pub type StreamLiveInputsDisableALiveInputArgs = super::shared::LiveInputIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-live-inputs-enable-a-live-input_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamLiveInputsEnableALiveInputArgs {
-    /// Path parameter: `live_input_identifier`.
-    pub live_input_identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LiveInputIdentifierAccountIdArgs`.
+pub type StreamLiveInputsEnableALiveInputArgs = super::shared::LiveInputIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-live-inputs-list-all-outputs-associated-with-a-specified-live-input_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamLiveInputsListAllOutputsAssociatedWithASpecifiedLiveInputArgs {
-    /// Path parameter: `live_input_identifier`.
-    pub live_input_identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LiveInputIdentifierAccountIdArgs`.
+pub type StreamLiveInputsListAllOutputsAssociatedWithASpecifiedLiveInputArgs =
+    super::shared::LiveInputIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-live-inputs-create-a-new-output,-connected-to-a-live-input_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1535,43 +1044,30 @@ pub struct StreamVideosStorageUsageArgs {
 }
 
 /// Arguments for [`stream-watermark-profile-list-watermark-profiles_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamWatermarkProfileListWatermarkProfilesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type StreamWatermarkProfileListWatermarkProfilesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`stream-watermark-profile-create-watermark-profiles-via-basic-upload_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamWatermarkProfileCreateWatermarkProfilesViaBasicUploadArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type StreamWatermarkProfileCreateWatermarkProfilesViaBasicUploadArgs =
+    super::shared::AccountIdArgs;
 
 /// Arguments for [`stream-watermark-profile-watermark-profile-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamWatermarkProfileWatermarkProfileDetailsArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamWatermarkProfileWatermarkProfileDetailsArgs = super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`stream-watermark-profile-delete-watermark-profiles_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamWatermarkProfileDeleteWatermarkProfilesArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamWatermarkProfileDeleteWatermarkProfilesArgs = super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`stream-webhook-view-webhooks_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamWebhookViewWebhooksArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type StreamWebhookViewWebhooksArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`stream-webhook-create-webhooks_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1583,20 +1079,14 @@ pub struct StreamWebhookCreateWebhooksArgs {
 }
 
 /// Arguments for [`stream-webhook-delete-webhooks_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamWebhookDeleteWebhooksArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type StreamWebhookDeleteWebhooksArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`stream-videos-retrieve-video-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamVideosRetrieveVideoDetailsArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamVideosRetrieveVideoDetailsArgs = super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`stream-videos-update-video-details_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1610,13 +1100,9 @@ pub struct StreamVideosUpdateVideoDetailsArgs {
 }
 
 /// Arguments for [`stream-videos-delete-video_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamVideosDeleteVideoArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamVideosDeleteVideoArgs = super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`list-audio-tracks_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1663,126 +1149,72 @@ pub struct DeleteAudioTracksArgs {
 }
 
 /// Arguments for [`stream-subtitles/-captions-list-captions-or-subtitles_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamSubtitlesCaptionsListCaptionsOrSubtitlesArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamSubtitlesCaptionsListCaptionsOrSubtitlesArgs =
+    super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`stream-subtitles/-captions-get-caption-or-subtitle-for-language_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamSubtitlesCaptionsGetCaptionOrSubtitleForLanguageArgs {
-    /// Path parameter: `language`.
-    pub language: String,
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LanguageIdentifierAccountIdArgs`.
+pub type StreamSubtitlesCaptionsGetCaptionOrSubtitleForLanguageArgs =
+    super::shared::LanguageIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-subtitles/-captions-upload-captions-or-subtitles_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamSubtitlesCaptionsUploadCaptionsOrSubtitlesArgs {
-    /// Path parameter: `language`.
-    pub language: String,
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LanguageIdentifierAccountIdArgs`.
+pub type StreamSubtitlesCaptionsUploadCaptionsOrSubtitlesArgs =
+    super::shared::LanguageIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-subtitles/-captions-delete-captions-or-subtitles_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesArgs {
-    /// Path parameter: `language`.
-    pub language: String,
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LanguageIdentifierAccountIdArgs`.
+pub type StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesArgs =
+    super::shared::LanguageIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-subtitles/-captions-generate-caption-or-subtitle-for-language_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamSubtitlesCaptionsGenerateCaptionOrSubtitleForLanguageArgs {
-    /// Path parameter: `language`.
-    pub language: String,
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LanguageIdentifierAccountIdArgs`.
+pub type StreamSubtitlesCaptionsGenerateCaptionOrSubtitleForLanguageArgs =
+    super::shared::LanguageIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-subtitles/-captions-get-vtt-caption-or-subtitle_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamSubtitlesCaptionsGetVttCaptionOrSubtitleArgs {
-    /// Path parameter: `language`.
-    pub language: String,
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LanguageIdentifierAccountIdArgs`.
+pub type StreamSubtitlesCaptionsGetVttCaptionOrSubtitleArgs =
+    super::shared::LanguageIdentifierAccountIdArgs;
 
 /// Arguments for [`stream-m-p-4-downloads-list-downloads_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamMP4DownloadsListDownloadsArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamMP4DownloadsListDownloadsArgs = super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`stream-m-p-4-downloads-create-downloads_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamMP4DownloadsCreateDownloadsArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamMP4DownloadsCreateDownloadsArgs = super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`stream-m-p-4-downloads-delete-downloads_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamMP4DownloadsDeleteDownloadsArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamMP4DownloadsDeleteDownloadsArgs = super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`stream-downloads-create-type-specific-downloads_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamDownloadsCreateTypeSpecificDownloadsArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `download_type`.
-    pub download_type: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdDownloadTypeArgs`.
+pub type StreamDownloadsCreateTypeSpecificDownloadsArgs =
+    super::shared::IdentifierAccountIdDownloadTypeArgs;
 
 /// Arguments for [`stream-downloads-delete-type-specific-downloads_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamDownloadsDeleteTypeSpecificDownloadsArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `download_type`.
-    pub download_type: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdDownloadTypeArgs`.
+pub type StreamDownloadsDeleteTypeSpecificDownloadsArgs =
+    super::shared::IdentifierAccountIdDownloadTypeArgs;
 
 /// Arguments for [`stream-videos-retreieve-embed-code-html_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StreamVideosRetreieveEmbedCodeHtmlArgs {
-    /// Path parameter: `identifier`.
-    pub identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IdentifierAccountIdArgs`.
+pub type StreamVideosRetreieveEmbedCodeHtmlArgs = super::shared::IdentifierAccountIdArgs;
 
 /// Arguments for [`stream-videos-create-signed-url-tokens-for-videos_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1830,35 +1262,21 @@ pub async fn stream_video_clipping_clip_videos_given_a_start_and_end_time_reques
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/clip",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/clip", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamClipResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1892,35 +1310,21 @@ pub async fn stream_videos_upload_videos_from_a_url_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/copy",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/copy", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamVideoResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1954,35 +1358,21 @@ pub async fn stream_videos_upload_videos_via_direct_upload_ur_ls_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/direct_upload",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/direct_upload", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamDirectUploadResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2016,9 +1406,7 @@ pub async fn stream_signing_keys_list_signing_keys_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/keys",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/keys", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2028,20 +1416,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamKeyResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2075,9 +1450,7 @@ pub async fn stream_signing_keys_create_signing_keys_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/keys",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/keys", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -2087,20 +1460,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamKeyGenerationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2134,9 +1494,9 @@ pub async fn stream_signing_keys_delete_signing_keys_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/keys/{}",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/keys/{}",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2147,20 +1507,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2194,9 +1541,7 @@ pub async fn stream_live_inputs_list_live_inputs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/live_inputs", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2208,20 +1553,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLiveInputResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2255,35 +1587,21 @@ pub async fn stream_live_inputs_create_a_live_input_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/live_inputs", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2317,9 +1635,9 @@ pub async fn stream_live_inputs_retrieve_a_live_input_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs/{}",
-        args.account_id,
-        args.live_input_identifier,
+    let path = format!(
+        "/accounts/{}/stream/live_inputs/{}",
+        args.account_id, args.live_input_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2330,20 +1648,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2377,36 +1682,24 @@ pub async fn stream_live_inputs_update_a_live_input_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs/{}",
-        args.account_id,
-        args.live_input_identifier,
+    let path = format!(
+        "/accounts/{}/stream/live_inputs/{}",
+        args.account_id, args.live_input_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2440,9 +1733,9 @@ pub async fn stream_live_inputs_delete_a_live_input_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs/{}",
-        args.account_id,
-        args.live_input_identifier,
+    let path = format!(
+        "/accounts/{}/stream/live_inputs/{}",
+        args.account_id, args.live_input_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2453,18 +1746,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2498,9 +1780,9 @@ pub async fn stream_live_inputs_disable_a_live_input_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs/{}/disable",
-        args.account_id,
-        args.live_input_identifier,
+    let path = format!(
+        "/accounts/{}/stream/live_inputs/{}/disable",
+        args.account_id, args.live_input_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2511,20 +1793,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2558,9 +1827,9 @@ pub async fn stream_live_inputs_enable_a_live_input_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs/{}/enable",
-        args.account_id,
-        args.live_input_identifier,
+    let path = format!(
+        "/accounts/{}/stream/live_inputs/{}/enable",
+        args.account_id, args.live_input_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2571,20 +1840,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLiveInputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2618,9 +1874,9 @@ pub async fn stream_live_inputs_list_all_outputs_associated_with_a_specified_liv
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs/{}/outputs",
-        args.account_id,
-        args.live_input_identifier,
+    let path = format!(
+        "/accounts/{}/stream/live_inputs/{}/outputs",
+        args.account_id, args.live_input_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2631,20 +1887,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamOutputResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2678,36 +1921,24 @@ pub async fn stream_live_inputs_create_a_new_output_connected_to_a_live_input_re
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs/{}/outputs",
-        args.account_id,
-        args.live_input_identifier,
+    let path = format!(
+        "/accounts/{}/stream/live_inputs/{}/outputs",
+        args.account_id, args.live_input_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamOutputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2741,37 +1972,24 @@ pub async fn stream_live_inputs_update_an_output_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs/{}/outputs/{}",
-        args.account_id,
-        args.live_input_identifier,
-        args.output_identifier,
+    let path = format!(
+        "/accounts/{}/stream/live_inputs/{}/outputs/{}",
+        args.account_id, args.live_input_identifier, args.output_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamOutputResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2805,10 +2023,9 @@ pub async fn stream_live_inputs_delete_an_output_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/live_inputs/{}/outputs/{}",
-        args.account_id,
-        args.live_input_identifier,
-        args.output_identifier,
+    let path = format!(
+        "/accounts/{}/stream/live_inputs/{}/outputs/{}",
+        args.account_id, args.live_input_identifier, args.output_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2819,18 +2036,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2864,9 +2070,7 @@ pub async fn stream_videos_storage_usage_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/storage-usage",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/storage-usage", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2878,20 +2082,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamStorageUseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2925,9 +2116,7 @@ pub async fn stream_watermark_profile_list_watermark_profiles_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/watermarks",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/watermarks", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2937,20 +2126,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamWatermarkResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2984,9 +2160,7 @@ pub async fn stream_watermark_profile_create_watermark_profiles_via_basic_upload
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/watermarks",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/watermarks", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -2996,20 +2170,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamWatermarkResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3043,9 +2204,9 @@ pub async fn stream_watermark_profile_watermark_profile_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/watermarks/{}",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/watermarks/{}",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3056,20 +2217,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamWatermarkResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3099,13 +2247,16 @@ pub async fn stream_watermark_profile_delete_watermark_profiles_request<F>(
     args: &StreamWatermarkProfileDeleteWatermarkProfilesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<StreamWatermarkProfileDeleteWatermarkProfilesResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<StreamWatermarkProfileDeleteWatermarkProfilesResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/watermarks/{}",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/watermarks/{}",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3116,20 +2267,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamWatermarkProfileDeleteWatermarkProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3163,9 +2301,7 @@ pub async fn stream_webhook_view_webhooks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/webhook",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/webhook", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -3175,20 +2311,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamWebhookResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3222,35 +2345,21 @@ pub async fn stream_webhook_create_webhooks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/webhook",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/webhook", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamWebhookResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3284,9 +2393,7 @@ pub async fn stream_webhook_delete_webhooks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/webhook",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream/webhook", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -3296,20 +2403,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3343,10 +2437,7 @@ pub async fn stream_videos_retrieve_video_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}",
-        args.account_id,
-        args.identifier,
-    );
+    let path = format!("/accounts/{}/stream/{}", args.account_id, args.identifier,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -3356,20 +2447,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamVideoResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3403,36 +2481,21 @@ pub async fn stream_videos_update_video_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}",
-        args.account_id,
-        args.identifier,
-    );
+    let path = format!("/accounts/{}/stream/{}", args.account_id, args.identifier,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamVideoResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3466,10 +2529,7 @@ pub async fn stream_videos_delete_video_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}",
-        args.account_id,
-        args.identifier,
-    );
+    let path = format!("/accounts/{}/stream/{}", args.account_id, args.identifier,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -3479,18 +2539,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3524,9 +2573,9 @@ pub async fn list_audio_tracks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/audio",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/audio",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3537,20 +2586,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamListAudioTrackResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3584,36 +2620,24 @@ pub async fn add_audio_track_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/audio/copy",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/audio/copy",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamAddAudioTrackResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3647,37 +2671,24 @@ pub async fn edit_audio_tracks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/audio/{}",
-        args.account_id,
-        args.identifier,
-        args.audio_identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/audio/{}",
+        args.account_id, args.identifier, args.audio_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamAddAudioTrackResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3711,10 +2722,9 @@ pub async fn delete_audio_tracks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/audio/{}",
-        args.account_id,
-        args.identifier,
-        args.audio_identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/audio/{}",
+        args.account_id, args.identifier, args.audio_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3725,20 +2735,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3772,9 +2769,9 @@ pub async fn stream_subtitles_captions_list_captions_or_subtitles_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/captions",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/captions",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3785,20 +2782,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLanguageResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3832,10 +2816,9 @@ pub async fn stream_subtitles_captions_get_caption_or_subtitle_for_language_requ
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/captions/{}",
-        args.account_id,
-        args.identifier,
-        args.language,
+    let path = format!(
+        "/accounts/{}/stream/{}/captions/{}",
+        args.account_id, args.identifier, args.language,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3846,20 +2829,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLanguageResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3893,10 +2863,9 @@ pub async fn stream_subtitles_captions_upload_captions_or_subtitles_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/captions/{}",
-        args.account_id,
-        args.identifier,
-        args.language,
+    let path = format!(
+        "/accounts/{}/stream/{}/captions/{}",
+        args.account_id, args.identifier, args.language,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3907,20 +2876,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLanguageResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3950,14 +2906,16 @@ pub async fn stream_subtitles_captions_delete_captions_or_subtitles_request<F>(
     args: &StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/captions/{}",
-        args.account_id,
-        args.identifier,
-        args.language,
+    let path = format!(
+        "/accounts/{}/stream/{}/captions/{}",
+        args.account_id, args.identifier, args.language,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3968,20 +2926,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4015,10 +2960,9 @@ pub async fn stream_subtitles_captions_generate_caption_or_subtitle_for_language
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/captions/{}/generate",
-        args.account_id,
-        args.identifier,
-        args.language,
+    let path = format!(
+        "/accounts/{}/stream/{}/captions/{}/generate",
+        args.account_id, args.identifier, args.language,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4029,20 +2973,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamLanguageResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4060,6 +2991,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -4072,14 +3008,13 @@ pub async fn stream_subtitles_captions_get_vtt_caption_or_subtitle_request<F>(
     args: &StreamSubtitlesCaptionsGetVttCaptionOrSubtitleArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/captions/{}/vtt",
-        args.account_id,
-        args.identifier,
-        args.language,
+    let path = format!(
+        "/accounts/{}/stream/{}/captions/{}/vtt",
+        args.account_id, args.identifier, args.language,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4090,18 +3025,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -4135,9 +3064,9 @@ pub async fn stream_m_p_4_downloads_list_downloads_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/downloads",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/downloads",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4148,20 +3077,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamDownloadsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4195,9 +3111,9 @@ pub async fn stream_m_p_4_downloads_create_downloads_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/downloads",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/downloads",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4208,20 +3124,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamDownloadsResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4255,9 +3158,9 @@ pub async fn stream_m_p_4_downloads_delete_downloads_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/downloads",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/downloads",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4268,20 +3171,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4315,10 +3205,9 @@ pub async fn stream_downloads_create_type_specific_downloads_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/downloads/{}",
-        args.account_id,
-        args.identifier,
-        args.download_type,
+    let path = format!(
+        "/accounts/{}/stream/{}/downloads/{}",
+        args.account_id, args.identifier, args.download_type,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4329,20 +3218,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamDownloadsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4376,10 +3252,9 @@ pub async fn stream_downloads_delete_type_specific_downloads_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/downloads/{}",
-        args.account_id,
-        args.identifier,
-        args.download_type,
+    let path = format!(
+        "/accounts/{}/stream/{}/downloads/{}",
+        args.account_id, args.identifier, args.download_type,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4390,20 +3265,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4437,9 +3299,9 @@ pub async fn stream_videos_retreieve_embed_code_html_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/embed",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/embed",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4450,20 +3312,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4497,35 +3346,22 @@ pub async fn stream_videos_create_signed_url_tokens_for_videos_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream/{}/token",
-        args.account_id,
-        args.identifier,
+    let path = format!(
+        "/accounts/{}/stream/{}/token",
+        args.account_id, args.identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamSignedTokenResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

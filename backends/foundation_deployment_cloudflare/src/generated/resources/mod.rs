@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_resources")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -22,104 +26,65 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `AlexandriaApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type AlexandriaApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `AlexandriaCategories` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AlexandriaCategories {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AlexandriaCategories = Vec<AlexandriaCategory>;
 
 /// `AlexandriaCategory` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AlexandriaCategory {
-    /// created_at property.
-    pub created_at: AlexandriaCategoryCreatedAt,
-    /// description property.
-    pub description: AlexandriaCategoryDescription,
-    /// id property.
-    pub id: AlexandriaCategoryId,
-    /// name property.
-    pub name: AlexandriaCategoryName,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `description` property.
+    pub description: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
 }
 
 /// `AlexandriaCategoryCreatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AlexandriaCategoryCreatedAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AlexandriaCategoryCreatedAt = String;
 
 /// `AlexandriaCategoryDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AlexandriaCategoryDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AlexandriaCategoryDescription = String;
 
 /// `AlexandriaCategoryId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AlexandriaCategoryId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AlexandriaCategoryId = String;
 
 /// `AlexandriaCategoryName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AlexandriaCategoryName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AlexandriaCategoryName = String;
 
 /// `AlexandriaGetCategoriesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaGetCategoriesResponse {
-    /// `result` property.
-    pub result: Option<Vec<AlexandriaCategory>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<AlexandriaCategory>>>`.
+pub type AlexandriaGetCategoriesResponse =
+    super::shared::ApiEnvelope<Option<Vec<AlexandriaCategory>>>;
 
 /// `AlexandriaGetCategoryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AlexandriaGetCategoryResponse {
-    /// `result` property.
-    pub result: Option<AlexandriaCategory>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<AlexandriaCategory>>`.
+pub type AlexandriaGetCategoryResponse = super::shared::ApiEnvelope<Option<AlexandriaCategory>>;
 
 /// `AlexandriaMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AlexandriaMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AlexandriaMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
 /// Arguments for [`getCategories_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetCategoriesArgs {
-    /// Path parameter: `accountId`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type GetCategoriesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`getCategoryById_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetCategoryByIdArgs {
-    /// Path parameter: `accountId`.
-    pub account_id: String,
-    /// Path parameter: `id`.
-    pub id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdIdArgs`.
+pub type GetCategoryByIdArgs = super::shared::AccountIdIdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -156,9 +121,7 @@ pub async fn get_categories_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/resource-library/categories",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/resource-library/categories", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -168,20 +131,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AlexandriaGetCategoriesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -215,9 +165,9 @@ pub async fn get_category_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/resource-library/categories/{}",
-        args.account_id,
-        args.id,
+    let path = format!(
+        "/accounts/{}/resource-library/categories/{}",
+        args.account_id, args.id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -228,19 +178,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AlexandriaGetCategoryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

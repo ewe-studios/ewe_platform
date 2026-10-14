@@ -7,20 +7,24 @@
 
 #![cfg(feature = "docker_volumes")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
-use super::shared::Volume;
 use super::shared::ClusterVolume;
 use super::shared::ClusterVolumeSpec;
 use super::shared::ObjectVersion;
 use super::shared::Topology;
+use super::shared::Volume;
 
 use super::shared::ApiResponse;
 
@@ -31,10 +35,10 @@ use super::shared::ApiResponse;
 /// `VolumeListResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct VolumeListResponse {
-    /// Volumes property.
+    /// `Volumes` property.
     #[serde(rename = "Volumes")]
     pub volumes: Option<Vec<Volume>>,
-    /// Warnings property.
+    /// `Warnings` property.
     #[serde(rename = "Warnings")]
     pub warnings: Option<Vec<String>>,
 }
@@ -42,7 +46,7 @@ pub struct VolumeListResponse {
 /// `VolumeUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct VolumeUpdateRequest {
-    /// Spec property.
+    /// `Spec` property.
     #[serde(rename = "Spec")]
     pub spec: Option<ClusterVolumeSpec>,
 }
@@ -52,18 +56,14 @@ pub struct VolumeUpdateRequest {
 // =============================================================================
 
 /// Arguments for [`VolumeList_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct VolumeListArgs {
-    /// Query parameter: `filters`.
-    pub filters: Option<String>,
-}
+///
+/// Same shape as `super::shared::FiltersArgs`.
+pub type VolumeListArgs = super::shared::FiltersArgs;
 
 /// Arguments for [`VolumeInspect_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct VolumeInspectArgs {
-    /// Path parameter: `name`.
-    pub name: String,
-}
+///
+/// Same shape as `super::shared::NameArgs`.
+pub type VolumeInspectArgs = super::shared::NameArgs;
 
 /// Arguments for [`VolumeUpdate_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -77,13 +77,9 @@ pub struct VolumeUpdateArgs {
 }
 
 /// Arguments for [`VolumeDelete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct VolumeDeleteArgs {
-    /// Path parameter: `name`.
-    pub name: String,
-    /// Query parameter: `force`.
-    pub force: Option<String>,
-}
+///
+/// Same shape as `super::shared::NameForceArgs`.
+pub type VolumeDeleteArgs = super::shared::NameForceArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -120,8 +116,7 @@ pub async fn volume_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes",
-    );
+    let path = format!("/volumes",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -133,18 +128,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: VolumeListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -178,9 +162,7 @@ pub async fn volume_inspect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes/{}",
-        args.name,
-    );
+    let path = format!("/volumes/{}", args.name,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -190,18 +172,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: Volume = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -235,9 +206,7 @@ pub async fn volume_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes/{}",
-        args.name,
-    );
+    let path = format!("/volumes/{}", args.name,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
@@ -245,23 +214,15 @@ where
 
     builder = builder.query("version", args.version.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -295,9 +256,7 @@ pub async fn volume_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes/{}",
-        args.name,
-    );
+    let path = format!("/volumes/{}", args.name,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -309,15 +268,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
-

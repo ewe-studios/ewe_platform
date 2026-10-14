@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_media")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,1670 +28,1333 @@ use super::shared::ApiResponse;
 /// `BrapiDeleteCancelCrawlResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiDeleteCancelCrawlResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiDeleteCancelCrawlResponseErrorsItem>>,
-    /// result property.
+    /// `result` property.
     pub result: BrapiDeleteCancelCrawlResponseResult,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiDeleteCancelCrawlResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiDeleteCancelCrawlResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiDeleteCancelCrawlResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiDeleteCancelCrawlResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiDeleteCancelCrawlResponseResult {
-    /// job_id property.
+    /// `job_id` property.
     pub job_id: String,
-    /// message property.
+    /// `message` property.
     pub message: String,
 }
 
 /// `BrapiGetCrawlResultResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiGetCrawlResultResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiGetCrawlResultResponseErrorsItem>>,
-    /// result property.
+    /// `result` property.
     pub result: BrapiGetCrawlResultResponseResult,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiGetCrawlResultResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiGetCrawlResultResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiGetCrawlResultResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiGetCrawlResultResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiGetCrawlResultResponseResult {
-    /// browserSecondsUsed property.
+    /// `browserSecondsUsed` property.
     #[serde(rename = "browserSecondsUsed")]
     pub browser_seconds_used: f64,
-    /// cursor property.
+    /// `cursor` property.
     pub cursor: Option<String>,
-    /// finished property.
+    /// `finished` property.
     pub finished: f64,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// records property.
+    /// `records` property.
     pub records: Vec<BrapiGetCrawlResultResponseResultRecordsItem>,
-    /// skipped property.
+    /// `skipped` property.
     pub skipped: f64,
-    /// status property.
+    /// `status` property.
     pub status: String,
-    /// total property.
+    /// `total` property.
     pub total: f64,
 }
 
 /// `BrapiGetCrawlResultResponseResultRecordsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiGetCrawlResultResponseResultRecordsItem {
-    /// html property.
+    /// `html` property.
     pub html: Option<String>,
-    /// json property.
+    /// `json` property.
     pub json: Option<serde_json::Value>,
-    /// markdown property.
+    /// `markdown` property.
     pub markdown: Option<String>,
-    /// metadata property.
+    /// `metadata` property.
     pub metadata: BrapiGetCrawlResultResponseResultRecordsItemMetadata,
-    /// status property.
+    /// `status` property.
     pub status: String,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `BrapiGetCrawlResultResponseResultRecordsItemMetadata` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiGetCrawlResultResponseResultRecordsItemMetadata {
-    /// status property.
+    /// `status` property.
     pub status: f64,
-    /// title property.
+    /// `title` property.
     pub title: Option<String>,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `BrapiPostContentRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostContentRequest {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type BrapiPostContentRequest = super::shared::EmptyObject;
 
 /// `BrapiPostContentResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostContentResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiPostContentResponseErrorsItem>>,
-    /// meta property.
+    /// `meta` property.
     pub meta: BrapiPostContentResponseMeta,
-    /// result property.
+    /// `result` property.
     pub result: Option<String>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiPostContentResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostContentResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiPostContentResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiPostContentResponseMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostContentResponseMeta {
-    /// status property.
-    pub status: Option<f64>,
-    /// title property.
-    pub title: Option<String>,
-}
+///
+/// Same shape as `super::shared::StatusTitleObject`.
+pub type BrapiPostContentResponseMeta = super::shared::StatusTitleObject;
 
 /// `BrapiPostCrawlRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostCrawlRequest {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type BrapiPostCrawlRequest = super::shared::EmptyObject;
 
 /// `BrapiPostCrawlResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostCrawlResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiPostCrawlResponseErrorsItem>>,
-    /// result property.
+    /// `result` property.
     pub result: String,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiPostCrawlResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostCrawlResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiPostCrawlResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiPostJsonRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostJsonRequest {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type BrapiPostJsonRequest = super::shared::EmptyObject;
 
 /// `BrapiPostJsonResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostJsonResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiPostJsonResponseErrorsItem>>,
-    /// result property.
+    /// `result` property.
     pub result: serde_json::Value,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiPostJsonResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostJsonResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiPostJsonResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiPostLinksRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostLinksRequest {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type BrapiPostLinksRequest = super::shared::EmptyObject;
 
 /// `BrapiPostLinksResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostLinksResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiPostLinksResponseErrorsItem>>,
-    /// result property.
+    /// `result` property.
     pub result: Vec<String>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiPostLinksResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostLinksResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiPostLinksResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiPostMarkdownRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostMarkdownRequest {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type BrapiPostMarkdownRequest = super::shared::EmptyObject;
 
 /// `BrapiPostMarkdownResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostMarkdownResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiPostMarkdownResponseErrorsItem>>,
-    /// result property.
+    /// `result` property.
     pub result: Option<String>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiPostMarkdownResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostMarkdownResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiPostMarkdownResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiPostPdfRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostPdfRequest {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type BrapiPostPdfRequest = super::shared::EmptyObject;
 
 /// `BrapiPostScrapeRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostScrapeRequest {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type BrapiPostScrapeRequest = super::shared::EmptyObject;
 
 /// `BrapiPostScrapeResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostScrapeResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiPostScrapeResponseErrorsItem>>,
-    /// result property.
+    /// `result` property.
     pub result: Vec<BrapiPostScrapeResponseResultItem>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiPostScrapeResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostScrapeResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiPostScrapeResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiPostScrapeResponseResultItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostScrapeResponseResultItem {
-    /// results property.
+    /// `results` property.
     pub results: BrapiPostScrapeResponseResultItemResults,
-    /// selector property.
+    /// `selector` property.
     pub selector: String,
 }
 
 /// `BrapiPostScrapeResponseResultItemResults` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostScrapeResponseResultItemResults {
-    /// attributes property.
+    /// `attributes` property.
     pub attributes: Vec<BrapiPostScrapeResponseResultItemResultsAttributesItem>,
-    /// height property.
+    /// `height` property.
     pub height: f64,
-    /// html property.
+    /// `html` property.
     pub html: String,
-    /// left property.
+    /// `left` property.
     pub left: f64,
-    /// text property.
+    /// `text` property.
     pub text: String,
-    /// top property.
+    /// `top` property.
     pub top: f64,
-    /// width property.
+    /// `width` property.
     pub width: f64,
 }
 
 /// `BrapiPostScrapeResponseResultItemResultsAttributesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostScrapeResponseResultItemResultsAttributesItem {
-    /// name property.
-    pub name: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::NameValueObject`.
+pub type BrapiPostScrapeResponseResultItemResultsAttributesItem = super::shared::NameValueObject;
 
 /// `BrapiPostScreenshotRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostScreenshotRequest {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type BrapiPostScreenshotRequest = super::shared::EmptyObject;
 
 /// `BrapiPostScreenshotResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostScreenshotResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiPostScreenshotResponseErrorsItem>>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiPostScreenshotResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostScreenshotResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiPostScreenshotResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiPostSnapshotRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostSnapshotRequest {
-}
+///
+/// Same shape as `super::shared::EmptyObject`.
+pub type BrapiPostSnapshotRequest = super::shared::EmptyObject;
 
 /// `BrapiPostSnapshotResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostSnapshotResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<BrapiPostSnapshotResponseErrorsItem>>,
-    /// meta property.
+    /// `meta` property.
     pub meta: BrapiPostSnapshotResponseMeta,
-    /// result property.
+    /// `result` property.
     pub result: Option<BrapiPostSnapshotResponseResult>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `BrapiPostSnapshotResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostSnapshotResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type BrapiPostSnapshotResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `BrapiPostSnapshotResponseMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BrapiPostSnapshotResponseMeta {
-    /// status property.
-    pub status: Option<f64>,
-    /// title property.
-    pub title: Option<String>,
-}
+///
+/// Same shape as `super::shared::StatusTitleObject`.
+pub type BrapiPostSnapshotResponseMeta = super::shared::StatusTitleObject;
 
 /// `BrapiPostSnapshotResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BrapiPostSnapshotResponseResult {
-    /// content property.
+    /// `content` property.
     pub content: String,
-    /// screenshot property.
+    /// `screenshot` property.
     pub screenshot: String,
 }
 
 /// `CallsApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type CallsApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `CallsApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type CallsApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `CallsApp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsApp {
-    /// created property.
-    pub created: Option<CallsCreated>,
-    /// modified property.
-    pub modified: Option<CallsModified>,
-    /// name property.
-    pub name: Option<CallsName>,
-    /// uid property.
-    pub uid: Option<CallsIdentifier>,
-}
+///
+/// Same shape as `super::shared::CallsAppShape`.
+pub type CallsApp = super::shared::CallsAppShape;
 
 /// `CallsAppEditableFields` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsAppEditableFields {
-    /// name property.
-    pub name: Option<CallsName>,
-}
+///
+/// Same shape as `super::shared::NameObject2`.
+pub type CallsAppEditableFields = super::shared::NameObject2;
 
 /// `CallsAppResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsAppResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<CallsApp>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<CallsApp>>>`.
+pub type CallsAppResponseCollection = super::shared::ApiEnvelope<Option<Vec<CallsApp>>>;
 
 /// `CallsAppResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsAppResponseSingle {
-    /// `result` property.
-    pub result: Option<CallsApp>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<CallsApp>>`.
+pub type CallsAppResponseSingle = super::shared::ApiEnvelope<Option<CallsApp>>;
 
 /// `CallsAppResponseSingleWithSecret` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsAppResponseSingleWithSecret {
-    /// `result` property.
-    pub result: Option<CallsAppWithSecret>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<CallsAppWithSecret>>`.
+pub type CallsAppResponseSingleWithSecret = super::shared::ApiEnvelope<Option<CallsAppWithSecret>>;
 
 /// `CallsAppWithSecret` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CallsAppWithSecret {
-    /// created property.
-    pub created: Option<CallsCreated>,
-    /// modified property.
-    pub modified: Option<CallsModified>,
-    /// name property.
-    pub name: Option<CallsName>,
-    /// secret property.
-    pub secret: Option<CallsSecret>,
-    /// uid property.
-    pub uid: Option<CallsIdentifier>,
+    /// `created` property.
+    pub created: Option<String>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `secret` property.
+    pub secret: Option<String>,
+    /// `uid` property.
+    pub uid: Option<String>,
 }
 
 /// `CallsCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CallsCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CallsCreated = String;
 
 /// `CallsIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CallsIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CallsIdentifier = String;
 
 /// `CallsMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CallsMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CallsMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `CallsModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CallsModified {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CallsModified = String;
 
 /// `CallsName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CallsName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CallsName = String;
 
 /// `CallsSecret` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CallsSecret {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CallsSecret = String;
 
 /// `CallsTurnKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CallsTurnKey {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CallsTurnKey = String;
 
 /// `CallsTurnKeyCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsTurnKeyCollection {
-    /// `result` property.
-    pub result: Option<Vec<CallsTurnKeyObject>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<CallsTurnKeyObject>>>`.
+pub type CallsTurnKeyCollection = super::shared::ApiEnvelope<Option<Vec<CallsTurnKeyObject>>>;
 
 /// `CallsTurnKeyEditableFields` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsTurnKeyEditableFields {
-    /// name property.
-    pub name: Option<CallsTurnKeyName>,
-}
+///
+/// Same shape as `super::shared::NameObject2`.
+pub type CallsTurnKeyEditableFields = super::shared::NameObject2;
 
 /// `CallsTurnKeyName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct CallsTurnKeyName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type CallsTurnKeyName = String;
 
 /// `CallsTurnKeyObject` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsTurnKeyObject {
-    /// created property.
-    pub created: Option<CallsCreated>,
-    /// modified property.
-    pub modified: Option<CallsModified>,
-    /// name property.
-    pub name: Option<CallsName>,
-    /// uid property.
-    pub uid: Option<CallsIdentifier>,
-}
+///
+/// Same shape as `super::shared::CallsAppShape`.
+pub type CallsTurnKeyObject = super::shared::CallsAppShape;
 
 /// `CallsTurnKeyResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsTurnKeyResponseSingle {
-    /// `result` property.
-    pub result: Option<CallsTurnKeyObject>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<CallsTurnKeyObject>>`.
+pub type CallsTurnKeyResponseSingle = super::shared::ApiEnvelope<Option<CallsTurnKeyObject>>;
 
 /// `CallsTurnKeySingleWithSecret` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CallsTurnKeySingleWithSecret {
-    /// `result` property.
-    pub result: Option<CallsTurnKeyWithKey>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<CallsTurnKeyWithKey>>`.
+pub type CallsTurnKeySingleWithSecret = super::shared::ApiEnvelope<Option<CallsTurnKeyWithKey>>;
 
 /// `CallsTurnKeyWithKey` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CallsTurnKeyWithKey {
-    /// created property.
-    pub created: Option<CallsCreated>,
-    /// key property.
-    pub key: Option<CallsTurnKey>,
-    /// modified property.
-    pub modified: Option<CallsModified>,
-    /// name property.
-    pub name: Option<CallsTurnKeyName>,
-    /// uid property.
-    pub uid: Option<CallsIdentifier>,
+    /// `created` property.
+    pub created: Option<String>,
+    /// `key` property.
+    pub key: Option<String>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `uid` property.
+    pub uid: Option<String>,
 }
 
 /// `CreateAppResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateAppResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<CreateAppResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `CreateAppResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateAppResponseData {
-    /// app property.
+    /// `app` property.
     pub app: Option<CreateAppResponseDataApp>,
 }
 
 /// `CreateAppResponseDataApp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct CreateAppResponseDataApp {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
+///
+/// Same shape as `super::shared::CreatedAtIdNameObject`.
+pub type CreateAppResponseDataApp = super::shared::CreatedAtIdNameObject;
 
 /// `FetchAllLivestreamsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct FetchAllLivestreamsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<FetchAllLivestreamsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `FetchAllLivestreamsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct FetchAllLivestreamsResponseData {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// disabled property.
+    /// `disabled` property.
     pub disabled: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// ingest_server property.
+    /// `ingest_server` property.
     pub ingest_server: Option<String>,
-    /// meeting_id property.
+    /// `meeting_id` property.
     pub meeting_id: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// paging property.
+    /// `paging` property.
     pub paging: Option<FetchAllLivestreamsResponseDataPaging>,
-    /// playback_url property.
+    /// `playback_url` property.
     pub playback_url: Option<String>,
-    /// status property.
+    /// `status` property.
     pub status: Option<String>,
-    /// stream_key property.
+    /// `stream_key` property.
     pub stream_key: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `FetchAllLivestreamsResponseDataPaging` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FetchAllLivestreamsResponseDataPaging {
-    /// end_offset property.
-    pub end_offset: Option<i64>,
-    /// start_offset property.
-    pub start_offset: Option<i64>,
-    /// total_count property.
-    pub total_count: Option<i64>,
-}
+///
+/// Same shape as `super::shared::EndOffsetStartOffsetTotalCountObject`.
+pub type FetchAllLivestreamsResponseDataPaging =
+    super::shared::EndOffsetStartOffsetTotalCountObject;
 
 /// `GetAppsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetAppsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<Vec<GetAppsResponseDataItem>>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `GetAppsResponseDataItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetAppsResponseDataItem {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
+///
+/// Same shape as `super::shared::CreatedAtIdNameObject`.
+pub type GetAppsResponseDataItem = super::shared::CreatedAtIdNameObject;
 
 /// `GetLivestreamAnalyticsCompleteResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetLivestreamAnalyticsCompleteResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<GetLivestreamAnalyticsCompleteResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `GetLivestreamAnalyticsCompleteResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetLivestreamAnalyticsCompleteResponseData {
-    /// count property.
+    /// `count` property.
     pub count: Option<i64>,
-    /// total_ingest_seconds property.
+    /// `total_ingest_seconds` property.
     pub total_ingest_seconds: Option<i64>,
-    /// total_viewer_seconds property.
+    /// `total_viewer_seconds` property.
     pub total_viewer_seconds: Option<i64>,
 }
 
 /// `GetOrgAnalyticsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetOrgAnalyticsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<GetOrgAnalyticsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `GetOrgAnalyticsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetOrgAnalyticsResponseData {
-    /// recording_stats property.
+    /// `recording_stats` property.
     pub recording_stats: Option<GetOrgAnalyticsResponseDataRecordingStats>,
-    /// session_stats property.
+    /// `session_stats` property.
     pub session_stats: Option<GetOrgAnalyticsResponseDataSessionStats>,
 }
 
 /// `GetOrgAnalyticsResponseDataRecordingStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetOrgAnalyticsResponseDataRecordingStats {
-    /// day_stats property.
+    /// `day_stats` property.
     pub day_stats: Option<Vec<GetOrgAnalyticsResponseDataRecordingStatsDayStatsItem>>,
-    /// recording_count property.
+    /// `recording_count` property.
     pub recording_count: Option<i64>,
-    /// recording_minutes_consumed property.
+    /// `recording_minutes_consumed` property.
     pub recording_minutes_consumed: Option<f64>,
 }
 
 /// `GetOrgAnalyticsResponseDataRecordingStatsDayStatsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetOrgAnalyticsResponseDataRecordingStatsDayStatsItem {
-    /// day property.
+    /// `day` property.
     pub day: Option<String>,
-    /// total_recording_minutes property.
+    /// `total_recording_minutes` property.
     pub total_recording_minutes: Option<i64>,
-    /// total_recordings property.
+    /// `total_recordings` property.
     pub total_recordings: Option<i64>,
 }
 
 /// `GetOrgAnalyticsResponseDataSessionStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetOrgAnalyticsResponseDataSessionStats {
-    /// day_stats property.
+    /// `day_stats` property.
     pub day_stats: Option<Vec<GetOrgAnalyticsResponseDataSessionStatsDayStatsItem>>,
-    /// sessions_count property.
+    /// `sessions_count` property.
     pub sessions_count: Option<i64>,
-    /// sessions_minutes_consumed property.
+    /// `sessions_minutes_consumed` property.
     pub sessions_minutes_consumed: Option<f64>,
 }
 
 /// `GetOrgAnalyticsResponseDataSessionStatsDayStatsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetOrgAnalyticsResponseDataSessionStatsDayStatsItem {
-    /// day property.
+    /// `day` property.
     pub day: Option<String>,
-    /// total_session_minutes property.
+    /// `total_session_minutes` property.
     pub total_session_minutes: Option<f64>,
-    /// total_sessions property.
+    /// `total_sessions` property.
     pub total_sessions: Option<i64>,
 }
 
 /// `GetV2ActiveLivestreamSessionDetailsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2ActiveLivestreamSessionDetailsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<GetV2ActiveLivestreamSessionDetailsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `GetV2ActiveLivestreamSessionDetailsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2ActiveLivestreamSessionDetailsResponseData {
-    /// livestream property.
+    /// `livestream` property.
     pub livestream: Option<GetV2ActiveLivestreamSessionDetailsResponseDataLivestream>,
-    /// session property.
+    /// `session` property.
     pub session: Option<GetV2ActiveLivestreamSessionDetailsResponseDataSession>,
 }
 
 /// `GetV2ActiveLivestreamSessionDetailsResponseDataLivestream` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV2ActiveLivestreamSessionDetailsResponseDataLivestream {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// disabled property.
-    pub disabled: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// ingest_server property.
-    pub ingest_server: Option<String>,
-    /// meeting_id property.
-    pub meeting_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// playback_url property.
-    pub playback_url: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// stream_key property.
-    pub stream_key: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
+///
+/// Same shape as `super::shared::GetV2ActiveLivestreamSessionDetailsResponseDataLivestreamShape`.
+pub type GetV2ActiveLivestreamSessionDetailsResponseDataLivestream =
+    super::shared::GetV2ActiveLivestreamSessionDetailsResponseDataLivestreamShape;
 
 /// `GetV2ActiveLivestreamSessionDetailsResponseDataSession` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2ActiveLivestreamSessionDetailsResponseDataSession {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// err_message property.
+    /// `err_message` property.
     pub err_message: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// ingest_seconds property.
+    /// `ingest_seconds` property.
     pub ingest_seconds: Option<String>,
-    /// invoked_time property.
+    /// `invoked_time` property.
     pub invoked_time: Option<String>,
-    /// livestream_id property.
+    /// `livestream_id` property.
     pub livestream_id: Option<String>,
-    /// started_time property.
+    /// `started_time` property.
     pub started_time: Option<String>,
-    /// stopped_time property.
+    /// `stopped_time` property.
     pub stopped_time: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
-    /// viewer_seconds property.
+    /// `viewer_seconds` property.
     pub viewer_seconds: Option<String>,
 }
 
 /// `GetV2LivestreamSessionLivestreamIdResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2LivestreamSessionLivestreamIdResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<GetV2LivestreamSessionLivestreamIdResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `GetV2LivestreamSessionLivestreamIdResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2LivestreamSessionLivestreamIdResponseData {
-    /// livestream property.
+    /// `livestream` property.
     pub livestream: Option<GetV2LivestreamSessionLivestreamIdResponseDataLivestream>,
-    /// paging property.
+    /// `paging` property.
     pub paging: Option<GetV2LivestreamSessionLivestreamIdResponseDataPaging>,
-    /// session property.
+    /// `session` property.
     pub session: Option<GetV2LivestreamSessionLivestreamIdResponseDataSession>,
 }
 
 /// `GetV2LivestreamSessionLivestreamIdResponseDataLivestream` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV2LivestreamSessionLivestreamIdResponseDataLivestream {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// disabled property.
-    pub disabled: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// ingest_server property.
-    pub ingest_server: Option<String>,
-    /// meeting_id property.
-    pub meeting_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// playback_url property.
-    pub playback_url: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// stream_key property.
-    pub stream_key: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
+///
+/// Same shape as `super::shared::GetV2ActiveLivestreamSessionDetailsResponseDataLivestreamShape`.
+pub type GetV2LivestreamSessionLivestreamIdResponseDataLivestream =
+    super::shared::GetV2ActiveLivestreamSessionDetailsResponseDataLivestreamShape;
 
 /// `GetV2LivestreamSessionLivestreamIdResponseDataPaging` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV2LivestreamSessionLivestreamIdResponseDataPaging {
-    /// end_offset property.
-    pub end_offset: Option<i64>,
-    /// start_offset property.
-    pub start_offset: Option<i64>,
-    /// total_count property.
-    pub total_count: Option<i64>,
-}
+///
+/// Same shape as `super::shared::EndOffsetStartOffsetTotalCountObject`.
+pub type GetV2LivestreamSessionLivestreamIdResponseDataPaging =
+    super::shared::EndOffsetStartOffsetTotalCountObject;
 
 /// `GetV2LivestreamSessionLivestreamIdResponseDataSession` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2LivestreamSessionLivestreamIdResponseDataSession {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// err_message property.
+    /// `err_message` property.
     pub err_message: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// ingest_seconds property.
+    /// `ingest_seconds` property.
     pub ingest_seconds: Option<f64>,
-    /// invoked_time property.
+    /// `invoked_time` property.
     pub invoked_time: Option<String>,
-    /// livestream_id property.
+    /// `livestream_id` property.
     pub livestream_id: Option<String>,
-    /// started_time property.
+    /// `started_time` property.
     pub started_time: Option<String>,
-    /// stopped_time property.
+    /// `stopped_time` property.
     pub stopped_time: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
-    /// viewer_seconds property.
+    /// `viewer_seconds` property.
     pub viewer_seconds: Option<f64>,
 }
 
 /// `GetV2LivestreamsLivestreamSessionIdResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2LivestreamsLivestreamSessionIdResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<GetV2LivestreamsLivestreamSessionIdResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `GetV2LivestreamsLivestreamSessionIdResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2LivestreamsLivestreamSessionIdResponseData {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// err_message property.
+    /// `err_message` property.
     pub err_message: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// ingest_seconds property.
+    /// `ingest_seconds` property.
     pub ingest_seconds: Option<i64>,
-    /// livestream_id property.
+    /// `livestream_id` property.
     pub livestream_id: Option<String>,
-    /// started_time property.
+    /// `started_time` property.
     pub started_time: Option<String>,
-    /// stopped_time property.
+    /// `stopped_time` property.
     pub stopped_time: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
-    /// viewer_seconds property.
+    /// `viewer_seconds` property.
     pub viewer_seconds: Option<i64>,
 }
 
 /// `GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponseData {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// err_message property.
+    /// `err_message` property.
     pub err_message: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// ingest_seconds property.
+    /// `ingest_seconds` property.
     pub ingest_seconds: Option<f64>,
-    /// invoked_time property.
+    /// `invoked_time` property.
     pub invoked_time: Option<String>,
-    /// livestream_id property.
+    /// `livestream_id` property.
     pub livestream_id: Option<String>,
-    /// paging property.
+    /// `paging` property.
     pub paging: Option<GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponseDataPaging>,
-    /// stopped_time property.
+    /// `stopped_time` property.
     pub stopped_time: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
-    /// viewer_seconds property.
+    /// `viewer_seconds` property.
     pub viewer_seconds: Option<f64>,
 }
 
 /// `GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponseDataPaging` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponseDataPaging {
-    /// end_offset property.
+    /// `end_offset` property.
     pub end_offset: Option<f64>,
-    /// start_offset property.
+    /// `start_offset` property.
     pub start_offset: Option<f64>,
-    /// total_count property.
+    /// `total_count` property.
     pub total_count: Option<f64>,
 }
 
 /// `GetV2MeetingsMeetingIdActiveLivestreamResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetV2MeetingsMeetingIdActiveLivestreamResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<GetV2MeetingsMeetingIdActiveLivestreamResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `GetV2MeetingsMeetingIdActiveLivestreamResponseData` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetV2MeetingsMeetingIdActiveLivestreamResponseData {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// disabled property.
-    pub disabled: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// ingest_server property.
-    pub ingest_server: Option<String>,
-    /// meeting_id property.
-    pub meeting_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// playback_url property.
-    pub playback_url: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// stream_key property.
-    pub stream_key: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
+///
+/// Same shape as `super::shared::GetV2ActiveLivestreamSessionDetailsResponseDataLivestreamShape`.
+pub type GetV2MeetingsMeetingIdActiveLivestreamResponseData =
+    super::shared::GetV2ActiveLivestreamSessionDetailsResponseDataLivestreamShape;
 
 /// `ImagesApiResponseCollectionV2` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesApiResponseCollectionV2 {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type ImagesApiResponseCollectionV2 =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `ImagesApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type ImagesApiResponseCommon = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `ImagesApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesApiResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type ImagesApiResponseSingle = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `ImagesDeletedResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesDeletedResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type ImagesDeletedResponse = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `ImagesImage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImage {
-    /// creator property.
-    pub creator: Option<ImagesImageCreator>,
-    /// filename property.
-    pub filename: Option<ImagesImageFilename>,
-    /// id property.
-    pub id: Option<ImagesImageIdentifier>,
-    /// meta property.
-    pub meta: Option<ImagesImageMetadata>,
-    /// requireSignedURLs property.
+    /// `creator` property.
+    pub creator: Option<String>,
+    /// `filename` property.
+    pub filename: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `requireSignedURLs` property.
     #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<ImagesImageRequireSignedURLs>,
-    /// uploaded property.
-    pub uploaded: Option<ImagesImageUploaded>,
-    /// variants property.
+    pub require_signed_ur_ls: Option<bool>,
+    /// `uploaded` property.
+    pub uploaded: Option<String>,
+    /// `variants` property.
     pub variants: Option<Vec<serde_json::Value>>,
 }
 
 /// `ImagesImageCreator` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageCreator {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageCreator = String;
 
 /// `ImagesImageDirectUploadResponseV2` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageDirectUploadResponseV2 {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type ImagesImageDirectUploadResponseV2 = super::shared::ApiEnvelope<serde_json::Value>;
 
 /// `ImagesImageFilename` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageFilename {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageFilename = String;
 
 /// `ImagesImageHeroUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageHeroUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageHeroUrl = String;
 
 /// `ImagesImageIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageIdentifier = String;
 
 /// `ImagesImageKeyName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageKeyName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageKeyName = String;
 
 /// `ImagesImageKeyResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageKeyResponseCollection {
-    /// `result` property.
-    pub result: Option<ImagesImageKeysResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<ImagesImageKeysResponse>`.
+pub type ImagesImageKeyResponseCollection = super::shared::ApiEnvelope<ImagesImageKeysResponse>;
 
 /// `ImagesImageKeyValue` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageKeyValue {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageKeyValue = String;
 
 /// `ImagesImageKeys` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageKeys {
-    /// name property.
-    pub name: Option<ImagesImageKeyName>,
-    /// value property.
-    pub value: Option<ImagesImageKeyValue>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `value` property.
+    pub value: Option<String>,
 }
 
 /// `ImagesImageKeysResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageKeysResponse {
-    /// keys property.
+    /// `keys` property.
     pub keys: Option<Vec<ImagesImageKeys>>,
 }
 
 /// `ImagesImageMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageMetadata {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageMetadata = serde_json::Value;
 
 /// `ImagesImageOriginalUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageOriginalUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageOriginalUrl = String;
 
 /// `ImagesImagePatchRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImagePatchRequest {
-    /// creator property.
+    /// `creator` property.
     pub creator: Option<String>,
-    /// metadata property.
+    /// `metadata` property.
     pub metadata: Option<serde_json::Value>,
-    /// requireSignedURLs property.
+    /// `requireSignedURLs` property.
     #[serde(rename = "requireSignedURLs")]
     pub require_signed_ur_ls: Option<bool>,
 }
 
 /// `ImagesImageRequireSignedURLs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageRequireSignedURLs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageRequireSignedURLs = bool;
 
 /// `ImagesImageResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageResponseSingle {
-    /// `result` property.
-    pub result: Option<ImagesImage>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<ImagesImage>`.
+pub type ImagesImageResponseSingle = super::shared::ApiEnvelope<ImagesImage>;
 
 /// `ImagesImageThumbnailUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageThumbnailUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageThumbnailUrl = String;
 
 /// `ImagesImageUploaded` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageUploaded {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageUploaded = String;
 
 /// `ImagesImageVariantDefinition` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantDefinition {
-    /// id property.
-    pub id: ImagesImageVariantIdentifier,
-    /// neverRequireSignedURLs property.
+    /// `id` property.
+    pub id: String,
+    /// `neverRequireSignedURLs` property.
     #[serde(rename = "neverRequireSignedURLs")]
-    pub never_require_signed_ur_ls: Option<ImagesImageVariantNeverRequireSignedURLs>,
-    /// options property.
+    pub never_require_signed_ur_ls: Option<bool>,
+    /// `options` property.
     pub options: ImagesImageVariantOptions,
 }
 
 /// `ImagesImageVariantFit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageVariantFit {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageVariantFit = String;
 
 /// `ImagesImageVariantFlatResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageVariantFlatResponse {
-    /// `result` property.
-    pub result: Option<ImagesImageVariantDefinition>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<ImagesImageVariantDefinition>`.
+pub type ImagesImageVariantFlatResponse = super::shared::ApiEnvelope<ImagesImageVariantDefinition>;
 
 /// `ImagesImageVariantHeight` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageVariantHeight {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageVariantHeight = f64;
 
 /// `ImagesImageVariantIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageVariantIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageVariantIdentifier = String;
 
 /// `ImagesImageVariantListResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageVariantListResponse {
-    /// `result` property.
-    pub result: Option<ImagesImageVariantsResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<ImagesImageVariantsResponse>`.
+pub type ImagesImageVariantListResponse = super::shared::ApiEnvelope<ImagesImageVariantsResponse>;
 
 /// `ImagesImageVariantNeverRequireSignedURLs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageVariantNeverRequireSignedURLs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageVariantNeverRequireSignedURLs = bool;
 
 /// `ImagesImageVariantOptions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantOptions {
-    /// fit property.
-    pub fit: ImagesImageVariantFit,
-    /// height property.
-    pub height: ImagesImageVariantHeight,
-    /// metadata property.
-    pub metadata: ImagesImageVariantSchemasMetadata,
-    /// width property.
-    pub width: ImagesImageVariantWidth,
+    /// `fit` property.
+    pub fit: String,
+    /// `height` property.
+    pub height: f64,
+    /// `metadata` property.
+    pub metadata: String,
+    /// `width` property.
+    pub width: f64,
 }
 
 /// `ImagesImageVariantPatchRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantPatchRequest {
-    /// neverRequireSignedURLs property.
+    /// `neverRequireSignedURLs` property.
     #[serde(rename = "neverRequireSignedURLs")]
-    pub never_require_signed_ur_ls: Option<ImagesImageVariantNeverRequireSignedURLs>,
-    /// options property.
+    pub never_require_signed_ur_ls: Option<bool>,
+    /// `options` property.
     pub options: ImagesImageVariantOptions,
 }
 
 /// `ImagesImageVariantPublicRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantPublicRequest {
-    /// hero property.
+    /// `hero` property.
     pub hero: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `ImagesImageVariantResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantResponse {
-    /// variant property.
+    /// `variant` property.
     pub variant: Option<ImagesImageVariantDefinition>,
 }
 
 /// `ImagesImageVariantSchemasMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageVariantSchemasMetadata {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageVariantSchemasMetadata = String;
 
 /// `ImagesImageVariantSimpleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImageVariantSimpleResponse {
-    /// `result` property.
-    pub result: Option<ImagesImageVariantResponse>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<ImagesImageVariantResponse>`.
+pub type ImagesImageVariantSimpleResponse = super::shared::ApiEnvelope<ImagesImageVariantResponse>;
 
 /// `ImagesImageVariantWidth` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageVariantWidth {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageVariantWidth = f64;
 
 /// `ImagesImageVariants` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImageVariants {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImageVariants = Vec<serde_json::Value>;
 
 /// `ImagesImageVariantsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantsResponse {
-    /// variants property.
+    /// `variants` property.
     pub variants: Option<ImagesImageVariantPublicRequest>,
 }
 
 /// `ImagesImagesListContinuationToken` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImagesListContinuationToken {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImagesListContinuationToken = String;
 
 /// `ImagesImagesListResponseV2` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImagesListResponseV2 {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type ImagesImagesListResponseV2 =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `ImagesImagesStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImagesStats {
-    /// count property.
+    /// `count` property.
     pub count: Option<ImagesImagesStatsCount>,
 }
 
 /// `ImagesImagesStatsAllowed` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImagesStatsAllowed {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImagesStatsAllowed = f64;
 
 /// `ImagesImagesStatsCount` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImagesStatsCount {
-    /// allowed property.
-    pub allowed: Option<ImagesImagesStatsAllowed>,
-    /// current property.
-    pub current: Option<ImagesImagesStatsCurrent>,
+    /// `allowed` property.
+    pub allowed: Option<f64>,
+    /// `current` property.
+    pub current: Option<f64>,
 }
 
 /// `ImagesImagesStatsCurrent` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesImagesStatsCurrent {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesImagesStatsCurrent = f64;
 
 /// `ImagesImagesStatsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImagesStatsResponse {
-    /// `result` property.
-    pub result: Option<ImagesImagesStats>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<ImagesImagesStats>`.
+pub type ImagesImagesStatsResponse = super::shared::ApiEnvelope<ImagesImagesStats>;
 
 /// `ImagesMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ImagesMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ImagesMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `LivestreamSessionDetailsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LivestreamSessionDetailsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<LivestreamSessionDetailsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `LivestreamSessionDetailsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LivestreamSessionDetailsResponseData {
-    /// livestreams property.
+    /// `livestreams` property.
     pub livestreams: Option<Vec<LivestreamSessionDetailsResponseDataLivestreamsItem>>,
-    /// paging property.
+    /// `paging` property.
     pub paging: Option<LivestreamSessionDetailsResponseDataPaging>,
-    /// sessions property.
+    /// `sessions` property.
     pub sessions: Option<LivestreamSessionDetailsResponseDataSessions>,
 }
 
 /// `LivestreamSessionDetailsResponseDataLivestreamsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LivestreamSessionDetailsResponseDataLivestreamsItem {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// disabled property.
+    /// `disabled` property.
     pub disabled: Option<bool>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// ingest_server property.
+    /// `ingest_server` property.
     pub ingest_server: Option<String>,
-    /// meeting_id property.
+    /// `meeting_id` property.
     pub meeting_id: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// playback_url property.
+    /// `playback_url` property.
     pub playback_url: Option<String>,
-    /// status property.
+    /// `status` property.
     pub status: Option<String>,
-    /// stream_key property.
+    /// `stream_key` property.
     pub stream_key: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `LivestreamSessionDetailsResponseDataPaging` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LivestreamSessionDetailsResponseDataPaging {
-    /// end_offset property.
-    pub end_offset: Option<i64>,
-    /// start_offset property.
-    pub start_offset: Option<i64>,
-    /// total_count property.
-    pub total_count: Option<i64>,
-}
+///
+/// Same shape as `super::shared::EndOffsetStartOffsetTotalCountObject`.
+pub type LivestreamSessionDetailsResponseDataPaging =
+    super::shared::EndOffsetStartOffsetTotalCountObject;
 
 /// `LivestreamSessionDetailsResponseDataSessions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LivestreamSessionDetailsResponseDataSessions {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// err_message property.
+    /// `err_message` property.
     pub err_message: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// ingest_seconds property.
+    /// `ingest_seconds` property.
     pub ingest_seconds: Option<String>,
-    /// invoked_time property.
+    /// `invoked_time` property.
     pub invoked_time: Option<String>,
-    /// livestream_id property.
+    /// `livestream_id` property.
     pub livestream_id: Option<String>,
-    /// started_time property.
+    /// `started_time` property.
     pub started_time: Option<String>,
-    /// stopped_time property.
+    /// `stopped_time` property.
     pub stopped_time: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `PauseResumeStopRecordingRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PauseResumeStopRecordingRequest {
-    /// action property.
-    pub action: String,
-}
+///
+/// Same shape as `super::shared::ActionObject`.
+pub type PauseResumeStopRecordingRequest = super::shared::ActionObject;
 
 /// `PostSessionsSessionIdSummaryResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostSessionsSessionIdSummaryResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<PostSessionsSessionIdSummaryResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `PostSessionsSessionIdSummaryResponseData` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostSessionsSessionIdSummaryResponseData {
-    /// message property.
-    pub message: Option<String>,
-    /// success property.
-    pub success: Option<bool>,
-}
+///
+/// Same shape as `super::shared::MessageSuccessObject`.
+pub type PostSessionsSessionIdSummaryResponseData = super::shared::MessageSuccessObject;
 
 /// `RadarGetBgpRoutesRealtimeResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetBgpRoutesRealtimeResponse {
-    /// result property.
-    pub result: RadarGetBgpRoutesRealtimeResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetBgpRoutesRealtimeResponseResult>`.
+pub type RadarGetBgpRoutesRealtimeResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetBgpRoutesRealtimeResponseResult>;
 
 /// `RadarGetBgpRoutesRealtimeResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesRealtimeResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetBgpRoutesRealtimeResponseResultMeta,
-    /// routes property.
+    /// `routes` property.
     pub routes: Vec<RadarGetBgpRoutesRealtimeResponseResultRoutesItem>,
 }
 
 /// `RadarGetBgpRoutesRealtimeResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesRealtimeResponseResultMeta {
-    /// asn_info property.
+    /// `asn_info` property.
     pub asn_info: Vec<RadarGetBgpRoutesRealtimeResponseResultMetaAsnInfoItem>,
-    /// collectors property.
+    /// `collectors` property.
     pub collectors: Vec<RadarGetBgpRoutesRealtimeResponseResultMetaCollectorsItem>,
-    /// data_time property.
+    /// `data_time` property.
     pub data_time: String,
-    /// prefix_origins property.
+    /// `prefix_origins` property.
     pub prefix_origins: Vec<RadarGetBgpRoutesRealtimeResponseResultMetaPrefixOriginsItem>,
-    /// query_time property.
+    /// `query_time` property.
     pub query_time: String,
 }
 
 /// `RadarGetBgpRoutesRealtimeResponseResultMetaAsnInfoItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesRealtimeResponseResultMetaAsnInfoItem {
-    /// as_name property.
+    /// `as_name` property.
     pub as_name: String,
-    /// asn property.
+    /// `asn` property.
     pub asn: i64,
-    /// country_code property.
+    /// `country_code` property.
     pub country_code: String,
-    /// org_id property.
+    /// `org_id` property.
     pub org_id: String,
-    /// org_name property.
+    /// `org_name` property.
     pub org_name: String,
 }
 
 /// `RadarGetBgpRoutesRealtimeResponseResultMetaCollectorsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesRealtimeResponseResultMetaCollectorsItem {
-    /// collector property.
+    /// `collector` property.
     pub collector: String,
-    /// latest_realtime_ts property.
+    /// `latest_realtime_ts` property.
     pub latest_realtime_ts: String,
-    /// latest_rib_ts property.
+    /// `latest_rib_ts` property.
     pub latest_rib_ts: String,
-    /// latest_updates_ts property.
+    /// `latest_updates_ts` property.
     pub latest_updates_ts: String,
-    /// peers_count property.
+    /// `peers_count` property.
     pub peers_count: i64,
-    /// peers_v4_count property.
+    /// `peers_v4_count` property.
     pub peers_v4_count: i64,
-    /// peers_v6_count property.
+    /// `peers_v6_count` property.
     pub peers_v6_count: i64,
 }
 
 /// `RadarGetBgpRoutesRealtimeResponseResultMetaPrefixOriginsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesRealtimeResponseResultMetaPrefixOriginsItem {
-    /// origin property.
+    /// `origin` property.
     pub origin: i64,
-    /// prefix property.
+    /// `prefix` property.
     pub prefix: String,
-    /// rpki_validation property.
+    /// `rpki_validation` property.
     pub rpki_validation: String,
-    /// total_peers property.
+    /// `total_peers` property.
     pub total_peers: i64,
-    /// total_visible property.
+    /// `total_visible` property.
     pub total_visible: i64,
-    /// visibility property.
+    /// `visibility` property.
     pub visibility: f64,
 }
 
 /// `RadarGetBgpRoutesRealtimeResponseResultRoutesItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetBgpRoutesRealtimeResponseResultRoutesItem {
-    /// as_path property.
+    /// `as_path` property.
     pub as_path: Vec<i64>,
-    /// collector property.
+    /// `collector` property.
     pub collector: String,
-    /// communities property.
+    /// `communities` property.
     pub communities: Vec<String>,
-    /// prefix property.
+    /// `prefix` property.
     pub prefix: String,
-    /// timestamp property.
+    /// `timestamp` property.
     pub timestamp: String,
 }
 
 /// `RealtimekitAIConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitAIConfig {
-    /// summarization property.
+    /// `summarization` property.
     pub summarization: Option<RealtimekitSummarizationConfig>,
-    /// transcription property.
+    /// `transcription` property.
     pub transcription: Option<RealtimekitTranscriptionConfig>,
 }
 
 /// `RealtimekitActiveSession` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitActiveSession {
-    /// associated_id property.
+    /// `associated_id` property.
     pub associated_id: String,
-    /// breakout_rooms property.
+    /// `breakout_rooms` property.
     pub breakout_rooms: Option<Vec<Box<RealtimekitActiveSession>>>,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// ended_at property.
+    /// `ended_at` property.
     pub ended_at: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// live_participants property.
+    /// `live_participants` property.
     pub live_participants: f64,
-    /// max_concurrent_participants property.
+    /// `max_concurrent_participants` property.
     pub max_concurrent_participants: f64,
-    /// meeting_display_name property.
+    /// `meeting_display_name` property.
     pub meeting_display_name: String,
-    /// meta property.
+    /// `meta` property.
     pub meta: Option<serde_json::Value>,
-    /// minutes_consumed property.
+    /// `minutes_consumed` property.
     pub minutes_consumed: f64,
-    /// organization_id property.
+    /// `organization_id` property.
     pub organization_id: String,
-    /// started_at property.
+    /// `started_at` property.
     pub started_at: String,
-    /// status property.
+    /// `status` property.
     pub status: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `RealtimekitAddParticipantResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitAddParticipantResponse {
-    /// `data` property.
-    pub data: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::DataSuccessObject`.
+pub type RealtimekitAddParticipantResponse = super::shared::DataSuccessObject;
 
 /// `RealtimekitAudioConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitAudioConfig {
-    /// channel property.
+    /// `channel` property.
     pub channel: Option<String>,
-    /// codec property.
+    /// `codec` property.
     pub codec: Option<String>,
-    /// export_file property.
+    /// `export_file` property.
     pub export_file: Option<bool>,
 }
 
 /// `RealtimekitCreatePollResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitCreatePollResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitCreatePollResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitCreatePollResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitCreatePollResponseData {
-    /// action property.
+    /// `action` property.
     pub action: Option<String>,
-    /// poll property.
+    /// `poll` property.
     pub poll: Option<RealtimekitPoll>,
 }
 
 /// `RealtimekitDeleteParticipantResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitDeleteParticipantResponse {
-    /// `data` property.
-    pub data: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::DataSuccessObject2`.
+pub type RealtimekitDeleteParticipantResponse = super::shared::DataSuccessObject2;
 
 /// `RealtimekitGenericSuccessResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGenericSuccessResponse {
-    /// data property.
-    pub data: Option<serde_json::Value>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::DataSuccessObject`.
+pub type RealtimekitGenericSuccessResponse = super::shared::DataSuccessObject;
 
 /// `RealtimekitGetActiveRecordingResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetActiveRecordingResponse {
     /// `data` property.
     pub data: RealtimekitRecording,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `RealtimekitGetActiveSessionResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetActiveSessionResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<Box<RealtimekitActiveSession>>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
@@ -1695,424 +1362,450 @@ pub struct RealtimekitGetActiveSessionResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetAllMeetingsResponse {
     /// `data` property.
-    pub data: Option<Vec<RealtimekitMeeting>>,
+    pub data: Vec<RealtimekitMeeting>,
+    /// `paging` property.
+    pub paging: std::collections::HashMap<String, serde_json::Value>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `RealtimekitGetAllParticipantsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetAllParticipantsResponse {
     /// `data` property.
-    pub data: Option<Vec<RealtimekitParticipant>>,
+    pub data: Vec<RealtimekitParticipant>,
+    /// `paging` property.
+    pub paging: std::collections::HashMap<String, serde_json::Value>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `RealtimekitGetAllPresetsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetAllPresetsResponse {
     /// `data` property.
-    pub data: Option<Vec<RealtimekitPresetListItem>>,
+    pub data: Vec<RealtimekitPresetListItem>,
+    /// `paging` property.
+    pub paging: std::collections::HashMap<String, serde_json::Value>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `RealtimekitGetMeetingResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetMeetingResponse {
-}
+///
+/// Same shape as `super::shared::DataSuccessObject2`.
+pub type RealtimekitGetMeetingResponse = super::shared::DataSuccessObject2;
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitGetParticipantDataFromPeerIdResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseData {
-    /// participant property.
+    /// `participant` property.
     pub participant: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipant>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipant` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipant {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// custom_participant_id property.
+    /// `custom_participant_id` property.
     pub custom_participant_id: Option<String>,
-    /// display_name property.
+    /// `display_name` property.
     pub display_name: Option<String>,
-    /// duration property.
+    /// `duration` property.
     pub duration: Option<f64>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// joined_at property.
+    /// `joined_at` property.
     pub joined_at: Option<String>,
-    /// left_at property.
+    /// `left_at` property.
     pub left_at: Option<String>,
-    /// peer_report property.
-    pub peer_report: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReport>,
-    /// peer_stats property.
+    /// `peer_report` property.
+    pub peer_report:
+        Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReport>,
+    /// `peer_stats` property.
     pub peer_stats: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStats>,
-    /// quality_stats property.
-    pub quality_stats: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantQualityStats>,
-    /// role property.
+    /// `quality_stats` property.
+    pub quality_stats:
+        Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantQualityStats>,
+    /// `role` property.
     pub role: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
-    /// user_id property.
+    /// `user_id` property.
     pub user_id: Option<String>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReport` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReport {
-    /// metadata property.
-    pub metadata: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadata>,
-    /// quality property.
-    pub quality: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQuality>,
+    /// `metadata` property.
+    pub metadata:
+        Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadata>,
+    /// `quality` property.
+    pub quality:
+        Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQuality>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadata` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadata {
-    /// audio_devices_updates property.
+    /// `audio_devices_updates` property.
     pub audio_devices_updates: Option<Vec<serde_json::Value>>,
-    /// browser_metadata property.
+    /// `browser_metadata` property.
     pub browser_metadata: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataBrowserMetadata>,
-    /// candidate_pairs property.
+    /// `candidate_pairs` property.
     pub candidate_pairs: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataCandidatePairs>,
-    /// device_info property.
+    /// `device_info` property.
     pub device_info: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataDeviceInfo>,
-    /// events property.
+    /// `events` property.
     pub events: Option<Vec<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataEventsItem>>,
-    /// ip_information property.
+    /// `ip_information` property.
     pub ip_information: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataIpInformation>,
-    /// pc_metadata property.
+    /// `pc_metadata` property.
     pub pc_metadata: Option<Vec<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataPcMetadataItem>>,
-    /// room_view_type property.
+    /// `room_view_type` property.
     pub room_view_type: Option<String>,
-    /// sdk_name property.
+    /// `sdk_name` property.
     pub sdk_name: Option<String>,
-    /// sdk_version property.
+    /// `sdk_version` property.
     pub sdk_version: Option<String>,
-    /// selected_device_updates property.
+    /// `selected_device_updates` property.
     pub selected_device_updates: Option<Vec<serde_json::Value>>,
-    /// speaker_devices_updates property.
+    /// `speaker_devices_updates` property.
     pub speaker_devices_updates: Option<Vec<serde_json::Value>>,
-    /// video_devices_updates property.
+    /// `video_devices_updates` property.
     pub video_devices_updates: Option<Vec<serde_json::Value>>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataBrowserMetadata` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataBrowserMetadata {
-    /// browser property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataBrowserMetadata
+{
+    /// `browser` property.
     pub browser: Option<String>,
-    /// browser_version property.
+    /// `browser_version` property.
     pub browser_version: Option<String>,
-    /// engine property.
+    /// `engine` property.
     pub engine: Option<String>,
-    /// user_agent property.
+    /// `user_agent` property.
     pub user_agent: Option<String>,
-    /// webgl_support property.
+    /// `webgl_support` property.
     pub webgl_support: Option<String>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataCandidatePairs` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataCandidatePairs {
-    /// consuming_transport property.
+    /// `consuming_transport` property.
     pub consuming_transport: Option<Vec<serde_json::Value>>,
-    /// producing_transport property.
+    /// `producing_transport` property.
     pub producing_transport: Option<Vec<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataCandidatePairsProducingTransportItem>>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataCandidatePairsProducingTransportItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataCandidatePairsProducingTransportItem {
-    /// available_outgoing_bitrate property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataCandidatePairsProducingTransportItem
+{
+    /// `available_outgoing_bitrate` property.
     pub available_outgoing_bitrate: Option<i64>,
-    /// bytes_discarded_on_send property.
+    /// `bytes_discarded_on_send` property.
     pub bytes_discarded_on_send: Option<i64>,
-    /// bytes_received property.
+    /// `bytes_received` property.
     pub bytes_received: Option<i64>,
-    /// bytes_sent property.
+    /// `bytes_sent` property.
     pub bytes_sent: Option<i64>,
-    /// current_round_trip_time property.
+    /// `current_round_trip_time` property.
     pub current_round_trip_time: Option<f64>,
-    /// last_packet_received_timestamp property.
+    /// `last_packet_received_timestamp` property.
     pub last_packet_received_timestamp: Option<i64>,
-    /// last_packet_sent_timestamp property.
+    /// `last_packet_sent_timestamp` property.
     pub last_packet_sent_timestamp: Option<i64>,
-    /// local_candidate_address property.
+    /// `local_candidate_address` property.
     pub local_candidate_address: Option<String>,
-    /// local_candidate_id property.
+    /// `local_candidate_id` property.
     pub local_candidate_id: Option<String>,
-    /// local_candidate_network_type property.
+    /// `local_candidate_network_type` property.
     pub local_candidate_network_type: Option<String>,
-    /// local_candidate_port property.
+    /// `local_candidate_port` property.
     pub local_candidate_port: Option<i64>,
-    /// local_candidate_protocol property.
+    /// `local_candidate_protocol` property.
     pub local_candidate_protocol: Option<String>,
-    /// local_candidate_related_address property.
+    /// `local_candidate_related_address` property.
     pub local_candidate_related_address: Option<String>,
-    /// local_candidate_related_port property.
+    /// `local_candidate_related_port` property.
     pub local_candidate_related_port: Option<i64>,
-    /// local_candidate_type property.
+    /// `local_candidate_type` property.
     pub local_candidate_type: Option<String>,
-    /// nominated property.
+    /// `nominated` property.
     pub nominated: Option<bool>,
-    /// packets_discarded_on_send property.
+    /// `packets_discarded_on_send` property.
     pub packets_discarded_on_send: Option<i64>,
-    /// packets_received property.
+    /// `packets_received` property.
     pub packets_received: Option<i64>,
-    /// packets_sent property.
+    /// `packets_sent` property.
     pub packets_sent: Option<i64>,
-    /// remote_candidate_address property.
+    /// `remote_candidate_address` property.
     pub remote_candidate_address: Option<String>,
-    /// remote_candidate_id property.
+    /// `remote_candidate_id` property.
     pub remote_candidate_id: Option<String>,
-    /// remote_candidate_port property.
+    /// `remote_candidate_port` property.
     pub remote_candidate_port: Option<i64>,
-    /// remote_candidate_protocol property.
+    /// `remote_candidate_protocol` property.
     pub remote_candidate_protocol: Option<String>,
-    /// remote_candidate_type property.
+    /// `remote_candidate_type` property.
     pub remote_candidate_type: Option<String>,
-    /// total_round_trip_time property.
+    /// `total_round_trip_time` property.
     pub total_round_trip_time: Option<f64>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataDeviceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataDeviceInfo {
-    /// cpus property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataDeviceInfo
+{
+    /// `cpus` property.
     pub cpus: Option<i64>,
-    /// is_mobile property.
+    /// `is_mobile` property.
     pub is_mobile: Option<bool>,
-    /// os property.
+    /// `os` property.
     pub os: Option<String>,
-    /// os_version property.
+    /// `os_version` property.
     pub os_version: Option<String>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataEventsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataEventsItem {
-    /// name property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataEventsItem
+{
+    /// `name` property.
     pub name: Option<String>,
-    /// timestamp property.
+    /// `timestamp` property.
     pub timestamp: Option<String>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataIpInformation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataIpInformation {
-    /// asn property.
+    /// `asn` property.
     pub asn: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataIpInformationAsn>,
-    /// city property.
+    /// `city` property.
     pub city: Option<String>,
-    /// country property.
+    /// `country` property.
     pub country: Option<String>,
-    /// ipv4 property.
+    /// `ipv4` property.
     pub ipv4: Option<String>,
-    /// region property.
+    /// `region` property.
     pub region: Option<String>,
-    /// timezone property.
+    /// `timezone` property.
     pub timezone: Option<String>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataIpInformationAsn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataIpInformationAsn {
-    /// asn property.
-    pub asn: Option<String>,
-}
+///
+/// Same shape as `super::shared::AsnObject`.
+pub type RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataIpInformationAsn =
+    super::shared::AsnObject;
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataPcMetadataItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataPcMetadataItem {
-    /// effective_network_type property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportMetadataPcMetadataItem
+{
+    /// `effective_network_type` property.
     pub effective_network_type: Option<String>,
-    /// reflexive_connectivity property.
+    /// `reflexive_connectivity` property.
     pub reflexive_connectivity: Option<bool>,
-    /// relay_connectivity property.
+    /// `relay_connectivity` property.
     pub relay_connectivity: Option<bool>,
-    /// timestamp property.
+    /// `timestamp` property.
     pub timestamp: Option<String>,
-    /// turn_connectivity property.
+    /// `turn_connectivity` property.
     pub turn_connectivity: Option<bool>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQuality` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQuality {
-    /// audio_consumer property.
+    /// `audio_consumer` property.
     pub audio_consumer: Option<Vec<serde_json::Value>>,
-    /// audio_consumer_cumulative property.
+    /// `audio_consumer_cumulative` property.
     pub audio_consumer_cumulative: Option<serde_json::Value>,
-    /// audio_producer property.
+    /// `audio_producer` property.
     pub audio_producer: Option<Vec<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerItem>>,
-    /// audio_producer_cumulative property.
+    /// `audio_producer_cumulative` property.
     pub audio_producer_cumulative: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulative>,
-    /// screenshare_audio_consumer property.
+    /// `screenshare_audio_consumer` property.
     pub screenshare_audio_consumer: Option<Vec<serde_json::Value>>,
-    /// screenshare_audio_consumer_cumulative property.
+    /// `screenshare_audio_consumer_cumulative` property.
     pub screenshare_audio_consumer_cumulative: Option<serde_json::Value>,
-    /// screenshare_audio_producer property.
+    /// `screenshare_audio_producer` property.
     pub screenshare_audio_producer: Option<Vec<serde_json::Value>>,
-    /// screenshare_audio_producer_cumulative property.
+    /// `screenshare_audio_producer_cumulative` property.
     pub screenshare_audio_producer_cumulative: Option<serde_json::Value>,
-    /// screenshare_video_consumer property.
+    /// `screenshare_video_consumer` property.
     pub screenshare_video_consumer: Option<Vec<serde_json::Value>>,
-    /// screenshare_video_consumer_cumulative property.
+    /// `screenshare_video_consumer_cumulative` property.
     pub screenshare_video_consumer_cumulative: Option<serde_json::Value>,
-    /// screenshare_video_producer property.
+    /// `screenshare_video_producer` property.
     pub screenshare_video_producer: Option<Vec<serde_json::Value>>,
-    /// screenshare_video_producer_cumulative property.
+    /// `screenshare_video_producer_cumulative` property.
     pub screenshare_video_producer_cumulative: Option<serde_json::Value>,
-    /// video_consumer property.
+    /// `video_consumer` property.
     pub video_consumer: Option<Vec<serde_json::Value>>,
-    /// video_consumer_cumulative property.
+    /// `video_consumer_cumulative` property.
     pub video_consumer_cumulative: Option<serde_json::Value>,
-    /// video_producer property.
+    /// `video_producer` property.
     pub video_producer: Option<Vec<serde_json::Value>>,
-    /// video_producer_cumulative property.
+    /// `video_producer_cumulative` property.
     pub video_producer_cumulative: Option<serde_json::Value>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulative` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulative {
-    /// packet_loss property.
+    /// `packet_loss` property.
     pub packet_loss: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativePacketLoss>,
-    /// quality_mos property.
+    /// `quality_mos` property.
     pub quality_mos: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativeQualityMos>,
-    /// rtt property.
+    /// `rtt` property.
     pub rtt: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativeRtt>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativePacketLoss` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativePacketLoss {
-    /// 10_or_greater_event_fraction property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativePacketLoss
+{
+    /// `10_or_greater_event_fraction` property.
     #[serde(rename = "10_or_greater_event_fraction")]
     pub field_10_or_greater_event_fraction: Option<i64>,
-    /// 25_or_greater_event_fraction property.
+    /// `25_or_greater_event_fraction` property.
     #[serde(rename = "25_or_greater_event_fraction")]
     pub field_25_or_greater_event_fraction: Option<i64>,
-    /// 50_or_greater_event_fraction property.
+    /// `50_or_greater_event_fraction` property.
     #[serde(rename = "50_or_greater_event_fraction")]
     pub field_50_or_greater_event_fraction: Option<i64>,
-    /// 5_or_greater_event_fraction property.
+    /// `5_or_greater_event_fraction` property.
     #[serde(rename = "5_or_greater_event_fraction")]
     pub field_5_or_greater_event_fraction: Option<i64>,
-    /// avg property.
+    /// `avg` property.
     pub avg: Option<i64>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativeQualityMos` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativeQualityMos {
-    /// avg property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativeQualityMos
+{
+    /// `avg` property.
     pub avg: Option<i64>,
-    /// p50 property.
+    /// `p50` property.
     pub p50: Option<i64>,
-    /// p75 property.
+    /// `p75` property.
     pub p75: Option<i64>,
-    /// p90 property.
+    /// `p90` property.
     pub p90: Option<i64>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativeRtt` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativeRtt {
-    /// 100ms_or_greater_event_fraction property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerCumulativeRtt
+{
+    /// `100ms_or_greater_event_fraction` property.
     #[serde(rename = "100ms_or_greater_event_fraction")]
     pub field_100ms_or_greater_event_fraction: Option<f64>,
-    /// 250ms_or_greater_event_fraction property.
+    /// `250ms_or_greater_event_fraction` property.
     #[serde(rename = "250ms_or_greater_event_fraction")]
     pub field_250ms_or_greater_event_fraction: Option<f64>,
-    /// 500ms_or_greater_event_fraction property.
+    /// `500ms_or_greater_event_fraction` property.
     #[serde(rename = "500ms_or_greater_event_fraction")]
     pub field_500ms_or_greater_event_fraction: Option<f64>,
-    /// avg property.
+    /// `avg` property.
     pub avg: Option<f64>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerItem {
-    /// bytes_sent property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerReportQualityAudioProducerItem
+{
+    /// `bytes_sent` property.
     pub bytes_sent: Option<i64>,
-    /// jitter property.
+    /// `jitter` property.
     pub jitter: Option<i64>,
-    /// mid property.
+    /// `mid` property.
     pub mid: Option<String>,
-    /// mos_quality property.
+    /// `mos_quality` property.
     pub mos_quality: Option<i64>,
-    /// packets_lost property.
+    /// `packets_lost` property.
     pub packets_lost: Option<i64>,
-    /// packets_sent property.
+    /// `packets_sent` property.
     pub packets_sent: Option<i64>,
-    /// producer_id property.
+    /// `producer_id` property.
     pub producer_id: Option<String>,
-    /// rtt property.
+    /// `rtt` property.
     pub rtt: Option<f64>,
-    /// ssrc property.
+    /// `ssrc` property.
     pub ssrc: Option<i64>,
-    /// timestamp property.
+    /// `timestamp` property.
     pub timestamp: Option<String>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStats {
-    /// device_info property.
+    /// `device_info` property.
     pub device_info: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsDeviceInfo>,
-    /// events property.
+    /// `events` property.
     pub events: Option<Vec<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItem>>,
-    /// ip_information property.
+    /// `ip_information` property.
     pub ip_information: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsIpInformation>,
-    /// precall_network_information property.
+    /// `precall_network_information` property.
     pub precall_network_information: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsPrecallNetworkInformation>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsDeviceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsDeviceInfo {
-    /// browser property.
+    /// `browser` property.
     pub browser: Option<String>,
-    /// browser_version property.
+    /// `browser_version` property.
     pub browser_version: Option<String>,
-    /// cpus property.
+    /// `cpus` property.
     pub cpus: Option<i64>,
-    /// engine property.
+    /// `engine` property.
     pub engine: Option<String>,
-    /// is_mobile property.
+    /// `is_mobile` property.
     pub is_mobile: Option<bool>,
-    /// os property.
+    /// `os` property.
     pub os: Option<String>,
-    /// os_version property.
+    /// `os_version` property.
     pub os_version: Option<String>,
-    /// sdk_name property.
+    /// `sdk_name` property.
     pub sdk_name: Option<String>,
-    /// sdk_version property.
+    /// `sdk_version` property.
     pub sdk_version: Option<String>,
-    /// user_agent property.
+    /// `user_agent` property.
     pub user_agent: Option<String>,
-    /// webgl_support property.
+    /// `webgl_support` property.
     pub webgl_support: Option<String>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItem {
-    /// metadata property.
-    pub metadata: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadata>,
-    /// timestamp property.
+    /// `metadata` property.
+    pub metadata: Option<
+        RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadata,
+    >,
+    /// `timestamp` property.
     pub timestamp: Option<String>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: Option<String>,
 }
@@ -2120,191 +1813,194 @@ pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerSta
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadata` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadata {
-    /// connection_info property.
+    /// `connection_info` property.
     pub connection_info: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfo>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfo {
-    /// backend_r_t_t property.
+    /// `backend_r_t_t` property.
     pub backend_r_t_t: Option<f64>,
-    /// connectivity property.
+    /// `connectivity` property.
     pub connectivity: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoConnectivity>,
-    /// effective_network_type property.
+    /// `effective_network_type` property.
     pub effective_network_type: Option<String>,
-    /// fractional_loss property.
+    /// `fractional_loss` property.
     pub fractional_loss: Option<i64>,
-    /// ip_details property.
+    /// `ip_details` property.
     pub ip_details: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoIpDetails>,
-    /// jitter property.
+    /// `jitter` property.
     pub jitter: Option<i64>,
-    /// location property.
+    /// `location` property.
     pub location: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoLocation>,
-    /// r_t_t property.
+    /// `r_t_t` property.
     pub r_t_t: Option<f64>,
-    /// throughput property.
+    /// `throughput` property.
     pub throughput: Option<i64>,
-    /// turn_connectivity property.
+    /// `turn_connectivity` property.
     pub turn_connectivity: Option<bool>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoConnectivity` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoConnectivity {
-    /// host property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoConnectivity
+{
+    /// `host` property.
     pub host: Option<bool>,
-    /// reflexive property.
+    /// `reflexive` property.
     pub reflexive: Option<bool>,
-    /// relay property.
+    /// `relay` property.
     pub relay: Option<bool>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoIpDetails` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoIpDetails {
-    /// asn property.
+    /// `asn` property.
     pub asn: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoIpDetailsAsn>,
-    /// city property.
+    /// `city` property.
     pub city: Option<String>,
-    /// country property.
+    /// `country` property.
     pub country: Option<String>,
-    /// ip property.
+    /// `ip` property.
     pub ip: Option<String>,
-    /// loc property.
+    /// `loc` property.
     pub loc: Option<String>,
-    /// postal property.
+    /// `postal` property.
     pub postal: Option<String>,
-    /// region property.
+    /// `region` property.
     pub region: Option<String>,
-    /// timezone property.
+    /// `timezone` property.
     pub timezone: Option<String>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoIpDetailsAsn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoIpDetailsAsn {
-    /// asn property.
-    pub asn: Option<String>,
-}
+///
+/// Same shape as `super::shared::AsnObject`.
+pub type RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoIpDetailsAsn =
+    super::shared::AsnObject;
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoLocation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoLocation {
-    /// coords property.
+    /// `coords` property.
     pub coords: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoLocationCoords>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoLocationCoords` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoLocationCoords {
-    /// latitude property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsEventsItemMetadataConnectionInfoLocationCoords
+{
+    /// `latitude` property.
     pub latitude: Option<f64>,
-    /// longitude property.
+    /// `longitude` property.
     pub longitude: Option<f64>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsIpInformation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsIpInformation {
-    /// asn property.
-    pub asn: Option<RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsIpInformationAsn>,
-    /// city property.
+    /// `asn` property.
+    pub asn: Option<
+        RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsIpInformationAsn,
+    >,
+    /// `city` property.
     pub city: Option<String>,
-    /// country property.
+    /// `country` property.
     pub country: Option<String>,
-    /// ip_location property.
+    /// `ip_location` property.
     pub ip_location: Option<String>,
-    /// ipv4 property.
+    /// `ipv4` property.
     pub ipv4: Option<String>,
-    /// org property.
+    /// `org` property.
     pub org: Option<String>,
-    /// region property.
+    /// `region` property.
     pub region: Option<String>,
-    /// timezone property.
+    /// `timezone` property.
     pub timezone: Option<String>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsIpInformationAsn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsIpInformationAsn {
-    /// asn property.
-    pub asn: Option<String>,
-}
+///
+/// Same shape as `super::shared::AsnObject`.
+pub type RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsIpInformationAsn =
+    super::shared::AsnObject;
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsPrecallNetworkInformation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsPrecallNetworkInformation {
-    /// backend_rtt property.
+pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantPeerStatsPrecallNetworkInformation
+{
+    /// `backend_rtt` property.
     pub backend_rtt: Option<f64>,
-    /// effective_networktype property.
+    /// `effective_networktype` property.
     pub effective_networktype: Option<String>,
-    /// fractional_loss property.
+    /// `fractional_loss` property.
     pub fractional_loss: Option<i64>,
-    /// jitter property.
+    /// `jitter` property.
     pub jitter: Option<i64>,
-    /// reflexive_connectivity property.
+    /// `reflexive_connectivity` property.
     pub reflexive_connectivity: Option<bool>,
-    /// relay_connectivity property.
+    /// `relay_connectivity` property.
     pub relay_connectivity: Option<bool>,
-    /// rtt property.
+    /// `rtt` property.
     pub rtt: Option<f64>,
-    /// throughput property.
+    /// `throughput` property.
     pub throughput: Option<i64>,
-    /// turn_connectivity property.
+    /// `turn_connectivity` property.
     pub turn_connectivity: Option<bool>,
 }
 
 /// `RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantQualityStats` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDataFromPeerIdResponseDataParticipantQualityStats {
-    /// audio_bandwidth property.
+    /// `audio_bandwidth` property.
     pub audio_bandwidth: Option<i64>,
-    /// audio_stats property.
+    /// `audio_stats` property.
     pub audio_stats: Option<Vec<serde_json::Value>>,
-    /// average_quality property.
+    /// `average_quality` property.
     pub average_quality: Option<i64>,
-    /// end property.
+    /// `end` property.
     pub end: Option<String>,
-    /// first_audio_packet_received property.
+    /// `first_audio_packet_received` property.
     pub first_audio_packet_received: Option<String>,
-    /// first_video_packet_received property.
+    /// `first_video_packet_received` property.
     pub first_video_packet_received: Option<String>,
-    /// last_audio_packet_received property.
+    /// `last_audio_packet_received` property.
     pub last_audio_packet_received: Option<String>,
-    /// last_video_packet_received property.
+    /// `last_video_packet_received` property.
     pub last_video_packet_received: Option<String>,
-    /// peer_ids property.
+    /// `peer_ids` property.
     pub peer_ids: Option<Vec<String>>,
-    /// start property.
+    /// `start` property.
     pub start: Option<String>,
-    /// total_audio_packets property.
+    /// `total_audio_packets` property.
     pub total_audio_packets: Option<i64>,
-    /// total_audio_packets_lost property.
+    /// `total_audio_packets_lost` property.
     pub total_audio_packets_lost: Option<i64>,
-    /// total_video_packets property.
+    /// `total_video_packets` property.
     pub total_video_packets: Option<i64>,
-    /// total_video_packets_lost property.
+    /// `total_video_packets_lost` property.
     pub total_video_packets_lost: Option<i64>,
-    /// video_bandwidth property.
+    /// `video_bandwidth` property.
     pub video_bandwidth: Option<i64>,
-    /// video_stats property.
+    /// `video_stats` property.
     pub video_stats: Option<Vec<serde_json::Value>>,
 }
 
 /// `RealtimekitGetParticipantDetailsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDetailsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitGetParticipantDetailsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitGetParticipantDetailsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetParticipantDetailsResponseData {
-    /// participant property.
+    /// `participant` property.
     pub participant: Option<serde_json::Value>,
 }
 
@@ -2313,6 +2009,8 @@ pub struct RealtimekitGetParticipantDetailsResponseData {
 pub struct RealtimekitGetParticipantResponse {
     /// `data` property.
     pub data: RealtimekitParticipant,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `RealtimekitGetPresetBodyResponse` type.
@@ -2320,344 +2018,330 @@ pub struct RealtimekitGetParticipantResponse {
 pub struct RealtimekitGetPresetBodyResponse {
     /// `data` property.
     pub data: serde_json::Value,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `RealtimekitGetRecordingResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetRecordingResponse {
-    /// `data` property.
-    pub data: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::DataSuccessObject`.
+pub type RealtimekitGetRecordingResponse = super::shared::DataSuccessObject;
 
 /// `RealtimekitGetRecordingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitGetRecordingsResponse {
-    /// `data` property.
-    pub data: Option<Vec<serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::DataPagingSuccessObject`.
+pub type RealtimekitGetRecordingsResponse = super::shared::DataPagingSuccessObject;
 
 /// `RealtimekitGetSessionDetailsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetSessionDetailsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitGetSessionDetailsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitGetSessionDetailsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetSessionDetailsResponseData {
-    /// session property.
+    /// `session` property.
     pub session: Option<Box<RealtimekitActiveSession>>,
 }
 
 /// `RealtimekitGetSessionParticipantsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetSessionParticipantsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitGetSessionParticipantsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitGetSessionParticipantsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetSessionParticipantsResponseData {
-    /// participants property.
+    /// `participants` property.
     pub participants: Option<Vec<RealtimekitParticipantsList>>,
 }
 
 /// `RealtimekitGetSessionTranscriptResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetSessionTranscriptResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitTranscript>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitGetSessionTranscriptSummaryResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetSessionTranscriptSummaryResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitTranscriptSummary>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitGetSessionsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetSessionsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitGetSessionsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitGetSessionsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitGetSessionsResponseData {
-    /// sessions property.
+    /// `sessions` property.
     pub sessions: Option<Vec<Box<RealtimekitActiveSession>>>,
 }
 
 /// `RealtimekitKickAllParticipantsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitKickAllParticipantsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitKickAllParticipantsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitKickAllParticipantsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitKickAllParticipantsResponseData {
-    /// action property.
+    /// `action` property.
     pub action: Option<String>,
-    /// kicked_participants_count property.
+    /// `kicked_participants_count` property.
     pub kicked_participants_count: Option<f64>,
 }
 
 /// `RealtimekitKickParticipantsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitKickParticipantsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitKickParticipantsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitKickParticipantsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitKickParticipantsResponseData {
-    /// action property.
+    /// `action` property.
     pub action: Option<String>,
-    /// participants property.
+    /// `participants` property.
     pub participants: Option<Vec<RealtimekitSessionParticipant>>,
 }
 
 /// `RealtimekitLivestreamingConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitLivestreamingConfig {
-    /// rtmp_url property.
+    /// `rtmp_url` property.
     pub rtmp_url: Option<String>,
 }
 
 /// `RealtimekitMeeting` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitMeeting {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// live_stream_on_start property.
+    /// `live_stream_on_start` property.
     pub live_stream_on_start: Option<bool>,
-    /// persist_chat property.
+    /// `persist_chat` property.
     pub persist_chat: Option<bool>,
-    /// record_on_start property.
+    /// `record_on_start` property.
     pub record_on_start: Option<bool>,
-    /// session_keep_alive_time_in_secs property.
+    /// `session_keep_alive_time_in_secs` property.
     pub session_keep_alive_time_in_secs: Option<f64>,
-    /// status property.
+    /// `status` property.
     pub status: Option<String>,
-    /// summarize_on_end property.
+    /// `summarize_on_end` property.
     pub summarize_on_end: Option<bool>,
-    /// title property.
+    /// `title` property.
     pub title: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `RealtimekitMuteAllParticipantsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitMuteAllParticipantsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitMuteAllParticipantsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitMuteAllParticipantsResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitMuteAllParticipantsResponseData {
-    /// action property.
+    /// `action` property.
     pub action: Option<String>,
-    /// muted_participants_count property.
+    /// `muted_participants_count` property.
     pub muted_participants_count: Option<f64>,
 }
 
 /// `RealtimekitMuteParticipantsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitMuteParticipantsResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<RealtimekitMuteParticipantsResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `RealtimekitMuteParticipantsResponseData` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitMuteParticipantsResponseData {
-    /// action property.
-    pub action: Option<String>,
-    /// participants property.
-    pub participants: Option<Vec<RealtimekitSessionParticipant>>,
-}
+///
+/// Same shape as `RealtimekitKickParticipantsResponseData`.
+pub type RealtimekitMuteParticipantsResponseData = RealtimekitKickParticipantsResponseData;
 
 /// `RealtimekitPagingResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitPagingResponse {
-    /// data property.
-    pub data: Vec<serde_json::Value>,
-    /// paging property.
-    pub paging: std::collections::HashMap<String, serde_json::Value>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::DataPagingSuccessObject`.
+pub type RealtimekitPagingResponse = super::shared::DataPagingSuccessObject;
 
 /// `RealtimekitParticipant` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitParticipant {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// custom_participant_id property.
+    /// `custom_participant_id` property.
     pub custom_participant_id: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// picture property.
+    /// `picture` property.
     pub picture: Option<String>,
-    /// preset_name property.
+    /// `preset_name` property.
     pub preset_name: String,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `RealtimekitParticipantsList` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitParticipantsList {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// custom_participant_id property.
+    /// `custom_participant_id` property.
     pub custom_participant_id: Option<String>,
-    /// display_name property.
+    /// `display_name` property.
     pub display_name: Option<String>,
-    /// duration property.
+    /// `duration` property.
     pub duration: Option<f64>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// joined_at property.
+    /// `joined_at` property.
     pub joined_at: Option<String>,
-    /// left_at property.
+    /// `left_at` property.
     pub left_at: Option<String>,
-    /// preset_name property.
+    /// `preset_name` property.
     pub preset_name: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
-    /// user_id property.
+    /// `user_id` property.
     pub user_id: Option<String>,
 }
 
 /// `RealtimekitPatchWebhookRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitPatchWebhookRequest {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// events property.
+    /// `events` property.
     pub events: Option<Vec<String>>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// url property.
+    /// `url` property.
     pub url: Option<String>,
 }
 
 /// `RealtimekitPoll` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitPoll {
-    /// anonymous property.
+    /// `anonymous` property.
     pub anonymous: Option<bool>,
-    /// created_by property.
+    /// `created_by` property.
     pub created_by: Option<String>,
-    /// hide_votes property.
+    /// `hide_votes` property.
     pub hide_votes: Option<bool>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// options property.
+    /// `options` property.
     pub options: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// question property.
+    /// `question` property.
     pub question: String,
-    /// voted property.
+    /// `voted` property.
     pub voted: Option<Vec<String>>,
 }
 
 /// `RealtimekitPresetListItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitPresetListItem {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `RealtimekitRealtimekitBucketConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RealtimekitRealtimekitBucketConfig {
-    /// enabled property.
-    pub enabled: bool,
-}
+///
+/// Same shape as `super::shared::EnabledObject`.
+pub type RealtimekitRealtimekitBucketConfig = super::shared::EnabledObject;
 
 /// `RealtimekitRecording` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitRecording {
-    /// audio_download_url property.
+    /// `audio_download_url` property.
     pub audio_download_url: Option<String>,
-    /// download_url property.
+    /// `download_url` property.
     pub download_url: Option<String>,
-    /// download_url_expiry property.
+    /// `download_url_expiry` property.
     pub download_url_expiry: Option<String>,
-    /// file_size property.
+    /// `file_size` property.
     pub file_size: Option<f64>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// invoked_time property.
+    /// `invoked_time` property.
     pub invoked_time: String,
-    /// output_file_name property.
+    /// `output_file_name` property.
     pub output_file_name: String,
-    /// recording_duration property.
+    /// `recording_duration` property.
     pub recording_duration: Option<i64>,
-    /// session_id property.
+    /// `session_id` property.
     pub session_id: Option<String>,
-    /// started_time property.
+    /// `started_time` property.
     pub started_time: Option<String>,
-    /// status property.
+    /// `status` property.
     pub status: String,
-    /// stopped_time property.
+    /// `stopped_time` property.
     pub stopped_time: Option<String>,
 }
 
 /// `RealtimekitRecordingConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitRecordingConfig {
-    /// audio_config property.
+    /// `audio_config` property.
     pub audio_config: Option<RealtimekitAudioConfig>,
-    /// file_name_prefix property.
+    /// `file_name_prefix` property.
     pub file_name_prefix: Option<String>,
-    /// live_streaming_config property.
+    /// `live_streaming_config` property.
     pub live_streaming_config: Option<RealtimekitLivestreamingConfig>,
-    /// max_seconds property.
+    /// `max_seconds` property.
     pub max_seconds: Option<f64>,
-    /// realtimekit_bucket_config property.
+    /// `realtimekit_bucket_config` property.
     pub realtimekit_bucket_config: Option<RealtimekitRealtimekitBucketConfig>,
-    /// storage_config property.
+    /// `storage_config` property.
     pub storage_config: Option<RealtimekitStorageConfig>,
-    /// video_config property.
+    /// `video_config` property.
     pub video_config: Option<RealtimekitVideoConfig>,
 }
 
@@ -2666,88 +2350,90 @@ pub struct RealtimekitRecordingConfig {
 pub struct RealtimekitRegenTokenResponse {
     /// `data` property.
     pub data: std::collections::HashMap<String, serde_json::Value>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `RealtimekitSessionParticipant` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitSessionParticipant {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// email property.
+    /// `email` property.
     pub email: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// picture property.
+    /// `picture` property.
     pub picture: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `RealtimekitStorageConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitStorageConfig {
-    /// access_key property.
+    /// `access_key` property.
     pub access_key: Option<String>,
-    /// auth_method property.
+    /// `auth_method` property.
     pub auth_method: Option<String>,
-    /// bucket property.
+    /// `bucket` property.
     pub bucket: Option<String>,
-    /// host property.
+    /// `host` property.
     pub host: Option<String>,
-    /// password property.
+    /// `password` property.
     pub password: Option<String>,
-    /// path property.
+    /// `path` property.
     pub path: Option<String>,
-    /// port property.
+    /// `port` property.
     pub port: Option<f64>,
-    /// private_key property.
+    /// `private_key` property.
     pub private_key: Option<String>,
-    /// region property.
+    /// `region` property.
     pub region: Option<String>,
-    /// secret property.
+    /// `secret` property.
     pub secret: Option<String>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
-    /// username property.
+    /// `username` property.
     pub username: Option<String>,
 }
 
 /// `RealtimekitSummarizationConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitSummarizationConfig {
-    /// summary_type property.
+    /// `summary_type` property.
     pub summary_type: Option<String>,
-    /// text_format property.
+    /// `text_format` property.
     pub text_format: Option<String>,
-    /// word_limit property.
+    /// `word_limit` property.
     pub word_limit: Option<i64>,
 }
 
 /// `RealtimekitTranscript` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitTranscript {
-    /// sessionId property.
+    /// `sessionId` property.
     #[serde(rename = "sessionId")]
     pub session_id: String,
-    /// transcript_download_url property.
+    /// `transcript_download_url` property.
     pub transcript_download_url: String,
-    /// transcript_download_url_expiry property.
+    /// `transcript_download_url_expiry` property.
     pub transcript_download_url_expiry: String,
 }
 
 /// `RealtimekitTranscriptSummary` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitTranscriptSummary {
-    /// sessionId property.
+    /// `sessionId` property.
     #[serde(rename = "sessionId")]
     pub session_id: String,
-    /// summaryDownloadUrl property.
+    /// `summaryDownloadUrl` property.
     #[serde(rename = "summaryDownloadUrl")]
     pub summary_download_url: String,
-    /// summaryDownloadUrlExpiry property.
+    /// `summaryDownloadUrlExpiry` property.
     #[serde(rename = "summaryDownloadUrlExpiry")]
     pub summary_download_url_expiry: String,
 }
@@ -2755,682 +2441,401 @@ pub struct RealtimekitTranscriptSummary {
 /// `RealtimekitTranscriptionConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitTranscriptionConfig {
-    /// keywords property.
+    /// `keywords` property.
     pub keywords: Option<Vec<String>>,
-    /// language property.
+    /// `language` property.
     pub language: Option<String>,
-    /// profanity_filter property.
+    /// `profanity_filter` property.
     pub profanity_filter: Option<bool>,
 }
 
 /// `RealtimekitVideoConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitVideoConfig {
-    /// codec property.
+    /// `codec` property.
     pub codec: Option<String>,
-    /// export_file property.
+    /// `export_file` property.
     pub export_file: Option<bool>,
-    /// height property.
+    /// `height` property.
     pub height: Option<i64>,
-    /// watermark property.
+    /// `watermark` property.
     pub watermark: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// width property.
+    /// `width` property.
     pub width: Option<i64>,
 }
 
 /// `RealtimekitWebhook` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitWebhook {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// events property.
+    /// `events` property.
     pub events: Vec<String>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `RealtimekitWebhookRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitWebhookRequest {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// events property.
+    /// `events` property.
     pub events: Vec<String>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `RealtimekitWebhookSuccessResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitWebhookSuccessResponse {
-    /// data property.
+    /// `data` property.
     pub data: RealtimekitWebhook,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `RealtimekitWebhooksListSuccessResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitWebhooksListSuccessResponse {
-    /// data property.
+    /// `data` property.
     pub data: Vec<RealtimekitWebhook>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `StartLivestreamingRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StartLivestreamingRequest {
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// video_config property.
+    /// `video_config` property.
     pub video_config: Option<StartLivestreamingRequestVideoConfig>,
 }
 
 /// `StartLivestreamingRequestVideoConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StartLivestreamingRequestVideoConfig {
-    /// height property.
-    pub height: Option<i64>,
-    /// width property.
-    pub width: Option<i64>,
-}
+///
+/// Same shape as `super::shared::HeightWidthObject`.
+pub type StartLivestreamingRequestVideoConfig = super::shared::HeightWidthObject;
 
 /// `StartLivestreamingResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StartLivestreamingResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<StartLivestreamingResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `StartLivestreamingResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StartLivestreamingResponseData {
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// ingest_server property.
+    /// `ingest_server` property.
     pub ingest_server: Option<String>,
-    /// playback_url property.
+    /// `playback_url` property.
     pub playback_url: Option<String>,
-    /// status property.
+    /// `status` property.
     pub status: Option<String>,
-    /// stream_key property.
+    /// `stream_key` property.
     pub stream_key: Option<String>,
 }
 
 /// `StopLivestreamingResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StopLivestreamingResponse {
-    /// data property.
+    /// `data` property.
     pub data: Option<StopLivestreamingResponseData>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `StopLivestreamingResponseData` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StopLivestreamingResponseData {
-    /// message property.
+    /// `message` property.
     pub message: Option<String>,
 }
 
 /// `StreamAllowedOrigins` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamAllowedOrigins {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamAllowedOrigins = Vec<String>;
 
 /// `StreamApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type StreamApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `StreamCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamCreated = String;
 
 /// `StreamCreator` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamCreator {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamCreator = String;
 
 /// `StreamDownloadedFrom` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamDownloadedFrom {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamDownloadedFrom = String;
 
 /// `StreamDuration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamDuration {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamDuration = f64;
 
 /// `StreamErrorReasonCode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamErrorReasonCode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamErrorReasonCode = String;
 
 /// `StreamErrorReasonText` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamErrorReasonText {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamErrorReasonText = String;
 
 /// `StreamHeight` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamHeight {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamHeight = i64;
 
 /// `StreamIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamIdentifier = String;
 
 /// `StreamInput` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInput {
-    /// height property.
-    pub height: Option<i64>,
-    /// width property.
-    pub width: Option<i64>,
-}
+///
+/// Same shape as `super::shared::HeightWidthObject`.
+pub type StreamInput = super::shared::HeightWidthObject;
 
 /// `StreamInputRtmps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputRtmps {
-    /// streamKey property.
-    #[serde(rename = "streamKey")]
-    pub stream_key: Option<StreamInputRtmpsStreamKey>,
-    /// url property.
-    pub url: Option<StreamInputRtmpsUrl>,
-}
+///
+/// Same shape as `super::shared::StreamKeyUrlObject`.
+pub type StreamInputRtmps = super::shared::StreamKeyUrlObject;
 
 /// `StreamInputRtmpsStreamKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputRtmpsStreamKey {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputRtmpsStreamKey = String;
 
 /// `StreamInputRtmpsUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputRtmpsUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputRtmpsUrl = String;
 
 /// `StreamInputSrt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputSrt {
-    /// passphrase property.
-    pub passphrase: Option<StreamInputSrtStreamPassphrase>,
-    /// streamId property.
-    #[serde(rename = "streamId")]
-    pub stream_id: Option<StreamInputSrtStreamId>,
-    /// url property.
-    pub url: Option<StreamInputSrtUrl>,
-}
+///
+/// Same shape as `super::shared::PassphraseStreamIdUrlObject`.
+pub type StreamInputSrt = super::shared::PassphraseStreamIdUrlObject;
 
 /// `StreamInputSrtStreamId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputSrtStreamId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputSrtStreamId = String;
 
 /// `StreamInputSrtStreamPassphrase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputSrtStreamPassphrase {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputSrtStreamPassphrase = String;
 
 /// `StreamInputSrtUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputSrtUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputSrtUrl = String;
 
 /// `StreamInputWebrtc` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamInputWebrtc {
-    /// url property.
-    pub url: Option<StreamInputWebrtcUrl>,
-}
+///
+/// Same shape as `super::shared::UrlObject`.
+pub type StreamInputWebrtc = super::shared::UrlObject;
 
 /// `StreamInputWebrtcUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamInputWebrtcUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamInputWebrtcUrl = String;
 
 /// `StreamLiveInput` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamLiveInput {
-    /// created property.
-    pub created: Option<StreamLiveInputCreated>,
-    /// deleteRecordingAfterDays property.
+    /// `created` property.
+    pub created: Option<String>,
+    /// `deleteRecordingAfterDays` property.
     #[serde(rename = "deleteRecordingAfterDays")]
-    pub delete_recording_after_days: Option<StreamLiveInputRecordingDeletion>,
-    /// enabled property.
-    pub enabled: Option<StreamLiveInputEnabled>,
-    /// meta property.
-    pub meta: Option<StreamLiveInputMetadata>,
-    /// modified property.
-    pub modified: Option<StreamLiveInputModified>,
-    /// recording property.
+    pub delete_recording_after_days: Option<f64>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `recording` property.
     pub recording: Option<StreamLiveInputRecordingSettings>,
-    /// rtmps property.
+    /// `rtmps` property.
     pub rtmps: Option<StreamInputRtmps>,
-    /// rtmpsPlayback property.
+    /// `rtmpsPlayback` property.
     #[serde(rename = "rtmpsPlayback")]
     pub rtmps_playback: Option<StreamPlaybackRtmps>,
-    /// srt property.
+    /// `srt` property.
     pub srt: Option<StreamInputSrt>,
-    /// srtPlayback property.
+    /// `srtPlayback` property.
     #[serde(rename = "srtPlayback")]
     pub srt_playback: Option<StreamPlaybackSrt>,
-    /// status property.
-    pub status: Option<StreamLiveInputStatus>,
-    /// uid property.
-    pub uid: Option<StreamLiveInputIdentifier>,
-    /// webRTC property.
+    /// `status` property.
+    pub status: Option<String>,
+    /// `uid` property.
+    pub uid: Option<String>,
+    /// `webRTC` property.
     #[serde(rename = "webRTC")]
     pub web_rtc: Option<StreamInputWebrtc>,
-    /// webRTCPlayback property.
+    /// `webRTCPlayback` property.
     #[serde(rename = "webRTCPlayback")]
     pub web_rtc_playback: Option<StreamPlaybackWebrtc>,
 }
 
 /// `StreamLiveInputCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputCreated = String;
 
 /// `StreamLiveInputEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputEnabled = bool;
 
 /// `StreamLiveInputIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputIdentifier = String;
 
 /// `StreamLiveInputMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputMetadata {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputMetadata = serde_json::Value;
 
 /// `StreamLiveInputModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputModified {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputModified = String;
 
 /// `StreamLiveInputRecordingAllowedOrigins` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingAllowedOrigins {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingAllowedOrigins = Vec<String>;
 
 /// `StreamLiveInputRecordingDeletion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingDeletion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingDeletion = f64;
 
 /// `StreamLiveInputRecordingHideLiveViewerCount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingHideLiveViewerCount {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingHideLiveViewerCount = bool;
 
 /// `StreamLiveInputRecordingMode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingMode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingMode = String;
 
 /// `StreamLiveInputRecordingRequireSignedURLs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingRequireSignedURLs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingRequireSignedURLs = bool;
 
 /// `StreamLiveInputRecordingSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamLiveInputRecordingSettings {
-    /// allowedOrigins property.
-    #[serde(rename = "allowedOrigins")]
-    pub allowed_origins: Option<Vec<String>>,
-    /// hideLiveViewerCount property.
-    #[serde(rename = "hideLiveViewerCount")]
-    pub hide_live_viewer_count: Option<StreamLiveInputRecordingHideLiveViewerCount>,
-    /// mode property.
-    pub mode: Option<StreamLiveInputRecordingMode>,
-    /// requireSignedURLs property.
-    #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<StreamLiveInputRecordingRequireSignedURLs>,
-    /// timeoutSeconds property.
-    #[serde(rename = "timeoutSeconds")]
-    pub timeout_seconds: Option<StreamLiveInputRecordingTimeoutSeconds>,
-}
+///
+/// Same shape as `super::shared::StreamLiveInputRecordingSettingsShape`.
+pub type StreamLiveInputRecordingSettings = super::shared::StreamLiveInputRecordingSettingsShape;
 
 /// `StreamLiveInputRecordingTimeoutSeconds` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputRecordingTimeoutSeconds {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputRecordingTimeoutSeconds = i64;
 
 /// `StreamLiveInputStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamLiveInputStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamLiveInputStatus = String;
 
 /// `StreamMaxDurationSeconds` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamMaxDurationSeconds {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamMaxDurationSeconds = i64;
 
 /// `StreamMediaMetadata` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamMediaMetadata {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamMediaMetadata = serde_json::Value;
 
 /// `StreamMediaState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamMediaState {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamMediaState = String;
 
 /// `StreamMediaStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamMediaStatus {
-    /// errorReasonCode property.
-    #[serde(rename = "errorReasonCode")]
-    pub error_reason_code: Option<StreamErrorReasonCode>,
-    /// errorReasonText property.
-    #[serde(rename = "errorReasonText")]
-    pub error_reason_text: Option<StreamErrorReasonText>,
-    /// pctComplete property.
-    #[serde(rename = "pctComplete")]
-    pub pct_complete: Option<StreamPctComplete>,
-    /// state property.
-    pub state: Option<StreamMediaState>,
-}
+///
+/// Same shape as `super::shared::StreamMediaStatusShape`.
+pub type StreamMediaStatus = super::shared::StreamMediaStatusShape;
 
 /// `StreamMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `StreamModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamModified {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamModified = String;
 
 /// `StreamName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamName = String;
 
 /// `StreamOneTimeUploadExpiry` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamOneTimeUploadExpiry {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamOneTimeUploadExpiry = String;
 
 /// `StreamOpacity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamOpacity {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamOpacity = f64;
 
 /// `StreamPadding` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPadding {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPadding = f64;
 
 /// `StreamPctComplete` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPctComplete {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPctComplete = String;
 
 /// `StreamPlayback` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlayback {
-    /// dash property.
-    pub dash: Option<String>,
-    /// hls property.
-    pub hls: Option<String>,
-}
+///
+/// Same shape as `super::shared::DashHlsObject`.
+pub type StreamPlayback = super::shared::DashHlsObject;
 
 /// `StreamPlaybackRtmps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackRtmps {
-    /// streamKey property.
-    #[serde(rename = "streamKey")]
-    pub stream_key: Option<StreamPlaybackRtmpsStreamKey>,
-    /// url property.
-    pub url: Option<StreamPlaybackRtmpsUrl>,
-}
+///
+/// Same shape as `super::shared::StreamKeyUrlObject`.
+pub type StreamPlaybackRtmps = super::shared::StreamKeyUrlObject;
 
 /// `StreamPlaybackRtmpsStreamKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackRtmpsStreamKey {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackRtmpsStreamKey = String;
 
 /// `StreamPlaybackRtmpsUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackRtmpsUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackRtmpsUrl = String;
 
 /// `StreamPlaybackSrt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackSrt {
-    /// passphrase property.
-    pub passphrase: Option<StreamPlaybackSrtStreamPassphrase>,
-    /// streamId property.
-    #[serde(rename = "streamId")]
-    pub stream_id: Option<StreamPlaybackSrtStreamId>,
-    /// url property.
-    pub url: Option<StreamPlaybackSrtUrl>,
-}
+///
+/// Same shape as `super::shared::PassphraseStreamIdUrlObject`.
+pub type StreamPlaybackSrt = super::shared::PassphraseStreamIdUrlObject;
 
 /// `StreamPlaybackSrtStreamId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackSrtStreamId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackSrtStreamId = String;
 
 /// `StreamPlaybackSrtStreamPassphrase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackSrtStreamPassphrase {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackSrtStreamPassphrase = String;
 
 /// `StreamPlaybackSrtUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackSrtUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackSrtUrl = String;
 
 /// `StreamPlaybackWebrtc` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamPlaybackWebrtc {
-    /// url property.
-    pub url: Option<StreamPlaybackWebrtcUrl>,
-}
+///
+/// Same shape as `super::shared::UrlObject`.
+pub type StreamPlaybackWebrtc = super::shared::UrlObject;
 
 /// `StreamPlaybackWebrtcUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPlaybackWebrtcUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPlaybackWebrtcUrl = String;
 
 /// `StreamPosition` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPosition {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPosition = String;
 
 /// `StreamPreview` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamPreview {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamPreview = String;
 
 /// `StreamReadyToStream` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamReadyToStream {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamReadyToStream = bool;
 
 /// `StreamReadyToStreamAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamReadyToStreamAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamReadyToStreamAt = String;
 
 /// `StreamRequireSignedURLs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamRequireSignedURLs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamRequireSignedURLs = bool;
 
 /// `StreamScale` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamScale {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamScale = f64;
 
 /// `StreamScheduledDeletion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamScheduledDeletion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamScheduledDeletion = String;
 
 /// `StreamSize` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamSize {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamSize = f64;
 
 /// `StreamThumbnailTimestampPct` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamThumbnailTimestampPct {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamThumbnailTimestampPct = f64;
 
 /// `StreamThumbnailUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamThumbnailUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamThumbnailUrl = String;
 
 /// `StreamUploaded` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamUploaded {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamUploaded = String;
 
 /// `StreamVideoResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideoResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `range` property.
     pub range: Option<i64>,
     /// `result` property.
     pub result: Option<Vec<StreamVideos>>,
+    /// `success` property.
+    pub success: bool,
     /// `total` property.
     pub total: Option<i64>,
 }
@@ -3438,118 +2843,79 @@ pub struct StreamVideoResponseCollection {
 /// `StreamVideos` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideos {
-    /// allowedOrigins property.
+    /// `allowedOrigins` property.
     #[serde(rename = "allowedOrigins")]
     pub allowed_origins: Option<Vec<String>>,
-    /// created property.
-    pub created: Option<StreamCreated>,
-    /// creator property.
-    pub creator: Option<StreamCreator>,
-    /// duration property.
-    pub duration: Option<StreamDuration>,
-    /// input property.
+    /// `created` property.
+    pub created: Option<String>,
+    /// `creator` property.
+    pub creator: Option<String>,
+    /// `duration` property.
+    pub duration: Option<f64>,
+    /// `input` property.
     pub input: Option<StreamInput>,
-    /// liveInput property.
+    /// `liveInput` property.
     #[serde(rename = "liveInput")]
-    pub live_input: Option<StreamLiveInput>,
-    /// maxDurationSeconds property.
+    pub live_input: Option<String>,
+    /// `maxDurationSeconds` property.
     #[serde(rename = "maxDurationSeconds")]
-    pub max_duration_seconds: Option<StreamMaxDurationSeconds>,
-    /// meta property.
-    pub meta: Option<StreamMediaMetadata>,
-    /// modified property.
-    pub modified: Option<StreamModified>,
-    /// playback property.
+    pub max_duration_seconds: Option<i64>,
+    /// `meta` property.
+    pub meta: Option<serde_json::Value>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `playback` property.
     pub playback: Option<StreamPlayback>,
-    /// preview property.
-    pub preview: Option<StreamPreview>,
-    /// readyToStream property.
+    /// `preview` property.
+    pub preview: Option<String>,
+    /// `readyToStream` property.
     #[serde(rename = "readyToStream")]
-    pub ready_to_stream: Option<StreamReadyToStream>,
-    /// readyToStreamAt property.
+    pub ready_to_stream: Option<bool>,
+    /// `readyToStreamAt` property.
     #[serde(rename = "readyToStreamAt")]
-    pub ready_to_stream_at: Option<StreamReadyToStreamAt>,
-    /// requireSignedURLs property.
+    pub ready_to_stream_at: Option<String>,
+    /// `requireSignedURLs` property.
     #[serde(rename = "requireSignedURLs")]
-    pub require_signed_ur_ls: Option<StreamRequireSignedURLs>,
-    /// scheduledDeletion property.
+    pub require_signed_ur_ls: Option<bool>,
+    /// `scheduledDeletion` property.
     #[serde(rename = "scheduledDeletion")]
-    pub scheduled_deletion: Option<StreamScheduledDeletion>,
-    /// size property.
-    pub size: Option<StreamSize>,
-    /// status property.
+    pub scheduled_deletion: Option<String>,
+    /// `size` property.
+    pub size: Option<f64>,
+    /// `status` property.
     pub status: Option<StreamMediaStatus>,
-    /// thumbnail property.
-    pub thumbnail: Option<StreamThumbnailUrl>,
-    /// thumbnailTimestampPct property.
+    /// `thumbnail` property.
+    pub thumbnail: Option<String>,
+    /// `thumbnailTimestampPct` property.
     #[serde(rename = "thumbnailTimestampPct")]
-    pub thumbnail_timestamp_pct: Option<StreamThumbnailTimestampPct>,
-    /// uid property.
-    pub uid: Option<StreamIdentifier>,
-    /// uploadExpiry property.
+    pub thumbnail_timestamp_pct: Option<f64>,
+    /// `uid` property.
+    pub uid: Option<String>,
+    /// `uploadExpiry` property.
     #[serde(rename = "uploadExpiry")]
-    pub upload_expiry: Option<StreamOneTimeUploadExpiry>,
-    /// uploaded property.
-    pub uploaded: Option<StreamUploaded>,
-    /// watermark property.
+    pub upload_expiry: Option<String>,
+    /// `uploaded` property.
+    pub uploaded: Option<String>,
+    /// `watermark` property.
     pub watermark: Option<StreamWatermarks>,
 }
 
 /// `StreamWatermarkCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamWatermarkCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamWatermarkCreated = String;
 
 /// `StreamWatermarkIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamWatermarkIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamWatermarkIdentifier = String;
 
 /// `StreamWatermarkSize` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamWatermarkSize {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamWatermarkSize = f64;
 
 /// `StreamWatermarks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct StreamWatermarks {
-    /// created property.
-    pub created: Option<StreamWatermarkCreated>,
-    /// downloadedFrom property.
-    #[serde(rename = "downloadedFrom")]
-    pub downloaded_from: Option<StreamDownloadedFrom>,
-    /// height property.
-    pub height: Option<StreamHeight>,
-    /// name property.
-    pub name: Option<StreamName>,
-    /// opacity property.
-    pub opacity: Option<StreamOpacity>,
-    /// padding property.
-    pub padding: Option<StreamPadding>,
-    /// position property.
-    pub position: Option<StreamPosition>,
-    /// scale property.
-    pub scale: Option<StreamScale>,
-    /// size property.
-    pub size: Option<StreamWatermarkSize>,
-    /// uid property.
-    pub uid: Option<StreamWatermarkIdentifier>,
-    /// width property.
-    pub width: Option<StreamWidth>,
-}
+///
+/// Same shape as `super::shared::StreamWatermarksShape`.
+pub type StreamWatermarks = super::shared::StreamWatermarksShape;
 
 /// `StreamWidth` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct StreamWidth {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type StreamWidth = i64;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -3595,13 +2961,9 @@ pub struct BrapiGetCrawlResultArgs {
 }
 
 /// Arguments for [`brapi-delete_CancelCrawl_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct BrapiDeleteCancelCrawlArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `job_id`.
-    pub job_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdJobIdArgs`.
+pub type BrapiDeleteCancelCrawlArgs = super::shared::AccountIdJobIdArgs;
 
 /// Arguments for [`brapi-post_Json_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3681,11 +3043,9 @@ pub struct BrapiPostSnapshotArgs {
 }
 
 /// Arguments for [`calls-apps-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CallsAppsListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type CallsAppsListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`calls-apps-create-a-new-app_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3697,13 +3057,9 @@ pub struct CallsAppsCreateANewAppArgs {
 }
 
 /// Arguments for [`calls-apps-retrieve-app-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CallsAppsRetrieveAppDetailsArgs {
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AppIdAccountIdArgs`.
+pub type CallsAppsRetrieveAppDetailsArgs = super::shared::AppIdAccountIdArgs;
 
 /// Arguments for [`calls-apps-update-app-details_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3717,20 +3073,14 @@ pub struct CallsAppsUpdateAppDetailsArgs {
 }
 
 /// Arguments for [`calls-apps-delete-app_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CallsAppsDeleteAppArgs {
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AppIdAccountIdArgs`.
+pub type CallsAppsDeleteAppArgs = super::shared::AppIdAccountIdArgs;
 
 /// Arguments for [`calls-turn-key-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CallsTurnKeyListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type CallsTurnKeyListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`calls-turn-key-create_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3742,13 +3092,9 @@ pub struct CallsTurnKeyCreateArgs {
 }
 
 /// Arguments for [`calls-retrieve-turn-key-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CallsRetrieveTurnKeyDetailsArgs {
-    /// Path parameter: `key_id`.
-    pub key_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::KeyIdAccountIdArgs`.
+pub type CallsRetrieveTurnKeyDetailsArgs = super::shared::KeyIdAccountIdArgs;
 
 /// Arguments for [`calls-update-turn-key_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3762,59 +3108,39 @@ pub struct CallsUpdateTurnKeyArgs {
 }
 
 /// Arguments for [`calls-delete-turn-key_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CallsDeleteTurnKeyArgs {
-    /// Path parameter: `key_id`.
-    pub key_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::KeyIdAccountIdArgs`.
+pub type CallsDeleteTurnKeyArgs = super::shared::KeyIdAccountIdArgs;
 
 /// Arguments for [`cloudflare-images-upload-an-image-via-url_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesUploadAnImageViaUrlArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type CloudflareImagesUploadAnImageViaUrlArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`cloudflare-images-keys-list-signing-keys_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesKeysListSigningKeysArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type CloudflareImagesKeysListSigningKeysArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`cloudflare-images-keys-add-signing-key_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesKeysAddSigningKeyArgs {
-    /// Path parameter: `signing_key_name`.
-    pub signing_key_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::SigningKeyNameAccountIdArgs`.
+pub type CloudflareImagesKeysAddSigningKeyArgs = super::shared::SigningKeyNameAccountIdArgs;
 
 /// Arguments for [`cloudflare-images-keys-delete-signing-key_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesKeysDeleteSigningKeyArgs {
-    /// Path parameter: `signing_key_name`.
-    pub signing_key_name: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::SigningKeyNameAccountIdArgs`.
+pub type CloudflareImagesKeysDeleteSigningKeyArgs = super::shared::SigningKeyNameAccountIdArgs;
 
 /// Arguments for [`cloudflare-images-images-usage-statistics_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesImagesUsageStatisticsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type CloudflareImagesImagesUsageStatisticsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`cloudflare-images-variants-list-variants_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesVariantsListVariantsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type CloudflareImagesVariantsListVariantsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`cloudflare-images-variants-create-a-variant_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3826,13 +3152,9 @@ pub struct CloudflareImagesVariantsCreateAVariantArgs {
 }
 
 /// Arguments for [`cloudflare-images-variants-variant-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesVariantsVariantDetailsArgs {
-    /// Path parameter: `variant_id`.
-    pub variant_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::VariantIdAccountIdArgs`.
+pub type CloudflareImagesVariantsVariantDetailsArgs = super::shared::VariantIdAccountIdArgs;
 
 /// Arguments for [`cloudflare-images-variants-update-a-variant_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3846,31 +3168,19 @@ pub struct CloudflareImagesVariantsUpdateAVariantArgs {
 }
 
 /// Arguments for [`cloudflare-images-variants-delete-a-variant_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesVariantsDeleteAVariantArgs {
-    /// Path parameter: `variant_id`.
-    pub variant_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::VariantIdAccountIdArgs`.
+pub type CloudflareImagesVariantsDeleteAVariantArgs = super::shared::VariantIdAccountIdArgs;
 
 /// Arguments for [`cloudflare-images-variants-variant-details-flat_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesVariantsVariantDetailsFlatArgs {
-    /// Path parameter: `variant_id`.
-    pub variant_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::VariantIdAccountIdArgs`.
+pub type CloudflareImagesVariantsVariantDetailsFlatArgs = super::shared::VariantIdAccountIdArgs;
 
 /// Arguments for [`cloudflare-images-image-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesImageDetailsArgs {
-    /// Path parameter: `image_id`.
-    pub image_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ImageIdAccountIdArgs`.
+pub type CloudflareImagesImageDetailsArgs = super::shared::ImageIdAccountIdArgs;
 
 /// Arguments for [`cloudflare-images-update-image_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3884,22 +3194,14 @@ pub struct CloudflareImagesUpdateImageArgs {
 }
 
 /// Arguments for [`cloudflare-images-delete-image_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesDeleteImageArgs {
-    /// Path parameter: `image_id`.
-    pub image_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ImageIdAccountIdArgs`.
+pub type CloudflareImagesDeleteImageArgs = super::shared::ImageIdAccountIdArgs;
 
 /// Arguments for [`cloudflare-images-base-image_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesBaseImageArgs {
-    /// Path parameter: `image_id`.
-    pub image_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ImageIdAccountIdArgs`.
+pub type CloudflareImagesBaseImageArgs = super::shared::ImageIdAccountIdArgs;
 
 /// Arguments for [`cloudflare-images-list-images-v2_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3919,25 +3221,19 @@ pub struct CloudflareImagesListImagesV2Args {
 }
 
 /// Arguments for [`cloudflare-images-create-authenticated-direct-upload-url-v-2_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CloudflareImagesCreateAuthenticatedDirectUploadUrlV2Args {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type CloudflareImagesCreateAuthenticatedDirectUploadUrlV2Args = super::shared::AccountIdArgs;
 
 /// Arguments for [`get_apps_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetAppsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type GetAppsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`create_app_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CreateAppArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type CreateAppArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`get-org-analytics_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4045,13 +3341,9 @@ pub struct GetAllMeetingsArgs {
 }
 
 /// Arguments for [`create_meeting_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CreateMeetingArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdArgs`.
+pub type CreateMeetingArgs = super::shared::AccountIdAppIdArgs;
 
 /// Arguments for [`get_meeting_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4063,94 +3355,54 @@ pub struct GetMeetingArgs {
 }
 
 /// Arguments for [`replace_meeting_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ReplaceMeetingArgs {
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::MeetingIdArgs`.
+pub type ReplaceMeetingArgs = super::shared::MeetingIdArgs;
 
 /// Arguments for [`update_meeting_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct UpdateMeetingArgs {
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::MeetingIdArgs`.
+pub type UpdateMeetingArgs = super::shared::MeetingIdArgs;
 
 /// Arguments for [`get-v2-meetings-meetingId-active-livestream_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetV2MeetingsMeetingIdActiveLivestreamArgs {
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::MeetingIdArgs`.
+pub type GetV2MeetingsMeetingIdActiveLivestreamArgs = super::shared::MeetingIdArgs;
 
 /// Arguments for [`stop_livestreaming_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StopLivestreamingArgs {
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::MeetingIdArgs`.
+pub type StopLivestreamingArgs = super::shared::MeetingIdArgs;
 
 /// Arguments for [`GetActiveSession_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetActiveSessionArgs {
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::MeetingIdArgs`.
+pub type GetActiveSessionArgs = super::shared::MeetingIdArgs;
 
 /// Arguments for [`KickPartcipants_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct KickPartcipantsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdMeetingIdArgs`.
+pub type KickPartcipantsArgs = super::shared::AccountIdAppIdMeetingIdArgs;
 
 /// Arguments for [`KickAllParticipants_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct KickAllParticipantsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdMeetingIdArgs`.
+pub type KickAllParticipantsArgs = super::shared::AccountIdAppIdMeetingIdArgs;
 
 /// Arguments for [`MuteParticipants_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MuteParticipantsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdMeetingIdArgs`.
+pub type MuteParticipantsArgs = super::shared::AccountIdAppIdMeetingIdArgs;
 
 /// Arguments for [`MuteAllParticipants_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct MuteAllParticipantsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdMeetingIdArgs`.
+pub type MuteAllParticipantsArgs = super::shared::AccountIdAppIdMeetingIdArgs;
 
 /// Arguments for [`CreatePoll_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CreatePollArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdMeetingIdArgs`.
+pub type CreatePollArgs = super::shared::AccountIdAppIdMeetingIdArgs;
 
 /// Arguments for [`livestream-session-details_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4188,42 +3440,24 @@ pub struct GetMeetingParticipantsArgs {
 }
 
 /// Arguments for [`add_participant_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct AddParticipantArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdMeetingIdArgs`.
+pub type AddParticipantArgs = super::shared::AccountIdAppIdMeetingIdArgs;
 
 /// Arguments for [`get_meeting_participant_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetMeetingParticipantArgs {
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-    /// Path parameter: `participant_id`.
-    pub participant_id: String,
-}
+///
+/// Same shape as `super::shared::MeetingIdParticipantIdArgs`.
+pub type GetMeetingParticipantArgs = super::shared::MeetingIdParticipantIdArgs;
 
 /// Arguments for [`edit_participant_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EditParticipantArgs {
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-    /// Path parameter: `participant_id`.
-    pub participant_id: String,
-}
+///
+/// Same shape as `super::shared::MeetingIdParticipantIdArgs`.
+pub type EditParticipantArgs = super::shared::MeetingIdParticipantIdArgs;
 
 /// Arguments for [`delete_meeting_participant_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteMeetingParticipantArgs {
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-    /// Path parameter: `participant_id`.
-    pub participant_id: String,
-}
+///
+/// Same shape as `super::shared::MeetingIdParticipantIdArgs`.
+pub type DeleteMeetingParticipantArgs = super::shared::MeetingIdParticipantIdArgs;
 
 /// Arguments for [`regenerate_token_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4252,46 +3486,24 @@ pub struct GetPresetsArgs {
 }
 
 /// Arguments for [`post-presets_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PostPresetsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdArgs`.
+pub type PostPresetsArgs = super::shared::AccountIdAppIdArgs;
 
 /// Arguments for [`get-presets-preset_id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetPresetsPresetIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `preset_id`.
-    pub preset_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdPresetIdArgs`.
+pub type GetPresetsPresetIdArgs = super::shared::AccountIdAppIdPresetIdArgs;
 
 /// Arguments for [`patch-presets-preset_id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PatchPresetsPresetIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `preset_id`.
-    pub preset_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdPresetIdArgs`.
+pub type PatchPresetsPresetIdArgs = super::shared::AccountIdAppIdPresetIdArgs;
 
 /// Arguments for [`delete-presets-preset_id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeletePresetsPresetIdArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `preset_id`.
-    pub preset_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdPresetIdArgs`.
+pub type DeletePresetsPresetIdArgs = super::shared::AccountIdAppIdPresetIdArgs;
 
 /// Arguments for [`get_all_recordings_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4318,38 +3530,24 @@ pub struct GetAllRecordingsArgs {
     pub start_time: Option<String>,
     /// Query parameter: `end_time`.
     pub end_time: Option<String>,
-    /// Query parameter: `status`.
-    pub status: Option<String>,
+    /// Query parameter: `status` (one per value).
+    pub status: Vec<String>,
 }
 
 /// Arguments for [`start_recording_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StartRecordingArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdArgs`.
+pub type StartRecordingArgs = super::shared::AccountIdAppIdArgs;
 
 /// Arguments for [`get_active_recording_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetActiveRecordingArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `meeting_id`.
-    pub meeting_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdMeetingIdArgs`.
+pub type GetActiveRecordingArgs = super::shared::AccountIdAppIdMeetingIdArgs;
 
 /// Arguments for [`startTrackRecordingForAMeeting_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct StartTrackRecordingForAMeetingArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdArgs`.
+pub type StartTrackRecordingForAMeetingArgs = super::shared::AccountIdAppIdArgs;
 
 /// Arguments for [`get_one_recording_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4488,46 +3686,24 @@ pub struct GetParticipantDetailsArgs {
 }
 
 /// Arguments for [`GetSessionSummary_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetSessionSummaryArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `session_id`.
-    pub session_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdSessionIdArgs`.
+pub type GetSessionSummaryArgs = super::shared::AccountIdAppIdSessionIdArgs;
 
 /// Arguments for [`post-sessions-session_id-summary_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct PostSessionsSessionIdSummaryArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `session_id`.
-    pub session_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdSessionIdArgs`.
+pub type PostSessionsSessionIdSummaryArgs = super::shared::AccountIdAppIdSessionIdArgs;
 
 /// Arguments for [`GetSessionTranscript_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetSessionTranscriptArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `session_id`.
-    pub session_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdSessionIdArgs`.
+pub type GetSessionTranscriptArgs = super::shared::AccountIdAppIdSessionIdArgs;
 
 /// Arguments for [`getAllWebhooks_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetAllWebhooksArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdArgs`.
+pub type GetAllWebhooksArgs = super::shared::AccountIdAppIdArgs;
 
 /// Arguments for [`addWebhook_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4541,15 +3717,9 @@ pub struct AddWebhookArgs {
 }
 
 /// Arguments for [`getWebhook_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetWebhookArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `webhook_id`.
-    pub webhook_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdWebhookIdArgs`.
+pub type GetWebhookArgs = super::shared::AccountIdAppIdWebhookIdArgs;
 
 /// Arguments for [`replaceWebhook_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4578,15 +3748,9 @@ pub struct EditWebhookArgs {
 }
 
 /// Arguments for [`deleteWebhook_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteWebhookArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `app_id`.
-    pub app_id: String,
-    /// Path parameter: `webhook_id`.
-    pub webhook_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdAppIdWebhookIdArgs`.
+pub type DeleteWebhookArgs = super::shared::AccountIdAppIdWebhookIdArgs;
 
 /// Arguments for [`stream-videos-list-videos_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4666,9 +3830,7 @@ pub async fn brapi_post_content_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/content",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/browser-rendering/content", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -4676,27 +3838,15 @@ where
 
     builder = builder.query("cacheTTL", args.cache_ttl.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiPostContentResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4730,9 +3880,7 @@ pub async fn brapi_post_crawl_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/crawl",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/browser-rendering/crawl", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -4740,27 +3888,15 @@ where
 
     builder = builder.query("cacheTTL", args.cache_ttl.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiPostCrawlResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4794,9 +3930,9 @@ pub async fn brapi_get_crawl_result_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/crawl/{}",
-        args.account_id,
-        args.job_id,
+    let path = format!(
+        "/accounts/{}/browser-rendering/crawl/{}",
+        args.account_id, args.job_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4812,20 +3948,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiGetCrawlResultResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4859,9 +3982,9 @@ pub async fn brapi_delete_cancel_crawl_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/crawl/{}",
-        args.account_id,
-        args.job_id,
+    let path = format!(
+        "/accounts/{}/browser-rendering/crawl/{}",
+        args.account_id, args.job_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4872,20 +3995,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiDeleteCancelCrawlResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4919,9 +4029,7 @@ pub async fn brapi_post_json_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/json",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/browser-rendering/json", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -4929,27 +4037,15 @@ where
 
     builder = builder.query("cacheTTL", args.cache_ttl.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiPostJsonResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4983,9 +4079,7 @@ pub async fn brapi_post_links_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/links",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/browser-rendering/links", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -4993,27 +4087,15 @@ where
 
     builder = builder.query("cacheTTL", args.cache_ttl.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiPostLinksResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5047,9 +4129,7 @@ pub async fn brapi_post_markdown_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/markdown",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/browser-rendering/markdown", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -5057,27 +4137,15 @@ where
 
     builder = builder.query("cacheTTL", args.cache_ttl.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiPostMarkdownResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5095,6 +4163,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -5107,13 +4180,11 @@ pub async fn brapi_post_pdf_request<F>(
     args: &BrapiPostPdfArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/pdf",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/browser-rendering/pdf", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -5121,25 +4192,20 @@ where
 
     builder = builder.query("cacheTTL", args.cache_ttl.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -5173,9 +4239,7 @@ pub async fn brapi_post_scrape_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/scrape",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/browser-rendering/scrape", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -5183,27 +4247,15 @@ where
 
     builder = builder.query("cacheTTL", args.cache_ttl.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiPostScrapeResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5237,9 +4289,7 @@ pub async fn brapi_post_screenshot_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/screenshot",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/browser-rendering/screenshot", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -5247,27 +4297,15 @@ where
 
     builder = builder.query("cacheTTL", args.cache_ttl.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiPostScreenshotResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5301,9 +4339,7 @@ pub async fn brapi_post_snapshot_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/browser-rendering/snapshot",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/browser-rendering/snapshot", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -5311,27 +4347,15 @@ where
 
     builder = builder.query("cacheTTL", args.cache_ttl.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: BrapiPostSnapshotResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5365,9 +4389,7 @@ pub async fn calls_apps_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/apps",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/calls/apps", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -5377,20 +4399,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsAppResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5424,35 +4433,21 @@ pub async fn calls_apps_create_a_new_app_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/apps",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/calls/apps", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsAppResponseSingleWithSecret = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5486,10 +4481,7 @@ pub async fn calls_apps_retrieve_app_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/apps/{}",
-        args.account_id,
-        args.app_id,
-    );
+    let path = format!("/accounts/{}/calls/apps/{}", args.account_id, args.app_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -5499,20 +4491,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsAppResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5546,36 +4525,21 @@ pub async fn calls_apps_update_app_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/apps/{}",
-        args.account_id,
-        args.app_id,
-    );
+    let path = format!("/accounts/{}/calls/apps/{}", args.account_id, args.app_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsAppResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5609,10 +4573,7 @@ pub async fn calls_apps_delete_app_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/apps/{}",
-        args.account_id,
-        args.app_id,
-    );
+    let path = format!("/accounts/{}/calls/apps/{}", args.account_id, args.app_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -5622,20 +4583,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsAppResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5669,9 +4617,7 @@ pub async fn calls_turn_key_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/turn_keys",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/calls/turn_keys", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -5681,20 +4627,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsTurnKeyCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5728,35 +4661,21 @@ pub async fn calls_turn_key_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/turn_keys",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/calls/turn_keys", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsTurnKeySingleWithSecret = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5790,9 +4709,9 @@ pub async fn calls_retrieve_turn_key_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/turn_keys/{}",
-        args.account_id,
-        args.key_id,
+    let path = format!(
+        "/accounts/{}/calls/turn_keys/{}",
+        args.account_id, args.key_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -5803,20 +4722,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsTurnKeyResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5850,36 +4756,24 @@ pub async fn calls_update_turn_key_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/turn_keys/{}",
-        args.account_id,
-        args.key_id,
+    let path = format!(
+        "/accounts/{}/calls/turn_keys/{}",
+        args.account_id, args.key_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsTurnKeyResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5913,9 +4807,9 @@ pub async fn calls_delete_turn_key_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/calls/turn_keys/{}",
-        args.account_id,
-        args.key_id,
+    let path = format!(
+        "/accounts/{}/calls/turn_keys/{}",
+        args.account_id, args.key_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -5926,20 +4820,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CallsTurnKeyResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5973,9 +4854,7 @@ pub async fn cloudflare_images_upload_an_image_via_url_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/images/v1", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -5985,20 +4864,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6032,9 +4898,7 @@ pub async fn cloudflare_images_keys_list_signing_keys_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/keys",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/images/v1/keys", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -6044,20 +4908,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageKeyResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6091,9 +4942,9 @@ pub async fn cloudflare_images_keys_add_signing_key_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/keys/{}",
-        args.account_id,
-        args.signing_key_name,
+    let path = format!(
+        "/accounts/{}/images/v1/keys/{}",
+        args.account_id, args.signing_key_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6104,20 +4955,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageKeyResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6151,9 +4989,9 @@ pub async fn cloudflare_images_keys_delete_signing_key_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/keys/{}",
-        args.account_id,
-        args.signing_key_name,
+    let path = format!(
+        "/accounts/{}/images/v1/keys/{}",
+        args.account_id, args.signing_key_name,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6164,20 +5002,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageKeyResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6211,9 +5036,7 @@ pub async fn cloudflare_images_images_usage_statistics_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/stats",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/images/v1/stats", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -6223,20 +5046,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImagesStatsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6270,9 +5080,7 @@ pub async fn cloudflare_images_variants_list_variants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/variants",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/images/v1/variants", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -6282,20 +5090,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageVariantListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6329,35 +5124,21 @@ pub async fn cloudflare_images_variants_create_a_variant_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/variants",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/images/v1/variants", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageVariantSimpleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6391,9 +5172,9 @@ pub async fn cloudflare_images_variants_variant_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/variants/{}",
-        args.account_id,
-        args.variant_id,
+    let path = format!(
+        "/accounts/{}/images/v1/variants/{}",
+        args.account_id, args.variant_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6404,20 +5185,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageVariantSimpleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6451,36 +5219,24 @@ pub async fn cloudflare_images_variants_update_a_variant_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/variants/{}",
-        args.account_id,
-        args.variant_id,
+    let path = format!(
+        "/accounts/{}/images/v1/variants/{}",
+        args.account_id, args.variant_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageVariantSimpleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6514,9 +5270,9 @@ pub async fn cloudflare_images_variants_delete_a_variant_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/variants/{}",
-        args.account_id,
-        args.variant_id,
+    let path = format!(
+        "/accounts/{}/images/v1/variants/{}",
+        args.account_id, args.variant_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6527,20 +5283,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6574,9 +5317,9 @@ pub async fn cloudflare_images_variants_variant_details_flat_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/variants/{}/flat",
-        args.account_id,
-        args.variant_id,
+    let path = format!(
+        "/accounts/{}/images/v1/variants/{}/flat",
+        args.account_id, args.variant_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6587,20 +5330,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageVariantFlatResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6634,10 +5364,7 @@ pub async fn cloudflare_images_image_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/{}",
-        args.account_id,
-        args.image_id,
-    );
+    let path = format!("/accounts/{}/images/v1/{}", args.account_id, args.image_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -6647,20 +5374,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6694,36 +5408,21 @@ pub async fn cloudflare_images_update_image_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/{}",
-        args.account_id,
-        args.image_id,
-    );
+    let path = format!("/accounts/{}/images/v1/{}", args.account_id, args.image_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6757,10 +5456,7 @@ pub async fn cloudflare_images_delete_image_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/{}",
-        args.account_id,
-        args.image_id,
-    );
+    let path = format!("/accounts/{}/images/v1/{}", args.account_id, args.image_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -6770,20 +5466,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesDeletedResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6801,6 +5484,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -6813,13 +5501,13 @@ pub async fn cloudflare_images_base_image_request<F>(
     args: &CloudflareImagesBaseImageArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v1/{}/blob",
-        args.account_id,
-        args.image_id,
+    let path = format!(
+        "/accounts/{}/images/v1/{}/blob",
+        args.account_id, args.image_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6830,18 +5518,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -6875,9 +5557,7 @@ pub async fn cloudflare_images_list_images_v2_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v2",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/images/v2", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -6887,26 +5567,16 @@ where
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("sort_order", args.sort_order.as_deref());
     builder = builder.query("creator", args.creator.as_deref());
-    builder = builder.query("meta.<field>[<operator>]", args.meta_field_operator.as_deref());
+    builder = builder.query(
+        "meta.<field>[<operator>]",
+        args.meta_field_operator.as_deref(),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImagesListResponseV2 = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6940,9 +5610,7 @@ pub async fn cloudflare_images_create_authenticated_direct_upload_url_v_2_reques
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/images/v2/direct_upload",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/images/v2/direct_upload", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -6952,20 +5620,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ImagesImageDirectUploadResponseV2 = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6999,9 +5654,7 @@ pub async fn get_apps_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/apps",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/realtime/kit/apps", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -7011,20 +5664,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetAppsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7058,9 +5698,7 @@ pub async fn create_app_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/apps",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/realtime/kit/apps", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -7070,20 +5708,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateAppResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7117,9 +5742,9 @@ pub async fn get_org_analytics_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/analytics/daywise",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/analytics/daywise",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7133,20 +5758,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetOrgAnalyticsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7180,9 +5792,9 @@ pub async fn get_livestream_analytics_complete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/analytics/livestreams/overall",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/analytics/livestreams/overall",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7196,20 +5808,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetLivestreamAnalyticsCompleteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7243,9 +5842,9 @@ pub async fn fetch_all_livestreams_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/livestreams",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/livestreams",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7264,20 +5863,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: FetchAllLivestreamsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7311,10 +5897,9 @@ pub async fn get_v2_livestreams_livestream_session_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/livestreams/sessions/{}",
-        args.account_id,
-        args.app_id,
-        args.livestream_session_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/livestreams/sessions/{}",
+        args.account_id, args.app_id, args.livestream_session_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7325,20 +5910,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV2LivestreamsLivestreamSessionIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7372,10 +5944,9 @@ pub async fn get_v2_livestream_session_livestream_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/livestreams/{}",
-        args.account_id,
-        args.app_id,
-        args.livestream_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/livestreams/{}",
+        args.account_id, args.app_id, args.livestream_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7389,20 +5960,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV2LivestreamSessionLivestreamIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7436,10 +5994,9 @@ pub async fn get_v2_active_livestream_session_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/livestreams/{}/active-livestream-session",
-        args.account_id,
-        args.app_id,
-        args.livestream_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/livestreams/{}/active-livestream-session",
+        args.account_id, args.app_id, args.livestream_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7450,20 +6007,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV2ActiveLivestreamSessionDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7497,9 +6041,9 @@ pub async fn get_all_meetings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7516,20 +6060,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetAllMeetingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7563,9 +6094,9 @@ pub async fn create_meeting_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7576,20 +6107,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetMeetingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7623,7 +6141,8 @@ pub async fn get_meeting_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}",
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}",
         args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -7637,20 +6156,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetMeetingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7684,7 +6190,8 @@ pub async fn replace_meeting_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}",
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}",
         args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -7696,20 +6203,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetMeetingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7743,7 +6237,8 @@ pub async fn update_meeting_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}",
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}",
         args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -7755,20 +6250,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetMeetingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7802,7 +6284,8 @@ pub async fn get_v2_meetings_meeting_id_active_livestream_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/active-livestream",
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/active-livestream",
         args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -7814,20 +6297,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV2MeetingsMeetingIdActiveLivestreamResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7861,7 +6331,8 @@ pub async fn stop_livestreaming_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/active-livestream/stop",
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/active-livestream/stop",
         args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -7873,20 +6344,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StopLivestreamingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7920,7 +6378,8 @@ pub async fn get_active_session_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/active-session",
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/active-session",
         args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -7932,20 +6391,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetActiveSessionResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7979,10 +6425,9 @@ pub async fn kick_partcipants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/kick",
-        args.account_id,
-        args.app_id,
-        args.meeting_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings/{}/active-session/kick",
+        args.account_id, args.app_id, args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7993,20 +6438,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitKickParticipantsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8040,10 +6472,9 @@ pub async fn kick_all_participants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/kick-all",
-        args.account_id,
-        args.app_id,
-        args.meeting_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings/{}/active-session/kick-all",
+        args.account_id, args.app_id, args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8054,20 +6485,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitKickAllParticipantsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8101,10 +6519,9 @@ pub async fn mute_participants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/mute",
-        args.account_id,
-        args.app_id,
-        args.meeting_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings/{}/active-session/mute",
+        args.account_id, args.app_id, args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8115,20 +6532,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitMuteParticipantsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8162,10 +6566,9 @@ pub async fn mute_all_participants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/mute-all",
-        args.account_id,
-        args.app_id,
-        args.meeting_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings/{}/active-session/mute-all",
+        args.account_id, args.app_id, args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8176,20 +6579,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitMuteAllParticipantsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8223,10 +6613,9 @@ pub async fn create_poll_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/active-session/poll",
-        args.account_id,
-        args.app_id,
-        args.meeting_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings/{}/active-session/poll",
+        args.account_id, args.app_id, args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8237,20 +6626,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitCreatePollResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8284,7 +6660,8 @@ pub async fn livestream_session_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/livestream",
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/livestream",
         args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -8299,20 +6676,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LivestreamSessionDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8346,7 +6710,8 @@ pub async fn start_livestreaming_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/livestreams",
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/livestreams",
         args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -8354,27 +6719,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StartLivestreamingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8408,10 +6761,9 @@ pub async fn get_meeting_participants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/participants",
-        args.account_id,
-        args.app_id,
-        args.meeting_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings/{}/participants",
+        args.account_id, args.app_id, args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8425,20 +6777,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetAllParticipantsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8472,10 +6811,9 @@ pub async fn add_participant_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/participants",
-        args.account_id,
-        args.app_id,
-        args.meeting_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings/{}/participants",
+        args.account_id, args.app_id, args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8486,20 +6824,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitAddParticipantResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8533,9 +6858,9 @@ pub async fn get_meeting_participant_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/participants/{}",
-        args.meeting_id,
-        args.participant_id,
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/participants/{}",
+        args.meeting_id, args.participant_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8546,20 +6871,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetParticipantResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8593,9 +6905,9 @@ pub async fn edit_participant_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/participants/{}",
-        args.meeting_id,
-        args.participant_id,
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/participants/{}",
+        args.meeting_id, args.participant_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8606,20 +6918,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitAddParticipantResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8653,9 +6952,9 @@ pub async fn delete_meeting_participant_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/participants/{}",
-        args.meeting_id,
-        args.participant_id,
+    let path = format!(
+        "/accounts/{{account_id}}/realtime/kit/{{app_id}}/meetings/{}/participants/{}",
+        args.meeting_id, args.participant_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8666,20 +6965,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitDeleteParticipantResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8713,11 +6999,9 @@ pub async fn regenerate_token_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/meetings/{}/participants/{}/token",
-        args.account_id,
-        args.app_id,
-        args.meeting_id,
-        args.participant_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/meetings/{}/participants/{}/token",
+        args.account_id, args.app_id, args.meeting_id, args.participant_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8728,20 +7012,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitRegenTokenResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8775,9 +7046,9 @@ pub async fn get_presets_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/presets",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/presets",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8791,20 +7062,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetAllPresetsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8838,9 +7096,9 @@ pub async fn post_presets_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/presets",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/presets",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8851,20 +7109,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetPresetBodyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8898,10 +7143,9 @@ pub async fn get_presets_preset_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/presets/{}",
-        args.account_id,
-        args.app_id,
-        args.preset_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/presets/{}",
+        args.account_id, args.app_id, args.preset_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8912,20 +7156,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetPresetBodyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8959,10 +7190,9 @@ pub async fn patch_presets_preset_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/presets/{}",
-        args.account_id,
-        args.app_id,
-        args.preset_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/presets/{}",
+        args.account_id, args.app_id, args.preset_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8973,20 +7203,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetPresetBodyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9020,10 +7237,9 @@ pub async fn delete_presets_preset_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/presets/{}",
-        args.account_id,
-        args.app_id,
-        args.preset_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/presets/{}",
+        args.account_id, args.app_id, args.preset_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9034,20 +7250,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetPresetBodyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9081,9 +7284,9 @@ pub async fn get_all_recordings_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/recordings",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/recordings",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9099,26 +7302,15 @@ where
     builder = builder.query("sort_order", args.sort_order.as_deref());
     builder = builder.query("start_time", args.start_time.as_deref());
     builder = builder.query("end_time", args.end_time.as_deref());
-    builder = builder.query("status", args.status.as_deref());
+    for value in &args.status {
+        builder = builder.query("status", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetRecordingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9152,9 +7344,9 @@ pub async fn start_recording_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/recordings",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/recordings",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9165,20 +7357,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetRecordingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9212,10 +7391,9 @@ pub async fn get_active_recording_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/recordings/active-recording/{}",
-        args.account_id,
-        args.app_id,
-        args.meeting_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/recordings/active-recording/{}",
+        args.account_id, args.app_id, args.meeting_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9226,20 +7404,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetActiveRecordingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9273,9 +7438,9 @@ pub async fn start_track_recording_for_a_meeting_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/recordings/track",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/recordings/track",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9286,18 +7451,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9331,10 +7485,9 @@ pub async fn get_one_recording_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/recordings/{}",
-        args.account_id,
-        args.app_id,
-        args.recording_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/recordings/{}",
+        args.account_id, args.app_id, args.recording_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9345,20 +7498,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetRecordingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9392,37 +7532,24 @@ pub async fn pause_resume_stop_recording_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/recordings/{}",
-        args.account_id,
-        args.app_id,
-        args.recording_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/recordings/{}",
+        args.account_id, args.app_id, args.recording_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetRecordingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9456,9 +7583,9 @@ pub async fn get_sessions_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/sessions",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/sessions",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9480,20 +7607,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetSessionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9527,10 +7641,9 @@ pub async fn get_participant_data_from_peer_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/sessions/peer-report/{}",
-        args.account_id,
-        args.app_id,
-        args.peer_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/sessions/peer-report/{}",
+        args.account_id, args.app_id, args.peer_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9543,20 +7656,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetParticipantDataFromPeerIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9590,36 +7690,25 @@ pub async fn get_session_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/sessions/{}",
-        args.account_id,
-        args.app_id,
-        args.session_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/sessions/{}",
+        args.account_id, args.app_id, args.session_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("include_breakout_rooms", args.include_breakout_rooms.as_deref());
+    builder = builder.query(
+        "include_breakout_rooms",
+        args.include_breakout_rooms.as_deref(),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetSessionDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9649,14 +7738,16 @@ pub async fn get_v2_livestreamsession_session_meeting_id_active_livestream_reque
     args: &GetV2LivestreamsessionSessionMeetingIdActiveLivestreamArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/sessions/{}/livestream-sessions",
-        args.account_id,
-        args.app_id,
-        args.session_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/sessions/{}/livestream-sessions",
+        args.account_id, args.app_id, args.session_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9670,20 +7761,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetV2LivestreamsessionSessionMeetingIdActiveLivestreamResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9717,10 +7795,9 @@ pub async fn get_session_participants_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/sessions/{}/participants",
-        args.account_id,
-        args.app_id,
-        args.session_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/sessions/{}/participants",
+        args.account_id, args.app_id, args.session_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9739,20 +7816,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetSessionParticipantsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9786,11 +7850,9 @@ pub async fn get_participant_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/sessions/{}/participants/{}",
-        args.account_id,
-        args.app_id,
-        args.session_id,
-        args.participant_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/sessions/{}/participants/{}",
+        args.account_id, args.app_id, args.session_id, args.participant_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9804,20 +7866,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetParticipantDetailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9851,10 +7900,9 @@ pub async fn get_session_summary_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/sessions/{}/summary",
-        args.account_id,
-        args.app_id,
-        args.session_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/sessions/{}/summary",
+        args.account_id, args.app_id, args.session_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9865,20 +7913,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetSessionTranscriptSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9912,10 +7947,9 @@ pub async fn post_sessions_session_id_summary_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/sessions/{}/summary",
-        args.account_id,
-        args.app_id,
-        args.session_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/sessions/{}/summary",
+        args.account_id, args.app_id, args.session_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9926,20 +7960,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: PostSessionsSessionIdSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9973,10 +7994,9 @@ pub async fn get_session_transcript_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/sessions/{}/transcript",
-        args.account_id,
-        args.app_id,
-        args.session_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/sessions/{}/transcript",
+        args.account_id, args.app_id, args.session_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9987,20 +8007,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitGetSessionTranscriptResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10034,9 +8041,9 @@ pub async fn get_all_webhooks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/webhooks",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/webhooks",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10047,20 +8054,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitWebhooksListSuccessResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10094,36 +8088,24 @@ pub async fn add_webhook_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/webhooks",
-        args.account_id,
-        args.app_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/webhooks",
+        args.account_id, args.app_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10157,10 +8139,9 @@ pub async fn get_webhook_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/webhooks/{}",
-        args.account_id,
-        args.app_id,
-        args.webhook_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/webhooks/{}",
+        args.account_id, args.app_id, args.webhook_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10171,20 +8152,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10218,37 +8186,24 @@ pub async fn replace_webhook_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/webhooks/{}",
-        args.account_id,
-        args.app_id,
-        args.webhook_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/webhooks/{}",
+        args.account_id, args.app_id, args.webhook_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10282,37 +8237,24 @@ pub async fn edit_webhook_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/webhooks/{}",
-        args.account_id,
-        args.app_id,
-        args.webhook_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/webhooks/{}",
+        args.account_id, args.app_id, args.webhook_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10346,10 +8288,9 @@ pub async fn delete_webhook_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/realtime/kit/{}/webhooks/{}",
-        args.account_id,
-        args.app_id,
-        args.webhook_id,
+    let path = format!(
+        "/accounts/{}/realtime/kit/{}/webhooks/{}",
+        args.account_id, args.app_id, args.webhook_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10360,20 +8301,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RealtimekitWebhookSuccessResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10407,9 +8335,7 @@ pub async fn stream_videos_list_videos_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10429,20 +8355,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: StreamVideoResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10476,9 +8389,7 @@ pub async fn stream_videos_initiate_video_uploads_using_tus_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/stream",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/stream", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -10490,18 +8401,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10535,8 +8435,7 @@ pub async fn radar_get_bgp_routes_realtime_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/bgp/routes/realtime",
-    );
+    let path = format!("/radar/bgp/routes/realtime",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10549,19 +8448,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetBgpRoutesRealtimeResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

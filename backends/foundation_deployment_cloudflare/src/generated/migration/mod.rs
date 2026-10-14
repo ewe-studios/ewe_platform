@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_migration")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,71 +28,67 @@ use super::shared::ApiResponse;
 /// `AccountsBatchMoveAccountsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountsBatchMoveAccountsRequest {
-    /// account_ids property.
+    /// `account_ids` property.
     pub account_ids: Vec<String>,
-    /// destination_organization_id property.
+    /// `destination_organization_id` property.
     pub destination_organization_id: String,
 }
 
 /// `AccountsBatchMoveAccountsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountsBatchMoveAccountsResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<serde_json::Value>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<OrganizationsApiV4Message>,
-    /// result property.
+    /// `result` property.
     pub result: OrganizationsApiBatchAccountMoveResponse,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `AccountsMoveAccountsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountsMoveAccountsRequest {
-    /// destination_organization_id property.
+    /// `destination_organization_id` property.
     pub destination_organization_id: String,
 }
 
 /// `AccountsMoveAccountsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountsMoveAccountsResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<serde_json::Value>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<OrganizationsApiV4Message>,
-    /// result property.
+    /// `result` property.
     pub result: OrganizationsApiMoveAccountResponse,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `OrganizationsApiBatchAccountMoveResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationsApiBatchAccountMoveResponse {
-    /// statuses property.
+    /// `statuses` property.
     pub statuses: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `OrganizationsApiMoveAccountResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationsApiMoveAccountResponse {
-    /// account_id property.
+    /// `account_id` property.
     pub account_id: String,
-    /// destination_organization_id property.
+    /// `destination_organization_id` property.
     pub destination_organization_id: String,
-    /// source_organization_id property.
+    /// `source_organization_id` property.
     pub source_organization_id: String,
 }
 
 /// `OrganizationsApiV4Message` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct OrganizationsApiV4Message {
-    /// code property.
-    pub code: i64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject2`.
+pub type OrganizationsApiV4Message = super::shared::CodeMessageObject2;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -145,34 +145,21 @@ pub async fn accounts_batch_move_accounts_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/move",
-    );
+    let path = format!("/accounts/move",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AccountsBatchMoveAccountsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -206,34 +193,19 @@ pub async fn accounts_move_accounts_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/move",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/move", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AccountsMoveAccountsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

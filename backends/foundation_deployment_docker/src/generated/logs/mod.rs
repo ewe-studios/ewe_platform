@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_logs")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -47,46 +51,14 @@ pub struct ContainerLogsArgs {
 }
 
 /// Arguments for [`ServiceLogs_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ServiceLogsArgs {
-    /// Path parameter: `id`.
-    pub id: String,
-    /// Query parameter: `details`.
-    pub details: Option<String>,
-    /// Query parameter: `follow`.
-    pub follow: Option<String>,
-    /// Query parameter: `stdout`.
-    pub stdout: Option<String>,
-    /// Query parameter: `stderr`.
-    pub stderr: Option<String>,
-    /// Query parameter: `since`.
-    pub since: Option<String>,
-    /// Query parameter: `timestamps`.
-    pub timestamps: Option<String>,
-    /// Query parameter: `tail`.
-    pub tail: Option<String>,
-}
+///
+/// Same shape as `super::shared::ServiceLogsArgsShape`.
+pub type ServiceLogsArgs = super::shared::ServiceLogsArgsShape;
 
 /// Arguments for [`TaskLogs_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct TaskLogsArgs {
-    /// Path parameter: `id`.
-    pub id: String,
-    /// Query parameter: `details`.
-    pub details: Option<String>,
-    /// Query parameter: `follow`.
-    pub follow: Option<String>,
-    /// Query parameter: `stdout`.
-    pub stdout: Option<String>,
-    /// Query parameter: `stderr`.
-    pub stderr: Option<String>,
-    /// Query parameter: `since`.
-    pub since: Option<String>,
-    /// Query parameter: `timestamps`.
-    pub timestamps: Option<String>,
-    /// Query parameter: `tail`.
-    pub tail: Option<String>,
-}
+///
+/// Same shape as `super::shared::ServiceLogsArgsShape`.
+pub type TaskLogsArgs = super::shared::ServiceLogsArgsShape;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -128,9 +100,7 @@ pub async fn container_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/{}/logs",
-        args.id,
-    );
+    let path = format!("/containers/{}/logs", args.id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -148,16 +118,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: super::shared::ByteStream::new(response.take_body()) })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -196,9 +162,7 @@ pub async fn service_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/services/{}/logs",
-        args.id,
-    );
+    let path = format!("/services/{}/logs", args.id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -216,16 +180,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: super::shared::ByteStream::new(response.take_body()) })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -264,9 +224,7 @@ pub async fn task_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/tasks/{}/logs",
-        args.id,
-    );
+    let path = format!("/tasks/{}/logs", args.id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -284,15 +242,10 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: super::shared::ByteStream::new(response.take_body()) })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
-

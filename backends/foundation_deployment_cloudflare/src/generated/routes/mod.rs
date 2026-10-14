@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_routes")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,297 +28,186 @@ use super::shared::ApiResponse;
 /// `DiagnosticsTracerouteRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DiagnosticsTracerouteRequest {
-    /// colos property.
+    /// `colos` property.
     pub colos: Option<Vec<String>>,
-    /// options property.
+    /// `options` property.
     pub options: Option<MagicTransitOptions>,
-    /// targets property.
+    /// `targets` property.
     pub targets: Vec<String>,
 }
 
 /// `MagicTransitApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTransitApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type MagicTransitApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `MagicTransitAsn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitAsn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitAsn = String;
 
 /// `MagicTransitColo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitColo {
-    /// city property.
-    pub city: Option<MagicTransitColoCity>,
-    /// name property.
-    pub name: Option<MagicTransitColoName>,
+    /// `city` property.
+    pub city: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
 }
 
 /// `MagicTransitColoCity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitColoCity {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitColoCity = String;
 
 /// `MagicTransitColoName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitColoName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitColoName = String;
 
 /// `MagicTransitColoResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitColoResult {
-    /// colo property.
+    /// `colo` property.
     pub colo: Option<MagicTransitColo>,
-    /// error property.
-    pub error: Option<MagicTransitError>,
-    /// hops property.
+    /// `error` property.
+    pub error: Option<String>,
+    /// `hops` property.
     pub hops: Option<Vec<MagicTransitHopResult>>,
-    /// target_summary property.
-    pub target_summary: Option<MagicTransitTargetSummary>,
-    /// traceroute_time_ms property.
-    pub traceroute_time_ms: Option<MagicTransitTracerouteTimeMs>,
+    /// `target_summary` property.
+    pub target_summary: Option<serde_json::Value>,
+    /// `traceroute_time_ms` property.
+    pub traceroute_time_ms: Option<i64>,
 }
 
 /// `MagicTransitColos` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitColos {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitColos = Vec<String>;
 
 /// `MagicTransitError` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitError {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitError = String;
 
 /// `MagicTransitHopResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitHopResult {
-    /// nodes property.
+    /// `nodes` property.
     pub nodes: Option<Vec<MagicTransitNodeResult>>,
-    /// packets_lost property.
-    pub packets_lost: Option<MagicTransitPacketsLost>,
-    /// packets_sent property.
-    pub packets_sent: Option<MagicTransitPacketsSent>,
-    /// packets_ttl property.
-    pub packets_ttl: Option<MagicTransitPacketsTtl>,
+    /// `packets_lost` property.
+    pub packets_lost: Option<i64>,
+    /// `packets_sent` property.
+    pub packets_sent: Option<i64>,
+    /// `packets_ttl` property.
+    pub packets_ttl: Option<i64>,
 }
 
 /// `MagicTransitIp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitIp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitIp = String;
 
 /// `MagicTransitLabels` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitLabels {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitLabels = Vec<String>;
 
 /// `MagicTransitMaxRttMs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitMaxRttMs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitMaxRttMs = f64;
 
 /// `MagicTransitMaxTtl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitMaxTtl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitMaxTtl = i64;
 
 /// `MagicTransitMeanRttMs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitMeanRttMs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitMeanRttMs = f64;
 
 /// `MagicTransitMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `MagicTransitMinRttMs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitMinRttMs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitMinRttMs = f64;
 
 /// `MagicTransitName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitName = String;
 
 /// `MagicTransitNodeResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitNodeResult {
-    /// asn property.
-    pub asn: Option<MagicTransitAsn>,
-    /// ip property.
-    pub ip: Option<MagicTransitIp>,
-    /// labels property.
+    /// `asn` property.
+    pub asn: Option<String>,
+    /// `ip` property.
+    pub ip: Option<String>,
+    /// `labels` property.
     pub labels: Option<Vec<String>>,
-    /// max_rtt_ms property.
-    pub max_rtt_ms: Option<MagicTransitMaxRttMs>,
-    /// mean_rtt_ms property.
-    pub mean_rtt_ms: Option<MagicTransitMeanRttMs>,
-    /// min_rtt_ms property.
-    pub min_rtt_ms: Option<MagicTransitMinRttMs>,
-    /// name property.
-    pub name: Option<MagicTransitName>,
-    /// packet_count property.
-    pub packet_count: Option<MagicTransitPacketCount>,
-    /// std_dev_rtt_ms property.
-    pub std_dev_rtt_ms: Option<MagicTransitStdDevRttMs>,
+    /// `max_rtt_ms` property.
+    pub max_rtt_ms: Option<f64>,
+    /// `mean_rtt_ms` property.
+    pub mean_rtt_ms: Option<f64>,
+    /// `min_rtt_ms` property.
+    pub min_rtt_ms: Option<f64>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `packet_count` property.
+    pub packet_count: Option<i64>,
+    /// `std_dev_rtt_ms` property.
+    pub std_dev_rtt_ms: Option<f64>,
 }
 
 /// `MagicTransitOptions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitOptions {
-    /// max_ttl property.
-    pub max_ttl: Option<MagicTransitMaxTtl>,
-    /// packet_type property.
-    pub packet_type: Option<MagicTransitPacketType>,
-    /// packets_per_ttl property.
-    pub packets_per_ttl: Option<MagicTransitPacketsPerTtl>,
-    /// port property.
-    pub port: Option<MagicTransitPort>,
-    /// wait_time property.
-    pub wait_time: Option<MagicTransitWaitTime>,
+    /// `max_ttl` property.
+    pub max_ttl: Option<i64>,
+    /// `packet_type` property.
+    pub packet_type: Option<String>,
+    /// `packets_per_ttl` property.
+    pub packets_per_ttl: Option<i64>,
+    /// `port` property.
+    pub port: Option<i64>,
+    /// `wait_time` property.
+    pub wait_time: Option<i64>,
 }
 
 /// `MagicTransitPacketCount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitPacketCount {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitPacketCount = i64;
 
 /// `MagicTransitPacketType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitPacketType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitPacketType = String;
 
 /// `MagicTransitPacketsLost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitPacketsLost {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitPacketsLost = i64;
 
 /// `MagicTransitPacketsPerTtl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitPacketsPerTtl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitPacketsPerTtl = i64;
 
 /// `MagicTransitPacketsSent` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitPacketsSent {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitPacketsSent = i64;
 
 /// `MagicTransitPacketsTtl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitPacketsTtl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitPacketsTtl = i64;
 
 /// `MagicTransitPort` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitPort {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitPort = i64;
 
 /// `MagicTransitStdDevRttMs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitStdDevRttMs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitStdDevRttMs = f64;
 
 /// `MagicTransitTarget` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitTarget {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitTarget = String;
 
 /// `MagicTransitTargetResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitTargetResult {
-    /// colos property.
+    /// `colos` property.
     pub colos: Option<Vec<MagicTransitColoResult>>,
-    /// target property.
-    pub target: Option<MagicTransitTarget>,
+    /// `target` property.
+    pub target: Option<String>,
 }
 
 /// `MagicTransitTargetSummary` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitTargetSummary {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitTargetSummary = serde_json::Value;
 
 /// `MagicTransitTargets` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitTargets {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitTargets = Vec<String>;
 
 /// `MagicTransitTracerouteResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicTransitTracerouteResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<MagicTransitTargetResult>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<MagicTransitTargetResult>>>`.
+pub type MagicTransitTracerouteResponseCollection =
+    super::shared::ApiEnvelope<Option<Vec<MagicTransitTargetResult>>>;
 
 /// `MagicTransitTracerouteTimeMs` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitTracerouteTimeMs {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitTracerouteTimeMs = i64;
 
 /// `MagicTransitWaitTime` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicTransitWaitTime {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicTransitWaitTime = i64;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -364,34 +257,19 @@ pub async fn diagnostics_traceroute_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/diagnostics/traceroute",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/diagnostics/traceroute", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: MagicTransitTracerouteResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

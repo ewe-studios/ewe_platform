@@ -186,29 +186,95 @@ fn test_zone_deserialization() {
     assert_eq!(zone.name_servers.len(), 2);
 }
 
-// ── Opaque generated types ──
-//
-// A schema with no properties is generated as a struct holding the raw JSON
-// object (`#[serde(transparent)]` over a map). On the wire it must be exactly
-// that object: its keys, not `{"data": ...}`.
+// ── Generated types: what non-struct schemas, shared shapes and envelopes are ──
 
 #[test]
-fn test_opaque_generated_type_is_the_json_object() {
-    use foundation_deployment_cloudflare::generated::dns::AccessMessages;
+fn test_a_free_form_object_schema_is_a_json_value_and_round_trips() {
+    // `access_apps` has no properties: any JSON. It is `serde_json::Value`
+    // itself, not a struct wrapping a map.
+    use foundation_deployment_cloudflare::generated::zones::AccessApps;
 
     let json = serde_json::json!({ "code": 1000, "message": "ok", "nested": { "a": [1, 2] } });
-    let parsed: AccessMessages = serde_json::from_value(json.clone()).unwrap();
-    assert_eq!(parsed.data.len(), 3);
-    assert_eq!(parsed.data["code"], serde_json::json!(1000));
-    assert_eq!(parsed.data["nested"], serde_json::json!({ "a": [1, 2] }));
-
+    let parsed: AccessApps = serde_json::from_value(json.clone()).unwrap();
+    assert_eq!(parsed["code"], serde_json::json!(1000));
+    assert_eq!(parsed["nested"], serde_json::json!({ "a": [1, 2] }));
     assert_eq!(serde_json::to_value(&parsed).unwrap(), json);
 }
 
 #[test]
-fn test_opaque_generated_type_rejects_a_non_object() {
+fn test_named_list_and_number_schemas_read_what_cloudflare_sends() {
+    // `access_messages` is a list of messages and `load_balancing_latitude` a
+    // number. Both used to be generated as a struct around a JSON object, which
+    // could deserialize neither.
     use foundation_deployment_cloudflare::generated::dns::AccessMessages;
+    use foundation_deployment_cloudflare::generated::shared::LoadBalancingLatitude;
 
-    assert!(serde_json::from_value::<AccessMessages>(serde_json::json!([1, 2])).is_err());
-    assert!(serde_json::from_value::<AccessMessages>(serde_json::json!("text")).is_err());
+    let messages: AccessMessages =
+        serde_json::from_value(serde_json::json!([{ "code": 1000, "message": "ok" }])).unwrap();
+    assert_eq!(messages.len(), 1);
+    assert_eq!(messages[0]["message"], serde_json::json!("ok"));
+    assert!(serde_json::from_value::<AccessMessages>(serde_json::json!({ "code": 1000 })).is_err());
+
+    let latitude: LoadBalancingLatitude = serde_json::from_value(serde_json::json!(37.77)).unwrap();
+    assert!((latitude - 37.77).abs() < f64::EPSILON);
+}
+
+#[test]
+fn test_a_deduplicated_alias_serialises_identically_to_its_canonical_type() {
+    // Many response schemas share `{ errors, messages, success }`; they are
+    // generated once (shared::ErrorsMessagesSuccessObject) and each keeps its
+    // name as an alias, including struct-literal construction.
+    use foundation_deployment_cloudflare::generated::dns::DnsFirewallApiResponseCommon;
+    use foundation_deployment_cloudflare::generated::shared::ErrorsMessagesSuccessObject;
+
+    let message = || {
+        let mut m = std::collections::HashMap::new();
+        m.insert("code".to_string(), serde_json::json!(1000));
+        m
+    };
+    let via_alias = DnsFirewallApiResponseCommon {
+        errors: vec![],
+        messages: vec![message()],
+        success: true,
+    };
+    let canonical = ErrorsMessagesSuccessObject {
+        errors: vec![],
+        messages: vec![message()],
+        success: true,
+    };
+    let expected = serde_json::json!({ "errors": [], "messages": [{ "code": 1000 }], "success": true });
+    assert_eq!(serde_json::to_value(&via_alias).unwrap(), expected);
+    assert_eq!(serde_json::to_value(&canonical).unwrap(), expected);
+
+    let back: DnsFirewallApiResponseCommon = serde_json::from_value(expected).unwrap();
+    assert!(back.success);
+    assert_eq!(back.messages.len(), 1);
+}
+
+#[test]
+fn test_an_endpoint_response_reads_through_the_generic_envelope() {
+    // `CacheApiResponseSingleId` is `ApiEnvelope<CacheResult>`: the shared
+    // `{ errors, messages, result, success }` wrapper with a typed `result`.
+    use foundation_deployment_cloudflare::generated::shared::ApiEnvelope;
+    use foundation_deployment_cloudflare::generated::zones::{CacheApiResponseSingleId, CacheResult};
+
+    let json = serde_json::json!({
+        "errors": [],
+        "messages": [],
+        "success": true,
+        "result": {
+            "editable": true,
+            "id": "cache_reserve",
+            "modified_on": "2026-10-13T00:00:00Z",
+            "value": "on"
+        }
+    });
+    let response: CacheApiResponseSingleId = serde_json::from_value(json.clone()).unwrap();
+    assert!(response.success);
+    assert_eq!(response.result.id, "cache_reserve");
+    assert!(response.result.editable);
+
+    // The alias is the generic type, so code can be written against either.
+    let generic: &ApiEnvelope<CacheResult> = &response;
+    assert_eq!(serde_json::to_value(generic).unwrap()["result"]["id"], json["result"]["id"]);
 }

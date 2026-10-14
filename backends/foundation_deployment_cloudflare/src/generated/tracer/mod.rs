@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_tracer")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,104 +28,89 @@ use super::shared::ApiResponse;
 /// `AccountRequestTracerRequestTraceRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountRequestTracerRequestTraceRequest {
-    /// body property.
+    /// `body` property.
     pub body: Option<AccountRequestTracerRequestTraceRequestBody>,
-    /// context property.
+    /// `context` property.
     pub context: Option<AccountRequestTracerRequestTraceRequestContext>,
-    /// cookies property.
+    /// `cookies` property.
     pub cookies: Option<serde_json::Value>,
-    /// headers property.
+    /// `headers` property.
     pub headers: Option<serde_json::Value>,
-    /// method property.
+    /// `method` property.
     pub method: String,
-    /// protocol property.
+    /// `protocol` property.
     pub protocol: Option<String>,
-    /// skip_response property.
+    /// `skip_response` property.
     pub skip_response: Option<bool>,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `AccountRequestTracerRequestTraceRequestBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountRequestTracerRequestTraceRequestBody {
-    /// base64 property.
+    /// `base64` property.
     pub base64: Option<String>,
-    /// json property.
+    /// `json` property.
     pub json: Option<serde_json::Value>,
-    /// plain_text property.
+    /// `plain_text` property.
     pub plain_text: Option<String>,
 }
 
 /// `AccountRequestTracerRequestTraceRequestContext` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountRequestTracerRequestTraceRequestContext {
-    /// bot_score property.
+    /// `bot_score` property.
     pub bot_score: Option<i64>,
-    /// geoloc property.
+    /// `geoloc` property.
     pub geoloc: Option<AccountRequestTracerRequestTraceRequestContextGeoloc>,
-    /// skip_challenge property.
+    /// `skip_challenge` property.
     pub skip_challenge: Option<bool>,
-    /// threat_score property.
+    /// `threat_score` property.
     pub threat_score: Option<i64>,
 }
 
 /// `AccountRequestTracerRequestTraceRequestContextGeoloc` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AccountRequestTracerRequestTraceRequestContextGeoloc {
-    /// city property.
+    /// `city` property.
     pub city: Option<String>,
-    /// continent property.
+    /// `continent` property.
     pub continent: Option<String>,
-    /// is_eu_country property.
+    /// `is_eu_country` property.
     pub is_eu_country: Option<bool>,
-    /// iso_code property.
+    /// `iso_code` property.
     pub iso_code: Option<String>,
-    /// latitude property.
+    /// `latitude` property.
     pub latitude: Option<f64>,
-    /// longitude property.
+    /// `longitude` property.
     pub longitude: Option<f64>,
-    /// postal_code property.
+    /// `postal_code` property.
     pub postal_code: Option<String>,
-    /// region_code property.
+    /// `region_code` property.
     pub region_code: Option<String>,
-    /// subdivision_2_iso_code property.
+    /// `subdivision_2_iso_code` property.
     pub subdivision_2_iso_code: Option<String>,
-    /// timezone property.
+    /// `timezone` property.
     pub timezone: Option<String>,
 }
 
 /// `AccountRequestTracerRequestTraceResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccountRequestTracerRequestTraceResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type AccountRequestTracerRequestTraceResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `RequestTracerApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RequestTracerApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type RequestTracerApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `RequestTracerMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct RequestTracerMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type RequestTracerMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `RequestTracerTrace` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct RequestTracerTrace {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type RequestTracerTrace = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -171,34 +160,19 @@ pub async fn account_request_tracer_request_trace_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/request-tracer/trace",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/request-tracer/trace", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AccountRequestTracerRequestTraceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

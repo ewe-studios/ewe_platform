@@ -7,13 +7,17 @@
 
 #![cfg(feature = "docker_networks")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -22,48 +26,33 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `ConfigReference` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConfigReference {
-    /// Network property.
-    #[serde(rename = "Network")]
-    pub network: Option<String>,
-}
+///
+/// Same shape as `super::shared::NetworkObject`.
+pub type ConfigReference = super::shared::NetworkObject;
 
 /// `IPAM` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IPAM {
-    /// Config property.
+    /// `Config` property.
     #[serde(rename = "Config")]
     pub config: Option<Vec<IPAMConfig>>,
-    /// Driver property.
+    /// `Driver` property.
     #[serde(rename = "Driver")]
     pub driver: Option<String>,
-    /// Options property.
+    /// `Options` property.
     #[serde(rename = "Options")]
     pub options: Option<serde_json::Value>,
 }
 
 /// `IPAMConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IPAMConfig {
-    /// AuxiliaryAddresses property.
-    #[serde(rename = "AuxiliaryAddresses")]
-    pub auxiliary_addresses: Option<serde_json::Value>,
-    /// Gateway property.
-    #[serde(rename = "Gateway")]
-    pub gateway: Option<String>,
-    /// IPRange property.
-    #[serde(rename = "IPRange")]
-    pub ip_range: Option<String>,
-    /// Subnet property.
-    #[serde(rename = "Subnet")]
-    pub subnet: Option<String>,
-}
+///
+/// Same shape as `super::shared::IPAMConfigShape`.
+pub type IPAMConfig = super::shared::IPAMConfigShape;
 
 /// `IPAMStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IPAMStatus {
-    /// Subnets property.
+    /// `Subnets` property.
     #[serde(rename = "Subnets")]
     pub subnets: Option<serde_json::Value>,
 }
@@ -71,52 +60,52 @@ pub struct IPAMStatus {
 /// `Network` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Network {
-    /// Attachable property.
+    /// `Attachable` property.
     #[serde(rename = "Attachable")]
     pub attachable: Option<bool>,
-    /// ConfigFrom property.
+    /// `ConfigFrom` property.
     #[serde(rename = "ConfigFrom")]
     pub config_from: Option<ConfigReference>,
-    /// ConfigOnly property.
+    /// `ConfigOnly` property.
     #[serde(rename = "ConfigOnly")]
     pub config_only: Option<bool>,
-    /// Created property.
+    /// `Created` property.
     #[serde(rename = "Created")]
     pub created: Option<String>,
-    /// Driver property.
+    /// `Driver` property.
     #[serde(rename = "Driver")]
     pub driver: Option<String>,
-    /// EnableIPv4 property.
+    /// `EnableIPv4` property.
     #[serde(rename = "EnableIPv4")]
     pub enable_i_pv4: Option<bool>,
-    /// EnableIPv6 property.
+    /// `EnableIPv6` property.
     #[serde(rename = "EnableIPv6")]
     pub enable_i_pv6: Option<bool>,
-    /// IPAM property.
+    /// `IPAM` property.
     #[serde(rename = "IPAM")]
     pub ipam: Option<IPAM>,
-    /// Id property.
+    /// `Id` property.
     #[serde(rename = "Id")]
     pub id: Option<String>,
-    /// Ingress property.
+    /// `Ingress` property.
     #[serde(rename = "Ingress")]
     pub ingress: Option<bool>,
-    /// Internal property.
+    /// `Internal` property.
     #[serde(rename = "Internal")]
     pub internal: Option<bool>,
-    /// Labels property.
+    /// `Labels` property.
     #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
-    /// Name property.
+    /// `Name` property.
     #[serde(rename = "Name")]
     pub name: Option<String>,
-    /// Options property.
+    /// `Options` property.
     #[serde(rename = "Options")]
     pub options: Option<serde_json::Value>,
-    /// Peers property.
+    /// `Peers` property.
     #[serde(rename = "Peers")]
     pub peers: Option<Vec<PeerInfo>>,
-    /// Scope property.
+    /// `Scope` property.
     #[serde(rename = "Scope")]
     pub scope: Option<String>,
 }
@@ -177,7 +166,7 @@ pub struct NetworkInspect {
 /// `NetworkStatus` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkStatus {
-    /// IPAM property.
+    /// `IPAM` property.
     #[serde(rename = "IPAM")]
     pub ipam: Option<IPAMStatus>,
 }
@@ -185,10 +174,10 @@ pub struct NetworkStatus {
 /// `PeerInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PeerInfo {
-    /// IP property.
+    /// `IP` property.
     #[serde(rename = "IP")]
     pub ip: Option<String>,
-    /// Name property.
+    /// `Name` property.
     #[serde(rename = "Name")]
     pub name: Option<String>,
 }
@@ -198,11 +187,9 @@ pub struct PeerInfo {
 // =============================================================================
 
 /// Arguments for [`NetworkList_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NetworkListArgs {
-    /// Query parameter: `filters`.
-    pub filters: Option<String>,
-}
+///
+/// Same shape as `super::shared::FiltersArgs`.
+pub type NetworkListArgs = super::shared::FiltersArgs;
 
 /// Arguments for [`NetworkInspect_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -216,11 +203,9 @@ pub struct NetworkInspectArgs {
 }
 
 /// Arguments for [`NetworkDelete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct NetworkDeleteArgs {
-    /// Path parameter: `id`.
-    pub id: String,
-}
+///
+/// Same shape as `super::shared::IdArgs`.
+pub type NetworkDeleteArgs = super::shared::IdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -257,8 +242,7 @@ pub async fn network_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks",
-    );
+    let path = format!("/networks",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -270,18 +254,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -315,9 +288,7 @@ pub async fn network_inspect_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks/{}",
-        args.id,
-    );
+    let path = format!("/networks/{}", args.id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -330,18 +301,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NetworkInspect = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -375,9 +335,7 @@ pub async fn network_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks/{}",
-        args.id,
-    );
+    let path = format!("/networks/{}", args.id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -387,15 +345,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
-

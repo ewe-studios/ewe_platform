@@ -7,23 +7,27 @@
 
 #![cfg(feature = "docker_create")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
-use super::shared::IDResponse;
-use super::shared::Volume;
 use super::shared::ClusterVolume;
 use super::shared::ClusterVolumeSpec;
 use super::shared::ErrorDetail;
+use super::shared::IDResponse;
 use super::shared::ObjectVersion;
 use super::shared::ProgressDetail;
 use super::shared::Topology;
+use super::shared::Volume;
 
 use super::shared::ApiResponse;
 
@@ -49,103 +53,88 @@ pub struct ConfigCreateRequest {
 }
 
 /// `ConfigReference` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConfigReference {
-    /// Network property.
-    #[serde(rename = "Network")]
-    pub network: Option<String>,
-}
+///
+/// Same shape as `super::shared::NetworkObject`.
+pub type ConfigReference = super::shared::NetworkObject;
 
 /// `ConfigSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ConfigSpec {
-    /// Data property.
-    #[serde(rename = "Data")]
-    pub data: Option<String>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Templating property.
-    #[serde(rename = "Templating")]
-    pub templating: Option<Driver>,
-}
+///
+/// Same shape as `ConfigCreateRequest`.
+pub type ConfigSpec = ConfigCreateRequest;
 
 /// `ContainerConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerConfig {
-    /// ArgsEscaped property.
+    /// `ArgsEscaped` property.
     #[serde(rename = "ArgsEscaped")]
     pub args_escaped: Option<bool>,
-    /// AttachStderr property.
+    /// `AttachStderr` property.
     #[serde(rename = "AttachStderr")]
     pub attach_stderr: Option<bool>,
-    /// AttachStdin property.
+    /// `AttachStdin` property.
     #[serde(rename = "AttachStdin")]
     pub attach_stdin: Option<bool>,
-    /// AttachStdout property.
+    /// `AttachStdout` property.
     #[serde(rename = "AttachStdout")]
     pub attach_stdout: Option<bool>,
-    /// Cmd property.
+    /// `Cmd` property.
     #[serde(rename = "Cmd")]
     pub cmd: Option<Vec<String>>,
-    /// Domainname property.
+    /// `Domainname` property.
     #[serde(rename = "Domainname")]
     pub domainname: Option<String>,
-    /// Entrypoint property.
+    /// `Entrypoint` property.
     #[serde(rename = "Entrypoint")]
     pub entrypoint: Option<Vec<String>>,
-    /// Env property.
+    /// `Env` property.
     #[serde(rename = "Env")]
     pub env: Option<Vec<String>>,
-    /// ExposedPorts property.
+    /// `ExposedPorts` property.
     #[serde(rename = "ExposedPorts")]
     pub exposed_ports: Option<serde_json::Value>,
-    /// Healthcheck property.
+    /// `Healthcheck` property.
     #[serde(rename = "Healthcheck")]
     pub healthcheck: Option<HealthConfig>,
-    /// Hostname property.
+    /// `Hostname` property.
     #[serde(rename = "Hostname")]
     pub hostname: Option<String>,
-    /// Image property.
+    /// `Image` property.
     #[serde(rename = "Image")]
     pub image: Option<String>,
-    /// Labels property.
+    /// `Labels` property.
     #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
-    /// NetworkDisabled property.
+    /// `NetworkDisabled` property.
     #[serde(rename = "NetworkDisabled")]
     pub network_disabled: Option<bool>,
-    /// OnBuild property.
+    /// `OnBuild` property.
     #[serde(rename = "OnBuild")]
     pub on_build: Option<Vec<String>>,
-    /// OpenStdin property.
+    /// `OpenStdin` property.
     #[serde(rename = "OpenStdin")]
     pub open_stdin: Option<bool>,
-    /// Shell property.
+    /// `Shell` property.
     #[serde(rename = "Shell")]
     pub shell: Option<Vec<String>>,
-    /// StdinOnce property.
+    /// `StdinOnce` property.
     #[serde(rename = "StdinOnce")]
     pub stdin_once: Option<bool>,
-    /// StopSignal property.
+    /// `StopSignal` property.
     #[serde(rename = "StopSignal")]
     pub stop_signal: Option<String>,
-    /// StopTimeout property.
+    /// `StopTimeout` property.
     #[serde(rename = "StopTimeout")]
     pub stop_timeout: Option<i64>,
-    /// Tty property.
+    /// `Tty` property.
     #[serde(rename = "Tty")]
     pub tty: Option<bool>,
-    /// User property.
+    /// `User` property.
     #[serde(rename = "User")]
     pub user: Option<String>,
-    /// Volumes property.
+    /// `Volumes` property.
     #[serde(rename = "Volumes")]
     pub volumes: Option<serde_json::Value>,
-    /// WorkingDir property.
+    /// `WorkingDir` property.
     #[serde(rename = "WorkingDir")]
     pub working_dir: Option<String>,
 }
@@ -236,10 +225,10 @@ pub struct ContainerCreateRequest {
 /// `ContainerCreateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ContainerCreateResponse {
-    /// Id property.
+    /// `Id` property.
     #[serde(rename = "Id")]
     pub id: String,
-    /// Warnings property.
+    /// `Warnings` property.
     #[serde(rename = "Warnings")]
     pub warnings: Vec<String>,
 }
@@ -247,123 +236,56 @@ pub struct ContainerCreateResponse {
 /// `CreateImageInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateImageInfo {
-    /// errorDetail property.
+    /// `errorDetail` property.
     #[serde(rename = "errorDetail")]
     pub error_detail: Option<ErrorDetail>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// progressDetail property.
+    /// `progressDetail` property.
     #[serde(rename = "progressDetail")]
     pub progress_detail: Option<ProgressDetail>,
-    /// status property.
+    /// `status` property.
     pub status: Option<String>,
 }
 
 /// `DeviceMapping` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeviceMapping {
-    /// CgroupPermissions property.
-    #[serde(rename = "CgroupPermissions")]
-    pub cgroup_permissions: Option<String>,
-    /// PathInContainer property.
-    #[serde(rename = "PathInContainer")]
-    pub path_in_container: Option<String>,
-    /// PathOnHost property.
-    #[serde(rename = "PathOnHost")]
-    pub path_on_host: Option<String>,
-}
+///
+/// Same shape as `super::shared::CgroupPermissionsPathInContainerPathOnHostObject`.
+pub type DeviceMapping = super::shared::CgroupPermissionsPathInContainerPathOnHostObject;
 
 /// `DeviceRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeviceRequest {
-    /// Capabilities property.
-    #[serde(rename = "Capabilities")]
-    pub capabilities: Option<Vec<Vec<String>>>,
-    /// Count property.
-    #[serde(rename = "Count")]
-    pub count: Option<i64>,
-    /// DeviceIDs property.
-    #[serde(rename = "DeviceIDs")]
-    pub device_i_ds: Option<Vec<String>>,
-    /// Driver property.
-    #[serde(rename = "Driver")]
-    pub driver: Option<String>,
-    /// Options property.
-    #[serde(rename = "Options")]
-    pub options: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::DeviceRequestShape`.
+pub type DeviceRequest = super::shared::DeviceRequestShape;
 
 /// `Driver` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Driver {
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: String,
-    /// Options property.
-    #[serde(rename = "Options")]
-    pub options: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::NameOptionsObject`.
+pub type Driver = super::shared::NameOptionsObject;
 
 /// `EndpointPortConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EndpointPortConfig {
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Protocol property.
-    #[serde(rename = "Protocol")]
-    pub protocol: Option<String>,
-    /// PublishMode property.
-    #[serde(rename = "PublishMode")]
-    pub publish_mode: Option<String>,
-    /// PublishedPort property.
-    #[serde(rename = "PublishedPort")]
-    pub published_port: Option<i64>,
-    /// TargetPort property.
-    #[serde(rename = "TargetPort")]
-    pub target_port: Option<i64>,
-}
+///
+/// Same shape as `super::shared::EndpointPortConfigShape`.
+pub type EndpointPortConfig = super::shared::EndpointPortConfigShape;
 
 /// `EndpointSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EndpointSpec {
-    /// Mode property.
+    /// `Mode` property.
     #[serde(rename = "Mode")]
     pub mode: Option<String>,
-    /// Ports property.
+    /// `Ports` property.
     #[serde(rename = "Ports")]
     pub ports: Option<Vec<EndpointPortConfig>>,
 }
 
 /// `GenericResources` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct GenericResources {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type GenericResources = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `HealthConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct HealthConfig {
-    /// Interval property.
-    #[serde(rename = "Interval")]
-    pub interval: Option<i64>,
-    /// Retries property.
-    #[serde(rename = "Retries")]
-    pub retries: Option<i64>,
-    /// StartInterval property.
-    #[serde(rename = "StartInterval")]
-    pub start_interval: Option<i64>,
-    /// StartPeriod property.
-    #[serde(rename = "StartPeriod")]
-    pub start_period: Option<i64>,
-    /// Test property.
-    #[serde(rename = "Test")]
-    pub test: Option<Vec<String>>,
-    /// Timeout property.
-    #[serde(rename = "Timeout")]
-    pub timeout: Option<i64>,
-}
+///
+/// Same shape as `super::shared::HealthConfigShape`.
+pub type HealthConfig = super::shared::HealthConfigShape;
 
 /// `HostConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -526,7 +448,7 @@ pub struct HostConfig {
     pub pids_limit: Option<i64>,
     /// `PortBindings` property.
     #[serde(rename = "PortBindings")]
-    pub port_bindings: Option<PortMap>,
+    pub port_bindings: Option<serde_json::Value>,
     /// `Privileged` property.
     #[serde(rename = "Privileged")]
     pub privileged: Option<bool>,
@@ -580,134 +502,77 @@ pub struct HostConfig {
 /// `IPAM` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IPAM {
-    /// Config property.
+    /// `Config` property.
     #[serde(rename = "Config")]
     pub config: Option<Vec<IPAMConfig>>,
-    /// Driver property.
+    /// `Driver` property.
     #[serde(rename = "Driver")]
     pub driver: Option<String>,
-    /// Options property.
+    /// `Options` property.
     #[serde(rename = "Options")]
     pub options: Option<serde_json::Value>,
 }
 
 /// `IPAMConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IPAMConfig {
-    /// AuxiliaryAddresses property.
-    #[serde(rename = "AuxiliaryAddresses")]
-    pub auxiliary_addresses: Option<serde_json::Value>,
-    /// Gateway property.
-    #[serde(rename = "Gateway")]
-    pub gateway: Option<String>,
-    /// IPRange property.
-    #[serde(rename = "IPRange")]
-    pub ip_range: Option<String>,
-    /// Subnet property.
-    #[serde(rename = "Subnet")]
-    pub subnet: Option<String>,
-}
+///
+/// Same shape as `super::shared::IPAMConfigShape`.
+pub type IPAMConfig = super::shared::IPAMConfigShape;
 
 /// `Limit` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Limit {
-    /// MemoryBytes property.
-    #[serde(rename = "MemoryBytes")]
-    pub memory_bytes: Option<i64>,
-    /// NanoCPUs property.
-    #[serde(rename = "NanoCPUs")]
-    pub nano_cp_us: Option<i64>,
-    /// Pids property.
-    #[serde(rename = "Pids")]
-    pub pids: Option<i64>,
-}
+///
+/// Same shape as `super::shared::MemoryBytesNanoCpUsPidsObject`.
+pub type Limit = super::shared::MemoryBytesNanoCpUsPidsObject;
 
 /// `Mount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Mount {
-    /// BindOptions property.
-    #[serde(rename = "BindOptions")]
-    pub bind_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Consistency property.
-    #[serde(rename = "Consistency")]
-    pub consistency: Option<String>,
-    /// ImageOptions property.
-    #[serde(rename = "ImageOptions")]
-    pub image_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// ReadOnly property.
-    #[serde(rename = "ReadOnly")]
-    pub read_only: Option<bool>,
-    /// Source property.
-    #[serde(rename = "Source")]
-    pub source: Option<String>,
-    /// Target property.
-    #[serde(rename = "Target")]
-    pub target: Option<String>,
-    /// TmpfsOptions property.
-    #[serde(rename = "TmpfsOptions")]
-    pub tmpfs_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Type property.
-    #[serde(rename = "Type")]
-    pub r#type: Option<serde_json::Value>,
-    /// VolumeOptions property.
-    #[serde(rename = "VolumeOptions")]
-    pub volume_options: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::MountShape`.
+pub type Mount = super::shared::MountShape;
 
 /// `NetworkAttachmentConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct NetworkAttachmentConfig {
-    /// Aliases property.
-    #[serde(rename = "Aliases")]
-    pub aliases: Option<Vec<String>>,
-    /// DriverOpts property.
-    #[serde(rename = "DriverOpts")]
-    pub driver_opts: Option<serde_json::Value>,
-    /// Target property.
-    #[serde(rename = "Target")]
-    pub target: Option<String>,
-}
+///
+/// Same shape as `super::shared::AliasesDriverOptsTargetObject`.
+pub type NetworkAttachmentConfig = super::shared::AliasesDriverOptsTargetObject;
 
 /// `NetworkCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkCreateRequest {
-    /// Attachable property.
+    /// `Attachable` property.
     #[serde(rename = "Attachable")]
     pub attachable: Option<bool>,
-    /// ConfigFrom property.
+    /// `ConfigFrom` property.
     #[serde(rename = "ConfigFrom")]
     pub config_from: Option<ConfigReference>,
-    /// ConfigOnly property.
+    /// `ConfigOnly` property.
     #[serde(rename = "ConfigOnly")]
     pub config_only: Option<bool>,
-    /// Driver property.
+    /// `Driver` property.
     #[serde(rename = "Driver")]
     pub driver: Option<String>,
-    /// EnableIPv4 property.
+    /// `EnableIPv4` property.
     #[serde(rename = "EnableIPv4")]
     pub enable_i_pv4: Option<bool>,
-    /// EnableIPv6 property.
+    /// `EnableIPv6` property.
     #[serde(rename = "EnableIPv6")]
     pub enable_i_pv6: Option<bool>,
-    /// IPAM property.
+    /// `IPAM` property.
     #[serde(rename = "IPAM")]
     pub ipam: Option<IPAM>,
-    /// Ingress property.
+    /// `Ingress` property.
     #[serde(rename = "Ingress")]
     pub ingress: Option<bool>,
-    /// Internal property.
+    /// `Internal` property.
     #[serde(rename = "Internal")]
     pub internal: Option<bool>,
-    /// Labels property.
+    /// `Labels` property.
     #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
-    /// Name property.
+    /// `Name` property.
     #[serde(rename = "Name")]
     pub name: String,
-    /// Options property.
+    /// `Options` property.
     #[serde(rename = "Options")]
     pub options: Option<serde_json::Value>,
-    /// Scope property.
+    /// `Scope` property.
     #[serde(rename = "Scope")]
     pub scope: Option<String>,
 }
@@ -715,10 +580,10 @@ pub struct NetworkCreateRequest {
 /// `NetworkCreateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkCreateResponse {
-    /// Id property.
+    /// `Id` property.
     #[serde(rename = "Id")]
     pub id: String,
-    /// Warning property.
+    /// `Warning` property.
     #[serde(rename = "Warning")]
     pub warning: String,
 }
@@ -726,162 +591,128 @@ pub struct NetworkCreateResponse {
 /// `NetworkingConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkingConfig {
-    /// EndpointsConfig property.
+    /// `EndpointsConfig` property.
     #[serde(rename = "EndpointsConfig")]
     pub endpoints_config: Option<serde_json::Value>,
 }
 
 /// `Platform` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Platform {
-    /// Architecture property.
-    #[serde(rename = "Architecture")]
-    pub architecture: Option<String>,
-    /// OS property.
-    #[serde(rename = "OS")]
-    pub os: Option<String>,
-}
+///
+/// Same shape as `super::shared::ArchitectureOsObject`.
+pub type Platform = super::shared::ArchitectureOsObject;
 
 /// `PluginPrivilege` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PluginPrivilege {
-    /// Description property.
-    #[serde(rename = "Description")]
-    pub description: Option<String>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Value property.
-    #[serde(rename = "Value")]
-    pub value: Option<Vec<String>>,
-}
+///
+/// Same shape as `super::shared::DescriptionNameValueObject`.
+pub type PluginPrivilege = super::shared::DescriptionNameValueObject;
 
 /// `PortMap` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct PortMap {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type PortMap = serde_json::Value;
 
 /// `ResourceObject` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceObject {
-    /// GenericResources property.
-    #[serde(rename = "GenericResources")]
-    pub generic_resources: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// MemoryBytes property.
-    #[serde(rename = "MemoryBytes")]
-    pub memory_bytes: Option<i64>,
-    /// NanoCPUs property.
-    #[serde(rename = "NanoCPUs")]
-    pub nano_cp_us: Option<i64>,
-}
+///
+/// Same shape as `super::shared::GenericResourcesMemoryBytesNanoCpUsObject`.
+pub type ResourceObject = super::shared::GenericResourcesMemoryBytesNanoCpUsObject;
 
 /// `Resources` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Resources {
-    /// BlkioDeviceReadBps property.
+    /// `BlkioDeviceReadBps` property.
     #[serde(rename = "BlkioDeviceReadBps")]
     pub blkio_device_read_bps: Option<Vec<ThrottleDevice>>,
-    /// BlkioDeviceReadIOps property.
+    /// `BlkioDeviceReadIOps` property.
     #[serde(rename = "BlkioDeviceReadIOps")]
     pub blkio_device_read_i_ops: Option<Vec<ThrottleDevice>>,
-    /// BlkioDeviceWriteBps property.
+    /// `BlkioDeviceWriteBps` property.
     #[serde(rename = "BlkioDeviceWriteBps")]
     pub blkio_device_write_bps: Option<Vec<ThrottleDevice>>,
-    /// BlkioDeviceWriteIOps property.
+    /// `BlkioDeviceWriteIOps` property.
     #[serde(rename = "BlkioDeviceWriteIOps")]
     pub blkio_device_write_i_ops: Option<Vec<ThrottleDevice>>,
-    /// BlkioWeight property.
+    /// `BlkioWeight` property.
     #[serde(rename = "BlkioWeight")]
     pub blkio_weight: Option<i64>,
-    /// BlkioWeightDevice property.
+    /// `BlkioWeightDevice` property.
     #[serde(rename = "BlkioWeightDevice")]
     pub blkio_weight_device: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// CgroupParent property.
+    /// `CgroupParent` property.
     #[serde(rename = "CgroupParent")]
     pub cgroup_parent: Option<String>,
-    /// CpuCount property.
+    /// `CpuCount` property.
     #[serde(rename = "CpuCount")]
     pub cpu_count: Option<i64>,
-    /// CpuPercent property.
+    /// `CpuPercent` property.
     #[serde(rename = "CpuPercent")]
     pub cpu_percent: Option<i64>,
-    /// CpuPeriod property.
+    /// `CpuPeriod` property.
     #[serde(rename = "CpuPeriod")]
     pub cpu_period: Option<i64>,
-    /// CpuQuota property.
+    /// `CpuQuota` property.
     #[serde(rename = "CpuQuota")]
     pub cpu_quota: Option<i64>,
-    /// CpuRealtimePeriod property.
+    /// `CpuRealtimePeriod` property.
     #[serde(rename = "CpuRealtimePeriod")]
     pub cpu_realtime_period: Option<i64>,
-    /// CpuRealtimeRuntime property.
+    /// `CpuRealtimeRuntime` property.
     #[serde(rename = "CpuRealtimeRuntime")]
     pub cpu_realtime_runtime: Option<i64>,
-    /// CpuShares property.
+    /// `CpuShares` property.
     #[serde(rename = "CpuShares")]
     pub cpu_shares: Option<i64>,
-    /// CpusetCpus property.
+    /// `CpusetCpus` property.
     #[serde(rename = "CpusetCpus")]
     pub cpuset_cpus: Option<String>,
-    /// CpusetMems property.
+    /// `CpusetMems` property.
     #[serde(rename = "CpusetMems")]
     pub cpuset_mems: Option<String>,
-    /// DeviceCgroupRules property.
+    /// `DeviceCgroupRules` property.
     #[serde(rename = "DeviceCgroupRules")]
     pub device_cgroup_rules: Option<Vec<String>>,
-    /// DeviceRequests property.
+    /// `DeviceRequests` property.
     #[serde(rename = "DeviceRequests")]
     pub device_requests: Option<Vec<DeviceRequest>>,
-    /// Devices property.
+    /// `Devices` property.
     #[serde(rename = "Devices")]
     pub devices: Option<Vec<DeviceMapping>>,
-    /// IOMaximumBandwidth property.
+    /// `IOMaximumBandwidth` property.
     #[serde(rename = "IOMaximumBandwidth")]
     pub io_maximum_bandwidth: Option<i64>,
-    /// IOMaximumIOps property.
+    /// `IOMaximumIOps` property.
     #[serde(rename = "IOMaximumIOps")]
     pub io_maximum_i_ops: Option<i64>,
-    /// Init property.
+    /// `Init` property.
     #[serde(rename = "Init")]
     pub init: Option<bool>,
-    /// Memory property.
+    /// `Memory` property.
     #[serde(rename = "Memory")]
     pub memory: Option<i64>,
-    /// MemoryReservation property.
+    /// `MemoryReservation` property.
     #[serde(rename = "MemoryReservation")]
     pub memory_reservation: Option<i64>,
-    /// MemorySwap property.
+    /// `MemorySwap` property.
     #[serde(rename = "MemorySwap")]
     pub memory_swap: Option<i64>,
-    /// MemorySwappiness property.
+    /// `MemorySwappiness` property.
     #[serde(rename = "MemorySwappiness")]
     pub memory_swappiness: Option<i64>,
-    /// NanoCpus property.
+    /// `NanoCpus` property.
     #[serde(rename = "NanoCpus")]
     pub nano_cpus: Option<i64>,
-    /// OomKillDisable property.
+    /// `OomKillDisable` property.
     #[serde(rename = "OomKillDisable")]
     pub oom_kill_disable: Option<bool>,
-    /// PidsLimit property.
+    /// `PidsLimit` property.
     #[serde(rename = "PidsLimit")]
     pub pids_limit: Option<i64>,
-    /// Ulimits property.
+    /// `Ulimits` property.
     #[serde(rename = "Ulimits")]
     pub ulimits: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 /// `RestartPolicy` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RestartPolicy {
-    /// MaximumRetryCount property.
-    #[serde(rename = "MaximumRetryCount")]
-    pub maximum_retry_count: Option<i64>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-}
+///
+/// Same shape as `super::shared::MaximumRetryCountNameObject`.
+pub type RestartPolicy = super::shared::MaximumRetryCountNameObject;
 
 /// `SecretCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -904,24 +735,9 @@ pub struct SecretCreateRequest {
 }
 
 /// `SecretSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecretSpec {
-    /// Data property.
-    #[serde(rename = "Data")]
-    pub data: Option<String>,
-    /// Driver property.
-    #[serde(rename = "Driver")]
-    pub driver: Option<Driver>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Templating property.
-    #[serde(rename = "Templating")]
-    pub templating: Option<Driver>,
-}
+///
+/// Same shape as `SecretCreateRequest`.
+pub type SecretSpec = SecretCreateRequest;
 
 /// `ServiceCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -955,105 +771,75 @@ pub struct ServiceCreateRequest {
 /// `ServiceCreateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ServiceCreateResponse {
-    /// ID property.
+    /// `ID` property.
     #[serde(rename = "ID")]
     pub id: Option<String>,
-    /// Warnings property.
+    /// `Warnings` property.
     #[serde(rename = "Warnings")]
     pub warnings: Option<Vec<String>>,
 }
 
 /// `ServiceSpec` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ServiceSpec {
-    /// EndpointSpec property.
-    #[serde(rename = "EndpointSpec")]
-    pub endpoint_spec: Option<EndpointSpec>,
-    /// Labels property.
-    #[serde(rename = "Labels")]
-    pub labels: Option<serde_json::Value>,
-    /// Mode property.
-    #[serde(rename = "Mode")]
-    pub mode: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Name property.
-    #[serde(rename = "Name")]
-    pub name: Option<String>,
-    /// Networks property.
-    #[serde(rename = "Networks")]
-    pub networks: Option<Vec<NetworkAttachmentConfig>>,
-    /// RollbackConfig property.
-    #[serde(rename = "RollbackConfig")]
-    pub rollback_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// TaskTemplate property.
-    #[serde(rename = "TaskTemplate")]
-    pub task_template: Option<TaskSpec>,
-    /// UpdateConfig property.
-    #[serde(rename = "UpdateConfig")]
-    pub update_config: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ServiceCreateRequest`.
+pub type ServiceSpec = ServiceCreateRequest;
 
 /// `TaskSpec` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TaskSpec {
-    /// ContainerSpec property.
+    /// `ContainerSpec` property.
     #[serde(rename = "ContainerSpec")]
     pub container_spec: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// ForceUpdate property.
+    /// `ForceUpdate` property.
     #[serde(rename = "ForceUpdate")]
     pub force_update: Option<i64>,
-    /// LogDriver property.
+    /// `LogDriver` property.
     #[serde(rename = "LogDriver")]
     pub log_driver: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// NetworkAttachmentSpec property.
+    /// `NetworkAttachmentSpec` property.
     #[serde(rename = "NetworkAttachmentSpec")]
     pub network_attachment_spec: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Networks property.
+    /// `Networks` property.
     #[serde(rename = "Networks")]
     pub networks: Option<Vec<NetworkAttachmentConfig>>,
-    /// Placement property.
+    /// `Placement` property.
     #[serde(rename = "Placement")]
     pub placement: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// PluginSpec property.
+    /// `PluginSpec` property.
     #[serde(rename = "PluginSpec")]
     pub plugin_spec: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Resources property.
+    /// `Resources` property.
     #[serde(rename = "Resources")]
     pub resources: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// RestartPolicy property.
+    /// `RestartPolicy` property.
     #[serde(rename = "RestartPolicy")]
     pub restart_policy: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// Runtime property.
+    /// `Runtime` property.
     #[serde(rename = "Runtime")]
     pub runtime: Option<String>,
 }
 
 /// `ThrottleDevice` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ThrottleDevice {
-    /// Path property.
-    #[serde(rename = "Path")]
-    pub path: Option<String>,
-    /// Rate property.
-    #[serde(rename = "Rate")]
-    pub rate: Option<i64>,
-}
+///
+/// Same shape as `super::shared::PathRateObject`.
+pub type ThrottleDevice = super::shared::PathRateObject;
 
 /// `VolumeCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct VolumeCreateRequest {
-    /// ClusterVolumeSpec property.
+    /// `ClusterVolumeSpec` property.
     #[serde(rename = "ClusterVolumeSpec")]
     pub cluster_volume_spec: Option<ClusterVolumeSpec>,
-    /// Driver property.
+    /// `Driver` property.
     #[serde(rename = "Driver")]
     pub driver: Option<String>,
-    /// DriverOpts property.
+    /// `DriverOpts` property.
     #[serde(rename = "DriverOpts")]
     pub driver_opts: Option<serde_json::Value>,
-    /// Labels property.
+    /// `Labels` property.
     #[serde(rename = "Labels")]
     pub labels: Option<serde_json::Value>,
-    /// Name property.
+    /// `Name` property.
     #[serde(rename = "Name")]
     pub name: Option<String>,
 }
@@ -1169,32 +955,21 @@ pub async fn config_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/configs/create",
-    );
+    let path = format!("/configs/create",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: IDResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1228,8 +1003,7 @@ pub async fn container_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/create",
-    );
+    let path = format!("/containers/create",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -1238,25 +1012,15 @@ where
     builder = builder.query("name", args.name.as_deref());
     builder = builder.query("platform", args.platform.as_deref());
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ContainerCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1297,8 +1061,7 @@ pub async fn image_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/create",
-    );
+    let path = format!("/images/create",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -1322,16 +1085,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: super::shared::JsonLinesStream::new(response.take_body()) })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::JsonLinesStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -1365,32 +1124,21 @@ pub async fn network_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks/create",
-    );
+    let path = format!("/networks/create",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: NetworkCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1426,8 +1174,7 @@ pub async fn plugin_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/plugins/create",
-    );
+    let path = format!("/plugins/create",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -1443,16 +1190,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1486,32 +1224,21 @@ pub async fn secret_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/secrets/create",
-    );
+    let path = format!("/secrets/create",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: IDResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1545,32 +1272,21 @@ pub async fn service_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/services/create",
-    );
+    let path = format!("/services/create",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ServiceCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1604,31 +1320,19 @@ pub async fn volume_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/volumes/create",
-    );
+    let path = format!("/volumes/create",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let body = super::shared::read_error_body(response.take_body()).await;
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: Volume = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

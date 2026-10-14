@@ -4,7 +4,13 @@
 //! DO NOT EDIT MANUALLY.
 
 // Re-export common API types from foundation_deployment
-pub use foundation_deployment::providers::common::{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation};
+pub use foundation_deployment::providers::common::{
+    read_error_body, send_checked, send_json, send_without_body, with_raw_body, ByteStream,
+    JsonLinesStream,
+};
+pub use foundation_deployment::providers::common::{
+    ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,
+};
 
 // Imports for shared resource types
 use foundation_macros::JsonHash;
@@ -17,2653 +23,9057 @@ use serde::{Deserialize, Serialize};
 /// `AaaAuditLogsResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaAuditLogsResponseCollection {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<AaaResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: Option<bool>,
 }
 
 /// `AaaIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type AaaIdResponse = ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `AccessAppSettingsRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessAppSettingsRequest {
-    /// allow_iframe property.
-    pub allow_iframe: Option<AccessAllowIframe>,
-    /// skip_interstitial property.
-    pub skip_interstitial: Option<AccessSkipInterstitial>,
-}
+///
+/// Same shape as `AllowIframeSkipInterstitialObject`.
+pub type AccessAppSettingsRequest = AllowIframeSkipInterstitialObject;
 
 /// `AccessComponentsSchemasIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessComponentsSchemasIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type AccessComponentsSchemasIdResponse =
+    ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `AccessEmptyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessEmptyResponse {
-    /// `result` property.
-    pub result: Option<bool>,
-    /// `success` property.
-    pub success: Option<bool>,
-}
+///
+/// Same shape as `ApiEnvelopeSuccess2<Option<bool>>`.
+pub type AccessEmptyResponse = ApiEnvelopeSuccess2<Option<bool>>;
 
 /// `AccessIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type AccessIdResponse =
+    ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `AccessResponseCollectionHostnames` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessResponseCollectionHostnames {
-    /// `result` property.
-    pub result: Option<Vec<AccessSettings>>,
-}
+///
+/// Same shape as `ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<AccessSettings>>>`.
+pub type AccessResponseCollectionHostnames =
+    ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<AccessSettings>>>;
 
 /// `AccessSchemasEmptyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessSchemasEmptyResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-    /// `success` property.
-    pub success: Option<bool>,
-}
+///
+/// Same shape as `ApiEnvelopeSuccess2<Option<serde_json::Value>>`.
+pub type AccessSchemasEmptyResponse = ApiEnvelopeSuccess2<Option<serde_json::Value>>;
 
 /// `AddressingApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AddressingApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `AddressingApiResponseCollectionShape`.
+pub type AddressingApiResponseCollection = AddressingApiResponseCollectionShape;
 
 /// `AddressingApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AddressingApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type AddressingApiResponseCommon = ErrorsMessagesSuccessObject;
 
 /// `BillSubsApiSubscriptionV2` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BillSubsApiSubscriptionV2 {
-    /// app property.
+    /// `app` property.
     pub app: Option<serde_json::Value>,
-    /// component_values property.
+    /// `component_values` property.
     pub component_values: Option<Vec<BillSubsApiComponentValue>>,
-    /// currency property.
-    pub currency: Option<BillSubsApiCurrency>,
-    /// current_period_end property.
-    pub current_period_end: Option<BillSubsApiCurrentPeriodEnd>,
-    /// current_period_start property.
-    pub current_period_start: Option<BillSubsApiCurrentPeriodStart>,
-    /// frequency property.
-    pub frequency: Option<BillSubsApiFrequency>,
-    /// id property.
-    pub id: Option<BillSubsApiSchemasIdentifier>,
-    /// price property.
-    pub price: Option<BillSubsApiPrice>,
-    /// rate_plan property.
+    /// `currency` property.
+    pub currency: Option<String>,
+    /// `current_period_end` property.
+    pub current_period_end: Option<String>,
+    /// `current_period_start` property.
+    pub current_period_start: Option<String>,
+    /// `frequency` property.
+    pub frequency: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `price` property.
+    pub price: Option<f64>,
+    /// `rate_plan` property.
     pub rate_plan: Option<BillSubsApiRatePlan>,
-    /// state property.
-    pub state: Option<BillSubsApiState>,
-    /// zone property.
+    /// `state` property.
+    pub state: Option<String>,
+    /// `zone` property.
     pub zone: Option<BillSubsApiZone>,
 }
 
 /// `DosApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DosApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type DosApiResponseCommon = ErrorsMessagesSuccessObject;
 
 /// `FirewallRuleCollectionResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct FirewallRuleCollectionResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<FirewallRule>>,
+    pub result: Vec<FirewallRule>,
+    /// `result_info` property.
+    pub result_info: Option<FirewallResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `FirewallRuleSingleIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallRuleSingleIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type FirewallRuleSingleIdResponse =
+    ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `FirewallRuleSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallRuleSingleResponse {
-    /// `result` property.
-    pub result: Option<FirewallRule>,
-}
+///
+/// Same shape as `ApiEnvelope<FirewallRule>`.
+pub type FirewallRuleSingleResponse = ApiEnvelope<FirewallRule>;
 
 /// `IamApiResponseSingleId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamApiResponseSingleId {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type IamApiResponseSingleId =
+    ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `IamCollectionTokensResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamCollectionTokensResponse {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<IamTokenBase>>,
+    /// `result_info` property.
+    pub result_info: Option<IamResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `IamCreatePayload` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamCreatePayload {
-    /// condition property.
+    /// `condition` property.
     pub condition: Option<IamCondition>,
-    /// expires_on property.
-    pub expires_on: Option<IamExpiresOn>,
-    /// name property.
-    pub name: IamName,
-    /// not_before property.
-    pub not_before: Option<IamNotBefore>,
-    /// policies property.
+    /// `expires_on` property.
+    pub expires_on: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `not_before` property.
+    pub not_before: Option<String>,
+    /// `policies` property.
     pub policies: Vec<IamPolicyWithPermissionGroupsAndResources>,
 }
 
 /// `IamPermissionsGroupResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamPermissionsGroupResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// `result_info` property.
+    pub result_info: Option<IamResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `IamResponseSingleValue` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamResponseSingleValue {
-    /// `result` property.
-    pub result: Option<IamValue>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<String>>`.
+pub type IamResponseSingleValue = ApiEnvelope<Option<String>>;
 
 /// `IamSingleTokenCreateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamSingleTokenCreateResponse {
-    /// `result` property.
-    pub result: Option<IamTokenWithValue>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<IamTokenWithValue>>`.
+pub type IamSingleTokenCreateResponse = ApiEnvelope<Option<IamTokenWithValue>>;
 
 /// `IamSingleTokenResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamSingleTokenResponse {
-    /// `result` property.
-    pub result: Option<IamTokenBase>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<IamTokenBase>>`.
+pub type IamSingleTokenResponse = ApiEnvelope<Option<IamTokenBase>>;
 
 /// `IamTokenBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamTokenBody {
+    /// `condition` property.
+    pub condition: Option<IamCondition>,
+    /// `expires_on` property.
+    pub expires_on: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `issued_on` property.
+    pub issued_on: Option<String>,
+    /// `last_used_on` property.
+    pub last_used_on: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `not_before` property.
+    pub not_before: Option<String>,
+    /// `policies` property.
+    pub policies: Vec<IamPolicyWithPermissionGroupsAndResources>,
+    /// `status` property.
+    pub status: Option<String>,
 }
 
 /// `IamTokenVerifyResponseSingleSegment` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamTokenVerifyResponseSingleSegment {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<serde_json::Value>>`.
+pub type IamTokenVerifyResponseSingleSegment = ApiEnvelope<Option<serde_json::Value>>;
 
 /// `LoadBalancingHealthDetails` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingHealthDetails {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type LoadBalancingHealthDetails =
+    ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `LoadBalancingIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type LoadBalancingIdResponse =
+    ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `LoadBalancingMonitorReferencesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingMonitorReferencesResponse {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
+///
+/// Same shape as `ApiEnvelope<Vec<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type LoadBalancingMonitorReferencesResponse =
+    ApiEnvelope<Vec<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `LoadBalancingMonitorResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitorResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<LoadBalancingMonitor>>,
+    pub result: Vec<LoadBalancingMonitor>,
+    /// `result_info` property.
+    pub result_info: LoadBalancingResultInfo,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `LoadBalancingMonitorResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingMonitorResponseSingle {
-    /// `result` property.
-    pub result: Option<LoadBalancingMonitor>,
-}
+///
+/// Same shape as `ApiEnvelope<LoadBalancingMonitor>`.
+pub type LoadBalancingMonitorResponseSingle = ApiEnvelope<LoadBalancingMonitor>;
 
 /// `LoadBalancingPoolsReferencesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingPoolsReferencesResponse {
-    /// `result` property.
-    pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-}
+///
+/// Same shape as `ApiEnvelope<Vec<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type LoadBalancingPoolsReferencesResponse =
+    ApiEnvelope<Vec<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `LoadBalancingPreviewResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingPreviewResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type LoadBalancingPreviewResponse =
+    ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `LoadBalancingPreviewResultResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingPreviewResultResponse {
-    /// `result` property.
-    pub result: Option<LoadBalancingPreviewResult>,
-}
+///
+/// Same shape as `ApiEnvelope<serde_json::Value>`.
+pub type LoadBalancingPreviewResultResponse = ApiEnvelope<serde_json::Value>;
 
 /// `LoadBalancingSchemasIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingSchemasIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type LoadBalancingSchemasIdResponse =
+    ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `LoadBalancingSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingSchemasResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<LoadBalancingPool>>,
+    pub result: Vec<LoadBalancingPool>,
+    /// `result_info` property.
+    pub result_info: LoadBalancingResultInfo,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `LoadBalancingSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<LoadBalancingPool>,
-}
+///
+/// Same shape as `ApiEnvelope<LoadBalancingPool>`.
+pub type LoadBalancingSchemasSingleResponse = ApiEnvelope<LoadBalancingPool>;
 
 /// `LogpushDestinationExistsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushDestinationExistsResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type LogpushDestinationExistsResponse =
+    ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `LogpushGetOwnershipResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushGetOwnershipResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type LogpushGetOwnershipResponse =
+    ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `LogpushLogpushFieldResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushLogpushFieldResponseCollection {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<serde_json::Value>>`.
+pub type LogpushLogpushFieldResponseCollection = ApiEnvelope<Option<serde_json::Value>>;
 
 /// `LogpushLogpushJobResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushLogpushJobResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<LogpushLogpushJob>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<Vec<LogpushLogpushJob>>>`.
+pub type LogpushLogpushJobResponseCollection = ApiEnvelope<Option<Vec<LogpushLogpushJob>>>;
 
 /// `LogpushLogpushJobResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushLogpushJobResponseSingle {
-    /// `result` property.
-    pub result: Option<LogpushLogpushJob>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<LogpushLogpushJob>>`.
+pub type LogpushLogpushJobResponseSingle = ApiEnvelope<Option<LogpushLogpushJob>>;
 
 /// `LogpushValidateOwnershipResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushValidateOwnershipResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type LogpushValidateOwnershipResponse =
+    ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `LogpushValidateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushValidateResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type LogpushValidateResponse =
+    ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `MagicVisibilityMnmMnmConfigSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityMnmMnmConfigSingleResponse {
-    /// `result` property.
-    pub result: Option<MagicVisibilityMnmMnmConfig>,
-}
+///
+/// Same shape as `ApiEnvelope<MagicVisibilityMnmMnmConfig>`.
+pub type MagicVisibilityMnmMnmConfigSingleResponse = ApiEnvelope<MagicVisibilityMnmMnmConfig>;
 
 /// `ObservatoryCountResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ObservatoryCountResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type ObservatoryCountResponse =
+    ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `OrganizationsApiProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationsApiProfile {
-    /// business_address property.
+    /// `business_address` property.
     pub business_address: String,
-    /// business_email property.
+    /// `business_email` property.
     pub business_email: String,
-    /// business_name property.
+    /// `business_name` property.
     pub business_name: String,
-    /// business_phone property.
+    /// `business_phone` property.
     pub business_phone: String,
-    /// external_metadata property.
+    /// `external_metadata` property.
     pub external_metadata: String,
 }
 
 /// `ResourceSharingShareResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<ResourceSharingV4Error>,
     /// `result` property.
     pub result: Option<Vec<ResourceSharingShareObject>>,
+    /// `result_info` property.
+    pub result_info: Option<ResourceSharingResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ResourceTaggingTaggedResourceResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceResponseSingle {
-    /// `result` property.
-    pub result: Option<ResourceTaggingTaggedResourceObject>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<serde_json::Value>>`.
+pub type ResourceTaggingTaggedResourceResponseSingle = ApiEnvelope<Option<serde_json::Value>>;
 
 /// `RulesetsRulesetResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsRulesetResponse {
     /// `errors` property.
-    pub errors: Option<serde_json::Value>,
+    pub errors: serde_json::Value,
+    /// `messages` property.
+    pub messages: Vec<RulesetsMessage>,
     /// `result` property.
-    pub result: Option<serde_json::Value>,
+    pub result: serde_json::Value,
     /// `success` property.
-    pub success: Option<serde_json::Value>,
+    pub success: serde_json::Value,
 }
 
 /// `RulesetsRulesetsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsRulesetsResponse {
     /// `errors` property.
-    pub errors: Option<serde_json::Value>,
+    pub errors: serde_json::Value,
+    /// `messages` property.
+    pub messages: Vec<RulesetsMessage>,
     /// `result` property.
-    pub result: Option<Vec<serde_json::Value>>,
+    pub result: Vec<serde_json::Value>,
     /// `result_info` property.
     pub result_info: Option<RulesetsResultInfo>,
     /// `success` property.
-    pub success: Option<serde_json::Value>,
+    pub success: serde_json::Value,
 }
 
 /// `SecurityCenterValueCountsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecurityCenterValueCountsResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `ApiEnvelope<Option<serde_json::Value>>`.
+pub type SecurityCenterValueCountsResponse = ApiEnvelope<Option<serde_json::Value>>;
 
 /// `TunnelSubnetResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelSubnetResponseSingle {
-    /// `result` property.
-    pub result: Option<TunnelSubnet>,
-}
+///
+/// Same shape as `ApiEnvelope<TunnelSubnet>`.
+pub type TunnelSubnetResponseSingle = ApiEnvelope<TunnelSubnet>;
 
 /// `WaitingroomResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WaitingroomResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<WaitingroomWaitingroom>>,
-}
+///
+/// Same shape as `ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<WaitingroomWaitingroom>>>`.
+pub type WaitingroomResponseCollection =
+    ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<WaitingroomWaitingroom>>>;
 
 /// `AaaApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaApiResponseSingle {
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type AaaApiResponseSingle = ErrorsMessagesSuccessObject;
 
 /// `AaaResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaResultInfo {
-    /// count property.
+    /// `count` property.
     pub count: Option<String>,
-    /// cursor property.
+    /// `cursor` property.
     pub cursor: Option<String>,
 }
 
 /// `AaaSchemasApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type AaaSchemasApiResponseCommon = ErrorsMessagesSuccessObject;
 
 /// `AaaUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaUuid = String;
 
 /// `AccessAllowIframe` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AccessAllowIframe {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AccessAllowIframe = bool;
 
 /// `AccessApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `AddressingApiResponseCollectionShape`.
+pub type AccessApiResponseCollection = AddressingApiResponseCollectionShape;
 
 /// `AccessApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type AccessApiResponseCommon = ErrorsMessagesSuccessObject;
 
 /// `AccessApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessApiResponseSingle {
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type AccessApiResponseSingle = ErrorsMessagesSuccessObject;
 
 /// `AccessSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AccessSettings {
-    /// china_network property.
-    pub china_network: bool,
-    /// client_certificate_forwarding property.
-    pub client_certificate_forwarding: bool,
-    /// hostname property.
-    pub hostname: String,
-}
+///
+/// Same shape as `ChinaNetworkClientCertificateForwardingHostnameObject`.
+pub type AccessSettings = ChinaNetworkClientCertificateForwardingHostnameObject;
 
 /// `AccessSkipInterstitial` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AccessSkipInterstitial {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AccessSkipInterstitial = bool;
 
 /// `AccessUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AccessUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AccessUuid = String;
 
 /// `BillSubsApiComponentValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct BillSubsApiComponentValue {
-    /// default property.
+    /// `default` property.
     pub default: Option<f64>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// price property.
+    /// `price` property.
     pub price: Option<f64>,
-    /// value property.
+    /// `value` property.
     pub value: Option<f64>,
 }
 
 /// `BillSubsApiCurrency` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BillSubsApiCurrency {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BillSubsApiCurrency = String;
 
 /// `BillSubsApiCurrentPeriodEnd` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BillSubsApiCurrentPeriodEnd {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BillSubsApiCurrentPeriodEnd = String;
 
 /// `BillSubsApiCurrentPeriodStart` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BillSubsApiCurrentPeriodStart {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BillSubsApiCurrentPeriodStart = String;
 
 /// `BillSubsApiFrequency` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BillSubsApiFrequency {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BillSubsApiFrequency = String;
 
 /// `BillSubsApiIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BillSubsApiIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BillSubsApiIdentifier = String;
 
 /// `BillSubsApiName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BillSubsApiName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BillSubsApiName = String;
 
 /// `BillSubsApiPrice` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BillSubsApiPrice {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BillSubsApiPrice = f64;
 
 /// `BillSubsApiRatePlan` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillSubsApiRatePlan {
-    /// currency property.
-    pub currency: Option<String>,
-    /// externally_managed property.
-    pub externally_managed: Option<bool>,
-    /// id property.
-    pub id: Option<String>,
-    /// is_contract property.
-    pub is_contract: Option<bool>,
-    /// public_name property.
-    pub public_name: Option<String>,
-    /// scope property.
-    pub scope: Option<String>,
-    /// sets property.
-    pub sets: Option<Vec<String>>,
-}
+///
+/// Same shape as `BillSubsApiRatePlanShape`.
+pub type BillSubsApiRatePlan = BillSubsApiRatePlanShape;
 
 /// `BillSubsApiSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BillSubsApiSchemasIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BillSubsApiSchemasIdentifier = String;
 
 /// `BillSubsApiState` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct BillSubsApiState {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type BillSubsApiState = String;
 
 /// `BillSubsApiZone` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct BillSubsApiZone {
-    /// id property.
-    pub id: Option<BillSubsApiIdentifier>,
-    /// name property.
-    pub name: Option<BillSubsApiName>,
-}
+///
+/// Same shape as `IdNameObject`.
+pub type BillSubsApiZone = IdNameObject;
 
 /// `FirewallApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct FirewallApiResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<FirewallResultInfo>,
-}
-
-/// `FirewallApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
+/// `FirewallApiResponseCommon` type.
+///
+/// Same shape as `ApiEnvelope<serde_json::Value>`.
+pub type FirewallApiResponseCommon = ApiEnvelope<serde_json::Value>;
+
 /// `FirewallApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallApiResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `ApiEnvelope<serde_json::Value>`.
+pub type FirewallApiResponseSingle = ApiEnvelope<serde_json::Value>;
 
 /// `FirewallAsnConfiguration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallAsnConfiguration {
-    /// target property.
-    pub target: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
+///
+/// Same shape as `TargetValueObject`.
+pub type FirewallAsnConfiguration = TargetValueObject;
 
 /// `FirewallCidrConfiguration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallCidrConfiguration {
-    /// target property.
-    pub target: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
+///
+/// Same shape as `TargetValueObject`.
+pub type FirewallCidrConfiguration = TargetValueObject;
 
 /// `FirewallConfiguration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct FirewallConfiguration {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type FirewallConfiguration = serde_json::Value;
 
 /// `FirewallCountryConfiguration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallCountryConfiguration {
-    /// target property.
-    pub target: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
+///
+/// Same shape as `TargetValueObject`.
+pub type FirewallCountryConfiguration = TargetValueObject;
 
 /// `FirewallIpConfiguration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallIpConfiguration {
-    /// target property.
-    pub target: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
+///
+/// Same shape as `TargetValueObject`.
+pub type FirewallIpConfiguration = TargetValueObject;
 
 /// `FirewallIpv6Configuration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallIpv6Configuration {
-    /// target property.
-    pub target: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
+///
+/// Same shape as `TargetValueObject`.
+pub type FirewallIpv6Configuration = TargetValueObject;
 
 /// `FirewallNotes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct FirewallNotes {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type FirewallNotes = String;
 
 /// `FirewallResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct FirewallResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
+///
+/// Same shape as `FirewallResultInfoShape`.
+pub type FirewallResultInfo = FirewallResultInfoShape;
 
 /// `FirewallRule` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct FirewallRule {
-    /// allowed_modes property.
-    pub allowed_modes: Vec<FirewallSchemasMode>,
-    /// configuration property.
-    pub configuration: FirewallConfiguration,
-    /// created_on property.
+    /// `allowed_modes` property.
+    pub allowed_modes: Vec<String>,
+    /// `configuration` property.
+    pub configuration: serde_json::Value,
+    /// `created_on` property.
     pub created_on: Option<String>,
-    /// id property.
-    pub id: FirewallSchemasIdentifier,
-    /// mode property.
-    pub mode: FirewallSchemasMode,
-    /// modified_on property.
+    /// `id` property.
+    pub id: String,
+    /// `mode` property.
+    pub mode: String,
+    /// `modified_on` property.
     pub modified_on: Option<String>,
-    /// notes property.
-    pub notes: Option<FirewallNotes>,
+    /// `notes` property.
+    pub notes: Option<String>,
 }
 
 /// `FirewallSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct FirewallSchemasIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type FirewallSchemasIdentifier = String;
 
 /// `FirewallSchemasMode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct FirewallSchemasMode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type FirewallSchemasMode = String;
 
 /// `IamApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamApiResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<IamResultInfo>,
-}
-
-/// `IamApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
+/// `IamApiResponseCommon` type.
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type IamApiResponseCommon = ErrorsMessagesSuccessObject;
+
 /// `IamApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamApiResponseSingle {
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type IamApiResponseSingle = ErrorsMessagesSuccessObject;
 
 /// `IamCommonComponentsSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamCommonComponentsSchemasIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamCommonComponentsSchemasIdentifier = String;
 
 /// `IamCondition` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamCondition {
-    /// request_ip property.
+    /// `request_ip` property.
     pub request_ip: Option<IamRequestIp>,
 }
 
 /// `IamEffect` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamEffect {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamEffect = String;
 
 /// `IamExpiresOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamExpiresOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamExpiresOn = String;
 
 /// `IamIssuedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamIssuedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamIssuedOn = String;
 
 /// `IamLastUsedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamLastUsedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamLastUsedOn = String;
 
 /// `IamModifiedOn` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamModifiedOn {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamModifiedOn = String;
 
 /// `IamName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamName = String;
 
 /// `IamNotBefore` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamNotBefore {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamNotBefore = String;
 
 /// `IamPermissionGroup` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamPermissionGroup {
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// meta property.
+    /// `meta` property.
     pub meta: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
 }
 
 /// `IamPolicyIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamPolicyIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamPolicyIdentifier = String;
 
 /// `IamPolicyWithPermissionGroupsAndResources` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicyWithPermissionGroupsAndResources {
-    /// effect property.
-    pub effect: IamEffect,
-    /// id property.
-    pub id: IamPolicyIdentifier,
-    /// permission_groups property.
+    /// `effect` property.
+    pub effect: String,
+    /// `id` property.
+    pub id: String,
+    /// `permission_groups` property.
     pub permission_groups: Vec<IamPermissionGroup>,
-    /// resources property.
-    pub resources: IamResources,
+    /// `resources` property.
+    pub resources: serde_json::Value,
 }
 
 /// `IamRequestIp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamRequestIp {
-    /// in property.
+    /// `in` property.
     #[serde(rename = "in")]
     pub r#in: Option<Vec<String>>,
-    /// not_in property.
+    /// `not_in` property.
     pub not_in: Option<Vec<String>>,
 }
 
 /// `IamResources` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamResources {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamResources = serde_json::Value;
 
 /// `IamResourcesTypeObjectNested` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamResourcesTypeObjectNested {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamResourcesTypeObjectNested = serde_json::Value;
 
 /// `IamResourcesTypeObjectString` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamResourcesTypeObjectString {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamResourcesTypeObjectString = serde_json::Value;
 
 /// `IamResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct IamResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
+///
+/// Same shape as `FirewallResultInfoShape`.
+pub type IamResultInfo = FirewallResultInfoShape;
 
 /// `IamTokenBase` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamTokenBase {
-    /// condition property.
+    /// `condition` property.
     pub condition: Option<IamCondition>,
-    /// expires_on property.
-    pub expires_on: Option<IamExpiresOn>,
-    /// id property.
-    pub id: Option<IamTokenIdentifier>,
-    /// issued_on property.
-    pub issued_on: Option<IamIssuedOn>,
-    /// last_used_on property.
-    pub last_used_on: Option<IamLastUsedOn>,
-    /// modified_on property.
-    pub modified_on: Option<IamModifiedOn>,
-    /// name property.
-    pub name: Option<IamName>,
-    /// not_before property.
-    pub not_before: Option<IamNotBefore>,
-    /// policies property.
+    /// `expires_on` property.
+    pub expires_on: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `issued_on` property.
+    pub issued_on: Option<String>,
+    /// `last_used_on` property.
+    pub last_used_on: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `not_before` property.
+    pub not_before: Option<String>,
+    /// `policies` property.
     pub policies: Option<Vec<IamPolicyWithPermissionGroupsAndResources>>,
-    /// status property.
-    pub status: Option<IamTokenStatus>,
+    /// `status` property.
+    pub status: Option<String>,
 }
 
 /// `IamTokenIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamTokenIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamTokenIdentifier = String;
 
 /// `IamTokenStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamTokenStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamTokenStatus = String;
 
 /// `IamTokenWithValue` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IamTokenWithValue {
+    /// `condition` property.
+    pub condition: Option<IamCondition>,
+    /// `expires_on` property.
+    pub expires_on: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `issued_on` property.
+    pub issued_on: Option<String>,
+    /// `last_used_on` property.
+    pub last_used_on: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `not_before` property.
+    pub not_before: Option<String>,
+    /// `policies` property.
+    pub policies: Option<Vec<IamPolicyWithPermissionGroupsAndResources>>,
+    /// `status` property.
+    pub status: Option<String>,
     /// `value` property.
-    pub value: Option<IamValue>,
+    pub value: Option<String>,
 }
 
 /// `IamValue` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct IamValue {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type IamValue = String;
 
 /// `LoadBalancingAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingAddress {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingAddress = String;
 
 /// `LoadBalancingAllowInsecure` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingAllowInsecure {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingAllowInsecure = bool;
 
 /// `LoadBalancingApiPaginatedResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingApiPaginatedResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<LoadBalancingResultInfo>,
-}
-
-/// `LoadBalancingApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
+/// `LoadBalancingApiResponseCommon` type.
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type LoadBalancingApiResponseCommon = ErrorsMessagesSuccessObject;
+
 /// `LoadBalancingApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingApiResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `ApiEnvelope<serde_json::Value>`.
+pub type LoadBalancingApiResponseSingle = ApiEnvelope<serde_json::Value>;
 
 /// `LoadBalancingConsecutiveDown` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingConsecutiveDown {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingConsecutiveDown = i64;
 
 /// `LoadBalancingConsecutiveUp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingConsecutiveUp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingConsecutiveUp = i64;
 
 /// `LoadBalancingDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingDescription = String;
 
 /// `LoadBalancingDisabledAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingDisabledAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingDisabledAt = String;
 
 /// `LoadBalancingEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingEnabled = bool;
 
 /// `LoadBalancingExpectedBody` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingExpectedBody {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingExpectedBody = String;
 
 /// `LoadBalancingExpectedCodes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingExpectedCodes {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingExpectedCodes = String;
 
 /// `LoadBalancingFilterOptions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingFilterOptions {
-    /// disable property.
+    /// `disable` property.
     pub disable: Option<bool>,
-    /// healthy property.
+    /// `healthy` property.
     pub healthy: Option<bool>,
 }
 
 /// `LoadBalancingFollowRedirects` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingFollowRedirects {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingFollowRedirects = bool;
 
 /// `LoadBalancingHeader` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingHeader {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingHeader = serde_json::Value;
 
 /// `LoadBalancingIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingIdentifier = String;
 
 /// `LoadBalancingInterval` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingInterval {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingInterval = i64;
 
 /// `LoadBalancingLatitude` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingLatitude {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingLatitude = f64;
 
 /// `LoadBalancingLoadShedding` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingLoadShedding {
-    /// default_percent property.
+    /// `default_percent` property.
     pub default_percent: Option<f64>,
-    /// default_policy property.
+    /// `default_policy` property.
     pub default_policy: Option<String>,
-    /// session_percent property.
+    /// `session_percent` property.
     pub session_percent: Option<f64>,
-    /// session_policy property.
+    /// `session_policy` property.
     pub session_policy: Option<String>,
 }
 
 /// `LoadBalancingLongitude` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingLongitude {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingLongitude = f64;
 
 /// `LoadBalancingMethod` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingMethod {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingMethod = String;
 
 /// `LoadBalancingMinimumOrigins` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingMinimumOrigins {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingMinimumOrigins = i64;
 
 /// `LoadBalancingMonitor` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitor {
+    /// `allow_insecure` property.
+    pub allow_insecure: Option<bool>,
+    /// `consecutive_down` property.
+    pub consecutive_down: Option<i64>,
+    /// `consecutive_up` property.
+    pub consecutive_up: Option<i64>,
     /// `created_on` property.
-    pub created_on: Option<LoadBalancingTimestamp>,
+    pub created_on: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `expected_body` property.
+    pub expected_body: Option<String>,
+    /// `expected_codes` property.
+    pub expected_codes: Option<String>,
+    /// `follow_redirects` property.
+    pub follow_redirects: Option<bool>,
+    /// `header` property.
+    pub header: Option<serde_json::Value>,
     /// `id` property.
-    pub id: Option<LoadBalancingIdentifier>,
+    pub id: Option<String>,
+    /// `interval` property.
+    pub interval: Option<i64>,
+    /// `method` property.
+    pub method: Option<String>,
     /// `modified_on` property.
-    pub modified_on: Option<LoadBalancingTimestamp>,
+    pub modified_on: Option<String>,
+    /// `path` property.
+    pub path: Option<String>,
+    /// `port` property.
+    pub port: Option<i64>,
+    /// `probe_zone` property.
+    pub probe_zone: Option<String>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+    /// `retries` property.
+    pub retries: Option<i64>,
+    /// `timeout` property.
+    pub timeout: Option<i64>,
 }
 
 /// `LoadBalancingMonitorEditable` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitorEditable {
-    /// allow_insecure property.
-    pub allow_insecure: Option<LoadBalancingAllowInsecure>,
-    /// consecutive_down property.
-    pub consecutive_down: Option<LoadBalancingConsecutiveDown>,
-    /// consecutive_up property.
-    pub consecutive_up: Option<LoadBalancingConsecutiveUp>,
-    /// description property.
-    pub description: Option<LoadBalancingDescription>,
-    /// expected_body property.
-    pub expected_body: Option<LoadBalancingExpectedBody>,
-    /// expected_codes property.
-    pub expected_codes: Option<LoadBalancingExpectedCodes>,
-    /// follow_redirects property.
-    pub follow_redirects: Option<LoadBalancingFollowRedirects>,
-    /// header property.
-    pub header: Option<LoadBalancingHeader>,
-    /// interval property.
-    pub interval: Option<LoadBalancingInterval>,
-    /// method property.
-    pub method: Option<LoadBalancingMethod>,
-    /// path property.
-    pub path: Option<LoadBalancingPath>,
-    /// port property.
-    pub port: Option<LoadBalancingPort>,
-    /// probe_zone property.
-    pub probe_zone: Option<LoadBalancingProbeZone>,
-    /// retries property.
-    pub retries: Option<LoadBalancingRetries>,
-    /// timeout property.
-    pub timeout: Option<LoadBalancingTimeout>,
-    /// type property.
+    /// `allow_insecure` property.
+    pub allow_insecure: Option<bool>,
+    /// `consecutive_down` property.
+    pub consecutive_down: Option<i64>,
+    /// `consecutive_up` property.
+    pub consecutive_up: Option<i64>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `expected_body` property.
+    pub expected_body: Option<String>,
+    /// `expected_codes` property.
+    pub expected_codes: Option<String>,
+    /// `follow_redirects` property.
+    pub follow_redirects: Option<bool>,
+    /// `header` property.
+    pub header: Option<serde_json::Value>,
+    /// `interval` property.
+    pub interval: Option<i64>,
+    /// `method` property.
+    pub method: Option<String>,
+    /// `path` property.
+    pub path: Option<String>,
+    /// `port` property.
+    pub port: Option<i64>,
+    /// `probe_zone` property.
+    pub probe_zone: Option<String>,
+    /// `retries` property.
+    pub retries: Option<i64>,
+    /// `timeout` property.
+    pub timeout: Option<i64>,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: Option<LoadBalancingType>,
+    pub r#type: Option<String>,
 }
 
 /// `LoadBalancingMonitorGroupId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingMonitorGroupId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingMonitorGroupId = String;
 
 /// `LoadBalancingMonitorId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingMonitorId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingMonitorId = String;
 
 /// `LoadBalancingName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingName = String;
 
 /// `LoadBalancingNotificationEmail` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingNotificationEmail {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingNotificationEmail = String;
 
 /// `LoadBalancingNotificationFilter` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingNotificationFilter {
-    /// origin property.
+    /// `origin` property.
     pub origin: Option<LoadBalancingFilterOptions>,
-    /// pool property.
+    /// `pool` property.
     pub pool: Option<LoadBalancingFilterOptions>,
 }
 
 /// `LoadBalancingOrigin` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingOrigin {
-    /// address property.
-    pub address: Option<LoadBalancingAddress>,
-    /// disabled_at property.
-    pub disabled_at: Option<LoadBalancingDisabledAt>,
-    /// enabled property.
-    pub enabled: Option<LoadBalancingSchemasEnabled>,
-    /// header property.
+    /// `address` property.
+    pub address: Option<String>,
+    /// `disabled_at` property.
+    pub disabled_at: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `header` property.
     pub header: Option<LoadBalancingSchemasHeader>,
-    /// name property.
-    pub name: Option<LoadBalancingSchemasName>,
-    /// port property.
-    pub port: Option<LoadBalancingOriginPort>,
-    /// virtual_network_id property.
-    pub virtual_network_id: Option<LoadBalancingVirtualNetworkId>,
-    /// weight property.
-    pub weight: Option<LoadBalancingWeight>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `port` property.
+    pub port: Option<i64>,
+    /// `virtual_network_id` property.
+    pub virtual_network_id: Option<String>,
+    /// `weight` property.
+    pub weight: Option<f64>,
 }
 
 /// `LoadBalancingOriginHealth` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingOriginHealth {
-    /// ip property.
+    /// `ip` property.
     pub ip: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `LoadBalancingOriginPort` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingOriginPort {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingOriginPort = i64;
 
 /// `LoadBalancingOriginSteering` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingOriginSteering {
-    /// policy property.
+    /// `policy` property.
     pub policy: Option<String>,
 }
 
 /// `LoadBalancingPath` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingPath {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingPath = String;
 
 /// `LoadBalancingPool` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingPool {
-    /// check_regions property.
+    /// `check_regions` property.
     pub check_regions: Option<Vec<String>>,
-    /// created_on property.
-    pub created_on: Option<LoadBalancingTimestamp>,
-    /// description property.
-    pub description: Option<LoadBalancingSchemasDescription>,
-    /// disabled_at property.
-    pub disabled_at: Option<LoadBalancingSchemasDisabledAt>,
-    /// enabled property.
-    pub enabled: Option<LoadBalancingEnabled>,
-    /// id property.
-    pub id: Option<LoadBalancingSchemasIdentifier>,
-    /// latitude property.
-    pub latitude: Option<LoadBalancingLatitude>,
-    /// load_shedding property.
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `disabled_at` property.
+    pub disabled_at: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `latitude` property.
+    pub latitude: Option<f64>,
+    /// `load_shedding` property.
     pub load_shedding: Option<LoadBalancingLoadShedding>,
-    /// longitude property.
-    pub longitude: Option<LoadBalancingLongitude>,
-    /// minimum_origins property.
-    pub minimum_origins: Option<LoadBalancingMinimumOrigins>,
-    /// modified_on property.
-    pub modified_on: Option<LoadBalancingTimestamp>,
-    /// monitor property.
-    pub monitor: Option<LoadBalancingMonitorId>,
-    /// monitor_group property.
-    pub monitor_group: Option<LoadBalancingMonitorGroupId>,
-    /// name property.
-    pub name: Option<LoadBalancingName>,
-    /// networks property.
+    /// `longitude` property.
+    pub longitude: Option<f64>,
+    /// `minimum_origins` property.
+    pub minimum_origins: Option<i64>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `monitor` property.
+    pub monitor: Option<String>,
+    /// `monitor_group` property.
+    pub monitor_group: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `networks` property.
     pub networks: Option<Vec<String>>,
-    /// notification_email property.
-    pub notification_email: Option<LoadBalancingNotificationEmail>,
-    /// notification_filter property.
+    /// `notification_email` property.
+    pub notification_email: Option<String>,
+    /// `notification_filter` property.
     pub notification_filter: Option<LoadBalancingNotificationFilter>,
-    /// origin_steering property.
+    /// `origin_steering` property.
     pub origin_steering: Option<LoadBalancingOriginSteering>,
-    /// origins property.
+    /// `origins` property.
     pub origins: Option<Vec<LoadBalancingOrigin>>,
 }
 
 /// `LoadBalancingPort` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingPort {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingPort = i64;
 
 /// `LoadBalancingPreviewResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingPreviewResult {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingPreviewResult = serde_json::Value;
 
 /// `LoadBalancingProbeZone` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingProbeZone {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingProbeZone = String;
 
 /// `LoadBalancingResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LoadBalancingResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-    /// total_pages property.
-    pub total_pages: Option<f64>,
-}
+///
+/// Same shape as `LoadBalancingResultInfoShape`.
+pub type LoadBalancingResultInfo = LoadBalancingResultInfoShape;
 
 /// `LoadBalancingRetries` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingRetries {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingRetries = i64;
 
 /// `LoadBalancingSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingSchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingSchemasDescription = String;
 
 /// `LoadBalancingSchemasDisabledAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingSchemasDisabledAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingSchemasDisabledAt = String;
 
 /// `LoadBalancingSchemasEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingSchemasEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingSchemasEnabled = bool;
 
 /// `LoadBalancingSchemasHeader` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingSchemasHeader {
-    /// Host property.
+    /// `Host` property.
     #[serde(rename = "Host")]
     pub host: Option<Vec<String>>,
 }
 
 /// `LoadBalancingSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingSchemasIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingSchemasIdentifier = String;
 
 /// `LoadBalancingSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingSchemasName = String;
 
 /// `LoadBalancingTimeout` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingTimeout {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingTimeout = i64;
 
 /// `LoadBalancingTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingTimestamp = String;
 
 /// `LoadBalancingType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingType = String;
 
 /// `LoadBalancingVirtualNetworkId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingVirtualNetworkId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingVirtualNetworkId = String;
 
 /// `LoadBalancingWeight` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LoadBalancingWeight {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LoadBalancingWeight = f64;
 
 /// `LogpushApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type LogpushApiResponseCommon = ErrorsMessagesSuccessObject;
 
 /// `LogpushApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogpushApiResponseSingle {
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type LogpushApiResponseSingle = ErrorsMessagesSuccessObject;
 
 /// `LogpushDataset` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushDataset {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushDataset = String;
 
 /// `LogpushDestinationConf` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushDestinationConf {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushDestinationConf = String;
 
 /// `LogpushEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushEnabled = bool;
 
 /// `LogpushErrorMessage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushErrorMessage {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushErrorMessage = String;
 
 /// `LogpushFrequency` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushFrequency {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushFrequency = String;
 
 /// `LogpushId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushId = i64;
 
 /// `LogpushKind` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushKind {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushKind = String;
 
 /// `LogpushLastComplete` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushLastComplete {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushLastComplete = String;
 
 /// `LogpushLastError` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushLastError {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushLastError = String;
 
 /// `LogpushLogpullOptions` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushLogpullOptions {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushLogpullOptions = String;
 
 /// `LogpushLogpushJob` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LogpushLogpushJob {
-    /// dataset property.
-    pub dataset: Option<LogpushDataset>,
-    /// destination_conf property.
-    pub destination_conf: Option<LogpushDestinationConf>,
-    /// enabled property.
-    pub enabled: Option<LogpushEnabled>,
-    /// error_message property.
-    pub error_message: Option<LogpushErrorMessage>,
-    /// frequency property.
-    pub frequency: Option<LogpushFrequency>,
-    /// id property.
-    pub id: Option<LogpushId>,
-    /// kind property.
-    pub kind: Option<LogpushKind>,
-    /// last_complete property.
-    pub last_complete: Option<LogpushLastComplete>,
-    /// last_error property.
-    pub last_error: Option<LogpushLastError>,
-    /// logpull_options property.
-    pub logpull_options: Option<LogpushLogpullOptions>,
-    /// max_upload_bytes property.
-    pub max_upload_bytes: Option<LogpushMaxUploadBytes>,
-    /// max_upload_interval_seconds property.
-    pub max_upload_interval_seconds: Option<LogpushMaxUploadIntervalSeconds>,
-    /// max_upload_records property.
-    pub max_upload_records: Option<LogpushMaxUploadRecords>,
-    /// name property.
-    pub name: Option<LogpushName>,
-    /// output_options property.
+    /// `dataset` property.
+    pub dataset: Option<String>,
+    /// `destination_conf` property.
+    pub destination_conf: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `error_message` property.
+    pub error_message: Option<String>,
+    /// `frequency` property.
+    pub frequency: Option<String>,
+    /// `id` property.
+    pub id: Option<i64>,
+    /// `kind` property.
+    pub kind: Option<String>,
+    /// `last_complete` property.
+    pub last_complete: Option<String>,
+    /// `last_error` property.
+    pub last_error: Option<String>,
+    /// `logpull_options` property.
+    pub logpull_options: Option<String>,
+    /// `max_upload_bytes` property.
+    pub max_upload_bytes: Option<i64>,
+    /// `max_upload_interval_seconds` property.
+    pub max_upload_interval_seconds: Option<i64>,
+    /// `max_upload_records` property.
+    pub max_upload_records: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `output_options` property.
     pub output_options: Option<LogpushOutputOptions>,
 }
 
 /// `LogpushMaxUploadBytes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushMaxUploadBytes {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushMaxUploadBytes = i64;
 
 /// `LogpushMaxUploadIntervalSeconds` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushMaxUploadIntervalSeconds {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushMaxUploadIntervalSeconds = i64;
 
 /// `LogpushMaxUploadRecords` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushMaxUploadRecords {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushMaxUploadRecords = i64;
 
 /// `LogpushName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushName = String;
 
 /// `LogpushOutputOptions` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LogpushOutputOptions {
-    /// CVE-2021-44228 property.
+    /// `CVE-2021-44228` property.
     #[serde(rename = "CVE-2021-44228")]
     pub cve_2021_44228: Option<bool>,
-    /// batch_prefix property.
+    /// `batch_prefix` property.
     pub batch_prefix: Option<String>,
-    /// batch_suffix property.
+    /// `batch_suffix` property.
     pub batch_suffix: Option<String>,
-    /// field_delimiter property.
+    /// `field_delimiter` property.
     pub field_delimiter: Option<String>,
-    /// field_names property.
+    /// `field_names` property.
     pub field_names: Option<Vec<String>>,
-    /// merge_subrequests property.
+    /// `merge_subrequests` property.
     pub merge_subrequests: Option<bool>,
-    /// output_type property.
+    /// `output_type` property.
     pub output_type: Option<String>,
-    /// record_delimiter property.
+    /// `record_delimiter` property.
     pub record_delimiter: Option<String>,
-    /// record_prefix property.
+    /// `record_prefix` property.
     pub record_prefix: Option<String>,
-    /// record_suffix property.
+    /// `record_suffix` property.
     pub record_suffix: Option<String>,
-    /// record_template property.
+    /// `record_template` property.
     pub record_template: Option<String>,
-    /// sample_rate property.
+    /// `sample_rate` property.
     pub sample_rate: Option<f64>,
-    /// timestamp_format property.
+    /// `timestamp_format` property.
     pub timestamp_format: Option<String>,
 }
 
 /// `MagicVisibilityMnmApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityMnmApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ApiEnvelope<serde_json::Value>`.
+pub type MagicVisibilityMnmApiResponseCommon = ApiEnvelope<serde_json::Value>;
 
 /// `MagicVisibilityMnmApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct MagicVisibilityMnmApiResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `ApiEnvelope<serde_json::Value>`.
+pub type MagicVisibilityMnmApiResponseSingle = ApiEnvelope<serde_json::Value>;
 
 /// `MagicVisibilityMnmMnmConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityMnmMnmConfig {
-    /// default_sampling property.
-    pub default_sampling: MagicVisibilityMnmMnmConfigDefaultSampling,
-    /// name property.
-    pub name: MagicVisibilityMnmMnmConfigName,
-    /// router_ips property.
-    pub router_ips: Vec<MagicVisibilityMnmMnmConfigRouterIp>,
-    /// warp_devices property.
+    /// `default_sampling` property.
+    pub default_sampling: f64,
+    /// `name` property.
+    pub name: String,
+    /// `router_ips` property.
+    pub router_ips: Vec<String>,
+    /// `warp_devices` property.
     pub warp_devices: Vec<MagicVisibilityMnmMnmConfigWarpDevice>,
 }
 
 /// `MagicVisibilityMnmMnmConfigDefaultSampling` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicVisibilityMnmMnmConfigDefaultSampling {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicVisibilityMnmMnmConfigDefaultSampling = f64;
 
 /// `MagicVisibilityMnmMnmConfigName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicVisibilityMnmMnmConfigName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicVisibilityMnmMnmConfigName = String;
 
 /// `MagicVisibilityMnmMnmConfigRouterIp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct MagicVisibilityMnmMnmConfigRouterIp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type MagicVisibilityMnmMnmConfigRouterIp = String;
 
 /// `MagicVisibilityMnmMnmConfigWarpDevice` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityMnmMnmConfigWarpDevice {
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// router_ip property.
+    /// `router_ip` property.
     pub router_ip: String,
 }
 
 /// `ObservatoryApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ObservatoryApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type ObservatoryApiResponseCommon = ErrorsMessagesSuccessObject;
 
 /// `ObservatoryApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ObservatoryApiResponseSingle {
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type ObservatoryApiResponseSingle = ErrorsMessagesSuccessObject;
 
 /// `ResourceSharingAccountId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingAccountId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingAccountId = String;
 
 /// `ResourceSharingAccountName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingAccountName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingAccountName = String;
 
 /// `ResourceSharingApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingApiResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<ResourceSharingV4Error>,
     /// `result` property.
     pub result: Option<Vec<serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<ResourceSharingResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ResourceSharingApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingApiResponseCommon {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<ResourceSharingV4Error>,
-    /// result property.
+    /// `result` property.
     pub result: Option<serde_json::Value>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `ResourceSharingCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingCreated = String;
 
 /// `ResourceSharingModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingModified {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingModified = String;
 
 /// `ResourceSharingOrganizationId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingOrganizationId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingOrganizationId = String;
 
 /// `ResourceSharingResourceId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingResourceId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingResourceId = String;
 
 /// `ResourceSharingResourceMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingResourceMeta {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingResourceMeta = serde_json::Value;
 
 /// `ResourceSharingResourceResourceId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingResourceResourceId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingResourceResourceId = String;
 
 /// `ResourceSharingResourceStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingResourceStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingResourceStatus = String;
 
 /// `ResourceSharingResourceType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingResourceType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingResourceType = String;
 
 /// `ResourceSharingResourceVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingResourceVersion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingResourceVersion = i64;
 
 /// `ResourceSharingResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-    /// total_pages property.
-    pub total_pages: Option<f64>,
-}
+///
+/// Same shape as `LoadBalancingResultInfoShape`.
+pub type ResourceSharingResultInfo = LoadBalancingResultInfoShape;
 
 /// `ResourceSharingShareId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingShareId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingShareId = String;
 
 /// `ResourceSharingShareKind` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingShareKind {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingShareKind = String;
 
 /// `ResourceSharingShareName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingShareName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingShareName = String;
 
 /// `ResourceSharingShareObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareObject {
-    /// account_id property.
-    pub account_id: ResourceSharingAccountId,
-    /// account_name property.
-    pub account_name: ResourceSharingAccountName,
-    /// associated_recipient_count property.
+    /// `account_id` property.
+    pub account_id: String,
+    /// `account_name` property.
+    pub account_name: String,
+    /// `associated_recipient_count` property.
     pub associated_recipient_count: Option<i64>,
-    /// associating_recipient_count property.
+    /// `associating_recipient_count` property.
     pub associating_recipient_count: Option<i64>,
-    /// created property.
-    pub created: ResourceSharingCreated,
-    /// disassociated_recipient_count property.
+    /// `created` property.
+    pub created: String,
+    /// `disassociated_recipient_count` property.
     pub disassociated_recipient_count: Option<i64>,
-    /// disassociating_recipient_count property.
+    /// `disassociating_recipient_count` property.
     pub disassociating_recipient_count: Option<i64>,
-    /// id property.
-    pub id: ResourceSharingShareId,
-    /// kind property.
-    pub kind: Option<ResourceSharingShareKind>,
-    /// modified property.
-    pub modified: ResourceSharingModified,
-    /// name property.
-    pub name: ResourceSharingShareName,
-    /// organization_id property.
-    pub organization_id: ResourceSharingOrganizationId,
-    /// resources property.
+    /// `id` property.
+    pub id: String,
+    /// `kind` property.
+    pub kind: Option<String>,
+    /// `modified` property.
+    pub modified: String,
+    /// `name` property.
+    pub name: String,
+    /// `organization_id` property.
+    pub organization_id: String,
+    /// `resources` property.
     pub resources: Option<Vec<ResourceSharingShareResourceObject>>,
-    /// status property.
-    pub status: ResourceSharingShareStatus,
-    /// target_type property.
-    pub target_type: ResourceSharingShareTargetType,
+    /// `status` property.
+    pub status: String,
+    /// `target_type` property.
+    pub target_type: String,
 }
 
 /// `ResourceSharingShareResourceObject` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareResourceObject {
-    /// created property.
-    pub created: ResourceSharingCreated,
-    /// id property.
-    pub id: ResourceSharingResourceId,
-    /// meta property.
-    pub meta: ResourceSharingResourceMeta,
-    /// modified property.
-    pub modified: ResourceSharingModified,
-    /// resource_account_id property.
-    pub resource_account_id: ResourceSharingAccountId,
-    /// resource_id property.
-    pub resource_id: ResourceSharingResourceResourceId,
-    /// resource_type property.
-    pub resource_type: ResourceSharingResourceType,
-    /// resource_version property.
-    pub resource_version: ResourceSharingResourceVersion,
-    /// status property.
-    pub status: ResourceSharingResourceStatus,
+    /// `created` property.
+    pub created: String,
+    /// `id` property.
+    pub id: String,
+    /// `meta` property.
+    pub meta: serde_json::Value,
+    /// `modified` property.
+    pub modified: String,
+    /// `resource_account_id` property.
+    pub resource_account_id: String,
+    /// `resource_id` property.
+    pub resource_id: String,
+    /// `resource_type` property.
+    pub resource_type: String,
+    /// `resource_version` property.
+    pub resource_version: i64,
+    /// `status` property.
+    pub status: String,
 }
 
 /// `ResourceSharingShareStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingShareStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingShareStatus = String;
 
 /// `ResourceSharingShareTargetType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceSharingShareTargetType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceSharingShareTargetType = String;
 
 /// `ResourceSharingV4Error` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceSharingV4Error {
-    /// code property.
-    pub code: i64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `CodeMessageObject2`.
+pub type ResourceSharingV4Error = CodeMessageObject2;
 
 /// `ResourceTaggingAccessApplicationId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingAccessApplicationId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingAccessApplicationId = String;
 
 /// `ResourceTaggingApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type ResourceTaggingApiResponseCommon = ErrorsMessagesSuccessObject;
 
 /// `ResourceTaggingEtag` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingEtag {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingEtag = String;
 
 /// `ResourceTaggingIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingIdentifier = String;
 
 /// `ResourceTaggingResourceId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingResourceId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingResourceId = String;
 
 /// `ResourceTaggingResourceName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingResourceName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingResourceName = String;
 
 /// `ResourceTaggingTaggedResourceObject` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingTaggedResourceObject {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingTaggedResourceObject = serde_json::Value;
 
 /// `ResourceTaggingTaggedResourceObjectAccessApplication` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectAccessApplication {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectAccessApplication =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectAccessApplicationPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAccessApplicationPolicy {
+    /// `access_application_id` property.
+    pub access_application_id: String,
+    /// `etag` property.
+    pub etag: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
     /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
+    /// `tags` property.
+    pub tags: serde_json::Value,
+    /// `zone_id` property.
+    pub zone_id: ResourceTaggingZoneId,
 }
 
 /// `ResourceTaggingTaggedResourceObjectAccessApplicationPolicyBase` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAccessApplicationPolicyBase {
-    /// access_application_id property.
-    pub access_application_id: ResourceTaggingAccessApplicationId,
-    /// etag property.
-    pub etag: ResourceTaggingEtag,
-    /// id property.
-    pub id: ResourceTaggingResourceId,
-    /// name property.
-    pub name: ResourceTaggingResourceName,
-    /// tags property.
-    pub tags: ResourceTaggingTags,
-    /// zone_id property.
+    /// `access_application_id` property.
+    pub access_application_id: String,
+    /// `etag` property.
+    pub etag: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
+    /// `tags` property.
+    pub tags: serde_json::Value,
+    /// `zone_id` property.
     pub zone_id: ResourceTaggingZoneId,
 }
 
 /// `ResourceTaggingTaggedResourceObjectAccessGroup` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectAccessGroup {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectAccessGroup =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectAccount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectAccount {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectAccount =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectAccountLevelBase` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectAccountLevelBase {
-    /// etag property.
-    pub etag: ResourceTaggingEtag,
-    /// id property.
-    pub id: ResourceTaggingResourceId,
-    /// name property.
-    pub name: ResourceTaggingResourceName,
-    /// tags property.
-    pub tags: ResourceTaggingTags,
+    /// `etag` property.
+    pub etag: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
+    /// `tags` property.
+    pub tags: serde_json::Value,
 }
 
 /// `ResourceTaggingTaggedResourceObjectAiGateway` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectAiGateway {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectAiGateway =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectAlertingPolicy` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectAlertingPolicy {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectAlertingPolicy =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectAlertingWebhook` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectAlertingWebhook {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectAlertingWebhook =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectApiGatewayOperation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectApiGatewayOperation {
+    /// `etag` property.
+    pub etag: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
     /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
+    /// `tags` property.
+    pub tags: serde_json::Value,
+    /// `zone_id` property.
+    pub zone_id: ResourceTaggingZoneId,
 }
 
 /// `ResourceTaggingTaggedResourceObjectCloudflaredTunnel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectCloudflaredTunnel {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectCloudflaredTunnel =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectCustomCertificate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectCustomCertificate {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectApiGatewayOperation`.
+pub type ResourceTaggingTaggedResourceObjectCustomCertificate =
+    ResourceTaggingTaggedResourceObjectApiGatewayOperation;
 
 /// `ResourceTaggingTaggedResourceObjectCustomHostname` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectCustomHostname {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectApiGatewayOperation`.
+pub type ResourceTaggingTaggedResourceObjectCustomHostname =
+    ResourceTaggingTaggedResourceObjectApiGatewayOperation;
 
 /// `ResourceTaggingTaggedResourceObjectD1Database` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectD1Database {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectD1Database =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectDnsRecord` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectDnsRecord {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectApiGatewayOperation`.
+pub type ResourceTaggingTaggedResourceObjectDnsRecord =
+    ResourceTaggingTaggedResourceObjectApiGatewayOperation;
 
 /// `ResourceTaggingTaggedResourceObjectDurableObjectNamespace` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectDurableObjectNamespace {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectDurableObjectNamespace =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectGatewayList` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectGatewayList {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectGatewayList =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectGatewayRule` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectGatewayRule {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectGatewayRule =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectImage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectImage {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectImage =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectKvNamespace` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectKvNamespace {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectKvNamespace =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectManagedClientCertificate` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectManagedClientCertificate {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectApiGatewayOperation`.
+pub type ResourceTaggingTaggedResourceObjectManagedClientCertificate =
+    ResourceTaggingTaggedResourceObjectApiGatewayOperation;
 
 /// `ResourceTaggingTaggedResourceObjectQueue` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectQueue {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectQueue =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectR2Bucket` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectR2Bucket {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectR2Bucket =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectResourceShare` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectResourceShare {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectResourceShare =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectStreamLiveInput` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectStreamLiveInput {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectStreamLiveInput =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectStreamVideo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectStreamVideo {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectStreamVideo =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectWorker` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectWorker {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectAccessApplicationShape`.
+pub type ResourceTaggingTaggedResourceObjectWorker =
+    ResourceTaggingTaggedResourceObjectAccessApplicationShape;
 
 /// `ResourceTaggingTaggedResourceObjectWorkerVersion` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectWorkerVersion {
+    /// `etag` property.
+    pub etag: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
     /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
+    /// `tags` property.
+    pub tags: serde_json::Value,
+    /// `worker_id` property.
+    pub worker_id: String,
 }
 
 /// `ResourceTaggingTaggedResourceObjectWorkerVersionBase` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectWorkerVersionBase {
-    /// etag property.
-    pub etag: ResourceTaggingEtag,
-    /// id property.
-    pub id: ResourceTaggingResourceId,
-    /// name property.
-    pub name: ResourceTaggingResourceName,
-    /// tags property.
-    pub tags: ResourceTaggingTags,
-    /// worker_id property.
-    pub worker_id: ResourceTaggingWorkerId,
+    /// `etag` property.
+    pub etag: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
+    /// `tags` property.
+    pub tags: serde_json::Value,
+    /// `worker_id` property.
+    pub worker_id: String,
 }
 
 /// `ResourceTaggingTaggedResourceObjectZone` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTaggedResourceObjectZone {
-    /// `type` property.
-    #[serde(rename = "type")]
-    pub r#type: String,
-}
+///
+/// Same shape as `ResourceTaggingTaggedResourceObjectApiGatewayOperation`.
+pub type ResourceTaggingTaggedResourceObjectZone =
+    ResourceTaggingTaggedResourceObjectApiGatewayOperation;
 
 /// `ResourceTaggingTaggedResourceObjectZoneLevelBase` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceObjectZoneLevelBase {
-    /// etag property.
-    pub etag: ResourceTaggingEtag,
-    /// id property.
-    pub id: ResourceTaggingResourceId,
-    /// name property.
-    pub name: ResourceTaggingResourceName,
-    /// tags property.
-    pub tags: ResourceTaggingTags,
-    /// zone_id property.
+    /// `etag` property.
+    pub etag: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
+    /// `tags` property.
+    pub tags: serde_json::Value,
+    /// `zone_id` property.
     pub zone_id: ResourceTaggingZoneId,
 }
 
 /// `ResourceTaggingTags` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingTags {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingTags = serde_json::Value;
 
 /// `ResourceTaggingWorkerId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ResourceTaggingWorkerId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ResourceTaggingWorkerId = String;
 
 /// `ResourceTaggingZoneId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingZoneId {
-}
+///
+/// Same shape as `EmptyObject`.
+pub type ResourceTaggingZoneId = EmptyObject;
 
 /// `RulesetsMessage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsMessage {
-    /// code property.
+    /// `code` property.
     pub code: Option<i64>,
-    /// message property.
+    /// `message` property.
     pub message: String,
-    /// source property.
+    /// `source` property.
     pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `RulesetsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<RulesetsMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<RulesetsMessage>,
-    /// result property.
+    /// `result` property.
     pub result: serde_json::Value,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `RulesetsResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsResultInfo {
-    /// cursors property.
+    /// `cursors` property.
     pub cursors: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `RulesetsRuleset` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsRuleset {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: serde_json::Value,
-    /// last_updated property.
+    /// `last_updated` property.
     pub last_updated: String,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// version property.
+    /// `version` property.
     pub version: serde_json::Value,
 }
 
 /// `RulesetsRulesetKind` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct RulesetsRulesetKind {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type RulesetsRulesetKind = String;
 
 /// `RulesetsRulesetPhase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct RulesetsRulesetPhase {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type RulesetsRulesetPhase = String;
 
 /// `SecurityCenterApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SecurityCenterApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type SecurityCenterApiResponseCommon = ErrorsMessagesSuccessObject;
 
 /// `TunnelApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ApiEnvelope<serde_json::Value>`.
+pub type TunnelApiResponseCommon = ApiEnvelope<serde_json::Value>;
 
 /// `TunnelCreatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelCreatedAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelCreatedAt = String;
 
 /// `TunnelDeletedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelDeletedAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelDeletedAt = String;
 
 /// `TunnelSubnet` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelSubnet {
-    /// comment property.
-    pub comment: Option<TunnelSubnetComment>,
-    /// created_at property.
-    pub created_at: Option<TunnelCreatedAt>,
-    /// deleted_at property.
-    pub deleted_at: Option<TunnelDeletedAt>,
-    /// id property.
-    pub id: Option<TunnelSubnetId>,
-    /// is_default_network property.
-    pub is_default_network: Option<TunnelSubnetIsDefaultNetwork>,
-    /// name property.
-    pub name: Option<TunnelSubnetName>,
-    /// network property.
-    pub network: Option<TunnelSubnetIpNetwork>,
-    /// subnet_type property.
-    pub subnet_type: Option<TunnelSubnetType>,
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `deleted_at` property.
+    pub deleted_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `is_default_network` property.
+    pub is_default_network: Option<bool>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `network` property.
+    pub network: Option<String>,
+    /// `subnet_type` property.
+    pub subnet_type: Option<String>,
 }
 
 /// `TunnelSubnetComment` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSubnetComment {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSubnetComment = String;
 
 /// `TunnelSubnetId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSubnetId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSubnetId = String;
 
 /// `TunnelSubnetIpNetwork` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSubnetIpNetwork {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSubnetIpNetwork = String;
 
 /// `TunnelSubnetIsDefaultNetwork` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSubnetIsDefaultNetwork {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSubnetIsDefaultNetwork = bool;
 
 /// `TunnelSubnetName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSubnetName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSubnetName = String;
 
 /// `TunnelSubnetType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelSubnetType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelSubnetType = String;
 
 /// `WaitingroomApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WaitingroomApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `AddressingApiResponseCollectionShape`.
+pub type WaitingroomApiResponseCollection = AddressingApiResponseCollectionShape;
 
 /// `WaitingroomCookieAttributes` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomCookieAttributes {
-    /// samesite property.
+    /// `samesite` property.
     pub samesite: Option<String>,
-    /// secure property.
+    /// `secure` property.
     pub secure: Option<String>,
 }
 
 /// `WaitingroomCookieSuffix` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomCookieSuffix {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomCookieSuffix = String;
 
 /// `WaitingroomCustomPageHtml` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomCustomPageHtml {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomCustomPageHtml = String;
 
 /// `WaitingroomDefaultTemplateLanguage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomDefaultTemplateLanguage {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomDefaultTemplateLanguage = String;
 
 /// `WaitingroomDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomDescription = String;
 
 /// `WaitingroomDisableSessionRenewal` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomDisableSessionRenewal {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomDisableSessionRenewal = bool;
 
 /// `WaitingroomHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomHost {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomHost = String;
 
 /// `WaitingroomJsonResponseEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomJsonResponseEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomJsonResponseEnabled = bool;
 
 /// `WaitingroomName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomName = String;
 
 /// `WaitingroomNewUsersPerMinute` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomNewUsersPerMinute {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomNewUsersPerMinute = i64;
 
 /// `WaitingroomNextEventPrequeueStartTime` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomNextEventPrequeueStartTime {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomNextEventPrequeueStartTime = String;
 
 /// `WaitingroomNextEventStartTime` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomNextEventStartTime {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomNextEventStartTime = String;
 
 /// `WaitingroomPath` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomPath {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomPath = String;
 
 /// `WaitingroomQueueAll` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomQueueAll {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomQueueAll = bool;
 
 /// `WaitingroomQueueingMethod` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomQueueingMethod {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomQueueingMethod = String;
 
 /// `WaitingroomQueueingStatusCode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomQueueingStatusCode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomQueueingStatusCode = i64;
 
 /// `WaitingroomSchemasApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct WaitingroomSchemasApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `ErrorsMessagesSuccessObject`.
+pub type WaitingroomSchemasApiResponseCommon = ErrorsMessagesSuccessObject;
 
 /// `WaitingroomSessionDuration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomSessionDuration {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomSessionDuration = i64;
 
 /// `WaitingroomSuspended` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomSuspended {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomSuspended = bool;
 
 /// `WaitingroomTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomTimestamp = String;
 
 /// `WaitingroomTotalActiveUsers` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomTotalActiveUsers {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomTotalActiveUsers = i64;
 
 /// `WaitingroomTurnstileAction` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomTurnstileAction {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomTurnstileAction = String;
 
 /// `WaitingroomTurnstileMode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomTurnstileMode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomTurnstileMode = String;
 
 /// `WaitingroomWaitingRoomId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct WaitingroomWaitingRoomId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type WaitingroomWaitingRoomId = String;
 
 /// `WaitingroomWaitingroom` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomWaitingroom {
-    /// additional_routes property.
+    /// `additional_routes` property.
     pub additional_routes: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// cookie_attributes property.
+    /// `cookie_attributes` property.
     pub cookie_attributes: Option<WaitingroomCookieAttributes>,
-    /// cookie_suffix property.
-    pub cookie_suffix: Option<WaitingroomCookieSuffix>,
-    /// created_on property.
-    pub created_on: Option<WaitingroomTimestamp>,
-    /// custom_page_html property.
-    pub custom_page_html: Option<WaitingroomCustomPageHtml>,
-    /// default_template_language property.
-    pub default_template_language: Option<WaitingroomDefaultTemplateLanguage>,
-    /// description property.
-    pub description: Option<WaitingroomDescription>,
-    /// disable_session_renewal property.
-    pub disable_session_renewal: Option<WaitingroomDisableSessionRenewal>,
-    /// enabled_origin_commands property.
+    /// `cookie_suffix` property.
+    pub cookie_suffix: Option<String>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `custom_page_html` property.
+    pub custom_page_html: Option<String>,
+    /// `default_template_language` property.
+    pub default_template_language: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `disable_session_renewal` property.
+    pub disable_session_renewal: Option<bool>,
+    /// `enabled_origin_commands` property.
     pub enabled_origin_commands: Option<Vec<String>>,
-    /// host property.
-    pub host: Option<WaitingroomHost>,
-    /// id property.
-    pub id: Option<WaitingroomWaitingRoomId>,
-    /// json_response_enabled property.
-    pub json_response_enabled: Option<WaitingroomJsonResponseEnabled>,
-    /// modified_on property.
-    pub modified_on: Option<WaitingroomTimestamp>,
-    /// name property.
-    pub name: Option<WaitingroomName>,
-    /// new_users_per_minute property.
-    pub new_users_per_minute: Option<WaitingroomNewUsersPerMinute>,
-    /// next_event_prequeue_start_time property.
-    pub next_event_prequeue_start_time: Option<WaitingroomNextEventPrequeueStartTime>,
-    /// next_event_start_time property.
-    pub next_event_start_time: Option<WaitingroomNextEventStartTime>,
-    /// path property.
-    pub path: Option<WaitingroomPath>,
-    /// queue_all property.
-    pub queue_all: Option<WaitingroomQueueAll>,
-    /// queueing_method property.
-    pub queueing_method: Option<WaitingroomQueueingMethod>,
-    /// queueing_status_code property.
-    pub queueing_status_code: Option<WaitingroomQueueingStatusCode>,
-    /// session_duration property.
-    pub session_duration: Option<WaitingroomSessionDuration>,
-    /// suspended property.
-    pub suspended: Option<WaitingroomSuspended>,
-    /// total_active_users property.
-    pub total_active_users: Option<WaitingroomTotalActiveUsers>,
-    /// turnstile_action property.
-    pub turnstile_action: Option<WaitingroomTurnstileAction>,
-    /// turnstile_mode property.
-    pub turnstile_mode: Option<WaitingroomTurnstileMode>,
+    /// `host` property.
+    pub host: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `json_response_enabled` property.
+    pub json_response_enabled: Option<bool>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `new_users_per_minute` property.
+    pub new_users_per_minute: Option<i64>,
+    /// `next_event_prequeue_start_time` property.
+    pub next_event_prequeue_start_time: Option<String>,
+    /// `next_event_start_time` property.
+    pub next_event_start_time: Option<String>,
+    /// `path` property.
+    pub path: Option<String>,
+    /// `queue_all` property.
+    pub queue_all: Option<bool>,
+    /// `queueing_method` property.
+    pub queueing_method: Option<String>,
+    /// `queueing_status_code` property.
+    pub queueing_status_code: Option<i64>,
+    /// `session_duration` property.
+    pub session_duration: Option<i64>,
+    /// `suspended` property.
+    pub suspended: Option<bool>,
+    /// `total_active_users` property.
+    pub total_active_users: Option<i64>,
+    /// `turnstile_action` property.
+    pub turnstile_action: Option<String>,
+    /// `turnstile_mode` property.
+    pub turnstile_mode: Option<String>,
 }
 
+// =============================================================================
+// RESPONSE ENVELOPES
+// =============================================================================
+
+/// Response envelope shared by 4 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AigConfigCreateEvaluationsResponseResultResultsItemEnvelope<T> {
+    /// `created_at` property.
+    pub created_at: String,
+    /// `evaluation_id` property.
+    pub evaluation_id: String,
+    /// `evaluation_type_id` property.
+    pub evaluation_type_id: String,
+    /// `id` property.
+    pub id: String,
+    /// `modified_at` property.
+    pub modified_at: String,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `status` property.
+    pub status: f64,
+    /// `status_description` property.
+    pub status_description: String,
+    /// `total_logs` property.
+    pub total_logs: f64,
+}
+
+/// Response envelope shared by 806 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelope<T> {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// Response envelope shared by 30 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelope2<T> {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<String>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// Response envelope shared by 27 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelope3<T> {
+    /// `errors` property.
+    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// `messages` property.
+    pub messages: Option<Vec<String>>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `success` property.
+    pub success: Option<bool>,
+}
+
+/// Response envelope shared by 9 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelope4<T> {
+    /// `errors` property.
+    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// `messages` property.
+    pub messages: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// Response envelope shared by 3 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelope5<T> {
+    /// `errors` property.
+    pub errors: Vec<serde_json::Value>,
+    /// `messages` property.
+    pub messages: Vec<String>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// Response envelope shared by 2 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelope6<T> {
+    /// `errors` property.
+    pub errors: Vec<String>,
+    /// `messages` property.
+    pub messages: Vec<String>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// Response envelope shared by 2 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelopeDescriptionTimeType<T> {
+    /// `description` property.
+    pub description: Option<String>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `time` property.
+    pub time: Option<String>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// Response envelope shared by 115 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelopeErrorsMessagesResultInfoSuccess<T> {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// Response envelope shared by 5 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelopeErrorsMessagesResultInfoSuccess2<T> {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `result_info` property.
+    pub result_info: Option<serde_json::Value>,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// Response envelope shared by 2 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelopeErrorsMessagesResultInfoSuccess3<T> {
+    /// `errors` property.
+    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// `messages` property.
+    pub messages: Option<Vec<String>>,
+    /// The endpoint's payload.
+    pub result: T,
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `success` property.
+    pub success: Option<bool>,
+}
+
+/// Response envelope shared by 212 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelopeSuccess<T> {
+    /// The endpoint's payload.
+    pub result: T,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// Response envelope shared by 2 endpoints; `T` is the type of `result`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiEnvelopeSuccess2<T> {
+    /// The endpoint's payload.
+    pub result: T,
+    /// `success` property.
+    pub success: Option<bool>,
+}
+
+// =============================================================================
+// SHARED SHAPES
+// =============================================================================
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaAuditLogRawShape {
+    /// `cf_ray_id` property.
+    pub cf_ray_id: Option<String>,
+    /// `method` property.
+    pub method: Option<String>,
+    /// `status_code` property.
+    pub status_code: Option<i64>,
+    /// `uri` property.
+    pub uri: Option<String>,
+    /// `user_agent` property.
+    pub user_agent: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsMitigationListItemShape {
+    /// `effective_date` property.
+    pub effective_date: String,
+    /// `entity_id` property.
+    pub entity_id: String,
+    /// `entity_type` property.
+    pub entity_type: String,
+    /// `id` property.
+    pub id: String,
+    /// `status` property.
+    pub status: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 15 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessAzureADShape {
+    /// `config` property.
+    pub config: serde_json::Value,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// `scim_config` property.
+    pub scim_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessBasePolicyReqShape {
+    /// `decision` property.
+    pub decision: String,
+    /// `exclude` property.
+    pub exclude: Option<Vec<serde_json::Value>>,
+    /// `include` property.
+    pub include: Vec<serde_json::Value>,
+    /// `name` property.
+    pub name: String,
+    /// `require` property.
+    pub require: Option<Vec<serde_json::Value>>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessBasePolicyRespShape {
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `decision` property.
+    pub decision: Option<String>,
+    /// `exclude` property.
+    pub exclude: Option<Vec<serde_json::Value>>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `include` property.
+    pub include: Option<Vec<serde_json::Value>>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `require` property.
+    pub require: Option<Vec<serde_json::Value>>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessBisoPropsShape {
+    /// `allowed_idps` property.
+    pub allowed_idps: Option<Vec<String>>,
+    /// `auto_redirect_to_identity` property.
+    pub auto_redirect_to_identity: Option<bool>,
+    /// `custom_deny_url` property.
+    pub custom_deny_url: Option<String>,
+    /// `custom_non_identity_deny_url` property.
+    pub custom_non_identity_deny_url: Option<String>,
+    /// `custom_pages` property.
+    pub custom_pages: Option<Vec<String>>,
+    /// `domain` property.
+    pub domain: Option<serde_json::Value>,
+    /// `name` property.
+    pub name: Option<serde_json::Value>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: serde_json::Value,
+    /// `session_duration` property.
+    pub session_duration: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessGroupsCreateAnAccessGroupRequestShape {
+    /// `exclude` property.
+    pub exclude: Option<Vec<serde_json::Value>>,
+    /// `include` property.
+    pub include: Vec<serde_json::Value>,
+    /// `is_default` property.
+    pub is_default: Option<bool>,
+    /// `name` property.
+    pub name: String,
+    /// `require` property.
+    pub require: Option<Vec<serde_json::Value>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccessGroupsListAccessGroupsArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `name`.
+    pub name: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessIdentityProviderShape {
+    /// `config` property.
+    pub config: serde_json::Value,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `scim_config` property.
+    pub scim_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessKeyIdSecretAccessKeyObject {
+    /// `accessKeyId` property.
+    #[serde(rename = "accessKeyId")]
+    pub access_key_id: String,
+    /// `secretAccessKey` property.
+    #[serde(rename = "secretAccessKey")]
+    pub secret_access_key: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessLoginDesignShape {
+    /// `background_color` property.
+    pub background_color: Option<String>,
+    /// `footer_text` property.
+    pub footer_text: Option<String>,
+    /// `header_text` property.
+    pub header_text: Option<String>,
+    /// `logo_path` property.
+    pub logo_path: Option<String>,
+    /// `text_color` property.
+    pub text_color: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessOnetimepinShape {
+    /// `config` property.
+    pub config: std::collections::HashMap<String, serde_json::Value>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// `scim_config` property.
+    pub scim_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessSchemasAppLauncherPropsShape {
+    /// `allowed_idps` property.
+    pub allowed_idps: Option<Vec<String>>,
+    /// `auto_redirect_to_identity` property.
+    pub auto_redirect_to_identity: Option<bool>,
+    /// `domain` property.
+    pub domain: Option<serde_json::Value>,
+    /// `name` property.
+    pub name: Option<serde_json::Value>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// `session_duration` property.
+    pub session_duration: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessScimConfigMappingShape {
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `filter` property.
+    pub filter: Option<String>,
+    /// `operations` property.
+    pub operations: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `schema` property.
+    pub schema: String,
+    /// `strictness` property.
+    pub strictness: Option<String>,
+    /// `transform_jsonata` property.
+    pub transform_jsonata: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessServiceTokensCreateAServiceTokenRequestShape {
+    /// `client_secret_version` property.
+    pub client_secret_version: Option<f64>,
+    /// `duration` property.
+    pub duration: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `previous_client_secret_expires_at` property.
+    pub previous_client_secret_expires_at: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccessServiceTokensUpdateAServiceTokenRequestShape {
+    /// `client_secret_version` property.
+    pub client_secret_version: Option<f64>,
+    /// `duration` property.
+    pub duration: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `previous_client_secret_expires_at` property.
+    pub previous_client_secret_expires_at: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdAddressMapIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `address_map_id`.
+    pub address_map_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdAlertIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `alert_id`.
+    pub alert_id: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdAppIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdAppIdMeetingIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Path parameter: `meeting_id`.
+    pub meeting_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdAppIdPresetIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Path parameter: `preset_id`.
+    pub preset_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdAppIdSessionIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Path parameter: `session_id`.
+    pub session_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdAppIdWebhookIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Path parameter: `webhook_id`.
+    pub webhook_id: String,
+}
+
+/// A shape 206 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdAsnIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `asn_id`.
+    pub asn_id: String,
+}
+
+/// A shape 9 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdBucketNameArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `bucket_name`.
+    pub bucket_name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdBuildUuidArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `build_uuid`.
+    pub build_uuid: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdCategoryIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `category_id`.
+    pub category_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdConfigIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `config_id`.
+    pub config_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdConnectorIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `connector_id`.
+    pub connector_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDatabaseIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `database_id`.
+    pub database_id: String,
+}
+
+/// A shape 8 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDatasetIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `dataset_id`.
+    pub dataset_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDatasetIdIndicatorIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `dataset_id`.
+    pub dataset_id: String,
+    /// Path parameter: `indicator_id`.
+    pub indicator_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDatasetIdsArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `datasetIds` (one per value).
+    pub dataset_ids: Vec<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDexTestIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `dex_test_id`.
+    pub dex_test_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDispatchNamespaceArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `dispatch_namespace`.
+    pub dispatch_namespace: String,
+}
+
+/// A shape 9 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDispatchNamespaceScriptNameArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `dispatch_namespace`.
+    pub dispatch_namespace: String,
+    /// Path parameter: `script_name`.
+    pub script_name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDisplayNameIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `display_name_id`.
+    pub display_name_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDocumentFingerprintIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `document_fingerprint_id`.
+    pub document_fingerprint_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDomainArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `domain`.
+    pub domain: Option<String>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdDomainIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `domain_id`.
+    pub domain_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdEntryIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `entry_id`.
+    pub entry_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdFeedIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `feed_id`.
+    pub feed_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdFilterIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `filter_id`.
+    pub filter_id: String,
+}
+
+/// A shape 9 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdGatewayIdIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `gateway_id`.
+    pub gateway_id: String,
+    /// Path parameter: `id`.
+    pub id: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdGroupIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `group_id`.
+    pub group_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdHostnameRouteIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `hostname_route_id`.
+    pub hostname_route_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdHyperdriveIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `hyperdrive_id`.
+    pub hyperdrive_id: String,
+}
+
+/// A shape 13 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `id`.
+    pub id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdIdArgs2 {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `id` (one per value).
+    pub id: Vec<String>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdIndexNameArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `index_name`.
+    pub index_name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdIndexNameUnparsableBehaviorArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `index_name`.
+    pub index_name: String,
+    /// Query parameter: `unparsable-behavior`.
+    pub unparsable_behavior: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdIntegrationIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `integration_id`.
+    pub integration_id: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdJobIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `job_id`.
+    pub job_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdOnrampIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `onramp_id`.
+    pub onramp_id: String,
+}
+
+/// A shape 12 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdPagePerPageArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdPatternIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `pattern_id`.
+    pub pattern_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdPipelineIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `pipeline_id`.
+    pub pipeline_id: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdPolicyIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `policy_id`.
+    pub policy_id: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdPostfixIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `postfix_id`.
+    pub postfix_id: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdPrefixIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `prefix_id`.
+    pub prefix_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdPrefixIdBgpPrefixIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `prefix_id`.
+    pub prefix_id: String,
+    /// Path parameter: `bgp_prefix_id`.
+    pub bgp_prefix_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdPrefixIdBindingIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `prefix_id`.
+    pub prefix_id: String,
+    /// Path parameter: `binding_id`.
+    pub binding_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdPriorityIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `priority_id`.
+    pub priority_id: String,
+}
+
+/// A shape 8 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdProfileIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `profile_id`.
+    pub profile_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdProviderIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `provider_id`.
+    pub provider_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdQueryIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `query_id`.
+    pub query_id: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdQueueRequestTagsArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
+    pub tags: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdRequestIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `request_id`.
+    pub request_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdRequestIdAssetIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `request_id`.
+    pub request_id: String,
+    /// Path parameter: `asset_id`.
+    pub asset_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdResourceGroupIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `resource_group_id`.
+    pub resource_group_id: String,
+}
+
+/// A shape 10 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdRuleIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `rule_id`.
+    pub rule_id: String,
+}
+
+/// A shape 13 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdScriptNameArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `script_name`.
+    pub script_name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdScriptNameBindingsInheritArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `script_name`.
+    pub script_name: String,
+    /// Query parameter: `bindings_inherit`.
+    pub bindings_inherit: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdScriptNameDeploymentIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `script_name`.
+    pub script_name: String,
+    /// Path parameter: `deployment_id`.
+    pub deployment_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdServiceIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `service_id`.
+    pub service_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdServiceNameEnvironmentNameArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `service_name`.
+    pub service_name: String,
+    /// Path parameter: `environment_name`.
+    pub environment_name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdShareIdResourceIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `share_id`.
+    pub share_id: String,
+    /// Path parameter: `resource_id`.
+    pub resource_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdSilenceIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `silence_id`.
+    pub silence_id: String,
+}
+
+/// A shape 8 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdSiteIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `site_id`.
+    pub site_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdSitekeyArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `sitekey`.
+    pub sitekey: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdSsoConnectorIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `sso_connector_id`.
+    pub sso_connector_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdStoreIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `store_id`.
+    pub store_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdStoreIdSecretIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `store_id`.
+    pub store_id: String,
+    /// Path parameter: `secret_id`.
+    pub secret_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdSubnetIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `subnet_id`.
+    pub subnet_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdSubscriptionIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `subscription_id`.
+    pub subscription_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdSyncIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `sync_id`.
+    pub sync_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdTagNameArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `tag_name`.
+    pub tag_name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdTargetIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `target_id`.
+    pub target_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdTokenIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `token_id`.
+    pub token_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdTriggerUuidArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `trigger_uuid`.
+    pub trigger_uuid: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdTrustedDomainIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `trusted_domain_id`.
+    pub trusted_domain_id: String,
+}
+
+/// A shape 9 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdTunnelIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `tunnel_id`.
+    pub tunnel_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdTunnelIdConnectorIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `tunnel_id`.
+    pub tunnel_id: String,
+    /// Path parameter: `connector_id`.
+    pub connector_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdUserGroupIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `user_group_id`.
+    pub user_group_id: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdUserIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `user_id`.
+    pub user_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdViewIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `view_id`.
+    pub view_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountIdWorkerIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `worker_id`.
+    pub worker_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountTagStoreIdArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
+    /// Path parameter: `store_id`.
+    pub store_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AccountTagStoreIdSecretIdArgs {
+    /// Path parameter: `account_tag`.
+    pub account_tag: String,
+    /// Path parameter: `store_id`.
+    pub store_id: String,
+    /// Path parameter: `secret_id`.
+    pub secret_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AccountsTurnstileWidgetCreateRequestShape {
+    /// `bot_fight_mode` property.
+    pub bot_fight_mode: Option<bool>,
+    /// `clearance_level` property.
+    pub clearance_level: Option<String>,
+    /// `domains` property.
+    pub domains: Vec<String>,
+    /// `ephemeral_id` property.
+    pub ephemeral_id: Option<bool>,
+    /// `mode` property.
+    pub mode: String,
+    /// `name` property.
+    pub name: String,
+    /// `offlabel` property.
+    pub offlabel: Option<bool>,
+    /// `region` property.
+    pub region: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AclIdAccountIdArgs {
+    /// Path parameter: `acl_id`.
+    pub acl_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ActionObject {
+    /// `action` property.
+    pub action: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AdditionalPropertiesDescriptionTypeObject {
+    /// `additionalProperties` property.
+    #[serde(rename = "additionalProperties")]
+    pub additional_properties: bool,
+    /// `description` property.
+    pub description: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddressDescriptionObject {
+    /// `address` property.
+    pub address: String,
+    /// `description` property.
+    pub description: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AddressMapIdAccountIdArgs {
+    /// Path parameter: `address_map_id`.
+    pub address_map_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 28 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AddressingApiResponseCollectionShape {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AiSearchCreateInstancesRequestSourceParamsWebCrawlerCrawlOptionsShape {
+    /// `depth` property.
+    pub depth: Option<f64>,
+    /// `include_external_links` property.
+    pub include_external_links: Option<bool>,
+    /// `include_subdomains` property.
+    pub include_subdomains: Option<bool>,
+    /// `max_age` property.
+    pub max_age: Option<f64>,
+    /// `source` property.
+    pub source: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AiSearchCreateTokensRequestShape {
+    /// `cf_api_id` property.
+    pub cf_api_id: String,
+    /// `cf_api_key` property.
+    pub cf_api_key: String,
+    /// `legacy` property.
+    pub legacy: Option<bool>,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AiSearchCreateTokensResponseResultShape {
+    /// `cf_api_id` property.
+    pub cf_api_id: String,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `created_by` property.
+    pub created_by: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `id` property.
+    pub id: String,
+    /// `legacy` property.
+    pub legacy: Option<bool>,
+    /// `modified_at` property.
+    pub modified_at: String,
+    /// `modified_by` property.
+    pub modified_by: Option<String>,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AiSearchInstanceChangeJobStatusResponseResultShape {
+    /// `description` property.
+    pub description: Option<String>,
+    /// `end_reason` property.
+    pub end_reason: Option<String>,
+    /// `ended_at` property.
+    pub ended_at: Option<String>,
+    /// `id` property.
+    pub id: String,
+    /// `last_seen_at` property.
+    pub last_seen_at: Option<String>,
+    /// `source` property.
+    pub source: String,
+    /// `started_at` property.
+    pub started_at: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AiSearchInstanceChatCompletionResponseChunksItemScoringDetailsShape {
+    /// `fusion_method` property.
+    pub fusion_method: Option<String>,
+    /// `keyword_rank` property.
+    pub keyword_rank: Option<f64>,
+    /// `keyword_score` property.
+    pub keyword_score: Option<f64>,
+    /// `reranking_score` property.
+    pub reranking_score: Option<f64>,
+    /// `vector_rank` property.
+    pub vector_rank: Option<f64>,
+    /// `vector_score` property.
+    pub vector_score: Option<f64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AiSearchInstanceListJobLogsArgsShape {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Path parameter: `job_id`.
+    pub job_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+}
+
+/// A shape 8 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AiSearchInstanceListJobLogsResponseResultInfoShape {
+    /// `count` property.
+    pub count: i64,
+    /// `page` property.
+    pub page: i64,
+    /// `per_page` property.
+    pub per_page: i64,
+    /// `total_count` property.
+    pub total_count: i64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AiSearchInstanceListJobLogsResponseResultItemShape {
+    /// `created_at` property.
+    pub created_at: f64,
+    /// `id` property.
+    pub id: i64,
+    /// `message` property.
+    pub message: String,
+    /// `message_type` property.
+    pub message_type: i64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AiSearchInstanceListJobsArgsShape {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AigConfigCreateGatewayResponseResultOtelItemShape {
+    /// `authorization` property.
+    pub authorization: String,
+    /// `content_type` property.
+    pub content_type: Option<String>,
+    /// `headers` property.
+    pub headers: serde_json::Value,
+    /// `url` property.
+    pub url: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AigConfigCreateProvidersResponseResultShape {
+    /// `alias` property.
+    pub alias: String,
+    /// `default_config` property.
+    pub default_config: bool,
+    /// `gateway_id` property.
+    pub gateway_id: String,
+    /// `id` property.
+    pub id: String,
+    /// `modified_at` property.
+    pub modified_at: String,
+    /// `provider_slug` property.
+    pub provider_slug: String,
+    /// `rate_limit` property.
+    pub rate_limit: Option<f64>,
+    /// `rate_limit_period` property.
+    pub rate_limit_period: Option<f64>,
+    /// `secret_id` property.
+    pub secret_id: String,
+    /// `secret_preview` property.
+    pub secret_preview: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AigConfigDeleteGatewayDynamicRouteResponseResultShape {
+    /// `created_at` property.
+    pub created_at: String,
+    /// `elements` property.
+    pub elements: Vec<serde_json::Value>,
+    /// `gateway_id` property.
+    pub gateway_id: String,
+    /// `id` property.
+    pub id: String,
+    /// `modified_at` property.
+    pub modified_at: String,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AigConfigGetGatewayDynamicRouteResponseResultVersionShape {
+    /// `active` property.
+    pub active: String,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `data` property.
+    pub data: String,
+    /// `version_id` property.
+    pub version_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AigConfigListEvaluatorsArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `order_by`.
+    pub order_by: Option<String>,
+    /// Query parameter: `order_by_direction`.
+    pub order_by_direction: Option<String>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AigConfigListEvaluatorsResponseResultInfoShape {
+    /// `count` property.
+    pub count: f64,
+    /// `page` property.
+    pub page: f64,
+    /// `per_page` property.
+    pub per_page: f64,
+    /// `total_count` property.
+    pub total_count: f64,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AllowIframeSkipInterstitialObject {
+    /// `allow_iframe` property.
+    pub allow_iframe: Option<bool>,
+    /// `skip_interstitial` property.
+    pub skip_interstitial: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AnyValidServiceTokenObject {
+    /// `any_valid_service_token` property.
+    pub any_valid_service_token: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldCredentialsJWTKeyECES256Shape {
+    /// `alg` property.
+    pub alg: String,
+    /// `crv` property.
+    pub crv: String,
+    /// `kid` property.
+    pub kid: String,
+    /// `kty` property.
+    pub kty: String,
+    /// `x` property.
+    pub x: String,
+    /// `y` property.
+    pub y: String,
+}
+
+/// A shape 9 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AppIdAccountIdArgs {
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AppIdPolicyIdAccountIdArgs {
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Path parameter: `policy_id`.
+    pub policy_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 10 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AppIdZoneIdArgs {
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ArgoConfigResultObjectShape {
+    /// `editable` property.
+    pub editable: bool,
+    /// `id` property.
+    pub id: String,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AsnAccountIdArgs {
+    /// Path parameter: `asn`.
+    pub asn: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AsnCountryCodeOrgNameObject {
+    /// `asn` property.
+    pub asn: i64,
+    /// `country_code` property.
+    pub country_code: String,
+    /// `org_name` property.
+    pub org_name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AsnCountryNameObject {
+    /// `asn` property.
+    pub asn: i64,
+    /// `country` property.
+    pub country: String,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AsnFormatArgs {
+    /// Path parameter: `asn`.
+    pub asn: String,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AsnObject {
+    /// `asn` property.
+    pub asn: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AssetNameAccountIdentifierArgs {
+    /// Path parameter: `asset_name`.
+    pub asset_name: String,
+    /// Path parameter: `account_identifier`.
+    pub account_identifier: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct AssetNameZoneIdentifierArgs {
+    /// Path parameter: `asset_name`.
+    pub asset_name: String,
+    /// Path parameter: `zone_identifier`.
+    pub zone_identifier: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AssociatedHostnamesCertificateNameObject {
+    /// `associated_hostnames` property.
+    pub associated_hostnames: Option<Vec<String>>,
+    /// `certificate` property.
+    pub certificate: String,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AssociatedHostnamesNameObject {
+    /// `associated_hostnames` property.
+    pub associated_hostnames: Vec<String>,
+    /// `name` property.
+    pub name: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AudIdPublicKeyObject {
+    /// `aud` property.
+    pub aud: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `public_key` property.
+    pub public_key: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AuthContextObject {
+    /// `auth_context` property.
+    pub auth_context: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AuthMethodObject {
+    /// `auth_method` property.
+    pub auth_method: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AutoRenewLockedPrivacyObject {
+    /// `auto_renew` property.
+    pub auto_renew: Option<bool>,
+    /// `locked` property.
+    pub locked: Option<bool>,
+    /// `privacy` property.
+    pub privacy: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AutoragConfigGetJobResponseResultShape {
+    /// `end_reason` property.
+    pub end_reason: Option<String>,
+    /// `ended_at` property.
+    pub ended_at: Option<String>,
+    /// `id` property.
+    pub id: String,
+    /// `last_seen_at` property.
+    pub last_seen_at: Option<String>,
+    /// `source` property.
+    pub source: String,
+    /// `started_at` property.
+    pub started_at: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AzureAdObject {
+    /// `azureAD` property.
+    #[serde(rename = "azureAD")]
+    pub azure_ad: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BehaviorsObject {
+    /// `behaviors` property.
+    pub behaviors: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiRatePlanShape {
+    /// `currency` property.
+    pub currency: Option<String>,
+    /// `externally_managed` property.
+    pub externally_managed: Option<bool>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `is_contract` property.
+    pub is_contract: Option<bool>,
+    /// `public_name` property.
+    pub public_name: Option<String>,
+    /// `scope` property.
+    pub scope: Option<String>,
+    /// `sets` property.
+    pub sets: Option<Vec<String>>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BodyContentTypeObject {
+    /// `body` property.
+    pub body: Option<serde_json::Value>,
+    /// `contentType` property.
+    #[serde(rename = "contentType")]
+    pub content_type: Option<String>,
+}
+
+/// A shape 8 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct BucketNameAccountIdArgs {
+    /// Path parameter: `bucket_name`.
+    pub bucket_name: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BucketNameTypeObject {
+    /// `bucket_name` property.
+    pub bucket_name: Option<String>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BuildsCreateBuildTokenResponseShape {
+    /// `build_token_name` property.
+    pub build_token_name: Option<String>,
+    /// `build_token_uuid` property.
+    pub build_token_uuid: Option<String>,
+    /// `cloudflare_token_id` property.
+    pub cloudflare_token_id: Option<String>,
+    /// `owner_type` property.
+    pub owner_type: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct BuildsObject {
+    /// `builds` property.
+    pub builds: Option<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CacheThresholdEnabledObject {
+    /// `cache_threshold` property.
+    pub cache_threshold: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CallsAppShape {
+    /// `created` property.
+    pub created: Option<String>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `uid` property.
+    pub uid: Option<String>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CategoryNameUuidValueObject {
+    /// `categoryName` property.
+    #[serde(rename = "categoryName")]
+    pub category_name: Option<String>,
+    /// `uuid` property.
+    pub uuid: Option<String>,
+    /// `value` property.
+    pub value: Option<String>,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CertificateIdAccountIdArgs {
+    /// Path parameter: `certificate_id`.
+    pub certificate_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CertificateIdArgs {
+    /// Path parameter: `certificate_id`.
+    pub certificate_id: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CertificateIdZoneIdArgs {
+    /// Path parameter: `certificate_id`.
+    pub certificate_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CertificateObject {
+    /// `certificate` property.
+    pub certificate: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CertificatePackIdZoneIdArgs {
+    /// Path parameter: `certificate_pack_id`.
+    pub certificate_pack_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CertificatePrivateKeyObject {
+    /// `certificate` property.
+    pub certificate: String,
+    /// `private_key` property.
+    pub private_key: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ChinaNetworkClientCertificateForwardingHostnameObject {
+    /// `china_network` property.
+    pub china_network: bool,
+    /// `client_certificate_forwarding` property.
+    pub client_certificate_forwarding: bool,
+    /// `hostname` property.
+    pub hostname: String,
+}
+
+/// A shape 10 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClientAsnClientAsNameValueObject {
+    /// `clientASN` property.
+    #[serde(rename = "clientASN")]
+    pub client_asn: i64,
+    /// `clientASName` property.
+    #[serde(rename = "clientASName")]
+    pub client_as_name: String,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 17 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClientCountryAlpha2ClientCountryNameValueObject {
+    /// `clientCountryAlpha2` property.
+    #[serde(rename = "clientCountryAlpha2")]
+    pub client_country_alpha2: String,
+    /// `clientCountryName` property.
+    #[serde(rename = "clientCountryName")]
+    pub client_country_name: String,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClientEmailPrivateKeyObject {
+    /// `clientEmail` property.
+    #[serde(rename = "clientEmail")]
+    pub client_email: String,
+    /// `privateKey` property.
+    #[serde(rename = "privateKey")]
+    pub private_key: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClientIdClientSecretObject {
+    /// `client_id` property.
+    pub client_id: Option<String>,
+    /// `client_secret` property.
+    pub client_secret: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ClientTypeIdNameObject {
+    /// `client_type` property.
+    pub client_type: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CloudflareTunnelListCloudflareTunnelsArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `name`.
+    pub name: Option<String>,
+    /// Query parameter: `is_deleted`.
+    pub is_deleted: Option<String>,
+    /// Query parameter: `existed_at`.
+    pub existed_at: Option<String>,
+    /// Query parameter: `uuid`.
+    pub uuid: Option<String>,
+    /// Query parameter: `was_active_at`.
+    pub was_active_at: Option<String>,
+    /// Query parameter: `was_inactive_at`.
+    pub was_inactive_at: Option<String>,
+    /// Query parameter: `include_prefix`.
+    pub include_prefix: Option<String>,
+    /// Query parameter: `exclude_prefix`.
+    pub exclude_prefix: Option<String>,
+    /// Query parameter: `status`.
+    pub status: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CniAccountIdArgs {
+    /// Path parameter: `cni`.
+    pub cni: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 47 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CodeMessageObject {
+    /// `code` property.
+    pub code: f64,
+    /// `message` property.
+    pub message: String,
+}
+
+/// A shape 10 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CodeMessageObject2 {
+    /// `code` property.
+    pub code: i64,
+    /// `message` property.
+    pub message: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CodeMessageObject3 {
+    /// `code` property.
+    pub code: Option<i64>,
+    /// `message` property.
+    pub message: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CodeNameObject {
+    /// `code` property.
+    pub code: String,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CommandsObject {
+    /// `commands` property.
+    pub commands: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CommentHostnameTunnelIdObject {
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `hostname` property.
+    pub hostname: Option<String>,
+    /// `tunnel_id` property.
+    pub tunnel_id: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CommentIsDefaultNetworkNameObject {
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `is_default_network` property.
+    pub is_default_network: Option<bool>,
+    /// `name` property.
+    pub name: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CommonNameObject {
+    /// `common_name` property.
+    pub common_name: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ComplianceStatusConnectionIdObject {
+    /// `compliance_status` property.
+    pub compliance_status: String,
+    /// `connection_id` property.
+    pub connection_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ConfigurationModeNotesObject {
+    /// `configuration` property.
+    pub configuration: serde_json::Value,
+    /// `mode` property.
+    pub mode: String,
+    /// `notes` property.
+    pub notes: Option<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ConsumerIdQueueIdAccountIdArgs {
+    /// Path parameter: `consumer_id`.
+    pub consumer_id: String,
+    /// Path parameter: `queue_id`.
+    pub queue_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ContentListEntryIdentifierIdentifierZoneIdArgs {
+    /// Path parameter: `content_list_entry_identifier`.
+    pub content_list_entry_identifier: String,
+    /// Path parameter: `identifier`.
+    pub identifier: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContentRoleObject {
+    /// `content` property.
+    pub content: Option<String>,
+    /// `role` property.
+    pub role: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CpuMsObject {
+    /// `cpu_ms` property.
+    pub cpu_ms: Option<i64>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateWorkerRequestShape {
+    /// `created_on` property.
+    pub created_on: String,
+    /// `deployed_on` property.
+    pub deployed_on: Option<String>,
+    /// `id` property.
+    pub id: String,
+    /// `logpush` property.
+    pub logpush: bool,
+    /// `name` property.
+    pub name: String,
+    /// `observability` property.
+    pub observability: std::collections::HashMap<String, serde_json::Value>,
+    /// `references` property.
+    pub references: std::collections::HashMap<String, serde_json::Value>,
+    /// `subdomain` property.
+    pub subdomain: std::collections::HashMap<String, serde_json::Value>,
+    /// `tags` property.
+    pub tags: Vec<String>,
+    /// `tail_consumers` property.
+    pub tail_consumers: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `updated_on` property.
+    pub updated_on: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreatedAtDeploymentIdVersionIdObject {
+    /// `created_at` property.
+    pub created_at: String,
+    /// `deployment_id` property.
+    pub deployment_id: String,
+    /// `version_id` property.
+    pub version_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreatedAtIdNameObject {
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreatedFromAisearchWizardWorkerDomainObject {
+    /// `created_from_aisearch_wizard` property.
+    pub created_from_aisearch_wizard: Option<bool>,
+    /// `worker_domain` property.
+    pub worker_domain: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CurrencyMonthlyCostObject {
+    /// `currency` property.
+    pub currency: String,
+    /// `monthly_cost` property.
+    pub monthly_cost: f64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CustomCertificateIdZoneIdArgs {
+    /// Path parameter: `custom_certificate_id`.
+    pub custom_certificate_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CustomHostnameIdZoneIdArgs {
+    /// Path parameter: `custom_hostname_id`.
+    pub custom_hostname_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CustomOriginTrustStoreIdZoneIdArgs {
+    /// Path parameter: `custom_origin_trust_store_id`.
+    pub custom_origin_trust_store_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct CustomPageIdAccountIdArgs {
+    /// Path parameter: `custom_page_id`.
+    pub custom_page_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DashHlsObject {
+    /// `dash` property.
+    pub dash: Option<String>,
+    /// `hls` property.
+    pub hls: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataErrorsObject {
+    /// `data` property.
+    pub data: Option<serde_json::Value>,
+    /// `errors` property.
+    pub errors: Option<Vec<serde_json::Value>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataIdObject {
+    /// `data` property.
+    pub data: serde_json::Value,
+    /// `id` property.
+    pub id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataObject {
+    /// `data` property.
+    pub data: Vec<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataPagingSuccessObject {
+    /// `data` property.
+    pub data: Vec<serde_json::Value>,
+    /// `paging` property.
+    pub paging: std::collections::HashMap<String, serde_json::Value>,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSourceTlpObject {
+    /// `data` property.
+    pub data: Option<serde_json::Value>,
+    /// `source` property.
+    pub source: Option<String>,
+    /// `tlp` property.
+    pub tlp: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSuccessObject {
+    /// `data` property.
+    pub data: Option<serde_json::Value>,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataSuccessObject2 {
+    /// `data` property.
+    pub data: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataTimeQueryTimeObject {
+    /// `dataTime` property.
+    #[serde(rename = "dataTime")]
+    pub data_time: String,
+    /// `queryTime` property.
+    #[serde(rename = "queryTime")]
+    pub query_time: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataTimeQueryTimeTotalPeersObject {
+    /// `data_time` property.
+    pub data_time: String,
+    /// `query_time` property.
+    pub query_time: String,
+    /// `total_peers` property.
+    pub total_peers: i64,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DataTypeFieldNameObject {
+    /// `data_type` property.
+    pub data_type: String,
+    /// `field_name` property.
+    pub field_name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DatasetIdAccountIdArgs {
+    /// Path parameter: `dataset_id`.
+    pub dataset_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 8 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DatasetIdEventIdObject {
+    /// `datasetId` property.
+    #[serde(rename = "datasetId")]
+    pub dataset_id: String,
+    /// `eventId` property.
+    #[serde(rename = "eventId")]
+    pub event_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DatasetIdZoneIdArgs {
+    /// Path parameter: `dataset_id`.
+    pub dataset_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeliveryDelayDeliveryPausedMessageRetentionPeriodObject {
+    /// `delivery_delay` property.
+    pub delivery_delay: Option<f64>,
+    /// `delivery_paused` property.
+    pub delivery_paused: Option<bool>,
+    /// `message_retention_period` property.
+    pub message_retention_period: Option<f64>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DeploymentIdProjectNameAccountIdArgs {
+    /// Path parameter: `deployment_id`.
+    pub deployment_id: String,
+    /// Path parameter: `project_name`.
+    pub project_name: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DescriptionDisabledObject {
+    /// `description` property.
+    pub description: Option<String>,
+    /// `disabled` property.
+    pub disabled: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DescriptionDnsServerSuffixObject {
+    /// `description` property.
+    pub description: Option<String>,
+    /// `dns_server` property.
+    pub dns_server: Option<Vec<String>>,
+    /// `suffix` property.
+    pub suffix: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DescriptionHostObject {
+    /// `description` property.
+    pub description: Option<String>,
+    /// `host` property.
+    pub host: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DescriptionMetadataObject {
+    /// `description` property.
+    pub description: Option<String>,
+    /// `metadata` property.
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DescriptionNameObject {
+    /// `description` property.
+    pub description: String,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DescriptionNameUrlObject {
+    /// `description` property.
+    pub description: String,
+    /// `name` property.
+    pub name: String,
+    /// `url` property.
+    pub url: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DescriptionObject {
+    /// `description` property.
+    pub description: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DescriptionUrlObject {
+    /// `description` property.
+    pub description: String,
+    /// `url` property.
+    pub url: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DestDatasetIdEventIdsObject {
+    /// `destDatasetId` property.
+    #[serde(rename = "destDatasetId")]
+    pub dest_dataset_id: String,
+    /// `eventIds` property.
+    #[serde(rename = "eventIds")]
+    pub event_ids: Vec<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DestinationAddressIdentifierAccountIdArgs {
+    /// Path parameter: `destination_address_identifier`.
+    pub destination_address_identifier: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DestinationConfObject {
+    /// `destination_conf` property.
+    pub destination_conf: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DestinationConfOwnershipChallengeObject {
+    /// `destination_conf` property.
+    pub destination_conf: String,
+    /// `ownership_challenge` property.
+    pub ownership_challenge: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DestinationCreateResponseResultConfigurationShape {
+    /// `destination_conf` property.
+    pub destination_conf: String,
+    /// `logpushDataset` property.
+    #[serde(rename = "logpushDataset")]
+    pub logpush_dataset: serde_json::Value,
+    /// `logpushJob` property.
+    #[serde(rename = "logpushJob")]
+    pub logpush_job: f64,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// `url` property.
+    pub url: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DestinationListArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `perPage`.
+    pub per_page: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DestinationSourceObject {
+    /// `destination` property.
+    pub destination: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `source` property.
+    pub source: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DevicePostureObject {
+    /// `device_posture` property.
+    pub device_posture: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DexEndpointsHttpTestDetailsArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `test_id`.
+    pub test_id: String,
+    /// Query parameter: `deviceId` (one per value).
+    pub device_id: Vec<String>,
+    /// Query parameter: `from`.
+    pub from: Option<String>,
+    /// Query parameter: `to`.
+    pub to: Option<String>,
+    /// Query parameter: `interval`.
+    pub interval: Option<String>,
+    /// Query parameter: `colo`.
+    pub colo: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DexEndpointsHttpTestPercentilesArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `test_id`.
+    pub test_id: String,
+    /// Query parameter: `deviceId` (one per value).
+    pub device_id: Vec<String>,
+    /// Query parameter: `from`.
+    pub from: Option<String>,
+    /// Query parameter: `to`.
+    pub to: Option<String>,
+    /// Query parameter: `colo`.
+    pub colo: Option<String>,
+}
+
+/// A shape 9 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DirectionFieldObject {
+    /// `direction` property.
+    pub direction: Option<String>,
+    /// `field` property.
+    pub field: String,
+}
+
+/// A shape 16 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DisabledObject {
+    /// `disabled` property.
+    pub disabled: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DismissObject {
+    /// `dismiss` property.
+    pub dismiss: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsQueryShape {
+    /// `dimensions` property.
+    pub dimensions: Vec<String>,
+    /// `filters` property.
+    pub filters: Option<String>,
+    /// `limit` property.
+    pub limit: i64,
+    /// `metrics` property.
+    pub metrics: Vec<String>,
+    /// `since` property.
+    pub since: String,
+    /// `sort` property.
+    pub sort: Option<Vec<String>>,
+    /// `until` property.
+    pub until: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsReportBytimeShape {
+    /// `data` property.
+    pub data: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `data_lag` property.
+    pub data_lag: f64,
+    /// `max` property.
+    pub max: serde_json::Value,
+    /// `min` property.
+    pub min: serde_json::Value,
+    /// `query` property.
+    pub query: std::collections::HashMap<String, serde_json::Value>,
+    /// `rows` property.
+    pub rows: f64,
+    /// `time_intervals` property.
+    pub time_intervals: Vec<Vec<String>>,
+    /// `totals` property.
+    pub totals: serde_json::Value,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DnsFirewallIdAccountIdArgs {
+    /// Path parameter: `dns_firewall_id`.
+    pub dns_firewall_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DnsRecordIdZoneIdArgs {
+    /// Path parameter: `dns_record_id`.
+    pub dns_record_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsViewShape {
+    /// `created_time` property.
+    pub created_time: Option<String>,
+    /// `modified_time` property.
+    pub modified_time: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `zones` property.
+    pub zones: Option<Vec<String>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsSoaBaseShape {
+    /// `expire` property.
+    pub expire: Option<f64>,
+    /// `min_ttl` property.
+    pub min_ttl: Option<f64>,
+    /// `mname` property.
+    pub mname: Option<String>,
+    /// `refresh` property.
+    pub refresh: Option<f64>,
+    /// `retry` property.
+    pub retry: Option<f64>,
+    /// `rname` property.
+    pub rname: Option<String>,
+    /// `ttl` property.
+    pub ttl: Option<f64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsSoaResponseShape {
+    /// `expire` property.
+    pub expire: f64,
+    /// `min_ttl` property.
+    pub min_ttl: f64,
+    /// `mname` property.
+    pub mname: Option<String>,
+    /// `refresh` property.
+    pub refresh: f64,
+    /// `retry` property.
+    pub retry: f64,
+    /// `rname` property.
+    pub rname: String,
+    /// `ttl` property.
+    pub ttl: f64,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct DomainNameProjectNameAccountIdArgs {
+    /// Path parameter: `domain_name`.
+    pub domain_name: String,
+    /// Path parameter: `project_name`.
+    pub project_name: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DoneTotalObject {
+    /// `done` property.
+    pub done: i64,
+    /// `total` property.
+    pub total: i64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailAddressesShape {
+    /// `created` property.
+    pub created: Option<String>,
+    /// `email` property.
+    pub email: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `tag` property.
+    pub tag: Option<String>,
+    /// `verified` property.
+    pub verified: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailDomainObject {
+    /// `email_domain` property.
+    pub email_domain: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailEmailSettingsPropertiesShape {
+    /// `created` property.
+    pub created: Option<String>,
+    /// `enabled` property.
+    pub enabled: bool,
+    /// `id` property.
+    pub id: String,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `skip_wizard` property.
+    pub skip_wizard: Option<bool>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `tag` property.
+    pub tag: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailListObject {
+    /// `email_list` property.
+    pub email_list: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailObject {
+    /// `email` property.
+    pub email: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailObject2 {
+    /// `email` property.
+    pub email: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSecurityUpdateTrustedDomainShape {
+    /// `comments` property.
+    pub comments: Option<String>,
+    /// `is_recent` property.
+    pub is_recent: Option<bool>,
+    /// `is_regex` property.
+    pub is_regex: Option<bool>,
+    /// `is_similarity` property.
+    pub is_similarity: Option<bool>,
+    /// `pattern` property.
+    pub pattern: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingSubdomainShape {
+    /// `created` property.
+    pub created: Option<String>,
+    /// `email_sending_dkim_selector` property.
+    pub email_sending_dkim_selector: Option<String>,
+    /// `email_sending_enabled` property.
+    pub email_sending_enabled: bool,
+    /// `email_sending_return_path_domain` property.
+    pub email_sending_return_path_domain: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `modified` property.
+    pub modified: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `tag` property.
+    pub tag: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct EmptyArgs {}
+
+/// A shape 34 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EmptyObject {}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnabledEntryIdObject {
+    /// `enabled` property.
+    pub enabled: bool,
+    /// `entry_id` property.
+    pub entry_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnabledFrequencyNotificationTypeObject {
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `frequency` property.
+    pub frequency: Option<String>,
+    /// `notification_type` property.
+    pub notification_type: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnabledMatchThresholdModelObject {
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `match_threshold` property.
+    pub match_threshold: Option<f64>,
+    /// `model` property.
+    pub model: Option<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnabledModelObject {
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `model` property.
+    pub model: Option<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnabledModelRewritePromptObject {
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `model` property.
+    pub model: Option<serde_json::Value>,
+    /// `rewrite_prompt` property.
+    pub rewrite_prompt: Option<String>,
+}
+
+/// A shape 16 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnabledObject {
+    /// `enabled` property.
+    pub enabled: bool,
+}
+
+/// A shape 10 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnabledObject2 {
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EnabledPoolIdObject {
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `pool_id` property.
+    pub pool_id: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EndOffsetStartOffsetTotalCountObject {
+    /// `end_offset` property.
+    pub end_offset: Option<i64>,
+    /// `start_offset` property.
+    pub start_offset: Option<i64>,
+    /// `total_count` property.
+    pub total_count: Option<i64>,
+}
+
+/// A shape 98 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EndTimeStartTimeObject {
+    /// `endTime` property.
+    #[serde(rename = "endTime")]
+    pub end_time: String,
+    /// `startTime` property.
+    #[serde(rename = "startTime")]
+    pub start_time: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ErrorRetentionSuccessRetentionObject {
+    /// `error_retention` property.
+    pub error_retention: Option<serde_json::Value>,
+    /// `success_retention` property.
+    pub success_retention: Option<serde_json::Value>,
+}
+
+/// A shape 143 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ErrorsMessagesSuccessObject {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `success` property.
+    pub success: bool,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ErrorsMessagesSuccessObject2 {
+    /// `errors` property.
+    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// `messages` property.
+    pub messages: Option<Vec<String>>,
+    /// `success` property.
+    pub success: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EstimatedUsersLocationAlpha2LocationNameObject {
+    /// `estimatedUsers` property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: Option<i64>,
+    /// `locationAlpha2` property.
+    #[serde(rename = "locationAlpha2")]
+    pub location_alpha2: String,
+    /// `locationName` property.
+    #[serde(rename = "locationName")]
+    pub location_name: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct EventIdWaitingRoomIdZoneIdArgs {
+    /// Path parameter: `event_id`.
+    pub event_id: String,
+    /// Path parameter: `waiting_room_id`.
+    pub waiting_room_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EventsObject {
+    /// `events` property.
+    pub events: Vec<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct EveryoneObject {
+    /// `everyone` property.
+    pub everyone: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ExternalEvaluationObject {
+    /// `external_evaluation` property.
+    pub external_evaluation: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 26 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FirewallResultInfoShape {
+    /// `count` property.
+    pub count: Option<f64>,
+    /// `page` property.
+    pub page: Option<f64>,
+    /// `per_page` property.
+    pub per_page: Option<f64>,
+    /// `total_count` property.
+    pub total_count: Option<f64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FromToObject {
+    /// `from` property.
+    pub from: f64,
+    /// `to` property.
+    pub to: f64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GeoObject {
+    /// `geo` property.
+    pub geo: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetCategoryReadResponseShape {
+    /// `killChain` property.
+    #[serde(rename = "killChain")]
+    pub kill_chain: f64,
+    /// `mitreAttack` property.
+    #[serde(rename = "mitreAttack")]
+    pub mitre_attack: Option<Vec<String>>,
+    /// `mitreCapec` property.
+    #[serde(rename = "mitreCapec")]
+    pub mitre_capec: Option<Vec<String>>,
+    /// `name` property.
+    pub name: String,
+    /// `shortname` property.
+    pub shortname: Option<String>,
+    /// `uuid` property.
+    pub uuid: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetEventQueryAlertReadResponseShape {
+    /// `account_id` property.
+    pub account_id: i64,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `enabled` property.
+    pub enabled: bool,
+    /// `frequency` property.
+    pub frequency: String,
+    /// `id` property.
+    pub id: i64,
+    /// `last_sent_at` property.
+    pub last_sent_at: Option<String>,
+    /// `notification_type` property.
+    pub notification_type: String,
+    /// `query_id` property.
+    pub query_id: i64,
+    /// `updated_at` property.
+    pub updated_at: String,
+    /// `user_email` property.
+    pub user_email: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetEventQueryReadResponseShape {
+    /// `account_id` property.
+    pub account_id: i64,
+    /// `alert_enabled` property.
+    pub alert_enabled: bool,
+    /// `alert_rollup_enabled` property.
+    pub alert_rollup_enabled: bool,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `id` property.
+    pub id: i64,
+    /// `name` property.
+    pub name: String,
+    /// `query_json` property.
+    pub query_json: String,
+    /// `rule_enabled` property.
+    pub rule_enabled: bool,
+    /// `rule_scope` property.
+    pub rule_scope: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: String,
+    /// `user_email` property.
+    pub user_email: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetEventReadResponseShape {
+    /// `attacker` property.
+    pub attacker: String,
+    /// `attackerCountry` property.
+    #[serde(rename = "attackerCountry")]
+    pub attacker_country: String,
+    /// `category` property.
+    pub category: String,
+    /// `datasetId` property.
+    #[serde(rename = "datasetId")]
+    pub dataset_id: String,
+    /// `date` property.
+    pub date: String,
+    /// `event` property.
+    pub event: String,
+    /// `hasChildren` property.
+    #[serde(rename = "hasChildren")]
+    pub has_children: bool,
+    /// `indicator` property.
+    pub indicator: String,
+    /// `indicatorType` property.
+    #[serde(rename = "indicatorType")]
+    pub indicator_type: String,
+    /// `indicatorTypeId` property.
+    #[serde(rename = "indicatorTypeId")]
+    pub indicator_type_id: f64,
+    /// `insight` property.
+    pub insight: Option<String>,
+    /// `killChain` property.
+    #[serde(rename = "killChain")]
+    pub kill_chain: f64,
+    /// `mitreAttack` property.
+    #[serde(rename = "mitreAttack")]
+    pub mitre_attack: Vec<String>,
+    /// `mitreCapec` property.
+    #[serde(rename = "mitreCapec")]
+    pub mitre_capec: Vec<String>,
+    /// `numReferenced` property.
+    #[serde(rename = "numReferenced")]
+    pub num_referenced: f64,
+    /// `numReferences` property.
+    #[serde(rename = "numReferences")]
+    pub num_references: f64,
+    /// `rawId` property.
+    #[serde(rename = "rawId")]
+    pub raw_id: String,
+    /// `referenced` property.
+    pub referenced: Vec<String>,
+    /// `referencedIds` property.
+    #[serde(rename = "referencedIds")]
+    pub referenced_ids: Vec<f64>,
+    /// `references` property.
+    pub references: Vec<String>,
+    /// `referencesIds` property.
+    #[serde(rename = "referencesIds")]
+    pub references_ids: Vec<f64>,
+    /// `releasabilityId` property.
+    #[serde(rename = "releasabilityId")]
+    pub releasability_id: Option<String>,
+    /// `tags` property.
+    pub tags: Vec<String>,
+    /// `targetCountry` property.
+    #[serde(rename = "targetCountry")]
+    pub target_country: String,
+    /// `targetIndustry` property.
+    #[serde(rename = "targetIndustry")]
+    pub target_industry: String,
+    /// `tlp` property.
+    pub tlp: String,
+    /// `uuid` property.
+    pub uuid: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetGroupReadResponseMembersItemShape {
+    /// `accountId` property.
+    #[serde(rename = "accountId")]
+    pub account_id: String,
+    /// `accountTag` property.
+    #[serde(rename = "accountTag")]
+    pub account_tag: Option<String>,
+    /// `createdAt` property.
+    #[serde(rename = "createdAt")]
+    pub created_at: Option<String>,
+    /// `updatedAt` property.
+    #[serde(rename = "updatedAt")]
+    pub updated_at: Option<String>,
+    /// `uuid` property.
+    pub uuid: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct GetSecurityCenterInsightCountsByClassArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `dismissed`.
+    pub dismissed: Option<String>,
+    /// Query parameter: `issue_class`.
+    pub issue_class: Option<String>,
+    /// Query parameter: `issue_type`.
+    pub issue_type: Option<String>,
+    /// Query parameter: `product`.
+    pub product: Option<String>,
+    /// Query parameter: `severity`.
+    pub severity: Option<String>,
+    /// Query parameter: `subject`.
+    pub subject: Option<String>,
+    /// Query parameter: `issue_class~neq`.
+    pub issue_class_neq: Option<String>,
+    /// Query parameter: `issue_type~neq`.
+    pub issue_type_neq: Option<String>,
+    /// Query parameter: `product~neq`.
+    pub product_neq: Option<String>,
+    /// Query parameter: `severity~neq`.
+    pub severity_neq: Option<String>,
+    /// Query parameter: `subject~neq`.
+    pub subject_neq: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetTagCategoryListResponseCategoriesItemShape {
+    /// `createdAt` property.
+    #[serde(rename = "createdAt")]
+    pub created_at: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `updatedAt` property.
+    #[serde(rename = "updatedAt")]
+    pub updated_at: Option<String>,
+    /// `uuid` property.
+    pub uuid: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetTagIndicatorsListResponsePaginationShape {
+    /// `page` property.
+    pub page: f64,
+    /// `pageSize` property.
+    #[serde(rename = "pageSize")]
+    pub page_size: f64,
+    /// `totalCount` property.
+    #[serde(rename = "totalCount")]
+    pub total_count: f64,
+    /// `totalPages` property.
+    #[serde(rename = "totalPages")]
+    pub total_pages: f64,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetTagListResponseTagsItemShape {
+    /// `activeDuration` property.
+    #[serde(rename = "activeDuration")]
+    pub active_duration: Option<String>,
+    /// `actorCategory` property.
+    #[serde(rename = "actorCategory")]
+    pub actor_category: Option<String>,
+    /// `aliasGroupNames` property.
+    #[serde(rename = "aliasGroupNames")]
+    pub alias_group_names: Option<Vec<String>>,
+    /// `aliasGroupNamesInternal` property.
+    #[serde(rename = "aliasGroupNamesInternal")]
+    pub alias_group_names_internal: Option<Vec<String>>,
+    /// `analyticPriority` property.
+    #[serde(rename = "analyticPriority")]
+    pub analytic_priority: Option<f64>,
+    /// `attributionConfidence` property.
+    #[serde(rename = "attributionConfidence")]
+    pub attribution_confidence: Option<String>,
+    /// `attributionOrganization` property.
+    #[serde(rename = "attributionOrganization")]
+    pub attribution_organization: Option<String>,
+    /// `categoryName` property.
+    #[serde(rename = "categoryName")]
+    pub category_name: Option<String>,
+    /// `categoryUuid` property.
+    #[serde(rename = "categoryUuid")]
+    pub category_uuid: Option<String>,
+    /// `externalReferenceLinks` property.
+    #[serde(rename = "externalReferenceLinks")]
+    pub external_reference_links: Option<Vec<String>>,
+    /// `internalDescription` property.
+    #[serde(rename = "internalDescription")]
+    pub internal_description: Option<String>,
+    /// `motive` property.
+    pub motive: Option<String>,
+    /// `opsecLevel` property.
+    #[serde(rename = "opsecLevel")]
+    pub opsec_level: Option<String>,
+    /// `originCountryISO` property.
+    #[serde(rename = "originCountryISO")]
+    pub origin_country_iso: Option<String>,
+    /// `priority` property.
+    pub priority: Option<f64>,
+    /// `sophisticationLevel` property.
+    #[serde(rename = "sophisticationLevel")]
+    pub sophistication_level: Option<String>,
+    /// `uuid` property.
+    pub uuid: String,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetV2ActiveLivestreamSessionDetailsResponseDataLivestreamShape {
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `disabled` property.
+    pub disabled: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `ingest_server` property.
+    pub ingest_server: Option<String>,
+    /// `meeting_id` property.
+    pub meeting_id: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `playback_url` property.
+    pub playback_url: Option<String>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `stream_key` property.
+    pub stream_key: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetV4AccountsByAccountIdPipelinesV1PipelinesResponseResultItemShape {
+    /// `created_at` property.
+    pub created_at: String,
+    /// `id` property.
+    pub id: String,
+    /// `modified_at` property.
+    pub modified_at: String,
+    /// `name` property.
+    pub name: String,
+    /// `sql` property.
+    pub sql: String,
+    /// `status` property.
+    pub status: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct GetV4AccountsByAccountIdPipelinesV1SinksArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `pipeline_id`.
+    pub pipeline_id: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct GetZoneSecurityCenterInsightCountsByClassArgsShape {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Query parameter: `dismissed`.
+    pub dismissed: Option<String>,
+    /// Query parameter: `issue_class`.
+    pub issue_class: Option<String>,
+    /// Query parameter: `issue_type`.
+    pub issue_type: Option<String>,
+    /// Query parameter: `product`.
+    pub product: Option<String>,
+    /// Query parameter: `severity`.
+    pub severity: Option<String>,
+    /// Query parameter: `subject`.
+    pub subject: Option<String>,
+    /// Query parameter: `issue_class~neq`.
+    pub issue_class_neq: Option<String>,
+    /// Query parameter: `issue_type~neq`.
+    pub issue_type_neq: Option<String>,
+    /// Query parameter: `product~neq`.
+    pub product_neq: Option<String>,
+    /// Query parameter: `severity~neq`.
+    pub severity_neq: Option<String>,
+    /// Query parameter: `subject~neq`.
+    pub subject_neq: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GithubOrganizationObject {
+    /// `github-organization` property.
+    #[serde(rename = "github-organization")]
+    pub github_organization: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct GreTunnelIdAccountIdArgs {
+    /// Path parameter: `gre_tunnel_id`.
+    pub gre_tunnel_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct GroupIdAccountIdArgs {
+    /// Path parameter: `group_id`.
+    pub group_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct GroupIdZoneIdArgs {
+    /// Path parameter: `group_id`.
+    pub group_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GroupObject {
+    /// `group` property.
+    pub group: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GsuiteObject {
+    /// `gsuite` property.
+    pub gsuite: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct HealthcheckIdZoneIdArgs {
+    /// Path parameter: `healthcheck_id`.
+    pub healthcheck_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HealthchecksHttpConfigShape {
+    /// `allow_insecure` property.
+    pub allow_insecure: Option<bool>,
+    /// `expected_body` property.
+    pub expected_body: Option<String>,
+    /// `expected_codes` property.
+    pub expected_codes: Option<Vec<String>>,
+    /// `follow_redirects` property.
+    pub follow_redirects: Option<bool>,
+    /// `header` property.
+    pub header: Option<serde_json::Value>,
+    /// `method` property.
+    pub method: Option<String>,
+    /// `path` property.
+    pub path: Option<String>,
+    /// `port` property.
+    pub port: Option<i64>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HeightWidthObject {
+    /// `height` property.
+    pub height: Option<i64>,
+    /// `width` property.
+    pub width: Option<i64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct HyperdriveHyperdriveDatabaseShape {
+    /// `database` property.
+    pub database: Option<String>,
+    /// `password` property.
+    pub password: Option<String>,
+    /// `scheme` property.
+    pub scheme: Option<String>,
+    /// `user` property.
+    pub user: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IamAccountShape {
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `id` property.
+    pub id: String,
+    /// `managed_by` property.
+    pub managed_by: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `name` property.
+    pub name: String,
+    /// `settings` property.
+    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IamSchemasAccountShape {
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `id` property.
+    pub id: String,
+    /// `managed_by` property.
+    pub managed_by: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: serde_json::Value,
+    /// `settings` property.
+    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IconAccountIdArgs {
+    /// Path parameter: `icon`.
+    pub icon: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdAccountIdArgs {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdGatewayIdAccountIdArgs {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Path parameter: `gateway_id`.
+    pub gateway_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdJobIdAccountIdArgs {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Path parameter: `job_id`.
+    pub job_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 11 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdModifiedOnObject {
+    /// `id` property.
+    pub id: String,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdModifiedOnValueObject {
+    /// `id` property.
+    pub id: String,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `value` property.
+    pub value: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdModifiedOnValueObject2 {
+    /// `id` property.
+    pub id: String,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `value` property.
+    pub value: Option<i64>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdNameObject {
+    /// `id` property.
+    pub id: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdNameObject2 {
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdNameSuperCategoryIdObject {
+    /// `id` property.
+    pub id: f64,
+    /// `name` property.
+    pub name: String,
+    /// `super_category_id` property.
+    pub super_category_id: f64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdNameTypeObject {
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 15 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdObject {
+    /// `id` property.
+    pub id: Option<String>,
+}
+
+/// A shape 12 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdObject2 {
+    /// `id` property.
+    pub id: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdObject3 {
+    /// `id` property.
+    pub id: i64,
+}
+
+/// A shape 25 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdValueObject {
+    /// `id` property.
+    pub id: Option<String>,
+    /// `value` property.
+    pub value: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdValueObject2 {
+    /// `id` property.
+    pub id: Option<String>,
+    /// `value` property.
+    pub value: Option<i64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdValueObject3 {
+    /// `id` property.
+    pub id: Option<String>,
+    /// `value` property.
+    pub value: Option<serde_json::Value>,
+}
+
+/// A shape 10 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdentifierAccountIdArgs {
+    /// Path parameter: `identifier`.
+    pub identifier: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdentifierAccountIdDownloadTypeArgs {
+    /// Path parameter: `identifier`.
+    pub identifier: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `download_type`.
+    pub download_type: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdentifierZoneIdArgs {
+    /// Path parameter: `identifier`.
+    pub identifier: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdentityProviderIdAccountIdArgs {
+    /// Path parameter: `identity_provider_id`.
+    pub identity_provider_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdentityProviderIdZoneIdArgs {
+    /// Path parameter: `identity_provider_id`.
+    pub identity_provider_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdsObject {
+    /// `ids` property.
+    pub ids: Option<Vec<String>>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ImageIdAccountIdArgs {
+    /// Path parameter: `image_id`.
+    pub image_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IndexReasonObject {
+    /// `index` property.
+    pub index: f64,
+    /// `reason` property.
+    pub reason: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IndicatorTypeValueObject {
+    /// `indicatorType` property.
+    #[serde(rename = "indicatorType")]
+    pub indicator_type: String,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct InputTextMaxLengthObject {
+    /// `input_text` property.
+    pub input_text: String,
+    /// `max_length` property.
+    pub max_length: Option<i64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IntegrationIdAccountIdArgs {
+    /// Path parameter: `integration_id`.
+    pub integration_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IpAddressAddressMapIdAccountIdArgs {
+    /// Path parameter: `ip_address`.
+    pub ip_address: String,
+    /// Path parameter: `address_map_id`.
+    pub address_map_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IpFormatArgs {
+    /// Query parameter: `ip`.
+    pub ip: Option<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IpListObject {
+    /// `ip_list` property.
+    pub ip_list: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IpObject {
+    /// `ip` property.
+    pub ip: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IpsecTunnelIdAccountIdArgs {
+    /// Path parameter: `ipsec_tunnel_id`.
+    pub ipsec_tunnel_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IsPublicNameObject {
+    /// `isPublic` property.
+    #[serde(rename = "isPublic")]
+    pub is_public: bool,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IsPublicNameUuidObject {
+    /// `isPublic` property.
+    #[serde(rename = "isPublic")]
+    pub is_public: bool,
+    /// `name` property.
+    pub name: String,
+    /// `uuid` property.
+    pub uuid: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IsRegexMatchCaseValueObject {
+    /// `isRegex` property.
+    #[serde(rename = "isRegex")]
+    pub is_regex: Option<bool>,
+    /// `matchCase` property.
+    #[serde(rename = "matchCase")]
+    pub match_case: Option<bool>,
+    /// `value` property.
+    pub value: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobIdAccountIdArgs {
+    /// Path parameter: `job_id`.
+    pub job_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct JobIdZoneIdArgs {
+    /// Path parameter: `job_id`.
+    pub job_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct KeyIdAccountIdArgs {
+    /// Path parameter: `key_id`.
+    pub key_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct KeyMetadataTimestampObject {
+    /// `key` property.
+    pub key: String,
+    /// `metadata` property.
+    pub metadata: Option<serde_json::Value>,
+    /// `timestamp` property.
+    pub timestamp: Option<f64>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct KeyNameNamespaceIdAccountIdArgs {
+    /// Path parameter: `key_name`.
+    pub key_name: String,
+    /// Path parameter: `namespace_id`.
+    pub namespace_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct KeyObject {
+    /// `key` property.
+    pub key: serde_json::Value,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct KeyOperationValueObject {
+    /// `key` property.
+    pub key: String,
+    /// `operation` property.
+    pub operation: String,
+    /// `value` property.
+    pub value: f64,
+}
+
+/// A shape 11 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct KeyOperatorValueObject {
+    /// `key` property.
+    pub key: String,
+    /// `operator` property.
+    pub operator: String,
+    /// `value` property.
+    pub value: Vec<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct KeylessCertificateIdZoneIdArgs {
+    /// Path parameter: `keyless_certificate_id`.
+    pub keyless_certificate_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct KeywordTokenizerObject {
+    /// `keyword_tokenizer` property.
+    pub keyword_tokenizer: Option<String>,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct KeywordVectorObject {
+    /// `keyword` property.
+    pub keyword: bool,
+    /// `vector` property.
+    pub vector: bool,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LabelValueObject {
+    /// `label` property.
+    pub label: Option<String>,
+    /// `value` property.
+    pub value: Option<String>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct LanguageIdentifierAccountIdArgs {
+    /// Path parameter: `language`.
+    pub language: String,
+    /// Path parameter: `identifier`.
+    pub identifier: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct LimitOffsetFormatArgs {
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `offset`.
+    pub offset: Option<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LinkedAppTokenObject {
+    /// `linked_app_token` property.
+    pub linked_app_token: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListAbuseReportsResponseResultInfoShape {
+    /// `count` property.
+    pub count: f64,
+    /// `page` property.
+    pub page: f64,
+    /// `per_page` property.
+    pub per_page: f64,
+    /// `total_count` property.
+    pub total_count: f64,
+    /// `total_pages` property.
+    pub total_pages: f64,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ListIdAccountIdArgs {
+    /// Path parameter: `list_id`.
+    pub list_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ListIdAccountIdBodyArgs {
+    /// Path parameter: `list_id`.
+    pub list_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Request body.
+    pub body: Vec<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ListSynProtectionFiltersForAccountArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `mode`.
+    pub mode: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct LiveInputIdentifierAccountIdArgs {
+    /// Path parameter: `live_input_identifier`.
+    pub live_input_identifier: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 10 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancerMonitorsCreateMonitorRequestShape {
+    /// `allow_insecure` property.
+    pub allow_insecure: Option<bool>,
+    /// `consecutive_down` property.
+    pub consecutive_down: Option<i64>,
+    /// `consecutive_up` property.
+    pub consecutive_up: Option<i64>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `expected_body` property.
+    pub expected_body: Option<String>,
+    /// `expected_codes` property.
+    pub expected_codes: Option<String>,
+    /// `follow_redirects` property.
+    pub follow_redirects: Option<bool>,
+    /// `header` property.
+    pub header: Option<serde_json::Value>,
+    /// `interval` property.
+    pub interval: Option<i64>,
+    /// `method` property.
+    pub method: Option<String>,
+    /// `path` property.
+    pub path: Option<String>,
+    /// `port` property.
+    pub port: Option<i64>,
+    /// `probe_zone` property.
+    pub probe_zone: Option<String>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+    /// `retries` property.
+    pub retries: Option<i64>,
+    /// `timeout` property.
+    pub timeout: Option<i64>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingResultInfoShape {
+    /// `count` property.
+    pub count: Option<f64>,
+    /// `page` property.
+    pub page: Option<f64>,
+    /// `per_page` property.
+    pub per_page: Option<f64>,
+    /// `total_count` property.
+    pub total_count: Option<f64>,
+    /// `total_pages` property.
+    pub total_pages: Option<f64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct LocationIdAccountIdArgs {
+    /// Path parameter: `location_id`.
+    pub location_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct LockDownsIdZoneIdArgs {
+    /// Path parameter: `lock_downs_id`.
+    pub lock_downs_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LoginMethodObject {
+    /// `login_method` property.
+    pub login_method: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct LogpullOptionsObject {
+    /// `logpull_options` property.
+    pub logpull_options: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ManagedUserObject {
+    /// `managed` property.
+    pub managed: Option<Vec<String>>,
+    /// `user` property.
+    pub user: Option<Vec<String>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ManagerTldTypeObject {
+    /// `manager` property.
+    pub manager: String,
+    /// `tld` property.
+    pub tld: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MaskingLevelPublicKeyUpdatedAtObject {
+    /// `masking_level` property.
+    pub masking_level: Option<serde_json::Value>,
+    /// `public_key` property.
+    pub public_key: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnErrorMetaShape {
+    /// `l10n_key` property.
+    pub l10n_key: Option<String>,
+    /// `loggable_error` property.
+    pub loggable_error: Option<String>,
+    /// `template_data` property.
+    pub template_data: Option<serde_json::Value>,
+    /// `trace_id` property.
+    pub trace_id: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnResourcePreviewShape {
+    /// `cloud_type` property.
+    pub cloud_type: String,
+    /// `detail` property.
+    pub detail: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
+    /// `resource_type` property.
+    pub resource_type: String,
+    /// `title` property.
+    pub title: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McnYamlDiffShape {
+    /// `diff` property.
+    pub diff: String,
+    /// `left_description` property.
+    pub left_description: String,
+    /// `left_yaml` property.
+    pub left_yaml: String,
+    /// `right_description` property.
+    pub right_description: String,
+    /// `right_yaml` property.
+    pub right_yaml: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McpPortalsApiCreatePortalsRequestServersItemUpdatedPromptsItemShape {
+    /// `alias` property.
+    pub alias: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McpPortalsApiCreatePortalsResponseResultShape {
+    /// `allow_code_mode` property.
+    pub allow_code_mode: Option<bool>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `created_by` property.
+    pub created_by: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `hostname` property.
+    pub hostname: String,
+    /// `id` property.
+    pub id: String,
+    /// `modified_at` property.
+    pub modified_at: Option<String>,
+    /// `modified_by` property.
+    pub modified_by: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `secure_web_gateway` property.
+    pub secure_web_gateway: Option<bool>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McpPortalsApiCreateServersResponseResultShape {
+    /// `auth_type` property.
+    pub auth_type: String,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `created_by` property.
+    pub created_by: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `error` property.
+    pub error: Option<String>,
+    /// `hostname` property.
+    pub hostname: String,
+    /// `id` property.
+    pub id: String,
+    /// `last_successful_sync` property.
+    pub last_successful_sync: Option<String>,
+    /// `last_synced` property.
+    pub last_synced: Option<String>,
+    /// `modified_at` property.
+    pub modified_at: Option<String>,
+    /// `modified_by` property.
+    pub modified_by: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `prompts` property.
+    pub prompts: Vec<serde_json::Value>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `tools` property.
+    pub tools: Vec<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct McpPortalsApiFetchGatewaysResponseResultServersItemShape {
+    /// `auth_type` property.
+    pub auth_type: String,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `created_by` property.
+    pub created_by: Option<String>,
+    /// `default_disabled` property.
+    pub default_disabled: Option<bool>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `error` property.
+    pub error: Option<String>,
+    /// `hostname` property.
+    pub hostname: String,
+    /// `id` property.
+    pub id: String,
+    /// `last_successful_sync` property.
+    pub last_successful_sync: Option<String>,
+    /// `last_synced` property.
+    pub last_synced: Option<String>,
+    /// `modified_at` property.
+    pub modified_at: Option<String>,
+    /// `modified_by` property.
+    pub modified_by: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `on_behalf` property.
+    pub on_behalf: Option<bool>,
+    /// `prompts` property.
+    pub prompts: Vec<serde_json::Value>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `tools` property.
+    pub tools: Vec<serde_json::Value>,
+    /// `updated_prompts` property.
+    pub updated_prompts: Vec<serde_json::Value>,
+    /// `updated_tools` property.
+    pub updated_tools: Vec<serde_json::Value>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct McpPortalsApiListPortalsArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `search`.
+    pub search: Option<String>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct MeetingIdArgs {
+    /// Path parameter: `meeting_id`.
+    pub meeting_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct MeetingIdParticipantIdArgs {
+    /// Path parameter: `meeting_id`.
+    pub meeting_id: String,
+    /// Path parameter: `participant_id`.
+    pub participant_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct MemberIdAccountIdArgs {
+    /// Path parameter: `member_id`.
+    pub member_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct MembershipIdArgs {
+    /// Path parameter: `membership_id`.
+    pub membership_id: String,
+}
+
+/// A shape 27 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MessageObject {
+    /// `message` property.
+    pub message: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MessageSuccessObject {
+    /// `message` property.
+    pub message: Option<String>,
+    /// `success` property.
+    pub success: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MethodPortObject {
+    /// `method` property.
+    pub method: Option<String>,
+    /// `port` property.
+    pub port: Option<i64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ModeNotesObject {
+    /// `mode` property.
+    pub mode: Option<String>,
+    /// `notes` property.
+    pub notes: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct MonitorGroupIdAccountIdArgs {
+    /// Path parameter: `monitor_group_id`.
+    pub monitor_group_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct MonitorIdAccountIdArgs {
+    /// Path parameter: `monitor_id`.
+    pub monitor_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct MonitorIdArgs {
+    /// Path parameter: `monitor_id`.
+    pub monitor_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqHttpConsumerResponseShape {
+    /// `consumer_id` property.
+    pub consumer_id: Option<String>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `dead_letter_queue` property.
+    pub dead_letter_queue: Option<String>,
+    /// `queue_name` property.
+    pub queue_name: Option<String>,
+    /// `settings` property.
+    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MqWorkerConsumerResponseShape {
+    /// `consumer_id` property.
+    pub consumer_id: Option<String>,
+    /// `created_on` property.
+    pub created_on: Option<String>,
+    /// `dead_letter_queue` property.
+    pub dead_letter_queue: Option<String>,
+    /// `queue_name` property.
+    pub queue_name: Option<String>,
+    /// `script_name` property.
+    pub script_name: Option<String>,
+    /// `settings` property.
+    pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct MtlsCertificateIdAccountIdArgs {
+    /// Path parameter: `mtls_certificate_id`.
+    pub mtls_certificate_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct MutationIdObject {
+    /// `mutationId` property.
+    #[serde(rename = "mutationId")]
+    pub mutation_id: Option<serde_json::Value>,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameObject {
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameObject2 {
+    /// `name` property.
+    pub name: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameOriginObject {
+    /// `name` property.
+    pub name: String,
+    /// `origin` property.
+    pub origin: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NamePartTypeObject {
+    /// `name` property.
+    pub name: String,
+    /// `part` property.
+    pub part: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameSecretUrlObject {
+    /// `name` property.
+    pub name: String,
+    /// `secret` property.
+    pub secret: Option<String>,
+    /// `url` property.
+    pub url: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameTextTypeObject {
+    /// `name` property.
+    pub name: String,
+    /// `text` property.
+    pub text: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameTrustedWorkersObject {
+    /// `name` property.
+    pub name: Option<String>,
+    /// `trusted_workers` property.
+    pub trusted_workers: Option<bool>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameTunnelSecretObject {
+    /// `name` property.
+    pub name: Option<String>,
+    /// `tunnel_secret` property.
+    pub tunnel_secret: Option<String>,
+}
+
+/// A shape 8 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameTypeObject {
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 104 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NameValueObject {
+    /// `name` property.
+    pub name: String,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct NamespaceIdAccountIdArgs {
+    /// Path parameter: `namespace_id`.
+    pub namespace_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct NamespaceWorkerGetScriptSecretsArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `dispatch_namespace`.
+    pub dispatch_namespace: String,
+    /// Path parameter: `script_name`.
+    pub script_name: String,
+    /// Path parameter: `secret_name`.
+    pub secret_name: String,
+    /// Query parameter: `url_encoded`.
+    pub url_encoded: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct NamespaceWorkerPutScriptTagArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `dispatch_namespace`.
+    pub dispatch_namespace: String,
+    /// Path parameter: `script_name`.
+    pub script_name: String,
+    /// Path parameter: `tag`.
+    pub tag: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct NetworkIdAccountIdArgs {
+    /// Path parameter: `network_id`.
+    pub network_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NetworkObject {
+    /// `network` property.
+    pub network: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct NotificationEmailObject {
+    /// `notification_email` property.
+    pub notification_email: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ObservatoryLighthouseReportShape {
+    /// `cls` property.
+    pub cls: Option<f64>,
+    /// `deviceType` property.
+    #[serde(rename = "deviceType")]
+    pub device_type: Option<String>,
+    /// `error` property.
+    pub error: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `fcp` property.
+    pub fcp: Option<f64>,
+    /// `jsonReportUrl` property.
+    #[serde(rename = "jsonReportUrl")]
+    pub json_report_url: Option<String>,
+    /// `lcp` property.
+    pub lcp: Option<f64>,
+    /// `performanceScore` property.
+    #[serde(rename = "performanceScore")]
+    pub performance_score: Option<f64>,
+    /// `si` property.
+    pub si: Option<f64>,
+    /// `state` property.
+    pub state: Option<String>,
+    /// `tbt` property.
+    pub tbt: Option<f64>,
+    /// `ttfb` property.
+    pub ttfb: Option<f64>,
+    /// `tti` property.
+    pub tti: Option<f64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OidcObject {
+    /// `oidc` property.
+    pub oidc: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OktaObject {
+    /// `okta` property.
+    pub okta: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrderValueObject {
+    /// `order` property.
+    pub order: Option<String>,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct OrganizationIdArgs {
+    /// Path parameter: `organization_id`.
+    pub organization_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationsApiAccountShape {
+    /// `created_on` property.
+    pub created_on: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `settings` property.
+    pub settings: std::collections::HashMap<String, serde_json::Value>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OriginsObject {
+    /// `origins` property.
+    pub origins: Option<Vec<String>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct OutageCauseOutageTypeObject {
+    /// `outageCause` property.
+    #[serde(rename = "outageCause")]
+    pub outage_cause: String,
+    /// `outageType` property.
+    #[serde(rename = "outageType")]
+    pub outage_type: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PacfileIdAccountIdArgs {
+    /// Path parameter: `pacfile_id`.
+    pub pacfile_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PagePerPageObject {
+    /// `page` property.
+    pub page: i64,
+    /// `per_page` property.
+    pub per_page: i64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PageRulesCreateAPageRuleRequestShape {
+    /// `actions` property.
+    pub actions: Vec<serde_json::Value>,
+    /// `priority` property.
+    pub priority: Option<i64>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `targets` property.
+    pub targets: Vec<serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PageShieldGetZoneSettingsResponseShape {
+    /// `enabled` property.
+    pub enabled: bool,
+    /// `updated_at` property.
+    pub updated_at: String,
+    /// `use_cloudflare_reporting_endpoint` property.
+    pub use_cloudflare_reporting_endpoint: bool,
+    /// `use_connection_url_path` property.
+    pub use_connection_url_path: bool,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PageruleIdZoneIdArgs {
+    /// Path parameter: `pagerule_id`.
+    pub pagerule_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PagesBuildConfigShape {
+    /// `build_caching` property.
+    pub build_caching: Option<bool>,
+    /// `build_command` property.
+    pub build_command: Option<String>,
+    /// `destination_dir` property.
+    pub destination_dir: Option<String>,
+    /// `root_dir` property.
+    pub root_dir: Option<String>,
+    /// `web_analytics_tag` property.
+    pub web_analytics_tag: Option<String>,
+    /// `web_analytics_token` property.
+    pub web_analytics_token: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PagesProjectCreateProjectRequestSourceConfigShape {
+    /// `deployments_enabled` property.
+    pub deployments_enabled: Option<bool>,
+    /// `owner` property.
+    pub owner: Option<String>,
+    /// `owner_id` property.
+    pub owner_id: Option<String>,
+    /// `path_excludes` property.
+    pub path_excludes: Option<Vec<String>>,
+    /// `path_includes` property.
+    pub path_includes: Option<Vec<String>>,
+    /// `pr_comments_enabled` property.
+    pub pr_comments_enabled: Option<bool>,
+    /// `preview_branch_excludes` property.
+    pub preview_branch_excludes: Option<Vec<String>>,
+    /// `preview_branch_includes` property.
+    pub preview_branch_includes: Option<Vec<String>>,
+    /// `preview_deployment_setting` property.
+    pub preview_deployment_setting: Option<String>,
+    /// `production_branch` property.
+    pub production_branch: Option<String>,
+    /// `production_deployments_enabled` property.
+    pub production_deployments_enabled: Option<bool>,
+    /// `repo_id` property.
+    pub repo_id: Option<String>,
+    /// `repo_name` property.
+    pub repo_name: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ParameterParameterValueIndexPointerObject {
+    /// `parameter` property.
+    pub parameter: Option<String>,
+    /// `parameter_value_index` property.
+    pub parameter_value_index: Option<i64>,
+    /// `pointer` property.
+    pub pointer: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ParameterParameterValueIndexPointerObject2 {
+    /// `parameter` property.
+    pub parameter: Option<String>,
+    /// `parameter_value_index` property.
+    pub parameter_value_index: Option<i64>,
+    /// `pointer` property.
+    pub pointer: Option<Vec<String>>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PassphraseStreamIdUrlObject {
+    /// `passphrase` property.
+    pub passphrase: Option<String>,
+    /// `streamId` property.
+    #[serde(rename = "streamId")]
+    pub stream_id: Option<String>,
+    /// `url` property.
+    pub url: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PatchCategoryUpdateRequestShape {
+    /// `killChain` property.
+    #[serde(rename = "killChain")]
+    pub kill_chain: Option<f64>,
+    /// `mitreAttack` property.
+    #[serde(rename = "mitreAttack")]
+    pub mitre_attack: Option<Vec<String>>,
+    /// `mitreCapec` property.
+    #[serde(rename = "mitreCapec")]
+    pub mitre_capec: Option<Vec<String>>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `shortname` property.
+    pub shortname: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PatchEventQueryUpdateRequestShape {
+    /// `alert_enabled` property.
+    pub alert_enabled: Option<bool>,
+    /// `alert_rollup_enabled` property.
+    pub alert_rollup_enabled: Option<bool>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `query_json` property.
+    pub query_json: Option<String>,
+    /// `rule_enabled` property.
+    pub rule_enabled: Option<bool>,
+    /// `rule_scope` property.
+    pub rule_scope: Option<String>,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PathSelectorObject {
+    /// `path` property.
+    pub path: String,
+    /// `selector` property.
+    pub selector: String,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PayloadObject {
+    /// `payload` property.
+    pub payload: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PcapIdAccountIdArgs {
+    /// Path parameter: `pcap_id`.
+    pub pcap_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PeerIdAccountIdArgs {
+    /// Path parameter: `peer_id`.
+    pub peer_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PeriodMsRequestsTechniqueObject {
+    /// `period_ms` property.
+    pub period_ms: Option<i64>,
+    /// `requests` property.
+    pub requests: Option<i64>,
+    /// `technique` property.
+    pub technique: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PoliciesObject {
+    /// `policies` property.
+    pub policies: Option<Vec<serde_json::Value>>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PolicyIdAccountIdArgs {
+    /// Path parameter: `policy_id`.
+    pub policy_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PolicyIdAppIdZoneIdArgs {
+    /// Path parameter: `policy_id`.
+    pub policy_id: String,
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PoolIdAccountIdArgs {
+    /// Path parameter: `pool_id`.
+    pub pool_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PoolIdArgs {
+    /// Path parameter: `pool_id`.
+    pub pool_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PortProtocolTargetAttributesObject {
+    /// `port` property.
+    pub port: i64,
+    /// `protocol` property.
+    pub protocol: String,
+    /// `target_attributes` property.
+    pub target_attributes: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PostGroupCreateResponseShape {
+    /// `createdAt` property.
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    /// `description` property.
+    pub description: String,
+    /// `name` property.
+    pub name: String,
+    /// `updatedAt` property.
+    #[serde(rename = "updatedAt")]
+    pub updated_at: String,
+    /// `uuid` property.
+    pub uuid: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PrefixIdAccountIdArgs {
+    /// Path parameter: `prefix_id`.
+    pub prefix_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PrefixesObject {
+    /// `prefixes` property.
+    pub prefixes: Vec<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PreviewProductionObject {
+    /// `preview` property.
+    pub preview: Option<serde_json::Value>,
+    /// `production` property.
+    pub production: Option<serde_json::Value>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ProjectNameAccountIdArgs {
+    /// Path parameter: `project_name`.
+    pub project_name: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ProxyEndpointIdAccountIdArgs {
+    /// Path parameter: `proxy_endpoint_id`.
+    pub proxy_endpoint_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PtrObject {
+    /// `ptr` property.
+    pub ptr: Option<serde_json::Value>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct QueriesPatchRequestParametersCalculationsItemShape {
+    /// `alias` property.
+    pub alias: Option<String>,
+    /// `key` property.
+    pub key: Option<String>,
+    /// `keyType` property.
+    #[serde(rename = "keyType")]
+    pub key_type: Option<String>,
+    /// `operator` property.
+    pub operator: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct QueryIdArgs {
+    /// Path parameter: `queryId`.
+    pub query_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct QueueIdAccountIdArgs {
+    /// Path parameter: `queue_id`.
+    pub queue_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2JurisdictionStorageIdStorageTypeObject {
+    /// `r2_jurisdiction` property.
+    pub r2_jurisdiction: Option<String>,
+    /// `storage_id` property.
+    pub storage_id: String,
+    /// `storage_type` property.
+    pub storage_type: Option<String>,
+}
+
+/// A shape 95 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape {
+    /// `dataSource` property.
+    #[serde(rename = "dataSource")]
+    pub data_source: String,
+    /// `description` property.
+    pub description: String,
+    /// `endDate` property.
+    #[serde(rename = "endDate")]
+    pub end_date: String,
+    /// `eventType` property.
+    #[serde(rename = "eventType")]
+    pub event_type: String,
+    /// `isInstantaneous` property.
+    #[serde(rename = "isInstantaneous")]
+    pub is_instantaneous: bool,
+    /// `linkedUrl` property.
+    #[serde(rename = "linkedUrl")]
+    pub linked_url: String,
+    /// `startDate` property.
+    #[serde(rename = "startDate")]
+    pub start_date: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetAttacksLayer3TopOriginLocationsArgsShape {
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `protocol` (one per value).
+    pub protocol: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAttacksLayer3TopOriginLocationsResponseResultTop0ItemShape {
+    /// `originCountryAlpha2` property.
+    #[serde(rename = "originCountryAlpha2")]
+    pub origin_country_alpha2: String,
+    /// `originCountryName` property.
+    #[serde(rename = "originCountryName")]
+    pub origin_country_name: String,
+    /// `rank` property.
+    pub rank: f64,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetAttacksLayer3TopTargetLocationsResponseResultTop0ItemShape {
+    /// `rank` property.
+    pub rank: f64,
+    /// `targetCountryAlpha2` property.
+    #[serde(rename = "targetCountryAlpha2")]
+    pub target_country_alpha2: String,
+    /// `targetCountryName` property.
+    #[serde(rename = "targetCountryName")]
+    pub target_country_name: String,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetEntitiesAsnByIdResponseResultAsnRelatedItemShape {
+    /// `aka` property.
+    pub aka: Option<String>,
+    /// `asn` property.
+    pub asn: i64,
+    /// `estimatedUsers` property.
+    #[serde(rename = "estimatedUsers")]
+    pub estimated_users: Option<i64>,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RadarGetGeolocationDetailsResponseResultGeolocationParentParentShape {
+    /// `code` property.
+    pub code: Option<String>,
+    /// `geoId` property.
+    #[serde(rename = "geoId")]
+    pub geo_id: String,
+    /// `latitude` property.
+    pub latitude: String,
+    /// `locale` property.
+    pub locale: Option<String>,
+    /// `longitude` property.
+    pub longitude: String,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBotClassArgsShape {
+    /// Path parameter: `bot_class`.
+    pub bot_class: String,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `deviceType` (one per value).
+    pub device_type: Vec<String>,
+    /// Query parameter: `httpProtocol` (one per value).
+    pub http_protocol: Vec<String>,
+    /// Query parameter: `httpVersion` (one per value).
+    pub http_version: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `os` (one per value).
+    pub os: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
+    /// Query parameter: `browserFamily` (one per value).
+    pub browser_family: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByBrowserFamilyArgsShape {
+    /// Path parameter: `browser_family`.
+    pub browser_family: String,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `botClass` (one per value).
+    pub bot_class: Vec<String>,
+    /// Query parameter: `deviceType` (one per value).
+    pub device_type: Vec<String>,
+    /// Query parameter: `httpProtocol` (one per value).
+    pub http_protocol: Vec<String>,
+    /// Query parameter: `httpVersion` (one per value).
+    pub http_version: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `os` (one per value).
+    pub os: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByDeviceTypeArgsShape {
+    /// Path parameter: `device_type`.
+    pub device_type: String,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `botClass` (one per value).
+    pub bot_class: Vec<String>,
+    /// Query parameter: `httpProtocol` (one per value).
+    pub http_protocol: Vec<String>,
+    /// Query parameter: `httpVersion` (one per value).
+    pub http_version: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `os` (one per value).
+    pub os: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
+    /// Query parameter: `browserFamily` (one per value).
+    pub browser_family: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpProtocolArgsShape {
+    /// Path parameter: `http_protocol`.
+    pub http_protocol: String,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `botClass` (one per value).
+    pub bot_class: Vec<String>,
+    /// Query parameter: `deviceType` (one per value).
+    pub device_type: Vec<String>,
+    /// Query parameter: `httpVersion` (one per value).
+    pub http_version: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `os` (one per value).
+    pub os: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
+    /// Query parameter: `browserFamily` (one per value).
+    pub browser_family: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpRequestsArgsShape {
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `botClass` (one per value).
+    pub bot_class: Vec<String>,
+    /// Query parameter: `deviceType` (one per value).
+    pub device_type: Vec<String>,
+    /// Query parameter: `httpProtocol` (one per value).
+    pub http_protocol: Vec<String>,
+    /// Query parameter: `httpVersion` (one per value).
+    pub http_version: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `os` (one per value).
+    pub os: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
+    /// Query parameter: `browserFamily` (one per value).
+    pub browser_family: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByHttpVersionArgsShape {
+    /// Path parameter: `http_version`.
+    pub http_version: String,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `botClass` (one per value).
+    pub bot_class: Vec<String>,
+    /// Query parameter: `deviceType` (one per value).
+    pub device_type: Vec<String>,
+    /// Query parameter: `httpProtocol` (one per value).
+    pub http_protocol: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `os` (one per value).
+    pub os: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
+    /// Query parameter: `browserFamily` (one per value).
+    pub browser_family: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByIpVersionArgsShape {
+    /// Path parameter: `ip_version`.
+    pub ip_version: String,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `botClass` (one per value).
+    pub bot_class: Vec<String>,
+    /// Query parameter: `deviceType` (one per value).
+    pub device_type: Vec<String>,
+    /// Query parameter: `httpProtocol` (one per value).
+    pub http_protocol: Vec<String>,
+    /// Query parameter: `httpVersion` (one per value).
+    pub http_version: Vec<String>,
+    /// Query parameter: `os` (one per value).
+    pub os: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
+    /// Query parameter: `browserFamily` (one per value).
+    pub browser_family: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByOperatingSystemArgsShape {
+    /// Path parameter: `os`.
+    pub os: String,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `botClass` (one per value).
+    pub bot_class: Vec<String>,
+    /// Query parameter: `deviceType` (one per value).
+    pub device_type: Vec<String>,
+    /// Query parameter: `httpProtocol` (one per value).
+    pub http_protocol: Vec<String>,
+    /// Query parameter: `httpVersion` (one per value).
+    pub http_version: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
+    /// Query parameter: `browserFamily` (one per value).
+    pub browser_family: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetHttpTopAsesByTlsVersionArgsShape {
+    /// Path parameter: `tls_version`.
+    pub tls_version: String,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `botClass` (one per value).
+    pub bot_class: Vec<String>,
+    /// Query parameter: `deviceType` (one per value).
+    pub device_type: Vec<String>,
+    /// Query parameter: `httpProtocol` (one per value).
+    pub http_protocol: Vec<String>,
+    /// Query parameter: `httpVersion` (one per value).
+    pub http_version: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `os` (one per value).
+    pub os: Vec<String>,
+    /// Query parameter: `browserFamily` (one per value).
+    pub browser_family: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetNetflowsTopAsesArgsShape {
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `geoId` (one per value).
+    pub geo_id: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetOriginPostQuantumSummaryArgsShape {
+    /// Path parameter: `dimension`.
+    pub dimension: String,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RadarGetQualitySpeedTopAsesArgsShape {
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `asn` (one per value).
+    pub asn: Vec<String>,
+    /// Query parameter: `location` (one per value).
+    pub location: Vec<String>,
+    /// Query parameter: `continent` (one per value).
+    pub continent: Vec<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `reverse`.
+    pub reverse: Option<String>,
+    /// Query parameter: `format`.
+    pub format: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RankerScoreThresholdObject {
+    /// `ranker` property.
+    pub ranker: Option<String>,
+    /// `score_threshold` property.
+    pub score_threshold: Option<f64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ReferenceZoneIdObject {
+    /// `reference_zone_id` property.
+    pub reference_zone_id: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ReferenceZoneIdObject2 {
+    /// `reference_zone_id` property.
+    pub reference_zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegionObject {
+    /// `region` property.
+    pub region: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiContactPropertiesShape {
+    /// `address` property.
+    pub address: String,
+    /// `address2` property.
+    pub address2: Option<String>,
+    /// `city` property.
+    pub city: String,
+    /// `country` property.
+    pub country: Option<String>,
+    /// `email` property.
+    pub email: Option<String>,
+    /// `fax` property.
+    pub fax: Option<String>,
+    /// `first_name` property.
+    pub first_name: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `last_name` property.
+    pub last_name: Option<String>,
+    /// `organization` property.
+    pub organization: String,
+    /// `phone` property.
+    pub phone: Option<String>,
+    /// `state` property.
+    pub state: String,
+    /// `zip` property.
+    pub zip: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceIdResourceTypeObject {
+    /// `resource_id` property.
+    pub resource_id: String,
+    /// `resource_type` property.
+    pub resource_type: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceIdResourceTypeTagsObject {
+    /// `resource_id` property.
+    pub resource_id: String,
+    /// `resource_type` property.
+    pub resource_type: String,
+    /// `tags` property.
+    pub tags: Option<serde_json::Value>,
+}
+
+/// A shape 19 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingTaggedResourceObjectAccessApplicationShape {
+    /// `etag` property.
+    pub etag: String,
+    /// `id` property.
+    pub id: String,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// `tags` property.
+    pub tags: serde_json::Value,
+}
+
+/// A shape 10 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResultObject {
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResultObject2 {
+    /// `result` property.
+    pub result: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RouteIdAccountIdArgs {
+    /// Path parameter: `route_id`.
+    pub route_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RouteIdZoneIdArgs {
+    /// Path parameter: `route_id`.
+    pub route_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 10 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RuleIdAccountIdArgs {
+    /// Path parameter: `rule_id`.
+    pub rule_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RuleIdRulesetIdAccountIdArgs {
+    /// Path parameter: `rule_id`.
+    pub rule_id: String,
+    /// Path parameter: `ruleset_id`.
+    pub ruleset_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RuleIdRulesetIdZoneIdArgs {
+    /// Path parameter: `rule_id`.
+    pub rule_id: String,
+    /// Path parameter: `ruleset_id`.
+    pub ruleset_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RuleIdentifierZoneIdArgs {
+    /// Path parameter: `rule_identifier`.
+    pub rule_identifier: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RulesObject {
+    /// `rules` property.
+    pub rules: Option<Vec<serde_json::Value>>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RulesetIdAccountIdArgs {
+    /// Path parameter: `ruleset_id`.
+    pub ruleset_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RulesetIdZoneIdArgs {
+    /// Path parameter: `ruleset_id`.
+    pub ruleset_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RulesetPhaseAccountIdArgs {
+    /// Path parameter: `ruleset_phase`.
+    pub ruleset_phase: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RulesetPhaseZoneIdArgs {
+    /// Path parameter: `ruleset_phase`.
+    pub ruleset_phase: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RulesetVersionRulesetIdAccountIdArgs {
+    /// Path parameter: `ruleset_version`.
+    pub ruleset_version: String,
+    /// Path parameter: `ruleset_id`.
+    pub ruleset_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct RulesetVersionRulesetIdZoneIdArgs {
+    /// Path parameter: `ruleset_version`.
+    pub ruleset_version: String,
+    /// Path parameter: `ruleset_id`.
+    pub ruleset_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RumResultInfoShape {
+    /// `count` property.
+    pub count: Option<i64>,
+    /// `page` property.
+    pub page: Option<i64>,
+    /// `per_page` property.
+    pub per_page: Option<i64>,
+    /// `total_count` property.
+    pub total_count: Option<i64>,
+    /// `total_pages` property.
+    pub total_pages: Option<i64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SamlObject {
+    /// `saml` property.
+    pub saml: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ScanIdAccountIdArgs {
+    /// Path parameter: `scan_id`.
+    pub scan_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ScimGroupsListArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `startIndex`.
+    pub start_index: Option<String>,
+    /// Query parameter: `count`.
+    pub count: Option<String>,
+    /// Query parameter: `filter`.
+    pub filter: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ScriptTypeObject {
+    /// `script` property.
+    pub script: Option<String>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ServiceTokenIdAccountIdArgs {
+    /// Path parameter: `service_token_id`.
+    pub service_token_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ServiceTokenIdZoneIdArgs {
+    /// Path parameter: `service_token_id`.
+    pub service_token_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ServiceTokenObject {
+    /// `service_token` property.
+    pub service_token: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Sha256TlsSockaddrObject {
+    /// `sha256` property.
+    pub sha256: Option<String>,
+    /// `tls_sockaddr` property.
+    pub tls_sockaddr: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SigningKeyNameAccountIdArgs {
+    /// Path parameter: `signing_key_name`.
+    pub signing_key_name: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SiteIdAccountIdAclIdArgs {
+    /// Path parameter: `site_id`.
+    pub site_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `acl_id`.
+    pub acl_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SiteIdAccountIdArgs {
+    /// Path parameter: `site_id`.
+    pub site_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SiteIdAccountIdLanIdArgs {
+    /// Path parameter: `site_id`.
+    pub site_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `lan_id`.
+    pub lan_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SiteIdAccountIdWanIdArgs {
+    /// Path parameter: `site_id`.
+    pub site_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `wan_id`.
+    pub wan_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SpeedBaseShape {
+    /// `editable` property.
+    pub editable: Option<bool>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `value` property.
+    pub value: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StateTargetSizeMbObject {
+    /// `state` property.
+    pub state: String,
+    /// `target_size_mb` property.
+    pub target_size_mb: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StateUrlObject {
+    /// `state` property.
+    pub state: String,
+    /// `url` property.
+    pub url: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StatusObject {
+    /// `status` property.
+    pub status: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StatusObject2 {
+    /// `status` property.
+    pub status: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StatusTitleObject {
+    /// `status` property.
+    pub status: Option<f64>,
+    /// `title` property.
+    pub title: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StepsObject {
+    /// `steps` property.
+    pub steps: Option<i64>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamKeyUrlObject {
+    /// `streamKey` property.
+    #[serde(rename = "streamKey")]
+    pub stream_key: Option<String>,
+    /// `url` property.
+    pub url: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputRecordingSettingsShape {
+    /// `allowedOrigins` property.
+    #[serde(rename = "allowedOrigins")]
+    pub allowed_origins: Option<Vec<String>>,
+    /// `hideLiveViewerCount` property.
+    #[serde(rename = "hideLiveViewerCount")]
+    pub hide_live_viewer_count: Option<bool>,
+    /// `mode` property.
+    pub mode: Option<String>,
+    /// `requireSignedURLs` property.
+    #[serde(rename = "requireSignedURLs")]
+    pub require_signed_ur_ls: Option<bool>,
+    /// `timeoutSeconds` property.
+    #[serde(rename = "timeoutSeconds")]
+    pub timeout_seconds: Option<i64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamMediaStatusShape {
+    /// `errorReasonCode` property.
+    #[serde(rename = "errorReasonCode")]
+    pub error_reason_code: Option<String>,
+    /// `errorReasonText` property.
+    #[serde(rename = "errorReasonText")]
+    pub error_reason_text: Option<String>,
+    /// `pctComplete` property.
+    #[serde(rename = "pctComplete")]
+    pub pct_complete: Option<String>,
+    /// `state` property.
+    pub state: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct StreamWatermarksShape {
+    /// `created` property.
+    pub created: Option<String>,
+    /// `downloadedFrom` property.
+    #[serde(rename = "downloadedFrom")]
+    pub downloaded_from: Option<String>,
+    /// `height` property.
+    pub height: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `opacity` property.
+    pub opacity: Option<f64>,
+    /// `padding` property.
+    pub padding: Option<f64>,
+    /// `position` property.
+    pub position: Option<String>,
+    /// `scale` property.
+    pub scale: Option<f64>,
+    /// `size` property.
+    pub size: Option<f64>,
+    /// `uid` property.
+    pub uid: Option<String>,
+    /// `width` property.
+    pub width: Option<i64>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SubdomainIdZoneIdArgs {
+    /// Path parameter: `subdomain_id`.
+    pub subdomain_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SubscriptionsListArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+    /// Query parameter: `order`.
+    pub order: Option<String>,
+    /// Query parameter: `direction`.
+    pub direction: Option<String>,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SuccessObject {
+    /// `success` property.
+    pub success: bool,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TagsObject {
+    /// `tags` property.
+    pub tags: Vec<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TargetLanguageTextObject {
+    /// `target_language` property.
+    pub target_language: String,
+    /// `text` property.
+    pub text: serde_json::Value,
+}
+
+/// A shape 9 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TargetValueObject {
+    /// `target` property.
+    pub target: Option<String>,
+    /// `value` property.
+    pub value: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesApplicationInputRequestShape {
+    /// `operating_system` property.
+    pub operating_system: String,
+    /// `path` property.
+    pub path: String,
+    /// `sha256` property.
+    pub sha256: Option<String>,
+    /// `thumbprint` property.
+    pub thumbprint: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesPaginationInfoShape {
+    /// `count` property.
+    pub count: i64,
+    /// `page` property.
+    pub page: i64,
+    /// `per_page` property.
+    pub per_page: i64,
+    /// `total_count` property.
+    pub total_count: i64,
+    /// `total_pages` property.
+    pub total_pages: Option<i64>,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TenantIdArgs {
+    /// Path parameter: `tenant_id`.
+    pub tenant_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextObject {
+    /// `text` property.
+    pub text: serde_json::Value,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextObject2 {
+    /// `text` property.
+    pub text: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TextTypeObject {
+    /// `text` property.
+    pub text: Option<String>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// A shape 17 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TimestampsObject {
+    /// `timestamps` property.
+    pub timestamps: Vec<String>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TimestampsValuesObject {
+    /// `timestamps` property.
+    pub timestamps: Vec<String>,
+    /// `values` property.
+    pub values: Vec<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesCertificateObjectShape {
+    /// `certificate` property.
+    pub certificate: Option<String>,
+    /// `expires_on` property.
+    pub expires_on: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `issuer` property.
+    pub issuer: Option<String>,
+    /// `signature` property.
+    pub signature: Option<String>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `uploaded_on` property.
+    pub uploaded_on: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesCustomHostnameShape {
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `custom_metadata` property.
+    pub custom_metadata: Option<serde_json::Value>,
+    /// `custom_origin_server` property.
+    pub custom_origin_server: Option<String>,
+    /// `custom_origin_sni` property.
+    pub custom_origin_sni: Option<String>,
+    /// `hostname` property.
+    pub hostname: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `ownership_verification` property.
+    pub ownership_verification: Option<serde_json::Value>,
+    /// `ownership_verification_http` property.
+    pub ownership_verification_http: Option<serde_json::Value>,
+    /// `ssl` property.
+    pub ssl: Option<serde_json::Value>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `verification_errors` property.
+    pub verification_errors: Option<Vec<String>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullShape {
+    /// `cert_id` property.
+    pub cert_id: Option<String>,
+    /// `cert_status` property.
+    pub cert_status: Option<String>,
+    /// `cert_updated_at` property.
+    pub cert_updated_at: Option<String>,
+    /// `cert_uploaded_on` property.
+    pub cert_uploaded_on: Option<String>,
+    /// `certificate` property.
+    pub certificate: Option<String>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `expires_on` property.
+    pub expires_on: Option<String>,
+    /// `hostname` property.
+    pub hostname: Option<String>,
+    /// `issuer` property.
+    pub issuer: Option<String>,
+    /// `serial_number` property.
+    pub serial_number: Option<String>,
+    /// `signature` property.
+    pub signature: Option<String>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSettingObjectShape {
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `hostname` property.
+    pub hostname: Option<String>,
+    /// `status` property.
+    pub status: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
+    /// `value` property.
+    pub value: Option<serde_json::Value>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TokenIdArgs {
+    /// Path parameter: `token_id`.
+    pub token_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TsigIdAccountIdArgs {
+    /// Path parameter: `tsig_id`.
+    pub tsig_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelSchemasConnectionShape {
+    /// `client_id` property.
+    pub client_id: Option<String>,
+    /// `client_version` property.
+    pub client_version: Option<String>,
+    /// `colo_name` property.
+    pub colo_name: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `is_pending_reconnect` property.
+    pub is_pending_reconnect: Option<bool>,
+    /// `opened_at` property.
+    pub opened_at: Option<String>,
+    /// `origin_ip` property.
+    pub origin_ip: Option<serde_json::Value>,
+    /// `uuid` property.
+    pub uuid: Option<String>,
+}
+
+/// A shape 38 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TypeObject {
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 6 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TypeObject2 {
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TypeValueObject {
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TypeValueObject2 {
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+    /// `value` property.
+    pub value: Option<Vec<String>>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct UaRuleIdZoneIdArgs {
+    /// Path parameter: `ua_rule_id`.
+    pub ua_rule_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UrlObject {
+    /// `url` property.
+    pub url: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UrlscannerGetScanV2ResponseDataRequestsItemResponseAsnShape {
+    /// `asn` property.
+    pub asn: String,
+    /// `country` property.
+    pub country: String,
+    /// `description` property.
+    pub description: String,
+    /// `ip` property.
+    pub ip: String,
+    /// `name` property.
+    pub name: String,
+    /// `org` property.
+    pub org: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UrlscannerGetScanV2ResponseMetaProcessorsGeoipDataItemGeoipShape {
+    /// `city` property.
+    pub city: String,
+    /// `country` property.
+    pub country: String,
+    /// `country_name` property.
+    pub country_name: String,
+    /// `ll` property.
+    pub ll: Vec<f64>,
+    /// `region` property.
+    pub region: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct UserIdAccountIdArgs {
+    /// Path parameter: `user_id`.
+    pub user_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UserRiskScoreObject {
+    /// `user_risk_score` property.
+    pub user_risk_score: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UuidObject {
+    /// `uuid` property.
+    pub uuid: String,
+}
+
+/// A shape 11 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ValueObject {
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct VariantIdAccountIdArgs {
+    /// Path parameter: `variant_id`.
+    pub variant_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WaitingRoomIdZoneIdArgs {
+    /// Path parameter: `waiting_room_id`.
+    pub waiting_room_id: String,
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 18 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorBatchCreateWorkflowInstanceResponseResultInfoShape {
+    /// `count` property.
+    pub count: f64,
+    /// `cursor` property.
+    pub cursor: Option<String>,
+    /// `page` property.
+    pub page: Option<f64>,
+    /// `per_page` property.
+    pub per_page: f64,
+    /// `total_count` property.
+    pub total_count: f64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorBatchCreateWorkflowInstanceResponseResultItemShape {
+    /// `id` property.
+    pub id: String,
+    /// `status` property.
+    pub status: String,
+    /// `version_id` property.
+    pub version_id: String,
+    /// `workflow_id` property.
+    pub workflow_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorGetWorkflowDetailsResponseResultInstancesShape {
+    /// `complete` property.
+    pub complete: Option<f64>,
+    /// `errored` property.
+    pub errored: Option<f64>,
+    /// `paused` property.
+    pub paused: Option<f64>,
+    /// `queued` property.
+    pub queued: Option<f64>,
+    /// `running` property.
+    pub running: Option<f64>,
+    /// `terminated` property.
+    pub terminated: Option<f64>,
+    /// `waiting` property.
+    pub waiting: Option<f64>,
+    /// `waitingForPause` property.
+    #[serde(rename = "waitingForPause")]
+    pub waiting_for_pause: Option<f64>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkerGetScriptSecretArgsShape {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `script_name`.
+    pub script_name: String,
+    /// Path parameter: `secret_name`.
+    pub secret_name: String,
+    /// Query parameter: `url_encoded`.
+    pub url_encoded: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersAiCreateFinetuneResponseResultShape {
+    /// `created_at` property.
+    pub created_at: String,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `id` property.
+    pub id: String,
+    /// `model` property.
+    pub model: String,
+    /// `modified_at` property.
+    pub modified_at: String,
+    /// `name` property.
+    pub name: String,
+    /// `public` property.
+    pub public: bool,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersAiPostRunCfBytedanceStableDiffusionXlLightningRequestShape {
+    /// `guidance` property.
+    pub guidance: Option<f64>,
+    /// `height` property.
+    pub height: Option<i64>,
+    /// `image` property.
+    pub image: Option<Vec<f64>>,
+    /// `image_b64` property.
+    pub image_b64: Option<String>,
+    /// `mask` property.
+    pub mask: Option<Vec<f64>>,
+    /// `negative_prompt` property.
+    pub negative_prompt: Option<String>,
+    /// `num_steps` property.
+    pub num_steps: Option<i64>,
+    /// `prompt` property.
+    pub prompt: String,
+    /// `seed` property.
+    pub seed: Option<i64>,
+    /// `strength` property.
+    pub strength: Option<f64>,
+    /// `width` property.
+    pub width: Option<i64>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersAiPostRunCfDeepgramAura1RequestShape {
+    /// `bit_rate` property.
+    pub bit_rate: Option<f64>,
+    /// `container` property.
+    pub container: Option<String>,
+    /// `encoding` property.
+    pub encoding: Option<String>,
+    /// `sample_rate` property.
+    pub sample_rate: Option<f64>,
+    /// `speaker` property.
+    pub speaker: Option<String>,
+    /// `text` property.
+    pub text: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersDomainShape {
+    /// `cert_id` property.
+    pub cert_id: String,
+    /// `environment` property.
+    pub environment: String,
+    /// `hostname` property.
+    pub hostname: String,
+    /// `id` property.
+    pub id: String,
+    /// `service` property.
+    pub service: String,
+    /// `zone_id` property.
+    pub zone_id: String,
+    /// `zone_name` property.
+    pub zone_name: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkflowNameAccountIdArgs {
+    /// Path parameter: `workflow_name`.
+    pub workflow_name: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct WorkflowNameVersionIdAccountIdArgs {
+    /// Path parameter: `workflow_name`.
+    pub workflow_name: String,
+    /// Path parameter: `version_id`.
+    pub version_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZarazZarazConfigBodyShape {
+    /// `analytics` property.
+    pub analytics: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `consent` property.
+    pub consent: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `dataLayer` property.
+    #[serde(rename = "dataLayer")]
+    pub data_layer: bool,
+    /// `debugKey` property.
+    #[serde(rename = "debugKey")]
+    pub debug_key: String,
+    /// `historyChange` property.
+    #[serde(rename = "historyChange")]
+    pub history_change: Option<bool>,
+    /// `settings` property.
+    pub settings: std::collections::HashMap<String, serde_json::Value>,
+    /// `tools` property.
+    pub tools: serde_json::Value,
+    /// `triggers` property.
+    pub triggers: serde_json::Value,
+    /// `variables` property.
+    pub variables: serde_json::Value,
+    /// `zarazVersion` property.
+    #[serde(rename = "zarazVersion")]
+    pub zaraz_version: i64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayDnsResolverSettingsV4Shape {
+    /// `ip` property.
+    pub ip: String,
+    /// `port` property.
+    pub port: Option<i64>,
+    /// `route_through_private_network` property.
+    pub route_through_private_network: Option<bool>,
+    /// `vnet_id` property.
+    pub vnet_id: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdAddressMapIdAccountIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `address_map_id`.
+    pub address_map_id: String,
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+}
+
+/// A shape 131 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdClientCertificateIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `client_certificate_id`.
+    pub client_certificate_id: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdConfigIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `config_id`.
+    pub config_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdDetectionIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `detection_id`.
+    pub detection_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdEnvironmentIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `environment_id`.
+    pub environment_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdHostnameArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `hostname`.
+    pub hostname: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdLoadBalancerIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `load_balancer_id`.
+    pub load_balancer_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdNameWithMappedResourceCountsArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `name`.
+    pub name: String,
+    /// Query parameter: `with_mapped_resource_counts`.
+    pub with_mapped_resource_counts: Option<String>,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdOperationIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `operation_id`.
+    pub operation_id: String,
+}
+
+/// A shape 7 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdPagePerPageArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `per_page`.
+    pub per_page: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdPolicyIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `policy_id`.
+    pub policy_id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdRuleIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `rule_id`.
+    pub rule_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdSchemaIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `schema_id`.
+    pub schema_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdSettingIdArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `setting_id`.
+    pub setting_id: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdSettingIdHostnameArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `setting_id`.
+    pub setting_id: String,
+    /// Path parameter: `hostname`.
+    pub hostname: String,
+}
+
+/// A shape 4 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdSnippetNameArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `snippet_name`.
+    pub snippet_name: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ZoneIdUrlRegionArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `url`.
+    pub url: String,
+    /// Query parameter: `region`.
+    pub region: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZoneLevelAccessGroupsCreateAnAccessGroupRequestShape {
+    /// `exclude` property.
+    pub exclude: Option<Vec<serde_json::Value>>,
+    /// `include` property.
+    pub include: Vec<serde_json::Value>,
+    /// `name` property.
+    pub name: String,
+    /// `require` property.
+    pub require: Option<Vec<serde_json::Value>>,
+}
+
+/// A shape 48 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct Zones0RttShape {
+    /// `editable` property.
+    pub editable: Option<bool>,
+    /// `id` property.
+    pub id: serde_json::Value,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `value` property.
+    pub value: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZonesBaseShape {
+    /// `editable` property.
+    pub editable: Option<bool>,
+    /// `id` property.
+    pub id: String,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `value` property.
+    pub value: serde_json::Value,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZonesChallengeTtlShape {
+    /// `editable` property.
+    pub editable: Option<bool>,
+    /// `id` property.
+    pub id: serde_json::Value,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `value` property.
+    pub value: f64,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ZonesMaxUploadShape {
+    /// `editable` property.
+    pub editable: Option<bool>,
+    /// `id` property.
+    pub id: serde_json::Value,
+    /// `modified_on` property.
+    pub modified_on: Option<String>,
+    /// `value` property.
+    pub value: i64,
+}

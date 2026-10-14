@@ -7,42 +7,46 @@
 
 #![cfg(feature = "cloudflare_logs")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
 use super::shared::AaaAuditLogsResponseCollection;
-use super::shared::LogpushDestinationExistsResponse;
-use super::shared::LogpushGetOwnershipResponse;
-use super::shared::LogpushLogpushFieldResponseCollection;
-use super::shared::LogpushLogpushJobResponseCollection;
-use super::shared::LogpushLogpushJobResponseSingle;
-use super::shared::LogpushValidateOwnershipResponse;
-use super::shared::LogpushValidateResponse;
 use super::shared::AaaResultInfo;
 use super::shared::LogpushApiResponseCommon;
 use super::shared::LogpushApiResponseSingle;
 use super::shared::LogpushDataset;
 use super::shared::LogpushDestinationConf;
+use super::shared::LogpushDestinationExistsResponse;
 use super::shared::LogpushEnabled;
 use super::shared::LogpushErrorMessage;
 use super::shared::LogpushFrequency;
+use super::shared::LogpushGetOwnershipResponse;
 use super::shared::LogpushId;
 use super::shared::LogpushKind;
 use super::shared::LogpushLastComplete;
 use super::shared::LogpushLastError;
 use super::shared::LogpushLogpullOptions;
+use super::shared::LogpushLogpushFieldResponseCollection;
 use super::shared::LogpushLogpushJob;
+use super::shared::LogpushLogpushJobResponseCollection;
+use super::shared::LogpushLogpushJobResponseSingle;
 use super::shared::LogpushMaxUploadBytes;
 use super::shared::LogpushMaxUploadIntervalSeconds;
 use super::shared::LogpushMaxUploadRecords;
 use super::shared::LogpushName;
 use super::shared::LogpushOutputOptions;
+use super::shared::LogpushValidateOwnershipResponse;
+use super::shared::LogpushValidateResponse;
 
 use super::shared::ApiResponse;
 
@@ -51,863 +55,705 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// `AaaAuditLogAction` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaAuditLogAction {
-    /// description property.
-    pub description: Option<String>,
-    /// result property.
-    pub result: Option<String>,
-    /// time property.
-    pub time: Option<String>,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: Option<String>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeDescriptionTimeType<Option<String>>`.
+pub type AaaAuditLogAction = super::shared::ApiEnvelopeDescriptionTimeType<Option<String>>;
 
 /// `AaaAuditLogRaw` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AaaAuditLogRaw {
-    /// cf_ray_id property.
-    pub cf_ray_id: Option<String>,
-    /// method property.
-    pub method: Option<String>,
-    /// status_code property.
-    pub status_code: Option<i64>,
-    /// uri property.
-    pub uri: Option<String>,
-    /// user_agent property.
-    pub user_agent: Option<String>,
-}
+///
+/// Same shape as `super::shared::AaaAuditLogRawShape`.
+pub type AaaAuditLogRaw = super::shared::AaaAuditLogRawShape;
 
 /// `AaaAuditLogsV2` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaAuditLogsV2 {
-    /// account property.
+    /// `account` property.
     pub account: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// action property.
+    /// `action` property.
     pub action: Option<AaaAuditLogAction>,
-    /// actor property.
+    /// `actor` property.
     pub actor: Option<serde_json::Value>,
-    /// id property.
-    pub id: Option<AaaSchemasIdentifier>,
-    /// raw property.
+    /// `id` property.
+    pub id: Option<String>,
+    /// `raw` property.
     #[serde(rename = "raw")]
     pub r#raw: Option<AaaAuditLogRaw>,
-    /// resource property.
+    /// `resource` property.
     pub resource: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// zone property.
+    /// `zone` property.
     pub zone: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `AaaAuditLogsV2ResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaAuditLogsV2ResponseCollection {
+    /// `errors` property.
+    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
     /// `result` property.
     pub result: Option<Vec<AaaAuditLogsV2>>,
+    /// `result_info` property.
+    pub result_info: Option<AaaResultInfo>,
+    /// `success` property.
+    pub success: Option<bool>,
 }
 
 /// `AaaSchemasIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaSchemasIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaSchemasIdentifier = String;
 
 /// `AaaSchemasMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AaaSchemasMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AaaSchemasMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `DeleteAccountsAccountIdLogpushJobsJobIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteAccountsAccountIdLogpushJobsJobIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type DeleteAccountsAccountIdLogpushJobsJobIdResponse =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `DeleteAccountsAccountIdLogpushValidateDestinationExistsRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteAccountsAccountIdLogpushValidateDestinationExistsRequest {
-    /// destination_conf property.
-    pub destination_conf: LogpushDestinationConf,
-}
+///
+/// Same shape as `super::shared::DestinationConfObject`.
+pub type DeleteAccountsAccountIdLogpushValidateDestinationExistsRequest =
+    super::shared::DestinationConfObject;
 
 /// `DeleteAccountsAccountIdLogpushValidateDestinationRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteAccountsAccountIdLogpushValidateDestinationRequest {
-    /// destination_conf property.
-    pub destination_conf: LogpushDestinationConf,
-}
+///
+/// Same shape as `super::shared::DestinationConfObject`.
+pub type DeleteAccountsAccountIdLogpushValidateDestinationRequest =
+    super::shared::DestinationConfObject;
 
 /// `DeleteAccountsAccountIdLogsControlCmbConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteAccountsAccountIdLogsControlCmbConfigResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DeleteAccountsAccountIdLogsControlCmbConfigResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DlpApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DlpApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DlpApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DlpMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `DlpPayloadLogGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpPayloadLogGetResponse {
-    /// `result` property.
-    pub result: Option<DlpPayloadLogSetting>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpPayloadLogSetting>>`.
+pub type DlpPayloadLogGetResponse = super::shared::ApiEnvelope<Option<DlpPayloadLogSetting>>;
 
 /// `DlpPayloadLogPutResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpPayloadLogPutResponse {
-    /// `result` property.
-    pub result: Option<DlpPayloadLogSetting>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpPayloadLogSetting>>`.
+pub type DlpPayloadLogPutResponse = super::shared::ApiEnvelope<Option<DlpPayloadLogSetting>>;
 
 /// `DlpPayloadLogSetting` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpPayloadLogSetting {
-    /// masking_level property.
-    pub masking_level: Option<serde_json::Value>,
-    /// public_key property.
-    pub public_key: Option<String>,
-    /// updated_at property.
-    pub updated_at: String,
-}
+///
+/// Same shape as `super::shared::MaskingLevelPublicKeyUpdatedAtObject`.
+pub type DlpPayloadLogSetting = super::shared::MaskingLevelPublicKeyUpdatedAtObject;
 
 /// `DlpPayloadLogSettingUpdateLegacy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpPayloadLogSettingUpdateLegacy {
-    /// masking_level property.
+    /// `masking_level` property.
     pub masking_level: Option<serde_json::Value>,
-    /// public_key property.
+    /// `public_key` property.
     pub public_key: Option<String>,
 }
 
 /// `LogcontrolAllowOutOfRegionAccess` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogcontrolAllowOutOfRegionAccess {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogcontrolAllowOutOfRegionAccess = bool;
 
 /// `LogcontrolApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogcontrolApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type LogcontrolApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `LogcontrolApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogcontrolApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type LogcontrolApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `LogcontrolCmbConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct LogcontrolCmbConfig {
-    /// allow_out_of_region_access property.
-    pub allow_out_of_region_access: Option<LogcontrolAllowOutOfRegionAccess>,
-    /// regions property.
-    pub regions: Option<LogcontrolRegions>,
+    /// `allow_out_of_region_access` property.
+    pub allow_out_of_region_access: Option<bool>,
+    /// `regions` property.
+    pub regions: Option<String>,
 }
 
 /// `LogcontrolCmbConfigResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct LogcontrolCmbConfigResponseSingle {
-    /// `result` property.
-    pub result: Option<LogcontrolCmbConfig>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<LogcontrolCmbConfig>>`.
+pub type LogcontrolCmbConfigResponseSingle =
+    super::shared::ApiEnvelope<Option<LogcontrolCmbConfig>>;
 
 /// `LogcontrolMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogcontrolMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogcontrolMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `LogcontrolRegions` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogcontrolRegions {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogcontrolRegions = String;
 
 /// `LogpushFilter` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushFilter {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushFilter = String;
 
 /// `LogpushMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `LogpushOwnershipChallenge` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct LogpushOwnershipChallenge {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type LogpushOwnershipChallenge = String;
 
 /// `McnAccountId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnAccountId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnAccountId = String;
 
 /// `McnCatalogSync` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnCatalogSync {
-    /// description property.
+    /// `description` property.
     pub description: String,
-    /// destination_id property.
-    pub destination_id: McnCatalogSyncDestinationId,
-    /// destination_type property.
-    pub destination_type: McnCatalogSyncDestinationType,
-    /// errors property.
+    /// `destination_id` property.
+    pub destination_id: String,
+    /// `destination_type` property.
+    pub destination_type: String,
+    /// `errors` property.
     pub errors: Option<serde_json::Value>,
-    /// id property.
-    pub id: McnCatalogSyncId,
-    /// includes_discoveries_until property.
+    /// `id` property.
+    pub id: String,
+    /// `includes_discoveries_until` property.
     pub includes_discoveries_until: Option<String>,
-    /// last_attempted_update_at property.
+    /// `last_attempted_update_at` property.
     pub last_attempted_update_at: Option<String>,
-    /// last_successful_update_at property.
+    /// `last_successful_update_at` property.
     pub last_successful_update_at: Option<String>,
-    /// last_user_update_at property.
+    /// `last_user_update_at` property.
     pub last_user_update_at: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// policy property.
+    /// `policy` property.
     pub policy: String,
-    /// update_mode property.
-    pub update_mode: McnCatalogSyncUpdateMode,
+    /// `update_mode` property.
+    pub update_mode: String,
 }
 
 /// `McnCatalogSyncDestinationId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnCatalogSyncDestinationId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnCatalogSyncDestinationId = String;
 
 /// `McnCatalogSyncDestinationType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnCatalogSyncDestinationType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnCatalogSyncDestinationType = String;
 
 /// `McnCatalogSyncId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnCatalogSyncId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnCatalogSyncId = String;
 
 /// `McnCatalogSyncUpdateMode` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnCatalogSyncUpdateMode {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnCatalogSyncUpdateMode = String;
 
 /// `McnCatalogSyncsPrebuiltPoliciesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnCatalogSyncsPrebuiltPoliciesResponse {
+    /// `errors` property.
+    pub errors: Vec<McnError>,
+    /// `messages` property.
+    pub messages: Vec<McnError>,
     /// `result` property.
-    pub result: Option<Vec<McnCatalogSyncsPrebuiltPolicy>>,
+    pub result: Vec<McnCatalogSyncsPrebuiltPolicy>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `McnCatalogSyncsPrebuiltPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnCatalogSyncsPrebuiltPolicy {
-    /// applicable_destinations property.
-    pub applicable_destinations: Vec<McnCatalogSyncDestinationType>,
-    /// policy_description property.
+    /// `applicable_destinations` property.
+    pub applicable_destinations: Vec<String>,
+    /// `policy_description` property.
     pub policy_description: String,
-    /// policy_name property.
+    /// `policy_name` property.
     pub policy_name: String,
-    /// policy_string property.
+    /// `policy_string` property.
     pub policy_string: String,
 }
 
 /// `McnCloudPlatformClient` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCloudPlatformClient {
-    /// client_type property.
-    pub client_type: String,
-    /// id property.
-    pub id: McnPlatformClientId,
-    /// name property.
-    pub name: String,
-}
+///
+/// Same shape as `super::shared::ClientTypeIdNameObject`.
+pub type McnCloudPlatformClient = super::shared::ClientTypeIdNameObject;
 
 /// `McnCloudType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnCloudType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnCloudType = String;
 
 /// `McnCost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnCost {
-    /// currency property.
-    pub currency: String,
-    /// monthly_cost property.
-    pub monthly_cost: f64,
-}
+///
+/// Same shape as `super::shared::CurrencyMonthlyCostObject`.
+pub type McnCost = super::shared::CurrencyMonthlyCostObject;
 
 /// `McnCreateCatalogSyncRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnCreateCatalogSyncRequest {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// destination_type property.
-    pub destination_type: McnCatalogSyncDestinationType,
-    /// name property.
+    /// `destination_type` property.
+    pub destination_type: String,
+    /// `name` property.
     pub name: String,
-    /// policy property.
+    /// `policy` property.
     pub policy: Option<String>,
-    /// update_mode property.
-    pub update_mode: McnCatalogSyncUpdateMode,
+    /// `update_mode` property.
+    pub update_mode: String,
 }
 
 /// `McnCreateCatalogSyncResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnCreateCatalogSyncResponse {
+    /// `errors` property.
+    pub errors: Vec<McnError>,
+    /// `messages` property.
+    pub messages: Vec<McnError>,
     /// `result` property.
-    pub result: Option<McnCatalogSync>,
+    pub result: McnCatalogSync,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `McnDeleteCatalogSyncResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnDeleteCatalogSyncResponse {
+    /// `errors` property.
+    pub errors: Vec<McnError>,
+    /// `messages` property.
+    pub messages: Vec<McnError>,
     /// `result` property.
-    pub result: Option<McnDeletedCatalogSync>,
+    pub result: McnDeletedCatalogSync,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `McnDeletedCatalogSync` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnDeletedCatalogSync {
-    /// id property.
-    pub id: McnCatalogSyncId,
-}
+///
+/// Same shape as `super::shared::IdObject2`.
+pub type McnDeletedCatalogSync = super::shared::IdObject2;
 
 /// `McnError` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnError {
-    /// code property.
+    /// `code` property.
     pub code: i64,
-    /// documentation_url property.
+    /// `documentation_url` property.
     pub documentation_url: Option<String>,
-    /// message property.
+    /// `message` property.
     pub message: String,
-    /// meta property.
+    /// `meta` property.
     pub meta: Option<McnErrorMeta>,
-    /// source property.
+    /// `source` property.
     pub source: Option<McnErrorSource>,
 }
 
 /// `McnErrorMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnErrorMeta {
-    /// l10n_key property.
-    pub l10n_key: Option<String>,
-    /// loggable_error property.
-    pub loggable_error: Option<String>,
-    /// template_data property.
-    pub template_data: Option<serde_json::Value>,
-    /// trace_id property.
-    pub trace_id: Option<String>,
-}
+///
+/// Same shape as `super::shared::McnErrorMetaShape`.
+pub type McnErrorMeta = super::shared::McnErrorMetaShape;
 
 /// `McnErrorSource` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnErrorSource {
-    /// parameter property.
-    pub parameter: Option<String>,
-    /// parameter_value_index property.
-    pub parameter_value_index: Option<i64>,
-    /// pointer property.
-    pub pointer: Option<String>,
-}
+///
+/// Same shape as `super::shared::ParameterParameterValueIndexPointerObject`.
+pub type McnErrorSource = super::shared::ParameterParameterValueIndexPointerObject;
 
 /// `McnGoodResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnGoodResponse {
     /// `errors` property.
-    pub errors: Option<Vec<McnError>>,
+    pub errors: Vec<McnError>,
+    /// `messages` property.
+    pub messages: Vec<McnError>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `McnGoodResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnGoodResponseCollection {
     /// `errors` property.
-    pub errors: Option<Vec<McnError>>,
+    pub errors: Vec<McnError>,
+    /// `messages` property.
+    pub messages: Vec<McnError>,
+    /// `result_info` property.
+    pub result_info: Option<McnResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `McnListItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnListItem {
-    /// item_type property.
+    /// `item_type` property.
     pub item_type: String,
-    /// list property.
+    /// `list` property.
     pub list: Vec<serde_json::Value>,
 }
 
 /// `McnPlatformClientId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnPlatformClientId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnPlatformClientId = String;
 
 /// `McnPolicyResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnPolicyResult {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnPolicyResult = String;
 
 /// `McnProviderId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnProviderId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnProviderId = String;
 
 /// `McnReadAccountCatalogSyncResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnReadAccountCatalogSyncResponse {
-    /// `result` property.
-    pub result: Option<McnCatalogSync>,
-}
+///
+/// Same shape as `McnCreateCatalogSyncResponse`.
+pub type McnReadAccountCatalogSyncResponse = McnCreateCatalogSyncResponse;
 
 /// `McnReadAccountCatalogSyncsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnReadAccountCatalogSyncsResponse {
+    /// `errors` property.
+    pub errors: Vec<McnError>,
+    /// `messages` property.
+    pub messages: Vec<McnError>,
     /// `result` property.
-    pub result: Option<Vec<McnCatalogSync>>,
+    pub result: Vec<McnCatalogSync>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `McnReadAccountResourceResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnReadAccountResourceResponse {
+    /// `errors` property.
+    pub errors: Vec<McnError>,
+    /// `messages` property.
+    pub messages: Vec<McnError>,
     /// `result` property.
-    pub result: Option<McnResourceDetails>,
+    pub result: McnResourceDetails,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `McnReadAccountResourcesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnReadAccountResourcesResponse {
+    /// `errors` property.
+    pub errors: Vec<McnError>,
+    /// `messages` property.
+    pub messages: Vec<McnError>,
     /// `result` property.
-    pub result: Option<Vec<McnResourceDetails>>,
+    pub result: Vec<McnResourceDetails>,
     /// `result_info` property.
     pub result_info: Option<McnResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `McnRefreshCatalogSyncResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnRefreshCatalogSyncResponse {
+    /// `errors` property.
+    pub errors: Vec<McnError>,
+    /// `messages` property.
+    pub messages: Vec<McnError>,
     /// `result` property.
-    pub result: Option<McnPolicyResult>,
+    pub result: String,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `McnResourceDetails` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnResourceDetails {
-    /// account_id property.
-    pub account_id: McnAccountId,
-    /// cloud_type property.
-    pub cloud_type: McnCloudType,
-    /// config property.
+    /// `account_id` property.
+    pub account_id: String,
+    /// `cloud_type` property.
+    pub cloud_type: String,
+    /// `config` property.
     pub config: serde_json::Value,
-    /// deployment_provider property.
-    pub deployment_provider: McnProviderId,
-    /// id property.
-    pub id: McnResourceId,
-    /// managed property.
+    /// `deployment_provider` property.
+    pub deployment_provider: String,
+    /// `id` property.
+    pub id: String,
+    /// `managed` property.
     pub managed: bool,
-    /// managed_by property.
+    /// `managed_by` property.
     pub managed_by: Option<Vec<McnCloudPlatformClient>>,
-    /// monthly_cost_estimate property.
+    /// `monthly_cost_estimate` property.
     pub monthly_cost_estimate: McnCost,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// native_id property.
+    /// `native_id` property.
     pub native_id: String,
-    /// observations property.
+    /// `observations` property.
     pub observations: serde_json::Value,
-    /// provider_ids property.
-    pub provider_ids: Vec<McnProviderId>,
-    /// provider_names_by_id property.
+    /// `provider_ids` property.
+    pub provider_ids: Vec<String>,
+    /// `provider_names_by_id` property.
     pub provider_names_by_id: serde_json::Value,
-    /// region property.
+    /// `region` property.
     pub region: String,
-    /// resource_group property.
+    /// `resource_group` property.
     pub resource_group: String,
-    /// resource_type property.
-    pub resource_type: McnResourceType,
-    /// sections property.
+    /// `resource_type` property.
+    pub resource_type: String,
+    /// `sections` property.
     pub sections: Vec<McnResourceDetailsSection>,
-    /// state property.
+    /// `state` property.
     pub state: serde_json::Value,
-    /// tags property.
+    /// `tags` property.
     pub tags: serde_json::Value,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
-    /// url property.
+    /// `url` property.
     pub url: String,
 }
 
 /// `McnResourceDetailsSection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnResourceDetailsSection {
-    /// help_text property.
+    /// `help_text` property.
     pub help_text: Option<String>,
-    /// hidden_items property.
+    /// `hidden_items` property.
     pub hidden_items: Vec<McnResourceDetailsSectionItem>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// visible_items property.
+    /// `visible_items` property.
     pub visible_items: Vec<McnResourceDetailsSectionItem>,
 }
 
 /// `McnResourceDetailsSectionItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnResourceDetailsSectionItem {
-    /// helpText property.
+    /// `helpText` property.
     #[serde(rename = "helpText")]
     pub help_text: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// value property.
+    /// `value` property.
     pub value: Option<serde_json::Value>,
 }
 
 /// `McnResourceId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnResourceId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnResourceId = String;
 
 /// `McnResourcePreview` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourcePreview {
-    /// cloud_type property.
-    pub cloud_type: McnCloudType,
-    /// detail property.
-    pub detail: String,
-    /// id property.
-    pub id: McnResourceId,
-    /// name property.
-    pub name: String,
-    /// resource_type property.
-    pub resource_type: McnResourceType,
-    /// title property.
-    pub title: String,
-}
+///
+/// Same shape as `super::shared::McnResourcePreviewShape`.
+pub type McnResourcePreview = super::shared::McnResourcePreviewShape;
 
 /// `McnResourcePreviewItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnResourcePreviewItem {
-    /// item_type property.
+    /// `item_type` property.
     pub item_type: String,
-    /// resource_preview property.
+    /// `resource_preview` property.
     pub resource_preview: McnResourcePreview,
 }
 
 /// `McnResourceType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnResourceType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnResourceType = String;
 
 /// `McnResourcesCatalogPolicyPreview` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct McnResourcesCatalogPolicyPreview {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type McnResourcesCatalogPolicyPreview = String;
 
 /// `McnResourcesCatalogPolicyPreviewRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnResourcesCatalogPolicyPreviewRequest {
-    /// policy property.
+    /// `policy` property.
     pub policy: String,
 }
 
 /// `McnResourcesCatalogPolicyPreviewResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResourcesCatalogPolicyPreviewResponse {
-    /// `result` property.
-    pub result: Option<McnResourcesCatalogPolicyPreview>,
-}
+///
+/// Same shape as `McnRefreshCatalogSyncResponse`.
+pub type McnResourcesCatalogPolicyPreviewResponse = McnRefreshCatalogSyncResponse;
 
 /// `McnResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnResponse {
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<McnError>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `McnResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnResponseCollection {
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<McnError>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<McnResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `McnResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnResultInfo {
-    /// count property.
-    pub count: i64,
-    /// page property.
-    pub page: i64,
-    /// per_page property.
-    pub per_page: i64,
-    /// total_count property.
-    pub total_count: i64,
-    /// total_pages property.
-    pub total_pages: Option<i64>,
-}
+///
+/// Same shape as `super::shared::TeamsDevicesPaginationInfoShape`.
+pub type McnResultInfo = super::shared::TeamsDevicesPaginationInfoShape;
 
 /// `McnStringItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnStringItem {
-    /// item_type property.
+    /// `item_type` property.
     pub item_type: String,
-    /// string property.
+    /// `string` property.
     pub string: String,
 }
 
 /// `McnUpdateCatalogSyncRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnUpdateCatalogSyncRequest {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// policy property.
+    /// `policy` property.
     pub policy: Option<String>,
-    /// update_mode property.
-    pub update_mode: Option<McnCatalogSyncUpdateMode>,
+    /// `update_mode` property.
+    pub update_mode: Option<String>,
 }
 
 /// `McnUpdateCatalogSyncResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnUpdateCatalogSyncResponse {
-    /// `result` property.
-    pub result: Option<McnCatalogSync>,
-}
+///
+/// Same shape as `McnCreateCatalogSyncResponse`.
+pub type McnUpdateCatalogSyncResponse = McnCreateCatalogSyncResponse;
 
 /// `McnYamlDiff` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct McnYamlDiff {
-    /// diff property.
-    pub diff: String,
-    /// left_description property.
-    pub left_description: String,
-    /// left_yaml property.
-    pub left_yaml: String,
-    /// right_description property.
-    pub right_description: String,
-    /// right_yaml property.
-    pub right_yaml: String,
-}
+///
+/// Same shape as `super::shared::McnYamlDiffShape`.
+pub type McnYamlDiff = super::shared::McnYamlDiffShape;
 
 /// `McnYamlDiffItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnYamlDiffItem {
-    /// item_type property.
+    /// `item_type` property.
     pub item_type: String,
-    /// yaml_diff property.
+    /// `yaml_diff` property.
     pub yaml_diff: McnYamlDiff,
 }
 
 /// `McnYamlItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct McnYamlItem {
-    /// item_type property.
+    /// `item_type` property.
     pub item_type: String,
-    /// yaml property.
+    /// `yaml` property.
     pub yaml: String,
 }
 
 /// `PostAccountsAccountIdLogpushJobsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PostAccountsAccountIdLogpushJobsRequest {
-    /// dataset property.
-    pub dataset: Option<LogpushDataset>,
-    /// destination_conf property.
-    pub destination_conf: LogpushDestinationConf,
-    /// enabled property.
-    pub enabled: Option<LogpushEnabled>,
-    /// filter property.
-    pub filter: Option<LogpushFilter>,
-    /// frequency property.
-    pub frequency: Option<LogpushFrequency>,
-    /// kind property.
-    pub kind: Option<LogpushKind>,
-    /// logpull_options property.
-    pub logpull_options: Option<LogpushLogpullOptions>,
-    /// max_upload_bytes property.
-    pub max_upload_bytes: Option<LogpushMaxUploadBytes>,
-    /// max_upload_interval_seconds property.
-    pub max_upload_interval_seconds: Option<LogpushMaxUploadIntervalSeconds>,
-    /// max_upload_records property.
-    pub max_upload_records: Option<LogpushMaxUploadRecords>,
-    /// name property.
-    pub name: Option<LogpushName>,
-    /// output_options property.
+    /// `dataset` property.
+    pub dataset: Option<String>,
+    /// `destination_conf` property.
+    pub destination_conf: String,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `filter` property.
+    pub filter: Option<String>,
+    /// `frequency` property.
+    pub frequency: Option<String>,
+    /// `kind` property.
+    pub kind: Option<String>,
+    /// `logpull_options` property.
+    pub logpull_options: Option<String>,
+    /// `max_upload_bytes` property.
+    pub max_upload_bytes: Option<i64>,
+    /// `max_upload_interval_seconds` property.
+    pub max_upload_interval_seconds: Option<i64>,
+    /// `max_upload_records` property.
+    pub max_upload_records: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `output_options` property.
     pub output_options: Option<LogpushOutputOptions>,
-    /// ownership_challenge property.
-    pub ownership_challenge: Option<LogpushOwnershipChallenge>,
+    /// `ownership_challenge` property.
+    pub ownership_challenge: Option<String>,
 }
 
 /// `PostAccountsAccountIdLogpushOwnershipRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostAccountsAccountIdLogpushOwnershipRequest {
-    /// destination_conf property.
-    pub destination_conf: LogpushDestinationConf,
-}
+///
+/// Same shape as `super::shared::DestinationConfObject`.
+pub type PostAccountsAccountIdLogpushOwnershipRequest = super::shared::DestinationConfObject;
 
 /// `PostAccountsAccountIdLogpushOwnershipValidateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostAccountsAccountIdLogpushOwnershipValidateRequest {
-    /// destination_conf property.
-    pub destination_conf: LogpushDestinationConf,
-    /// ownership_challenge property.
-    pub ownership_challenge: LogpushOwnershipChallenge,
-}
+///
+/// Same shape as `super::shared::DestinationConfOwnershipChallengeObject`.
+pub type PostAccountsAccountIdLogpushOwnershipValidateRequest =
+    super::shared::DestinationConfOwnershipChallengeObject;
 
 /// `PostAccountsAccountIdLogpushValidateOriginRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostAccountsAccountIdLogpushValidateOriginRequest {
-    /// logpull_options property.
-    pub logpull_options: Option<LogpushLogpullOptions>,
-}
+///
+/// Same shape as `super::shared::LogpullOptionsObject`.
+pub type PostAccountsAccountIdLogpushValidateOriginRequest = super::shared::LogpullOptionsObject;
 
 /// `PutAccountsAccountIdLogpushJobsJobIdRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PutAccountsAccountIdLogpushJobsJobIdRequest {
-    /// destination_conf property.
-    pub destination_conf: Option<LogpushDestinationConf>,
-    /// enabled property.
-    pub enabled: Option<LogpushEnabled>,
-    /// filter property.
-    pub filter: Option<LogpushFilter>,
-    /// frequency property.
-    pub frequency: Option<LogpushFrequency>,
-    /// kind property.
-    pub kind: Option<LogpushKind>,
-    /// logpull_options property.
-    pub logpull_options: Option<LogpushLogpullOptions>,
-    /// max_upload_bytes property.
-    pub max_upload_bytes: Option<LogpushMaxUploadBytes>,
-    /// max_upload_interval_seconds property.
-    pub max_upload_interval_seconds: Option<LogpushMaxUploadIntervalSeconds>,
-    /// max_upload_records property.
-    pub max_upload_records: Option<LogpushMaxUploadRecords>,
-    /// name property.
-    pub name: Option<LogpushName>,
-    /// output_options property.
+    /// `destination_conf` property.
+    pub destination_conf: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `filter` property.
+    pub filter: Option<String>,
+    /// `frequency` property.
+    pub frequency: Option<String>,
+    /// `kind` property.
+    pub kind: Option<String>,
+    /// `logpull_options` property.
+    pub logpull_options: Option<String>,
+    /// `max_upload_bytes` property.
+    pub max_upload_bytes: Option<i64>,
+    /// `max_upload_interval_seconds` property.
+    pub max_upload_interval_seconds: Option<i64>,
+    /// `max_upload_records` property.
+    pub max_upload_records: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `output_options` property.
     pub output_options: Option<LogpushOutputOptions>,
-    /// ownership_challenge property.
-    pub ownership_challenge: Option<LogpushOwnershipChallenge>,
+    /// `ownership_challenge` property.
+    pub ownership_challenge: Option<String>,
 }
 
 /// `R2SlurperApiV4Error` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct R2SlurperApiV4Error {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type R2SlurperApiV4Error = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `R2SlurperApiV4Message` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct R2SlurperApiV4Message {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type R2SlurperApiV4Message = Vec<String>;
 
 /// `R2SlurperApiV4Success` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct R2SlurperApiV4Success {
-    /// errors property.
-    pub errors: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// messages property.
-    pub messages: Option<Vec<String>>,
-    /// success property.
-    pub success: Option<bool>,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject2`.
+pub type R2SlurperApiV4Success = super::shared::ErrorsMessagesSuccessObject2;
 
 /// `R2SlurperJobLogResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperJobLogResponse {
-    /// createdAt property.
+    /// `createdAt` property.
     #[serde(rename = "createdAt")]
     pub created_at: Option<String>,
-    /// job property.
+    /// `job` property.
     pub job: Option<String>,
-    /// logType property.
+    /// `logType` property.
     #[serde(rename = "logType")]
     pub log_type: Option<String>,
-    /// message property.
+    /// `message` property.
     pub message: Option<String>,
-    /// objectKey property.
+    /// `objectKey` property.
     #[serde(rename = "objectKey")]
     pub object_key: Option<String>,
 }
 
 /// `SlurperGetJobLogsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct SlurperGetJobLogsResponse {
-    /// `result` property.
-    pub result: Option<Vec<R2SlurperJobLogResponse>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope3<Option<Vec<R2SlurperJobLogResponse>>>`.
+pub type SlurperGetJobLogsResponse =
+    super::shared::ApiEnvelope3<Option<Vec<R2SlurperJobLogResponse>>>;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -945,11 +791,9 @@ pub struct AuditLogsGetAccountAuditLogsArgs {
 }
 
 /// Arguments for [`dlp-payload-log-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpPayloadLogGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpPayloadLogGetArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-payload-log-put_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -961,29 +805,21 @@ pub struct DlpPayloadLogPutArgs {
 }
 
 /// Arguments for [`get-accounts-account_id-logpush-datasets-dataset_id-fields_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetAccountsAccountIdLogpushDatasetsDatasetIdFieldsArgs {
-    /// Path parameter: `dataset_id`.
-    pub dataset_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DatasetIdAccountIdArgs`.
+pub type GetAccountsAccountIdLogpushDatasetsDatasetIdFieldsArgs =
+    super::shared::DatasetIdAccountIdArgs;
 
 /// Arguments for [`get-accounts-account_id-logpush-datasets-dataset_id-jobs_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetAccountsAccountIdLogpushDatasetsDatasetIdJobsArgs {
-    /// Path parameter: `dataset_id`.
-    pub dataset_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DatasetIdAccountIdArgs`.
+pub type GetAccountsAccountIdLogpushDatasetsDatasetIdJobsArgs =
+    super::shared::DatasetIdAccountIdArgs;
 
 /// Arguments for [`get-accounts-account_id-logpush-jobs_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetAccountsAccountIdLogpushJobsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type GetAccountsAccountIdLogpushJobsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`post-accounts-account_id-logpush-jobs_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -995,13 +831,9 @@ pub struct PostAccountsAccountIdLogpushJobsArgs {
 }
 
 /// Arguments for [`get-accounts-account_id-logpush-jobs-job_id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetAccountsAccountIdLogpushJobsJobIdArgs {
-    /// Path parameter: `job_id`.
-    pub job_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::JobIdAccountIdArgs`.
+pub type GetAccountsAccountIdLogpushJobsJobIdArgs = super::shared::JobIdAccountIdArgs;
 
 /// Arguments for [`put-accounts-account_id-logpush-jobs-job_id_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1015,13 +847,9 @@ pub struct PutAccountsAccountIdLogpushJobsJobIdArgs {
 }
 
 /// Arguments for [`delete-accounts-account_id-logpush-jobs-job_id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteAccountsAccountIdLogpushJobsJobIdArgs {
-    /// Path parameter: `job_id`.
-    pub job_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::JobIdAccountIdArgs`.
+pub type DeleteAccountsAccountIdLogpushJobsJobIdArgs = super::shared::JobIdAccountIdArgs;
 
 /// Arguments for [`post-accounts-account_id-logpush-ownership_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1073,94 +901,94 @@ pub struct PostAccountsAccountIdLogpushValidateOriginArgs {
 pub struct AuditLogsV2GetAccountAuditLogsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: `account_name`.
-    pub account_name: Option<String>,
-    /// Query parameter: `action_result`.
-    pub action_result: Option<String>,
-    /// Query parameter: `action_type`.
-    pub action_type: Option<String>,
-    /// Query parameter: `actor_context`.
-    pub actor_context: Option<String>,
-    /// Query parameter: `actor_email`.
-    pub actor_email: Option<String>,
-    /// Query parameter: `actor_id`.
-    pub actor_id: Option<String>,
-    /// Query parameter: `actor_ip_address`.
-    pub actor_ip_address: Option<String>,
-    /// Query parameter: `actor_token_id`.
-    pub actor_token_id: Option<String>,
-    /// Query parameter: `actor_token_name`.
-    pub actor_token_name: Option<String>,
-    /// Query parameter: `actor_type`.
-    pub actor_type: Option<String>,
-    /// Query parameter: `audit_log_id`.
-    pub audit_log_id: Option<String>,
-    /// Query parameter: `id`.
-    pub id: Option<String>,
-    /// Query parameter: `raw_cf_ray_id`.
-    pub raw_cf_ray_id: Option<String>,
-    /// Query parameter: `raw_method`.
-    pub raw_method: Option<String>,
-    /// Query parameter: `raw_status_code`.
-    pub raw_status_code: Option<String>,
-    /// Query parameter: `raw_uri`.
-    pub raw_uri: Option<String>,
-    /// Query parameter: `resource_id`.
-    pub resource_id: Option<String>,
-    /// Query parameter: `resource_product`.
-    pub resource_product: Option<String>,
-    /// Query parameter: `resource_type`.
-    pub resource_type: Option<String>,
-    /// Query parameter: `resource_scope`.
-    pub resource_scope: Option<String>,
-    /// Query parameter: `zone_id`.
-    pub zone_id: Option<String>,
-    /// Query parameter: `zone_name`.
-    pub zone_name: Option<String>,
-    /// Query parameter: `account_name.not`.
-    pub account_name_not: Option<String>,
-    /// Query parameter: `action_result.not`.
-    pub action_result_not: Option<String>,
-    /// Query parameter: `action_type.not`.
-    pub action_type_not: Option<String>,
-    /// Query parameter: `actor_context.not`.
-    pub actor_context_not: Option<String>,
-    /// Query parameter: `actor_email.not`.
-    pub actor_email_not: Option<String>,
-    /// Query parameter: `actor_id.not`.
-    pub actor_id_not: Option<String>,
-    /// Query parameter: `actor_ip_address.not`.
-    pub actor_ip_address_not: Option<String>,
-    /// Query parameter: `actor_token_id.not`.
-    pub actor_token_id_not: Option<String>,
-    /// Query parameter: `actor_token_name.not`.
-    pub actor_token_name_not: Option<String>,
-    /// Query parameter: `actor_type.not`.
-    pub actor_type_not: Option<String>,
-    /// Query parameter: `audit_log_id.not`.
-    pub audit_log_id_not: Option<String>,
-    /// Query parameter: `id.not`.
-    pub id_not: Option<String>,
-    /// Query parameter: `raw_cf_ray_id.not`.
-    pub raw_cf_ray_id_not: Option<String>,
-    /// Query parameter: `raw_method.not`.
-    pub raw_method_not: Option<String>,
-    /// Query parameter: `raw_status_code.not`.
-    pub raw_status_code_not: Option<String>,
-    /// Query parameter: `raw_uri.not`.
-    pub raw_uri_not: Option<String>,
-    /// Query parameter: `resource_id.not`.
-    pub resource_id_not: Option<String>,
-    /// Query parameter: `resource_product.not`.
-    pub resource_product_not: Option<String>,
-    /// Query parameter: `resource_type.not`.
-    pub resource_type_not: Option<String>,
-    /// Query parameter: `resource_scope.not`.
-    pub resource_scope_not: Option<String>,
-    /// Query parameter: `zone_id.not`.
-    pub zone_id_not: Option<String>,
-    /// Query parameter: `zone_name.not`.
-    pub zone_name_not: Option<String>,
+    /// Query parameter: `account_name` (one per value).
+    pub account_name: Vec<String>,
+    /// Query parameter: `action_result` (one per value).
+    pub action_result: Vec<String>,
+    /// Query parameter: `action_type` (one per value).
+    pub action_type: Vec<String>,
+    /// Query parameter: `actor_context` (one per value).
+    pub actor_context: Vec<String>,
+    /// Query parameter: `actor_email` (one per value).
+    pub actor_email: Vec<String>,
+    /// Query parameter: `actor_id` (one per value).
+    pub actor_id: Vec<String>,
+    /// Query parameter: `actor_ip_address` (one per value).
+    pub actor_ip_address: Vec<String>,
+    /// Query parameter: `actor_token_id` (one per value).
+    pub actor_token_id: Vec<String>,
+    /// Query parameter: `actor_token_name` (one per value).
+    pub actor_token_name: Vec<String>,
+    /// Query parameter: `actor_type` (one per value).
+    pub actor_type: Vec<String>,
+    /// Query parameter: `audit_log_id` (one per value).
+    pub audit_log_id: Vec<String>,
+    /// Query parameter: `id` (one per value).
+    pub id: Vec<String>,
+    /// Query parameter: `raw_cf_ray_id` (one per value).
+    pub raw_cf_ray_id: Vec<String>,
+    /// Query parameter: `raw_method` (one per value).
+    pub raw_method: Vec<String>,
+    /// Query parameter: `raw_status_code` (one per value).
+    pub raw_status_code: Vec<String>,
+    /// Query parameter: `raw_uri` (one per value).
+    pub raw_uri: Vec<String>,
+    /// Query parameter: `resource_id` (one per value).
+    pub resource_id: Vec<String>,
+    /// Query parameter: `resource_product` (one per value).
+    pub resource_product: Vec<String>,
+    /// Query parameter: `resource_type` (one per value).
+    pub resource_type: Vec<String>,
+    /// Query parameter: `resource_scope` (one per value).
+    pub resource_scope: Vec<String>,
+    /// Query parameter: `zone_id` (one per value).
+    pub zone_id: Vec<String>,
+    /// Query parameter: `zone_name` (one per value).
+    pub zone_name: Vec<String>,
+    /// Query parameter: `account_name.not` (one per value).
+    pub account_name_not: Vec<String>,
+    /// Query parameter: `action_result.not` (one per value).
+    pub action_result_not: Vec<String>,
+    /// Query parameter: `action_type.not` (one per value).
+    pub action_type_not: Vec<String>,
+    /// Query parameter: `actor_context.not` (one per value).
+    pub actor_context_not: Vec<String>,
+    /// Query parameter: `actor_email.not` (one per value).
+    pub actor_email_not: Vec<String>,
+    /// Query parameter: `actor_id.not` (one per value).
+    pub actor_id_not: Vec<String>,
+    /// Query parameter: `actor_ip_address.not` (one per value).
+    pub actor_ip_address_not: Vec<String>,
+    /// Query parameter: `actor_token_id.not` (one per value).
+    pub actor_token_id_not: Vec<String>,
+    /// Query parameter: `actor_token_name.not` (one per value).
+    pub actor_token_name_not: Vec<String>,
+    /// Query parameter: `actor_type.not` (one per value).
+    pub actor_type_not: Vec<String>,
+    /// Query parameter: `audit_log_id.not` (one per value).
+    pub audit_log_id_not: Vec<String>,
+    /// Query parameter: `id.not` (one per value).
+    pub id_not: Vec<String>,
+    /// Query parameter: `raw_cf_ray_id.not` (one per value).
+    pub raw_cf_ray_id_not: Vec<String>,
+    /// Query parameter: `raw_method.not` (one per value).
+    pub raw_method_not: Vec<String>,
+    /// Query parameter: `raw_status_code.not` (one per value).
+    pub raw_status_code_not: Vec<String>,
+    /// Query parameter: `raw_uri.not` (one per value).
+    pub raw_uri_not: Vec<String>,
+    /// Query parameter: `resource_id.not` (one per value).
+    pub resource_id_not: Vec<String>,
+    /// Query parameter: `resource_product.not` (one per value).
+    pub resource_product_not: Vec<String>,
+    /// Query parameter: `resource_type.not` (one per value).
+    pub resource_type_not: Vec<String>,
+    /// Query parameter: `resource_scope.not` (one per value).
+    pub resource_scope_not: Vec<String>,
+    /// Query parameter: `zone_id.not` (one per value).
+    pub zone_id_not: Vec<String>,
+    /// Query parameter: `zone_name.not` (one per value).
+    pub zone_name_not: Vec<String>,
     /// Query parameter: `since`.
     pub since: Option<String>,
     /// Query parameter: `before`.
@@ -1174,11 +1002,9 @@ pub struct AuditLogsV2GetAccountAuditLogsArgs {
 }
 
 /// Arguments for [`get-accounts-account_id-logs-control-cmb-config_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetAccountsAccountIdLogsControlCmbConfigArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type GetAccountsAccountIdLogsControlCmbConfigArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`post-accounts-account_id-logs-control-cmb-config_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1190,18 +1016,14 @@ pub struct PostAccountsAccountIdLogsControlCmbConfigArgs {
 }
 
 /// Arguments for [`delete-accounts-account_id-logs-control-cmb-config_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteAccountsAccountIdLogsControlCmbConfigArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DeleteAccountsAccountIdLogsControlCmbConfigArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`catalog-syncs-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CatalogSyncsListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type CatalogSyncsListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`catalog-syncs-create_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1222,13 +1044,9 @@ pub struct CatalogSyncsPrebuiltPoliciesListArgs {
 }
 
 /// Arguments for [`catalog-syncs-read_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CatalogSyncsReadArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `sync_id`.
-    pub sync_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdSyncIdArgs`.
+pub type CatalogSyncsReadArgs = super::shared::AccountIdSyncIdArgs;
 
 /// Arguments for [`catalog-syncs-update_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1242,15 +1060,9 @@ pub struct CatalogSyncsUpdateArgs {
 }
 
 /// Arguments for [`catalog-syncs-patch_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CatalogSyncsPatchArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `sync_id`.
-    pub sync_id: String,
-    /// Request body.
-    pub body: McnUpdateCatalogSyncRequest,
-}
+///
+/// Same shape as `CatalogSyncsUpdateArgs`.
+pub type CatalogSyncsPatchArgs = CatalogSyncsUpdateArgs;
 
 /// Arguments for [`catalog-syncs-delete_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1264,13 +1076,9 @@ pub struct CatalogSyncsDeleteArgs {
 }
 
 /// Arguments for [`catalog-syncs-refresh_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct CatalogSyncsRefreshArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `sync_id`.
-    pub sync_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdSyncIdArgs`.
+pub type CatalogSyncsRefreshArgs = super::shared::AccountIdSyncIdArgs;
 
 /// Arguments for [`resources-catalog-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1279,18 +1087,18 @@ pub struct ResourcesCatalogListArgs {
     pub account_id: String,
     /// Query parameter: `provider_id`.
     pub provider_id: Option<String>,
-    /// Query parameter: `resource_type`.
-    pub resource_type: Option<String>,
-    /// Query parameter: `resource_id`.
-    pub resource_id: Option<String>,
+    /// Query parameter: `resource_type` (one per value).
+    pub resource_type: Vec<String>,
+    /// Query parameter: `resource_id` (one per value).
+    pub resource_id: Vec<String>,
     /// Query parameter: `region`.
     pub region: Option<String>,
     /// Query parameter: `resource_group`.
     pub resource_group: Option<String>,
     /// Query parameter: `managed`.
     pub managed: Option<String>,
-    /// Query parameter: `search`.
-    pub search: Option<String>,
+    /// Query parameter: `search` (one per value).
+    pub search: Vec<String>,
     /// Query parameter: `order_by`.
     pub order_by: Option<String>,
     /// Query parameter: `desc`.
@@ -1312,16 +1120,16 @@ pub struct ResourcesCatalogExportArgs {
     pub account_id: String,
     /// Query parameter: `provider_id`.
     pub provider_id: Option<String>,
-    /// Query parameter: `resource_type`.
-    pub resource_type: Option<String>,
-    /// Query parameter: `resource_id`.
-    pub resource_id: Option<String>,
+    /// Query parameter: `resource_type` (one per value).
+    pub resource_type: Vec<String>,
+    /// Query parameter: `resource_id` (one per value).
+    pub resource_id: Vec<String>,
     /// Query parameter: `region`.
     pub region: Option<String>,
     /// Query parameter: `resource_group`.
     pub resource_group: Option<String>,
-    /// Query parameter: `search`.
-    pub search: Option<String>,
+    /// Query parameter: `search` (one per value).
+    pub search: Vec<String>,
     /// Query parameter: `order_by`.
     pub order_by: Option<String>,
     /// Query parameter: `desc`.
@@ -1398,9 +1206,7 @@ pub async fn audit_logs_get_account_audit_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/audit_logs",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/audit_logs", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1423,20 +1229,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaAuditLogsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1470,9 +1263,7 @@ pub async fn dlp_payload_log_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/payload_log",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/payload_log", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1482,20 +1273,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpPayloadLogGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1529,35 +1307,21 @@ pub async fn dlp_payload_log_put_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/payload_log",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/payload_log", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpPayloadLogPutResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1591,9 +1355,9 @@ pub async fn get_accounts_account_id_logpush_datasets_dataset_id_fields_request<
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/datasets/{}/fields",
-        args.account_id,
-        args.dataset_id,
+    let path = format!(
+        "/accounts/{}/logpush/datasets/{}/fields",
+        args.account_id, args.dataset_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1604,20 +1368,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushLogpushFieldResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1651,9 +1402,9 @@ pub async fn get_accounts_account_id_logpush_datasets_dataset_id_jobs_request<F>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/datasets/{}/jobs",
-        args.account_id,
-        args.dataset_id,
+    let path = format!(
+        "/accounts/{}/logpush/datasets/{}/jobs",
+        args.account_id, args.dataset_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -1664,20 +1415,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushLogpushJobResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1711,9 +1449,7 @@ pub async fn get_accounts_account_id_logpush_jobs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/jobs",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logpush/jobs", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1723,20 +1459,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushLogpushJobResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1770,35 +1493,21 @@ pub async fn post_accounts_account_id_logpush_jobs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/jobs",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logpush/jobs", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushLogpushJobResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1832,10 +1541,7 @@ pub async fn get_accounts_account_id_logpush_jobs_job_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/jobs/{}",
-        args.account_id,
-        args.job_id,
-    );
+    let path = format!("/accounts/{}/logpush/jobs/{}", args.account_id, args.job_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1845,20 +1551,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushLogpushJobResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1892,36 +1585,21 @@ pub async fn put_accounts_account_id_logpush_jobs_job_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/jobs/{}",
-        args.account_id,
-        args.job_id,
-    );
+    let path = format!("/accounts/{}/logpush/jobs/{}", args.account_id, args.job_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushLogpushJobResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1955,10 +1633,7 @@ pub async fn delete_accounts_account_id_logpush_jobs_job_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/jobs/{}",
-        args.account_id,
-        args.job_id,
-    );
+    let path = format!("/accounts/{}/logpush/jobs/{}", args.account_id, args.job_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -1968,20 +1643,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DeleteAccountsAccountIdLogpushJobsJobIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2015,35 +1677,21 @@ pub async fn post_accounts_account_id_logpush_ownership_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/ownership",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logpush/ownership", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushGetOwnershipResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2077,35 +1725,21 @@ pub async fn post_accounts_account_id_logpush_ownership_validate_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/ownership/validate",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logpush/ownership/validate", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushValidateOwnershipResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2139,35 +1773,21 @@ pub async fn delete_accounts_account_id_logpush_validate_destination_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/validate/destination",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logpush/validate/destination", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushValidateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2201,7 +1821,8 @@ pub async fn delete_accounts_account_id_logpush_validate_destination_exists_requ
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/validate/destination/exists",
+    let path = format!(
+        "/accounts/{}/logpush/validate/destination/exists",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -2209,27 +1830,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushDestinationExistsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2263,35 +1872,21 @@ pub async fn post_accounts_account_id_logpush_validate_origin_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logpush/validate/origin",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logpush/validate/origin", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogpushValidateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2325,58 +1920,144 @@ pub async fn audit_logs_v2_get_account_audit_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logs/audit",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logs/audit", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("account_name", args.account_name.as_deref());
-    builder = builder.query("action_result", args.action_result.as_deref());
-    builder = builder.query("action_type", args.action_type.as_deref());
-    builder = builder.query("actor_context", args.actor_context.as_deref());
-    builder = builder.query("actor_email", args.actor_email.as_deref());
-    builder = builder.query("actor_id", args.actor_id.as_deref());
-    builder = builder.query("actor_ip_address", args.actor_ip_address.as_deref());
-    builder = builder.query("actor_token_id", args.actor_token_id.as_deref());
-    builder = builder.query("actor_token_name", args.actor_token_name.as_deref());
-    builder = builder.query("actor_type", args.actor_type.as_deref());
-    builder = builder.query("audit_log_id", args.audit_log_id.as_deref());
-    builder = builder.query("id", args.id.as_deref());
-    builder = builder.query("raw_cf_ray_id", args.raw_cf_ray_id.as_deref());
-    builder = builder.query("raw_method", args.raw_method.as_deref());
-    builder = builder.query("raw_status_code", args.raw_status_code.as_deref());
-    builder = builder.query("raw_uri", args.raw_uri.as_deref());
-    builder = builder.query("resource_id", args.resource_id.as_deref());
-    builder = builder.query("resource_product", args.resource_product.as_deref());
-    builder = builder.query("resource_type", args.resource_type.as_deref());
-    builder = builder.query("resource_scope", args.resource_scope.as_deref());
-    builder = builder.query("zone_id", args.zone_id.as_deref());
-    builder = builder.query("zone_name", args.zone_name.as_deref());
-    builder = builder.query("account_name.not", args.account_name_not.as_deref());
-    builder = builder.query("action_result.not", args.action_result_not.as_deref());
-    builder = builder.query("action_type.not", args.action_type_not.as_deref());
-    builder = builder.query("actor_context.not", args.actor_context_not.as_deref());
-    builder = builder.query("actor_email.not", args.actor_email_not.as_deref());
-    builder = builder.query("actor_id.not", args.actor_id_not.as_deref());
-    builder = builder.query("actor_ip_address.not", args.actor_ip_address_not.as_deref());
-    builder = builder.query("actor_token_id.not", args.actor_token_id_not.as_deref());
-    builder = builder.query("actor_token_name.not", args.actor_token_name_not.as_deref());
-    builder = builder.query("actor_type.not", args.actor_type_not.as_deref());
-    builder = builder.query("audit_log_id.not", args.audit_log_id_not.as_deref());
-    builder = builder.query("id.not", args.id_not.as_deref());
-    builder = builder.query("raw_cf_ray_id.not", args.raw_cf_ray_id_not.as_deref());
-    builder = builder.query("raw_method.not", args.raw_method_not.as_deref());
-    builder = builder.query("raw_status_code.not", args.raw_status_code_not.as_deref());
-    builder = builder.query("raw_uri.not", args.raw_uri_not.as_deref());
-    builder = builder.query("resource_id.not", args.resource_id_not.as_deref());
-    builder = builder.query("resource_product.not", args.resource_product_not.as_deref());
-    builder = builder.query("resource_type.not", args.resource_type_not.as_deref());
-    builder = builder.query("resource_scope.not", args.resource_scope_not.as_deref());
-    builder = builder.query("zone_id.not", args.zone_id_not.as_deref());
-    builder = builder.query("zone_name.not", args.zone_name_not.as_deref());
+    for value in &args.account_name {
+        builder = builder.query("account_name", Some(value.as_str()));
+    }
+    for value in &args.action_result {
+        builder = builder.query("action_result", Some(value.as_str()));
+    }
+    for value in &args.action_type {
+        builder = builder.query("action_type", Some(value.as_str()));
+    }
+    for value in &args.actor_context {
+        builder = builder.query("actor_context", Some(value.as_str()));
+    }
+    for value in &args.actor_email {
+        builder = builder.query("actor_email", Some(value.as_str()));
+    }
+    for value in &args.actor_id {
+        builder = builder.query("actor_id", Some(value.as_str()));
+    }
+    for value in &args.actor_ip_address {
+        builder = builder.query("actor_ip_address", Some(value.as_str()));
+    }
+    for value in &args.actor_token_id {
+        builder = builder.query("actor_token_id", Some(value.as_str()));
+    }
+    for value in &args.actor_token_name {
+        builder = builder.query("actor_token_name", Some(value.as_str()));
+    }
+    for value in &args.actor_type {
+        builder = builder.query("actor_type", Some(value.as_str()));
+    }
+    for value in &args.audit_log_id {
+        builder = builder.query("audit_log_id", Some(value.as_str()));
+    }
+    for value in &args.id {
+        builder = builder.query("id", Some(value.as_str()));
+    }
+    for value in &args.raw_cf_ray_id {
+        builder = builder.query("raw_cf_ray_id", Some(value.as_str()));
+    }
+    for value in &args.raw_method {
+        builder = builder.query("raw_method", Some(value.as_str()));
+    }
+    for value in &args.raw_status_code {
+        builder = builder.query("raw_status_code", Some(value.as_str()));
+    }
+    for value in &args.raw_uri {
+        builder = builder.query("raw_uri", Some(value.as_str()));
+    }
+    for value in &args.resource_id {
+        builder = builder.query("resource_id", Some(value.as_str()));
+    }
+    for value in &args.resource_product {
+        builder = builder.query("resource_product", Some(value.as_str()));
+    }
+    for value in &args.resource_type {
+        builder = builder.query("resource_type", Some(value.as_str()));
+    }
+    for value in &args.resource_scope {
+        builder = builder.query("resource_scope", Some(value.as_str()));
+    }
+    for value in &args.zone_id {
+        builder = builder.query("zone_id", Some(value.as_str()));
+    }
+    for value in &args.zone_name {
+        builder = builder.query("zone_name", Some(value.as_str()));
+    }
+    for value in &args.account_name_not {
+        builder = builder.query("account_name.not", Some(value.as_str()));
+    }
+    for value in &args.action_result_not {
+        builder = builder.query("action_result.not", Some(value.as_str()));
+    }
+    for value in &args.action_type_not {
+        builder = builder.query("action_type.not", Some(value.as_str()));
+    }
+    for value in &args.actor_context_not {
+        builder = builder.query("actor_context.not", Some(value.as_str()));
+    }
+    for value in &args.actor_email_not {
+        builder = builder.query("actor_email.not", Some(value.as_str()));
+    }
+    for value in &args.actor_id_not {
+        builder = builder.query("actor_id.not", Some(value.as_str()));
+    }
+    for value in &args.actor_ip_address_not {
+        builder = builder.query("actor_ip_address.not", Some(value.as_str()));
+    }
+    for value in &args.actor_token_id_not {
+        builder = builder.query("actor_token_id.not", Some(value.as_str()));
+    }
+    for value in &args.actor_token_name_not {
+        builder = builder.query("actor_token_name.not", Some(value.as_str()));
+    }
+    for value in &args.actor_type_not {
+        builder = builder.query("actor_type.not", Some(value.as_str()));
+    }
+    for value in &args.audit_log_id_not {
+        builder = builder.query("audit_log_id.not", Some(value.as_str()));
+    }
+    for value in &args.id_not {
+        builder = builder.query("id.not", Some(value.as_str()));
+    }
+    for value in &args.raw_cf_ray_id_not {
+        builder = builder.query("raw_cf_ray_id.not", Some(value.as_str()));
+    }
+    for value in &args.raw_method_not {
+        builder = builder.query("raw_method.not", Some(value.as_str()));
+    }
+    for value in &args.raw_status_code_not {
+        builder = builder.query("raw_status_code.not", Some(value.as_str()));
+    }
+    for value in &args.raw_uri_not {
+        builder = builder.query("raw_uri.not", Some(value.as_str()));
+    }
+    for value in &args.resource_id_not {
+        builder = builder.query("resource_id.not", Some(value.as_str()));
+    }
+    for value in &args.resource_product_not {
+        builder = builder.query("resource_product.not", Some(value.as_str()));
+    }
+    for value in &args.resource_type_not {
+        builder = builder.query("resource_type.not", Some(value.as_str()));
+    }
+    for value in &args.resource_scope_not {
+        builder = builder.query("resource_scope.not", Some(value.as_str()));
+    }
+    for value in &args.zone_id_not {
+        builder = builder.query("zone_id.not", Some(value.as_str()));
+    }
+    for value in &args.zone_name_not {
+        builder = builder.query("zone_name.not", Some(value.as_str()));
+    }
     builder = builder.query("since", args.since.as_deref());
     builder = builder.query("before", args.before.as_deref());
     builder = builder.query("direction", args.direction.as_deref());
@@ -2387,20 +2068,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AaaAuditLogsV2ResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2434,9 +2102,7 @@ pub async fn get_accounts_account_id_logs_control_cmb_config_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logs/control/cmb/config",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logs/control/cmb/config", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2446,20 +2112,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogcontrolCmbConfigResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2493,35 +2146,21 @@ pub async fn post_accounts_account_id_logs_control_cmb_config_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logs/control/cmb/config",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logs/control/cmb/config", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: LogcontrolCmbConfigResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2555,9 +2194,7 @@ pub async fn delete_accounts_account_id_logs_control_cmb_config_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/logs/control/cmb/config",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/logs/control/cmb/config", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -2567,20 +2204,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DeleteAccountsAccountIdLogsControlCmbConfigResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2614,9 +2238,7 @@ pub async fn catalog_syncs_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/catalog-syncs",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2626,20 +2248,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnReadAccountCatalogSyncsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2673,35 +2282,21 @@ pub async fn catalog_syncs_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/catalog-syncs",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/cloud/catalog-syncs", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnCreateCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2735,7 +2330,8 @@ pub async fn catalog_syncs_prebuilt_policies_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/prebuilt-policies",
+    let path = format!(
+        "/accounts/{}/magic/cloud/catalog-syncs/prebuilt-policies",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -2749,20 +2345,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnCatalogSyncsPrebuiltPoliciesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2796,9 +2379,9 @@ pub async fn catalog_syncs_read_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}",
-        args.account_id,
-        args.sync_id,
+    let path = format!(
+        "/accounts/{}/magic/cloud/catalog-syncs/{}",
+        args.account_id, args.sync_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2809,20 +2392,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnReadAccountCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2856,36 +2426,24 @@ pub async fn catalog_syncs_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}",
-        args.account_id,
-        args.sync_id,
+    let path = format!(
+        "/accounts/{}/magic/cloud/catalog-syncs/{}",
+        args.account_id, args.sync_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnUpdateCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2919,36 +2477,24 @@ pub async fn catalog_syncs_patch_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}",
-        args.account_id,
-        args.sync_id,
+    let path = format!(
+        "/accounts/{}/magic/cloud/catalog-syncs/{}",
+        args.account_id, args.sync_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnUpdateCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2982,9 +2528,9 @@ pub async fn catalog_syncs_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}",
-        args.account_id,
-        args.sync_id,
+    let path = format!(
+        "/accounts/{}/magic/cloud/catalog-syncs/{}",
+        args.account_id, args.sync_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2997,20 +2543,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnDeleteCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3044,9 +2577,9 @@ pub async fn catalog_syncs_refresh_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/catalog-syncs/{}/refresh",
-        args.account_id,
-        args.sync_id,
+    let path = format!(
+        "/accounts/{}/magic/cloud/catalog-syncs/{}/refresh",
+        args.account_id, args.sync_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3057,20 +2590,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnRefreshCatalogSyncResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3104,21 +2624,25 @@ pub async fn resources_catalog_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/resources",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/cloud/resources", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("provider_id", args.provider_id.as_deref());
-    builder = builder.query("resource_type", args.resource_type.as_deref());
-    builder = builder.query("resource_id", args.resource_id.as_deref());
+    for value in &args.resource_type {
+        builder = builder.query("resource_type", Some(value.as_str()));
+    }
+    for value in &args.resource_id {
+        builder = builder.query("resource_id", Some(value.as_str()));
+    }
     builder = builder.query("region", args.region.as_deref());
     builder = builder.query("resource_group", args.resource_group.as_deref());
     builder = builder.query("managed", args.managed.as_deref());
-    builder = builder.query("search", args.search.as_deref());
+    for value in &args.search {
+        builder = builder.query("search", Some(value.as_str()));
+    }
     builder = builder.query("order_by", args.order_by.as_deref());
     builder = builder.query("desc", args.desc.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
@@ -3130,20 +2654,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnReadAccountResourcesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3161,6 +2672,11 @@ where
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -3173,24 +2689,28 @@ pub async fn resources_catalog_export_request<F>(
     args: &ResourcesCatalogExportArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<()>, super::shared::ApiError>
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/resources/export",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/magic/cloud/resources/export", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("provider_id", args.provider_id.as_deref());
-    builder = builder.query("resource_type", args.resource_type.as_deref());
-    builder = builder.query("resource_id", args.resource_id.as_deref());
+    for value in &args.resource_type {
+        builder = builder.query("resource_type", Some(value.as_str()));
+    }
+    for value in &args.resource_id {
+        builder = builder.query("resource_id", Some(value.as_str()));
+    }
     builder = builder.query("region", args.region.as_deref());
     builder = builder.query("resource_group", args.resource_group.as_deref());
-    builder = builder.query("search", args.search.as_deref());
+    for value in &args.search {
+        builder = builder.query("search", Some(value.as_str()));
+    }
     builder = builder.query("order_by", args.order_by.as_deref());
     builder = builder.query("desc", args.desc.as_deref());
     builder = builder.query("v2", args.v2.as_deref());
@@ -3199,18 +2719,12 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::ByteStream::new(body),
+    })
 }
 
 // -----------------------------------------------------------------------------
@@ -3244,7 +2758,8 @@ pub async fn resources_catalog_policy_preview_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/resources/policy-preview",
+    let path = format!(
+        "/accounts/{}/magic/cloud/resources/policy-preview",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -3252,27 +2767,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnResourcesCatalogPolicyPreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3306,9 +2809,9 @@ pub async fn resources_catalog_read_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/magic/cloud/resources/{}",
-        args.account_id,
-        args.resource_id,
+    let path = format!(
+        "/accounts/{}/magic/cloud/resources/{}",
+        args.account_id, args.resource_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3321,20 +2824,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: McnReadAccountResourceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3368,9 +2858,9 @@ pub async fn slurper_get_job_logs_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/slurper/jobs/{}/logs",
-        args.account_id,
-        args.job_id,
+    let path = format!(
+        "/accounts/{}/slurper/jobs/{}/logs",
+        args.account_id, args.job_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3384,19 +2874,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: SlurperGetJobLogsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

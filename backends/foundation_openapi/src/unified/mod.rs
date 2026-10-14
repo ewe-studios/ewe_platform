@@ -11,6 +11,7 @@
 //! where each endpoint's artifacts are colocated.
 
 mod analyzer;
+mod emit;
 mod generator;
 
 pub use analyzer::{analyze_spec, AnalysisOptions, AnalysisResult, ApiGroup};

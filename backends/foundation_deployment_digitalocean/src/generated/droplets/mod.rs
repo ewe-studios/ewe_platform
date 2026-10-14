@@ -7,13 +7,17 @@
 
 #![cfg(feature = "digitalocean_droplets")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,11 +28,11 @@ use super::shared::ApiResponse;
 /// `ActionLink` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ActionLink {
-    /// href property.
+    /// `href` property.
     pub href: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: Option<i64>,
-    /// rel property.
+    /// `rel` property.
     pub rel: Option<String>,
 }
 
@@ -37,14 +41,18 @@ pub struct ActionLink {
 pub struct AllDropletsResponse {
     /// `droplets` property.
     pub droplets: Option<Vec<Droplet>>,
+    /// `links` property.
+    pub links: Option<PageLinks>,
+    /// `meta` property.
+    pub meta: serde_json::Value,
 }
 
 /// `DiskInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DiskInfo {
-    /// size property.
+    /// `size` property.
     pub size: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: Option<String>,
 }
@@ -52,163 +60,213 @@ pub struct DiskInfo {
 /// `Droplet` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Droplet {
-    /// backup_ids property.
+    /// `backup_ids` property.
     pub backup_ids: Vec<i64>,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// disk property.
+    /// `disk` property.
     pub disk: i64,
-    /// disk_info property.
+    /// `disk_info` property.
     pub disk_info: Option<Vec<DiskInfo>>,
-    /// features property.
+    /// `features` property.
     pub features: Vec<String>,
-    /// gpu_info property.
+    /// `gpu_info` property.
     pub gpu_info: Option<GpuInfo>,
-    /// id property.
+    /// `id` property.
     pub id: i64,
-    /// image property.
+    /// `image` property.
     pub image: serde_json::Value,
-    /// kernel property.
+    /// `kernel` property.
     pub kernel: Option<Kernel>,
-    /// locked property.
+    /// `locked` property.
     pub locked: bool,
-    /// memory property.
+    /// `memory` property.
     pub memory: i64,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// networks property.
+    /// `networks` property.
     pub networks: std::collections::HashMap<String, serde_json::Value>,
-    /// next_backup_window property.
+    /// `next_backup_window` property.
     pub next_backup_window: serde_json::Value,
-    /// region property.
+    /// `region` property.
     pub region: Region,
-    /// size property.
+    /// `size` property.
     pub size: Size,
-    /// size_slug property.
+    /// `size_slug` property.
     pub size_slug: String,
-    /// snapshot_ids property.
+    /// `snapshot_ids` property.
     pub snapshot_ids: Vec<i64>,
-    /// status property.
+    /// `status` property.
     pub status: String,
-    /// tags property.
+    /// `tags` property.
     pub tags: Vec<String>,
-    /// vcpus property.
+    /// `vcpus` property.
     pub vcpus: i64,
-    /// volume_ids property.
+    /// `volume_ids` property.
     pub volume_ids: Vec<String>,
-    /// vpc_uuid property.
+    /// `vpc_uuid` property.
     pub vpc_uuid: Option<String>,
 }
 
 /// `DropletCreate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DropletCreate {
-    /// backup_policy property.
+    /// `backup_policy` property.
     pub backup_policy: Option<serde_json::Value>,
-    /// backups property.
+    /// `backups` property.
     pub backups: Option<bool>,
-    /// image property.
+    /// `image` property.
     pub image: serde_json::Value,
-    /// ipv6 property.
+    /// `ipv6` property.
     pub ipv6: Option<bool>,
-    /// monitoring property.
+    /// `monitoring` property.
     pub monitoring: Option<bool>,
-    /// private_networking property.
+    /// `private_networking` property.
     pub private_networking: Option<bool>,
-    /// public_networking property.
+    /// `public_networking` property.
     pub public_networking: Option<bool>,
-    /// region property.
+    /// `region` property.
     pub region: Option<String>,
-    /// size property.
+    /// `size` property.
     pub size: String,
-    /// ssh_keys property.
+    /// `ssh_keys` property.
     pub ssh_keys: Option<Vec<serde_json::Value>>,
-    /// tags property.
+    /// `tags` property.
     pub tags: Option<Vec<String>>,
-    /// user_data property.
+    /// `user_data` property.
     pub user_data: Option<String>,
-    /// volumes property.
+    /// `volumes` property.
     pub volumes: Option<Vec<String>>,
-    /// vpc_uuid property.
+    /// `vpc_uuid` property.
     pub vpc_uuid: Option<String>,
-    /// with_droplet_agent property.
+    /// `with_droplet_agent` property.
     pub with_droplet_agent: Option<bool>,
 }
 
 /// `DropletCreateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DropletCreateResponse {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DropletCreateResponse = serde_json::Value;
 
 /// `DropletMultiCreate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DropletMultiCreate {
+    /// `backup_policy` property.
+    pub backup_policy: Option<serde_json::Value>,
+    /// `backups` property.
+    pub backups: Option<bool>,
+    /// `image` property.
+    pub image: serde_json::Value,
+    /// `ipv6` property.
+    pub ipv6: Option<bool>,
+    /// `monitoring` property.
+    pub monitoring: Option<bool>,
     /// `names` property.
     pub names: Vec<String>,
+    /// `private_networking` property.
+    pub private_networking: Option<bool>,
+    /// `public_networking` property.
+    pub public_networking: Option<bool>,
+    /// `region` property.
+    pub region: Option<String>,
+    /// `size` property.
+    pub size: String,
+    /// `ssh_keys` property.
+    pub ssh_keys: Option<Vec<serde_json::Value>>,
+    /// `tags` property.
+    pub tags: Option<Vec<String>>,
+    /// `user_data` property.
+    pub user_data: Option<String>,
+    /// `volumes` property.
+    pub volumes: Option<Vec<String>>,
+    /// `vpc_uuid` property.
+    pub vpc_uuid: Option<String>,
+    /// `with_droplet_agent` property.
+    pub with_droplet_agent: Option<bool>,
 }
 
 /// `DropletSingleCreate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DropletSingleCreate {
+    /// `backup_policy` property.
+    pub backup_policy: Option<serde_json::Value>,
+    /// `backups` property.
+    pub backups: Option<bool>,
+    /// `image` property.
+    pub image: serde_json::Value,
+    /// `ipv6` property.
+    pub ipv6: Option<bool>,
+    /// `monitoring` property.
+    pub monitoring: Option<bool>,
     /// `name` property.
     pub name: String,
+    /// `private_networking` property.
+    pub private_networking: Option<bool>,
+    /// `public_networking` property.
+    pub public_networking: Option<bool>,
+    /// `region` property.
+    pub region: Option<String>,
+    /// `size` property.
+    pub size: String,
+    /// `ssh_keys` property.
+    pub ssh_keys: Option<Vec<serde_json::Value>>,
+    /// `tags` property.
+    pub tags: Option<Vec<String>>,
+    /// `user_data` property.
+    pub user_data: Option<String>,
+    /// `volumes` property.
+    pub volumes: Option<Vec<String>>,
+    /// `vpc_uuid` property.
+    pub vpc_uuid: Option<String>,
+    /// `with_droplet_agent` property.
+    pub with_droplet_agent: Option<bool>,
 }
 
 /// `DropletsCreateRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DropletsCreateRequest {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DropletsCreateRequest = serde_json::Value;
 
 /// `ExistingDropletResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ExistingDropletResponse {
-    /// droplet property.
+    /// `droplet` property.
     pub droplet: Option<Droplet>,
 }
 
 /// `GpuInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GpuInfo {
-    /// count property.
+    /// `count` property.
     pub count: Option<i64>,
-    /// model property.
+    /// `model` property.
     pub model: Option<String>,
-    /// vram property.
+    /// `vram` property.
     pub vram: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `Kernel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Kernel {
-    /// id property.
+    /// `id` property.
     pub id: Option<i64>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// version property.
+    /// `version` property.
     pub version: Option<String>,
 }
 
 /// `Meta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct Meta {
-    /// meta property.
-    pub meta: serde_json::Value,
-}
+///
+/// Same shape as `super::shared::MetaObject`.
+pub type Meta = super::shared::MetaObject;
 
 /// `NetworkV4` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkV4 {
-    /// gateway property.
+    /// `gateway` property.
     pub gateway: Option<String>,
-    /// ip_address property.
+    /// `ip_address` property.
     pub ip_address: Option<String>,
-    /// netmask property.
+    /// `netmask` property.
     pub netmask: Option<String>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: Option<String>,
 }
@@ -216,72 +274,70 @@ pub struct NetworkV4 {
 /// `NetworkV6` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct NetworkV6 {
-    /// gateway property.
+    /// `gateway` property.
     pub gateway: Option<String>,
-    /// ip_address property.
+    /// `ip_address` property.
     pub ip_address: Option<String>,
-    /// netmask property.
+    /// `netmask` property.
     pub netmask: Option<i64>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: Option<String>,
 }
 
 /// `PageLinks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PageLinks {
-    /// pages property.
-    pub pages: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::PagesObject`.
+pub type PageLinks = super::shared::PagesObject;
 
 /// `Pagination` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Pagination {
-    /// links property.
+    /// `links` property.
     pub links: Option<PageLinks>,
 }
 
 /// `Region` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Region {
-    /// available property.
+    /// `available` property.
     pub available: bool,
-    /// features property.
+    /// `features` property.
     pub features: Vec<String>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// sizes property.
+    /// `sizes` property.
     pub sizes: Vec<String>,
-    /// slug property.
+    /// `slug` property.
     pub slug: String,
 }
 
 /// `Size` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct Size {
-    /// available property.
+    /// `available` property.
     pub available: bool,
-    /// description property.
+    /// `description` property.
     pub description: String,
-    /// disk property.
+    /// `disk` property.
     pub disk: i64,
-    /// disk_info property.
+    /// `disk_info` property.
     pub disk_info: Option<Vec<DiskInfo>>,
-    /// gpu_info property.
+    /// `gpu_info` property.
     pub gpu_info: Option<GpuInfo>,
-    /// memory property.
+    /// `memory` property.
     pub memory: i64,
-    /// price_hourly property.
+    /// `price_hourly` property.
     pub price_hourly: f64,
-    /// price_monthly property.
+    /// `price_monthly` property.
     pub price_monthly: f64,
-    /// regions property.
+    /// `regions` property.
     pub regions: Vec<String>,
-    /// slug property.
+    /// `slug` property.
     pub slug: String,
-    /// transfer property.
+    /// `transfer` property.
     pub transfer: f64,
-    /// vcpus property.
+    /// `vcpus` property.
     pub vcpus: i64,
 }
 
@@ -312,18 +368,14 @@ pub struct DropletsCreateArgs {
 }
 
 /// Arguments for [`droplets_get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DropletsGetArgs {
-    /// Path parameter: `droplet_id`.
-    pub droplet_id: String,
-}
+///
+/// Same shape as `super::shared::DropletIdArgs`.
+pub type DropletsGetArgs = super::shared::DropletIdArgs;
 
 /// Arguments for [`droplets_destroy_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DropletsDestroyArgs {
-    /// Path parameter: `droplet_id`.
-    pub droplet_id: String,
-}
+///
+/// Same shape as `super::shared::DropletIdArgs`.
+pub type DropletsDestroyArgs = super::shared::DropletIdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -360,8 +412,7 @@ pub async fn droplets_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/v2/droplets",
-    );
+    let path = format!("/v2/droplets",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -377,20 +428,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: AllDropletsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -424,34 +462,21 @@ pub async fn droplets_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/v2/droplets",
-    );
+    let path = format!("/v2/droplets",);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DropletCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -485,9 +510,7 @@ pub async fn droplets_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/v2/droplets/{}",
-        args.droplet_id,
-    );
+    let path = format!("/v2/droplets/{}", args.droplet_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -497,20 +520,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ExistingDropletResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -544,9 +554,7 @@ pub async fn droplets_destroy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/v2/droplets/{}",
-        args.droplet_id,
-    );
+    let path = format!("/v2/droplets/{}", args.droplet_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -556,17 +564,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    Ok(ApiResponse { status: status as u16, headers, body: () })
+    super::shared::send_without_body(client, builder.build()).await
 }
-

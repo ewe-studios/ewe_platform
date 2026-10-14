@@ -5,13 +5,15 @@
 
 #![cfg(feature = "docker")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
 pub mod shared;
 
-#[cfg(feature = "docker_ping")]
-pub mod ping;
 #[cfg(feature = "docker_archive")]
 pub mod archive;
 #[cfg(feature = "docker_attach")]
@@ -74,6 +76,8 @@ pub mod networks;
 pub mod nodes;
 #[cfg(feature = "docker_pause")]
 pub mod pause;
+#[cfg(feature = "docker_ping")]
+pub mod ping;
 #[cfg(feature = "docker_plugins")]
 pub mod plugins;
 #[cfg(feature = "docker_privileges")]

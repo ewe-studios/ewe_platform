@@ -4,7 +4,13 @@
 //! DO NOT EDIT MANUALLY.
 
 // Re-export common API types from foundation_deployment
-pub use foundation_deployment::providers::common::{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation};
+pub use foundation_deployment::providers::common::{
+    read_error_body, send_checked, send_json, send_without_body, with_raw_body, ByteStream,
+    JsonLinesStream,
+};
+pub use foundation_deployment::providers::common::{
+    ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,
+};
 
 // Imports for shared resource types
 use foundation_macros::JsonHash;
@@ -14,3 +20,192 @@ use serde::{Deserialize, Serialize};
 // SHARED RESOURCE TYPES
 // =============================================================================
 
+// =============================================================================
+// SHARED SHAPES
+// =============================================================================
+
+/// A shape 9 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AnnouncedUnavailableAfterObject {
+    /// `announced` property.
+    pub announced: String,
+    /// `unavailable_after` property.
+    pub unavailable_after: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CodeMessageObject {
+    /// `code` property.
+    pub code: String,
+    /// `message` property.
+    pub message: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerLocationShape {
+    /// `city` property.
+    pub city: String,
+    /// `country` property.
+    pub country: String,
+    /// `description` property.
+    pub description: String,
+    /// `id` property.
+    pub id: i64,
+    /// `latitude` property.
+    pub latitude: f64,
+    /// `longitude` property.
+    pub longitude: f64,
+    /// `name` property.
+    pub name: String,
+    /// `network_zone` property.
+    pub network_zone: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerPlacementGroupShape {
+    /// `created` property.
+    pub created: String,
+    /// `id` property.
+    pub id: i64,
+    /// `labels` property.
+    pub labels: serde_json::Value,
+    /// `name` property.
+    pub name: String,
+    /// `servers` property.
+    pub servers: Vec<i64>,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerPrivateNetItemShape {
+    /// `alias_ips` property.
+    pub alias_ips: Option<Vec<String>>,
+    /// `ip` property.
+    pub ip: Option<String>,
+    /// `mac_address` property.
+    pub mac_address: Option<String>,
+    /// `network` property.
+    pub network: Option<i64>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateServerResponseServerPublicNetIpv4Shape {
+    /// `blocked` property.
+    pub blocked: bool,
+    /// `dns_ptr` property.
+    pub dns_ptr: String,
+    /// `id` property.
+    pub id: Option<i64>,
+    /// `ip` property.
+    pub ip: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CreateSshKeyResponseSshKeyShape {
+    /// `created` property.
+    pub created: String,
+    /// `fingerprint` property.
+    pub fingerprint: String,
+    /// `id` property.
+    pub id: i64,
+    /// `labels` property.
+    pub labels: serde_json::Value,
+    /// `name` property.
+    pub name: String,
+    /// `public_key` property.
+    pub public_key: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteObject {
+    /// `delete` property.
+    pub delete: bool,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeleteRebuildObject {
+    /// `delete` property.
+    pub delete: bool,
+    /// `rebuild` property.
+    pub rebuild: bool,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsPtrIpObject {
+    /// `dns_ptr` property.
+    pub dns_ptr: String,
+    /// `ip` property.
+    pub ip: String,
+}
+
+/// A shape 9 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GrossNetObject {
+    /// `gross` property.
+    pub gross: String,
+    /// `net` property.
+    pub net: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdArgs {
+    /// Path parameter: `id`.
+    pub id: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdNameObject {
+    /// `id` property.
+    pub id: i64,
+    /// `name` property.
+    pub name: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdStatusObject {
+    /// `id` property.
+    pub id: Option<i64>,
+    /// `status` property.
+    pub status: Option<String>,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct IdTypeObject {
+    /// `id` property.
+    pub id: i64,
+    /// `type` property.
+    #[serde(rename = "type")]
+    pub r#type: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ListServersResponseMetaPaginationShape {
+    /// `last_page` property.
+    pub last_page: Option<i64>,
+    /// `next_page` property.
+    pub next_page: Option<i64>,
+    /// `page` property.
+    pub page: i64,
+    /// `per_page` property.
+    pub per_page: i64,
+    /// `previous_page` property.
+    pub previous_page: Option<i64>,
+    /// `total_entries` property.
+    pub total_entries: Option<i64>,
+}

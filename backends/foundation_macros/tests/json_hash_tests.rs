@@ -223,3 +223,24 @@ fn test_struct_hash_with_bool() {
 
     assert_eq!(a.struct_hash(), c.struct_hash());
 }
+
+#[test]
+fn test_struct_hash_on_a_generic_struct() {
+    // Generated provider APIs share one generic envelope across endpoints
+    // (`ApiEnvelope<T>`), so the derive has to accept type parameters.
+    #[derive(JsonHash, Serialize)]
+    struct Envelope<T> {
+        success: bool,
+        result: T,
+    }
+
+    let a = Envelope { success: true, result: vec![1, 2] };
+    let b = Envelope { success: true, result: vec![1, 2] };
+    let c = Envelope { success: true, result: vec![1, 3] };
+
+    assert_eq!(a.struct_hash(), b.struct_hash());
+    assert_ne!(a.struct_hash(), c.struct_hash());
+
+    let text = Envelope { success: true, result: "x".to_string() };
+    assert!(!text.struct_hash().is_empty());
+}

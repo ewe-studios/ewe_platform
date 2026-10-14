@@ -7,16 +7,19 @@
 
 #![cfg(feature = "cloudflare_devices")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
-use super::shared::TunnelSubnetResponseSingle;
 use super::shared::TunnelApiResponseCommon;
 use super::shared::TunnelCreatedAt;
 use super::shared::TunnelDeletedAt;
@@ -26,6 +29,7 @@ use super::shared::TunnelSubnetId;
 use super::shared::TunnelSubnetIpNetwork;
 use super::shared::TunnelSubnetIsDefaultNetwork;
 use super::shared::TunnelSubnetName;
+use super::shared::TunnelSubnetResponseSingle;
 use super::shared::TunnelSubnetType;
 
 use super::shared::ApiResponse;
@@ -37,858 +41,707 @@ use super::shared::ApiResponse;
 /// `CreateIpProfileResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CreateIpProfileResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
+    /// `result` property.
     pub result: TeamsDevicesIpProfile,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `DeleteDeviceResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DeleteDeviceResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
-    pub result: Option<TeamsDevicesEmptyBody>,
-    /// success property.
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+    /// `success` property.
     pub success: bool,
 }
 
 /// `DeleteIpProfileResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DeleteIpProfileResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
+    /// `result` property.
     pub result: DeleteIpProfileResponseResult,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `DeleteIpProfileResponseResult` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteIpProfileResponseResult {
-    /// id property.
-    pub id: Option<String>,
-}
+///
+/// Same shape as `super::shared::IdObject`.
+pub type DeleteIpProfileResponseResult = super::shared::IdObject;
 
 /// `DeleteRegistrationResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DeleteRegistrationResponse {
-    /// errors property.
-    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
-    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
-    pub result: Option<TeamsDevicesEmptyBody>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `DeleteDeviceResponse`.
+pub type DeleteRegistrationResponse = DeleteDeviceResponse;
 
 /// `DeleteRegistrationsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DeleteRegistrationsResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
-    pub result: Option<TeamsDevicesEmptyBody>,
-    /// result_info property.
+    /// `result` property.
+    pub result: Option<serde_json::Value>,
+    /// `result_info` property.
     pub result_info: Option<TeamsDevicesCursorResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `DeviceManagedNetworksCreateDeviceManagedNetworkRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DeviceManagedNetworksCreateDeviceManagedNetworkRequest {
-    /// config property.
-    pub config: TeamsDevicesSchemasConfigRequest,
-    /// name property.
-    pub name: TeamsDevicesDeviceManagedNetworksComponentsSchemasName,
-    /// type property.
+    /// `config` property.
+    pub config: serde_json::Value,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: TeamsDevicesComponentsSchemasType,
+    pub r#type: String,
 }
 
 /// `DeviceManagedNetworksUpdateDeviceManagedNetworkRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DeviceManagedNetworksUpdateDeviceManagedNetworkRequest {
-    /// config property.
-    pub config: Option<TeamsDevicesSchemasConfigRequest>,
-    /// name property.
-    pub name: Option<TeamsDevicesDeviceManagedNetworksComponentsSchemasName>,
-    /// type property.
+    /// `config` property.
+    pub config: Option<serde_json::Value>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: Option<TeamsDevicesComponentsSchemasType>,
+    pub r#type: Option<String>,
 }
 
 /// `DevicePostureIntegrationsCreateDevicePostureIntegrationRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DevicePostureIntegrationsCreateDevicePostureIntegrationRequest {
-    /// config property.
-    pub config: TeamsDevicesConfigRequest,
-    /// interval property.
-    pub interval: TeamsDevicesInterval,
-    /// name property.
-    pub name: TeamsDevicesComponentsSchemasName,
-    /// type property.
+    /// `config` property.
+    pub config: serde_json::Value,
+    /// `interval` property.
+    pub interval: String,
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: TeamsDevicesSchemasType,
+    pub r#type: String,
 }
 
 /// `DevicePostureIntegrationsUpdateDevicePostureIntegrationRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DevicePostureIntegrationsUpdateDevicePostureIntegrationRequest {
-    /// config property.
-    pub config: Option<TeamsDevicesConfigRequest>,
-    /// interval property.
-    pub interval: Option<TeamsDevicesInterval>,
-    /// name property.
-    pub name: Option<TeamsDevicesComponentsSchemasName>,
-    /// type property.
+    /// `config` property.
+    pub config: Option<serde_json::Value>,
+    /// `interval` property.
+    pub interval: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: Option<TeamsDevicesSchemasType>,
+    pub r#type: Option<String>,
 }
 
 /// `DevicePostureRulesCreateDevicePostureRuleRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DevicePostureRulesCreateDevicePostureRuleRequest {
-    /// description property.
-    pub description: Option<TeamsDevicesDescription>,
-    /// expiration property.
-    pub expiration: Option<TeamsDevicesExpiration>,
-    /// input property.
-    pub input: Option<TeamsDevicesInput>,
-    /// match property.
+    /// `description` property.
+    pub description: Option<String>,
+    /// `expiration` property.
+    pub expiration: Option<String>,
+    /// `input` property.
+    pub input: Option<serde_json::Value>,
+    /// `match` property.
     #[serde(rename = "match")]
     pub r#match: Option<Vec<TeamsDevicesMatchItem>>,
-    /// name property.
-    pub name: TeamsDevicesName,
-    /// schedule property.
-    pub schedule: Option<TeamsDevicesSchedule>,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `schedule` property.
+    pub schedule: Option<String>,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: TeamsDevicesType,
+    pub r#type: String,
 }
 
 /// `DevicePostureRulesUpdateDevicePostureRuleRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DevicePostureRulesUpdateDevicePostureRuleRequest {
-    /// description property.
-    pub description: Option<TeamsDevicesDescription>,
-    /// expiration property.
-    pub expiration: Option<TeamsDevicesExpiration>,
-    /// input property.
-    pub input: Option<TeamsDevicesInput>,
-    /// match property.
-    #[serde(rename = "match")]
-    pub r#match: Option<Vec<TeamsDevicesMatchItem>>,
-    /// name property.
-    pub name: TeamsDevicesName,
-    /// schedule property.
-    pub schedule: Option<TeamsDevicesSchedule>,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: TeamsDevicesType,
-}
+///
+/// Same shape as `DevicePostureRulesCreateDevicePostureRuleRequest`.
+pub type DevicePostureRulesUpdateDevicePostureRuleRequest =
+    DevicePostureRulesCreateDevicePostureRuleRequest;
 
 /// `DevicesCreateDeviceSettingsPolicyRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DevicesCreateDeviceSettingsPolicyRequest {
-    /// allow_mode_switch property.
-    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
-    /// allow_updates property.
-    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
-    /// allowed_to_leave property.
-    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
-    /// auto_connect property.
-    pub auto_connect: Option<TeamsDevicesAutoConnect>,
-    /// captive_portal property.
-    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
-    /// description property.
+    /// `allow_mode_switch` property.
+    pub allow_mode_switch: Option<bool>,
+    /// `allow_updates` property.
+    pub allow_updates: Option<bool>,
+    /// `allowed_to_leave` property.
+    pub allowed_to_leave: Option<bool>,
+    /// `auto_connect` property.
+    pub auto_connect: Option<f64>,
+    /// `captive_portal` property.
+    pub captive_portal: Option<f64>,
+    /// `description` property.
     pub description: Option<serde_json::Value>,
-    /// disable_auto_fallback property.
-    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
-    /// enabled property.
+    /// `disable_auto_fallback` property.
+    pub disable_auto_fallback: Option<bool>,
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// exclude property.
-    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
-    /// exclude_office_ips property.
-    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
-    /// include property.
-    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
-    /// lan_allow_minutes property.
-    pub lan_allow_minutes: Option<TeamsDevicesLanAllowMinutes>,
-    /// lan_allow_subnet_size property.
-    pub lan_allow_subnet_size: Option<TeamsDevicesLanAllowSubnetSize>,
-    /// match property.
+    /// `exclude` property.
+    pub exclude: Option<Vec<serde_json::Value>>,
+    /// `exclude_office_ips` property.
+    pub exclude_office_ips: Option<bool>,
+    /// `include` property.
+    pub include: Option<Vec<serde_json::Value>>,
+    /// `lan_allow_minutes` property.
+    pub lan_allow_minutes: Option<f64>,
+    /// `lan_allow_subnet_size` property.
+    pub lan_allow_subnet_size: Option<f64>,
+    /// `match` property.
     #[serde(rename = "match")]
-    pub r#match: TeamsDevicesSchemasMatch,
-    /// name property.
+    pub r#match: String,
+    /// `name` property.
     pub name: String,
-    /// precedence property.
-    pub precedence: TeamsDevicesPrecedence,
-    /// register_interface_ip_with_dns property.
-    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
-    /// sccm_vpn_boundary_support property.
-    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
-    /// service_mode_v2 property.
+    /// `precedence` property.
+    pub precedence: f64,
+    /// `register_interface_ip_with_dns` property.
+    pub register_interface_ip_with_dns: Option<bool>,
+    /// `sccm_vpn_boundary_support` property.
+    pub sccm_vpn_boundary_support: Option<bool>,
+    /// `service_mode_v2` property.
     pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
-    /// support_url property.
-    pub support_url: Option<TeamsDevicesSupportUrl>,
-    /// switch_locked property.
-    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
-    /// tunnel_protocol property.
-    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+    /// `support_url` property.
+    pub support_url: Option<String>,
+    /// `switch_locked` property.
+    pub switch_locked: Option<bool>,
+    /// `tunnel_protocol` property.
+    pub tunnel_protocol: Option<String>,
 }
 
 /// `DevicesUpdateDefaultDeviceSettingsPolicyRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DevicesUpdateDefaultDeviceSettingsPolicyRequest {
-    /// allow_mode_switch property.
-    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
-    /// allow_updates property.
-    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
-    /// allowed_to_leave property.
-    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
-    /// auto_connect property.
-    pub auto_connect: Option<TeamsDevicesAutoConnect>,
-    /// captive_portal property.
-    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
-    /// disable_auto_fallback property.
-    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
-    /// exclude property.
-    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
-    /// exclude_office_ips property.
-    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
-    /// include property.
-    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
-    /// lan_allow_minutes property.
-    pub lan_allow_minutes: Option<TeamsDevicesLanAllowMinutes>,
-    /// lan_allow_subnet_size property.
-    pub lan_allow_subnet_size: Option<TeamsDevicesLanAllowSubnetSize>,
-    /// register_interface_ip_with_dns property.
-    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
-    /// sccm_vpn_boundary_support property.
-    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
-    /// service_mode_v2 property.
+    /// `allow_mode_switch` property.
+    pub allow_mode_switch: Option<bool>,
+    /// `allow_updates` property.
+    pub allow_updates: Option<bool>,
+    /// `allowed_to_leave` property.
+    pub allowed_to_leave: Option<bool>,
+    /// `auto_connect` property.
+    pub auto_connect: Option<f64>,
+    /// `captive_portal` property.
+    pub captive_portal: Option<f64>,
+    /// `disable_auto_fallback` property.
+    pub disable_auto_fallback: Option<bool>,
+    /// `exclude` property.
+    pub exclude: Option<Vec<serde_json::Value>>,
+    /// `exclude_office_ips` property.
+    pub exclude_office_ips: Option<bool>,
+    /// `include` property.
+    pub include: Option<Vec<serde_json::Value>>,
+    /// `lan_allow_minutes` property.
+    pub lan_allow_minutes: Option<f64>,
+    /// `lan_allow_subnet_size` property.
+    pub lan_allow_subnet_size: Option<f64>,
+    /// `register_interface_ip_with_dns` property.
+    pub register_interface_ip_with_dns: Option<bool>,
+    /// `sccm_vpn_boundary_support` property.
+    pub sccm_vpn_boundary_support: Option<bool>,
+    /// `service_mode_v2` property.
     pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
-    /// support_url property.
-    pub support_url: Option<TeamsDevicesSupportUrl>,
-    /// switch_locked property.
-    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
-    /// tunnel_protocol property.
-    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+    /// `support_url` property.
+    pub support_url: Option<String>,
+    /// `switch_locked` property.
+    pub switch_locked: Option<bool>,
+    /// `tunnel_protocol` property.
+    pub tunnel_protocol: Option<String>,
 }
 
 /// `DevicesUpdateDeviceSettingsPolicyRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DevicesUpdateDeviceSettingsPolicyRequest {
-    /// allow_mode_switch property.
-    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
-    /// allow_updates property.
-    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
-    /// allowed_to_leave property.
-    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
-    /// auto_connect property.
-    pub auto_connect: Option<TeamsDevicesAutoConnect>,
-    /// captive_portal property.
-    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
-    /// description property.
-    pub description: Option<TeamsDevicesSchemasDescription>,
-    /// disable_auto_fallback property.
-    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
-    /// enabled property.
+    /// `allow_mode_switch` property.
+    pub allow_mode_switch: Option<bool>,
+    /// `allow_updates` property.
+    pub allow_updates: Option<bool>,
+    /// `allowed_to_leave` property.
+    pub allowed_to_leave: Option<bool>,
+    /// `auto_connect` property.
+    pub auto_connect: Option<f64>,
+    /// `captive_portal` property.
+    pub captive_portal: Option<f64>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `disable_auto_fallback` property.
+    pub disable_auto_fallback: Option<bool>,
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// exclude property.
-    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
-    /// exclude_office_ips property.
-    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
-    /// include property.
-    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
-    /// lan_allow_minutes property.
-    pub lan_allow_minutes: Option<TeamsDevicesLanAllowMinutes>,
-    /// lan_allow_subnet_size property.
-    pub lan_allow_subnet_size: Option<TeamsDevicesLanAllowSubnetSize>,
-    /// match property.
+    /// `exclude` property.
+    pub exclude: Option<Vec<serde_json::Value>>,
+    /// `exclude_office_ips` property.
+    pub exclude_office_ips: Option<bool>,
+    /// `include` property.
+    pub include: Option<Vec<serde_json::Value>>,
+    /// `lan_allow_minutes` property.
+    pub lan_allow_minutes: Option<f64>,
+    /// `lan_allow_subnet_size` property.
+    pub lan_allow_subnet_size: Option<f64>,
+    /// `match` property.
     #[serde(rename = "match")]
-    pub r#match: Option<TeamsDevicesSchemasMatch>,
-    /// name property.
+    pub r#match: Option<String>,
+    /// `name` property.
     pub name: Option<String>,
-    /// precedence property.
-    pub precedence: Option<TeamsDevicesPrecedence>,
-    /// register_interface_ip_with_dns property.
-    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
-    /// sccm_vpn_boundary_support property.
-    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
-    /// service_mode_v2 property.
+    /// `precedence` property.
+    pub precedence: Option<f64>,
+    /// `register_interface_ip_with_dns` property.
+    pub register_interface_ip_with_dns: Option<bool>,
+    /// `sccm_vpn_boundary_support` property.
+    pub sccm_vpn_boundary_support: Option<bool>,
+    /// `service_mode_v2` property.
     pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
-    /// support_url property.
-    pub support_url: Option<TeamsDevicesSupportUrl>,
-    /// switch_locked property.
-    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
-    /// tunnel_protocol property.
-    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+    /// `support_url` property.
+    pub support_url: Option<String>,
+    /// `switch_locked` property.
+    pub switch_locked: Option<bool>,
+    /// `tunnel_protocol` property.
+    pub tunnel_protocol: Option<String>,
 }
 
 /// `DlpApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::AddressingApiResponseCollectionShape`.
+pub type DlpApiResponseCollection = super::shared::AddressingApiResponseCollectionShape;
 
 /// `DlpApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DlpApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DlpApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DlpApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DlpBehaviors` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpBehaviors {
-    /// behaviors property.
-    pub behaviors: serde_json::Value,
-}
+///
+/// Same shape as `super::shared::BehaviorsObject`.
+pub type DlpBehaviors = super::shared::BehaviorsObject;
 
 /// `DlpCreateIntegrationBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpCreateIntegrationBody {
-    /// integration_type property.
-    pub integration_type: DlpRiskScoreIntegrationType,
-    /// reference_id property.
+    /// `integration_type` property.
+    pub integration_type: String,
+    /// `reference_id` property.
     pub reference_id: Option<String>,
-    /// tenant_url property.
+    /// `tenant_url` property.
     pub tenant_url: String,
 }
 
 /// `DlpEmpty` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEmpty {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEmpty = serde_json::Value;
 
 /// `DlpMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `DlpRiskLevel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpRiskLevel {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpRiskLevel = String;
 
 /// `DlpRiskScoreBehaviorsGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpRiskScoreBehaviorsGetResponse {
-    /// `result` property.
-    pub result: Option<DlpBehaviors>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpBehaviors>>`.
+pub type DlpRiskScoreBehaviorsGetResponse = super::shared::ApiEnvelope<Option<DlpBehaviors>>;
 
 /// `DlpRiskScoreBehaviorsPutResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpRiskScoreBehaviorsPutResponse {
-    /// `result` property.
-    pub result: Option<DlpUpdateBehaviors>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpUpdateBehaviors>>`.
+pub type DlpRiskScoreBehaviorsPutResponse = super::shared::ApiEnvelope<Option<DlpUpdateBehaviors>>;
 
 /// `DlpRiskScoreIntegration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpRiskScoreIntegration {
-    /// account_tag property.
+    /// `account_tag` property.
     pub account_tag: String,
-    /// active property.
+    /// `active` property.
     pub active: bool,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// integration_type property.
-    pub integration_type: DlpRiskScoreIntegrationType,
-    /// reference_id property.
+    /// `integration_type` property.
+    pub integration_type: String,
+    /// `reference_id` property.
     pub reference_id: String,
-    /// tenant_url property.
+    /// `tenant_url` property.
     pub tenant_url: String,
-    /// well_known_url property.
+    /// `well_known_url` property.
     pub well_known_url: String,
 }
 
 /// `DlpRiskScoreIntegrationArray` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpRiskScoreIntegrationArray {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpRiskScoreIntegrationArray = Vec<DlpRiskScoreIntegration>;
 
 /// `DlpRiskScoreIntegrationType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpRiskScoreIntegrationType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpRiskScoreIntegrationType = String;
 
 /// `DlpRiskScoreSummaryGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpRiskScoreSummaryGetResponse {
-    /// `result` property.
-    pub result: Option<DlpRiskSummary>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<DlpRiskSummary>>`.
+pub type DlpRiskScoreSummaryGetResponse =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<DlpRiskSummary>>;
 
 /// `DlpRiskSummary` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpRiskSummary {
-    /// users property.
+    /// `users` property.
     pub users: Vec<DlpUserRiskInfo>,
 }
 
 /// `DlpUpdateBehaviors` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpUpdateBehaviors {
-    /// behaviors property.
-    pub behaviors: serde_json::Value,
-}
+///
+/// Same shape as `super::shared::BehaviorsObject`.
+pub type DlpUpdateBehaviors = super::shared::BehaviorsObject;
 
 /// `DlpUpdateIntegrationBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpUpdateIntegrationBody {
-    /// active property.
+    /// `active` property.
     pub active: bool,
-    /// reference_id property.
+    /// `reference_id` property.
     pub reference_id: Option<String>,
-    /// tenant_url property.
+    /// `tenant_url` property.
     pub tenant_url: String,
 }
 
 /// `DlpUserRiskInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpUserRiskInfo {
-    /// email property.
+    /// `email` property.
     pub email: String,
-    /// event_count property.
+    /// `event_count` property.
     pub event_count: i64,
-    /// last_event property.
+    /// `last_event` property.
     pub last_event: String,
-    /// max_risk_level property.
-    pub max_risk_level: DlpRiskLevel,
-    /// name property.
+    /// `max_risk_level` property.
+    pub max_risk_level: String,
+    /// `name` property.
     pub name: String,
-    /// user_id property.
+    /// `user_id` property.
     pub user_id: String,
 }
 
 /// `DlpZtRiskScoreIntegrationCreateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpZtRiskScoreIntegrationCreateResponse {
-    /// `result` property.
-    pub result: Option<DlpRiskScoreIntegration>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpRiskScoreIntegration>>`.
+pub type DlpZtRiskScoreIntegrationCreateResponse =
+    super::shared::ApiEnvelope<Option<DlpRiskScoreIntegration>>;
 
 /// `DlpZtRiskScoreIntegrationDeleteResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpZtRiskScoreIntegrationDeleteResponse {
-    /// `result` property.
-    pub result: Option<DlpEmpty>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type DlpZtRiskScoreIntegrationDeleteResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `DlpZtRiskScoreIntegrationGetByReferenceIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpZtRiskScoreIntegrationGetByReferenceIdResponse {
-    /// `result` property.
-    pub result: Option<DlpRiskScoreIntegration>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpRiskScoreIntegration>>`.
+pub type DlpZtRiskScoreIntegrationGetByReferenceIdResponse =
+    super::shared::ApiEnvelope<Option<DlpRiskScoreIntegration>>;
 
 /// `DlpZtRiskScoreIntegrationGetResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpZtRiskScoreIntegrationGetResponse {
-    /// `result` property.
-    pub result: Option<DlpRiskScoreIntegration>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpRiskScoreIntegration>>`.
+pub type DlpZtRiskScoreIntegrationGetResponse =
+    super::shared::ApiEnvelope<Option<DlpRiskScoreIntegration>>;
 
 /// `DlpZtRiskScoreIntegrationListResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpZtRiskScoreIntegrationListResponse {
-    /// `result` property.
-    pub result: Option<Vec<DlpRiskScoreIntegration>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<DlpRiskScoreIntegration>>>`.
+pub type DlpZtRiskScoreIntegrationListResponse =
+    super::shared::ApiEnvelope<Option<Vec<DlpRiskScoreIntegration>>>;
 
 /// `DlpZtRiskScoreIntegrationUpdateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpZtRiskScoreIntegrationUpdateResponse {
-    /// `result` property.
-    pub result: Option<DlpRiskScoreIntegration>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpRiskScoreIntegration>>`.
+pub type DlpZtRiskScoreIntegrationUpdateResponse =
+    super::shared::ApiEnvelope<Option<DlpRiskScoreIntegration>>;
 
 /// `GetDeviceResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetDeviceResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
+    /// `result` property.
     pub result: TeamsDevicesPhysicalDevice,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `GetIpProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetIpProfileResponse {
-    /// errors property.
-    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
-    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
-    pub result: TeamsDevicesIpProfile,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `CreateIpProfileResponse`.
+pub type GetIpProfileResponse = CreateIpProfileResponse;
 
 /// `GetRegistrationOverrideCodesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetRegistrationOverrideCodesResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
+    /// `result` property.
     pub result: TeamsDevicesOverrideCodes,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `GetRegistrationResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct GetRegistrationResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
+    /// `result` property.
     pub result: TeamsDevicesRegistration,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `ListDevicesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListDevicesResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
+    /// `result` property.
     pub result: Vec<TeamsDevicesPhysicalDevice>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<TeamsDevicesCursorResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `ListIpProfilesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListIpProfilesResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
+    /// `result` property.
     pub result: Vec<TeamsDevicesIpProfile>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<TeamsDevicesPaginationInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `ListRegistrationsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListRegistrationsResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
+    /// `result` property.
     pub result: Vec<TeamsDevicesRegistration>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<TeamsDevicesCursorResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `RevokeDeviceResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RevokeDeviceResponse {
-    /// errors property.
-    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
-    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
-    pub result: Option<TeamsDevicesEmptyBody>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `DeleteDeviceResponse`.
+pub type RevokeDeviceResponse = DeleteDeviceResponse;
 
 /// `RevokeRegistrationsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RevokeRegistrationsResponse {
-    /// errors property.
-    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
-    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
-    pub result: Option<TeamsDevicesEmptyBody>,
-    /// result_info property.
-    pub result_info: Option<TeamsDevicesCursorResultInfo>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `DeleteRegistrationsResponse`.
+pub type RevokeRegistrationsResponse = DeleteRegistrationsResponse;
 
 /// `TeamsDevicesAccessSerialNumberListInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesAccessSerialNumberListInputRequest {
-    /// id property.
-    pub id: String,
-}
+///
+/// Same shape as `super::shared::IdObject2`.
+pub type TeamsDevicesAccessSerialNumberListInputRequest = super::shared::IdObject2;
 
 /// `TeamsDevicesAllowModeSwitch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesAllowModeSwitch {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesAllowModeSwitch = bool;
 
 /// `TeamsDevicesAllowUpdates` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesAllowUpdates {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesAllowUpdates = bool;
 
 /// `TeamsDevicesAllowedToLeave` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesAllowedToLeave {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesAllowedToLeave = bool;
 
 /// `TeamsDevicesAntivirusInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesAntivirusInputRequest {
-    /// update_window_days property.
+    /// `update_window_days` property.
     pub update_window_days: Option<f64>,
 }
 
 /// `TeamsDevicesApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesApiResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<TeamsDevicesResultInfo>,
-}
-
-/// `TeamsDevicesApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// result property.
-    pub result: serde_json::Value,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
+/// `TeamsDevicesApiResponseCommon` type.
+///
+/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
+pub type TeamsDevicesApiResponseCommon = super::shared::ApiEnvelope<serde_json::Value>;
+
 /// `TeamsDevicesApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApiResponseSingle {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type TeamsDevicesApiResponseSingle = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `TeamsDevicesApplicationInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApplicationInputRequest {
-    /// operating_system property.
-    pub operating_system: String,
-    /// path property.
-    pub path: String,
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// thumbprint property.
-    pub thumbprint: Option<String>,
-}
+///
+/// Same shape as `super::shared::TeamsDevicesApplicationInputRequestShape`.
+pub type TeamsDevicesApplicationInputRequest =
+    super::shared::TeamsDevicesApplicationInputRequestShape;
 
 /// `TeamsDevicesAutoConnect` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesAutoConnect {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesAutoConnect = f64;
 
 /// `TeamsDevicesCaptivePortal` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesCaptivePortal {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesCaptivePortal = f64;
 
 /// `TeamsDevicesCarbonblackInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesCarbonblackInputRequest {
-    /// operating_system property.
-    pub operating_system: String,
-    /// path property.
-    pub path: String,
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// thumbprint property.
-    pub thumbprint: Option<String>,
-}
+///
+/// Same shape as `super::shared::TeamsDevicesApplicationInputRequestShape`.
+pub type TeamsDevicesCarbonblackInputRequest =
+    super::shared::TeamsDevicesApplicationInputRequestShape;
 
 /// `TeamsDevicesCheckDisks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesCheckDisks {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesCheckDisks = Vec<String>;
 
 /// `TeamsDevicesClientCertificateInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesClientCertificateInputRequest {
-    /// certificate_id property.
+    /// `certificate_id` property.
     pub certificate_id: String,
-    /// cn property.
+    /// `cn` property.
     pub cn: String,
 }
 
 /// `TeamsDevicesClientCertificateV2InputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesClientCertificateV2InputRequest {
-    /// certificate_id property.
+    /// `certificate_id` property.
     pub certificate_id: String,
-    /// check_private_key property.
+    /// `check_private_key` property.
     pub check_private_key: bool,
-    /// cn property.
+    /// `cn` property.
     pub cn: Option<String>,
-    /// extended_key_usage property.
-    pub extended_key_usage: Option<Vec<TeamsDevicesExtendedKeyUsageEnum>>,
-    /// locations property.
+    /// `extended_key_usage` property.
+    pub extended_key_usage: Option<Vec<String>>,
+    /// `locations` property.
     pub locations: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// operating_system property.
+    /// `operating_system` property.
     pub operating_system: String,
-    /// subject_alternative_names property.
+    /// `subject_alternative_names` property.
     pub subject_alternative_names: Option<Vec<String>>,
 }
 
 /// `TeamsDevicesComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesComponentsSchemasName = String;
 
 /// `TeamsDevicesComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesComponentsSchemasResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TeamsDevicesDeviceManagedNetworks>>,
+    pub result: Vec<TeamsDevicesDeviceManagedNetworks>,
+    /// `result_info` property.
+    pub result_info: Option<TeamsDevicesResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TeamsDevicesComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDeviceManagedNetworks>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TeamsDevicesDeviceManagedNetworks>`.
+pub type TeamsDevicesComponentsSchemasSingleResponse =
+    super::shared::ApiEnvelope<TeamsDevicesDeviceManagedNetworks>;
 
 /// `TeamsDevicesComponentsSchemasType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesComponentsSchemasType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesComponentsSchemasType = String;
 
 /// `TeamsDevicesComponentsSchemasUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesComponentsSchemasUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesComponentsSchemasUuid = String;
 
 /// `TeamsDevicesConfigRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesConfigRequest {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesConfigRequest = serde_json::Value;
 
 /// `TeamsDevicesConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesConfigResponse {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesConfigResponse = serde_json::Value;
 
 /// `TeamsDevicesCrowdstrikeConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesCrowdstrikeConfigRequest {
-    /// api_url property.
+    /// `api_url` property.
     pub api_url: String,
-    /// client_id property.
+    /// `client_id` property.
     pub client_id: String,
-    /// client_secret property.
+    /// `client_secret` property.
     pub client_secret: String,
-    /// customer_id property.
+    /// `customer_id` property.
     pub customer_id: String,
 }
 
 /// `TeamsDevicesCrowdstrikeInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesCrowdstrikeInputRequest {
-    /// connection_id property.
+    /// `connection_id` property.
     pub connection_id: String,
-    /// last_seen property.
+    /// `last_seen` property.
     pub last_seen: Option<String>,
-    /// operator property.
+    /// `operator` property.
     pub operator: Option<String>,
-    /// os property.
+    /// `os` property.
     pub os: Option<String>,
-    /// overall property.
+    /// `overall` property.
     pub overall: Option<String>,
-    /// sensor_config property.
+    /// `sensor_config` property.
     pub sensor_config: Option<String>,
-    /// state property.
+    /// `state` property.
     pub state: Option<String>,
-    /// version property.
+    /// `version` property.
     pub version: Option<String>,
-    /// versionOperator property.
+    /// `versionOperator` property.
     #[serde(rename = "versionOperator")]
     pub version_operator: Option<String>,
 }
@@ -896,2868 +749,2245 @@ pub struct TeamsDevicesCrowdstrikeInputRequest {
 /// `TeamsDevicesCursorResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesCursorResultInfo {
-    /// count property.
+    /// `count` property.
     pub count: i64,
-    /// cursor property.
+    /// `cursor` property.
     pub cursor: String,
-    /// per_page property.
+    /// `per_page` property.
     pub per_page: i64,
-    /// total_count property.
+    /// `total_count` property.
     pub total_count: Option<i64>,
 }
 
 /// `TeamsDevicesCustomS2SConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesCustomS2SConfigRequest {
-    /// access_client_id property.
+    /// `access_client_id` property.
     pub access_client_id: String,
-    /// access_client_secret property.
+    /// `access_client_secret` property.
     pub access_client_secret: String,
-    /// api_url property.
+    /// `api_url` property.
     pub api_url: String,
 }
 
 /// `TeamsDevicesCustomS2SInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesCustomS2SInputRequest {
-    /// connection_id property.
+    /// `connection_id` property.
     pub connection_id: String,
-    /// operator property.
+    /// `operator` property.
     pub operator: String,
-    /// score property.
+    /// `score` property.
     pub score: f64,
 }
 
 /// `TeamsDevicesDefault` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesDefault {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesDefault = bool;
 
 /// `TeamsDevicesDefaultDeviceSettingsPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDefaultDeviceSettingsPolicy {
-    /// allow_mode_switch property.
-    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
-    /// allow_updates property.
-    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
-    /// allowed_to_leave property.
-    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
-    /// auto_connect property.
-    pub auto_connect: Option<TeamsDevicesAutoConnect>,
-    /// captive_portal property.
-    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
-    /// default property.
+    /// `allow_mode_switch` property.
+    pub allow_mode_switch: Option<bool>,
+    /// `allow_updates` property.
+    pub allow_updates: Option<bool>,
+    /// `allowed_to_leave` property.
+    pub allowed_to_leave: Option<bool>,
+    /// `auto_connect` property.
+    pub auto_connect: Option<f64>,
+    /// `captive_portal` property.
+    pub captive_portal: Option<f64>,
+    /// `default` property.
     pub default: Option<bool>,
-    /// disable_auto_fallback property.
-    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
-    /// enabled property.
+    /// `disable_auto_fallback` property.
+    pub disable_auto_fallback: Option<bool>,
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// exclude property.
-    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
-    /// exclude_office_ips property.
-    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
-    /// fallback_domains property.
+    /// `exclude` property.
+    pub exclude: Option<Vec<serde_json::Value>>,
+    /// `exclude_office_ips` property.
+    pub exclude_office_ips: Option<bool>,
+    /// `fallback_domains` property.
     pub fallback_domains: Option<Vec<TeamsDevicesFallbackDomain>>,
-    /// gateway_unique_id property.
-    pub gateway_unique_id: Option<TeamsDevicesGatewayUniqueId>,
-    /// include property.
-    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
-    /// register_interface_ip_with_dns property.
-    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
-    /// sccm_vpn_boundary_support property.
-    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
-    /// service_mode_v2 property.
+    /// `gateway_unique_id` property.
+    pub gateway_unique_id: Option<String>,
+    /// `include` property.
+    pub include: Option<Vec<serde_json::Value>>,
+    /// `register_interface_ip_with_dns` property.
+    pub register_interface_ip_with_dns: Option<bool>,
+    /// `sccm_vpn_boundary_support` property.
+    pub sccm_vpn_boundary_support: Option<bool>,
+    /// `service_mode_v2` property.
     pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
-    /// support_url property.
-    pub support_url: Option<TeamsDevicesSupportUrl>,
-    /// switch_locked property.
-    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
-    /// tunnel_protocol property.
-    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+    /// `support_url` property.
+    pub support_url: Option<String>,
+    /// `switch_locked` property.
+    pub switch_locked: Option<bool>,
+    /// `tunnel_protocol` property.
+    pub tunnel_protocol: Option<String>,
 }
 
 /// `TeamsDevicesDefaultDeviceSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDefaultDeviceSettingsResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDefaultDeviceSettingsPolicy>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TeamsDevicesDefaultDeviceSettingsPolicy>`.
+pub type TeamsDevicesDefaultDeviceSettingsResponse =
+    super::shared::ApiEnvelope<TeamsDevicesDefaultDeviceSettingsPolicy>;
 
 /// `TeamsDevicesDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesDescription = String;
 
 /// `TeamsDevicesDeviceManagedNetworks` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDeviceManagedNetworks {
-    /// config property.
-    pub config: Option<TeamsDevicesSchemasConfigResponse>,
-    /// name property.
-    pub name: Option<TeamsDevicesDeviceManagedNetworksComponentsSchemasName>,
-    /// network_id property.
-    pub network_id: Option<TeamsDevicesUuid>,
-    /// type property.
+    /// `config` property.
+    pub config: Option<serde_json::Value>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `network_id` property.
+    pub network_id: Option<String>,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: Option<TeamsDevicesComponentsSchemasType>,
+    pub r#type: Option<String>,
 }
 
 /// `TeamsDevicesDeviceManagedNetworksComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesDeviceManagedNetworksComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesDeviceManagedNetworksComponentsSchemasName = String;
 
 /// `TeamsDevicesDevicePostureIntegrations` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDevicePostureIntegrations {
-    /// config property.
-    pub config: Option<TeamsDevicesConfigResponse>,
-    /// id property.
-    pub id: Option<TeamsDevicesUuid>,
-    /// interval property.
-    pub interval: Option<TeamsDevicesInterval>,
-    /// name property.
-    pub name: Option<TeamsDevicesComponentsSchemasName>,
-    /// type property.
+    /// `config` property.
+    pub config: Option<serde_json::Value>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `interval` property.
+    pub interval: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: Option<TeamsDevicesSchemasType>,
+    pub r#type: Option<String>,
 }
 
 /// `TeamsDevicesDevicePostureRules` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDevicePostureRules {
-    /// description property.
-    pub description: Option<TeamsDevicesDescription>,
-    /// expiration property.
-    pub expiration: Option<TeamsDevicesExpiration>,
-    /// id property.
-    pub id: Option<TeamsDevicesUuid>,
-    /// input property.
-    pub input: Option<TeamsDevicesInput>,
-    /// match property.
+    /// `description` property.
+    pub description: Option<String>,
+    /// `expiration` property.
+    pub expiration: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `input` property.
+    pub input: Option<serde_json::Value>,
+    /// `match` property.
     #[serde(rename = "match")]
     pub r#match: Option<Vec<TeamsDevicesMatchItem>>,
-    /// name property.
-    pub name: Option<TeamsDevicesName>,
-    /// schedule property.
-    pub schedule: Option<TeamsDevicesSchedule>,
-    /// type property.
+    /// `name` property.
+    pub name: Option<String>,
+    /// `schedule` property.
+    pub schedule: Option<String>,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: Option<TeamsDevicesType>,
+    pub r#type: Option<String>,
 }
 
 /// `TeamsDevicesDeviceSettingsPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDeviceSettingsPolicy {
-    /// allow_mode_switch property.
-    pub allow_mode_switch: Option<TeamsDevicesAllowModeSwitch>,
-    /// allow_updates property.
-    pub allow_updates: Option<TeamsDevicesAllowUpdates>,
-    /// allowed_to_leave property.
-    pub allowed_to_leave: Option<TeamsDevicesAllowedToLeave>,
-    /// auto_connect property.
-    pub auto_connect: Option<TeamsDevicesAutoConnect>,
-    /// captive_portal property.
-    pub captive_portal: Option<TeamsDevicesCaptivePortal>,
-    /// default property.
-    pub default: Option<TeamsDevicesDefault>,
-    /// description property.
-    pub description: Option<TeamsDevicesSchemasDescription>,
-    /// disable_auto_fallback property.
-    pub disable_auto_fallback: Option<TeamsDevicesDisableAutoFallback>,
-    /// enabled property.
+    /// `allow_mode_switch` property.
+    pub allow_mode_switch: Option<bool>,
+    /// `allow_updates` property.
+    pub allow_updates: Option<bool>,
+    /// `allowed_to_leave` property.
+    pub allowed_to_leave: Option<bool>,
+    /// `auto_connect` property.
+    pub auto_connect: Option<f64>,
+    /// `captive_portal` property.
+    pub captive_portal: Option<f64>,
+    /// `default` property.
+    pub default: Option<bool>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `disable_auto_fallback` property.
+    pub disable_auto_fallback: Option<bool>,
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// exclude property.
-    pub exclude: Option<Vec<TeamsDevicesSplitTunnel>>,
-    /// exclude_office_ips property.
-    pub exclude_office_ips: Option<TeamsDevicesExcludeOfficeIps>,
-    /// fallback_domains property.
+    /// `exclude` property.
+    pub exclude: Option<Vec<serde_json::Value>>,
+    /// `exclude_office_ips` property.
+    pub exclude_office_ips: Option<bool>,
+    /// `fallback_domains` property.
     pub fallback_domains: Option<Vec<TeamsDevicesFallbackDomain>>,
-    /// gateway_unique_id property.
-    pub gateway_unique_id: Option<TeamsDevicesGatewayUniqueId>,
-    /// include property.
-    pub include: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
-    /// lan_allow_minutes property.
-    pub lan_allow_minutes: Option<TeamsDevicesLanAllowMinutes>,
-    /// lan_allow_subnet_size property.
-    pub lan_allow_subnet_size: Option<TeamsDevicesLanAllowSubnetSize>,
-    /// match property.
+    /// `gateway_unique_id` property.
+    pub gateway_unique_id: Option<String>,
+    /// `include` property.
+    pub include: Option<Vec<serde_json::Value>>,
+    /// `lan_allow_minutes` property.
+    pub lan_allow_minutes: Option<f64>,
+    /// `lan_allow_subnet_size` property.
+    pub lan_allow_subnet_size: Option<f64>,
+    /// `match` property.
     #[serde(rename = "match")]
-    pub r#match: Option<TeamsDevicesSchemasMatch>,
-    /// name property.
+    pub r#match: Option<String>,
+    /// `name` property.
     pub name: Option<String>,
-    /// policy_id property.
-    pub policy_id: Option<TeamsDevicesSchemasUuid>,
-    /// precedence property.
-    pub precedence: Option<TeamsDevicesPrecedence>,
-    /// register_interface_ip_with_dns property.
-    pub register_interface_ip_with_dns: Option<TeamsDevicesRegisterInterfaceIpWithDns>,
-    /// sccm_vpn_boundary_support property.
-    pub sccm_vpn_boundary_support: Option<TeamsDevicesSccmVpnBoundarySupport>,
-    /// service_mode_v2 property.
+    /// `policy_id` property.
+    pub policy_id: Option<String>,
+    /// `precedence` property.
+    pub precedence: Option<f64>,
+    /// `register_interface_ip_with_dns` property.
+    pub register_interface_ip_with_dns: Option<bool>,
+    /// `sccm_vpn_boundary_support` property.
+    pub sccm_vpn_boundary_support: Option<bool>,
+    /// `service_mode_v2` property.
     pub service_mode_v2: Option<TeamsDevicesServiceModeV2>,
-    /// support_url property.
-    pub support_url: Option<TeamsDevicesSupportUrl>,
-    /// switch_locked property.
-    pub switch_locked: Option<TeamsDevicesSwitchLocked>,
-    /// target_tests property.
+    /// `support_url` property.
+    pub support_url: Option<String>,
+    /// `switch_locked` property.
+    pub switch_locked: Option<bool>,
+    /// `target_tests` property.
     pub target_tests: Option<Vec<TeamsDevicesTargetDexTest>>,
-    /// tunnel_protocol property.
-    pub tunnel_protocol: Option<TeamsDevicesTunnelProtocol>,
+    /// `tunnel_protocol` property.
+    pub tunnel_protocol: Option<String>,
 }
 
 /// `TeamsDevicesDeviceSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDeviceSettingsResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDeviceSettingsPolicy>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TeamsDevicesDeviceSettingsPolicy>`.
+pub type TeamsDevicesDeviceSettingsResponse =
+    super::shared::ApiEnvelope<TeamsDevicesDeviceSettingsPolicy>;
 
 /// `TeamsDevicesDeviceSettingsResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDeviceSettingsResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TeamsDevicesDeviceSettingsPolicy>>,
+    pub result: Vec<TeamsDevicesDeviceSettingsPolicy>,
+    /// `result_info` property.
+    pub result_info: Option<TeamsDevicesResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TeamsDevicesDisableAutoFallback` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesDisableAutoFallback {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesDisableAutoFallback = bool;
 
 /// `TeamsDevicesDiskEncryptionInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDiskEncryptionInputRequest {
-    /// checkDisks property.
+    /// `checkDisks` property.
     #[serde(rename = "checkDisks")]
     pub check_disks: Option<Vec<String>>,
-    /// requireAll property.
+    /// `requireAll` property.
     #[serde(rename = "requireAll")]
-    pub require_all: Option<TeamsDevicesRequireAll>,
+    pub require_all: Option<bool>,
 }
 
 /// `TeamsDevicesDomainJoinedInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDomainJoinedInputRequest {
-    /// domain property.
+    /// `domain` property.
     pub domain: Option<String>,
-    /// operating_system property.
+    /// `operating_system` property.
     pub operating_system: String,
 }
 
 /// `TeamsDevicesEmail` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesEmail {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesEmail = String;
 
 /// `TeamsDevicesEmptyBody` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesEmptyBody {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesEmptyBody = serde_json::Value;
 
 /// `TeamsDevicesExclude` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesExclude {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesExclude = Vec<serde_json::Value>;
 
 /// `TeamsDevicesExcludeOfficeIps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesExcludeOfficeIps {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesExcludeOfficeIps = bool;
 
 /// `TeamsDevicesExcludeRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesExcludeRequest {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesExcludeRequest = Vec<serde_json::Value>;
 
 /// `TeamsDevicesExcludeSplitTunnelWithAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesExcludeSplitTunnelWithAddress {
-    /// address property.
-    pub address: TeamsDevicesSplitTunnelAddress,
-    /// description property.
-    pub description: Option<TeamsDevicesSplitTunnelDescription>,
-}
+///
+/// Same shape as `super::shared::AddressDescriptionObject`.
+pub type TeamsDevicesExcludeSplitTunnelWithAddress = super::shared::AddressDescriptionObject;
 
 /// `TeamsDevicesExcludeSplitTunnelWithHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesExcludeSplitTunnelWithHost {
-    /// description property.
-    pub description: Option<TeamsDevicesSplitTunnelDescription>,
-    /// host property.
-    pub host: TeamsDevicesSplitTunnelHost,
-}
+///
+/// Same shape as `super::shared::DescriptionHostObject`.
+pub type TeamsDevicesExcludeSplitTunnelWithHost = super::shared::DescriptionHostObject;
 
 /// `TeamsDevicesExpiration` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesExpiration {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesExpiration = String;
 
 /// `TeamsDevicesExtendedKeyUsageEnum` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesExtendedKeyUsageEnum {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesExtendedKeyUsageEnum = String;
 
 /// `TeamsDevicesFallbackDomain` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesFallbackDomain {
-    /// description property.
-    pub description: Option<String>,
-    /// dns_server property.
-    pub dns_server: Option<Vec<TeamsDevicesIp>>,
-    /// suffix property.
-    pub suffix: String,
-}
+///
+/// Same shape as `super::shared::DescriptionDnsServerSuffixObject`.
+pub type TeamsDevicesFallbackDomain = super::shared::DescriptionDnsServerSuffixObject;
 
 /// `TeamsDevicesFallbackDomains` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesFallbackDomains {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesFallbackDomains = Vec<TeamsDevicesFallbackDomain>;
 
 /// `TeamsDevicesFileInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesFileInputRequest {
-    /// exists property.
+    /// `exists` property.
     pub exists: Option<bool>,
-    /// operating_system property.
+    /// `operating_system` property.
     pub operating_system: String,
-    /// path property.
+    /// `path` property.
     pub path: String,
-    /// sha256 property.
+    /// `sha256` property.
     pub sha256: Option<String>,
-    /// thumbprint property.
+    /// `thumbprint` property.
     pub thumbprint: Option<String>,
 }
 
 /// `TeamsDevicesFirewallInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesFirewallInputRequest {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// operating_system property.
+    /// `operating_system` property.
     pub operating_system: String,
 }
 
 /// `TeamsDevicesGatewayUniqueId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesGatewayUniqueId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesGatewayUniqueId = String;
 
 /// `TeamsDevicesIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIdResponse {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>`.
+pub type TeamsDevicesIdResponse =
+    super::shared::ApiEnvelope<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `TeamsDevicesInclude` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesInclude {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesInclude = Vec<serde_json::Value>;
 
 /// `TeamsDevicesIncludeRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIncludeRequest {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIncludeRequest = Vec<serde_json::Value>;
 
 /// `TeamsDevicesIncludeSplitTunnelAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIncludeSplitTunnelAddress {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIncludeSplitTunnelAddress = String;
 
 /// `TeamsDevicesIncludeSplitTunnelDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIncludeSplitTunnelDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIncludeSplitTunnelDescription = String;
 
 /// `TeamsDevicesIncludeSplitTunnelHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIncludeSplitTunnelHost {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIncludeSplitTunnelHost = String;
 
 /// `TeamsDevicesIncludeSplitTunnelWithAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIncludeSplitTunnelWithAddress {
-    /// address property.
-    pub address: TeamsDevicesIncludeSplitTunnelAddress,
-    /// description property.
-    pub description: Option<TeamsDevicesIncludeSplitTunnelDescription>,
-}
+///
+/// Same shape as `super::shared::AddressDescriptionObject`.
+pub type TeamsDevicesIncludeSplitTunnelWithAddress = super::shared::AddressDescriptionObject;
 
 /// `TeamsDevicesIncludeSplitTunnelWithHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIncludeSplitTunnelWithHost {
-    /// description property.
-    pub description: Option<TeamsDevicesIncludeSplitTunnelDescription>,
-    /// host property.
-    pub host: TeamsDevicesIncludeSplitTunnelHost,
-}
+///
+/// Same shape as `super::shared::DescriptionHostObject`.
+pub type TeamsDevicesIncludeSplitTunnelWithHost = super::shared::DescriptionHostObject;
 
 /// `TeamsDevicesInput` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesInput {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesInput = serde_json::Value;
 
 /// `TeamsDevicesInterval` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesInterval {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesInterval = String;
 
 /// `TeamsDevicesIntuneConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesIntuneConfigRequest {
-    /// client_id property.
+    /// `client_id` property.
     pub client_id: String,
-    /// client_secret property.
+    /// `client_secret` property.
     pub client_secret: String,
-    /// customer_id property.
+    /// `customer_id` property.
     pub customer_id: String,
 }
 
 /// `TeamsDevicesIntuneInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesIntuneInputRequest {
-    /// compliance_status property.
-    pub compliance_status: String,
-    /// connection_id property.
-    pub connection_id: String,
-}
+///
+/// Same shape as `super::shared::ComplianceStatusConnectionIdObject`.
+pub type TeamsDevicesIntuneInputRequest = super::shared::ComplianceStatusConnectionIdObject;
 
 /// `TeamsDevicesIp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIp = String;
 
 /// `TeamsDevicesIpProfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesIpProfile {
-    /// created_at property.
-    pub created_at: TeamsDevicesIpProfileCreatedAt,
-    /// description property.
-    pub description: Option<TeamsDevicesIpProfileDescription>,
-    /// enabled property.
-    pub enabled: TeamsDevicesIpProfileEnabled,
-    /// id property.
-    pub id: TeamsDevicesIpProfileId,
-    /// match property.
+    /// `created_at` property.
+    pub created_at: String,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `enabled` property.
+    pub enabled: bool,
+    /// `id` property.
+    pub id: String,
+    /// `match` property.
     #[serde(rename = "match")]
-    pub r#match: TeamsDevicesIpProfileMatch,
-    /// name property.
-    pub name: TeamsDevicesIpProfileName,
-    /// precedence property.
-    pub precedence: TeamsDevicesIpProfilePrecedence,
-    /// subnet_id property.
-    pub subnet_id: TeamsDevicesIpProfileSubnetId,
-    /// updated_at property.
-    pub updated_at: TeamsDevicesIpProfileUpdatedAt,
+    pub r#match: String,
+    /// `name` property.
+    pub name: String,
+    /// `precedence` property.
+    pub precedence: i64,
+    /// `subnet_id` property.
+    pub subnet_id: String,
+    /// `updated_at` property.
+    pub updated_at: String,
 }
 
 /// `TeamsDevicesIpProfileCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesIpProfileCreateRequest {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// match property.
+    /// `match` property.
     #[serde(rename = "match")]
-    pub r#match: TeamsDevicesIpProfileMatch,
-    /// name property.
-    pub name: TeamsDevicesIpProfileName,
-    /// precedence property.
-    pub precedence: TeamsDevicesIpProfilePrecedence,
-    /// subnet_id property.
-    pub subnet_id: TeamsDevicesIpProfileSubnetId,
+    pub r#match: String,
+    /// `name` property.
+    pub name: String,
+    /// `precedence` property.
+    pub precedence: i64,
+    /// `subnet_id` property.
+    pub subnet_id: String,
 }
 
 /// `TeamsDevicesIpProfileCreatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIpProfileCreatedAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIpProfileCreatedAt = String;
 
 /// `TeamsDevicesIpProfileDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIpProfileDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIpProfileDescription = String;
 
 /// `TeamsDevicesIpProfileEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIpProfileEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIpProfileEnabled = bool;
 
 /// `TeamsDevicesIpProfileId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIpProfileId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIpProfileId = String;
 
 /// `TeamsDevicesIpProfileMatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIpProfileMatch {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIpProfileMatch = String;
 
 /// `TeamsDevicesIpProfileName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIpProfileName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIpProfileName = String;
 
 /// `TeamsDevicesIpProfilePrecedence` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIpProfilePrecedence {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIpProfilePrecedence = i64;
 
 /// `TeamsDevicesIpProfileSubnetId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIpProfileSubnetId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIpProfileSubnetId = String;
 
 /// `TeamsDevicesIpProfileUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesIpProfileUpdateRequest {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// enabled property.
-    pub enabled: Option<TeamsDevicesIpProfileEnabled>,
-    /// match property.
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `match` property.
     #[serde(rename = "match")]
-    pub r#match: Option<TeamsDevicesIpProfileMatch>,
-    /// name property.
-    pub name: Option<TeamsDevicesIpProfileName>,
-    /// precedence property.
-    pub precedence: Option<TeamsDevicesIpProfilePrecedence>,
-    /// subnet_id property.
-    pub subnet_id: Option<TeamsDevicesIpProfileSubnetId>,
+    pub r#match: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `precedence` property.
+    pub precedence: Option<i64>,
+    /// `subnet_id` property.
+    pub subnet_id: Option<String>,
 }
 
 /// `TeamsDevicesIpProfileUpdatedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesIpProfileUpdatedAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesIpProfileUpdatedAt = String;
 
 /// `TeamsDevicesKolideConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesKolideConfigRequest {
-    /// client_id property.
+    /// `client_id` property.
     pub client_id: String,
-    /// client_secret property.
+    /// `client_secret` property.
     pub client_secret: String,
 }
 
 /// `TeamsDevicesKolideInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesKolideInputRequest {
-    /// connection_id property.
+    /// `connection_id` property.
     pub connection_id: String,
-    /// countOperator property.
+    /// `countOperator` property.
     #[serde(rename = "countOperator")]
     pub count_operator: String,
-    /// issue_count property.
+    /// `issue_count` property.
     pub issue_count: String,
 }
 
 /// `TeamsDevicesLanAllowMinutes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesLanAllowMinutes {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesLanAllowMinutes = f64;
 
 /// `TeamsDevicesLanAllowSubnetSize` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesLanAllowSubnetSize {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesLanAllowSubnetSize = f64;
 
 /// `TeamsDevicesMatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesMatch {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesMatch = Vec<TeamsDevicesMatchItem>;
 
 /// `TeamsDevicesMatchItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesMatchItem {
-    /// platform property.
-    pub platform: Option<TeamsDevicesPlatform>,
+    /// `platform` property.
+    pub platform: Option<String>,
 }
 
 /// `TeamsDevicesMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `TeamsDevicesName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesName = String;
 
 /// `TeamsDevicesOsVersionInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesOsVersionInputRequest {
-    /// operating_system property.
+    /// `operating_system` property.
     pub operating_system: String,
-    /// operator property.
+    /// `operator` property.
     pub operator: String,
-    /// os_distro_name property.
+    /// `os_distro_name` property.
     pub os_distro_name: Option<String>,
-    /// os_distro_revision property.
+    /// `os_distro_revision` property.
     pub os_distro_revision: Option<String>,
-    /// os_version_extra property.
+    /// `os_version_extra` property.
     pub os_version_extra: Option<String>,
-    /// version property.
+    /// `version` property.
     pub version: String,
 }
 
 /// `TeamsDevicesOverrideCodes` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesOverrideCodes {
-    /// disable_for_time property.
+    /// `disable_for_time` property.
     pub disable_for_time: Option<serde_json::Value>,
 }
 
 /// `TeamsDevicesPaginationInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesPaginationInfo {
-    /// count property.
-    pub count: i64,
-    /// page property.
-    pub page: i64,
-    /// per_page property.
-    pub per_page: i64,
-    /// total_count property.
-    pub total_count: i64,
-    /// total_pages property.
-    pub total_pages: Option<i64>,
-}
+///
+/// Same shape as `super::shared::TeamsDevicesPaginationInfoShape`.
+pub type TeamsDevicesPaginationInfo = super::shared::TeamsDevicesPaginationInfoShape;
 
 /// `TeamsDevicesPaths` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesPaths {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesPaths = Vec<String>;
 
 /// `TeamsDevicesPhysicalDevice` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesPhysicalDevice {
-    /// active_registrations property.
+    /// `active_registrations` property.
     pub active_registrations: i64,
-    /// client_version property.
+    /// `client_version` property.
     pub client_version: Option<String>,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// deleted_at property.
+    /// `deleted_at` property.
     pub deleted_at: Option<String>,
-    /// device_type property.
+    /// `device_type` property.
     pub device_type: Option<String>,
-    /// hardware_id property.
+    /// `hardware_id` property.
     pub hardware_id: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// last_seen_at property.
+    /// `last_seen_at` property.
     pub last_seen_at: Option<String>,
-    /// last_seen_registration property.
+    /// `last_seen_registration` property.
     pub last_seen_registration: Option<serde_json::Value>,
-    /// last_seen_user property.
+    /// `last_seen_user` property.
     pub last_seen_user: Option<serde_json::Value>,
-    /// mac_address property.
+    /// `mac_address` property.
     pub mac_address: Option<String>,
-    /// manufacturer property.
+    /// `manufacturer` property.
     pub manufacturer: Option<String>,
-    /// model property.
+    /// `model` property.
     pub model: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// os_version property.
+    /// `os_version` property.
     pub os_version: Option<String>,
-    /// os_version_extra property.
+    /// `os_version_extra` property.
     pub os_version_extra: Option<String>,
-    /// public_ip property.
+    /// `public_ip` property.
     pub public_ip: Option<String>,
-    /// serial_number property.
+    /// `serial_number` property.
     pub serial_number: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `TeamsDevicesPlatform` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesPlatform {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesPlatform = String;
 
 /// `TeamsDevicesPolicySummary` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesPolicySummary {
-    /// default property.
+    /// `default` property.
     pub default: bool,
-    /// deleted property.
+    /// `deleted` property.
     pub deleted: bool,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `TeamsDevicesPrecedence` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesPrecedence {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesPrecedence = f64;
 
 /// `TeamsDevicesRegisterInterfaceIpWithDns` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesRegisterInterfaceIpWithDns {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesRegisterInterfaceIpWithDns = bool;
 
 /// `TeamsDevicesRegistration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesRegistration {
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// deleted_at property.
+    /// `deleted_at` property.
     pub deleted_at: Option<String>,
-    /// device property.
+    /// `device` property.
     pub device: TeamsDevicesRegistrationDeviceDetails,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// key property.
+    /// `key` property.
     pub key: String,
-    /// key_type property.
+    /// `key_type` property.
     pub key_type: Option<String>,
-    /// last_seen_at property.
+    /// `last_seen_at` property.
     pub last_seen_at: String,
-    /// policy property.
+    /// `policy` property.
     pub policy: Option<TeamsDevicesPolicySummary>,
-    /// revoked_at property.
+    /// `revoked_at` property.
     pub revoked_at: Option<String>,
-    /// tunnel_type property.
+    /// `tunnel_type` property.
     pub tunnel_type: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
-    /// user property.
+    /// `user` property.
     pub user: Option<TeamsDevicesUser>,
 }
 
 /// `TeamsDevicesRegistrationDetails` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesRegistrationDetails {
-    /// policy property.
+    /// `policy` property.
     pub policy: Option<serde_json::Value>,
 }
 
 /// `TeamsDevicesRegistrationDeviceDetails` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesRegistrationDeviceDetails {
-    /// client_version property.
+    /// `client_version` property.
     pub client_version: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// name property.
+    /// `name` property.
     pub name: String,
 }
 
 /// `TeamsDevicesRequireAll` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesRequireAll {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesRequireAll = bool;
 
 /// `TeamsDevicesResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TeamsDevicesDevicePostureRules>>,
+    pub result: Vec<TeamsDevicesDevicePostureRules>,
+    /// `result_info` property.
+    pub result_info: Option<TeamsDevicesResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TeamsDevicesResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
+///
+/// Same shape as `super::shared::FirewallResultInfoShape`.
+pub type TeamsDevicesResultInfo = super::shared::FirewallResultInfoShape;
 
 /// `TeamsDevicesSccmVpnBoundarySupport` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSccmVpnBoundarySupport {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSccmVpnBoundarySupport = bool;
 
 /// `TeamsDevicesSchedule` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSchedule {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSchedule = String;
 
 /// `TeamsDevicesSchemasConfigRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSchemasConfigRequest {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSchemasConfigRequest = serde_json::Value;
 
 /// `TeamsDevicesSchemasConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSchemasConfigResponse {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSchemasConfigResponse = serde_json::Value;
 
 /// `TeamsDevicesSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSchemasDescription = String;
 
 /// `TeamsDevicesSchemasIdResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasIdResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type TeamsDevicesSchemasIdResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `TeamsDevicesSchemasMatch` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSchemasMatch {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSchemasMatch = String;
 
 /// `TeamsDevicesSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSchemasResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TeamsDevicesDevicePostureIntegrations>>,
+    pub result: Vec<TeamsDevicesDevicePostureIntegrations>,
+    /// `result_info` property.
+    pub result_info: Option<TeamsDevicesResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TeamsDevicesSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDevicePostureIntegrations>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TeamsDevicesDevicePostureIntegrations>`.
+pub type TeamsDevicesSchemasSingleResponse =
+    super::shared::ApiEnvelope<TeamsDevicesDevicePostureIntegrations>;
 
 /// `TeamsDevicesSchemasType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSchemasType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSchemasType = String;
 
 /// `TeamsDevicesSchemasUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSchemasUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSchemasUuid = String;
 
 /// `TeamsDevicesSentineloneInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSentineloneInputRequest {
-    /// operating_system property.
-    pub operating_system: String,
-    /// path property.
-    pub path: String,
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// thumbprint property.
-    pub thumbprint: Option<String>,
-}
+///
+/// Same shape as `super::shared::TeamsDevicesApplicationInputRequestShape`.
+pub type TeamsDevicesSentineloneInputRequest =
+    super::shared::TeamsDevicesApplicationInputRequestShape;
 
 /// `TeamsDevicesSentineloneS2SConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSentineloneS2SConfigRequest {
-    /// api_url property.
+    /// `api_url` property.
     pub api_url: String,
-    /// client_secret property.
+    /// `client_secret` property.
     pub client_secret: String,
 }
 
 /// `TeamsDevicesSentineloneS2SInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSentineloneS2SInputRequest {
-    /// active_threats property.
+    /// `active_threats` property.
     pub active_threats: Option<f64>,
-    /// connection_id property.
+    /// `connection_id` property.
     pub connection_id: String,
-    /// infected property.
+    /// `infected` property.
     pub infected: Option<bool>,
-    /// is_active property.
+    /// `is_active` property.
     pub is_active: Option<bool>,
-    /// network_status property.
+    /// `network_status` property.
     pub network_status: Option<String>,
-    /// operational_state property.
+    /// `operational_state` property.
     pub operational_state: Option<String>,
-    /// operator property.
+    /// `operator` property.
     pub operator: Option<String>,
 }
 
 /// `TeamsDevicesServiceModeV2` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesServiceModeV2 {
-    /// mode property.
+    /// `mode` property.
     pub mode: Option<String>,
-    /// port property.
+    /// `port` property.
     pub port: Option<f64>,
 }
 
 /// `TeamsDevicesSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSingleResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesDevicePostureRules>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TeamsDevicesDevicePostureRules>`.
+pub type TeamsDevicesSingleResponse = super::shared::ApiEnvelope<TeamsDevicesDevicePostureRules>;
 
 /// `TeamsDevicesSplitTunnel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSplitTunnel {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSplitTunnel = serde_json::Value;
 
 /// `TeamsDevicesSplitTunnelAddress` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSplitTunnelAddress {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSplitTunnelAddress = String;
 
 /// `TeamsDevicesSplitTunnelDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSplitTunnelDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSplitTunnelDescription = String;
 
 /// `TeamsDevicesSplitTunnelHost` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSplitTunnelHost {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSplitTunnelHost = String;
 
 /// `TeamsDevicesSplitTunnelInclude` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSplitTunnelInclude {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSplitTunnelInclude = serde_json::Value;
 
 /// `TeamsDevicesSplitTunnelIncludeResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSplitTunnelIncludeResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TeamsDevicesSplitTunnelInclude>>,
+    pub result: Vec<serde_json::Value>,
+    /// `result_info` property.
+    pub result_info: Option<TeamsDevicesResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TeamsDevicesSplitTunnelResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesSplitTunnelResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<TeamsDevicesSplitTunnel>>,
-}
+///
+/// Same shape as `TeamsDevicesSplitTunnelIncludeResponseCollection`.
+pub type TeamsDevicesSplitTunnelResponseCollection =
+    TeamsDevicesSplitTunnelIncludeResponseCollection;
 
 /// `TeamsDevicesSupportUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSupportUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSupportUrl = String;
 
 /// `TeamsDevicesSwitchLocked` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesSwitchLocked {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesSwitchLocked = bool;
 
 /// `TeamsDevicesTaniumConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesTaniumConfigRequest {
-    /// access_client_id property.
+    /// `access_client_id` property.
     pub access_client_id: Option<String>,
-    /// access_client_secret property.
+    /// `access_client_secret` property.
     pub access_client_secret: Option<String>,
-    /// api_url property.
+    /// `api_url` property.
     pub api_url: String,
-    /// client_secret property.
+    /// `client_secret` property.
     pub client_secret: String,
 }
 
 /// `TeamsDevicesTaniumInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesTaniumInputRequest {
-    /// connection_id property.
+    /// `connection_id` property.
     pub connection_id: String,
-    /// eid_last_seen property.
+    /// `eid_last_seen` property.
     pub eid_last_seen: Option<String>,
-    /// operator property.
+    /// `operator` property.
     pub operator: Option<String>,
-    /// risk_level property.
+    /// `risk_level` property.
     pub risk_level: Option<String>,
-    /// scoreOperator property.
+    /// `scoreOperator` property.
     #[serde(rename = "scoreOperator")]
     pub score_operator: Option<String>,
-    /// total_score property.
+    /// `total_score` property.
     pub total_score: Option<f64>,
 }
 
 /// `TeamsDevicesTargetDexTest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesTargetDexTest {
-    /// id property.
-    pub id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-}
+///
+/// Same shape as `super::shared::IdNameObject`.
+pub type TeamsDevicesTargetDexTest = super::shared::IdNameObject;
 
 /// `TeamsDevicesTlsConfigRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesTlsConfigRequest {
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// tls_sockaddr property.
-    pub tls_sockaddr: String,
-}
+///
+/// Same shape as `super::shared::Sha256TlsSockaddrObject`.
+pub type TeamsDevicesTlsConfigRequest = super::shared::Sha256TlsSockaddrObject;
 
 /// `TeamsDevicesTlsConfigResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesTlsConfigResponse {
-    /// sha256 property.
-    pub sha256: Option<String>,
-    /// tls_sockaddr property.
-    pub tls_sockaddr: String,
-}
+///
+/// Same shape as `super::shared::Sha256TlsSockaddrObject`.
+pub type TeamsDevicesTlsConfigResponse = super::shared::Sha256TlsSockaddrObject;
 
 /// `TeamsDevicesTrustStores` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesTrustStores {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesTrustStores = Vec<String>;
 
 /// `TeamsDevicesTrustStoresEnum` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesTrustStoresEnum {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesTrustStoresEnum = String;
 
 /// `TeamsDevicesTunnelProtocol` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesTunnelProtocol {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesTunnelProtocol = String;
 
 /// `TeamsDevicesType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesType = String;
 
 /// `TeamsDevicesUniqueClientIdInputRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesUniqueClientIdInputRequest {
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// operating_system property.
+    /// `operating_system` property.
     pub operating_system: String,
 }
 
 /// `TeamsDevicesUptycsConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesUptycsConfigRequest {
-    /// api_url property.
+    /// `api_url` property.
     pub api_url: String,
-    /// client_key property.
+    /// `client_key` property.
     pub client_key: String,
-    /// client_secret property.
+    /// `client_secret` property.
     pub client_secret: String,
-    /// customer_id property.
+    /// `customer_id` property.
     pub customer_id: String,
 }
 
 /// `TeamsDevicesUser` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesUser {
-    /// email property.
-    pub email: Option<TeamsDevicesEmail>,
-    /// id property.
-    pub id: Option<TeamsDevicesComponentsSchemasUuid>,
-    /// name property.
+    /// `email` property.
+    pub email: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `name` property.
     pub name: Option<String>,
 }
 
 /// `TeamsDevicesUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TeamsDevicesUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TeamsDevicesUuid = String;
 
 /// `TeamsDevicesV4ResponseMessage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesV4ResponseMessage {
-    /// code property.
-    pub code: i64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject2`.
+pub type TeamsDevicesV4ResponseMessage = super::shared::CodeMessageObject2;
 
 /// `TeamsDevicesWorkspaceOneConfigRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesWorkspaceOneConfigRequest {
-    /// api_url property.
+    /// `api_url` property.
     pub api_url: String,
-    /// auth_url property.
+    /// `auth_url` property.
     pub auth_url: String,
-    /// client_id property.
+    /// `client_id` property.
     pub client_id: String,
-    /// client_secret property.
+    /// `client_secret` property.
     pub client_secret: String,
 }
 
 /// `TeamsDevicesWorkspaceOneConfigResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesWorkspaceOneConfigResponse {
-    /// api_url property.
+    /// `api_url` property.
     pub api_url: String,
-    /// auth_url property.
+    /// `auth_url` property.
     pub auth_url: String,
-    /// client_id property.
+    /// `client_id` property.
     pub client_id: String,
 }
 
 /// `TeamsDevicesWorkspaceOneInputRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesWorkspaceOneInputRequest {
-    /// compliance_status property.
-    pub compliance_status: String,
-    /// connection_id property.
-    pub connection_id: String,
-}
+///
+/// Same shape as `super::shared::ComplianceStatusConnectionIdObject`.
+pub type TeamsDevicesWorkspaceOneInputRequest = super::shared::ComplianceStatusConnectionIdObject;
 
 /// `TeamsDevicesZeroTrustAccountDeviceSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesZeroTrustAccountDeviceSettings {
-    /// disable_for_time property.
+    /// `disable_for_time` property.
     pub disable_for_time: Option<f64>,
-    /// external_emergency_signal_enabled property.
+    /// `external_emergency_signal_enabled` property.
     pub external_emergency_signal_enabled: Option<bool>,
-    /// external_emergency_signal_fingerprint property.
+    /// `external_emergency_signal_fingerprint` property.
     pub external_emergency_signal_fingerprint: Option<String>,
-    /// external_emergency_signal_interval property.
+    /// `external_emergency_signal_interval` property.
     pub external_emergency_signal_interval: Option<String>,
-    /// external_emergency_signal_url property.
+    /// `external_emergency_signal_url` property.
     pub external_emergency_signal_url: Option<String>,
-    /// gateway_proxy_enabled property.
+    /// `gateway_proxy_enabled` property.
     pub gateway_proxy_enabled: Option<bool>,
-    /// gateway_udp_proxy_enabled property.
+    /// `gateway_udp_proxy_enabled` property.
     pub gateway_udp_proxy_enabled: Option<bool>,
-    /// root_certificate_installation_enabled property.
+    /// `root_certificate_installation_enabled` property.
     pub root_certificate_installation_enabled: Option<bool>,
-    /// use_zt_virtual_ip property.
+    /// `use_zt_virtual_ip` property.
     pub use_zt_virtual_ip: Option<bool>,
 }
 
 /// `TeamsDevicesZeroTrustAccountDeviceSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesZeroTrustAccountDeviceSettingsResponse {
-    /// `result` property.
-    pub result: Option<TeamsDevicesZeroTrustAccountDeviceSettings>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<TeamsDevicesZeroTrustAccountDeviceSettings>`.
+pub type TeamsDevicesZeroTrustAccountDeviceSettingsResponse =
+    super::shared::ApiEnvelope<TeamsDevicesZeroTrustAccountDeviceSettings>;
 
 /// `TunnelApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelApiResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<TunnelResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `TunnelMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct TunnelMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type TunnelMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `TunnelResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct TunnelResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
+///
+/// Same shape as `super::shared::FirewallResultInfoShape`.
+pub type TunnelResultInfo = super::shared::FirewallResultInfoShape;
 
 /// `TunnelSubnetResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct TunnelSubnetResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<TunnelSubnet>>,
+    pub result: Vec<TunnelSubnet>,
+    /// `result_info` property.
+    pub result_info: Option<TunnelResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `UnrevokeRegistrationsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct UnrevokeRegistrationsResponse {
-    /// errors property.
-    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
-    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
-    pub result: Option<TeamsDevicesEmptyBody>,
-    /// result_info property.
-    pub result_info: Option<TeamsDevicesCursorResultInfo>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `DeleteRegistrationsResponse`.
+pub type UnrevokeRegistrationsResponse = DeleteRegistrationsResponse;
 
 /// `UpdateIpProfileResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct UpdateIpProfileResponse {
-    /// errors property.
-    pub errors: Vec<TeamsDevicesV4ResponseMessage>,
-    /// messages property.
-    pub messages: Vec<TeamsDevicesV4ResponseMessage>,
-    /// result property.
-    pub result: TeamsDevicesIpProfile,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `CreateIpProfileResponse`.
+pub type UpdateIpProfileResponse = CreateIpProfileResponse;
 
 /// `ZeroTrustApplicationsReviewStatusUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustApplicationsReviewStatusUpdateRequest {
-    /// approved_apps property.
+    /// `approved_apps` property.
     pub approved_apps: Vec<i64>,
-    /// in_review_apps property.
+    /// `in_review_apps` property.
     pub in_review_apps: Vec<i64>,
-    /// unapproved_apps property.
+    /// `unapproved_apps` property.
     pub unapproved_apps: Vec<i64>,
 }
 
 /// `ZeroTrustGatewayAction` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayAction {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayAction = String;
 
 /// `ZeroTrustGatewayActivityLogSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayActivityLogSettings {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
+///
+/// Same shape as `super::shared::EnabledObject2`.
+pub type ZeroTrustGatewayActivityLogSettings = super::shared::EnabledObject2;
 
 /// `ZeroTrustGatewayAntiVirusSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayAntiVirusSettings {
-    /// enabled_download_phase property.
-    pub enabled_download_phase: Option<ZeroTrustGatewayEnabledDownloadPhase>,
-    /// enabled_upload_phase property.
-    pub enabled_upload_phase: Option<ZeroTrustGatewayEnabledUploadPhase>,
-    /// fail_closed property.
-    pub fail_closed: Option<ZeroTrustGatewayFailClosed>,
-    /// notification_settings property.
+    /// `enabled_download_phase` property.
+    pub enabled_download_phase: Option<bool>,
+    /// `enabled_upload_phase` property.
+    pub enabled_upload_phase: Option<bool>,
+    /// `fail_closed` property.
+    pub fail_closed: Option<bool>,
+    /// `notification_settings` property.
     pub notification_settings: Option<ZeroTrustGatewayNotificationSettings>,
 }
 
 /// `ZeroTrustGatewayApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayApiResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result_info` property.
     pub result_info: Option<ZeroTrustGatewayResultInfo>,
-}
-
-/// `ZeroTrustGatewayApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
+/// `ZeroTrustGatewayApiResponseCommon` type.
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type ZeroTrustGatewayApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
+
 /// `ZeroTrustGatewayApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type ZeroTrustGatewayApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `ZeroTrustGatewayAppId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayAppId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayAppId = i64;
 
 /// `ZeroTrustGatewayAppTypeId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayAppTypeId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayAppTypeId = i64;
 
 /// `ZeroTrustGatewayAppTypes` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayAppTypes {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayAppTypes = serde_json::Value;
 
 /// `ZeroTrustGatewayAppTypesComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayAppTypesComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayAppTypesComponentsSchemasName = String;
 
 /// `ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
-    pub result: Option<Vec<ZeroTrustGatewayAppTypes>>,
+    pub result: Option<Vec<serde_json::Value>>,
+    /// `result_info` property.
+    pub result_info: Option<ZeroTrustGatewayResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ZeroTrustGatewayApplication` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayApplication {
-    /// application_type_id property.
-    pub application_type_id: Option<ZeroTrustGatewayAppTypeId>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayTimestamp>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayAppId>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayAppTypesComponentsSchemasName>,
+    /// `application_type_id` property.
+    pub application_type_id: Option<i64>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `id` property.
+    pub id: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
 }
 
 /// `ZeroTrustGatewayApplicationType` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayApplicationType {
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayTimestamp>,
-    /// description property.
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `description` property.
     pub description: Option<String>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayAppTypeId>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayAppTypesComponentsSchemasName>,
+    /// `id` property.
+    pub id: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
 }
 
 /// `ZeroTrustGatewayApplicationsReviewStatusResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayApplicationsReviewStatusResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayApplicationsReviewStatusResponseContent>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ZeroTrustGatewayApplicationsReviewStatusResponseContent>>`.
+pub type ZeroTrustGatewayApplicationsReviewStatusResponse =
+    super::shared::ApiEnvelope<Option<ZeroTrustGatewayApplicationsReviewStatusResponseContent>>;
 
 /// `ZeroTrustGatewayApplicationsReviewStatusResponseContent` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayApplicationsReviewStatusResponseContent {
-    /// approved_apps property.
+    /// `approved_apps` property.
     pub approved_apps: Option<Vec<i64>>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// in_review_apps property.
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `in_review_apps` property.
     pub in_review_apps: Option<Vec<i64>>,
-    /// unapproved_apps property.
+    /// `unapproved_apps` property.
     pub unapproved_apps: Option<Vec<i64>>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
 }
 
 /// `ZeroTrustGatewayApprovedApps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayApprovedApps {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayApprovedApps = Vec<i64>;
 
 /// `ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewaySettings>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ZeroTrustGatewaySettings>>`.
+pub type ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse =
+    super::shared::ApiEnvelope<Option<ZeroTrustGatewaySettings>>;
 
 /// `ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid = String;
 
 /// `ZeroTrustGatewayBeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayBeta {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayBeta = bool;
 
 /// `ZeroTrustGatewayBindingStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayBindingStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayBindingStatus = String;
 
 /// `ZeroTrustGatewayBlockPageSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayBlockPageSettings {
-    /// background_color property.
+    /// `background_color` property.
     pub background_color: Option<String>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// footer_text property.
+    /// `footer_text` property.
     pub footer_text: Option<String>,
-    /// header_text property.
+    /// `header_text` property.
     pub header_text: Option<String>,
-    /// include_context property.
+    /// `include_context` property.
     pub include_context: Option<bool>,
-    /// logo_path property.
+    /// `logo_path` property.
     pub logo_path: Option<String>,
-    /// mailto_address property.
+    /// `mailto_address` property.
     pub mailto_address: Option<String>,
-    /// mailto_subject property.
+    /// `mailto_subject` property.
     pub mailto_subject: Option<String>,
-    /// mode property.
+    /// `mode` property.
     pub mode: Option<String>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// read_only property.
+    /// `read_only` property.
     pub read_only: Option<bool>,
-    /// source_account property.
+    /// `source_account` property.
     pub source_account: Option<String>,
-    /// suppress_footer property.
+    /// `suppress_footer` property.
     pub suppress_footer: Option<bool>,
-    /// target_uri property.
+    /// `target_uri` property.
     pub target_uri: Option<String>,
-    /// version property.
+    /// `version` property.
     pub version: Option<i64>,
 }
 
 /// `ZeroTrustGatewayBodyScanningSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayBodyScanningSettings {
-    /// inspection_mode property.
+    /// `inspection_mode` property.
     pub inspection_mode: Option<String>,
 }
 
 /// `ZeroTrustGatewayBrowserIsolationSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayBrowserIsolationSettings {
-    /// non_identity_enabled property.
+    /// `non_identity_enabled` property.
     pub non_identity_enabled: Option<bool>,
-    /// url_browser_isolation_enabled property.
+    /// `url_browser_isolation_enabled` property.
     pub url_browser_isolation_enabled: Option<bool>,
 }
 
 /// `ZeroTrustGatewayCategories` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayCategories {
-    /// beta property.
-    pub beta: Option<ZeroTrustGatewayBeta>,
-    /// class property.
-    pub class: Option<ZeroTrustGatewayClass>,
-    /// description property.
-    pub description: Option<ZeroTrustGatewayComponentsSchemasDescription>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayId>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayCategoriesComponentsSchemasName>,
-    /// subcategories property.
+    /// `beta` property.
+    pub beta: Option<bool>,
+    /// `class` property.
+    pub class: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `id` property.
+    pub id: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `subcategories` property.
     pub subcategories: Option<Vec<ZeroTrustGatewaySubcategory>>,
 }
 
 /// `ZeroTrustGatewayCategoriesComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayCategoriesComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayCategoriesComponentsSchemasName = String;
 
 /// `ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<ZeroTrustGatewayCategories>>,
+    /// `result_info` property.
+    pub result_info: Option<ZeroTrustGatewayResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ZeroTrustGatewayCertificateSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCertificateSettings {
-    /// id property.
-    pub id: String,
-}
+///
+/// Same shape as `super::shared::IdObject2`.
+pub type ZeroTrustGatewayCertificateSettings = super::shared::IdObject2;
 
 /// `ZeroTrustGatewayCertificates` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayCertificates {
-    /// binding_status property.
-    pub binding_status: Option<ZeroTrustGatewayBindingStatus>,
-    /// certificate property.
+    /// `binding_status` property.
+    pub binding_status: Option<String>,
+    /// `certificate` property.
     pub certificate: Option<String>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// expires_on property.
-    pub expires_on: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// fingerprint property.
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `expires_on` property.
+    pub expires_on: Option<String>,
+    /// `fingerprint` property.
     pub fingerprint: Option<String>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayUuid>,
-    /// in_use property.
+    /// `id` property.
+    pub id: Option<String>,
+    /// `in_use` property.
     pub in_use: Option<bool>,
-    /// issuer_org property.
+    /// `issuer_org` property.
     pub issuer_org: Option<String>,
-    /// issuer_raw property.
+    /// `issuer_raw` property.
     pub issuer_raw: Option<String>,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: Option<ZeroTrustGatewayType>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// uploaded_on property.
-    pub uploaded_on: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    pub r#type: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
+    /// `uploaded_on` property.
+    pub uploaded_on: Option<String>,
 }
 
 /// `ZeroTrustGatewayCfAccountId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayCfAccountId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayCfAccountId = String;
 
 /// `ZeroTrustGatewayClass` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayClass {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayClass = String;
 
 /// `ZeroTrustGatewayClientDefault` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayClientDefault {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayClientDefault = bool;
 
 /// `ZeroTrustGatewayComponentsSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayComponentsSchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayComponentsSchemasDescription = String;
 
 /// `ZeroTrustGatewayComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayComponentsSchemasName = String;
 
 /// `ZeroTrustGatewayComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayComponentsSchemasResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<ZeroTrustGatewayLocations>>,
+    /// `result_info` property.
+    pub result_info: Option<ZeroTrustGatewayResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ZeroTrustGatewayComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayRules>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ZeroTrustGatewayRules>>`.
+pub type ZeroTrustGatewayComponentsSchemasSingleResponse =
+    super::shared::ApiEnvelope<Option<ZeroTrustGatewayRules>>;
 
 /// `ZeroTrustGatewayComponentsSchemasUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayComponentsSchemasUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayComponentsSchemasUuid = String;
 
 /// `ZeroTrustGatewayContents` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayContents {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayContents = String;
 
 /// `ZeroTrustGatewayCount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayCount {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayCount = f64;
 
 /// `ZeroTrustGatewayCustomCertificateSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayCustomCertificateSettings {
-    /// binding_status property.
+    /// `binding_status` property.
     pub binding_status: Option<String>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// id property.
+    /// `id` property.
     pub id: Option<String>,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: Option<String>,
 }
 
 /// `ZeroTrustGatewayDeletedAt` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayDeletedAt {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayDeletedAt = String;
 
 /// `ZeroTrustGatewayDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayDescription = String;
 
 /// `ZeroTrustGatewayDescriptionItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayDescriptionItem {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayDescriptionItem = String;
 
 /// `ZeroTrustGatewayDevicePosture` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayDevicePosture {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayDevicePosture = String;
 
 /// `ZeroTrustGatewayDnsDestinationIpsIdRead` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayDnsDestinationIpsIdRead {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayDnsDestinationIpsIdRead = String;
 
 /// `ZeroTrustGatewayDnsDestinationIpsIdWrite` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayDnsDestinationIpsIdWrite {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayDnsDestinationIpsIdWrite = String;
 
 /// `ZeroTrustGatewayDnsDestinationIpv6BlockId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayDnsDestinationIpv6BlockId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayDnsDestinationIpv6BlockId = String;
 
 /// `ZeroTrustGatewayDnsResolverSettingsV4` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDnsResolverSettingsV4 {
-    /// ip property.
-    pub ip: String,
-    /// port property.
-    pub port: Option<i64>,
-    /// route_through_private_network property.
-    pub route_through_private_network: Option<bool>,
-    /// vnet_id property.
-    pub vnet_id: Option<String>,
-}
+///
+/// Same shape as `super::shared::ZeroTrustGatewayDnsResolverSettingsV4Shape`.
+pub type ZeroTrustGatewayDnsResolverSettingsV4 =
+    super::shared::ZeroTrustGatewayDnsResolverSettingsV4Shape;
 
 /// `ZeroTrustGatewayDnsResolverSettingsV6` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayDnsResolverSettingsV6 {
-    /// ip property.
-    pub ip: String,
-    /// port property.
-    pub port: Option<i64>,
-    /// route_through_private_network property.
-    pub route_through_private_network: Option<bool>,
-    /// vnet_id property.
-    pub vnet_id: Option<String>,
-}
+///
+/// Same shape as `super::shared::ZeroTrustGatewayDnsResolverSettingsV4Shape`.
+pub type ZeroTrustGatewayDnsResolverSettingsV6 =
+    super::shared::ZeroTrustGatewayDnsResolverSettingsV4Shape;
 
 /// `ZeroTrustGatewayDohEndpoint` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayDohEndpoint {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// networks property.
+    /// `networks` property.
     pub networks: Option<Vec<ZeroTrustGatewayIpNetwork>>,
-    /// require_token property.
+    /// `require_token` property.
     pub require_token: Option<bool>,
 }
 
 /// `ZeroTrustGatewayDotEndpoint` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayDotEndpoint {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// networks property.
+    /// `networks` property.
     pub networks: Option<Vec<ZeroTrustGatewayIpNetwork>>,
 }
 
 /// `ZeroTrustGatewayEcsSupport` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayEcsSupport {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayEcsSupport = bool;
 
 /// `ZeroTrustGatewayEmptyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayEmptyResponse {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type ZeroTrustGatewayEmptyResponse = super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `ZeroTrustGatewayEnabled` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayEnabled {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayEnabled = bool;
 
 /// `ZeroTrustGatewayEnabledDownloadPhase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayEnabledDownloadPhase {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayEnabledDownloadPhase = bool;
 
 /// `ZeroTrustGatewayEnabledUploadPhase` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayEnabledUploadPhase {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayEnabledUploadPhase = bool;
 
 /// `ZeroTrustGatewayEndpoints` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayEndpoints {
-    /// doh property.
+    /// `doh` property.
     pub doh: ZeroTrustGatewayDohEndpoint,
-    /// dot property.
+    /// `dot` property.
     pub dot: ZeroTrustGatewayDotEndpoint,
-    /// ipv4 property.
+    /// `ipv4` property.
     pub ipv4: ZeroTrustGatewayIpv4Endpoint,
-    /// ipv6 property.
+    /// `ipv6` property.
     pub ipv6: ZeroTrustGatewayIpv6Endpoint,
 }
 
 /// `ZeroTrustGatewayExpiration` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayExpiration {
-    /// duration property.
+    /// `duration` property.
     pub duration: Option<i64>,
-    /// expired property.
+    /// `expired` property.
     pub expired: Option<bool>,
-    /// expires_at property.
+    /// `expires_at` property.
     pub expires_at: serde_json::Value,
 }
 
 /// `ZeroTrustGatewayExtendedEmailMatching` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayExtendedEmailMatching {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// read_only property.
+    /// `read_only` property.
     pub read_only: Option<bool>,
-    /// source_account property.
+    /// `source_account` property.
     pub source_account: Option<String>,
-    /// version property.
+    /// `version` property.
     pub version: Option<i64>,
 }
 
 /// `ZeroTrustGatewayFailClosed` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayFailClosed {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayFailClosed = bool;
 
 /// `ZeroTrustGatewayFilters` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayFilters {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayFilters = Vec<String>;
 
 /// `ZeroTrustGatewayFipsSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayFipsSettings {
-    /// tls property.
+    /// `tls` property.
     pub tls: Option<bool>,
 }
 
 /// `ZeroTrustGatewayGatewayAccount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGatewayAccount {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type ZeroTrustGatewayGatewayAccount =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `ZeroTrustGatewayGatewayAccountConfig` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGatewayAccountConfig {
-    /// `result` property.
-    pub result: Option<serde_json::Value>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type ZeroTrustGatewayGatewayAccountConfig =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `ZeroTrustGatewayGatewayAccountLoggingSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayGatewayAccountLoggingSettings {
-    /// redact_pii property.
+    /// `redact_pii` property.
     pub redact_pii: Option<bool>,
-    /// settings_by_rule_type property.
+    /// `settings_by_rule_type` property.
     pub settings_by_rule_type: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `ZeroTrustGatewayGatewayAccountLoggingSettingsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayGatewayAccountLoggingSettingsResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayGatewayAccountLoggingSettings>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ZeroTrustGatewayGatewayAccountLoggingSettings>>`.
+pub type ZeroTrustGatewayGatewayAccountLoggingSettingsResponse =
+    super::shared::ApiEnvelope<Option<ZeroTrustGatewayGatewayAccountLoggingSettings>>;
 
 /// `ZeroTrustGatewayGatewayAccountSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayGatewayAccountSettings {
-    /// settings property.
+    /// `settings` property.
     pub settings: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `ZeroTrustGatewayGatewayTag` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayGatewayTag {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayGatewayTag = String;
 
 /// `ZeroTrustGatewayGenerateCertRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayGenerateCertRequest {
-    /// validity_period_days property.
+    /// `validity_period_days` property.
     pub validity_period_days: Option<i64>,
 }
 
 /// `ZeroTrustGatewayHostSelectorSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayHostSelectorSettings {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
+///
+/// Same shape as `super::shared::EnabledObject2`.
+pub type ZeroTrustGatewayHostSelectorSettings = super::shared::EnabledObject2;
 
 /// `ZeroTrustGatewayId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayId = i64;
 
 /// `ZeroTrustGatewayIdentity` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayIdentity {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayIdentity = String;
 
 /// `ZeroTrustGatewayInReviewApps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayInReviewApps {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayInReviewApps = Vec<i64>;
 
 /// `ZeroTrustGatewayInspectionSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayInspectionSettings {
-    /// mode property.
+    /// `mode` property.
     pub mode: Option<String>,
 }
 
 /// `ZeroTrustGatewayIp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayIp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayIp = String;
 
 /// `ZeroTrustGatewayIpNetwork` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpNetwork {
-    /// network property.
-    pub network: String,
-}
+///
+/// Same shape as `super::shared::NetworkObject`.
+pub type ZeroTrustGatewayIpNetwork = super::shared::NetworkObject;
 
 /// `ZeroTrustGatewayIpNetworks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayIpNetworks {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayIpNetworks = Vec<ZeroTrustGatewayIpNetwork>;
 
 /// `ZeroTrustGatewayIps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayIps {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayIps = Vec<String>;
 
 /// `ZeroTrustGatewayIpv4Endpoint` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpv4Endpoint {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
+///
+/// Same shape as `super::shared::EnabledObject2`.
+pub type ZeroTrustGatewayIpv4Endpoint = super::shared::EnabledObject2;
 
 /// `ZeroTrustGatewayIpv4Network` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpv4Network {
-    /// network property.
-    pub network: String,
-}
+///
+/// Same shape as `super::shared::NetworkObject`.
+pub type ZeroTrustGatewayIpv4Network = super::shared::NetworkObject;
 
 /// `ZeroTrustGatewayIpv4Networks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayIpv4Networks {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayIpv4Networks = Vec<ZeroTrustGatewayIpv4Network>;
 
 /// `ZeroTrustGatewayIpv6Endpoint` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayIpv6Endpoint {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// networks property.
+    /// `networks` property.
     pub networks: Option<Vec<ZeroTrustGatewayIpv6Network>>,
 }
 
 /// `ZeroTrustGatewayIpv6Network` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayIpv6Network {
-    /// network property.
-    pub network: String,
-}
+///
+/// Same shape as `super::shared::NetworkObject`.
+pub type ZeroTrustGatewayIpv6Network = super::shared::NetworkObject;
 
 /// `ZeroTrustGatewayIpv6Networks` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayIpv6Networks {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayIpv6Networks = Vec<ZeroTrustGatewayIpv6Network>;
 
 /// `ZeroTrustGatewayItems` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayItems {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayItems = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `ZeroTrustGatewayItemsInput` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayItemsInput {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayItemsInput = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `ZeroTrustGatewayListItemResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayListItemResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<Vec<std::collections::HashMap<String, serde_json::Value>>>>,
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<Vec<std::collections::HashMap<String, serde_json::Value>>>>>`.
+pub type ZeroTrustGatewayListItemResponseCollection =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<
+        Option<Vec<Vec<std::collections::HashMap<String, serde_json::Value>>>>,
+    >;
 
 /// `ZeroTrustGatewayListSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayListSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayLists>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ZeroTrustGatewayLists>>`.
+pub type ZeroTrustGatewayListSingleResponse =
+    super::shared::ApiEnvelope<Option<ZeroTrustGatewayLists>>;
 
 /// `ZeroTrustGatewayLists` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayLists {
-    /// count property.
-    pub count: Option<ZeroTrustGatewayCount>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// description property.
-    pub description: Option<ZeroTrustGatewayDescription>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewaySchemasUuid>,
-    /// items property.
+    /// `count` property.
+    pub count: Option<f64>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `items` property.
     pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayName>,
-    /// type property.
+    /// `name` property.
+    pub name: Option<String>,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: Option<ZeroTrustGatewaySchemasType>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    pub r#type: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
 }
 
 /// `ZeroTrustGatewayLocations` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayLocations {
-    /// client_default property.
-    pub client_default: Option<ZeroTrustGatewayClientDefault>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// dns_destination_ips_id property.
-    pub dns_destination_ips_id: Option<ZeroTrustGatewayDnsDestinationIpsIdRead>,
-    /// dns_destination_ipv6_block_id property.
-    pub dns_destination_ipv6_block_id: Option<ZeroTrustGatewayDnsDestinationIpv6BlockId>,
-    /// doh_subdomain property.
-    pub doh_subdomain: Option<ZeroTrustGatewaySubdomain>,
-    /// ecs_support property.
-    pub ecs_support: Option<ZeroTrustGatewayEcsSupport>,
-    /// endpoints property.
+    /// `client_default` property.
+    pub client_default: Option<bool>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `dns_destination_ips_id` property.
+    pub dns_destination_ips_id: Option<String>,
+    /// `dns_destination_ipv6_block_id` property.
+    pub dns_destination_ipv6_block_id: Option<String>,
+    /// `doh_subdomain` property.
+    pub doh_subdomain: Option<String>,
+    /// `ecs_support` property.
+    pub ecs_support: Option<bool>,
+    /// `endpoints` property.
     pub endpoints: Option<ZeroTrustGatewayEndpoints>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayComponentsSchemasUuid>,
-    /// ip property.
-    pub ip: Option<ZeroTrustGatewayIp>,
-    /// ipv4_destination property.
+    /// `id` property.
+    pub id: Option<String>,
+    /// `ip` property.
+    pub ip: Option<String>,
+    /// `ipv4_destination` property.
     pub ipv4_destination: Option<String>,
-    /// ipv4_destination_backup property.
+    /// `ipv4_destination_backup` property.
     pub ipv4_destination_backup: Option<String>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewaySchemasName>,
-    /// networks property.
+    /// `name` property.
+    pub name: Option<String>,
+    /// `networks` property.
     pub networks: Option<Vec<ZeroTrustGatewayIpv4Network>>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
 }
 
 /// `ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationRequest {
-    /// client_default property.
-    pub client_default: Option<ZeroTrustGatewayClientDefault>,
-    /// dns_destination_ips_id property.
-    pub dns_destination_ips_id: Option<ZeroTrustGatewayDnsDestinationIpsIdWrite>,
-    /// ecs_support property.
-    pub ecs_support: Option<ZeroTrustGatewayEcsSupport>,
-    /// endpoints property.
+    /// `client_default` property.
+    pub client_default: Option<bool>,
+    /// `dns_destination_ips_id` property.
+    pub dns_destination_ips_id: Option<String>,
+    /// `ecs_support` property.
+    pub ecs_support: Option<bool>,
+    /// `endpoints` property.
     pub endpoints: Option<ZeroTrustGatewayEndpoints>,
-    /// name property.
-    pub name: ZeroTrustGatewaySchemasName,
-    /// networks property.
+    /// `name` property.
+    pub name: String,
+    /// `networks` property.
     pub networks: Option<Vec<ZeroTrustGatewayIpv4Network>>,
 }
 
 /// `ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationRequest {
-    /// client_default property.
-    pub client_default: Option<ZeroTrustGatewayClientDefault>,
-    /// dns_destination_ips_id property.
-    pub dns_destination_ips_id: Option<ZeroTrustGatewayDnsDestinationIpsIdWrite>,
-    /// ecs_support property.
-    pub ecs_support: Option<ZeroTrustGatewayEcsSupport>,
-    /// endpoints property.
-    pub endpoints: Option<ZeroTrustGatewayEndpoints>,
-    /// name property.
-    pub name: ZeroTrustGatewaySchemasName,
-    /// networks property.
-    pub networks: Option<Vec<ZeroTrustGatewayIpv4Network>>,
-}
+///
+/// Same shape as `ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationRequest`.
+pub type ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationRequest =
+    ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationRequest;
 
 /// `ZeroTrustGatewayMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `ZeroTrustGatewayName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayName = String;
 
 /// `ZeroTrustGatewayNotificationSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayNotificationSettings {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// include_context property.
+    /// `include_context` property.
     pub include_context: Option<bool>,
-    /// msg property.
+    /// `msg` property.
     pub msg: Option<String>,
-    /// support_url property.
+    /// `support_url` property.
     pub support_url: Option<String>,
 }
 
 /// `ZeroTrustGatewayPacfile` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfile {
-    /// contents property.
-    pub contents: Option<ZeroTrustGatewayContents>,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// description property.
-    pub description: Option<ZeroTrustGatewayPacfilesComponentsSchemasDescription>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayComponentsSchemasUuid>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayPacfilesComponentsSchemasName>,
-    /// slug property.
-    pub slug: Option<ZeroTrustGatewaySlug>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// url property.
-    pub url: Option<ZeroTrustGatewayUrl>,
+    /// `contents` property.
+    pub contents: Option<String>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `slug` property.
+    pub slug: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
+    /// `url` property.
+    pub url: Option<String>,
 }
 
 /// `ZeroTrustGatewayPacfilesComponentsSchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayPacfilesComponentsSchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayPacfilesComponentsSchemasDescription = String;
 
 /// `ZeroTrustGatewayPacfilesComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayPacfilesComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayPacfilesComponentsSchemasName = String;
 
 /// `ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
+    /// `result_info` property.
+    pub result_info: Option<ZeroTrustGatewayResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayPacfile>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ZeroTrustGatewayPacfile>>`.
+pub type ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse =
+    super::shared::ApiEnvelope<Option<ZeroTrustGatewayPacfile>>;
 
 /// `ZeroTrustGatewayPacfilesCreatePacfileRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesCreatePacfileRequest {
-    /// contents property.
-    pub contents: ZeroTrustGatewayContents,
-    /// description property.
-    pub description: Option<ZeroTrustGatewayPacfilesComponentsSchemasDescription>,
-    /// name property.
-    pub name: ZeroTrustGatewayPacfilesComponentsSchemasName,
-    /// slug property.
+    /// `contents` property.
+    pub contents: String,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `slug` property.
     pub slug: Option<String>,
 }
 
 /// `ZeroTrustGatewayPacfilesUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesUpdateRequest {
-    /// contents property.
-    pub contents: ZeroTrustGatewayContents,
-    /// description property.
-    pub description: ZeroTrustGatewayPacfilesComponentsSchemasDescription,
-    /// name property.
-    pub name: ZeroTrustGatewayPacfilesComponentsSchemasName,
+    /// `contents` property.
+    pub contents: String,
+    /// `description` property.
+    pub description: String,
+    /// `name` property.
+    pub name: String,
 }
 
 /// `ZeroTrustGatewayPrecedence` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayPrecedence {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayPrecedence = i64;
 
 /// `ZeroTrustGatewayProtocolDetection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProtocolDetection {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
+///
+/// Same shape as `super::shared::EnabledObject2`.
+pub type ZeroTrustGatewayProtocolDetection = super::shared::EnabledObject2;
 
 /// `ZeroTrustGatewayProviderName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayProviderName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayProviderName = String;
 
 /// `ZeroTrustGatewayProxyEndpointIdentity` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointIdentity {
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayComponentsSchemasUuid>,
-    /// kind property.
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `kind` property.
     pub kind: String,
-    /// name property.
-    pub name: ZeroTrustGatewayProxyEndpointsComponentsSchemasName,
-    /// subdomain property.
-    pub subdomain: Option<ZeroTrustGatewaySchemasSubdomain>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// `name` property.
+    pub name: String,
+    /// `subdomain` property.
+    pub subdomain: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
 }
 
 /// `ZeroTrustGatewayProxyEndpointIdentityCreate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointIdentityCreate {
-    /// kind property.
+    /// `kind` property.
     pub kind: String,
-    /// name property.
-    pub name: ZeroTrustGatewayProxyEndpointsComponentsSchemasName,
+    /// `name` property.
+    pub name: String,
 }
 
 /// `ZeroTrustGatewayProxyEndpointIp` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointIp {
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayComponentsSchemasUuid>,
-    /// ips property.
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `id` property.
+    pub id: Option<String>,
+    /// `ips` property.
     pub ips: Vec<String>,
-    /// kind property.
+    /// `kind` property.
     pub kind: Option<String>,
-    /// name property.
-    pub name: ZeroTrustGatewayProxyEndpointsComponentsSchemasName,
-    /// subdomain property.
-    pub subdomain: Option<ZeroTrustGatewaySchemasSubdomain>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// `name` property.
+    pub name: String,
+    /// `subdomain` property.
+    pub subdomain: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
 }
 
 /// `ZeroTrustGatewayProxyEndpointIpCreate` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointIpCreate {
-    /// kind property.
+    /// `kind` property.
     pub kind: Option<String>,
-    /// name property.
-    pub name: ZeroTrustGatewayProxyEndpointsComponentsSchemasName,
+    /// `name` property.
+    pub name: String,
 }
 
 /// `ZeroTrustGatewayProxyEndpoints` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayProxyEndpoints {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayProxyEndpoints = serde_json::Value;
 
 /// `ZeroTrustGatewayProxyEndpointsComponentsSchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayProxyEndpointsComponentsSchemasName = String;
 
 /// `ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<ZeroTrustGatewayProxyEndpoints>>,
-}
+///
+/// Same shape as `ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection`.
+pub type ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection =
+    ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection;
 
 /// `ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayProxyEndpoints>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
+pub type ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse =
+    super::shared::ApiEnvelope<Option<serde_json::Value>>;
 
 /// `ZeroTrustGatewayProxyEndpointsCreateProxyEndpointRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointsCreateProxyEndpointRequest {
-    /// kind property.
+    /// `kind` property.
     pub kind: Option<String>,
 }
 
 /// `ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointRequest {
-    /// ips property.
+    /// `ips` property.
     pub ips: Option<Vec<String>>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayProxyEndpointsComponentsSchemasName>,
+    /// `name` property.
+    pub name: Option<String>,
 }
 
 /// `ZeroTrustGatewayPublicKey` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayPublicKey {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayPublicKey = String;
 
 /// `ZeroTrustGatewayReadOnly` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayReadOnly {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayReadOnly = bool;
 
 /// `ZeroTrustGatewayReadOnlyTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayReadOnlyTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayReadOnlyTimestamp = String;
 
 /// `ZeroTrustGatewayResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<ZeroTrustGatewayCertificates>>,
+    /// `result_info` property.
+    pub result_info: Option<ZeroTrustGatewayResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ZeroTrustGatewayResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayResultInfo {
-    /// count property.
-    pub count: Option<f64>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: Option<f64>,
-    /// total_count property.
-    pub total_count: Option<f64>,
-}
+///
+/// Same shape as `super::shared::FirewallResultInfoShape`.
+pub type ZeroTrustGatewayResultInfo = super::shared::FirewallResultInfoShape;
 
 /// `ZeroTrustGatewayRuleSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayRuleSettings {
-    /// add_headers property.
+    /// `add_headers` property.
     pub add_headers: Option<serde_json::Value>,
-    /// allow_child_bypass property.
+    /// `allow_child_bypass` property.
     pub allow_child_bypass: Option<bool>,
-    /// audit_ssh property.
+    /// `audit_ssh` property.
     pub audit_ssh: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// biso_admin_controls property.
+    /// `biso_admin_controls` property.
     pub biso_admin_controls: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// block_page property.
+    /// `block_page` property.
     pub block_page: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// block_page_enabled property.
+    /// `block_page_enabled` property.
     pub block_page_enabled: Option<bool>,
-    /// block_reason property.
+    /// `block_reason` property.
     pub block_reason: Option<String>,
-    /// bypass_parent_rule property.
+    /// `bypass_parent_rule` property.
     pub bypass_parent_rule: Option<bool>,
-    /// check_session property.
+    /// `check_session` property.
     pub check_session: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// dns_resolvers property.
+    /// `dns_resolvers` property.
     pub dns_resolvers: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// egress property.
+    /// `egress` property.
     pub egress: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// forensic_copy property.
+    /// `forensic_copy` property.
     pub forensic_copy: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// ignore_cname_category_matches property.
+    /// `ignore_cname_category_matches` property.
     pub ignore_cname_category_matches: Option<bool>,
-    /// insecure_disable_dnssec_validation property.
+    /// `insecure_disable_dnssec_validation` property.
     pub insecure_disable_dnssec_validation: Option<bool>,
-    /// ip_categories property.
+    /// `ip_categories` property.
     pub ip_categories: Option<bool>,
-    /// ip_indicator_feeds property.
+    /// `ip_indicator_feeds` property.
     pub ip_indicator_feeds: Option<bool>,
-    /// l4override property.
+    /// `l4override` property.
     pub l4override: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// notification_settings property.
+    /// `notification_settings` property.
     pub notification_settings: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// override_host property.
+    /// `override_host` property.
     pub override_host: Option<String>,
-    /// override_ips property.
+    /// `override_ips` property.
     pub override_ips: Option<Vec<String>>,
-    /// payload_log property.
+    /// `payload_log` property.
     pub payload_log: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// quarantine property.
+    /// `quarantine` property.
     pub quarantine: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// redirect property.
+    /// `redirect` property.
     pub redirect: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// resolve_dns_internally property.
+    /// `resolve_dns_internally` property.
     pub resolve_dns_internally: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// resolve_dns_through_cloudflare property.
+    /// `resolve_dns_through_cloudflare` property.
     pub resolve_dns_through_cloudflare: Option<bool>,
-    /// untrusted_cert property.
+    /// `untrusted_cert` property.
     pub untrusted_cert: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `ZeroTrustGatewayRules` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayRules {
-    /// action property.
-    pub action: ZeroTrustGatewayAction,
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// deleted_at property.
-    pub deleted_at: Option<ZeroTrustGatewayDeletedAt>,
-    /// description property.
-    pub description: Option<ZeroTrustGatewaySchemasDescription>,
-    /// device_posture property.
-    pub device_posture: Option<ZeroTrustGatewayDevicePosture>,
-    /// enabled property.
-    pub enabled: ZeroTrustGatewayEnabled,
-    /// expiration property.
+    /// `action` property.
+    pub action: String,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `deleted_at` property.
+    pub deleted_at: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `device_posture` property.
+    pub device_posture: Option<String>,
+    /// `enabled` property.
+    pub enabled: bool,
+    /// `expiration` property.
     pub expiration: Option<ZeroTrustGatewayExpiration>,
-    /// filters property.
+    /// `filters` property.
     pub filters: Vec<String>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewaySchemasUuid>,
-    /// identity property.
-    pub identity: Option<ZeroTrustGatewayIdentity>,
-    /// name property.
-    pub name: ZeroTrustGatewayComponentsSchemasName,
-    /// precedence property.
-    pub precedence: ZeroTrustGatewayPrecedence,
-    /// read_only property.
-    pub read_only: Option<ZeroTrustGatewayReadOnly>,
-    /// rule_settings property.
+    /// `id` property.
+    pub id: Option<String>,
+    /// `identity` property.
+    pub identity: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `precedence` property.
+    pub precedence: i64,
+    /// `read_only` property.
+    pub read_only: Option<bool>,
+    /// `rule_settings` property.
     pub rule_settings: Option<ZeroTrustGatewayRuleSettings>,
-    /// schedule property.
+    /// `schedule` property.
     pub schedule: Option<ZeroTrustGatewaySchedule>,
-    /// sharable property.
-    pub sharable: Option<ZeroTrustGatewaySharable>,
-    /// source_account property.
-    pub source_account: Option<ZeroTrustGatewaySourceAccount>,
-    /// traffic property.
-    pub traffic: ZeroTrustGatewayTraffic,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// version property.
-    pub version: Option<ZeroTrustGatewayVersion>,
-    /// warning_status property.
-    pub warning_status: Option<ZeroTrustGatewayWarningStatus>,
+    /// `sharable` property.
+    pub sharable: Option<bool>,
+    /// `source_account` property.
+    pub source_account: Option<String>,
+    /// `traffic` property.
+    pub traffic: String,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
+    /// `version` property.
+    pub version: Option<i64>,
+    /// `warning_status` property.
+    pub warning_status: Option<String>,
 }
 
 /// `ZeroTrustGatewayRulesComponentsSchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesComponentsSchemasResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<ZeroTrustGatewayRules>>,
+    /// `result_info` property.
+    pub result_info: Option<ZeroTrustGatewayResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleRequest {
-    /// action property.
-    pub action: ZeroTrustGatewayAction,
-    /// description property.
-    pub description: Option<ZeroTrustGatewaySchemasDescription>,
-    /// device_posture property.
-    pub device_posture: Option<ZeroTrustGatewayDevicePosture>,
-    /// enabled property.
-    pub enabled: Option<ZeroTrustGatewayEnabled>,
-    /// expiration property.
+    /// `action` property.
+    pub action: String,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `device_posture` property.
+    pub device_posture: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `expiration` property.
     pub expiration: Option<ZeroTrustGatewayExpiration>,
-    /// filters property.
+    /// `filters` property.
     pub filters: Option<Vec<String>>,
-    /// identity property.
-    pub identity: Option<ZeroTrustGatewayIdentity>,
-    /// name property.
-    pub name: ZeroTrustGatewayComponentsSchemasName,
-    /// precedence property.
-    pub precedence: Option<ZeroTrustGatewayPrecedence>,
-    /// rule_settings property.
+    /// `identity` property.
+    pub identity: Option<String>,
+    /// `name` property.
+    pub name: String,
+    /// `precedence` property.
+    pub precedence: Option<i64>,
+    /// `rule_settings` property.
     pub rule_settings: Option<ZeroTrustGatewayRuleSettings>,
-    /// schedule property.
+    /// `schedule` property.
     pub schedule: Option<ZeroTrustGatewaySchedule>,
-    /// traffic property.
-    pub traffic: Option<ZeroTrustGatewayTraffic>,
+    /// `traffic` property.
+    pub traffic: Option<String>,
 }
 
 /// `ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleRequest` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleRequest {
-    /// action property.
-    pub action: ZeroTrustGatewayAction,
-    /// description property.
-    pub description: Option<ZeroTrustGatewaySchemasDescription>,
-    /// device_posture property.
-    pub device_posture: Option<ZeroTrustGatewayDevicePosture>,
-    /// enabled property.
-    pub enabled: Option<ZeroTrustGatewayEnabled>,
-    /// expiration property.
-    pub expiration: Option<ZeroTrustGatewayExpiration>,
-    /// filters property.
-    pub filters: Option<Vec<String>>,
-    /// identity property.
-    pub identity: Option<ZeroTrustGatewayIdentity>,
-    /// name property.
-    pub name: ZeroTrustGatewayComponentsSchemasName,
-    /// precedence property.
-    pub precedence: Option<ZeroTrustGatewayPrecedence>,
-    /// rule_settings property.
-    pub rule_settings: Option<ZeroTrustGatewayRuleSettings>,
-    /// schedule property.
-    pub schedule: Option<ZeroTrustGatewaySchedule>,
-    /// traffic property.
-    pub traffic: Option<ZeroTrustGatewayTraffic>,
-}
+///
+/// Same shape as `ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleRequest`.
+pub type ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleRequest =
+    ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleRequest;
 
 /// `ZeroTrustGatewaySandbox` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySandbox {
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: Option<bool>,
-    /// fallback_action property.
+    /// `fallback_action` property.
     pub fallback_action: Option<String>,
 }
 
 /// `ZeroTrustGatewaySchedule` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySchedule {
-    /// fri property.
+    /// `fri` property.
     pub fri: Option<String>,
-    /// mon property.
+    /// `mon` property.
     pub mon: Option<String>,
-    /// sat property.
+    /// `sat` property.
     pub sat: Option<String>,
-    /// sun property.
+    /// `sun` property.
     pub sun: Option<String>,
-    /// thu property.
+    /// `thu` property.
     pub thu: Option<String>,
-    /// time_zone property.
+    /// `time_zone` property.
     pub time_zone: Option<String>,
-    /// tue property.
+    /// `tue` property.
     pub tue: Option<String>,
-    /// wed property.
+    /// `wed` property.
     pub wed: Option<String>,
 }
 
 /// `ZeroTrustGatewaySchemasDescription` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewaySchemasDescription {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewaySchemasDescription = String;
 
 /// `ZeroTrustGatewaySchemasName` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewaySchemasName {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewaySchemasName = String;
 
 /// `ZeroTrustGatewaySchemasResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySchemasResponseCollection {
+    /// `errors` property.
+    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
+    /// `messages` property.
+    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
     /// `result` property.
     pub result: Option<Vec<ZeroTrustGatewayLists>>,
+    /// `result_info` property.
+    pub result_info: Option<ZeroTrustGatewayResultInfo>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `ZeroTrustGatewaySchemasSingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySchemasSingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayLocations>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ZeroTrustGatewayLocations>>`.
+pub type ZeroTrustGatewaySchemasSingleResponse =
+    super::shared::ApiEnvelope<Option<ZeroTrustGatewayLocations>>;
 
 /// `ZeroTrustGatewaySchemasSubdomain` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewaySchemasSubdomain {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewaySchemasSubdomain = String;
 
 /// `ZeroTrustGatewaySchemasType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewaySchemasType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewaySchemasType = String;
 
 /// `ZeroTrustGatewaySchemasUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewaySchemasUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewaySchemasUuid = String;
 
 /// `ZeroTrustGatewaySettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySettings {
-    /// created_at property.
-    pub created_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
-    /// public_key property.
-    pub public_key: Option<ZeroTrustGatewayPublicKey>,
-    /// seed_id property.
-    pub seed_id: Option<ZeroTrustGatewayAuditSshSettingsComponentsSchemasUuid>,
-    /// updated_at property.
-    pub updated_at: Option<ZeroTrustGatewayReadOnlyTimestamp>,
+    /// `created_at` property.
+    pub created_at: Option<String>,
+    /// `public_key` property.
+    pub public_key: Option<String>,
+    /// `seed_id` property.
+    pub seed_id: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: Option<String>,
 }
 
 /// `ZeroTrustGatewaySharable` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewaySharable {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewaySharable = bool;
 
 /// `ZeroTrustGatewaySingleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySingleResponse {
-    /// `result` property.
-    pub result: Option<ZeroTrustGatewayCertificates>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<ZeroTrustGatewayCertificates>>`.
+pub type ZeroTrustGatewaySingleResponse =
+    super::shared::ApiEnvelope<Option<ZeroTrustGatewayCertificates>>;
 
 /// `ZeroTrustGatewaySingleResponseWithListItems` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewaySingleResponseWithListItems {
-    /// `result` property.
-    pub result: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>`.
+pub type ZeroTrustGatewaySingleResponseWithListItems =
+    super::shared::ApiEnvelope<Option<std::collections::HashMap<String, serde_json::Value>>>;
 
 /// `ZeroTrustGatewaySlug` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewaySlug {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewaySlug = String;
 
 /// `ZeroTrustGatewaySourceAccount` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewaySourceAccount {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewaySourceAccount = String;
 
 /// `ZeroTrustGatewaySubcategory` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySubcategory {
-    /// beta property.
-    pub beta: Option<ZeroTrustGatewayBeta>,
-    /// class property.
-    pub class: Option<ZeroTrustGatewayClass>,
-    /// description property.
-    pub description: Option<ZeroTrustGatewayComponentsSchemasDescription>,
-    /// id property.
-    pub id: Option<ZeroTrustGatewayId>,
-    /// name property.
-    pub name: Option<ZeroTrustGatewayCategoriesComponentsSchemasName>,
+    /// `beta` property.
+    pub beta: Option<bool>,
+    /// `class` property.
+    pub class: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `id` property.
+    pub id: Option<i64>,
+    /// `name` property.
+    pub name: Option<String>,
 }
 
 /// `ZeroTrustGatewaySubdomain` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewaySubdomain {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewaySubdomain = String;
 
 /// `ZeroTrustGatewayTimestamp` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayTimestamp {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayTimestamp = String;
 
 /// `ZeroTrustGatewayTlsSettings` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayTlsSettings {
-    /// enabled property.
-    pub enabled: Option<bool>,
-}
+///
+/// Same shape as `super::shared::EnabledObject2`.
+pub type ZeroTrustGatewayTlsSettings = super::shared::EnabledObject2;
 
 /// `ZeroTrustGatewayTraffic` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayTraffic {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayTraffic = String;
 
 /// `ZeroTrustGatewayType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayType = String;
 
 /// `ZeroTrustGatewayUnapprovedApps` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayUnapprovedApps {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayUnapprovedApps = Vec<i64>;
 
 /// `ZeroTrustGatewayUrl` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayUrl {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayUrl = String;
 
 /// `ZeroTrustGatewayUuid` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayUuid {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayUuid = String;
 
 /// `ZeroTrustGatewayValue` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayValue {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayValue = String;
 
 /// `ZeroTrustGatewayVersion` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayVersion {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayVersion = i64;
 
 /// `ZeroTrustGatewayWarningStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct ZeroTrustGatewayWarningStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type ZeroTrustGatewayWarningStatus = String;
 
 /// `ZeroTrustListsCreateZeroTrustListRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustListsCreateZeroTrustListRequest {
-    /// description property.
-    pub description: Option<ZeroTrustGatewayDescription>,
-    /// items property.
+    /// `description` property.
+    pub description: Option<String>,
+    /// `items` property.
     pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// name property.
-    pub name: ZeroTrustGatewayName,
-    /// type property.
+    /// `name` property.
+    pub name: String,
+    /// `type` property.
     #[serde(rename = "type")]
-    pub r#type: ZeroTrustGatewaySchemasType,
+    pub r#type: String,
 }
 
 /// `ZeroTrustListsPatchZeroTrustListRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustListsPatchZeroTrustListRequest {
-    /// append property.
+    /// `append` property.
     pub append: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// remove property.
-    pub remove: Option<Vec<ZeroTrustGatewayValue>>,
+    /// `remove` property.
+    pub remove: Option<Vec<String>>,
 }
 
 /// `ZeroTrustListsUpdateZeroTrustListRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustListsUpdateZeroTrustListRequest {
-    /// description property.
-    pub description: Option<ZeroTrustGatewayDescription>,
-    /// items property.
+    /// `description` property.
+    pub description: Option<String>,
+    /// `items` property.
     pub items: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// name property.
-    pub name: ZeroTrustGatewayName,
+    /// `name` property.
+    pub name: String,
 }
 
 /// `ZeroTrustNetworksSubnetUpdateCloudflareSourceRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustNetworksSubnetUpdateCloudflareSourceRequest {
-    /// comment property.
-    pub comment: Option<TunnelSubnetComment>,
-    /// name property.
-    pub name: Option<TunnelSubnetName>,
-    /// network property.
-    pub network: Option<TunnelSubnetIpNetwork>,
+    /// `comment` property.
+    pub comment: Option<String>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `network` property.
+    pub network: Option<String>,
 }
 
 /// `ZeroTrustUpdateAuditSshSettingsRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustUpdateAuditSshSettingsRequest {
-    /// public_key property.
-    pub public_key: ZeroTrustGatewayPublicKey,
+    /// `public_key` property.
+    pub public_key: String,
 }
 
 // =============================================================================
@@ -3783,13 +3013,9 @@ pub struct CreateIpProfileArgs {
 }
 
 /// Arguments for [`get-ip-profile_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct GetIpProfileArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `profile_id`.
-    pub profile_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdProfileIdArgs`.
+pub type GetIpProfileArgs = super::shared::AccountIdProfileIdArgs;
 
 /// Arguments for [`update-ip-profile_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3803,20 +3029,14 @@ pub struct UpdateIpProfileArgs {
 }
 
 /// Arguments for [`delete-ip-profile_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteIpProfileArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `profile_id`.
-    pub profile_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdProfileIdArgs`.
+pub type DeleteIpProfileArgs = super::shared::AccountIdProfileIdArgs;
 
 /// Arguments for [`device-managed-networks-list-device-managed-networks_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeviceManagedNetworksListDeviceManagedNetworksArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DeviceManagedNetworksListDeviceManagedNetworksArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`device-managed-networks-create-device-managed-network_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3828,13 +3048,10 @@ pub struct DeviceManagedNetworksCreateDeviceManagedNetworkArgs {
 }
 
 /// Arguments for [`device-managed-networks-device-managed-network-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeviceManagedNetworksDeviceManagedNetworkDetailsArgs {
-    /// Path parameter: `network_id`.
-    pub network_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::NetworkIdAccountIdArgs`.
+pub type DeviceManagedNetworksDeviceManagedNetworkDetailsArgs =
+    super::shared::NetworkIdAccountIdArgs;
 
 /// Arguments for [`device-managed-networks-update-device-managed-network_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3848,13 +3065,10 @@ pub struct DeviceManagedNetworksUpdateDeviceManagedNetworkArgs {
 }
 
 /// Arguments for [`device-managed-networks-delete-device-managed-network_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeviceManagedNetworksDeleteDeviceManagedNetworkArgs {
-    /// Path parameter: `network_id`.
-    pub network_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::NetworkIdAccountIdArgs`.
+pub type DeviceManagedNetworksDeleteDeviceManagedNetworkArgs =
+    super::shared::NetworkIdAccountIdArgs;
 
 /// Arguments for [`list-devices_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3879,8 +3093,8 @@ pub struct ListDevicesArgs {
     pub search: Option<String>,
     /// Query parameter: `active_registrations`.
     pub active_registrations: Option<String>,
-    /// Query parameter: `id`.
-    pub id: Option<String>,
+    /// Query parameter: `id` (one per value).
+    pub id: Vec<String>,
     /// Query parameter: `include`.
     pub include: Option<String>,
 }
@@ -3915,18 +3129,14 @@ pub struct RevokeDeviceArgs {
 }
 
 /// Arguments for [`devices-list-device-settings-policies_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicesListDeviceSettingsPoliciesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DevicesListDeviceSettingsPoliciesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`devices-get-default-device-settings-policy_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicesGetDefaultDeviceSettingsPolicyArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DevicesGetDefaultDeviceSettingsPolicyArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`devices-create-device-settings-policy_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3947,11 +3157,9 @@ pub struct DevicesUpdateDefaultDeviceSettingsPolicyArgs {
 }
 
 /// Arguments for [`devices-get-split-tunnel-exclude-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicesGetSplitTunnelExcludeListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DevicesGetSplitTunnelExcludeListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`devices-set-split-tunnel-exclude-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3963,11 +3171,9 @@ pub struct DevicesSetSplitTunnelExcludeListArgs {
 }
 
 /// Arguments for [`devices-get-split-tunnel-include-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicesGetSplitTunnelIncludeListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DevicesGetSplitTunnelIncludeListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`devices-set-split-tunnel-include-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3979,13 +3185,9 @@ pub struct DevicesSetSplitTunnelIncludeListArgs {
 }
 
 /// Arguments for [`devices-get-device-settings-policy-by-id_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicesGetDeviceSettingsPolicyByIdArgs {
-    /// Path parameter: `policy_id`.
-    pub policy_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PolicyIdAccountIdArgs`.
+pub type DevicesGetDeviceSettingsPolicyByIdArgs = super::shared::PolicyIdAccountIdArgs;
 
 /// Arguments for [`devices-update-device-settings-policy_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -3999,22 +3201,15 @@ pub struct DevicesUpdateDeviceSettingsPolicyArgs {
 }
 
 /// Arguments for [`devices-delete-device-settings-policy_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicesDeleteDeviceSettingsPolicyArgs {
-    /// Path parameter: `policy_id`.
-    pub policy_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PolicyIdAccountIdArgs`.
+pub type DevicesDeleteDeviceSettingsPolicyArgs = super::shared::PolicyIdAccountIdArgs;
 
 /// Arguments for [`devices-get-split-tunnel-exclude-list-for-a-device-settings-policy_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicesGetSplitTunnelExcludeListForADeviceSettingsPolicyArgs {
-    /// Path parameter: `policy_id`.
-    pub policy_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PolicyIdAccountIdArgs`.
+pub type DevicesGetSplitTunnelExcludeListForADeviceSettingsPolicyArgs =
+    super::shared::PolicyIdAccountIdArgs;
 
 /// Arguments for [`devices-set-split-tunnel-exclude-list-for-a-device-settings-policy_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4028,13 +3223,10 @@ pub struct DevicesSetSplitTunnelExcludeListForADeviceSettingsPolicyArgs {
 }
 
 /// Arguments for [`devices-get-split-tunnel-include-list-for-a-device-settings-policy_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicesGetSplitTunnelIncludeListForADeviceSettingsPolicyArgs {
-    /// Path parameter: `policy_id`.
-    pub policy_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PolicyIdAccountIdArgs`.
+pub type DevicesGetSplitTunnelIncludeListForADeviceSettingsPolicyArgs =
+    super::shared::PolicyIdAccountIdArgs;
 
 /// Arguments for [`devices-set-split-tunnel-include-list-for-a-device-settings-policy_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4048,11 +3240,9 @@ pub struct DevicesSetSplitTunnelIncludeListForADeviceSettingsPolicyArgs {
 }
 
 /// Arguments for [`device-posture-rules-list-device-posture-rules_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicePostureRulesListDevicePostureRulesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DevicePostureRulesListDevicePostureRulesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`device-posture-rules-create-device-posture-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4064,11 +3254,9 @@ pub struct DevicePostureRulesCreateDevicePostureRuleArgs {
 }
 
 /// Arguments for [`device-posture-integrations-list-device-posture-integrations_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicePostureIntegrationsListDevicePostureIntegrationsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DevicePostureIntegrationsListDevicePostureIntegrationsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`device-posture-integrations-create-device-posture-integration_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4080,13 +3268,10 @@ pub struct DevicePostureIntegrationsCreateDevicePostureIntegrationArgs {
 }
 
 /// Arguments for [`device-posture-integrations-device-posture-integration-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicePostureIntegrationsDevicePostureIntegrationDetailsArgs {
-    /// Path parameter: `integration_id`.
-    pub integration_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IntegrationIdAccountIdArgs`.
+pub type DevicePostureIntegrationsDevicePostureIntegrationDetailsArgs =
+    super::shared::IntegrationIdAccountIdArgs;
 
 /// Arguments for [`device-posture-integrations-update-device-posture-integration_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4100,22 +3285,15 @@ pub struct DevicePostureIntegrationsUpdateDevicePostureIntegrationArgs {
 }
 
 /// Arguments for [`device-posture-integrations-delete-device-posture-integration_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicePostureIntegrationsDeleteDevicePostureIntegrationArgs {
-    /// Path parameter: `integration_id`.
-    pub integration_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::IntegrationIdAccountIdArgs`.
+pub type DevicePostureIntegrationsDeleteDevicePostureIntegrationArgs =
+    super::shared::IntegrationIdAccountIdArgs;
 
 /// Arguments for [`device-posture-rules-device-posture-rules-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicePostureRulesDevicePostureRulesDetailsArgs {
-    /// Path parameter: `rule_id`.
-    pub rule_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::RuleIdAccountIdArgs`.
+pub type DevicePostureRulesDevicePostureRulesDetailsArgs = super::shared::RuleIdAccountIdArgs;
 
 /// Arguments for [`device-posture-rules-update-device-posture-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4129,21 +3307,17 @@ pub struct DevicePostureRulesUpdateDevicePostureRuleArgs {
 }
 
 /// Arguments for [`device-posture-rules-delete-device-posture-rule_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DevicePostureRulesDeleteDevicePostureRuleArgs {
-    /// Path parameter: `rule_id`.
-    pub rule_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::RuleIdAccountIdArgs`.
+pub type DevicePostureRulesDeleteDevicePostureRuleArgs = super::shared::RuleIdAccountIdArgs;
 
 /// Arguments for [`list-registrations_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ListRegistrationsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: `user.id`.
-    pub user_id: Option<String>,
+    /// Query parameter: `user.id` (one per value).
+    pub user_id: Vec<String>,
     /// Query parameter: `seen_after`.
     pub seen_after: Option<String>,
     /// Query parameter: `seen_before`.
@@ -4160,8 +3334,8 @@ pub struct ListRegistrationsArgs {
     pub sort_order: Option<String>,
     /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: `id`.
-    pub id: Option<String>,
+    /// Query parameter: `id` (one per value).
+    pub id: Vec<String>,
     /// Query parameter: `device.id`.
     pub device_id: Option<String>,
     /// Query parameter: `include`.
@@ -4169,31 +3343,19 @@ pub struct ListRegistrationsArgs {
 }
 
 /// Arguments for [`delete-registrations_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DeleteRegistrationsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `id`.
-    pub id: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdIdArgs2`.
+pub type DeleteRegistrationsArgs = super::shared::AccountIdIdArgs2;
 
 /// Arguments for [`revoke-registrations_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct RevokeRegistrationsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `id`.
-    pub id: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdIdArgs2`.
+pub type RevokeRegistrationsArgs = super::shared::AccountIdIdArgs2;
 
 /// Arguments for [`unrevoke-registrations_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct UnrevokeRegistrationsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Query parameter: `id`.
-    pub id: Option<String>,
-}
+///
+/// Same shape as `super::shared::AccountIdIdArgs2`.
+pub type UnrevokeRegistrationsArgs = super::shared::AccountIdIdArgs2;
 
 /// Arguments for [`get-registration_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4225,11 +3387,9 @@ pub struct GetRegistrationOverrideCodesArgs {
 }
 
 /// Arguments for [`zero-trust-accounts-get-device-settings-for-zero-trust-account_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsGetDeviceSettingsForZeroTrustAccountArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustAccountsGetDeviceSettingsForZeroTrustAccountArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-accounts-update-device-settings-for-the-zero-trust-account_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4241,48 +3401,37 @@ pub struct ZeroTrustAccountsUpdateDeviceSettingsForTheZeroTrustAccountArgs {
 }
 
 /// Arguments for [`zero-trust-accounts-patch-device-settings-for-the-zero-trust-account_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsPatchDeviceSettingsForTheZeroTrustAccountArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Request body.
-    pub body: TeamsDevicesZeroTrustAccountDeviceSettings,
-}
+///
+/// Same shape as `ZeroTrustAccountsUpdateDeviceSettingsForTheZeroTrustAccountArgs`.
+pub type ZeroTrustAccountsPatchDeviceSettingsForTheZeroTrustAccountArgs =
+    ZeroTrustAccountsUpdateDeviceSettingsForTheZeroTrustAccountArgs;
 
 /// Arguments for [`zero-trust-accounts-delete-device-settings-for-zero-trust-account_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsDeleteDeviceSettingsForZeroTrustAccountArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustAccountsDeleteDeviceSettingsForZeroTrustAccountArgs =
+    super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-accounts-get-zero-trust-account-information_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsGetZeroTrustAccountInformationArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustAccountsGetZeroTrustAccountInformationArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-accounts-create-zero-trust-account_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsCreateZeroTrustAccountArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustAccountsCreateZeroTrustAccountArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-application-and-application-type-mappings-list-application-and-application-type-mappings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayApplicationAndApplicationTypeMappingsListApplicationAndApplicationTypeMappingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustGatewayApplicationAndApplicationTypeMappingsListApplicationAndApplicationTypeMappingsArgs =
+    super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-applications-review-status-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustApplicationsReviewStatusListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustApplicationsReviewStatusListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-applications-review-status-update_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4294,11 +3443,9 @@ pub struct ZeroTrustApplicationsReviewStatusUpdateArgs {
 }
 
 /// Arguments for [`zero-trust-get-audit-ssh-settings_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGetAuditSshSettingsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustGetAuditSshSettingsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-update-audit-ssh-settings_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4310,25 +3457,19 @@ pub struct ZeroTrustUpdateAuditSshSettingsArgs {
 }
 
 /// Arguments for [`zero-trust-rotate-ssh-account-seed_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustRotateSshAccountSeedArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustRotateSshAccountSeedArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-categories-list-categories_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayCategoriesListCategoriesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustGatewayCategoriesListCategoriesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-certificates-list-zero-trust-certificates_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustCertificatesListZeroTrustCertificatesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustCertificatesListZeroTrustCertificatesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-certificates-create-zero-trust-certificate_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4340,61 +3481,43 @@ pub struct ZeroTrustCertificatesCreateZeroTrustCertificateArgs {
 }
 
 /// Arguments for [`zero-trust-certificates-zero-trust-certificate-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustCertificatesZeroTrustCertificateDetailsArgs {
-    /// Path parameter: `certificate_id`.
-    pub certificate_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::CertificateIdAccountIdArgs`.
+pub type ZeroTrustCertificatesZeroTrustCertificateDetailsArgs =
+    super::shared::CertificateIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-certificates-delete-zero-trust-certificate_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustCertificatesDeleteZeroTrustCertificateArgs {
-    /// Path parameter: `certificate_id`.
-    pub certificate_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::CertificateIdAccountIdArgs`.
+pub type ZeroTrustCertificatesDeleteZeroTrustCertificateArgs =
+    super::shared::CertificateIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-certificates-activate-zero-trust-certificate_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustCertificatesActivateZeroTrustCertificateArgs {
-    /// Path parameter: `certificate_id`.
-    pub certificate_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::CertificateIdAccountIdArgs`.
+pub type ZeroTrustCertificatesActivateZeroTrustCertificateArgs =
+    super::shared::CertificateIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-certificates-deactivate-zero-trust-certificate_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustCertificatesDeactivateZeroTrustCertificateArgs {
-    /// Path parameter: `certificate_id`.
-    pub certificate_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::CertificateIdAccountIdArgs`.
+pub type ZeroTrustCertificatesDeactivateZeroTrustCertificateArgs =
+    super::shared::CertificateIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-accounts-get-zero-trust-account-configuration_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsGetZeroTrustAccountConfigurationArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustAccountsGetZeroTrustAccountConfigurationArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-accounts-update-zero-trust-account-configuration._request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsUpdateZeroTrustAccountConfigurationArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustAccountsUpdateZeroTrustAccountConfigurationArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-accounts-patch-zero-trust-account-configuration_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsPatchZeroTrustAccountConfigurationArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustAccountsPatchZeroTrustAccountConfigurationArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-lists-list-zero-trust-lists_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4415,13 +3538,9 @@ pub struct ZeroTrustListsCreateZeroTrustListArgs {
 }
 
 /// Arguments for [`zero-trust-lists-zero-trust-list-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustListsZeroTrustListDetailsArgs {
-    /// Path parameter: `list_id`.
-    pub list_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ListIdAccountIdArgs`.
+pub type ZeroTrustListsZeroTrustListDetailsArgs = super::shared::ListIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-lists-update-zero-trust-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4446,29 +3565,19 @@ pub struct ZeroTrustListsPatchZeroTrustListArgs {
 }
 
 /// Arguments for [`zero-trust-lists-delete-zero-trust-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustListsDeleteZeroTrustListArgs {
-    /// Path parameter: `list_id`.
-    pub list_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ListIdAccountIdArgs`.
+pub type ZeroTrustListsDeleteZeroTrustListArgs = super::shared::ListIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-lists-zero-trust-list-items_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustListsZeroTrustListItemsArgs {
-    /// Path parameter: `list_id`.
-    pub list_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ListIdAccountIdArgs`.
+pub type ZeroTrustListsZeroTrustListItemsArgs = super::shared::ListIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-locations-list-zero-trust-gateway-locations_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayLocationsListZeroTrustGatewayLocationsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustGatewayLocationsListZeroTrustGatewayLocationsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-locations-create-zero-trust-gateway-location_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4480,13 +3589,10 @@ pub struct ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationArgs {
 }
 
 /// Arguments for [`zero-trust-gateway-locations-zero-trust-gateway-location-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayLocationsZeroTrustGatewayLocationDetailsArgs {
-    /// Path parameter: `location_id`.
-    pub location_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LocationIdAccountIdArgs`.
+pub type ZeroTrustGatewayLocationsZeroTrustGatewayLocationDetailsArgs =
+    super::shared::LocationIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-locations-update-zero-trust-gateway-location_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4500,20 +3606,16 @@ pub struct ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationArgs {
 }
 
 /// Arguments for [`zero-trust-gateway-locations-delete-zero-trust-gateway-location_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayLocationsDeleteZeroTrustGatewayLocationArgs {
-    /// Path parameter: `location_id`.
-    pub location_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::LocationIdAccountIdArgs`.
+pub type ZeroTrustGatewayLocationsDeleteZeroTrustGatewayLocationArgs =
+    super::shared::LocationIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-accounts-get-logging-settings-for-the-zero-trust-account_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsGetLoggingSettingsForTheZeroTrustAccountArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustAccountsGetLoggingSettingsForTheZeroTrustAccountArgs =
+    super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-accounts-update-logging-settings-for-the-zero-trust-account_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4525,11 +3627,9 @@ pub struct ZeroTrustAccountsUpdateLoggingSettingsForTheZeroTrustAccountArgs {
 }
 
 /// Arguments for [`zero-trust-gateway-pacfiles-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayPacfilesListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustGatewayPacfilesListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-pacfiles-create-pacfile_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4541,13 +3641,9 @@ pub struct ZeroTrustGatewayPacfilesCreatePacfileArgs {
 }
 
 /// Arguments for [`zero-trust-gateway-pacfiles-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayPacfilesDetailsArgs {
-    /// Path parameter: `pacfile_id`.
-    pub pacfile_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PacfileIdAccountIdArgs`.
+pub type ZeroTrustGatewayPacfilesDetailsArgs = super::shared::PacfileIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-pacfiles-update_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4561,20 +3657,14 @@ pub struct ZeroTrustGatewayPacfilesUpdateArgs {
 }
 
 /// Arguments for [`zero-trust-gateway-pacfiles-delete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayPacfilesDeleteArgs {
-    /// Path parameter: `pacfile_id`.
-    pub pacfile_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::PacfileIdAccountIdArgs`.
+pub type ZeroTrustGatewayPacfilesDeleteArgs = super::shared::PacfileIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-list-proxy-endpoints_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpointsListProxyEndpointsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustGatewayProxyEndpointsListProxyEndpointsArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-create-proxy-endpoint_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4586,13 +3676,10 @@ pub struct ZeroTrustGatewayProxyEndpointsCreateProxyEndpointArgs {
 }
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-proxy-endpoint-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpointsProxyEndpointDetailsArgs {
-    /// Path parameter: `proxy_endpoint_id`.
-    pub proxy_endpoint_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ProxyEndpointIdAccountIdArgs`.
+pub type ZeroTrustGatewayProxyEndpointsProxyEndpointDetailsArgs =
+    super::shared::ProxyEndpointIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-update-proxy-endpoint_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4606,20 +3693,15 @@ pub struct ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointArgs {
 }
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-delete-proxy-endpoint_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayProxyEndpointsDeleteProxyEndpointArgs {
-    /// Path parameter: `proxy_endpoint_id`.
-    pub proxy_endpoint_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::ProxyEndpointIdAccountIdArgs`.
+pub type ZeroTrustGatewayProxyEndpointsDeleteProxyEndpointArgs =
+    super::shared::ProxyEndpointIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-rules-list-zero-trust-gateway-rules_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayRulesListZeroTrustGatewayRulesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustGatewayRulesListZeroTrustGatewayRulesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-rules-create-zero-trust-gateway-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4631,20 +3713,14 @@ pub struct ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleArgs {
 }
 
 /// Arguments for [`zero-trust-gateway-rules-list-zero-trust-gateway-rules-tenant_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayRulesListZeroTrustGatewayRulesTenantArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type ZeroTrustGatewayRulesListZeroTrustGatewayRulesTenantArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-rules-zero-trust-gateway-rule-details_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayRulesZeroTrustGatewayRuleDetailsArgs {
-    /// Path parameter: `rule_id`.
-    pub rule_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::RuleIdAccountIdArgs`.
+pub type ZeroTrustGatewayRulesZeroTrustGatewayRuleDetailsArgs = super::shared::RuleIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-rules-update-zero-trust-gateway-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4658,22 +3734,15 @@ pub struct ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleArgs {
 }
 
 /// Arguments for [`zero-trust-gateway-rules-delete-zero-trust-gateway-rule_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayRulesDeleteZeroTrustGatewayRuleArgs {
-    /// Path parameter: `rule_id`.
-    pub rule_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::RuleIdAccountIdArgs`.
+pub type ZeroTrustGatewayRulesDeleteZeroTrustGatewayRuleArgs = super::shared::RuleIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-gateway-rules-reset-expiration-zero-trust-gateway-rule_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct ZeroTrustGatewayRulesResetExpirationZeroTrustGatewayRuleArgs {
-    /// Path parameter: `rule_id`.
-    pub rule_id: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::RuleIdAccountIdArgs`.
+pub type ZeroTrustGatewayRulesResetExpirationZeroTrustGatewayRuleArgs =
+    super::shared::RuleIdAccountIdArgs;
 
 /// Arguments for [`zero-trust-networks-subnets-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4716,11 +3785,9 @@ pub struct ZeroTrustNetworksSubnetUpdateCloudflareSourceArgs {
 }
 
 /// Arguments for [`dlp-risk-score-behaviors-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpRiskScoreBehaviorsGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpRiskScoreBehaviorsGetArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-risk-score-behaviors-put_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4732,11 +3799,9 @@ pub struct DlpRiskScoreBehaviorsPutArgs {
 }
 
 /// Arguments for [`dlp-zt-risk-score-integration-list_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpZtRiskScoreIntegrationListArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpZtRiskScoreIntegrationListArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-zt-risk-score-integration-create_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4757,13 +3822,9 @@ pub struct DlpZtRiskScoreIntegrationGetByReferenceIdArgs {
 }
 
 /// Arguments for [`dlp-zt-risk-score-integration-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpZtRiskScoreIntegrationGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `integration_id`.
-    pub integration_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdIntegrationIdArgs`.
+pub type DlpZtRiskScoreIntegrationGetArgs = super::shared::AccountIdIntegrationIdArgs;
 
 /// Arguments for [`dlp-zt-risk-score-integration-update_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -4777,20 +3838,14 @@ pub struct DlpZtRiskScoreIntegrationUpdateArgs {
 }
 
 /// Arguments for [`dlp-zt-risk-score-integration-delete_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpZtRiskScoreIntegrationDeleteArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `integration_id`.
-    pub integration_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdIntegrationIdArgs`.
+pub type DlpZtRiskScoreIntegrationDeleteArgs = super::shared::AccountIdIntegrationIdArgs;
 
 /// Arguments for [`dlp-risk-score-summary-get_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpRiskScoreSummaryGetArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpRiskScoreSummaryGetArgs = super::shared::AccountIdArgs;
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
@@ -4827,9 +3882,7 @@ pub async fn list_ip_profiles_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/ip-profiles",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/ip-profiles", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -4841,20 +3894,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListIpProfilesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4888,35 +3928,21 @@ pub async fn create_ip_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/ip-profiles",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/ip-profiles", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: CreateIpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4950,9 +3976,9 @@ pub async fn get_ip_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/ip-profiles/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/devices/ip-profiles/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4963,20 +3989,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetIpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5010,36 +4023,24 @@ pub async fn update_ip_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/ip-profiles/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/devices/ip-profiles/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: UpdateIpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5073,9 +4074,9 @@ pub async fn delete_ip_profile_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/ip-profiles/{}",
-        args.account_id,
-        args.profile_id,
+    let path = format!(
+        "/accounts/{}/devices/ip-profiles/{}",
+        args.account_id, args.profile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -5086,20 +4087,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DeleteIpProfileResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5133,9 +4121,7 @@ pub async fn device_managed_networks_list_device_managed_networks_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/networks",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/networks", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -5145,20 +4131,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5192,35 +4165,21 @@ pub async fn device_managed_networks_create_device_managed_network_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/networks",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/networks", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5254,9 +4213,9 @@ pub async fn device_managed_networks_device_managed_network_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/networks/{}",
-        args.account_id,
-        args.network_id,
+    let path = format!(
+        "/accounts/{}/devices/networks/{}",
+        args.account_id, args.network_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -5267,20 +4226,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5314,36 +4260,24 @@ pub async fn device_managed_networks_update_device_managed_network_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/networks/{}",
-        args.account_id,
-        args.network_id,
+    let path = format!(
+        "/accounts/{}/devices/networks/{}",
+        args.account_id, args.network_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5377,9 +4311,9 @@ pub async fn device_managed_networks_delete_device_managed_network_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/networks/{}",
-        args.account_id,
-        args.network_id,
+    let path = format!(
+        "/accounts/{}/devices/networks/{}",
+        args.account_id, args.network_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -5390,20 +4324,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5437,9 +4358,7 @@ pub async fn list_devices_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/physical-devices",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/physical-devices", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -5454,27 +4373,16 @@ where
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("search", args.search.as_deref());
     builder = builder.query("active_registrations", args.active_registrations.as_deref());
-    builder = builder.query("id", args.id.as_deref());
+    for value in &args.id {
+        builder = builder.query("id", Some(value.as_str()));
+    }
     builder = builder.query("include", args.include.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListDevicesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5508,9 +4416,9 @@ pub async fn get_device_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/physical-devices/{}",
-        args.account_id,
-        args.device_id,
+    let path = format!(
+        "/accounts/{}/devices/physical-devices/{}",
+        args.account_id, args.device_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -5523,20 +4431,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetDeviceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5570,9 +4465,9 @@ pub async fn delete_device_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/physical-devices/{}",
-        args.account_id,
-        args.device_id,
+    let path = format!(
+        "/accounts/{}/devices/physical-devices/{}",
+        args.account_id, args.device_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -5583,20 +4478,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DeleteDeviceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5630,9 +4512,9 @@ pub async fn revoke_device_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/physical-devices/{}/revoke",
-        args.account_id,
-        args.device_id,
+    let path = format!(
+        "/accounts/{}/devices/physical-devices/{}/revoke",
+        args.account_id, args.device_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -5643,20 +4525,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RevokeDeviceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5690,9 +4559,7 @@ pub async fn devices_list_device_settings_policies_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policies",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/policies", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -5702,20 +4569,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesDeviceSettingsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5749,9 +4603,7 @@ pub async fn devices_get_default_device_settings_policy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/policy", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -5761,20 +4613,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesDefaultDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5808,35 +4647,21 @@ pub async fn devices_create_device_settings_policy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/policy", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5870,35 +4695,21 @@ pub async fn devices_update_default_device_settings_policy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/policy", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesDefaultDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5932,9 +4743,7 @@ pub async fn devices_get_split_tunnel_exclude_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/exclude",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/policy/exclude", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -5944,20 +4753,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSplitTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5991,35 +4787,21 @@ pub async fn devices_set_split_tunnel_exclude_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/exclude",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/policy/exclude", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSplitTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6053,9 +4835,7 @@ pub async fn devices_get_split_tunnel_include_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/include",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/policy/include", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -6065,20 +4845,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSplitTunnelIncludeResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6112,35 +4879,21 @@ pub async fn devices_set_split_tunnel_include_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/include",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/policy/include", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSplitTunnelIncludeResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6174,9 +4927,9 @@ pub async fn devices_get_device_settings_policy_by_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/{}",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/devices/policy/{}",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6187,20 +4940,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6234,36 +4974,24 @@ pub async fn devices_update_device_settings_policy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/{}",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/devices/policy/{}",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6297,9 +5025,9 @@ pub async fn devices_delete_device_settings_policy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/{}",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/devices/policy/{}",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6310,20 +5038,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesDeviceSettingsResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6357,9 +5072,9 @@ pub async fn devices_get_split_tunnel_exclude_list_for_a_device_settings_policy_
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/{}/exclude",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/devices/policy/{}/exclude",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6370,20 +5085,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSplitTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6417,36 +5119,24 @@ pub async fn devices_set_split_tunnel_exclude_list_for_a_device_settings_policy_
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/{}/exclude",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/devices/policy/{}/exclude",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSplitTunnelResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6480,9 +5170,9 @@ pub async fn devices_get_split_tunnel_include_list_for_a_device_settings_policy_
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/{}/include",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/devices/policy/{}/include",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6493,20 +5183,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSplitTunnelIncludeResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6540,36 +5217,24 @@ pub async fn devices_set_split_tunnel_include_list_for_a_device_settings_policy_
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/policy/{}/include",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/devices/policy/{}/include",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSplitTunnelIncludeResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6603,9 +5268,7 @@ pub async fn device_posture_rules_list_device_posture_rules_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/posture", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -6615,20 +5278,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6662,35 +5312,21 @@ pub async fn device_posture_rules_create_device_posture_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/posture", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6724,9 +5360,7 @@ pub async fn device_posture_integrations_list_device_posture_integrations_reques
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture/integration",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/posture/integration", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -6736,20 +5370,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6783,35 +5404,21 @@ pub async fn device_posture_integrations_create_device_posture_integration_reque
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture/integration",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/posture/integration", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6845,9 +5452,9 @@ pub async fn device_posture_integrations_device_posture_integration_details_requ
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture/integration/{}",
-        args.account_id,
-        args.integration_id,
+    let path = format!(
+        "/accounts/{}/devices/posture/integration/{}",
+        args.account_id, args.integration_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6858,20 +5465,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6905,36 +5499,24 @@ pub async fn device_posture_integrations_update_device_posture_integration_reque
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture/integration/{}",
-        args.account_id,
-        args.integration_id,
+    let path = format!(
+        "/accounts/{}/devices/posture/integration/{}",
+        args.account_id, args.integration_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -6968,9 +5550,9 @@ pub async fn device_posture_integrations_delete_device_posture_integration_reque
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture/integration/{}",
-        args.account_id,
-        args.integration_id,
+    let path = format!(
+        "/accounts/{}/devices/posture/integration/{}",
+        args.account_id, args.integration_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -6981,20 +5563,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSchemasIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7028,9 +5597,9 @@ pub async fn device_posture_rules_device_posture_rules_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture/{}",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/devices/posture/{}",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7041,20 +5610,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7088,36 +5644,24 @@ pub async fn device_posture_rules_update_device_posture_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture/{}",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/devices/posture/{}",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7151,9 +5695,9 @@ pub async fn device_posture_rules_delete_device_posture_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/posture/{}",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/devices/posture/{}",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7164,20 +5708,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7211,15 +5742,15 @@ pub async fn list_registrations_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/registrations",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/registrations", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("user.id", args.user_id.as_deref());
+    for value in &args.user_id {
+        builder = builder.query("user.id", Some(value.as_str()));
+    }
     builder = builder.query("seen_after", args.seen_after.as_deref());
     builder = builder.query("seen_before", args.seen_before.as_deref());
     builder = builder.query("status", args.status.as_deref());
@@ -7228,7 +5759,9 @@ where
     builder = builder.query("sort_by", args.sort_by.as_deref());
     builder = builder.query("sort_order", args.sort_order.as_deref());
     builder = builder.query("cursor", args.cursor.as_deref());
-    builder = builder.query("id", args.id.as_deref());
+    for value in &args.id {
+        builder = builder.query("id", Some(value.as_str()));
+    }
     builder = builder.query("device.id", args.device_id.as_deref());
     builder = builder.query("include", args.include.as_deref());
 
@@ -7236,20 +5769,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListRegistrationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7283,34 +5803,21 @@ pub async fn delete_registrations_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/registrations",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/registrations", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("id", args.id.as_deref());
+    for value in &args.id {
+        builder = builder.query("id", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DeleteRegistrationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7344,34 +5851,21 @@ pub async fn revoke_registrations_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/registrations/revoke",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/registrations/revoke", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("id", args.id.as_deref());
+    for value in &args.id {
+        builder = builder.query("id", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RevokeRegistrationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7405,7 +5899,8 @@ pub async fn unrevoke_registrations_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/registrations/unrevoke",
+    let path = format!(
+        "/accounts/{}/devices/registrations/unrevoke",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -7413,26 +5908,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("id", args.id.as_deref());
+    for value in &args.id {
+        builder = builder.query("id", Some(value.as_str()));
+    }
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: UnrevokeRegistrationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7466,9 +5950,9 @@ pub async fn get_registration_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/registrations/{}",
-        args.account_id,
-        args.registration_id,
+    let path = format!(
+        "/accounts/{}/devices/registrations/{}",
+        args.account_id, args.registration_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7481,20 +5965,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetRegistrationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7528,9 +5999,9 @@ pub async fn delete_registration_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/registrations/{}",
-        args.account_id,
-        args.registration_id,
+    let path = format!(
+        "/accounts/{}/devices/registrations/{}",
+        args.account_id, args.registration_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7541,20 +6012,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DeleteRegistrationResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7588,9 +6046,9 @@ pub async fn get_registration_override_codes_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/registrations/{}/override_codes",
-        args.account_id,
-        args.registration_id,
+    let path = format!(
+        "/accounts/{}/devices/registrations/{}/override_codes",
+        args.account_id, args.registration_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -7601,20 +6059,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: GetRegistrationOverrideCodesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7648,9 +6093,7 @@ pub async fn zero_trust_accounts_get_device_settings_for_zero_trust_account_requ
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -7660,20 +6103,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesZeroTrustAccountDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7707,35 +6137,21 @@ pub async fn zero_trust_accounts_update_device_settings_for_the_zero_trust_accou
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesZeroTrustAccountDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7769,35 +6185,21 @@ pub async fn zero_trust_accounts_patch_device_settings_for_the_zero_trust_accoun
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesZeroTrustAccountDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7831,9 +6233,7 @@ pub async fn zero_trust_accounts_delete_device_settings_for_zero_trust_account_r
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/devices/settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/devices/settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
@@ -7843,20 +6243,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TeamsDevicesZeroTrustAccountDeviceSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7890,9 +6277,7 @@ pub async fn zero_trust_accounts_get_zero_trust_account_information_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -7902,20 +6287,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayGatewayAccount = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7949,9 +6321,7 @@ pub async fn zero_trust_accounts_create_zero_trust_account_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
@@ -7961,20 +6331,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayGatewayAccount = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -7999,18 +6356,21 @@ where
 ///     b.header("X-Custom-Header", "value");
 /// })).await?;
 /// ```
-pub async fn zero_trust_gateway_application_and_application_type_mappings_list_application_and_application_type_mappings_request<F>(
+pub async fn zero_trust_gateway_application_and_application_type_mappings_list_application_and_application_type_mappings_request<
+    F,
+>(
     client: DynNetClient,
     args: &ZeroTrustGatewayApplicationAndApplicationTypeMappingsListApplicationAndApplicationTypeMappingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/app_types",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/app_types", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8020,20 +6380,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8067,9 +6414,7 @@ pub async fn zero_trust_applications_review_status_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/apps/review_status",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/apps/review_status", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8079,20 +6424,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayApplicationsReviewStatusResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8126,35 +6458,21 @@ pub async fn zero_trust_applications_review_status_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/apps/review_status",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/apps/review_status", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayApplicationsReviewStatusResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8184,13 +6502,14 @@ pub async fn zero_trust_get_audit_ssh_settings_request<F>(
     args: &ZeroTrustGetAuditSshSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/audit_ssh_settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/audit_ssh_settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8200,20 +6519,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8243,39 +6549,28 @@ pub async fn zero_trust_update_audit_ssh_settings_request<F>(
     args: &ZeroTrustUpdateAuditSshSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/audit_ssh_settings",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/audit_ssh_settings", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8305,11 +6600,15 @@ pub async fn zero_trust_rotate_ssh_account_seed_request<F>(
     args: &ZeroTrustRotateSshAccountSeedArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/audit_ssh_settings/rotate_seed",
+    let path = format!(
+        "/accounts/{}/gateway/audit_ssh_settings/rotate_seed",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -8321,20 +6620,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8364,13 +6650,14 @@ pub async fn zero_trust_gateway_categories_list_categories_request<F>(
     args: &ZeroTrustGatewayCategoriesListCategoriesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/categories",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/categories", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8380,20 +6667,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8427,9 +6701,7 @@ pub async fn zero_trust_certificates_list_zero_trust_certificates_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/certificates",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/certificates", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8439,20 +6711,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8486,35 +6745,21 @@ pub async fn zero_trust_certificates_create_zero_trust_certificate_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/certificates",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/certificates", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8548,9 +6793,9 @@ pub async fn zero_trust_certificates_zero_trust_certificate_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/certificates/{}",
-        args.account_id,
-        args.certificate_id,
+    let path = format!(
+        "/accounts/{}/gateway/certificates/{}",
+        args.account_id, args.certificate_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8561,20 +6806,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8608,9 +6840,9 @@ pub async fn zero_trust_certificates_delete_zero_trust_certificate_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/certificates/{}",
-        args.account_id,
-        args.certificate_id,
+    let path = format!(
+        "/accounts/{}/gateway/certificates/{}",
+        args.account_id, args.certificate_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8621,20 +6853,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8668,9 +6887,9 @@ pub async fn zero_trust_certificates_activate_zero_trust_certificate_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/certificates/{}/activate",
-        args.account_id,
-        args.certificate_id,
+    let path = format!(
+        "/accounts/{}/gateway/certificates/{}/activate",
+        args.account_id, args.certificate_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8681,20 +6900,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8728,9 +6934,9 @@ pub async fn zero_trust_certificates_deactivate_zero_trust_certificate_request<F
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/certificates/{}/deactivate",
-        args.account_id,
-        args.certificate_id,
+    let path = format!(
+        "/accounts/{}/gateway/certificates/{}/deactivate",
+        args.account_id, args.certificate_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -8741,20 +6947,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8788,9 +6981,7 @@ pub async fn zero_trust_accounts_get_zero_trust_account_configuration_request<F>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/configuration",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/configuration", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8800,20 +6991,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayGatewayAccountConfig = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8847,9 +7025,7 @@ pub async fn zero_trust_accounts_update_zero_trust_account_configuration_request
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/configuration",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/configuration", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
@@ -8859,20 +7035,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayGatewayAccountConfig = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8906,9 +7069,7 @@ pub async fn zero_trust_accounts_patch_zero_trust_account_configuration_request<
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/configuration",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/configuration", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
@@ -8918,20 +7079,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayGatewayAccountConfig = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -8965,9 +7113,7 @@ pub async fn zero_trust_lists_list_zero_trust_lists_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/lists",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/lists", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -8979,20 +7125,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9026,35 +7159,21 @@ pub async fn zero_trust_lists_create_zero_trust_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/lists",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/lists", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySingleResponseWithListItems = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9088,9 +7207,9 @@ pub async fn zero_trust_lists_zero_trust_list_details_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/lists/{}",
-        args.account_id,
-        args.list_id,
+    let path = format!(
+        "/accounts/{}/gateway/lists/{}",
+        args.account_id, args.list_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9101,20 +7220,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayListSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9148,36 +7254,24 @@ pub async fn zero_trust_lists_update_zero_trust_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/lists/{}",
-        args.account_id,
-        args.list_id,
+    let path = format!(
+        "/accounts/{}/gateway/lists/{}",
+        args.account_id, args.list_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayListSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9211,36 +7305,24 @@ pub async fn zero_trust_lists_patch_zero_trust_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/lists/{}",
-        args.account_id,
-        args.list_id,
+    let path = format!(
+        "/accounts/{}/gateway/lists/{}",
+        args.account_id, args.list_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayListSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9274,9 +7356,9 @@ pub async fn zero_trust_lists_delete_zero_trust_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/lists/{}",
-        args.account_id,
-        args.list_id,
+    let path = format!(
+        "/accounts/{}/gateway/lists/{}",
+        args.account_id, args.list_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9287,20 +7369,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9334,9 +7403,9 @@ pub async fn zero_trust_lists_zero_trust_list_items_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/lists/{}/items",
-        args.account_id,
-        args.list_id,
+    let path = format!(
+        "/accounts/{}/gateway/lists/{}/items",
+        args.account_id, args.list_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9347,20 +7416,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayListItemResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9394,9 +7450,7 @@ pub async fn zero_trust_gateway_locations_list_zero_trust_gateway_locations_requ
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/locations",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/locations", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9406,20 +7460,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9453,35 +7494,21 @@ pub async fn zero_trust_gateway_locations_create_zero_trust_gateway_location_req
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/locations",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/locations", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9515,9 +7542,9 @@ pub async fn zero_trust_gateway_locations_zero_trust_gateway_location_details_re
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/locations/{}",
-        args.account_id,
-        args.location_id,
+    let path = format!(
+        "/accounts/{}/gateway/locations/{}",
+        args.account_id, args.location_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9528,20 +7555,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9575,36 +7589,24 @@ pub async fn zero_trust_gateway_locations_update_zero_trust_gateway_location_req
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/locations/{}",
-        args.account_id,
-        args.location_id,
+    let path = format!(
+        "/accounts/{}/gateway/locations/{}",
+        args.account_id, args.location_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewaySchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9638,9 +7640,9 @@ pub async fn zero_trust_gateway_locations_delete_zero_trust_gateway_location_req
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/locations/{}",
-        args.account_id,
-        args.location_id,
+    let path = format!(
+        "/accounts/{}/gateway/locations/{}",
+        args.account_id, args.location_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9651,20 +7653,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9694,13 +7683,14 @@ pub async fn zero_trust_accounts_get_logging_settings_for_the_zero_trust_account
     args: &ZeroTrustAccountsGetLoggingSettingsForTheZeroTrustAccountArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayGatewayAccountLoggingSettingsResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayGatewayAccountLoggingSettingsResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/logging",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/logging", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9710,20 +7700,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayGatewayAccountLoggingSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9753,39 +7730,28 @@ pub async fn zero_trust_accounts_update_logging_settings_for_the_zero_trust_acco
     args: &ZeroTrustAccountsUpdateLoggingSettingsForTheZeroTrustAccountArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayGatewayAccountLoggingSettingsResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayGatewayAccountLoggingSettingsResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/logging",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/logging", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayGatewayAccountLoggingSettingsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9815,13 +7781,14 @@ pub async fn zero_trust_gateway_pacfiles_list_request<F>(
     args: &ZeroTrustGatewayPacfilesListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/pacfiles",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/pacfiles", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -9831,20 +7798,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9874,39 +7828,28 @@ pub async fn zero_trust_gateway_pacfiles_create_pacfile_request<F>(
     args: &ZeroTrustGatewayPacfilesCreatePacfileArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/pacfiles",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/pacfiles", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9936,13 +7879,16 @@ pub async fn zero_trust_gateway_pacfiles_details_request<F>(
     args: &ZeroTrustGatewayPacfilesDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/pacfiles/{}",
-        args.account_id,
-        args.pacfile_id,
+    let path = format!(
+        "/accounts/{}/gateway/pacfiles/{}",
+        args.account_id, args.pacfile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -9953,20 +7899,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -9996,40 +7929,31 @@ pub async fn zero_trust_gateway_pacfiles_update_request<F>(
     args: &ZeroTrustGatewayPacfilesUpdateArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/pacfiles/{}",
-        args.account_id,
-        args.pacfile_id,
+    let path = format!(
+        "/accounts/{}/gateway/pacfiles/{}",
+        args.account_id, args.pacfile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10063,9 +7987,9 @@ pub async fn zero_trust_gateway_pacfiles_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/pacfiles/{}",
-        args.account_id,
-        args.pacfile_id,
+    let path = format!(
+        "/accounts/{}/gateway/pacfiles/{}",
+        args.account_id, args.pacfile_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10076,20 +8000,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10119,13 +8030,14 @@ pub async fn zero_trust_gateway_proxy_endpoints_list_proxy_endpoints_request<F>(
     args: &ZeroTrustGatewayProxyEndpointsListProxyEndpointsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/proxy_endpoints",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/proxy_endpoints", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10135,20 +8047,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10178,39 +8077,28 @@ pub async fn zero_trust_gateway_proxy_endpoints_create_proxy_endpoint_request<F>
     args: &ZeroTrustGatewayProxyEndpointsCreateProxyEndpointArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/proxy_endpoints",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/proxy_endpoints", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10240,13 +8128,16 @@ pub async fn zero_trust_gateway_proxy_endpoints_proxy_endpoint_details_request<F
     args: &ZeroTrustGatewayProxyEndpointsProxyEndpointDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/proxy_endpoints/{}",
-        args.account_id,
-        args.proxy_endpoint_id,
+    let path = format!(
+        "/accounts/{}/gateway/proxy_endpoints/{}",
+        args.account_id, args.proxy_endpoint_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10257,20 +8148,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10300,40 +8178,31 @@ pub async fn zero_trust_gateway_proxy_endpoints_update_proxy_endpoint_request<F>
     args: &ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/proxy_endpoints/{}",
-        args.account_id,
-        args.proxy_endpoint_id,
+    let path = format!(
+        "/accounts/{}/gateway/proxy_endpoints/{}",
+        args.account_id, args.proxy_endpoint_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10367,9 +8236,9 @@ pub async fn zero_trust_gateway_proxy_endpoints_delete_proxy_endpoint_request<F>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/proxy_endpoints/{}",
-        args.account_id,
-        args.proxy_endpoint_id,
+    let path = format!(
+        "/accounts/{}/gateway/proxy_endpoints/{}",
+        args.account_id, args.proxy_endpoint_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10380,20 +8249,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10423,13 +8279,14 @@ pub async fn zero_trust_gateway_rules_list_zero_trust_gateway_rules_request<F>(
     args: &ZeroTrustGatewayRulesListZeroTrustGatewayRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayRulesComponentsSchemasResponseCollection>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayRulesComponentsSchemasResponseCollection>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/rules",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/rules", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10439,20 +8296,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayRulesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10486,35 +8330,21 @@ pub async fn zero_trust_gateway_rules_create_zero_trust_gateway_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/rules",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/rules", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10544,13 +8374,14 @@ pub async fn zero_trust_gateway_rules_list_zero_trust_gateway_rules_tenant_reque
     args: &ZeroTrustGatewayRulesListZeroTrustGatewayRulesTenantArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ZeroTrustGatewayRulesComponentsSchemasResponseCollection>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<ZeroTrustGatewayRulesComponentsSchemasResponseCollection>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/rules/tenant",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/gateway/rules/tenant", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10560,20 +8391,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayRulesComponentsSchemasResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10607,9 +8425,9 @@ pub async fn zero_trust_gateway_rules_zero_trust_gateway_rule_details_request<F>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/rules/{}",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/gateway/rules/{}",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10620,20 +8438,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10667,36 +8472,24 @@ pub async fn zero_trust_gateway_rules_update_zero_trust_gateway_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/rules/{}",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/gateway/rules/{}",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10730,9 +8523,9 @@ pub async fn zero_trust_gateway_rules_delete_zero_trust_gateway_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/rules/{}",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/gateway/rules/{}",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10743,20 +8536,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayEmptyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10790,9 +8570,9 @@ pub async fn zero_trust_gateway_rules_reset_expiration_zero_trust_gateway_rule_r
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/gateway/rules/{}/reset_expiration",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/gateway/rules/{}/reset_expiration",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -10803,20 +8583,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ZeroTrustGatewayComponentsSchemasSingleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10850,9 +8617,7 @@ pub async fn zero_trust_networks_subnets_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zerotrust/subnets",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/zerotrust/subnets", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10874,20 +8639,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelSubnetResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10921,36 +8673,24 @@ pub async fn zero_trust_networks_subnet_update_cloudflare_source_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zerotrust/subnets/cloudflare_source/{}",
-        args.account_id,
-        args.address_family,
+    let path = format!(
+        "/accounts/{}/zerotrust/subnets/cloudflare_source/{}",
+        args.account_id, args.address_family,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: TunnelSubnetResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -10984,9 +8724,7 @@ pub async fn dlp_risk_score_behaviors_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zt_risk_scoring/behaviors",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/zt_risk_scoring/behaviors", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -10996,20 +8734,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpRiskScoreBehaviorsGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11043,35 +8768,21 @@ pub async fn dlp_risk_score_behaviors_put_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zt_risk_scoring/behaviors",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/zt_risk_scoring/behaviors", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpRiskScoreBehaviorsPutResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11105,9 +8816,7 @@ pub async fn dlp_zt_risk_score_integration_list_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zt_risk_scoring/integrations",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/zt_risk_scoring/integrations", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -11117,20 +8826,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpZtRiskScoreIntegrationListResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11164,35 +8860,21 @@ pub async fn dlp_zt_risk_score_integration_create_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zt_risk_scoring/integrations",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/zt_risk_scoring/integrations", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpZtRiskScoreIntegrationCreateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11226,9 +8908,9 @@ pub async fn dlp_zt_risk_score_integration_get_by_reference_id_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zt_risk_scoring/integrations/reference_id/{}",
-        args.account_id,
-        args.reference_id,
+    let path = format!(
+        "/accounts/{}/zt_risk_scoring/integrations/reference_id/{}",
+        args.account_id, args.reference_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11239,20 +8921,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpZtRiskScoreIntegrationGetByReferenceIdResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11286,9 +8955,9 @@ pub async fn dlp_zt_risk_score_integration_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zt_risk_scoring/integrations/{}",
-        args.account_id,
-        args.integration_id,
+    let path = format!(
+        "/accounts/{}/zt_risk_scoring/integrations/{}",
+        args.account_id, args.integration_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11299,20 +8968,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpZtRiskScoreIntegrationGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11346,36 +9002,24 @@ pub async fn dlp_zt_risk_score_integration_update_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zt_risk_scoring/integrations/{}",
-        args.account_id,
-        args.integration_id,
+    let path = format!(
+        "/accounts/{}/zt_risk_scoring/integrations/{}",
+        args.account_id, args.integration_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpZtRiskScoreIntegrationUpdateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11409,9 +9053,9 @@ pub async fn dlp_zt_risk_score_integration_delete_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zt_risk_scoring/integrations/{}",
-        args.account_id,
-        args.integration_id,
+    let path = format!(
+        "/accounts/{}/zt_risk_scoring/integrations/{}",
+        args.account_id, args.integration_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -11422,20 +9066,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpZtRiskScoreIntegrationDeleteResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -11469,9 +9100,7 @@ pub async fn dlp_risk_score_summary_get_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/zt_risk_scoring/summary",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/zt_risk_scoring/summary", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -11481,19 +9110,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpRiskScoreSummaryGetResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

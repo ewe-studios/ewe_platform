@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_reports")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,137 +28,90 @@ use super::shared::ApiResponse;
 /// `AbuseReportsEmailListItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AbuseReportsEmailListItem {
-    /// body property.
+    /// `body` property.
     pub body: String,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// recipient property.
+    /// `recipient` property.
     pub recipient: String,
-    /// sent_at property.
+    /// `sent_at` property.
     pub sent_at: String,
-    /// subject property.
+    /// `subject` property.
     pub subject: String,
 }
 
 /// `AbuseReportsMessage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AbuseReportsMessage {
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::MessageObject`.
+pub type AbuseReportsMessage = super::shared::MessageObject;
 
 /// `AbuseReportsMitigatedEntityType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AbuseReportsMitigatedEntityType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AbuseReportsMitigatedEntityType = String;
 
 /// `AbuseReportsMitigationListItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct AbuseReportsMitigationListItem {
-    /// effective_date property.
-    pub effective_date: String,
-    /// entity_id property.
-    pub entity_id: String,
-    /// entity_type property.
-    pub entity_type: AbuseReportsMitigatedEntityType,
-    /// id property.
-    pub id: String,
-    /// status property.
-    pub status: AbuseReportsMitigationStatus,
-    /// type property.
-    #[serde(rename = "type")]
-    pub r#type: AbuseReportsMitigationType,
-}
+///
+/// Same shape as `super::shared::AbuseReportsMitigationListItemShape`.
+pub type AbuseReportsMitigationListItem = super::shared::AbuseReportsMitigationListItemShape;
 
 /// `AbuseReportsMitigationStatus` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AbuseReportsMitigationStatus {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AbuseReportsMitigationStatus = String;
 
 /// `AbuseReportsMitigationType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct AbuseReportsMitigationType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type AbuseReportsMitigationType = String;
 
 /// `ListEmailsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListEmailsResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<AbuseReportsMessage>>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Option<Vec<AbuseReportsMessage>>,
-    /// result property.
+    /// `result` property.
     pub result: Option<ListEmailsResponseResult>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<ListEmailsResponseResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `ListEmailsResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListEmailsResponseResult {
-    /// emails property.
+    /// `emails` property.
     pub emails: Vec<AbuseReportsEmailListItem>,
 }
 
 /// `ListEmailsResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListEmailsResponseResultInfo {
-    /// count property.
-    pub count: f64,
-    /// page property.
-    pub page: f64,
-    /// per_page property.
-    pub per_page: f64,
-    /// total_count property.
-    pub total_count: f64,
-    /// total_pages property.
-    pub total_pages: f64,
-}
+///
+/// Same shape as `super::shared::ListAbuseReportsResponseResultInfoShape`.
+pub type ListEmailsResponseResultInfo = super::shared::ListAbuseReportsResponseResultInfoShape;
 
 /// `ListMitigationsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListMitigationsResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Option<Vec<AbuseReportsMessage>>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Option<Vec<AbuseReportsMessage>>,
-    /// result property.
+    /// `result` property.
     pub result: Option<ListMitigationsResponseResult>,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<ListMitigationsResponseResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `ListMitigationsResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListMitigationsResponseResult {
-    /// mitigations property.
+    /// `mitigations` property.
     pub mitigations: Vec<AbuseReportsMitigationListItem>,
 }
 
 /// `ListMitigationsResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct ListMitigationsResponseResultInfo {
-    /// count property.
-    pub count: f64,
-    /// page property.
-    pub page: f64,
-    /// per_page property.
-    pub per_page: f64,
-    /// total_count property.
-    pub total_count: f64,
-    /// total_pages property.
-    pub total_pages: f64,
-}
+///
+/// Same shape as `super::shared::ListAbuseReportsResponseResultInfoShape`.
+pub type ListMitigationsResponseResultInfo = super::shared::ListAbuseReportsResponseResultInfoShape;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -233,9 +190,9 @@ pub async fn list_emails_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/abuse-reports/{}/emails",
-        args.account_id,
-        args.report_id,
+    let path = format!(
+        "/accounts/{}/abuse-reports/{}/emails",
+        args.account_id, args.report_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -249,20 +206,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListEmailsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -296,9 +240,9 @@ pub async fn list_mitigations_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/abuse-reports/{}/mitigations",
-        args.account_id,
-        args.report_id,
+    let path = format!(
+        "/accounts/{}/abuse-reports/{}/mitigations",
+        args.account_id, args.report_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -318,19 +262,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: ListMitigationsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-

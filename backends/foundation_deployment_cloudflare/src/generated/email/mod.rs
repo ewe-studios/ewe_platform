@@ -7,13 +7,17 @@
 
 #![cfg(feature = "cloudflare_email")]
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 #![allow(unused_imports)]
 
-use foundation_netio::{DynNetClient, PreparedRequestBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
+use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
 
@@ -24,305 +28,208 @@ use super::shared::ApiResponse;
 /// `DlpAddinAccountMapping` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpAddinAccountMapping {
-    /// addin_identifier_token property.
+    /// `addin_identifier_token` property.
     pub addin_identifier_token: String,
-    /// auth_requirements property.
-    pub auth_requirements: DlpAddinAuth,
+    /// `auth_requirements` property.
+    pub auth_requirements: serde_json::Value,
 }
 
 /// `DlpAddinAuth` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpAddinAuth {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpAddinAuth = serde_json::Value;
 
 /// `DlpApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DlpApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DlpApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type DlpApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `DlpCreateEmailRule` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpCreateEmailRule {
-    /// action property.
-    pub action: DlpEmailRuleAction,
-    /// conditions property.
+    /// `action` property.
+    pub action: serde_json::Value,
+    /// `conditions` property.
     pub conditions: Vec<DlpEmailRuleCondition>,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
 }
 
 /// `DlpEmailRule` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpEmailRule {
-    /// action property.
-    pub action: DlpEmailRuleAction,
-    /// conditions property.
+    /// `action` property.
+    pub action: serde_json::Value,
+    /// `conditions` property.
     pub conditions: Vec<DlpEmailRuleCondition>,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// enabled property.
+    /// `enabled` property.
     pub enabled: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
-    /// priority property.
+    /// `priority` property.
     pub priority: i64,
-    /// rule_id property.
+    /// `rule_id` property.
     pub rule_id: String,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `DlpEmailRuleAction` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEmailRuleAction {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEmailRuleAction = serde_json::Value;
 
 /// `DlpEmailRuleArray` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEmailRuleArray {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEmailRuleArray = Vec<DlpEmailRule>;
 
 /// `DlpEmailRuleCondition` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpEmailRuleCondition {
-    /// operator property.
-    pub operator: DlpEmailRuleOperator,
-    /// selector property.
-    pub selector: DlpEmailRuleSelector,
-    /// value property.
-    pub value: DlpEmailRuleValue,
+    /// `operator` property.
+    pub operator: String,
+    /// `selector` property.
+    pub selector: String,
+    /// `value` property.
+    pub value: serde_json::Value,
 }
 
 /// `DlpEmailRuleOperator` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEmailRuleOperator {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEmailRuleOperator = String;
 
 /// `DlpEmailRuleSelector` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEmailRuleSelector {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEmailRuleSelector = String;
 
 /// `DlpEmailRuleValue` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpEmailRuleValue {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpEmailRuleValue = serde_json::Value;
 
 /// `DlpEmailScannerCreateAccountMappingResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEmailScannerCreateAccountMappingResponse {
-    /// `result` property.
-    pub result: Option<DlpAddinAccountMapping>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpAddinAccountMapping>>`.
+pub type DlpEmailScannerCreateAccountMappingResponse =
+    super::shared::ApiEnvelope<Option<DlpAddinAccountMapping>>;
 
 /// `DlpEmailScannerCreateRuleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEmailScannerCreateRuleResponse {
-    /// `result` property.
-    pub result: Option<DlpEmailRule>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpEmailRule>>`.
+pub type DlpEmailScannerCreateRuleResponse = super::shared::ApiEnvelope<Option<DlpEmailRule>>;
 
 /// `DlpEmailScannerDeleteRuleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEmailScannerDeleteRuleResponse {
-    /// `result` property.
-    pub result: Option<DlpEmailRule>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpEmailRule>>`.
+pub type DlpEmailScannerDeleteRuleResponse = super::shared::ApiEnvelope<Option<DlpEmailRule>>;
 
 /// `DlpEmailScannerGetAccountMappingResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEmailScannerGetAccountMappingResponse {
-    /// `result` property.
-    pub result: Option<DlpAddinAccountMapping>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpAddinAccountMapping>>`.
+pub type DlpEmailScannerGetAccountMappingResponse =
+    super::shared::ApiEnvelope<Option<DlpAddinAccountMapping>>;
 
 /// `DlpEmailScannerGetRuleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEmailScannerGetRuleResponse {
-    /// `result` property.
-    pub result: Option<DlpEmailRule>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpEmailRule>>`.
+pub type DlpEmailScannerGetRuleResponse = super::shared::ApiEnvelope<Option<DlpEmailRule>>;
 
 /// `DlpEmailScannerListAllRulesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEmailScannerListAllRulesResponse {
-    /// `result` property.
-    pub result: Option<Vec<DlpEmailRule>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<Vec<DlpEmailRule>>>`.
+pub type DlpEmailScannerListAllRulesResponse =
+    super::shared::ApiEnvelope<Option<Vec<DlpEmailRule>>>;
 
 /// `DlpEmailScannerUpdateRulePrioritiesResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEmailScannerUpdateRulePrioritiesResponse {
-    /// `result` property.
-    pub result: Option<DlpEmailRule>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpEmailRule>>`.
+pub type DlpEmailScannerUpdateRulePrioritiesResponse =
+    super::shared::ApiEnvelope<Option<DlpEmailRule>>;
 
 /// `DlpEmailScannerUpdateRuleResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct DlpEmailScannerUpdateRuleResponse {
-    /// `result` property.
-    pub result: Option<DlpEmailRule>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<DlpEmailRule>>`.
+pub type DlpEmailScannerUpdateRuleResponse = super::shared::ApiEnvelope<Option<DlpEmailRule>>;
 
 /// `DlpMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct DlpMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type DlpMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `DlpUpdateAddinAccountMapping` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpUpdateAddinAccountMapping {
-    /// auth_requirements property.
-    pub auth_requirements: DlpAddinAuth,
+    /// `auth_requirements` property.
+    pub auth_requirements: serde_json::Value,
 }
 
 /// `DlpUpdateEmailRulePriorities` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DlpUpdateEmailRulePriorities {
-    /// new_priorities property.
+    /// `new_priorities` property.
     pub new_priorities: serde_json::Value,
 }
 
 /// `EmailAddresses` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailAddresses {
-}
+///
+/// Same shape as `super::shared::EmailAddressesShape`.
+pub type EmailAddresses = super::shared::EmailAddressesShape;
 
 /// `EmailApiResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailApiResponseCollection {
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::AddressingApiResponseCollectionShape`.
+pub type EmailApiResponseCollection = super::shared::AddressingApiResponseCollectionShape;
 
 /// `EmailApiResponseCommon` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailApiResponseCommon {
-    /// errors property.
-    pub errors: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// messages property.
-    pub messages: Vec<std::collections::HashMap<String, serde_json::Value>>,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type EmailApiResponseCommon = super::shared::ErrorsMessagesSuccessObject;
 
 /// `EmailApiResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailApiResponseSingle {
-}
+///
+/// Same shape as `super::shared::ErrorsMessagesSuccessObject`.
+pub type EmailApiResponseSingle = super::shared::ErrorsMessagesSuccessObject;
 
 /// `EmailCreateDestinationAddressProperties` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailCreateDestinationAddressProperties {
-    /// email property.
-    pub email: EmailEmail,
-}
+///
+/// Same shape as `super::shared::EmailObject`.
+pub type EmailCreateDestinationAddressProperties = super::shared::EmailObject;
 
 /// `EmailCreated` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailCreated {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailCreated = String;
 
 /// `EmailDestinationAddressIdentifier` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailDestinationAddressIdentifier {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailDestinationAddressIdentifier = String;
 
 /// `EmailDestinationAddressProperties` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailDestinationAddressProperties {
-    /// created property.
-    pub created: Option<EmailCreated>,
-    /// email property.
-    pub email: Option<EmailEmail>,
-    /// id property.
-    pub id: Option<EmailDestinationAddressIdentifier>,
-    /// modified property.
-    pub modified: Option<EmailModified>,
-    /// tag property.
-    pub tag: Option<EmailDestinationAddressTag>,
-    /// verified property.
-    pub verified: Option<EmailVerified>,
-}
+///
+/// Same shape as `super::shared::EmailAddressesShape`.
+pub type EmailDestinationAddressProperties = super::shared::EmailAddressesShape;
 
 /// `EmailDestinationAddressResponseSingle` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailDestinationAddressResponseSingle {
-    /// `result` property.
-    pub result: Option<EmailAddresses>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<EmailAddresses>>`.
+pub type EmailDestinationAddressResponseSingle = super::shared::ApiEnvelope<Option<EmailAddresses>>;
 
 /// `EmailDestinationAddressTag` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailDestinationAddressTag {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailDestinationAddressTag = String;
 
 /// `EmailDestinationAddressesResponseCollection` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailDestinationAddressesResponseCollection {
-    /// `result` property.
-    pub result: Option<Vec<EmailAddresses>>,
-    /// `result_info` property.
-    pub result_info: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<EmailAddresses>>>`.
+pub type EmailDestinationAddressesResponseCollection =
+    super::shared::ApiEnvelopeErrorsMessagesResultInfoSuccess<Option<Vec<EmailAddresses>>>;
 
 /// `EmailEmail` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailEmail {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailEmail = String;
 
 /// `EmailMessages` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailMessages {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailMessages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `EmailModified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailModified {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailModified = String;
 
 /// `EmailSecurityAllowPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -332,7 +239,7 @@ pub struct EmailSecurityAllowPolicy {
     /// `created_at` property.
     pub created_at: String,
     /// `id` property.
-    pub id: EmailSecurityAllowPolicyId,
+    pub id: i64,
     /// `is_acceptable_sender` property.
     pub is_acceptable_sender: bool,
     /// `is_exempt_recipient` property.
@@ -352,97 +259,93 @@ pub struct EmailSecurityAllowPolicy {
     /// `pattern` property.
     pub pattern: String,
     /// `pattern_type` property.
-    pub pattern_type: EmailSecurityPatternType,
+    pub pattern_type: String,
     /// `verify_sender` property.
     pub verify_sender: bool,
 }
 
 /// `EmailSecurityAllowPolicyId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailSecurityAllowPolicyId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailSecurityAllowPolicyId = i64;
 
 /// `EmailSecurityApiResponseCommon` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityApiResponseCommon {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<EmailSecurityMessage>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<EmailSecurityMessage>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `EmailSecurityAttachment` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityAttachment {
-    /// content_type property.
+    /// `content_type` property.
     pub content_type: Option<String>,
-    /// detection property.
+    /// `detection` property.
     pub detection: Option<serde_json::Value>,
-    /// encrypted property.
+    /// `encrypted` property.
     pub encrypted: Option<bool>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
-    /// size property.
+    /// `size` property.
     pub size: i64,
 }
 
 /// `EmailSecurityBatchAllowPoliciesRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityBatchAllowPoliciesRequest {
-    /// deletes property.
+    /// `deletes` property.
     pub deletes: Vec<EmailSecurityBatchAllowPoliciesRequestDeletesItem>,
-    /// patches property.
+    /// `patches` property.
     pub patches: Vec<serde_json::Value>,
-    /// posts property.
+    /// `posts` property.
     pub posts: Vec<EmailSecurityCreateAllowPolicy>,
-    /// puts property.
+    /// `puts` property.
     pub puts: Vec<serde_json::Value>,
 }
 
 /// `EmailSecurityBatchAllowPoliciesRequestDeletesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityBatchAllowPoliciesRequestDeletesItem {
-    /// id property.
-    pub id: i64,
-}
+///
+/// Same shape as `super::shared::IdObject3`.
+pub type EmailSecurityBatchAllowPoliciesRequestDeletesItem = super::shared::IdObject3;
 
 /// `EmailSecurityBatchAllowPoliciesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityBatchAllowPoliciesResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: std::collections::HashMap<String, serde_json::Value>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityBatchBlockedSendersRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityBatchBlockedSendersRequest {
-    /// deletes property.
+    /// `deletes` property.
     pub deletes: Vec<EmailSecurityBatchBlockedSendersRequestDeletesItem>,
-    /// patches property.
+    /// `patches` property.
     pub patches: Vec<serde_json::Value>,
-    /// posts property.
+    /// `posts` property.
     pub posts: Vec<EmailSecurityCreateBlockedSender>,
-    /// puts property.
+    /// `puts` property.
     pub puts: Vec<serde_json::Value>,
 }
 
 /// `EmailSecurityBatchBlockedSendersRequestDeletesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityBatchBlockedSendersRequestDeletesItem {
-    /// id property.
-    pub id: i64,
-}
+///
+/// Same shape as `super::shared::IdObject3`.
+pub type EmailSecurityBatchBlockedSendersRequestDeletesItem = super::shared::IdObject3;
 
 /// `EmailSecurityBatchBlockedSendersResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityBatchBlockedSendersResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityBatchBlockedSendersResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityBlockedSender` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -452,7 +355,7 @@ pub struct EmailSecurityBlockedSender {
     /// `created_at` property.
     pub created_at: String,
     /// `id` property.
-    pub id: EmailSecurityBlockedSenderId,
+    pub id: i64,
     /// `is_regex` property.
     pub is_regex: bool,
     /// `last_modified` property.
@@ -460,125 +363,117 @@ pub struct EmailSecurityBlockedSender {
     /// `pattern` property.
     pub pattern: String,
     /// `pattern_type` property.
-    pub pattern_type: EmailSecurityPatternType,
+    pub pattern_type: String,
 }
 
 /// `EmailSecurityBlockedSenderId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailSecurityBlockedSenderId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailSecurityBlockedSenderId = i64;
 
 /// `EmailSecurityCreateAllowPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityCreateAllowPolicy {
-    /// comments property.
+    /// `comments` property.
     pub comments: Option<String>,
-    /// is_acceptable_sender property.
+    /// `is_acceptable_sender` property.
     pub is_acceptable_sender: bool,
-    /// is_exempt_recipient property.
+    /// `is_exempt_recipient` property.
     pub is_exempt_recipient: bool,
-    /// is_recipient property.
+    /// `is_recipient` property.
     pub is_recipient: Option<bool>,
-    /// is_regex property.
+    /// `is_regex` property.
     pub is_regex: bool,
-    /// is_sender property.
+    /// `is_sender` property.
     pub is_sender: Option<bool>,
-    /// is_spoof property.
+    /// `is_spoof` property.
     pub is_spoof: Option<bool>,
-    /// is_trusted_sender property.
+    /// `is_trusted_sender` property.
     pub is_trusted_sender: bool,
-    /// pattern property.
+    /// `pattern` property.
     pub pattern: String,
-    /// pattern_type property.
-    pub pattern_type: EmailSecurityPatternType,
-    /// verify_sender property.
+    /// `pattern_type` property.
+    pub pattern_type: String,
+    /// `verify_sender` property.
     pub verify_sender: bool,
 }
 
 /// `EmailSecurityCreateAllowPolicyResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityCreateAllowPolicyResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: serde_json::Value,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityCreateBlockedSender` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityCreateBlockedSender {
-    /// comments property.
+    /// `comments` property.
     pub comments: Option<String>,
-    /// is_regex property.
+    /// `is_regex` property.
     pub is_regex: bool,
-    /// pattern property.
+    /// `pattern` property.
     pub pattern: String,
-    /// pattern_type property.
-    pub pattern_type: EmailSecurityPatternType,
+    /// `pattern_type` property.
+    pub pattern_type: String,
 }
 
 /// `EmailSecurityCreateBlockedSenderResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityCreateBlockedSenderResponse {
-    /// `result` property.
-    pub result: serde_json::Value,
-}
+///
+/// Same shape as `EmailSecurityCreateAllowPolicyResponse`.
+pub type EmailSecurityCreateBlockedSenderResponse = EmailSecurityCreateAllowPolicyResponse;
 
 /// `EmailSecurityCreateDisplayName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityCreateDisplayName {
-    /// email property.
+    /// `email` property.
     pub email: String,
-    /// is_email_regex property.
+    /// `is_email_regex` property.
     pub is_email_regex: bool,
-    /// name property.
+    /// `name` property.
     pub name: String,
 }
 
 /// `EmailSecurityCreateDisplayNameResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityCreateDisplayNameResponse {
-    /// `result` property.
-    pub result: serde_json::Value,
-}
+///
+/// Same shape as `EmailSecurityCreateAllowPolicyResponse`.
+pub type EmailSecurityCreateDisplayNameResponse = EmailSecurityCreateAllowPolicyResponse;
 
 /// `EmailSecurityCursorWithLegacyResultInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityCursorWithLegacyResultInfo {
-    /// count property.
+    /// `count` property.
     pub count: i64,
-    /// next property.
+    /// `next` property.
     pub next: Option<String>,
-    /// page property.
+    /// `page` property.
     pub page: i64,
-    /// per_page property.
+    /// `per_page` property.
     pub per_page: i64,
-    /// previous property.
+    /// `previous` property.
     pub previous: Option<String>,
-    /// total_count property.
+    /// `total_count` property.
     pub total_count: i64,
 }
 
 /// `EmailSecurityDeleteAllowPolicyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityDeleteAllowPolicyResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityDeleteAllowPolicyResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityDeleteBlockedSenderResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityDeleteBlockedSenderResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityDeleteBlockedSenderResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityDeleteDisplayNameResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityDeleteDisplayNameResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityDeleteDisplayNameResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityDisplayName` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -608,346 +503,346 @@ pub struct EmailSecurityDisplayName {
 }
 
 /// `EmailSecurityDispositionLabel` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailSecurityDispositionLabel {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailSecurityDispositionLabel = String;
 
 /// `EmailSecurityGetAllowPolicyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityGetAllowPolicyResponse {
-    /// `result` property.
-    pub result: serde_json::Value,
-}
+///
+/// Same shape as `EmailSecurityCreateAllowPolicyResponse`.
+pub type EmailSecurityGetAllowPolicyResponse = EmailSecurityCreateAllowPolicyResponse;
 
 /// `EmailSecurityGetBlockedSenderResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityGetBlockedSenderResponse {
-    /// `result` property.
-    pub result: serde_json::Value,
-}
+///
+/// Same shape as `EmailSecurityCreateAllowPolicyResponse`.
+pub type EmailSecurityGetBlockedSenderResponse = EmailSecurityCreateAllowPolicyResponse;
 
 /// `EmailSecurityGetDisplayNameResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityGetDisplayNameResponse {
-    /// `result` property.
-    pub result: serde_json::Value,
-}
+///
+/// Same shape as `EmailSecurityCreateAllowPolicyResponse`.
+pub type EmailSecurityGetDisplayNameResponse = EmailSecurityCreateAllowPolicyResponse;
 
 /// `EmailSecurityGetMessageDetectionsResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityGetMessageDetectionsResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityGetMessageDetectionsResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityGetMessagePreviewResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityGetMessagePreviewResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityGetMessagePreviewResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityGetMessageRawResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityGetMessageRawResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityGetMessageRawResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityGetMessageResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityGetMessageResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityGetMessageResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityGetMessageTraceResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityGetMessageTraceResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityGetMessageTraceResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityGetPhishguardReportsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityGetPhishguardReportsResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: Vec<EmailSecurityPhishGuardReport>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityInvestigateMessage` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityInvestigateMessage {
-    /// action_log property.
+    /// `action_log` property.
     pub action_log: serde_json::Value,
-    /// alert_id property.
+    /// `alert_id` property.
     pub alert_id: Option<String>,
-    /// client_recipients property.
+    /// `client_recipients` property.
     pub client_recipients: Vec<String>,
-    /// delivery_mode property.
+    /// `delivery_mode` property.
     pub delivery_mode: Option<serde_json::Value>,
-    /// detection_reasons property.
+    /// `detection_reasons` property.
     pub detection_reasons: Vec<String>,
-    /// edf_hash property.
+    /// `edf_hash` property.
     pub edf_hash: Option<String>,
-    /// envelope_from property.
+    /// `envelope_from` property.
     pub envelope_from: Option<String>,
-    /// envelope_to property.
+    /// `envelope_to` property.
     pub envelope_to: Option<Vec<String>>,
-    /// final_disposition property.
+    /// `final_disposition` property.
     pub final_disposition: Option<serde_json::Value>,
-    /// findings property.
+    /// `findings` property.
     pub findings: Option<Vec<std::collections::HashMap<String, serde_json::Value>>>,
-    /// from property.
+    /// `from` property.
     pub from: Option<String>,
-    /// from_name property.
+    /// `from_name` property.
     pub from_name: Option<String>,
-    /// htmltext_structure_hash property.
+    /// `htmltext_structure_hash` property.
     pub htmltext_structure_hash: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: String,
-    /// is_phish_submission property.
+    /// `is_phish_submission` property.
     pub is_phish_submission: bool,
-    /// is_quarantined property.
+    /// `is_quarantined` property.
     pub is_quarantined: bool,
-    /// message_id property.
+    /// `message_id` property.
     pub message_id: Option<String>,
-    /// post_delivery_operations property.
+    /// `post_delivery_operations` property.
     pub post_delivery_operations: Option<Vec<String>>,
-    /// postfix_id property.
-    pub postfix_id: EmailSecurityPostfixId,
-    /// postfix_id_outbound property.
+    /// `postfix_id` property.
+    pub postfix_id: String,
+    /// `postfix_id_outbound` property.
     pub postfix_id_outbound: Option<String>,
-    /// properties property.
+    /// `properties` property.
     pub properties: std::collections::HashMap<String, serde_json::Value>,
-    /// replyto property.
+    /// `replyto` property.
     pub replyto: Option<String>,
-    /// scanned_at property.
+    /// `scanned_at` property.
     pub scanned_at: Option<String>,
-    /// sent_at property.
+    /// `sent_at` property.
     pub sent_at: Option<String>,
-    /// sent_date property.
+    /// `sent_date` property.
     pub sent_date: Option<String>,
-    /// subject property.
+    /// `subject` property.
     pub subject: Option<String>,
-    /// threat_categories property.
+    /// `threat_categories` property.
     pub threat_categories: Option<Vec<String>>,
-    /// to property.
+    /// `to` property.
     pub to: Option<Vec<String>>,
-    /// to_name property.
+    /// `to_name` property.
     pub to_name: Option<Vec<String>>,
-    /// ts property.
+    /// `ts` property.
     pub ts: String,
-    /// validation property.
+    /// `validation` property.
     pub validation: Option<serde_json::Value>,
 }
 
 /// `EmailSecurityInvestigateResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityInvestigateResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: Vec<EmailSecurityInvestigateMessage>,
     /// `result_info` property.
     pub result_info: EmailSecurityCursorWithLegacyResultInfo,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityLink` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityLink {
-    /// href property.
+    /// `href` property.
     pub href: String,
-    /// text property.
+    /// `text` property.
     pub text: Option<String>,
 }
 
 /// `EmailSecurityListAllowPoliciesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityListAllowPoliciesResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: Vec<EmailSecurityAllowPolicy>,
     /// `result_info` property.
     pub result_info: EmailSecurityResultInfo,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityListBlockedSendersResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityListBlockedSendersResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: Vec<EmailSecurityBlockedSender>,
     /// `result_info` property.
     pub result_info: EmailSecurityResultInfo,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityListDisplayNamesResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityListDisplayNamesResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: Vec<EmailSecurityDisplayName>,
     /// `result_info` property.
     pub result_info: EmailSecurityResultInfo,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityMessage` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityMessage {
-    /// code property.
-    pub code: i64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject2`.
+pub type EmailSecurityMessage = super::shared::CodeMessageObject2;
 
 /// `EmailSecurityMessageHeader` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityMessageHeader {
-    /// name property.
-    pub name: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::NameValueObject`.
+pub type EmailSecurityMessageHeader = super::shared::NameValueObject;
 
 /// `EmailSecurityMoveResponseItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityMoveResponseItem {
-    /// completed_at property.
+    /// `completed_at` property.
     pub completed_at: Option<String>,
-    /// completed_timestamp property.
+    /// `completed_timestamp` property.
     pub completed_timestamp: String,
-    /// destination property.
+    /// `destination` property.
     pub destination: Option<String>,
-    /// item_count property.
+    /// `item_count` property.
     pub item_count: i64,
-    /// message_id property.
+    /// `message_id` property.
     pub message_id: Option<String>,
-    /// operation property.
+    /// `operation` property.
     pub operation: Option<String>,
-    /// recipient property.
+    /// `recipient` property.
     pub recipient: Option<String>,
-    /// status property.
+    /// `status` property.
     pub status: Option<String>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `EmailSecurityPatternType` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailSecurityPatternType {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailSecurityPatternType = String;
 
 /// `EmailSecurityPhishGuardReport` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityPhishGuardReport {
-    /// content property.
+    /// `content` property.
     pub content: String,
-    /// created_at property.
+    /// `created_at` property.
     pub created_at: String,
-    /// disposition property.
-    pub disposition: EmailSecurityDispositionLabel,
-    /// fields property.
+    /// `disposition` property.
+    pub disposition: String,
+    /// `fields` property.
     pub fields: std::collections::HashMap<String, serde_json::Value>,
-    /// id property.
+    /// `id` property.
     pub id: i64,
-    /// priority property.
+    /// `priority` property.
     pub priority: String,
-    /// tags property.
+    /// `tags` property.
     pub tags: Option<Vec<EmailSecurityPhishGuardReportTag>>,
-    /// title property.
+    /// `title` property.
     pub title: String,
-    /// ts property.
+    /// `ts` property.
     pub ts: String,
-    /// updated_at property.
+    /// `updated_at` property.
     pub updated_at: String,
 }
 
 /// `EmailSecurityPhishGuardReportTag` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityPhishGuardReportTag {
-    /// category property.
+    /// `category` property.
     pub category: String,
-    /// value property.
+    /// `value` property.
     pub value: String,
 }
 
 /// `EmailSecurityPostBulkMessageMoveRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityPostBulkMessageMoveRequest {
-    /// destination property.
+    /// `destination` property.
     pub destination: String,
-    /// ids property.
+    /// `ids` property.
     pub ids: Option<Vec<String>>,
-    /// postfix_ids property.
-    pub postfix_ids: Option<Vec<EmailSecurityPostfixId>>,
+    /// `postfix_ids` property.
+    pub postfix_ids: Option<Vec<String>>,
 }
 
 /// `EmailSecurityPostBulkMessageMoveResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityPostBulkMessageMoveResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: Vec<EmailSecurityMoveResponseItem>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityPostMessageMoveRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityPostMessageMoveRequest {
-    /// destination property.
+    /// `destination` property.
     pub destination: String,
 }
 
 /// `EmailSecurityPostMessageMoveResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityPostMessageMoveResponse {
-    /// `result` property.
-    pub result: Vec<EmailSecurityMoveResponseItem>,
-}
+///
+/// Same shape as `EmailSecurityPostBulkMessageMoveResponse`.
+pub type EmailSecurityPostMessageMoveResponse = EmailSecurityPostBulkMessageMoveResponse;
 
 /// `EmailSecurityPostPreviewRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityPostPreviewRequest {
-    /// postfix_id property.
-    pub postfix_id: EmailSecurityPostfixId,
+    /// `postfix_id` property.
+    pub postfix_id: String,
 }
 
 /// `EmailSecurityPostPreviewResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityPostPreviewResponse {
-    /// `result` property.
-    pub result: std::collections::HashMap<String, serde_json::Value>,
-}
+///
+/// Same shape as `EmailSecurityBatchAllowPoliciesResponse`.
+pub type EmailSecurityPostPreviewResponse = EmailSecurityBatchAllowPoliciesResponse;
 
 /// `EmailSecurityPostReclassifyRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityPostReclassifyRequest {
-    /// eml_content property.
+    /// `eml_content` property.
     pub eml_content: Option<String>,
-    /// escalated_submission_id property.
+    /// `escalated_submission_id` property.
     pub escalated_submission_id: Option<String>,
-    /// expected_disposition property.
+    /// `expected_disposition` property.
     pub expected_disposition: String,
 }
 
 /// `EmailSecurityPostReclassifyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityPostReclassifyResponse {
-    /// `result` property.
-    pub result: serde_json::Value,
-}
+///
+/// Same shape as `EmailSecurityCreateAllowPolicyResponse`.
+pub type EmailSecurityPostReclassifyResponse = EmailSecurityCreateAllowPolicyResponse;
 
 /// `EmailSecurityPostReleaseResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityPostReleaseResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: Vec<EmailSecurityReleaseResponse>,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityPostfixId` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailSecurityPostfixId {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailSecurityPostfixId = String;
 
 /// `EmailSecurityReleaseResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -959,62 +854,55 @@ pub struct EmailSecurityReleaseResponse {
     /// `id` property.
     pub id: String,
     /// `postfix_id` property.
-    pub postfix_id: EmailSecurityPostfixId,
+    pub postfix_id: String,
     /// `undelivered` property.
     pub undelivered: Option<Vec<String>>,
 }
 
 /// `EmailSecurityResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityResultInfo {
-    /// count property.
-    pub count: i64,
-    /// page property.
-    pub page: i64,
-    /// per_page property.
-    pub per_page: i64,
-    /// total_count property.
-    pub total_count: i64,
-}
+///
+/// Same shape as `super::shared::AiSearchInstanceListJobLogsResponseResultInfoShape`.
+pub type EmailSecurityResultInfo =
+    super::shared::AiSearchInstanceListJobLogsResponseResultInfoShape;
 
 /// `EmailSecuritySubmission` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecuritySubmission {
-    /// customer_status property.
+    /// `customer_status` property.
     pub customer_status: Option<serde_json::Value>,
-    /// escalated_as property.
+    /// `escalated_as` property.
     pub escalated_as: Option<serde_json::Value>,
-    /// escalated_at property.
+    /// `escalated_at` property.
     pub escalated_at: Option<String>,
-    /// escalated_by property.
+    /// `escalated_by` property.
     pub escalated_by: Option<String>,
-    /// escalated_submission_id property.
+    /// `escalated_submission_id` property.
     pub escalated_submission_id: Option<String>,
-    /// original_disposition property.
+    /// `original_disposition` property.
     pub original_disposition: Option<serde_json::Value>,
-    /// original_edf_hash property.
+    /// `original_edf_hash` property.
     pub original_edf_hash: Option<String>,
-    /// original_postfix_id property.
+    /// `original_postfix_id` property.
     pub original_postfix_id: Option<String>,
-    /// outcome property.
+    /// `outcome` property.
     pub outcome: Option<String>,
-    /// outcome_disposition property.
+    /// `outcome_disposition` property.
     pub outcome_disposition: Option<serde_json::Value>,
-    /// requested_at property.
+    /// `requested_at` property.
     pub requested_at: Option<String>,
-    /// requested_by property.
+    /// `requested_by` property.
     pub requested_by: Option<String>,
-    /// requested_disposition property.
+    /// `requested_disposition` property.
     pub requested_disposition: Option<serde_json::Value>,
-    /// requested_ts property.
+    /// `requested_ts` property.
     pub requested_ts: String,
-    /// status property.
+    /// `status` property.
     pub status: Option<String>,
-    /// subject property.
+    /// `subject` property.
     pub subject: Option<String>,
-    /// submission_id property.
+    /// `submission_id` property.
     pub submission_id: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: Option<String>,
 }
@@ -1022,206 +910,172 @@ pub struct EmailSecuritySubmission {
 /// `EmailSecuritySubmissionsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecuritySubmissionsResponse {
+    /// `errors` property.
+    pub errors: Vec<EmailSecurityMessage>,
+    /// `messages` property.
+    pub messages: Vec<EmailSecurityMessage>,
     /// `result` property.
     pub result: Vec<EmailSecuritySubmission>,
     /// `result_info` property.
     pub result_info: EmailSecurityResultInfo,
+    /// `success` property.
+    pub success: bool,
 }
 
 /// `EmailSecurityThreatCategory` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityThreatCategory {
-    /// description property.
+    /// `description` property.
     pub description: Option<String>,
-    /// id property.
+    /// `id` property.
     pub id: i64,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
 }
 
 /// `EmailSecurityTraceLine` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityTraceLine {
-    /// lineno property.
+    /// `lineno` property.
     pub lineno: i64,
-    /// message property.
+    /// `message` property.
     pub message: String,
-    /// ts property.
+    /// `ts` property.
     pub ts: String,
 }
 
 /// `EmailSecurityUpdateAllowPolicy` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityUpdateAllowPolicy {
-    /// comments property.
+    /// `comments` property.
     pub comments: Option<String>,
-    /// is_acceptable_sender property.
+    /// `is_acceptable_sender` property.
     pub is_acceptable_sender: Option<bool>,
-    /// is_exempt_recipient property.
+    /// `is_exempt_recipient` property.
     pub is_exempt_recipient: Option<bool>,
-    /// is_regex property.
+    /// `is_regex` property.
     pub is_regex: Option<bool>,
-    /// is_trusted_sender property.
+    /// `is_trusted_sender` property.
     pub is_trusted_sender: Option<bool>,
-    /// pattern property.
+    /// `pattern` property.
     pub pattern: Option<String>,
-    /// pattern_type property.
+    /// `pattern_type` property.
     pub pattern_type: Option<serde_json::Value>,
-    /// verify_sender property.
+    /// `verify_sender` property.
     pub verify_sender: Option<bool>,
 }
 
 /// `EmailSecurityUpdateAllowPolicyResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityUpdateAllowPolicyResponse {
-    /// `result` property.
-    pub result: serde_json::Value,
-}
+///
+/// Same shape as `EmailSecurityCreateAllowPolicyResponse`.
+pub type EmailSecurityUpdateAllowPolicyResponse = EmailSecurityCreateAllowPolicyResponse;
 
 /// `EmailSecurityUpdateBlockedSender` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityUpdateBlockedSender {
-    /// comments property.
+    /// `comments` property.
     pub comments: Option<String>,
-    /// is_regex property.
+    /// `is_regex` property.
     pub is_regex: Option<bool>,
-    /// pattern property.
+    /// `pattern` property.
     pub pattern: Option<String>,
-    /// pattern_type property.
+    /// `pattern_type` property.
     pub pattern_type: Option<serde_json::Value>,
 }
 
 /// `EmailSecurityUpdateBlockedSenderResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityUpdateBlockedSenderResponse {
-    /// `result` property.
-    pub result: serde_json::Value,
-}
+///
+/// Same shape as `EmailSecurityCreateAllowPolicyResponse`.
+pub type EmailSecurityUpdateBlockedSenderResponse = EmailSecurityCreateAllowPolicyResponse;
 
 /// `EmailSecurityUpdateDisplayNameRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityUpdateDisplayNameRequest {
-    /// email property.
+    /// `email` property.
     pub email: Option<String>,
-    /// is_email_regex property.
+    /// `is_email_regex` property.
     pub is_email_regex: Option<bool>,
-    /// name property.
+    /// `name` property.
     pub name: Option<String>,
 }
 
 /// `EmailSecurityUpdateDisplayNameResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSecurityUpdateDisplayNameResponse {
-    /// `result` property.
-    pub result: serde_json::Value,
-}
+///
+/// Same shape as `EmailSecurityCreateAllowPolicyResponse`.
+pub type EmailSecurityUpdateDisplayNameResponse = EmailSecurityCreateAllowPolicyResponse;
 
 /// `EmailSendingAccountSendBuilderResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingAccountSendBuilderResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<EmailSendingAccountSendBuilderResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<EmailSendingAccountSendBuilderResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: EmailSendingEmailSendResponse,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<EmailSendingAccountSendBuilderResponseResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `EmailSendingAccountSendBuilderResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSendingAccountSendBuilderResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type EmailSendingAccountSendBuilderResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `EmailSendingAccountSendBuilderResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSendingAccountSendBuilderResponseMessagesItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type EmailSendingAccountSendBuilderResponseMessagesItem = super::shared::CodeMessageObject;
 
 /// `EmailSendingAccountSendBuilderResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSendingAccountSendBuilderResponseResultInfo {
-    /// count property.
-    pub count: f64,
-    /// cursor property.
-    pub cursor: Option<String>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: f64,
-    /// total_count property.
-    pub total_count: f64,
-}
+///
+/// Same shape as `super::shared::WorBatchCreateWorkflowInstanceResponseResultInfoShape`.
+pub type EmailSendingAccountSendBuilderResponseResultInfo =
+    super::shared::WorBatchCreateWorkflowInstanceResponseResultInfoShape;
 
 /// `EmailSendingAccountSendRawMessageResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingAccountSendRawMessageResponse {
-    /// errors property.
+    /// `errors` property.
     pub errors: Vec<EmailSendingAccountSendRawMessageResponseErrorsItem>,
-    /// messages property.
+    /// `messages` property.
     pub messages: Vec<EmailSendingAccountSendRawMessageResponseMessagesItem>,
-    /// result property.
+    /// `result` property.
     pub result: EmailSendingEmailSendResponse,
-    /// result_info property.
+    /// `result_info` property.
     pub result_info: Option<EmailSendingAccountSendRawMessageResponseResultInfo>,
-    /// success property.
+    /// `success` property.
     pub success: bool,
 }
 
 /// `EmailSendingAccountSendRawMessageResponseErrorsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSendingAccountSendRawMessageResponseErrorsItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type EmailSendingAccountSendRawMessageResponseErrorsItem = super::shared::CodeMessageObject;
 
 /// `EmailSendingAccountSendRawMessageResponseMessagesItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSendingAccountSendRawMessageResponseMessagesItem {
-    /// code property.
-    pub code: f64,
-    /// message property.
-    pub message: String,
-}
+///
+/// Same shape as `super::shared::CodeMessageObject`.
+pub type EmailSendingAccountSendRawMessageResponseMessagesItem = super::shared::CodeMessageObject;
 
 /// `EmailSendingAccountSendRawMessageResponseResultInfo` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct EmailSendingAccountSendRawMessageResponseResultInfo {
-    /// count property.
-    pub count: f64,
-    /// cursor property.
-    pub cursor: Option<String>,
-    /// page property.
-    pub page: Option<f64>,
-    /// per_page property.
-    pub per_page: f64,
-    /// total_count property.
-    pub total_count: f64,
-}
+///
+/// Same shape as `super::shared::WorBatchCreateWorkflowInstanceResponseResultInfoShape`.
+pub type EmailSendingAccountSendRawMessageResponseResultInfo =
+    super::shared::WorBatchCreateWorkflowInstanceResponseResultInfoShape;
 
 /// `EmailSendingEmailAttachment` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingEmailAttachment {
-    /// content property.
+    /// `content` property.
     pub content: String,
-    /// disposition property.
+    /// `disposition` property.
     pub disposition: String,
-    /// filename property.
+    /// `filename` property.
     pub filename: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -1229,40 +1083,40 @@ pub struct EmailSendingEmailAttachment {
 /// `EmailSendingEmailBuilder` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingEmailBuilder {
-    /// attachments property.
+    /// `attachments` property.
     pub attachments: Option<Vec<serde_json::Value>>,
-    /// bcc property.
+    /// `bcc` property.
     pub bcc: Option<serde_json::Value>,
-    /// cc property.
+    /// `cc` property.
     pub cc: Option<serde_json::Value>,
-    /// from property.
+    /// `from` property.
     pub from: serde_json::Value,
-    /// headers property.
+    /// `headers` property.
     pub headers: Option<serde_json::Value>,
-    /// html property.
+    /// `html` property.
     pub html: Option<String>,
-    /// reply_to property.
+    /// `reply_to` property.
     pub reply_to: Option<serde_json::Value>,
-    /// subject property.
+    /// `subject` property.
     pub subject: String,
-    /// text property.
+    /// `text` property.
     pub text: Option<String>,
-    /// to property.
+    /// `to` property.
     pub to: serde_json::Value,
 }
 
 /// `EmailSendingEmailInlineAttachment` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingEmailInlineAttachment {
-    /// content property.
+    /// `content` property.
     pub content: String,
-    /// content_id property.
+    /// `content_id` property.
     pub content_id: String,
-    /// disposition property.
+    /// `disposition` property.
     pub disposition: String,
-    /// filename property.
+    /// `filename` property.
     pub filename: String,
-    /// type property.
+    /// `type` property.
     #[serde(rename = "type")]
     pub r#type: String,
 }
@@ -1270,422 +1124,294 @@ pub struct EmailSendingEmailInlineAttachment {
 /// `EmailSendingEmailSendResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingEmailSendResponse {
-    /// delivered property.
+    /// `delivered` property.
     pub delivered: Vec<String>,
-    /// permanent_bounces property.
+    /// `permanent_bounces` property.
     pub permanent_bounces: Vec<String>,
-    /// queued property.
+    /// `queued` property.
     pub queued: Vec<String>,
 }
 
 /// `EmailSendingSendRawRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingSendRawRequest {
-    /// from property.
+    /// `from` property.
     pub from: String,
-    /// mime_message property.
+    /// `mime_message` property.
     pub mime_message: String,
-    /// recipients property.
+    /// `recipients` property.
     pub recipients: Vec<String>,
 }
 
 /// `EmailVerified` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-#[serde(transparent)]
-pub struct EmailVerified {
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
+pub type EmailVerified = String;
 
 /// `RadarGetEmailRoutingSummaryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryResponse {
-    /// result property.
-    pub result: RadarGetEmailRoutingSummaryResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetEmailRoutingSummaryResponseResult>`.
+pub type RadarGetEmailRoutingSummaryResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetEmailRoutingSummaryResponseResult>;
 
 /// `RadarGetEmailRoutingSummaryResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailRoutingSummaryResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetEmailRoutingSummaryResponseResultMeta,
-    /// summary_0 property.
+    /// `summary_0` property.
     pub summary_0: serde_json::Value,
 }
 
 /// `RadarGetEmailRoutingSummaryResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailRoutingSummaryResponseResultMeta {
-    /// confidenceInfo property.
+    /// `confidenceInfo` property.
     #[serde(rename = "confidenceInfo")]
     pub confidence_info: RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfo,
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetEmailRoutingSummaryResponseResultMetaDateRangeItem>,
-    /// lastUpdated property.
+    /// `lastUpdated` property.
     #[serde(rename = "lastUpdated")]
     pub last_updated: String,
-    /// normalization property.
+    /// `normalization` property.
     pub normalization: String,
-    /// units property.
+    /// `units` property.
     pub units: Vec<RadarGetEmailRoutingSummaryResponseResultMetaUnitsItem>,
 }
 
 /// `RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfo {
-    /// annotations property.
-    pub annotations: Vec<RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
-    /// level property.
+    /// `annotations` property.
+    pub annotations:
+        Vec<RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// `level` property.
     pub level: i64,
 }
 
 /// `RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfoAnnotationsItem {
-    /// dataSource property.
-    #[serde(rename = "dataSource")]
-    pub data_source: String,
-    /// description property.
-    pub description: String,
-    /// endDate property.
-    #[serde(rename = "endDate")]
-    pub end_date: String,
-    /// eventType property.
-    #[serde(rename = "eventType")]
-    pub event_type: String,
-    /// isInstantaneous property.
-    #[serde(rename = "isInstantaneous")]
-    pub is_instantaneous: bool,
-    /// linkedUrl property.
-    #[serde(rename = "linkedUrl")]
-    pub linked_url: String,
-    /// startDate property.
-    #[serde(rename = "startDate")]
-    pub start_date: String,
-}
+///
+/// Same shape as `super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape`.
+pub type RadarGetEmailRoutingSummaryResponseResultMetaConfidenceInfoAnnotationsItem =
+    super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape;
 
 /// `RadarGetEmailRoutingSummaryResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetEmailRoutingSummaryResponseResultMetaDateRangeItem =
+    super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetEmailRoutingSummaryResponseResultMetaUnitsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryResponseResultMetaUnitsItem {
-    /// name property.
-    pub name: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::NameValueObject`.
+pub type RadarGetEmailRoutingSummaryResponseResultMetaUnitsItem = super::shared::NameValueObject;
 
 /// `RadarGetEmailRoutingTimeseriesGroupResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupResponse {
-    /// result property.
-    pub result: RadarGetEmailRoutingTimeseriesGroupResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetEmailRoutingTimeseriesGroupResponseResult>`.
+pub type RadarGetEmailRoutingTimeseriesGroupResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetEmailRoutingTimeseriesGroupResponseResult>;
 
 /// `RadarGetEmailRoutingTimeseriesGroupResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailRoutingTimeseriesGroupResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetEmailRoutingTimeseriesGroupResponseResultMeta,
-    /// serie_0 property.
+    /// `serie_0` property.
     pub serie_0: RadarGetEmailRoutingTimeseriesGroupResponseResultSerie0,
 }
 
 /// `RadarGetEmailRoutingTimeseriesGroupResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMeta {
-    /// aggInterval property.
+    /// `aggInterval` property.
     #[serde(rename = "aggInterval")]
     pub agg_interval: String,
-    /// confidenceInfo property.
+    /// `confidenceInfo` property.
     #[serde(rename = "confidenceInfo")]
     pub confidence_info: RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfo,
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetEmailRoutingTimeseriesGroupResponseResultMetaDateRangeItem>,
-    /// lastUpdated property.
+    /// `lastUpdated` property.
     #[serde(rename = "lastUpdated")]
     pub last_updated: String,
-    /// normalization property.
+    /// `normalization` property.
     pub normalization: String,
-    /// units property.
+    /// `units` property.
     pub units: Vec<RadarGetEmailRoutingTimeseriesGroupResponseResultMetaUnitsItem>,
 }
 
 /// `RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfo {
-    /// annotations property.
-    pub annotations: Vec<RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
-    /// level property.
+    /// `annotations` property.
+    pub annotations:
+        Vec<RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// `level` property.
     pub level: i64,
 }
 
 /// `RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
-    /// dataSource property.
-    #[serde(rename = "dataSource")]
-    pub data_source: String,
-    /// description property.
-    pub description: String,
-    /// endDate property.
-    #[serde(rename = "endDate")]
-    pub end_date: String,
-    /// eventType property.
-    #[serde(rename = "eventType")]
-    pub event_type: String,
-    /// isInstantaneous property.
-    #[serde(rename = "isInstantaneous")]
-    pub is_instantaneous: bool,
-    /// linkedUrl property.
-    #[serde(rename = "linkedUrl")]
-    pub linked_url: String,
-    /// startDate property.
-    #[serde(rename = "startDate")]
-    pub start_date: String,
-}
+///
+/// Same shape as `super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape`.
+pub type RadarGetEmailRoutingTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem =
+    super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape;
 
 /// `RadarGetEmailRoutingTimeseriesGroupResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetEmailRoutingTimeseriesGroupResponseResultMetaDateRangeItem =
+    super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetEmailRoutingTimeseriesGroupResponseResultMetaUnitsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultMetaUnitsItem {
-    /// name property.
-    pub name: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::NameValueObject`.
+pub type RadarGetEmailRoutingTimeseriesGroupResponseResultMetaUnitsItem =
+    super::shared::NameValueObject;
 
 /// `RadarGetEmailRoutingTimeseriesGroupResponseResultSerie0` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupResponseResultSerie0 {
-    /// timestamps property.
-    pub timestamps: Vec<String>,
-}
+///
+/// Same shape as `super::shared::TimestampsObject`.
+pub type RadarGetEmailRoutingTimeseriesGroupResponseResultSerie0 = super::shared::TimestampsObject;
 
 /// `RadarGetEmailSecuritySummaryResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryResponse {
-    /// result property.
-    pub result: RadarGetEmailSecuritySummaryResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetEmailSecuritySummaryResponseResult>`.
+pub type RadarGetEmailSecuritySummaryResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetEmailSecuritySummaryResponseResult>;
 
 /// `RadarGetEmailSecuritySummaryResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailSecuritySummaryResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetEmailSecuritySummaryResponseResultMeta,
-    /// summary_0 property.
+    /// `summary_0` property.
     pub summary_0: serde_json::Value,
 }
 
 /// `RadarGetEmailSecuritySummaryResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailSecuritySummaryResponseResultMeta {
-    /// confidenceInfo property.
+    /// `confidenceInfo` property.
     #[serde(rename = "confidenceInfo")]
     pub confidence_info: RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfo,
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetEmailSecuritySummaryResponseResultMetaDateRangeItem>,
-    /// lastUpdated property.
+    /// `lastUpdated` property.
     #[serde(rename = "lastUpdated")]
     pub last_updated: String,
-    /// normalization property.
+    /// `normalization` property.
     pub normalization: String,
-    /// units property.
+    /// `units` property.
     pub units: Vec<RadarGetEmailSecuritySummaryResponseResultMetaUnitsItem>,
 }
 
 /// `RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfo {
-    /// annotations property.
-    pub annotations: Vec<RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
-    /// level property.
+    /// `annotations` property.
+    pub annotations:
+        Vec<RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// `level` property.
     pub level: i64,
 }
 
 /// `RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfoAnnotationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfoAnnotationsItem {
-    /// dataSource property.
-    #[serde(rename = "dataSource")]
-    pub data_source: String,
-    /// description property.
-    pub description: String,
-    /// endDate property.
-    #[serde(rename = "endDate")]
-    pub end_date: String,
-    /// eventType property.
-    #[serde(rename = "eventType")]
-    pub event_type: String,
-    /// isInstantaneous property.
-    #[serde(rename = "isInstantaneous")]
-    pub is_instantaneous: bool,
-    /// linkedUrl property.
-    #[serde(rename = "linkedUrl")]
-    pub linked_url: String,
-    /// startDate property.
-    #[serde(rename = "startDate")]
-    pub start_date: String,
-}
+///
+/// Same shape as `super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape`.
+pub type RadarGetEmailSecuritySummaryResponseResultMetaConfidenceInfoAnnotationsItem =
+    super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape;
 
 /// `RadarGetEmailSecuritySummaryResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetEmailSecuritySummaryResponseResultMetaDateRangeItem =
+    super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetEmailSecuritySummaryResponseResultMetaUnitsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryResponseResultMetaUnitsItem {
-    /// name property.
-    pub name: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::NameValueObject`.
+pub type RadarGetEmailSecuritySummaryResponseResultMetaUnitsItem = super::shared::NameValueObject;
 
 /// `RadarGetEmailSecurityTimeseriesGroupResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupResponse {
-    /// result property.
-    pub result: RadarGetEmailSecurityTimeseriesGroupResponseResult,
-    /// success property.
-    pub success: bool,
-}
+///
+/// Same shape as `super::shared::ApiEnvelopeSuccess<RadarGetEmailSecurityTimeseriesGroupResponseResult>`.
+pub type RadarGetEmailSecurityTimeseriesGroupResponse =
+    super::shared::ApiEnvelopeSuccess<RadarGetEmailSecurityTimeseriesGroupResponseResult>;
 
 /// `RadarGetEmailSecurityTimeseriesGroupResponseResult` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailSecurityTimeseriesGroupResponseResult {
-    /// meta property.
+    /// `meta` property.
     pub meta: RadarGetEmailSecurityTimeseriesGroupResponseResultMeta,
-    /// serie_0 property.
+    /// `serie_0` property.
     pub serie_0: RadarGetEmailSecurityTimeseriesGroupResponseResultSerie0,
 }
 
 /// `RadarGetEmailSecurityTimeseriesGroupResponseResultMeta` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMeta {
-    /// aggInterval property.
+    /// `aggInterval` property.
     #[serde(rename = "aggInterval")]
     pub agg_interval: String,
-    /// confidenceInfo property.
+    /// `confidenceInfo` property.
     #[serde(rename = "confidenceInfo")]
     pub confidence_info: RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfo,
-    /// dateRange property.
+    /// `dateRange` property.
     #[serde(rename = "dateRange")]
     pub date_range: Vec<RadarGetEmailSecurityTimeseriesGroupResponseResultMetaDateRangeItem>,
-    /// lastUpdated property.
+    /// `lastUpdated` property.
     #[serde(rename = "lastUpdated")]
     pub last_updated: String,
-    /// normalization property.
+    /// `normalization` property.
     pub normalization: String,
-    /// units property.
+    /// `units` property.
     pub units: Vec<RadarGetEmailSecurityTimeseriesGroupResponseResultMetaUnitsItem>,
 }
 
 /// `RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfo {
-    /// annotations property.
-    pub annotations: Vec<RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
-    /// level property.
+    /// `annotations` property.
+    pub annotations:
+        Vec<RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem>,
+    /// `level` property.
     pub level: i64,
 }
 
 /// `RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem {
-    /// dataSource property.
-    #[serde(rename = "dataSource")]
-    pub data_source: String,
-    /// description property.
-    pub description: String,
-    /// endDate property.
-    #[serde(rename = "endDate")]
-    pub end_date: String,
-    /// eventType property.
-    #[serde(rename = "eventType")]
-    pub event_type: String,
-    /// isInstantaneous property.
-    #[serde(rename = "isInstantaneous")]
-    pub is_instantaneous: bool,
-    /// linkedUrl property.
-    #[serde(rename = "linkedUrl")]
-    pub linked_url: String,
-    /// startDate property.
-    #[serde(rename = "startDate")]
-    pub start_date: String,
-}
+///
+/// Same shape as `super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape`.
+pub type RadarGetEmailSecurityTimeseriesGroupResponseResultMetaConfidenceInfoAnnotationsItem =
+    super::shared::RadarGetAiBotsSummaryResponseResultMetaConfidenceInfoAnnotationsItemShape;
 
 /// `RadarGetEmailSecurityTimeseriesGroupResponseResultMetaDateRangeItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMetaDateRangeItem {
-    /// endTime property.
-    #[serde(rename = "endTime")]
-    pub end_time: String,
-    /// startTime property.
-    #[serde(rename = "startTime")]
-    pub start_time: String,
-}
+///
+/// Same shape as `super::shared::EndTimeStartTimeObject`.
+pub type RadarGetEmailSecurityTimeseriesGroupResponseResultMetaDateRangeItem =
+    super::shared::EndTimeStartTimeObject;
 
 /// `RadarGetEmailSecurityTimeseriesGroupResponseResultMetaUnitsItem` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultMetaUnitsItem {
-    /// name property.
-    pub name: String,
-    /// value property.
-    pub value: String,
-}
+///
+/// Same shape as `super::shared::NameValueObject`.
+pub type RadarGetEmailSecurityTimeseriesGroupResponseResultMetaUnitsItem =
+    super::shared::NameValueObject;
 
 /// `RadarGetEmailSecurityTimeseriesGroupResponseResultSerie0` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupResponseResultSerie0 {
-    /// timestamps property.
-    pub timestamps: Vec<String>,
-}
+///
+/// Same shape as `super::shared::TimestampsObject`.
+pub type RadarGetEmailSecurityTimeseriesGroupResponseResultSerie0 = super::shared::TimestampsObject;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
 /// Arguments for [`dlp-email-scanner-get-account-mapping_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEmailScannerGetAccountMappingArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpEmailScannerGetAccountMappingArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-email-scanner-create-account-mapping_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1697,11 +1423,9 @@ pub struct DlpEmailScannerCreateAccountMappingArgs {
 }
 
 /// Arguments for [`dlp-email-scanner-list-all-rules_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEmailScannerListAllRulesArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type DlpEmailScannerListAllRulesArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`dlp-email-scanner-create-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1722,13 +1446,9 @@ pub struct DlpEmailScannerUpdateRulePrioritiesArgs {
 }
 
 /// Arguments for [`dlp-email-scanner-get-rule_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEmailScannerGetRuleArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `rule_id`.
-    pub rule_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdRuleIdArgs`.
+pub type DlpEmailScannerGetRuleArgs = super::shared::AccountIdRuleIdArgs;
 
 /// Arguments for [`dlp-email-scanner-update-rule_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1742,13 +1462,9 @@ pub struct DlpEmailScannerUpdateRuleArgs {
 }
 
 /// Arguments for [`dlp-email-scanner-delete-rule_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct DlpEmailScannerDeleteRuleArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `rule_id`.
-    pub rule_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdRuleIdArgs`.
+pub type DlpEmailScannerDeleteRuleArgs = super::shared::AccountIdRuleIdArgs;
 
 /// Arguments for [`email_security_investigate_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1814,29 +1530,19 @@ pub struct EmailSecurityPostPreviewArgs {
 }
 
 /// Arguments for [`email_security_post_release_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityPostReleaseArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdArgs`.
+pub type EmailSecurityPostReleaseArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`email_security_get_message_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityGetMessageArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `postfix_id`.
-    pub postfix_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPostfixIdArgs`.
+pub type EmailSecurityGetMessageArgs = super::shared::AccountIdPostfixIdArgs;
 
 /// Arguments for [`email_security_get_message_detections_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityGetMessageDetectionsArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `postfix_id`.
-    pub postfix_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPostfixIdArgs`.
+pub type EmailSecurityGetMessageDetectionsArgs = super::shared::AccountIdPostfixIdArgs;
 
 /// Arguments for [`email_security_post_message_move_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1850,22 +1556,14 @@ pub struct EmailSecurityPostMessageMoveArgs {
 }
 
 /// Arguments for [`email_security_get_message_preview_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityGetMessagePreviewArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `postfix_id`.
-    pub postfix_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPostfixIdArgs`.
+pub type EmailSecurityGetMessagePreviewArgs = super::shared::AccountIdPostfixIdArgs;
 
 /// Arguments for [`email_security_get_message_raw_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityGetMessageRawArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `postfix_id`.
-    pub postfix_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPostfixIdArgs`.
+pub type EmailSecurityGetMessageRawArgs = super::shared::AccountIdPostfixIdArgs;
 
 /// Arguments for [`email_security_post_reclassify_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1879,13 +1577,9 @@ pub struct EmailSecurityPostReclassifyArgs {
 }
 
 /// Arguments for [`email_security_get_message_trace_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityGetMessageTraceArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `postfix_id`.
-    pub postfix_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPostfixIdArgs`.
+pub type EmailSecurityGetMessageTraceArgs = super::shared::AccountIdPostfixIdArgs;
 
 /// Arguments for [`email_security_get_phishguard_reports_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1956,13 +1650,9 @@ pub struct EmailSecurityBatchAllowPoliciesArgs {
 }
 
 /// Arguments for [`email_security_get_allow_policy_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityGetAllowPolicyArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `policy_id`.
-    pub policy_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPolicyIdArgs`.
+pub type EmailSecurityGetAllowPolicyArgs = super::shared::AccountIdPolicyIdArgs;
 
 /// Arguments for [`email_security_update_allow_policy_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -1976,13 +1666,9 @@ pub struct EmailSecurityUpdateAllowPolicyArgs {
 }
 
 /// Arguments for [`email_security_delete_allow_policy_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityDeleteAllowPolicyArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `policy_id`.
-    pub policy_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPolicyIdArgs`.
+pub type EmailSecurityDeleteAllowPolicyArgs = super::shared::AccountIdPolicyIdArgs;
 
 /// Arguments for [`email_security_list_blocked_senders_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -2024,13 +1710,9 @@ pub struct EmailSecurityBatchBlockedSendersArgs {
 }
 
 /// Arguments for [`email_security_get_blocked_sender_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityGetBlockedSenderArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `pattern_id`.
-    pub pattern_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPatternIdArgs`.
+pub type EmailSecurityGetBlockedSenderArgs = super::shared::AccountIdPatternIdArgs;
 
 /// Arguments for [`email_security_update_blocked_sender_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -2044,13 +1726,9 @@ pub struct EmailSecurityUpdateBlockedSenderArgs {
 }
 
 /// Arguments for [`email_security_delete_blocked_sender_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityDeleteBlockedSenderArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `pattern_id`.
-    pub pattern_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdPatternIdArgs`.
+pub type EmailSecurityDeleteBlockedSenderArgs = super::shared::AccountIdPatternIdArgs;
 
 /// Arguments for [`email_security_list_display_names_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -2081,13 +1759,9 @@ pub struct EmailSecurityCreateDisplayNameArgs {
 }
 
 /// Arguments for [`email_security_get_display_name_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityGetDisplayNameArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `display_name_id`.
-    pub display_name_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDisplayNameIdArgs`.
+pub type EmailSecurityGetDisplayNameArgs = super::shared::AccountIdDisplayNameIdArgs;
 
 /// Arguments for [`email_security_update_display_name_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -2101,13 +1775,9 @@ pub struct EmailSecurityUpdateDisplayNameArgs {
 }
 
 /// Arguments for [`email_security_delete_display_name_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailSecurityDeleteDisplayNameArgs {
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-    /// Path parameter: `display_name_id`.
-    pub display_name_id: String,
-}
+///
+/// Same shape as `super::shared::AccountIdDisplayNameIdArgs`.
+pub type EmailSecurityDeleteDisplayNameArgs = super::shared::AccountIdDisplayNameIdArgs;
 
 /// Arguments for [`email_security_submissions_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -2165,22 +1835,16 @@ pub struct EmailRoutingDestinationAddressesCreateADestinationAddressArgs {
 }
 
 /// Arguments for [`email-routing-destination-addresses-get-a-destination-address_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailRoutingDestinationAddressesGetADestinationAddressArgs {
-    /// Path parameter: `destination_address_identifier`.
-    pub destination_address_identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DestinationAddressIdentifierAccountIdArgs`.
+pub type EmailRoutingDestinationAddressesGetADestinationAddressArgs =
+    super::shared::DestinationAddressIdentifierAccountIdArgs;
 
 /// Arguments for [`email-routing-destination-addresses-delete-destination-address_request`].
-#[derive(Debug, Clone, Default, Serialize, JsonHash)]
-pub struct EmailRoutingDestinationAddressesDeleteDestinationAddressArgs {
-    /// Path parameter: `destination_address_identifier`.
-    pub destination_address_identifier: String,
-    /// Path parameter: `account_id`.
-    pub account_id: String,
-}
+///
+/// Same shape as `super::shared::DestinationAddressIdentifierAccountIdArgs`.
+pub type EmailRoutingDestinationAddressesDeleteDestinationAddressArgs =
+    super::shared::DestinationAddressIdentifierAccountIdArgs;
 
 /// Arguments for [`email-sending-account-send-builder_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -2205,26 +1869,26 @@ pub struct EmailSendingAccountSendRawMessageArgs {
 pub struct RadarGetEmailRoutingSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `arc`.
-    pub arc: Option<String>,
-    /// Query parameter: `dkim`.
-    pub dkim: Option<String>,
-    /// Query parameter: `dmarc`.
-    pub dmarc: Option<String>,
-    /// Query parameter: `spf`.
-    pub spf: Option<String>,
-    /// Query parameter: `ipVersion`.
-    pub ip_version: Option<String>,
-    /// Query parameter: `encrypted`.
-    pub encrypted: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `arc` (one per value).
+    pub arc: Vec<String>,
+    /// Query parameter: `dkim` (one per value).
+    pub dkim: Vec<String>,
+    /// Query parameter: `dmarc` (one per value).
+    pub dmarc: Vec<String>,
+    /// Query parameter: `spf` (one per value).
+    pub spf: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `encrypted` (one per value).
+    pub encrypted: Vec<String>,
     /// Query parameter: `limitPerGroup`.
     pub limit_per_group: Option<String>,
     /// Query parameter: `format`.
@@ -2238,26 +1902,26 @@ pub struct RadarGetEmailRoutingTimeseriesGroupArgs {
     pub dimension: String,
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `arc`.
-    pub arc: Option<String>,
-    /// Query parameter: `dkim`.
-    pub dkim: Option<String>,
-    /// Query parameter: `dmarc`.
-    pub dmarc: Option<String>,
-    /// Query parameter: `spf`.
-    pub spf: Option<String>,
-    /// Query parameter: `ipVersion`.
-    pub ip_version: Option<String>,
-    /// Query parameter: `encrypted`.
-    pub encrypted: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `arc` (one per value).
+    pub arc: Vec<String>,
+    /// Query parameter: `dkim` (one per value).
+    pub dkim: Vec<String>,
+    /// Query parameter: `dmarc` (one per value).
+    pub dmarc: Vec<String>,
+    /// Query parameter: `spf` (one per value).
+    pub spf: Vec<String>,
+    /// Query parameter: `ipVersion` (one per value).
+    pub ip_version: Vec<String>,
+    /// Query parameter: `encrypted` (one per value).
+    pub encrypted: Vec<String>,
     /// Query parameter: `limitPerGroup`.
     pub limit_per_group: Option<String>,
     /// Query parameter: `format`.
@@ -2269,24 +1933,24 @@ pub struct RadarGetEmailRoutingTimeseriesGroupArgs {
 pub struct RadarGetEmailSecuritySummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `arc`.
-    pub arc: Option<String>,
-    /// Query parameter: `dkim`.
-    pub dkim: Option<String>,
-    /// Query parameter: `dmarc`.
-    pub dmarc: Option<String>,
-    /// Query parameter: `spf`.
-    pub spf: Option<String>,
-    /// Query parameter: `tlsVersion`.
-    pub tls_version: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `arc` (one per value).
+    pub arc: Vec<String>,
+    /// Query parameter: `dkim` (one per value).
+    pub dkim: Vec<String>,
+    /// Query parameter: `dmarc` (one per value).
+    pub dmarc: Vec<String>,
+    /// Query parameter: `spf` (one per value).
+    pub spf: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
     /// Query parameter: `limitPerGroup`.
     pub limit_per_group: Option<String>,
     /// Query parameter: `format`.
@@ -2300,24 +1964,24 @@ pub struct RadarGetEmailSecurityTimeseriesGroupArgs {
     pub dimension: String,
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
-    /// Query parameter: `name`.
-    pub name: Option<String>,
-    /// Query parameter: `dateRange`.
-    pub date_range: Option<String>,
-    /// Query parameter: `dateStart`.
-    pub date_start: Option<String>,
-    /// Query parameter: `dateEnd`.
-    pub date_end: Option<String>,
-    /// Query parameter: `arc`.
-    pub arc: Option<String>,
-    /// Query parameter: `dkim`.
-    pub dkim: Option<String>,
-    /// Query parameter: `dmarc`.
-    pub dmarc: Option<String>,
-    /// Query parameter: `spf`.
-    pub spf: Option<String>,
-    /// Query parameter: `tlsVersion`.
-    pub tls_version: Option<String>,
+    /// Query parameter: `name` (one per value).
+    pub name: Vec<String>,
+    /// Query parameter: `dateRange` (one per value).
+    pub date_range: Vec<String>,
+    /// Query parameter: `dateStart` (one per value).
+    pub date_start: Vec<String>,
+    /// Query parameter: `dateEnd` (one per value).
+    pub date_end: Vec<String>,
+    /// Query parameter: `arc` (one per value).
+    pub arc: Vec<String>,
+    /// Query parameter: `dkim` (one per value).
+    pub dkim: Vec<String>,
+    /// Query parameter: `dmarc` (one per value).
+    pub dmarc: Vec<String>,
+    /// Query parameter: `spf` (one per value).
+    pub spf: Vec<String>,
+    /// Query parameter: `tlsVersion` (one per value).
+    pub tls_version: Vec<String>,
     /// Query parameter: `limitPerGroup`.
     pub limit_per_group: Option<String>,
     /// Query parameter: `format`.
@@ -2359,9 +2023,7 @@ pub async fn dlp_email_scanner_get_account_mapping_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/email/account_mapping",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/email/account_mapping", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2371,20 +2033,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEmailScannerGetAccountMappingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2418,35 +2067,21 @@ pub async fn dlp_email_scanner_create_account_mapping_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/email/account_mapping",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/email/account_mapping", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEmailScannerCreateAccountMappingResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2480,9 +2115,7 @@ pub async fn dlp_email_scanner_list_all_rules_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/email/rules",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/email/rules", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2492,20 +2125,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEmailScannerListAllRulesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2539,35 +2159,21 @@ pub async fn dlp_email_scanner_create_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/email/rules",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/email/rules", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEmailScannerCreateRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2601,35 +2207,21 @@ pub async fn dlp_email_scanner_update_rule_priorities_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/email/rules",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/dlp/email/rules", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEmailScannerUpdateRulePrioritiesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2663,9 +2255,9 @@ pub async fn dlp_email_scanner_get_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/email/rules/{}",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/dlp/email/rules/{}",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2676,20 +2268,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEmailScannerGetRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2723,36 +2302,24 @@ pub async fn dlp_email_scanner_update_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/email/rules/{}",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/dlp/email/rules/{}",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEmailScannerUpdateRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2786,9 +2353,9 @@ pub async fn dlp_email_scanner_delete_rule_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/dlp/email/rules/{}",
-        args.account_id,
-        args.rule_id,
+    let path = format!(
+        "/accounts/{}/dlp/email/rules/{}",
+        args.account_id, args.rule_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -2799,20 +2366,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: DlpEmailScannerDeleteRuleResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2846,9 +2400,7 @@ pub async fn email_security_investigate_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/email-security/investigate", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -2878,20 +2430,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityInvestigateResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2925,7 +2464,8 @@ pub async fn email_security_post_bulk_message_move_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/move",
+    let path = format!(
+        "/accounts/{}/email-security/investigate/move",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -2933,27 +2473,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityPostBulkMessageMoveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2987,7 +2515,8 @@ pub async fn email_security_post_preview_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/preview",
+    let path = format!(
+        "/accounts/{}/email-security/investigate/preview",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -2995,27 +2524,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityPostPreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3049,7 +2566,8 @@ pub async fn email_security_post_release_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/release",
+    let path = format!(
+        "/accounts/{}/email-security/investigate/release",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -3061,20 +2579,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityPostReleaseResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3108,9 +2613,9 @@ pub async fn email_security_get_message_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/{}",
-        args.account_id,
-        args.postfix_id,
+    let path = format!(
+        "/accounts/{}/email-security/investigate/{}",
+        args.account_id, args.postfix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3121,20 +2626,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityGetMessageResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3168,9 +2660,9 @@ pub async fn email_security_get_message_detections_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/{}/detections",
-        args.account_id,
-        args.postfix_id,
+    let path = format!(
+        "/accounts/{}/email-security/investigate/{}/detections",
+        args.account_id, args.postfix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3181,20 +2673,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityGetMessageDetectionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3228,36 +2707,24 @@ pub async fn email_security_post_message_move_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/{}/move",
-        args.account_id,
-        args.postfix_id,
+    let path = format!(
+        "/accounts/{}/email-security/investigate/{}/move",
+        args.account_id, args.postfix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityPostMessageMoveResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3291,9 +2758,9 @@ pub async fn email_security_get_message_preview_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/{}/preview",
-        args.account_id,
-        args.postfix_id,
+    let path = format!(
+        "/accounts/{}/email-security/investigate/{}/preview",
+        args.account_id, args.postfix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3304,20 +2771,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityGetMessagePreviewResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3351,9 +2805,9 @@ pub async fn email_security_get_message_raw_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/{}/raw",
-        args.account_id,
-        args.postfix_id,
+    let path = format!(
+        "/accounts/{}/email-security/investigate/{}/raw",
+        args.account_id, args.postfix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3364,20 +2818,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityGetMessageRawResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3411,36 +2852,24 @@ pub async fn email_security_post_reclassify_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/{}/reclassify",
-        args.account_id,
-        args.postfix_id,
+    let path = format!(
+        "/accounts/{}/email-security/investigate/{}/reclassify",
+        args.account_id, args.postfix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityPostReclassifyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3474,9 +2903,9 @@ pub async fn email_security_get_message_trace_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/investigate/{}/trace",
-        args.account_id,
-        args.postfix_id,
+    let path = format!(
+        "/accounts/{}/email-security/investigate/{}/trace",
+        args.account_id, args.postfix_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3487,20 +2916,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityGetMessageTraceResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3534,7 +2950,8 @@ pub async fn email_security_get_phishguard_reports_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/phishguard/reports",
+    let path = format!(
+        "/accounts/{}/email-security/phishguard/reports",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -3551,20 +2968,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityGetPhishguardReportsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3598,7 +3002,8 @@ pub async fn email_security_list_allow_policies_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/allow_policies",
+    let path = format!(
+        "/accounts/{}/email-security/settings/allow_policies",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -3625,20 +3030,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityListAllowPoliciesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3672,7 +3064,8 @@ pub async fn email_security_create_allow_policy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/allow_policies",
+    let path = format!(
+        "/accounts/{}/email-security/settings/allow_policies",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -3680,27 +3073,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityCreateAllowPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3734,7 +3115,8 @@ pub async fn email_security_batch_allow_policies_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/allow_policies/batch",
+    let path = format!(
+        "/accounts/{}/email-security/settings/allow_policies/batch",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -3742,27 +3124,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityBatchAllowPoliciesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3796,9 +3166,9 @@ pub async fn email_security_get_allow_policy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/allow_policies/{}",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/email-security/settings/allow_policies/{}",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3809,20 +3179,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityGetAllowPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3856,36 +3213,24 @@ pub async fn email_security_update_allow_policy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/allow_policies/{}",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/email-security/settings/allow_policies/{}",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityUpdateAllowPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3919,9 +3264,9 @@ pub async fn email_security_delete_allow_policy_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/allow_policies/{}",
-        args.account_id,
-        args.policy_id,
+    let path = format!(
+        "/accounts/{}/email-security/settings/allow_policies/{}",
+        args.account_id, args.policy_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -3932,20 +3277,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityDeleteAllowPolicyResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3979,7 +3311,8 @@ pub async fn email_security_list_blocked_senders_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/block_senders",
+    let path = format!(
+        "/accounts/{}/email-security/settings/block_senders",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -3999,20 +3332,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityListBlockedSendersResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4046,7 +3366,8 @@ pub async fn email_security_create_blocked_sender_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/block_senders",
+    let path = format!(
+        "/accounts/{}/email-security/settings/block_senders",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -4054,27 +3375,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityCreateBlockedSenderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4108,7 +3417,8 @@ pub async fn email_security_batch_blocked_senders_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/block_senders/batch",
+    let path = format!(
+        "/accounts/{}/email-security/settings/block_senders/batch",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -4116,27 +3426,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityBatchBlockedSendersResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4170,9 +3468,9 @@ pub async fn email_security_get_blocked_sender_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/block_senders/{}",
-        args.account_id,
-        args.pattern_id,
+    let path = format!(
+        "/accounts/{}/email-security/settings/block_senders/{}",
+        args.account_id, args.pattern_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4183,20 +3481,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityGetBlockedSenderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4230,36 +3515,24 @@ pub async fn email_security_update_blocked_sender_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/block_senders/{}",
-        args.account_id,
-        args.pattern_id,
+    let path = format!(
+        "/accounts/{}/email-security/settings/block_senders/{}",
+        args.account_id, args.pattern_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityUpdateBlockedSenderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4293,9 +3566,9 @@ pub async fn email_security_delete_blocked_sender_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/block_senders/{}",
-        args.account_id,
-        args.pattern_id,
+    let path = format!(
+        "/accounts/{}/email-security/settings/block_senders/{}",
+        args.account_id, args.pattern_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4306,20 +3579,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityDeleteBlockedSenderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4353,7 +3613,8 @@ pub async fn email_security_list_display_names_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/impersonation_registry",
+    let path = format!(
+        "/accounts/{}/email-security/settings/impersonation_registry",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -4372,20 +3633,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityListDisplayNamesResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4419,7 +3667,8 @@ pub async fn email_security_create_display_name_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/impersonation_registry",
+    let path = format!(
+        "/accounts/{}/email-security/settings/impersonation_registry",
         args.account_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
@@ -4427,27 +3676,15 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityCreateDisplayNameResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4481,9 +3718,9 @@ pub async fn email_security_get_display_name_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/impersonation_registry/{}",
-        args.account_id,
-        args.display_name_id,
+    let path = format!(
+        "/accounts/{}/email-security/settings/impersonation_registry/{}",
+        args.account_id, args.display_name_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4494,20 +3731,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityGetDisplayNameResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4541,36 +3765,24 @@ pub async fn email_security_update_display_name_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/impersonation_registry/{}",
-        args.account_id,
-        args.display_name_id,
+    let path = format!(
+        "/accounts/{}/email-security/settings/impersonation_registry/{}",
+        args.account_id, args.display_name_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityUpdateDisplayNameResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4604,9 +3816,9 @@ pub async fn email_security_delete_display_name_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/settings/impersonation_registry/{}",
-        args.account_id,
-        args.display_name_id,
+    let path = format!(
+        "/accounts/{}/email-security/settings/impersonation_registry/{}",
+        args.account_id, args.display_name_id,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4617,20 +3829,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecurityDeleteDisplayNameResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4664,9 +3863,7 @@ pub async fn email_security_submissions_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email-security/submissions",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/email-security/submissions", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -4677,7 +3874,10 @@ where
     builder = builder.query("type", args.r#type.as_deref());
     builder = builder.query("submission_id", args.submission_id.as_deref());
     builder = builder.query("original_disposition", args.original_disposition.as_deref());
-    builder = builder.query("requested_disposition", args.requested_disposition.as_deref());
+    builder = builder.query(
+        "requested_disposition",
+        args.requested_disposition.as_deref(),
+    );
     builder = builder.query("outcome_disposition", args.outcome_disposition.as_deref());
     builder = builder.query("status", args.status.as_deref());
     builder = builder.query("query", args.query.as_deref());
@@ -4689,20 +3889,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSecuritySubmissionsResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4736,9 +3923,7 @@ pub async fn email_routing_destination_addresses_list_destination_addresses_requ
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email/routing/addresses",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/email/routing/addresses", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -4753,20 +3938,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailDestinationAddressesResponseCollection = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4800,35 +3972,21 @@ pub async fn email_routing_destination_addresses_create_a_destination_address_re
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email/routing/addresses",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/email/routing/addresses", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailDestinationAddressResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4862,9 +4020,9 @@ pub async fn email_routing_destination_addresses_get_a_destination_address_reque
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email/routing/addresses/{}",
-        args.account_id,
-        args.destination_address_identifier,
+    let path = format!(
+        "/accounts/{}/email/routing/addresses/{}",
+        args.account_id, args.destination_address_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4875,20 +4033,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailDestinationAddressResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4922,9 +4067,9 @@ pub async fn email_routing_destination_addresses_delete_destination_address_requ
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email/routing/addresses/{}",
-        args.account_id,
-        args.destination_address_identifier,
+    let path = format!(
+        "/accounts/{}/email/routing/addresses/{}",
+        args.account_id, args.destination_address_identifier,
     );
     let endpoint_url = format!("{}{}", base_url, path);
 
@@ -4935,20 +4080,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailDestinationAddressResponseSingle = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4982,35 +4114,21 @@ pub async fn email_sending_account_send_builder_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email/sending/send",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/email/sending/send", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSendingAccountSendBuilderResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5044,35 +4162,21 @@ pub async fn email_sending_account_send_raw_message_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/accounts/{}/email/sending/send_raw",
-        args.account_id,
-    );
+    let path = format!("/accounts/{}/email/sending/send_raw", args.account_id,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.body_json(&args.body)
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: EmailSendingAccountSendRawMessageResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5106,24 +4210,42 @@ pub async fn radar_get_email_routing_summary_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/email/routing/summary/{}",
-        args.dimension,
-    );
+    let path = format!("/radar/email/routing/summary/{}", args.dimension,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("arc", args.arc.as_deref());
-    builder = builder.query("dkim", args.dkim.as_deref());
-    builder = builder.query("dmarc", args.dmarc.as_deref());
-    builder = builder.query("spf", args.spf.as_deref());
-    builder = builder.query("ipVersion", args.ip_version.as_deref());
-    builder = builder.query("encrypted", args.encrypted.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.arc {
+        builder = builder.query("arc", Some(value.as_str()));
+    }
+    for value in &args.dkim {
+        builder = builder.query("dkim", Some(value.as_str()));
+    }
+    for value in &args.dmarc {
+        builder = builder.query("dmarc", Some(value.as_str()));
+    }
+    for value in &args.spf {
+        builder = builder.query("spf", Some(value.as_str()));
+    }
+    for value in &args.ip_version {
+        builder = builder.query("ipVersion", Some(value.as_str()));
+    }
+    for value in &args.encrypted {
+        builder = builder.query("encrypted", Some(value.as_str()));
+    }
     builder = builder.query("limitPerGroup", args.limit_per_group.as_deref());
     builder = builder.query("format", args.format.as_deref());
 
@@ -5131,20 +4253,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetEmailRoutingSummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5178,25 +4287,43 @@ pub async fn radar_get_email_routing_timeseries_group_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/email/routing/timeseries_groups/{}",
-        args.dimension,
-    );
+    let path = format!("/radar/email/routing/timeseries_groups/{}", args.dimension,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("aggInterval", args.agg_interval.as_deref());
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("arc", args.arc.as_deref());
-    builder = builder.query("dkim", args.dkim.as_deref());
-    builder = builder.query("dmarc", args.dmarc.as_deref());
-    builder = builder.query("spf", args.spf.as_deref());
-    builder = builder.query("ipVersion", args.ip_version.as_deref());
-    builder = builder.query("encrypted", args.encrypted.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.arc {
+        builder = builder.query("arc", Some(value.as_str()));
+    }
+    for value in &args.dkim {
+        builder = builder.query("dkim", Some(value.as_str()));
+    }
+    for value in &args.dmarc {
+        builder = builder.query("dmarc", Some(value.as_str()));
+    }
+    for value in &args.spf {
+        builder = builder.query("spf", Some(value.as_str()));
+    }
+    for value in &args.ip_version {
+        builder = builder.query("ipVersion", Some(value.as_str()));
+    }
+    for value in &args.encrypted {
+        builder = builder.query("encrypted", Some(value.as_str()));
+    }
     builder = builder.query("limitPerGroup", args.limit_per_group.as_deref());
     builder = builder.query("format", args.format.as_deref());
 
@@ -5204,20 +4331,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetEmailRoutingTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5251,23 +4365,39 @@ pub async fn radar_get_email_security_summary_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/email/security/summary/{}",
-        args.dimension,
-    );
+    let path = format!("/radar/email/security/summary/{}", args.dimension,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("arc", args.arc.as_deref());
-    builder = builder.query("dkim", args.dkim.as_deref());
-    builder = builder.query("dmarc", args.dmarc.as_deref());
-    builder = builder.query("spf", args.spf.as_deref());
-    builder = builder.query("tlsVersion", args.tls_version.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.arc {
+        builder = builder.query("arc", Some(value.as_str()));
+    }
+    for value in &args.dkim {
+        builder = builder.query("dkim", Some(value.as_str()));
+    }
+    for value in &args.dmarc {
+        builder = builder.query("dmarc", Some(value.as_str()));
+    }
+    for value in &args.spf {
+        builder = builder.query("spf", Some(value.as_str()));
+    }
+    for value in &args.tls_version {
+        builder = builder.query("tlsVersion", Some(value.as_str()));
+    }
     builder = builder.query("limitPerGroup", args.limit_per_group.as_deref());
     builder = builder.query("format", args.format.as_deref());
 
@@ -5275,20 +4405,7 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetEmailSecuritySummaryResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -5322,24 +4439,40 @@ pub async fn radar_get_email_security_timeseries_group_request<F>(
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/radar/email/security/timeseries_groups/{}",
-        args.dimension,
-    );
+    let path = format!("/radar/email/security/timeseries_groups/{}", args.dimension,);
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("aggInterval", args.agg_interval.as_deref());
-    builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("dateRange", args.date_range.as_deref());
-    builder = builder.query("dateStart", args.date_start.as_deref());
-    builder = builder.query("dateEnd", args.date_end.as_deref());
-    builder = builder.query("arc", args.arc.as_deref());
-    builder = builder.query("dkim", args.dkim.as_deref());
-    builder = builder.query("dmarc", args.dmarc.as_deref());
-    builder = builder.query("spf", args.spf.as_deref());
-    builder = builder.query("tlsVersion", args.tls_version.as_deref());
+    for value in &args.name {
+        builder = builder.query("name", Some(value.as_str()));
+    }
+    for value in &args.date_range {
+        builder = builder.query("dateRange", Some(value.as_str()));
+    }
+    for value in &args.date_start {
+        builder = builder.query("dateStart", Some(value.as_str()));
+    }
+    for value in &args.date_end {
+        builder = builder.query("dateEnd", Some(value.as_str()));
+    }
+    for value in &args.arc {
+        builder = builder.query("arc", Some(value.as_str()));
+    }
+    for value in &args.dkim {
+        builder = builder.query("dkim", Some(value.as_str()));
+    }
+    for value in &args.dmarc {
+        builder = builder.query("dmarc", Some(value.as_str()));
+    }
+    for value in &args.spf {
+        builder = builder.query("spf", Some(value.as_str()));
+    }
+    for value in &args.tls_version {
+        builder = builder.query("tlsVersion", Some(value.as_str()));
+    }
     builder = builder.query("limitPerGroup", args.limit_per_group.as_deref());
     builder = builder.query("format", args.format.as_deref());
 
@@ -5347,19 +4480,5 @@ where
         f(&mut builder);
     }
 
-    let response = client.send_async(builder.build()).await
-        .map_err(|e| super::shared::ApiError::RequestSendFailed(e.to_string()))?;
-
-    let status: usize = response.get_status().into();
-    let headers = response.get_headers_ref().clone();
-    if status < 200 || status >= 300 {
-        let error_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-        let body = (!error_bytes.is_empty())
-            .then(|| String::from_utf8_lossy(&error_bytes).into_owned());
-        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers, body });
-    }
-    let body_bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(response.take_body());
-    let parsed: RadarGetEmailSecurityTimeseriesGroupResponse = serde_json::from_slice(&body_bytes).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;
-    Ok(ApiResponse { status: status as u16, headers, body: parsed })
+    super::shared::send_json(client, builder.build()).await
 }
-
