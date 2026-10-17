@@ -82,13 +82,33 @@ pitchfork = { version = "2.30.1", os = ["linux", "windows"] }
 # =============================================================================
 
 [tasks.setup]
-description = "Install all dev tools and WASM targets"
-depends = ["setup:tools", "setup:wasm", "setup:cloudflare"]
-run = 'echo "✓ Development environment setup complete"'
+description = "Install all dev tools and WASM targets for this OS"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+case "$(uname -s)" in
+  Darwin)
+    bash "{{config_root}}/scripts/setup/macos.sh"
+    ;;
+  Linux)
+    if [ -f /etc/arch-release ]; then
+      bash "{{config_root}}/scripts/setup/archlinux.sh"
+    else
+      echo "Unsupported Linux distro. See scripts/setup/archlinux.sh for the recipe." >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "Unsupported OS: $(uname -s)" >&2
+    exit 1
+    ;;
+esac
+echo "✓ Development environment setup complete"
+"""
 
 [tasks."setup:tools"]
 description = "Install rustfmt, clippy, rust-analyzer, cargo-nextest, cargo-audit, and C/C++ toolchains"
-depends = ["tools:llama:init", "tools:emsdk:init", "tools:dawn:clone"]
+depends = ["tools:llama:init", "tools:emsdk:init"]
 run = """
 echo "Installing development tools..."
 rustup component add rustfmt clippy rust-analyzer 2>/dev/null || true
