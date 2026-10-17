@@ -43,9 +43,15 @@ log "Homebrew: $(brew --version | head -1)"
 log "Installing native libraries (llvm for libclang, openssl, pkg-config)..."
 brew install llvm openssl pkg-config
 
+# llvm is keg-only (brew won't symlink it) because it would shadow Apple's
+# clang. Force-link it so its tools (clang, lld, llvm-config) and libclang land
+# in the standard prefix.
+brew link llvm --force
+
 # --- libclang discovery (bindgen) -------------------------------------------
-# bindgen links libclang through clang-sys. Xcode CLT alone has no libclang;
-# brew's llvm is keg-only, so point clang-sys at it via LIBCLANG_PATH.
+# bindgen loads libclang through clang-sys. clang-sys 1.8.x only searches
+# /usr/local/opt/llvm*/lib on macOS, but on Apple Silicon brew's prefix is
+# /opt/homebrew, which it does NOT search — so point it at the keg explicitly.
 LLVM_PREFIX="$(brew --prefix llvm)"
 export LIBCLANG_PATH="$LLVM_PREFIX/lib"
 [ -f "$LIBCLANG_PATH/libclang.dylib" ] || fail "libclang.dylib not found under $LIBCLANG_PATH"
