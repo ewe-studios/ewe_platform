@@ -50,8 +50,12 @@ impl Ctx {
     pub fn remove<T: Any + Send + Sync>(&self) -> Option<Arc<T>>;
     pub fn contains<T: Any + Send + Sync>(&self) -> bool;
 
-    pub fn clock(&self) -> &Clock;
     pub fn config(&self) -> &Config;          // &Config (deref Arc)
+
+    # TODO, should these not be Arc<T>? especially the Mutex<Rng>
+    pub fn clock(&self) -> &Clock;
+
+    # TODO, should these not be Arc<T>? especially the Mutex<Rng>
     pub fn rng(&self) -> &Mutex<Rng>;         // lock() to draw
 
     /// A new handle over a *copied* map. The standard elements stay shared (Arc);
@@ -90,22 +94,22 @@ sequenceDiagram
 
 ## Interface contract
 
-| Method | Behaviour | Notes |
-|--------|-----------|-------|
-| `new()` | empty map + defaults | engine seeds further at init |
-| `insert(Arc<T>)` | replace by `TypeId` | returns prior entry |
-| `get<T>()` | downcast | `None` if absent/mismatched |
-| `get_or_insert(T)` | wrap + insert if absent | returns live `Arc<T>` |
-| `remove<T>()` / `contains<T>()` | remove / presence | |
-| `clock()` / `config()` / `rng()` | standard elements | read-only / read-only / lock-to-draw |
-| `fork()` | copy map into a new handle | standard elements shared; map values `Arc`-shared |
+| Method                           | Behaviour                  | Notes                                             |
+| -------------------------------- | -------------------------- | ------------------------------------------------- |
+| `new()`                          | empty map + defaults       | engine seeds further at init                      |
+| `insert(Arc<T>)`                 | replace by `TypeId`        | returns prior entry                               |
+| `get<T>()`                       | downcast                   | `None` if absent/mismatched                       |
+| `get_or_insert(T)`               | wrap + insert if absent    | returns live `Arc<T>`                             |
+| `remove<T>()` / `contains<T>()`  | remove / presence          |                                                   |
+| `clock()` / `config()` / `rng()` | standard elements          | read-only / read-only / lock-to-draw              |
+| `fork()`                         | copy map into a new handle | standard elements shared; map values `Arc`-shared |
 
 ## Open decision — RNG
 
 Default recorded: a single shared `Arc<Mutex<Rng>>`. This is the simplest shape
 that puts "the current RNG" in the shared Ctx, but it is a contention point and
 loses per-task reproducibility. The alternative — per-task `Rng` seeded from the
-engine seed — cannot live in a *shared* `CtxInner` (all clones share one
+engine seed — cannot live in a _shared_ `CtxInner` (all clones share one
 `CtxInner`), so it would need a separate per-task seeding mechanism layered on
 top. Confirm before feature 01 depends on it.
 
