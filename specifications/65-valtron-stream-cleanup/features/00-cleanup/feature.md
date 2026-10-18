@@ -33,7 +33,7 @@ and records the cross-crate audit that proves safety.
 | Combinator layer (`extensions/streams/*`, `extensions/tasks/*`) | `SCollectorStreamIterator`, `SplitCollectorContinuation`, `BroadcastContinuation`, `SplitUntil*`, `SplitCollectorMap*`, `CollectorStreamIterator`, … | alive | **netio** (`http/api.rs`, `shared/client/body_reader.rs`), **connectrpc** (`transport/h1.rs`, `ws.rs`) | ✅ keep |
 | `Pipe` / `PipeSender` / `PipeReceiver` | `pipe.rs`, `pipe_mapped.rs` | alive | connectrpc, http, netio, nativeapis, proxy, docker | ✅ keep |
 | `NotifyQueue` family | `executors/local.rs` | alive (execute path) | none (internal) | ✅ keep |
-| `RecvIterator` (`synca/mpp`) | `mpp.rs` | `future_task.rs:677`, channel API | none direct | ✅ keep |
+| `RecvIterator` (`synca/mpp`) | `mpp.rs` | `future_task.rs:677` (ThreadedIterFuture) | none direct | 🔁 migrate (feature 01) |
 
 Key finding: the combinator layer also carries `Arc<ConcurrentQueue<Stream<D, P>>>`
 internally, but it is **not** the legacy iterator path — it is the live
@@ -84,7 +84,9 @@ internally, but it is **not** the legacy iterator path — it is the live
 
 - The combinator layer's `ConcurrentQueue<Stream<D, P>>` internals — alive and
   cross-crate; migrating it to `NotifyQueue`/`Pipe` is a separate effort.
-- `RecvIterator` (`synca/mpp.rs`), `Pipe`, and the `NotifyQueue` family.
+- Migrating `RecvIterator`'s `ThreadedIterFuture` caller to `NotifyQueue` — that is
+  feature 01. `mpp` itself (`Broadcaster`/`Receiver`/`recv_timeout`) and `Pipe`
+  stay.
 
 ## Success criteria
 
