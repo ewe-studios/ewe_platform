@@ -3,13 +3,16 @@
 # something a dependency uses (nightly-2026-10-08 removed
 # `core::intrinsics::abort`, breaking the `branches` crate). Bump deliberately.
 channel = "nightly-2026-09-20"
-components = ["rustfmt", "rustc-dev", "rust-src"]
+components = ["rustfmt", "rustc-dev", "rust-src", "rustc-codegen-cranelift"]
 targets = [
     "wasm32-unknown-unknown",
     "aarch64-apple-darwin",
     "aarch64-apple-ios",
     "aarch64-apple-ios-sim",
     "aarch64-linux-android",
+    "armv7-linux-androideabi",
     "x86_64-apple-ios",
+    "x86_64-linux-android",
+    "x86_64-pc-windows-gnu",
 ]
 profile = "default"

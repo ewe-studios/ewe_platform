@@ -3,6 +3,9 @@
 
 use foundation_core::valtron::EventReadiness;
 
+#[cfg(target_os = "macos")]
+use crate::signal::event::SignalKind;
+
 
 /// Platform-specific signal handle.
 ///
@@ -29,6 +32,12 @@ pub enum SignalHandle {
         event: windows_sys::Win32::Foundation::HANDLE,
     },
 }
+
+// SAFETY: every variant holds a thread-safe kernel handle — a Unix `RawFd`
+// (a plain `i32`) or a Windows `HANDLE` (an opaque pointer-sized value the
+// Win32 APIs accept from any thread). `None` carries nothing.
+unsafe impl Send for SignalHandle {}
+unsafe impl Sync for SignalHandle {}
 
 impl Clone for SignalHandle {
     fn clone(&self) -> Self {
@@ -81,15 +90,42 @@ impl EventReadiness for SignalHandle {
                 let count = unsafe {
                     libc::kevent(*kq_fd, std::ptr::null(), 0, event.as_mut_ptr(), 1, timeout_ptr)
                 };
-                count > 0
+                if count <= 0 {
+                    return false;
+                }
+
+                // kqueue captures the signal for us (there is no handler to run),
+                // so translate the EVFILT_SIGNAL event back into a SignalKind and
+                // deliver it to the bus here — the macOS counterpart to the
+                // Linux/Windows handlers' `deliver_signal` call.
+                let ev = unsafe { event.assume_init() };
+                if let Some(kind) = signal_kind_from_kevent(ev) {
+                    crate::signal::deliver_signal(kind);
+                }
+                true
             }
             #[cfg(target_os = "windows")]
             Self::Windows { event } => {
                 use windows_sys::Win32::System::Threading::{WaitForSingleObject, INFINITE};
                 let timeout = dur.map(|d| d.as_millis() as u32).unwrap_or(INFINITE);
                 let result = unsafe { WaitForSingleObject(*event, timeout) };
-                result == windows_sys::Win32::System::Threading::WAIT_OBJECT_0
+                result == windows_sys::Win32::Foundation::WAIT_OBJECT_0
             }
         }
+    }
+}
+
+/// Map a kqueue `EVFILT_SIGNAL` event back to a [`SignalKind`].
+#[cfg(target_os = "macos")]
+fn signal_kind_from_kevent(ev: libc::kevent) -> Option<SignalKind> {
+    if ev.filter != libc::EVFILT_SIGNAL as i16 {
+        return None;
+    }
+    match ev.ident as libc::c_int {
+        libc::SIGINT => Some(SignalKind::Interrupt),
+        libc::SIGTERM => Some(SignalKind::Terminate),
+        libc::SIGHUP => Some(SignalKind::Hangup),
+        libc::SIGQUIT => Some(SignalKind::Quit),
+        _ => None,
     }
 }

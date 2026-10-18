@@ -31,6 +31,7 @@ pub mod event;
 pub use event::{Events, Source};
 
 pub mod sys;
+#[cfg(unix)]
 pub use sys::SourceFd;
 
 pub mod backend;

@@ -21,12 +21,12 @@ impl Event {
 
     /// Returns `true` if the event indicates readability (`EVFILT_READ`).
     pub fn is_readable(&self) -> bool {
-        self.event.filter == libc::EVFILT_READ as _
+        self.event.filter == libc::EVFILT_READ as i16
     }
 
     /// Returns `true` if the event indicates writability (`EVFILT_WRITE`).
     pub fn is_writable(&self) -> bool {
-        self.event.filter == libc::EVFILT_WRITE as _
+        self.event.filter == libc::EVFILT_WRITE as i16
     }
 
     /// Returns `true` if the event contains an error.
@@ -39,14 +39,14 @@ impl Event {
     /// Returns `true` if the read side is closed.
     /// On kqueue: `EVFILT_READ` filter with `EV_EOF` flag set.
     pub fn is_read_closed(&self) -> bool {
-        self.event.filter == libc::EVFILT_READ as _
+        self.event.filter == libc::EVFILT_READ as i16
             && (self.event.flags & libc::EV_EOF as u16) != 0
     }
 
     /// Returns `true` if the write side is closed.
     /// On kqueue: `EVFILT_WRITE` filter with `EV_EOF` flag set.
     pub fn is_write_closed(&self) -> bool {
-        self.event.filter == libc::EVFILT_WRITE as _
+        self.event.filter == libc::EVFILT_WRITE as i16
             && (self.event.flags & libc::EV_EOF as u16) != 0
     }
 

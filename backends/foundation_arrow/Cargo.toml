@@ -25,3 +25,6 @@ foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
 
 [dev-dependencies]
 foundation_errstacks = { path = "../foundation_errstacks" }
+
+[lints]
+workspace = true

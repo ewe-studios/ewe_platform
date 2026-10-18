@@ -77,8 +77,6 @@ include = [
 
 [dependencies]
 
-[lints.clippy]
-
 [build-dependencies]
 bindgen = { workspace = true }
 cc = { workspace = true, features = ["parallel"] }
@@ -99,3 +97,6 @@ openmp = []
 shared-stdcxx = []
 system-ggml = []
 mtmd = []
+
+[lints]
+workspace = true

@@ -1,8 +1,6 @@
 /// macOS/BSD kqueue selector.
 
-use super::super::super::event::Event;
-use super::super::super::Events;
-use crate::native::poll::{Interest, Registry, Token};
+use crate::native::poll::{Events, Interest, Registry, Token};
 
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
@@ -20,9 +18,34 @@ pub struct Selector {
 /// The raw fd type on macOS/BSD.
 pub type RawFd = std::os::unix::io::RawFd;
 
+/// `EV_SET` is a C preprocessor macro in `<sys/event.h>`, so `libc` has no
+/// binding for it. Initialise the `kevent` in place instead.
+///
+/// # Safety
+///
+/// The caller must ensure `ident` and `udata` remain valid for as long as the
+/// kernel keeps this registration in the kqueue.
+#[inline]
+unsafe fn ev_set(
+    ev: &mut libc::kevent,
+    ident: libc::uintptr_t,
+    filter: i16,
+    flags: u16,
+    fflags: u32,
+    data: libc::intptr_t,
+    udata: *mut libc::c_void,
+) {
+    ev.ident = ident;
+    ev.filter = filter;
+    ev.flags = flags;
+    ev.fflags = fflags;
+    ev.data = data;
+    ev.udata = udata;
+}
+
 impl Selector {
     /// Create a new kqueue selector.
-    pub fn new_with_registry() -> io::Result<(Arc<Self>, Registry)> {
+    pub fn new() -> io::Result<Self> {
         let kq_fd = unsafe {
             let fd = libc::kqueue();
             if fd < 0 {
@@ -31,15 +54,18 @@ impl Selector {
             OwnedFd::from_raw_fd(fd)
         };
 
-        let selector = Arc::new(Self {
+        Ok(Self {
             kq: kq_fd,
             waker_token: Mutex::new(None),
-        });
+        })
+    }
 
+    /// Create a kqueue selector wrapped in an `Arc`, with its `Registry`.
+    pub fn new_with_registry() -> io::Result<(Arc<Self>, Registry)> {
+        let selector = Arc::new(Self::new()?);
         let registry = Registry {
             selector: selector.clone(),
         };
-
         Ok((selector, registry))
     }
 
@@ -55,7 +81,7 @@ impl Selector {
     pub fn register_vnode(&self, fd: RawFd, token: Token) -> io::Result<()> {
         let mut event: libc::kevent = unsafe { std::mem::zeroed() };
         unsafe {
-            libc::EV_SET(
+            ev_set(
                 &mut event,
                 fd as libc::uintptr_t,
                 libc::EVFILT_VNODE,
@@ -92,7 +118,7 @@ impl Selector {
     pub fn deregister_vnode(&self, fd: RawFd) -> io::Result<()> {
         let mut event: libc::kevent = unsafe { std::mem::zeroed() };
         unsafe {
-            libc::EV_SET(
+            ev_set(
                 &mut event,
                 fd as libc::uintptr_t,
                 libc::EVFILT_VNODE,
@@ -134,7 +160,7 @@ impl Selector {
 
         if interest.is_readable() {
             unsafe {
-                libc::EV_SET(
+                ev_set(
                     &mut events[count],
                     fd as libc::uintptr_t,
                     libc::EVFILT_READ,
@@ -149,7 +175,7 @@ impl Selector {
 
         if interest.is_writable() {
             unsafe {
-                libc::EV_SET(
+                ev_set(
                     &mut events[count],
                     fd as libc::uintptr_t,
                     libc::EVFILT_WRITE,
@@ -196,7 +222,7 @@ impl Selector {
 
         // Delete both read and write filters
         unsafe {
-            libc::EV_SET(
+            ev_set(
                 &mut events[count],
                 fd as libc::uintptr_t,
                 libc::EVFILT_READ,
@@ -209,7 +235,7 @@ impl Selector {
         count += 1;
 
         unsafe {
-            libc::EV_SET(
+            ev_set(
                 &mut events[count],
                 fd as libc::uintptr_t,
                 libc::EVFILT_WRITE,
@@ -245,9 +271,9 @@ impl Selector {
 
     /// Register the waker (EVFILT_USER).
     pub fn register_waker(&self, token: Token) -> io::Result<()> {
-        let mut event = unsafe {
+        let event = unsafe {
             let mut ev: libc::kevent = std::mem::zeroed();
-            libc::EV_SET(
+            ev_set(
                 &mut ev,
                 2887, // magic identifier for the waker
                 libc::EVFILT_USER,
@@ -284,7 +310,7 @@ impl Selector {
         if waker_token.is_some() {
             let mut event: libc::kevent = unsafe { std::mem::zeroed() };
             unsafe {
-                libc::EV_SET(
+                ev_set(
                     &mut event,
                     2887,
                     libc::EVFILT_USER,
@@ -357,9 +383,7 @@ impl Selector {
             return Err(err);
         }
 
-        unsafe {
-            events.set_len(n as usize);
-        }
+        events.set_len(n as usize);
 
         // Check if the waker fired and clear it
         let waker_token = self.waker_token.lock().unwrap();
@@ -370,7 +394,7 @@ impl Selector {
                 // Trigger another EV_SET to clear the waker state
                 let mut event: libc::kevent = unsafe { std::mem::zeroed() };
                 unsafe {
-                    libc::EV_SET(
+                    ev_set(
                         &mut event,
                         2887,
                         libc::EVFILT_USER,

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Thin wrapper -> scripts/android-ndk/cc (see that script for NDK resolution).
+# Referenced by .cargo/config.toml under [target.aarch64-linux-android].
+set -euo pipefail
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$dir/cc" aarch64-linux-android "$@"

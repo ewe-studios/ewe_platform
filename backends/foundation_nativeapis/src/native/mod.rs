@@ -9,10 +9,10 @@
 #[cfg(feature = "poll")]
 pub mod poll;
 
-#[cfg(feature = "poll")]
+#[cfg(all(feature = "poll", unix))]
 pub mod net;
 
-#[cfg(feature = "fd")]
+#[cfg(all(feature = "fd", unix))]
 pub mod fd;
 
 /// Platform-specific native watchers.

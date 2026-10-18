@@ -140,3 +140,6 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 name = "wasm-testbed"
 path = "src/bin/wasm-testbed.rs"
 required-features = ["wasm"]
+
+[lints]
+workspace = true

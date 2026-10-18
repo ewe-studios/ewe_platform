@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Shared resolver for the Android NDK cross-linkers.
+#
+# Each `[target.*-linux-android].linker` in `.cargo/config.toml` points at a thin
+# wrapper in this directory (aarch64-linux-android, x86_64-linux-android,
+# armv7-linux-androideabi). Those wrappers call this script with the Rust target
+# triple as `$1`. The NDK lives in a different place and uses a different host
+# prebuilt per OS, so we resolve it at build time instead of hard-coding a path
+# that only works on one machine.
+#
+# Install the NDK with `mise run setup:android`, or point `ANDROID_NDK_HOME`
+# (or `ANDROID_NDK_ROOT`) at an existing NDK to override the search below.
+set -euo pipefail
+
+target="${1:-}"; shift || true
+NDK_VERSION="27.0.12077973" # NDK r27 — keep in sync with scripts/setup/android-ndk.sh
+
+# Rust target triple -> NDK clang tool name. Note 32-bit ARM is
+# `armv7-linux-androideabi` in Rust but `armv7a-linux-androideabi` in the NDK,
+# and the API level (34) is part of the tool name.
+case "$target" in
+  aarch64-linux-android)   clang="aarch64-linux-android34-clang" ;;
+  x86_64-linux-android)    clang="x86_64-linux-android34-clang" ;;
+  armv7-linux-androideabi) clang="armv7a-linux-androideabi34-clang" ;;
+  *) echo "android-ndk/cc: unknown target '$target'" >&2; exit 1 ;;
+esac
+
+ndk=""
+
+# 1. Explicit env var points straight at the NDK directory.
+for var in ANDROID_NDK_HOME ANDROID_NDK_ROOT; do
+  v="${!var:-}"
+  if [ -n "$v" ] && [ -d "$v/toolchains/llvm/prebuilt" ]; then
+    ndk="$v"
+    break
+  fi
+done
+
+# 2. Default install roots (each holds one or more version directories).
+if [ -z "$ndk" ]; then
+  for root in \
+      "$HOME/android-sdk/ndk" \
+      "$HOME/Android/ndk" \
+      "$HOME/Android/sdk/ndk" \
+      "$HOME/Library/Android/sdk/ndk"; do
+    [ -d "$root" ] || continue
+    if [ -d "$root/$NDK_VERSION/toolchains/llvm/prebuilt" ]; then
+      ndk="$root/$NDK_VERSION"
+      break
+    fi
+    # Fall back to the lexicographically-latest installed version under this root.
+    found="$(find "$root" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | tail -n 1)"
+    if [ -n "$found" ] && [ -d "$found/toolchains/llvm/prebuilt" ]; then
+      ndk="$found"
+      break
+    fi
+  done
+fi
+
+if [ -z "$ndk" ]; then
+  echo "android-ndk/cc: Android NDK $NDK_VERSION not found." >&2
+  echo "  Run: mise run setup:android   (or set ANDROID_NDK_HOME to an existing NDK)" >&2
+  exit 1
+fi
+
+# Each NDK ships a single host-prebuilt dir (darwin-x86_64, linux-x86_64, …).
+host_dir="$(find "$ndk/toolchains/llvm/prebuilt" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+clang_path="$host_dir/bin/$clang"
+
+if [ ! -x "$clang_path" ]; then
+  echo "android-ndk/cc: $clang_path not found" >&2
+  exit 1
+fi
+
+exec "$clang_path" "$@"

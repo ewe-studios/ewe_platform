@@ -23,3 +23,6 @@ prost-build = "0.12"
 # protoc auto-discovers it from PATH — just `protoc --connect-ewe_out=. …`.
 [[bin]]
 name = "protoc-gen-connect-ewe"
+
+[lints]
+workspace = true

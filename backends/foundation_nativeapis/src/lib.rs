@@ -38,7 +38,9 @@ pub use shared::{
 
 // Poll types when the poll feature is enabled.
 #[cfg(feature = "poll")]
-pub use native::poll::{Events, Interest, Poll, Registry, SourceFd, Token, Waker};
+pub use native::poll::{Events, Interest, Poll, Registry, Token, Waker};
+#[cfg(all(feature = "poll", unix))]
+pub use native::poll::SourceFd;
 
 // Valtron types — always available (shareable, no native deps).
 pub use valtron::{Broadcaster as EventBroadcaster, FileWatcherTask, FileWatcherBuilder, StopSignal, CompositeReadiness};
@@ -50,8 +52,8 @@ pub use valtron::{VfsTask, VfsTaskBuilder, VfsEventReadiness};
 // FdState from shared (always available).
 pub use shared::FdState;
 
-// FdMonitorTask requires native::fd.
-#[cfg(feature = "fd")]
+// FdMonitorTask requires native::fd (unix-only).
+#[cfg(all(feature = "fd", unix))]
 pub use valtron::FdMonitorTask;
 
 // VFS types when the vfs feature is enabled.

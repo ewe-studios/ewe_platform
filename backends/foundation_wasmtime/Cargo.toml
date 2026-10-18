@@ -10,3 +10,6 @@ wasmtime = { version = "26", default-features = false, features = ["cranelift", 
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
 derive_more = { version = "2", features = ["display", "error", "from"] }
 tracing = "0.1"
+
+[lints]
+workspace = true

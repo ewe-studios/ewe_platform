@@ -35,3 +35,6 @@ brotli = ["foundation_netio/compression"]
 socks5 = ["foundation_netio/socks5"]
 ssl-rustls = ["foundation_netio/ssl-rustls"]
 default  = ["std"]
+
+[lints]
+workspace = true

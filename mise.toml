@@ -198,6 +198,22 @@ openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem \
 echo "✓ regenerated cert.pem + key.pem (dev only; the browser trusts it via --ignore-certificate-errors)"
 """
 
+[tasks."setup:android"]
+description = "Install the Android NDK (r27) + Rust std targets for Android cross-compilation (spec-55/62)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+bash "{{config_root}}/scripts/setup/android-ndk.sh"
+"""
+
+[tasks."setup:windows"]
+description = "Install mingw-w64 + the x86_64-pc-windows-gnu target to cross-compile the Windows selector (spec-62 F07)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+bash "{{config_root}}/scripts/setup/windows-cross.sh"
+"""
+
 [tasks."setup:depot-tools"]
 description = "Install Chromium depot_tools into tools/depot_tools (for Dawn/gclient)"
 run = """
@@ -1628,6 +1644,8 @@ echo "  setup              Install all dev tools and WASM targets"
 echo "  setup:tools        Install rustfmt, clippy, cargo-nextest, etc."
 echo "  setup:wasm         Install WASM targets"
 echo "  setup:cloudflare   Install Cloudflare tools (wrangler, miniflare)"
+echo "  setup:android      Install Android NDK (r27) + Rust Android targets"
+echo "  setup:windows      Install mingw-w64 + Rust Windows target"
 echo "  setup:check        Verify installed tools"
 echo ""
 echo "System (Linux testbed dependencies):"

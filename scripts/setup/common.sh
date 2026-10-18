@@ -5,8 +5,8 @@
 # ships): no associative arrays, no `mapfile`, no `${var,,}`.
 
 install_rust_components() {
-    echo "Installing Rust components (rustfmt, clippy, rust-analyzer)..."
-    rustup component add rustfmt clippy rust-analyzer 2>/dev/null || true
+    echo "Installing Rust components (rustfmt, clippy, rust-analyzer, cranelift)..."
+    rustup component add rustfmt clippy rust-analyzer rustc-codegen-cranelift 2>/dev/null || true
     echo "✓ Rust components installed"
 }
 

@@ -47,3 +47,6 @@ huggingface = ["foundation_deployment_huggingface"]
 
 # Multi-threaded executor
 multi = ["foundation_deployment_huggingface/multi", "foundation_core/multi", "foundation_netio/multi"]
+
+[lints]
+workspace = true

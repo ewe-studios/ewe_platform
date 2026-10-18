@@ -29,17 +29,26 @@ rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 codegen-backend = true
 
 # ── Android cross-compilation targets (spec-55 mobile) ──────────────────
-# NDK r27 at ~/Android/ndk/27.0.12077973/
+# The NDK lives in a different place and uses a different host prebuilt per OS
+# (darwin-x86_64 vs linux-x86_64), so each linker is a repo-relative wrapper
+# that resolves the NDK at build time. Install it with `mise run setup:android`
+# (NDK r27, 27.0.12077973), or point ANDROID_NDK_HOME at an existing NDK.
 # Usage: cargo build --target aarch64-linux-android --package foundation_wireguard
 
 [target.aarch64-linux-android]
-linker = "/home/darkvoid/android-sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android34-clang"
+linker = "scripts/android-ndk/aarch64-linux-android"
 
 [target.x86_64-linux-android]
-linker = "/home/darkvoid/android-sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android34-clang"
+linker = "scripts/android-ndk/x86_64-linux-android"
 
 [target.armv7-linux-androideabi]
-linker = "/home/darkvoid/android-sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi34-clang"
+linker = "scripts/android-ndk/armv7-linux-androideabi"
 
-[profile.dev]
-codegen-backend = "cranelift"
+# ── Windows cross-compilation (spec-62 F07 validation) ─────────────────────
+# mingw-w64 provides x86_64-w64-mingw32-gcc (brew on macOS, pacman on Arch).
+# Install with `mise run setup:windows`. `cargo check` needs only the Rust std
+# target; a full `cargo build` needs the linker.
+# Usage: cargo check --target x86_64-pc-windows-gnu -p foundation_nativeapis
+
+[target.x86_64-pc-windows-gnu]
+linker = "x86_64-w64-mingw32-gcc"

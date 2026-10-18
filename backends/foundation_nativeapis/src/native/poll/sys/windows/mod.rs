@@ -8,7 +8,7 @@
 /// For non-socket handles, readiness must be tracked via overlapped I/O operations.
 
 use super::super::event::Event;
-use super::super::super::Events;
+use super::super::Events;
 use crate::native::poll::{Interest, Registry, Token};
 
 use std::collections::HashMap;
@@ -19,6 +19,7 @@ use std::time::Duration;
 use windows_sys::Win32::{
     Foundation::*,
     Networking::WinSock::*,
+    System::IO::CreateIoCompletionPort,
     System::Threading::*,
 };
 
@@ -49,10 +50,10 @@ pub struct Selector {
 
 impl Selector {
     /// Create a new IOCP selector.
-    pub fn new_with_registry() -> io::Result<(Arc<Self>, Registry)> {
+    pub fn new() -> io::Result<Self> {
         unsafe {
-            let iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, None, 0, 0);
-            if iocp == 0 {
+            let iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, std::ptr::null_mut(), 0, 0);
+            if iocp.is_null() {
                 return Err(io::Error::last_os_error());
             }
 
@@ -67,19 +68,22 @@ impl Selector {
                 ));
             }
 
-            let selector = Arc::new(Self {
+            Ok(Self {
                 iocp,
                 handles: Mutex::new(HashMap::new()),
                 waker_token: Mutex::new(None),
                 waker_event: Mutex::new(None),
-            });
-
-            let registry = Registry {
-                selector: selector.clone(),
-            };
-
-            Ok((selector, registry))
+            })
         }
+    }
+
+    /// Create a new IOCP selector and its `Registry` together.
+    pub fn new_with_registry() -> io::Result<(Arc<Self>, Registry)> {
+        let selector = Arc::new(Self::new()?);
+        let registry = Registry {
+            selector: selector.clone(),
+        };
+        Ok((selector, registry))
     }
 
     /// Register a raw handle with the IOCP selector.
@@ -91,13 +95,13 @@ impl Selector {
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
         unsafe {
             let handle = fd as HANDLE;
-            if handle == 0 || handle == INVALID_HANDLE_VALUE {
+            if handle.is_null() || handle == INVALID_HANDLE_VALUE {
                 return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid handle"));
             }
 
             // Associate handle with our IOCP. The completion key encodes our token.
-            let result = CreateIoCompletionPort(handle, Some(self.iocp), token.0 as usize, 0);
-            if result == 0 {
+            let result = CreateIoCompletionPort(handle, self.iocp, token.0 as usize, 0);
+            if result.is_null() {
                 return Err(io::Error::last_os_error());
             }
         }
@@ -161,14 +165,14 @@ impl Selector {
     /// with the IOCP via a dummy completion key.
     pub fn register_waker(&self, token: Token) -> io::Result<()> {
         unsafe {
-            let event = CreateEventW(None, true as BOOL, false as BOOL, None);
-            if event == 0 {
+            let event = CreateEventW(std::ptr::null(), true as BOOL, false as BOOL, std::ptr::null());
+            if event.is_null() {
                 return Err(io::Error::last_os_error());
             }
 
             // Associate the event with the IOCP. When signaled, it posts a completion.
-            let result = CreateIoCompletionPort(event, Some(self.iocp), token.0 as usize, 0);
-            if result == 0 {
+            let result = CreateIoCompletionPort(event, self.iocp, token.0 as usize, 0);
+            if result.is_null() {
                 CloseHandle(event);
                 return Err(io::Error::last_os_error());
             }
@@ -275,7 +279,9 @@ impl Selector {
                             }
 
                             event = event.with_flags(flags);
-                            *ptr.add(count) = event;
+                            unsafe {
+                                *ptr.add(count) = event;
+                            }
                             count += 1;
                         }
                     }
@@ -283,9 +289,7 @@ impl Selector {
             }
         }
 
-        unsafe {
-            events.set_len(count);
-        }
+        events.set_len(count);
 
         Ok(())
     }
@@ -297,7 +301,7 @@ impl Drop for Selector {
             if let Some(event) = self.waker_event.lock().unwrap().take() {
                 CloseHandle(event);
             }
-            if self.iocp != 0 {
+            if !self.iocp.is_null() {
                 CloseHandle(self.iocp);
             }
             WSACleanup();

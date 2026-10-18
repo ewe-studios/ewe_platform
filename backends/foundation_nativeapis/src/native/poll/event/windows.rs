@@ -1,7 +1,5 @@
 /// Windows `Event` — represents a completion from `GetQueuedCompletionStatus`.
 
-use std::io::ErrorKind;
-
 /// A single readiness event from IOCP.
 #[derive(Clone, Copy)]
 pub struct Event {
@@ -9,21 +7,22 @@ pub struct Event {
     key: usize,
     /// Number of bytes transferred (for overlapped I/O).
     bytes: u32,
-    /// Whether the operation failed.
-    error: Option<std::io::Error>,
+    /// The error kind if the operation failed.
+    error: Option<std::io::ErrorKind>,
     /// Bitmask of readiness flags.
     flags: u8,
 }
 
-const READABLE: u8 = 0b00001;
-const WRITABLE: u8 = 0b00010;
-const READ_CLOSED: u8 = 0b00100;
-const WRITE_CLOSED: u8 = 0b01000;
-const ERROR: u8 = 0b10000;
+pub(crate) const READABLE: u8 = 0b00001;
+pub(crate) const WRITABLE: u8 = 0b00010;
+pub(crate) const READ_CLOSED: u8 = 0b00100;
+pub(crate) const WRITE_CLOSED: u8 = 0b01000;
+pub(crate) const ERROR: u8 = 0b10000;
 
 impl Event {
     /// Create a new event from IOCP completion parameters.
     pub fn from_completion(key: usize, bytes: u32, error: Option<std::io::Error>) -> Self {
+        let error = error.map(|e| e.kind());
         let flags = if error.is_some() {
             ERROR
         } else {
@@ -93,8 +92,8 @@ impl Event {
     }
 
     /// The underlying I/O error, if any.
-    pub fn error(&self) -> Option<&std::io::Error> {
-        self.error.as_ref()
+    pub fn error(&self) -> Option<std::io::Error> {
+        self.error.map(std::io::Error::from)
     }
 }
 

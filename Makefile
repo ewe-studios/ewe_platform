@@ -75,10 +75,10 @@ ci-package:
 # ============================================================================
 
 update_submodules:
-	git submodule update --remote .agents
-	git submodule update --remote tools/dawn
-	git submodule update --remote tools/emsdk
-	git submodule update --remote infrastructure/llama-bindings/llama.cpp/
+	git submodule update --init --remote .agents
+	git submodule update --init --recursive --remote tools/dawn
+	git submodule update --init --recursive --remote tools/emsdk
+	git submodule update --init --recursive --remote infrastructure/llama-bindings/llama.cpp/
 
 # ============================================================================
 # Development Environment Setup

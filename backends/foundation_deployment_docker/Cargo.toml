@@ -339,3 +339,6 @@ workspace = true
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
+
+[lints]
+workspace = true

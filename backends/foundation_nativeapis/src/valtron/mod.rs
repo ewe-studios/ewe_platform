@@ -23,7 +23,7 @@ pub use vfs_task::{VfsEventReadiness, VfsTask, VfsTaskBuilder};
 // Re-export FdState from shared so native/fd_monitor.rs can access it.
 pub use super::shared::FdState;
 
-#[cfg(feature = "fd")]
+#[cfg(all(feature = "fd", unix))]
 pub mod native;
-#[cfg(feature = "fd")]
+#[cfg(all(feature = "fd", unix))]
 pub use native::FdMonitorTask;

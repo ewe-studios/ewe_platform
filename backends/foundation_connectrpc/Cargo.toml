@@ -101,3 +101,6 @@ required-features = ["rpc_multi"]
 [[test]]
 name = "grpc_tests"
 required-features = ["rpc_multi"]
+
+[lints]
+workspace = true

@@ -17,11 +17,17 @@ pub struct Selector;
 
 impl Selector {
     /// Returns an unsupported error.
-    pub fn new_with_registry() -> io::Result<(Arc<Self>, Registry)> {
+    pub fn new() -> io::Result<Self> {
         Err(io::Error::new(
             io::ErrorKind::Unsupported,
             "poll is not supported on this platform",
         ))
+    }
+
+    /// Returns an unsupported error.
+    pub fn new_with_registry() -> io::Result<(Arc<Self>, Registry)> {
+        Self::new()?;
+        unreachable!("new() always errors on unsupported platforms")
     }
 
     pub fn register_fd(&self, _fd: RawFd, _token: Token, _interest: Interest) -> io::Result<()> {

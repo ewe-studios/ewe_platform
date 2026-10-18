@@ -1,5 +1,6 @@
 // Windows signal handling — SetConsoleCtrlHandler + event object.
 
+use crate::signal::deliver_signal;
 use crate::signal::error::SignalError;
 use crate::signal::event::SignalKind;
 use crate::signal::handle::SignalHandle;
@@ -21,9 +22,12 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
             std::ptr::null(),
         )
     };
-    if event.0 == 0 {
+    if event.is_null() {
         return Err(SignalError::Io(std::io::Error::last_os_error()));
     }
+
+    // Store the event handle so the console handler can signal it.
+    GLOBAL_EVENT.store(event as u64, Ordering::Relaxed);
 
     // Install console handler
     let ok = unsafe { SetConsoleCtrlHandler(Some(console_handler), 1) };
@@ -59,6 +63,9 @@ unsafe extern "system" fn console_handler(ctrl_type: u32) -> i32 {
     if event != 0 {
         SetEvent(event as _);
     }
+
+    // Deliver to the bus (safe here — the console handler runs on its own thread).
+    deliver_signal(kind);
 
     1
 }

@@ -37,3 +37,6 @@ zeroize = "1"
 # Integration tests that require a real Chromium binary opt into this so CI
 # without a browser skips them.
 browser-tests = []
+
+[lints]
+workspace = true

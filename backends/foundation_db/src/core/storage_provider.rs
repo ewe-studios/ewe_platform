@@ -104,7 +104,9 @@ impl SqlRow {
             .iter()
             .find(|(col_name, _)| col_name == name)
             .ok_or_else(|| {
-                crate::core::errors::StorageError::SqlConversion(format!("Column '{name}' not found"))
+                crate::core::errors::StorageError::SqlConversion(format!(
+                    "Column '{name}' not found"
+                ))
             })
             .and_then(|(_, v)| T::from_data_value(v))
     }
@@ -235,7 +237,9 @@ impl AsyncQueryStream {
     where
         S: futures_core::Stream<Item = StorageResult<SqlRow>> + Send + 'static,
     {
-        Self { inner: Box::pin(stream) }
+        Self {
+            inner: Box::pin(stream),
+        }
     }
 
     /// Collect all remaining rows into a Vec.
@@ -267,7 +271,9 @@ impl AsyncListStream {
     where
         S: futures_core::Stream<Item = StorageResult<String>> + Send + 'static,
     {
-        Self { inner: Box::pin(stream) }
+        Self {
+            inner: Box::pin(stream),
+        }
     }
 
     /// Collect all remaining keys into a Vec.
@@ -399,11 +405,8 @@ pub trait AsyncQueryStore: Send + Sync {
     ///
     /// Use `.collect_all().await` to get all rows, or iterate row-by-row
     /// via `.next().await`.
-    async fn query_async(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> StorageResult<AsyncQueryStream>;
+    async fn query_async(&self, sql: &str, params: &[DataValue])
+        -> StorageResult<AsyncQueryStream>;
 
     /// Execute a statement that returns number of rows affected.
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
@@ -416,8 +419,15 @@ pub trait AsyncQueryStore: Send + Sync {
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait]
 pub trait AsyncKeyValueStore: Send + Sync {
-    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
-    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
+    async fn get_async<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>>;
+    async fn set_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<()>;
     async fn delete_async(&self, key: &str) -> StorageResult<()>;
     async fn exists_async(&self, key: &str) -> StorageResult<bool>;
     /// List all keys with optional prefix filter, returning an async stream.
@@ -560,6 +570,13 @@ pub trait DocumentStore: Send + Sync {
         limit: usize,
     ) -> StorageResult<StorageItemStream<'_, V>>;
 
+    // TODO: We need to have the ability to do a scan_range(from_id, to_id)
+    // this is foundation to support the ability of sessions to fork of a set
+    // of a conversation without duplicating it all into their own session,
+    // they can add a marker somewhere saying: this session, with conversation from
+    // this scru128 to this one scru128, this way, they can request and pull that
+    // session conversation from that range and not see anything else.
+
     /// Scan all documents from a collection, **oldest-first** (ordered by `doc_id` ASC).
     fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self,
@@ -642,17 +659,35 @@ pub trait PromotableDocument {
 #[async_trait::async_trait]
 pub trait AsyncDocumentStore: Send + Sync {
     /// Append a document to a collection.
-    async fn append_async<V: Serialize + Send + 'static>(&self, key: &str, content: V) -> StorageResult<Document>;
+    async fn append_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document>;
 
     /// Append a document with a caller-supplied scru128 `doc_id` (OD-06-5).
-    async fn append_with_id_async<V: Serialize + Send + 'static>(&self, key: &str, doc_id: &str, content: V) -> StorageResult<Document>;
+    async fn append_with_id_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document>;
 
     /// Append a document, populating the promoted columns from [`PromotableDocument`]
     /// (async mirror of `append_promotable`; OD-22b-1).
-    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(&self, key: &str, content: V) -> StorageResult<Document>;
+    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document>;
 
     /// Like [`append_promotable_async`](Self::append_promotable_async) with a caller-supplied `doc_id`.
-    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(&self, key: &str, doc_id: &str, content: V) -> StorageResult<Document>;
+    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document>;
 
     /// Scan the last N documents as full [`Document`]s (promoted columns observable),
     /// newest-first. Bounded by `limit`, so this returns a `Vec` (async mirror of
@@ -661,22 +696,39 @@ pub trait AsyncDocumentStore: Send + Sync {
 
     /// Scan documents with id **>= `from_id`** as full [`Document`]s, oldest-first,
     /// up to `limit` (0 = unlimited).
-    async fn scan_documents_from_async(&self, key: &str, from_id: &str, limit: usize) -> StorageResult<Vec<Document>>;
+    async fn scan_documents_from_async(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<Vec<Document>>;
 
     /// Scan the last N documents from a collection, newest-first (by `doc_id`).
     /// Returns a lazily-pulled [`AsyncStorageItemStream`] — pull each item with
     /// `.next().await`; nothing is materialized into a `Vec` (no OOM).
-    async fn scan_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, limit: usize) -> StorageResult<AsyncStorageItemStream<'_, V>>;
+    async fn scan_async<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        limit: usize,
+    ) -> StorageResult<AsyncStorageItemStream<'_, V>>;
 
     /// Scan all documents from a collection, oldest-first (by `doc_id`), as a
     /// lazily-pulled [`AsyncStorageItemStream`].
-    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<AsyncStorageItemStream<'_, V>>;
+    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<AsyncStorageItemStream<'_, V>>;
 
     /// Scan documents whose id is >= `from_id` (inclusive), oldest-first, up to
     /// `limit` (0 = unlimited), as a lazily-pulled [`AsyncStorageItemStream`]
     /// (`while let Some(item) = stream.next().await { … }`). CF KV/D1 impls land
     /// in F23 — OD-06-7.
-    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, from_id: &str, limit: usize) -> StorageResult<AsyncStorageItemStream<'_, V>>;
+    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<AsyncStorageItemStream<'_, V>>;
 
     /// Delete a specific document.
     async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()>;

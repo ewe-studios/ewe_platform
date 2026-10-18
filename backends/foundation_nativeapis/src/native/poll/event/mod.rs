@@ -29,7 +29,7 @@ mod kqueue;
 pub use kqueue::Event;
 
 #[cfg(target_os = "windows")]
-mod windows;
+pub(crate) mod windows;
 #[cfg(target_os = "windows")]
 pub use windows::Event;
 
