@@ -1,20 +1,21 @@
 ---
-description: "Introduce a shareable Ctx and a #[valtron::task] macro that turns a state-transition function (sync or async) into a native TaskIterator, removing the hand-written enum + match transition boilerplate."
+description: "Give the valtron engine a Ctx (Arc<CtxInner>, everything Send+Sync) that it clones and threads through ExecutionIterator::next → TaskIterator::next_status by value, seeding standard elements (clock, config, RNG), and a #[valtron::task] macro that turns a state-transition function into a TaskIterator over that context."
 status: "in-progress"
 priority: "high"
 created: 2026-10-18
 author: "Main Agent"
 metadata:
-  version: "1.0"
+  version: "2.0"
   last_updated: 2026-10-18
-  estimated_effort: "medium"
+  estimated_effort: "large"
   tags:
     - valtron
     - task-iterator
+    - execution-iterator
+    - ctx
     - state-machine
     - proc-macro
     - async
-    - ctx
   stack_files: [rust.md]
   skills:
     - rust-valtron-usage
@@ -35,73 +36,58 @@ features:
 
 # Overview
 
-Every non-trivial valtron task today is the same two-step dance by hand:
+Valtron tasks today reach engine-level services (RNG, clock, config) by manual
+threading or ambient globals — nothing is *provided* to a task by the engine.
+This specification changes that:
 
-1. an `enum` (or `struct`) that names every state and the values each carries, and
-2. a `TaskIterator` impl whose `next_status` `match`es on the current state and
-   returns the next `TaskStatus`.
+- The **engine owns a `Ctx`** — `Ctx = Arc<CtxInner>`, everything inside
+  `Send + Sync` — and **clones it into every poll**. `Ctx` is passed **by value**
+  (a cheap `Arc` clone) down `ExecutionIterator::next` → `TaskIterator::next_status`.
+- The Ctx is **seeded with standard elements** (clock, config, RNG) so every task,
+  at every turn, can reach them without threading them through signatures.
+- On top of that, `#[valtron::task]` turns a state-transition function into a
+  `TaskIterator` that receives the engine `Ctx` alongside its state `T`, removing
+  the hand-written enum + match transition boilerplate.
 
-`FutureTask`/`StreamTask` already hide this for the "one future / one stream"
-cases. There is no equivalent for the **multi-turn state machine** case, so
-authors keep re-implementing the enum + transition loop by hand.
-
-This specification adds that missing primitive, plus the ergonomic layer over it:
-
-- **`Ctx`** — a cloneable, `Send + Sync` scratch bag (a type map of `Arc<T>`
-  entries) that a task owns and can cheaply share with sub-tasks and async
-  futures.
-- **`StateTask`** (sync) and **`AsyncStateTask`** (async) — two native
-  `TaskIterator` types, parallel to `FutureTask`/`StreamTask`, that own a `Ctx`
-  and a state `T` and drive a transition function turn by turn.
-- **`#[valtron::task]`** — a proc-macro in `foundation_macros` that turns
-
-  ```rust
-  #[valtron::task]
-  async fn build_house(ctx: Ctx, state: BuildHouseState)
-      -> Option<(BuildHouseState, TaskStatus<House, Progress, NoSpawner>)> { … }
-  ```
-
-  into a `struct build_house` (same name as the function) with
-  `build_house::new(state)` returning a ready-to-run `TaskIterator`.
-
-The headline win: the transition function is a **plain free function**, so it is
-unit-testable with no valtron engine at all — construct a `Ctx`, pass the current
-`T`, assert the returned `(next, status)`.
+The headline win is two-fold: **standard elements thread deeply through the whole
+task graph**, and the state-machine pattern is a **plain function** you can
+unit-test with no engine at all.
 
 # Goals
 
-- Eliminate hand-written `TaskIterator` state machines for the common case: an
-  enum of states plus a transition over them.
-- Provide the same primitive for **sync** and **async** transitions, reusing
-  valtron's existing future/waker machinery rather than inventing new runtime
-  plumbing.
-- Give tasks a **per-task, shareable** `Ctx` (not a global), so spawned sub-tasks
-  and in-flight futures can read/write shared scratch state without threading it
-  through every signature.
-- Make the generated task `Send` by default so it runs unchanged under the
-  `multi` engine.
+- Make the engine the single source of ambient services (clock, config, RNG),
+  threaded to every task via a shared, cheaply-cloned `Ctx`.
+- Expand the `TaskIterator`/`ExecutionIterator` signatures to carry the `Ctx`
+  **by value**, accepting the mechanical churn this causes.
+- Provide native state-machine iterators (`StateTask` sync, `AsyncStateTask`
+  async) and the `#[valtron::task]` macro that consumes the threaded `Ctx`.
+- Keep the generated task `Send` by default so it runs unchanged under `multi`,
+  and equally usable under single-threaded wasm/non-wasm.
 
 # Implementation Location
 
 - `backends/foundation_core/src/valtron/ctx.rs` — `Ctx` + `CtxInner` (feature 00).
+- `backends/foundation_core/src/valtron/task.rs` — `TaskIterator::next_status` and
+  `ExecutionIterator::next` signature change (feature 01).
+- `backends/foundation_core/src/valtron/executors/*` — poll sites + wrappers
+  forward `ctx` (feature 01).
 - `backends/foundation_core/src/valtron/executors/state_task.rs` — `StateTask`,
-  `AsyncStateTask`, `TransitionPending` (feature 01).
+  `AsyncStateTask`, `TransitionPending` (feature 02).
 - `backends/foundation_macros/src/state_task.rs` — `#[valtron::task]` (feature 02).
-- Re-exports: `valtron/mod.rs` (`Ctx`, `task`), `valtron/executors/mod.rs`
-  (`StateTask`, `AsyncStateTask`, `TransitionPending`).
 
 # Known Issues
 
-None — green-field capability. The only latent constraint is that `Ctx` is
-`std`/`alloc`-gated (it needs `Arc`, `HashMap`, `TypeId`, `dyn Any`), matching the
-existing `#[cfg(any(feature = "std", feature = "alloc"))]` gating on
-`FutureTask`/`StreamTask`.
+- `Ctx` is `std`/`alloc`-gated (`Arc`, `HashMap`, `TypeId`, `dyn Any`), matching
+  the existing gating on `FutureTask`/`StreamTask`.
+- The signature change breaks **every** `TaskIterator` impl in the workspace
+  (core + all backends) and makes the completed specs that document the trait
+  (22/33/50/58/41) stale. This is accepted, tracked churn.
 
 # Language Stack
 
 | Language | Purpose | Skill Location |
 |----------|---------|----------------|
-| Rust | `Ctx`, core iterators, proc-macro | `.agents/skills/rust-valtron-usage/skill.md`, `.agents/skills/rust-valtron-iterator/skill.md` |
+| Rust | `Ctx`, trait threading, core iterators, proc-macro | `.agents/skills/rust-valtron-usage/skill.md`, `.agents/skills/rust-valtron-iterator/skill.md` |
 
 Mandatory pre-implementation: read `.agents/skills/rust-valtron-usage/skill.md`
 and `.agents/skills/rust-valtron-iterator/skill.md`; follow the async/valtron
@@ -111,127 +97,112 @@ boundary and `Send`/`!Send` rules from `.agents/AGENTS.md`.
 
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
-| 0  | [Ctx](./features/00-ctx/feature.md) | `Ctx` = `Arc<CtxInner>`; interior-mutable type map of `Arc<T>` entries | None | ⬜ Pending |
-| 1  | [State task iterators](./features/01-state-task/feature.md) | `StateTask` (sync) + `AsyncStateTask` (async) + `TransitionPending` | 00 | ⬜ Pending |
-| 2  | [Task macro](./features/02-task-macro/feature.md) | `#[valtron::task]` proc-macro generating a same-named struct | 01 | ⬜ Pending |
+| 0  | [Ctx](./features/00-ctx/feature.md) | `Ctx = Arc<CtxInner>`; interior-mutable type map + engine-seeded standard elements | None | ⬜ Pending |
+| 1  | [Thread Ctx](./features/01-thread-ctx/feature.md) | `next_status(&mut self, ctx: Ctx)` + `next(…, ctx: Ctx)`; executor owns + clones; update all impls | 00 | ⬜ Pending |
+| 2  | [State task macro](./features/02-state-task/feature.md) | `StateTask`/`AsyncStateTask`/`TransitionPending` + `#[valtron::task]` | 01 | ⬜ Pending |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
 # Requirements Conversation Summary
 
-The user explored, then abandoned, a **global engine-provided `Ctx`** threaded
-through every `ExecutionIterator` — it conflicted with the `ExecutionIterator`
-ownership model and with `Send` migration under `multi`. The idea evolved into a
-**per-task `Ctx` + a generated state-machine task**, with the following recorded
-decisions:
+The design went through three phases. Recorded decisions:
 
-- **Native core iterators, not inline macro output.** `StateTask` and
-  `AsyncStateTask` are first-class `TaskIterator` types in
-  `executors/`, exactly like `FutureTask`/`StreamTask`; the macro is a thin layer
-  that wires the user's named function into them. The core is usable directly
-  with a closure, no macro required.
-- **`Ctx` is owned by the task and is a shareable handle.** `Ctx` wraps
-  `Arc<CtxInner>`; `CtxInner` holds the interior-mutable map. Every task is
-  already `Send` (it migrates to the worker thread under `multi`), so `Ctx` is
-  `Send + Sync` by construction and every entry is `Arc<T>` (`T: Send + Sync`).
-  Sub-tasks and async futures get a cheap clone of the same `Arc<CtxInner>`.
-- **The transition function takes `ctx: Ctx` by value** (a cheap clone) — the
-  same signature for sync and async. This makes the future own its own clone and
-  avoids the self-referential borrow that `&mut Ctx` across `.await` would cause.
-- **Struct name == function name.** `fn build_house` generates `struct
-  build_house`; the two share a name because Rust keeps the value and type
-  namespaces separate. The generated struct carries
-  `#[allow(non_camel_case_types)]`.
-- **Async is a first-class target.** `async fn` is `fn(…) -> impl Future`; the
-  async core reuses `FutureTask`'s poll-once + `Depends`/`Pending` waker seam.
-- **Termination via `Option`.** The transition returns
-  `Option<(T, TaskStatus<R, P, S>)>`; `None` means "task finished" and maps to
-  `next_status() -> None`.
-- **`Send` by default, `!Send` deferred.** `T` is `Send` under `multi` (the
-  `!Send` single/wasm impls mirror `FutureTask`'s cfg-split), but a non-`Send`
-  `Ctx`/`T` (for `Rc`/`JsFuture` entries) is out of scope for this spec.
+- **Global engine Ctx → per-task Ctx → engine Ctx threaded through the traits.**
+  A *global* Ctx conflicted with the `ExecutionIterator` ownership model and with
+  `Send` migration under `multi`. A *per-task* Ctx (spec v1) isolated benefit to a
+  single task type. The chosen design: the **engine owns the Ctx and threads it
+  through every poll**, forking it per ExecutionIterator so each gets a unique map
+  while every task still sees the engine's standard elements.
+- **`Ctx = Arc<CtxInner>`, everything `Send + Sync`.** `Arc` makes the Ctx cheap
+  to clone and share; `Send + Sync` makes it usable on worker threads under
+  `multi` *and* on single-threaded wasm/non-wasm (wasm merely loses `!Send`
+  entries, which is deferred).
+- **`Ctx` by value everywhere, no borrow.** Because it wraps an `Arc`, `Ctx` is
+  passed **by value** (a cheap clone) through `ExecutionIterator::next` and
+  `TaskIterator::next_status`. No `&Ctx`/`&mut Ctx`: a `&mut Arc<…>` would be a
+  mutable ref to the pointer, not the map, and mutation goes through the interior
+  lock. Passing by value also means an async transition's future simply *owns* its
+  clone — no self-referential borrow.
+- **Fork at the ExecutionIterator boundary, share within it.** `Ctx` has two
+  operations: `clone()` **shares** the map (used inside one ExecutionIterator — the
+  wrapper forwards its ctx to its inner task), and `fork()` **copies** the map into
+  a fresh handle (used by the engine at each ExecutionIterator boundary: top-level
+  schedule and every spawn). Sibling ExecutionIterators get unique maps and never
+  pollute each other; a wrapper and its inner task share one. The fork copies the
+  map *structure* — the `Arc` values stay shared — so it stays cheap.
+- **Signature expansion is accepted churn.** `next_status(&mut self, ctx: Ctx)` is
+  a breaking change to every task impl; the `ExecutionIterator::next` change is
+  internal-only (wrappers). Spawn methods (`sequenced`/`lift`/`schedule`/
+  `broadcast`) are unchanged — the Ctx is injected at poll time, not spawn time.
+- **Standard elements seeded by the engine** — clock and config (read-only
+  shared), and the RNG. The RNG sharing model (single shared `Arc<Mutex<Rng>>`
+  stream vs per-task seeded clones) is an open decision; default recorded below.
+- **Termination via `Option`.** The state-machine transition returns
+  `Option<(T, TaskStatus<R, P, S>)>`; `None` = finished.
+- **Struct name == function name.** `fn build_house` → `struct build_house`
+  (separate value/type namespaces; `#[allow(non_camel_case_types)]`).
+
+**Open decision (RNG):** proposed default — a single shared `Arc<Mutex<Rng>>` in
+the Ctx (simplest, matches "the current RNG is a standard element"), with
+per-task seeded clones (reproducible, contention-free) noted as a follow-up.
+**Open decision (standard set):** clock + config + RNG in the first cut;
+deadline/cancellation token and tracing span are candidates but not yet in scope.
 
 # High-Level Architecture
 
 ```mermaid
 graph TD
-    subgraph author["Author writes"]
-        F["#[valtron::task]<br/>fn / async fn build_house(ctx: Ctx, state: T)<br/>-> Option&lt;(T, TaskStatus&lt;R,P,S&gt;)&gt;"]
-    end
-
-    subgraph macro["foundation_macros::task"]
+    E["Engine (ExecutorState)<br/>owns root Ctx"]
+    E -->|"root.fork() per ExecutionIterator,<br/>then next(parent, engine, ctx)"| EI["ExecutionIterator<br/>(internal wrappers: ConsumingIter, DoNext, …)"]
+    EI -->|"next_status(ctx)"| TI["TaskIterator<br/>(every task impl)"]
+    TI --> CTX["CtxInner<br/>Mutex&lt;Map&lt;TypeId, Arc&lt;dyn Any+Send+Sync&gt;&gt;&gt;<br/>+ clock + config + rng"]
+    subgraph macro["#[valtron::task]"]
         S["struct build_house"]
-        C["build_house::new(T) / with_ctx(T, Ctx)"]
     end
-
-    subgraph core["foundation_core::valtron::executors"]
-        ST["StateTask (sync)"]
-        AS["AsyncStateTask (async)<br/>+ TransitionPending"]
-    end
-
-    subgraph ctx["foundation_core::valtron::ctx"]
-        CX["Ctx = Arc&lt;CtxInner&gt;<br/>CtxInner = Mutex&lt;Map&lt;TypeId, Arc&lt;dyn Any + Send + Sync&gt;&gt;&gt;"]
-    end
-
-    F --> S
-    S --> C
-    S -->|"wraps"| ST
-    S -->|"wraps"| AS
-    ST --> CX
-    AS --> CX
-    ST -->|"impl TaskIterator"| E["valtron engine"]
-    AS -->|"impl TaskIterator"| E
+    S -->|"wraps"| ST["StateTask / AsyncStateTask"]
+    ST -->|"transition(ctx, state)"| TI
 ```
 
-- **`Ctx`** is the owned, cloneable scratch bag. Cloning shares the same
-  `Arc<CtxInner>`, so a sub-task or a future mutates the same map.
-- **`StateTask`** holds `Option<T>` + `Ctx` + a `FnMut(Ctx, T) ->
-  Option<(T, TaskStatus<R,P,S>)>`; each `next_status` calls the transition once.
-- **`AsyncStateTask`** holds `Option<T>` + `Ctx` + a boxed future; each
-  `next_status` polls the current transition's future once (`FutureTask`
-  semantics), parks on `Depends` during an `await`, and stores the returned state
-  when the future completes.
-- **The macro** emits the same-named struct as a thin newtype over the core, with
-  the user's function (or a boxed call to it) as the transition.
+- The executor owns the root `Ctx`; each ExecutionIterator gets a `root.fork()`
+  (unique map) once, and each poll passes that forked ctx **by value** (share) down.
+- Internal `ExecutionIterator` wrappers forward the `Ctx` to `TaskIterator::next_status`.
+- The state-machine macro's transition is `fn(ctx: Ctx, state: T) ->
+  Option<(T, TaskStatus<R,P,S>)>` — the engine's forked Ctx, not a task-owned one.
 
 # Success Criteria (Spec-Wide)
 
-1. `Ctx` insert/get/remove/contains round-trip by `TypeId`; a clone observes
-   mutations made through any other clone; `Ctx: Send + Sync`.
-2. A `StateTask` and an `AsyncStateTask` both drive a multi-state machine to
-   `Ready` under the engine, and both can `Spawn` sub-tasks that share the parent
-   `Ctx`.
-3. `AsyncStateTask` parks on `Depends` during an `await` (no busy-poll) and
-   resumes on wake, matching `FutureTask`'s behaviour.
-4. `#[valtron::task]` generates a struct named exactly like the function with
-   `new(T)`/`with_ctx(T, Ctx)`, for both `fn` and `async fn` bodies.
-5. The transition function is directly callable — `build_house(Ctx::new(),
-   state)` — and asserts on its `(next, status)` output with no engine.
-6. The generated struct is `Send` when `T`, `R`, `P`, `S` are `Send`, and runs
-   under `multi`.
-7. No regression to `FutureTask`/`StreamTask`/`from_future`/`from_stream`.
+1. `Ctx` round-trips insert/get/remove/contains by `TypeId`; `clone()` shares the
+   map and `fork()` yields a structurally independent map (inserts don't cross
+   forks); `Ctx: Send + Sync`; clock/config/RNG are reachable from any task.
+2. A task's `next_status` receives the same `Ctx` the engine seeded, on every
+   poll, under both `multi` and single-threaded engines.
+3. `StateTask`/`AsyncStateTask` drive a multi-state machine to `Ready`; the async
+   variant parks on `Depends` during `await` (no busy-poll).
+4. `#[valtron::task]` generates a same-named struct with `new(T)` for both `fn`
+   and `async fn`; the transition is directly callable with `(Ctx::new(), state)`.
+5. The generated struct is `Send` when `T, R, P, S` are `Send`.
+6. No regression to `FutureTask`/`StreamTask`/`from_future`/`from_stream` after the
+   signature change.
 
 # Out of Scope
 
-- A non-`Send` `Ctx`/`T` variant (for `Rc`/`JsFuture` entries). Deferred; would
-  be a later `#[valtron::task(non_send)]` or a separate non-send core impl.
-- Yielding intermediate statuses from *inside* an async transition (Rust async
-  generators are unstable); the async core yields `TransitionPending::Awaiting`
-  implicitly and the author's `TaskStatus` only on future completion.
+- A non-`Send` `Ctx`/`T` (for `Rc`/`JsFuture` entries). Deferred.
+- Yielding intermediate statuses from *inside* an async transition (async
+  generators are unstable); the async core synthesizes `TransitionPending::Awaiting`.
+- Deadline/cancellation and tracing-span standard elements (candidates only).
 - Removing the dormant `CloneableExecutionIterator`/`CanCloneExecutionIterator`
-  cluster in `task.rs` — tracked separately, not part of this spec.
+  cluster in `task.rs` — tracked separately.
 
 # Module References
 
-- `backends/foundation_core/src/valtron/task.rs` — `TaskIterator`, `TaskStatus`
+- `backends/foundation_core/src/valtron/task.rs` — `TaskIterator`, `TaskStatus`,
+  `ExecutionIterator`
 - `backends/foundation_core/src/valtron/executors/future_task.rs` — `FutureTask`/
-  `StreamTask`, the waker seam (`wake_queue` + `queue_waker` + `QueueReadiness`)
-- `backends/foundation_core/src/valtron/executors/mod.rs` — executor re-exports
+  `StreamTask`, the waker seam
+- `backends/foundation_core/src/valtron/executors/{local.rs,multi/mod.rs}` — poll sites
+- `backends/foundation_core/src/valtron/executors/{task_iters.rs,do_next.rs,on_next.rs,collect_next.rs}` — wrappers
 - `backends/foundation_core/src/valtron/mod.rs:25` — macro re-export precedent
-  (`pub use foundation_macros::{timeout, valtron, valtron_test};`)
-- `backends/foundation_macros/src/valtron_entry.rs` — `#[valtron]`/`#[valtron_test]`
-  expansion pattern, `crate_paths::foundation_core_path()`
-- `backends/foundation_macros/src/crate_paths.rs` — `resolve_crate` helper
+- `backends/foundation_macros/src/{valtron_entry.rs,crate_paths.rs}` — macro patterns
 
 ---
 

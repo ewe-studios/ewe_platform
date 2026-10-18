@@ -1,4 +1,4 @@
-# 01-state-task — Feature Start
+# 01-thread-ctx — Feature Start
 
 1. Read `feature.md`.
 2. Read `../LEARNINGS.md` (parent spec) and parent `VERIFICATION.md` if present.
@@ -12,6 +12,6 @@
 10. Wait for verification.
 11. Delete `compacted.md` after commit.
 
-Build on `00-ctx` (its `Ctx` is already implemented). Add `StateTask` first,
-then `TransitionPending` + `map_pending`, then `AsyncStateTask`, then re-exports
-and tests.
+Build on `00-ctx`. The churn is compiler-driven: add `ctx: Ctx` to the two traits,
+then follow the compile errors outward (wrappers → core impls → backends). Confirm
+the RNG open decision from `00-ctx` before wiring `ctx.rng()` into any task.

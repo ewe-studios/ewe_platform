@@ -1,6 +1,6 @@
 ---
 feature: "Ctx"
-description: "A cloneable Send + Sync scratch bag: Ctx wraps Arc<CtxInner>, and CtxInner holds an interior-mutable type map of Arc<T> entries keyed by TypeId."
+description: "Ctx = Arc<CtxInner>: a cloneable, Send + Sync handle over an interior-mutable type map, seeded by the engine with standard elements (clock, config, RNG)."
 status: "pending"
 priority: "high"
 depends_on: []
@@ -10,8 +10,8 @@ last_updated: 2026-10-18
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 4
-  total: 4
+  uncompleted: 5
+  total: 5
   completion_percentage: 0
 ---
 
@@ -19,105 +19,119 @@ tasks:
 
 ## Overview
 
-`Ctx` is the per-task scratch bag the state-machine iterators (feature 01) and
-the `#[valtron::task]` macro (feature 02) hand to the transition function. It is
-**owned by the task**, `Send + Sync` by default, and cheaply cloneable, so the
-same underlying map can be handed to sub-tasks and to async futures.
+`Ctx` is the engine-provided, per-poll context handed to every task. It is a
+cloneable `Send + Sync` handle over a `CtxInner`. Two operations: `clone()`
+**shares** the map (a cheap `Arc` refcount bump — used within one
+ExecutionIterator's subtree), and `fork()` **copies** the map into a fresh handle
+(used by the engine at each ExecutionIterator boundary, so siblings never mutate
+each other's map).
 
 ## Design
 
 ```rust
 // foundation_core/src/valtron/ctx.rs
 
-/// A cloneable handle to a shared, interior-mutable type map.
-///
-/// Clone is cheap (an `Arc` refcount bump) and shares the SAME map, so a
-/// sub-task or an in-flight future mutates what the parent sees.
 pub struct Ctx(Arc<CtxInner>);
 
 pub(crate) struct CtxInner {
+    // general extension point: arbitrary Arc<T> entries keyed by TypeId
     map: Mutex<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>,
+    // engine-seeded standard elements
+    clock: Clock,                 // read-only; Clone
+    config: Arc<Config>,          // read-only; shared
+    rng: Arc<Mutex<Rng>>,         // single shared stream (open decision)
 }
 
 impl Ctx {
-    pub fn new() -> Self;
-    pub fn insert<T: Any + Send + Sync>(&self, value: Arc<T>) -> Option<Arc<T>>; // returns the previous entry, if any
+    pub fn new() -> Self;                                              // empty map + default standard elements
+    pub fn insert<T: Any + Send + Sync>(&self, value: Arc<T>) -> Option<Arc<T>>;
     pub fn get<T: Any + Send + Sync>(&self) -> Option<Arc<T>>;
-    pub fn get_or_insert<T: Any + Send + Sync>(&self, value: T) -> Arc<T>;       // wraps in Arc; returns the existing entry if present
+    pub fn get_or_insert<T: Any + Send + Sync>(&self, value: T) -> Arc<T>;
     pub fn remove<T: Any + Send + Sync>(&self) -> Option<Arc<T>>;
     pub fn contains<T: Any + Send + Sync>(&self) -> bool;
+
+    pub fn clock(&self) -> &Clock;
+    pub fn config(&self) -> &Config;          // &Config (deref Arc)
+    pub fn rng(&self) -> &Mutex<Rng>;         // lock() to draw
+
+    /// A new handle over a *copied* map. The standard elements stay shared (Arc);
+    /// the type-map is a fresh HashMap whose `Arc` values are shared. The engine
+    /// calls this once per ExecutionIterator so siblings never mutate each other's map.
+    pub fn fork(&self) -> Ctx;
 }
 
-impl Clone for Ctx { /* clones the Arc */ }
+impl Clone for Ctx { /* clones the Arc — SHARES the map */ }
 impl Default for Ctx { /* Ctx::new() */ }
-// Ctx: Send + Sync holds automatically: Arc<CtxInner> is Send + Sync because
-// CtxInner (Mutex<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>) is Send + Sync.
+// Ctx: Send + Sync automatically — Arc<CtxInner> is Send + Sync iff CtxInner is
+// Send + Sync, and every field (Mutex<HashMap<…>>, Arc<dyn Any + Send + Sync>,
+// Clock, Arc<Config>, Arc<Mutex<Rng>>) is Send + Sync.
 ```
 
-- **`Mutex`** is the codebase's `compati::Mutex` (`std::sync::Mutex` under
-  `std`), matching the existing convention.
-- **Type erasure** is `Arc<dyn Any + Send + Sync>`; retrieval downcasts via
-  `Arc::downcast::<T>()`, which requires `T: Any + Send + Sync + 'static`
-  (`Any` implies `'static`).
-- **Gating:** `#[cfg(any(feature = "std", feature = "alloc"))]`, mirroring
-  `FutureTask`. `Arc`/`HashMap`/`TypeId`/`dyn Any` all need `alloc`/`std`.
+- **`Mutex`** is the codebase's `compati::Mutex` (`std::sync::Mutex` under `std`).
+- **Type erasure** is `Arc<dyn Any + Send + Sync>`; `get` downcasts via
+  `Arc::downcast::<T>()` (`T: Any + Send + Sync + 'static`).
+- **Gating:** `#[cfg(any(feature = "std", feature = "alloc"))]`.
+- **`fork()` copies the map structure, not the values.** Each entry is an `Arc`,
+  so the fresh `HashMap` holds shared `Arc` pointers — structural isolation
+  (insert/remove/replace are private) while the values stay shareable on purpose.
 
 ```mermaid
 sequenceDiagram
-    participant T as Task (owns Ctx)
-    participant C as Ctx (Arc<CtxInner>)
-    participant M as Mutex<Map<TypeId, Arc<dyn Any+Send+Sync>>>
-    participant S as Sub-task (clone of Ctx)
+    participant E as Engine (owns Ctx)
+    participant T as Task (gets ctx: Ctx clone)
+    participant I as CtxInner (shared)
+    participant S as Sub-task (another clone)
 
-    T->>C: insert::<Auth>(Arc<AuthToken>)
-    C->>M: lock; map.insert(TypeId::of::<Auth>(), arc)
+    E->>T: next_status(ctx.clone())
+    T->>I: ctx.clock() / ctx.rng().lock() / ctx.insert(Arc<T>)
     T->>S: spawn(sub_task(ctx.clone(), …))
-    S->>C: get::<Auth>() → Some(Arc<AuthToken>)   # same Arc<CtxInner>
+    S->>I: ctx.get::<T>()  # same Arc<CtxInner>
 ```
 
 ## Interface contract
 
 | Method | Behaviour | Notes |
 |--------|-----------|-------|
-| `new()` | empty map | |
-| `insert(Arc<T>)` | replace by `TypeId` | returns prior entry; `T: Any + Send + Sync` |
-| `get<T>()` | downcast `Arc<dyn Any + Send + Sync>` | `None` if absent or type mismatch |
-| `get_or_insert(T)` | wrap + insert if absent | returns the live `Arc<T>` |
-| `remove<T>()` | remove by `TypeId` | returns removed entry |
-| `contains<T>()` | presence check | |
+| `new()` | empty map + defaults | engine seeds further at init |
+| `insert(Arc<T>)` | replace by `TypeId` | returns prior entry |
+| `get<T>()` | downcast | `None` if absent/mismatched |
+| `get_or_insert(T)` | wrap + insert if absent | returns live `Arc<T>` |
+| `remove<T>()` / `contains<T>()` | remove / presence | |
+| `clock()` / `config()` / `rng()` | standard elements | read-only / read-only / lock-to-draw |
+| `fork()` | copy map into a new handle | standard elements shared; map values `Arc`-shared |
+
+## Open decision — RNG
+
+Default recorded: a single shared `Arc<Mutex<Rng>>`. This is the simplest shape
+that puts "the current RNG" in the shared Ctx, but it is a contention point and
+loses per-task reproducibility. The alternative — per-task `Rng` seeded from the
+engine seed — cannot live in a *shared* `CtxInner` (all clones share one
+`CtxInner`), so it would need a separate per-task seeding mechanism layered on
+top. Confirm before feature 01 depends on it.
 
 ## Error handling
 
-None — the API is infallible. `get` returns `Option<Arc<T>>` (a missing key and
-a wrong type both read as `None`, which is the intended behaviour for a
-type-keyed bag). The `Mutex` is only ever locked for the duration of a single
-map operation; no `Ctx` method returns a guard, so no lock can be held across an
-`await` by accident.
+Infallible API. `get` maps both "absent" and "wrong type" to `None`. No `Ctx`
+method returns a lock guard, so no lock can be held across an `await`.
 
 ## Trade-offs
 
-- **`Arc<dyn Any + Send + Sync>` erasure** costs a `downcast` on read and an
-  `Arc` allocation per entry — negligible relative to task I/O, and it is the
-  price of heterogeneous storage keyed by `TypeId`.
-- **`Send + Sync` only** is a deliberate default; `Rc`/`!Send` entries are out of
-  scope (see requirements Out of Scope).
-- **Interior mutability via `Mutex`** (not `RwLock`) keeps the first cut simple;
-  `RwLock` can be swapped in later without an API change if read-heavy workloads
-  demand it.
+- `Arc<dyn Any + Send + Sync>` erasure costs a `downcast` on read and an `Arc`
+  allocation per entry — negligible next to task I/O.
+- `Send + Sync` only is deliberate; `!Send` entries are deferred.
+- `Mutex` (not `RwLock`) for the first cut; swappable later without an API change.
 
 ## Tasks
 
-1. Add `ctx.rs` with `Ctx`/`CtxInner` and the six methods; `#[cfg(any(feature =
-   "std", feature = "alloc"))]`.
-2. Re-export `Ctx` from `valtron/mod.rs`.
-3. Unit tests: insert/get/remove/contains round-trip; `get` of wrong type → `None`;
-   `insert` returns the previous value; clone shares the map (mutate via one
-   clone, observe via another); `Send + Sync` is asserted by a compile-time
-   `fn assert_send_sync<T: Send + Sync>()` instantiation.
-4. Doc example showing the sub-task sharing pattern.
+1. Add `ctx.rs` with `Ctx`/`CtxInner` (map + standard elements) and the methods.
+2. Define/select `Clock`, `Config`, `Rng` concrete types (reuse `SeedableRng` where
+   it fits); resolve the RNG open decision.
+3. Re-export `Ctx` from `valtron/mod.rs`.
+4. Unit tests: map round-trip; clone-shares-map; `Send + Sync` asserted at compile
+   time; clock/config/rng reachable.
+5. Doc example of the sub-task sharing pattern.
 
 ## Success criteria
 
-- All six methods behave per the contract table.
-- Clones observe each other's writes.
-- `Ctx: Send + Sync` compiles.
+- Map methods behave per the contract; clones observe each other's writes.
+- `Ctx: Send + Sync` compiles; clock/config/rng are reachable from any clone.

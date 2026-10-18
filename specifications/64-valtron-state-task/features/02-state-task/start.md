@@ -1,4 +1,4 @@
-# 02-task-macro — Feature Start
+# 02-state-task — Feature Start
 
 1. Read `feature.md`.
 2. Read `../LEARNINGS.md` (parent spec) and parent `VERIFICATION.md` if present.
@@ -12,7 +12,7 @@
 10. Wait for verification.
 11. Delete `compacted.md` after commit.
 
-Build on `01-state-task`. Reference `foundation_macros/src/valtron_entry.rs` and
-`crate_paths.rs` for the expansion and path-hygiene patterns. Add compile tests
-(using `trybuild` or `cargo` doctests) for the sync/async surfaces and the
-malformed-signature errors.
+Build on `01-thread-ctx` (the `ctx: Ctx` signature is already in place). Add
+`StateTask` first, then `TransitionPending` + `map_pending`, then `AsyncStateTask`
+(reuse `FutureTask`'s wake_queue seam), then `#[valtron::task]` (reference
+`foundation_macros/src/valtron_entry.rs` and `crate_paths.rs`).
