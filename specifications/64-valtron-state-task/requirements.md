@@ -142,10 +142,12 @@ The design went through three phases. Recorded decisions:
 - **Struct name == function name.** `fn build_house` → `struct build_house`
   (separate value/type namespaces; `#[allow(non_camel_case_types)]`).
 
-**Open decision (RNG):** proposed default — a single shared `Arc<Mutex<Rng>>` in
-the Ctx (simplest, matches "the current RNG is a standard element"), with
-per-task seeded clones (reproducible, contention-free) noted as a follow-up.
-**Open decision (standard set):** clock + config + RNG in the first cut;
+**Decision (RNG):** a single shared `Arc<Mutex<Rng>>` — every task draws from one
+engine-seeded stream (per-task seeded clones dropped). Cross-run reproducibility
+holds for a deterministic single-threaded scheduler; under `multi` the draw
+interleaving is schedule-dependent. Standard elements are `Arc<T>` and accessors
+return `Arc<T>` (owned clone), not `&T`.
+**Decision (standard set):** clock + config + RNG in the first cut;
 deadline/cancellation token and tracing span are candidates but not yet in scope.
 
 # High-Level Architecture

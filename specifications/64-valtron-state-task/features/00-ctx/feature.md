@@ -37,9 +37,9 @@ pub(crate) struct CtxInner {
     // general extension point: arbitrary Arc<T> entries keyed by TypeId
     map: Mutex<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>,
     // engine-seeded standard elements
-    clock: Clock,                 // read-only; Clone
+    clock: Arc<Clock>,            // read-only; shared
     config: Arc<Config>,          // read-only; shared
-    rng: Arc<Mutex<Rng>>,         // single shared stream (open decision)
+    rng: Arc<Mutex<Rng>>,         // single shared stream — all tasks draw from one Rng
 }
 
 impl Ctx {
@@ -50,13 +50,12 @@ impl Ctx {
     pub fn remove<T: Any + Send + Sync>(&self) -> Option<Arc<T>>;
     pub fn contains<T: Any + Send + Sync>(&self) -> bool;
 
-    pub fn config(&self) -> &Config;          // &Config (deref Arc)
-
-    # TODO, should these not be Arc<T>? especially the Mutex<Rng>
-    pub fn clock(&self) -> &Clock;
-
-    # TODO, should these not be Arc<T>? especially the Mutex<Rng>
-    pub fn rng(&self) -> &Mutex<Rng>;         // lock() to draw
+    // Standard elements return Arc<T> (owned, cheap clone), not &T — so a task can
+    // hold them across `.await` or move them into a spawned sub-task without
+    // borrowing from `self`.
+    pub fn clock(&self) -> Arc<Clock>;
+    pub fn config(&self) -> Arc<Config>;
+    pub fn rng(&self) -> Arc<Mutex<Rng>>;     // lock() to draw
 
     /// A new handle over a *copied* map. The standard elements stay shared (Arc);
     /// the type-map is a fresh HashMap whose `Arc` values are shared. The engine
@@ -68,7 +67,7 @@ impl Clone for Ctx { /* clones the Arc — SHARES the map */ }
 impl Default for Ctx { /* Ctx::new() */ }
 // Ctx: Send + Sync automatically — Arc<CtxInner> is Send + Sync iff CtxInner is
 // Send + Sync, and every field (Mutex<HashMap<…>>, Arc<dyn Any + Send + Sync>,
-// Clock, Arc<Config>, Arc<Mutex<Rng>>) is Send + Sync.
+// Arc<Clock>, Arc<Config>, Arc<Mutex<Rng>>) is Send + Sync.
 ```
 
 - **`Mutex`** is the codebase's `compati::Mutex` (`std::sync::Mutex` under `std`).
@@ -101,17 +100,19 @@ sequenceDiagram
 | `get<T>()`                       | downcast                   | `None` if absent/mismatched                       |
 | `get_or_insert(T)`               | wrap + insert if absent    | returns live `Arc<T>`                             |
 | `remove<T>()` / `contains<T>()`  | remove / presence          |                                                   |
-| `clock()` / `config()` / `rng()` | standard elements          | read-only / read-only / lock-to-draw              |
+| `clock()` / `config()` / `rng()` | standard elements (Arc)     | owned `Arc<T>`; rng: lock-to-draw                 |
 | `fork()`                         | copy map into a new handle | standard elements shared; map values `Arc`-shared |
 
-## Open decision — RNG
+## Decision — RNG (shared)
 
-Default recorded: a single shared `Arc<Mutex<Rng>>`. This is the simplest shape
-that puts "the current RNG" in the shared Ctx, but it is a contention point and
-loses per-task reproducibility. The alternative — per-task `Rng` seeded from the
-engine seed — cannot live in a _shared_ `CtxInner` (all clones share one
-`CtxInner`), so it would need a separate per-task seeding mechanism layered on
-top. Confirm before feature 01 depends on it.
+A single shared `Arc<Mutex<Rng>>` is the intended design: every task draws from
+one engine-seeded stream, so a fixed seed reproduces the same sequence across the
+whole run — "the current RNG" as a standard engine element. Closed in favour of
+shared RNG; per-task seeded clones are dropped.
+
+Note: cross-run reproducibility holds for a deterministic (single-threaded)
+scheduler. Under `multi`, the interleaving of `lock()` draws is schedule-dependent,
+so a single global sequence is only guaranteed on the single-threaded engine.
 
 ## Error handling
 
