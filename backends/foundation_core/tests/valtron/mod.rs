@@ -35,6 +35,7 @@ mod task_iterators;
 mod thread_yielder_tests;
 #[cfg(not(target_family = "wasm"))]
 mod threaded_future;
+mod threaded_future_std;
 mod units;
 mod wasm_js_yield_integration;
 mod wasm_yielder_tests;
