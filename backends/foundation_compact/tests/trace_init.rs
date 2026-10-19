@@ -18,7 +18,10 @@ fn with_filter(filter: &str) -> TracingTestConfig {
 fn every_call_sets_the_filter_and_later_calls_never_panic() {
     try_init_tracing_with(with_filter("warn"));
     assert!(tracing::enabled!(Level::WARN));
-    assert!(!tracing::enabled!(Level::INFO), "first call's filter applies");
+    assert!(
+        !tracing::enabled!(Level::INFO),
+        "first call's filter applies"
+    );
 
     try_init_tracing_with(with_filter("debug"));
     assert!(

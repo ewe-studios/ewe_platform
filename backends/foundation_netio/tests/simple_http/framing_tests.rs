@@ -7,8 +7,8 @@ use std::io::Read;
 
 use foundation_core::io::ioutils::ByteBufferPointer;
 use foundation_netio::shared::http::framing::{
-    buffer_until, chunk_header, header_block, line, sse_event, FrameCheck, FrameKind,
-    FrameLimits, FrameTooLarge,
+    buffer_until, chunk_header, header_block, line, sse_event, FrameCheck, FrameKind, FrameLimits,
+    FrameTooLarge,
 };
 
 fn d() -> FrameLimits {
@@ -27,7 +27,10 @@ fn tight() -> FrameLimits {
 
 #[test]
 fn header_block_needs_blank_line() {
-    assert_eq!(header_block(b"Content-Type: a\r\n", &d()), FrameCheck::NeedMore);
+    assert_eq!(
+        header_block(b"Content-Type: a\r\n", &d()),
+        FrameCheck::NeedMore
+    );
     assert_eq!(
         header_block(b"Content-Type: a\r\nX: b\r", &d()),
         FrameCheck::NeedMore
@@ -36,8 +39,16 @@ fn header_block_needs_blank_line() {
         header_block(b"Content-Type: a\r\n\r\nbody", &d()),
         FrameCheck::Ready
     );
-    assert_eq!(header_block(b"\r\n", &d()), FrameCheck::Ready, "empty block");
-    assert_eq!(header_block(b"A: b\n\n", &d()), FrameCheck::Ready, "LF-only");
+    assert_eq!(
+        header_block(b"\r\n", &d()),
+        FrameCheck::Ready,
+        "empty block"
+    );
+    assert_eq!(
+        header_block(b"A: b\n\n", &d()),
+        FrameCheck::Ready,
+        "LF-only"
+    );
 }
 
 #[test]
@@ -118,13 +129,21 @@ fn chunk_header_line_and_trailers_honour_their_caps() {
 #[test]
 fn malformed_chunk_is_left_to_the_parser() {
     assert_eq!(chunk_header(b"zz\r\n", &d()), FrameCheck::Ready);
-    assert_eq!(chunk_header(b"\r\n\r\n", &d()), FrameCheck::Ready, "no size octets");
+    assert_eq!(
+        chunk_header(b"\r\n\r\n", &d()),
+        FrameCheck::Ready,
+        "no size octets"
+    );
 }
 
 #[test]
 fn line_and_sse_gates() {
     assert_eq!(line(b"abc", &d()), FrameCheck::NeedMore);
-    assert_eq!(line(b"abc\n", &d()), FrameCheck::NeedMore, "a lone LF is content");
+    assert_eq!(
+        line(b"abc\n", &d()),
+        FrameCheck::NeedMore,
+        "a lone LF is content"
+    );
     assert_eq!(
         line(b"abc\r\n", &d()),
         FrameCheck::NeedMore,
@@ -140,7 +159,10 @@ fn line_and_sse_gates() {
 #[test]
 fn line_and_sse_honour_their_caps() {
     let limits = tight();
-    assert_eq!(line(&[b'a'; 33], &limits), FrameCheck::TooLarge(FrameKind::Line));
+    assert_eq!(
+        line(&[b'a'; 33], &limits),
+        FrameCheck::TooLarge(FrameKind::Line)
+    );
     let event = b"data: aaaaaaaaaaaaaaaaaaaa\ndata: bbbbbbbbbbbbbbbbbbbb\n";
     assert_eq!(
         sse_event(event, &limits),

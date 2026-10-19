@@ -90,8 +90,12 @@ fn too_large(err: &(dyn std::error::Error + 'static)) -> Option<FrameTooLarge> {
 fn a_64_mib_chunk_streams_in_batch_size_pieces() {
     const CHUNK: usize = 64 * 1024 * 1024;
     const PIECE: usize = 8192;
-    let (reader, produced) =
-        Generated::new(format!("{CHUNK:x}\r\n").as_bytes(), CHUNK, b'x', b"\r\n0\r\n\r\n");
+    let (reader, produced) = Generated::new(
+        format!("{CHUNK:x}\r\n").as_bytes(),
+        CHUNK,
+        b'x',
+        b"\r\n0\r\n\r\n",
+    );
     let stream = SharedByteBufferStream::ref_cell(reader);
     let mut iter = SimpleHttpChunkIterator::new(vec![], SimpleHeaders::new(), stream.clone())
         .with_limits(PIECE, FrameLimits::default());
@@ -148,7 +152,11 @@ fn an_oversized_chunk_size_line_errors_at_its_cap() {
             limit: 64
         })
     );
-    assert!(produced.load(Ordering::Relaxed) < 256 * 1024, "read {} bytes", produced.load(Ordering::Relaxed));
+    assert!(
+        produced.load(Ordering::Relaxed) < 256 * 1024,
+        "read {} bytes",
+        produced.load(Ordering::Relaxed)
+    );
 }
 
 #[test]
@@ -159,7 +167,8 @@ fn an_endless_line_errors_at_the_configured_cap() {
     };
     let (reader, produced) = Generated::endless(b"", b'l');
     let stream = SharedByteBufferStream::ref_cell(reader);
-    let mut iter = SimpleLineFeedIterator::new(SimpleHeaders::new(), stream.clone()).with_limits(limits);
+    let mut iter =
+        SimpleLineFeedIterator::new(SimpleHeaders::new(), stream.clone()).with_limits(limits);
 
     let err = iter.next().expect("an item").expect_err("over cap");
     assert_eq!(
@@ -170,7 +179,11 @@ fn an_endless_line_errors_at_the_configured_cap() {
         })
     );
     assert!(buffered(&stream) < 256 * 1024);
-    assert!(produced.load(Ordering::Relaxed) < 256 * 1024, "read {} bytes", produced.load(Ordering::Relaxed));
+    assert!(
+        produced.load(Ordering::Relaxed) < 256 * 1024,
+        "read {} bytes",
+        produced.load(Ordering::Relaxed)
+    );
 }
 
 #[test]
@@ -188,7 +201,10 @@ fn lines_under_the_cap_still_parse() {
         .map(|r| format!("{:?}", r.expect("line")))
         .collect();
     assert_eq!(lines.len(), 2, "{lines:?}");
-    assert!(lines[0].contains("one") && lines[1].contains("two"), "{lines:?}");
+    assert!(
+        lines[0].contains("one") && lines[1].contains("two"),
+        "{lines:?}"
+    );
 }
 
 #[test]
@@ -210,7 +226,11 @@ fn an_endless_sse_event_errors_at_the_configured_cap() {
             limit: 4096
         })
     );
-    assert!(produced.load(Ordering::Relaxed) < 256 * 1024, "read {} bytes", produced.load(Ordering::Relaxed));
+    assert!(
+        produced.load(Ordering::Relaxed) < 256 * 1024,
+        "read {} bytes",
+        produced.load(Ordering::Relaxed)
+    );
 }
 
 #[test]
@@ -221,13 +241,14 @@ fn an_endless_header_block_errors_at_the_configured_cap() {
     };
     let (reader, produced) = Generated::endless(b"HTTP/1.1 200 OK\r\nX-Big: ", b'h');
     let stream = SharedByteBufferStream::ref_cell(reader);
-    let mut reader = HttpResponseReader::new(
-        stream,
-        SimpleHttpBody::default().with_frame_limits(limits),
-    );
+    let mut reader =
+        HttpResponseReader::new(stream, SimpleHttpBody::default().with_frame_limits(limits));
 
     let intro = reader.next().expect("intro").expect("status line parses");
-    assert!(matches!(intro, IncomingResponseParts::Intro(..)), "{intro:?}");
+    assert!(
+        matches!(intro, IncomingResponseParts::Intro(..)),
+        "{intro:?}"
+    );
     match reader.next().expect("headers item") {
         Err(HttpReaderError::FrameTooLarge(t)) => assert_eq!(
             t,
@@ -238,7 +259,11 @@ fn an_endless_header_block_errors_at_the_configured_cap() {
         ),
         other => panic!("expected FrameTooLarge, got {other:?}"),
     }
-    assert!(produced.load(Ordering::Relaxed) < 256 * 1024, "read {} bytes", produced.load(Ordering::Relaxed));
+    assert!(
+        produced.load(Ordering::Relaxed) < 256 * 1024,
+        "read {} bytes",
+        produced.load(Ordering::Relaxed)
+    );
 }
 
 /// A reader that returns `WouldBlock` once at each listed offset, like a
@@ -278,9 +303,13 @@ fn would_block_mid_frame_resumes_without_losing_bytes() {
     data.extend_from_slice(b"\r\n0\r\nX-T: 1\r\n\r\n");
     // Stall inside the size line, inside the data, and inside the trailers.
     let stalls = vec![2, wire.len() + 3, data.len() - 4];
-    let stream = SharedByteBufferStream::ref_cell(Bursty { data, at: 0, stalls });
-    let mut iter =
-        SimpleHttpChunkIterator::new(vec![], SimpleHeaders::new(), stream).with_limits(4, FrameLimits::default());
+    let stream = SharedByteBufferStream::ref_cell(Bursty {
+        data,
+        at: 0,
+        stalls,
+    });
+    let mut iter = SimpleHttpChunkIterator::new(vec![], SimpleHeaders::new(), stream)
+        .with_limits(4, FrameLimits::default());
 
     let mut got = Vec::new();
     let mut would_blocks = 0;
@@ -304,7 +333,10 @@ fn would_block_mid_frame_resumes_without_losing_bytes() {
     }
     assert_eq!(got, body);
     assert!(ended);
-    assert!(would_blocks >= 2, "only {would_blocks} would-blocks surfaced");
+    assert!(
+        would_blocks >= 2,
+        "only {would_blocks} would-blocks surfaced"
+    );
     let trailers = trailers.expect("trailers parsed");
     assert_eq!(trailers.len(), 1, "{trailers:?}");
 }

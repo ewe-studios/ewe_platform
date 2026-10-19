@@ -18,14 +18,14 @@ use foundation_core::{
     synca::SleepyMan,
     valtron::{
         BoolSignal, BoxedSendExecutionAction, EventReadiness, ExecutionAction, InlineAction,
-        InlineActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner, OnNext,
-        ProcessController, TaskIterator, TaskStatus, WrapTask,
+        InlineActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner, OnNext, ProcessController,
+        TaskIterator, TaskStatus, WrapTask,
     },
 };
 
-use foundation_core::valtron::*;
-use foundation_core::synca::*;
 use foundation_compact::rng::Rng;
+use foundation_core::synca::*;
+use foundation_core::valtron::*;
 use std::sync::{self as sync, Arc};
 
 #[derive(Default, Clone)]
@@ -44,7 +44,10 @@ impl TaskIterator for Counter {
     type Spawner = NoSpawner;
     type Pending = time::Duration;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let old_count = self.1;
         let new_count = old_count + 1;
         self.1 = new_count;
@@ -78,18 +81,18 @@ impl TaskIterator for ListItems {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.1.take() {
             Some(val) => match val {
                 ListItemInner::List(mut items) => {
                     if let Some(inner) = items.take() {
                         let task = WrapTask::new(inner.into_iter());
 
-                        let (inline_action, receiver) = InlineAction::new(
-                            self.0,
-                            task,
-                            std::time::Duration::from_millis(100),
-                        );
+                        let (inline_action, receiver) =
+                            InlineAction::new(self.0, task, std::time::Duration::from_millis(100));
 
                         self.1 = Some(ListItemInner::Response(receiver));
 
@@ -951,7 +954,10 @@ impl TaskIterator for DaemonCounter {
     type Pending = ();
     type Spawner = DaemonSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let current = self.0.load(Ordering::SeqCst);
         println!("Current state: {:?}", current);
         if current == 0 {
@@ -986,7 +992,10 @@ impl TaskIterator for SimpleCounter {
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let old_count = self.1;
         let new_count = old_count + 1;
         self.1 = new_count;
@@ -1279,8 +1288,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
 }
 
 #[test]
-fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits(
-) {
+fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
@@ -1457,7 +1465,10 @@ impl TaskIterator for DependsCounter {
     type Spawner = NoSpawner;
     type Pending = time::Duration;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         self.count += 1;
 
         if self.count >= self.max {
@@ -1682,7 +1693,10 @@ impl TaskIterator for DependsCounterCustom {
     type Spawner = NoSpawner;
     type Pending = time::Duration;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         self.count += 1;
         if self.count >= self.max {
             return None;

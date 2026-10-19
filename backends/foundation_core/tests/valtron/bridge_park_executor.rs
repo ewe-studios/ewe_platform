@@ -17,7 +17,7 @@ use std::pin::Pin;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    execute, valtron_test, NoAction, StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, valtron_test, Ctx, NoAction, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -52,7 +52,10 @@ impl TaskIterator for Producer {
     type Pending = ();
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if !self.gap.is_zero() {
             std::thread::sleep(self.gap);
         }
@@ -162,15 +165,29 @@ async fn ready_future_gets_the_first_value() {
 
 #[valtron_test(threads = 4, timeout = 20_000)]
 async fn ready_future_ends_with_none_when_no_value_comes() {
-    let steps = [Step::Pending, Step::Wait, Step::Delayed(Duration::from_millis(1))];
+    let steps = [
+        Step::Pending,
+        Step::Wait,
+        Step::Delayed(Duration::from_millis(1)),
+    ];
     for gap in [FAST, SLOW] {
-        assert_eq!(first_ready(Producer::new(&steps, gap)).await, None, "gap {gap:?}");
+        assert_eq!(
+            first_ready(Producer::new(&steps, gap)).await,
+            None,
+            "gap {gap:?}"
+        );
     }
 }
 
 #[valtron_test(threads = 4, timeout = 20_000)]
 async fn pending_future_gets_the_first_pending() {
-    let steps = [Step::Value(1), Step::Wait, Step::Init, Step::Pending, Step::Value(2)];
+    let steps = [
+        Step::Value(1),
+        Step::Wait,
+        Step::Init,
+        Step::Pending,
+        Step::Value(2),
+    ];
     for gap in [FAST, SLOW] {
         let got = execute(Producer::new(&steps, gap), None)
             .expect("execute")
