@@ -10,6 +10,10 @@ Spec-level workflow entry point.
    `02-wakeable-stream` → `03-bridge-park` →
    `04-ctx` → `05-thread-ctx` → `06-state-task`.
 
+Test coverage for the whole arc is scoped in `TEST_PLAN.md` (valtron-as-runtime,
+cross-runtime parity, use-case stories with edge cases/invariants, and the Ctx
+engine-context tests — forward-scoped to features 04–06).
+
 The three former specs are folded in sequence:
 
 - **Stream cleanup** (was 65): `00-cleanup`, `01-migrate-recv-iterator`.
