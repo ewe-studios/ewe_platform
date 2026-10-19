@@ -1,6 +1,6 @@
 ---
 feature: "WASM & Cloudflare Workers Readiness"
-description: "Make foundation_ai and the crates it pulls in compile and run on wasm32-unknown-unknown — the foundation the agent-rpc Cloudflare target stands on — verified with miniflare locally and on Cloudflare, building on the completed 28-cloudflare-workers-readiness spec. No new client type: reuse the existing DynNetClient/HttpClient cross-platform seam."
+description: "Make foundation_ai and the crates it pulls in compile and run on wasm32-unknown-unknown — the foundation the agent-rpc Cloudflare target stands on — validated by deploying foundation_ai on Cloudflare and calling external AI vendors (OpenAI/Anthropic) plus Workers AI, tested with miniflare locally and on Cloudflare, building on the completed 28-cloudflare-workers-readiness spec. No new client type: reuse the existing DynNetClient/HttpClient cross-platform seam."
 status: "pending"
 priority: "high"
 depends_on: []
@@ -110,7 +110,11 @@ there.** Everything below is grounded in that prior work plus the existing
 
 6. **Verification examples, each testing a different thing, verified with
    miniflare locally and on Cloudflare** (the point of this feature: prove it
-   before building agent-rpc on top).
+   before building agent-rpc on top):
+   - `cf-agent-loop` — agentic layer + Workers AI, served via `dispatch_cf`.
+   - `cf-cloud-provider` — `foundation_ai` **deployed on Cloudflare calling
+     external AI vendors** (OpenAI, Anthropic) through `FetchHttpClient`,
+     validating the cross-platform provider path end-to-end.
 
 7. **Streamed and typed.** Workers AI streaming is a `Stream`; responses are never
    buffered whole; generated/protocol types, not hand-rolled JSON.
@@ -205,6 +209,29 @@ sequenceDiagram
     W-->>C: streamed response
 ```
 
+### Data Flow (external AI vendor — the validation path)
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant W as Worker (dispatch_cf)
+    participant P as foundation_ai provider<br/>openai / anthropic
+    participant F as FetchHttpClient
+    participant V as External vendor<br/>OpenAI / Anthropic
+    C->>W: request (prompt + vendor)
+    W->>P: route to provider
+    P->>F: send_sse_async (PreparedRequest)
+    F->>V: fetch() to vendor endpoint (env-secret auth)
+    V-->>F: token stream
+    F-->>P: SimpleResponse stream
+    P-->>W: Stream&lt;TurnEvent&gt;
+    W-->>C: streamed response
+```
+
+This is the decisive validation: `foundation_ai` compiled to wasm, deployed on
+Cloudflare, calling a real external AI vendor through the same
+`HttpClient`/`FetchHttpClient` seam the native build uses.
+
 ### Interface Definitions
 
 **Reused (no new type):**
@@ -273,8 +300,9 @@ impl RoutableProvider for WorkersAiProvider {
 - `.github/workflows/check.yaml` — extend the `wasm-check` matrix.
 - `examples/cf-agent-loop/` — new: agentic layer + Workers AI, served via
   `dispatch_cf` + shared `Router` (wasm-pack layout, mirroring cf-valtron-counter).
-- `examples/cf-cloud-provider/` — new: openai/anthropic provider → `FetchHttpClient`
-  from a Worker (proves change #2).
+- `examples/cf-cloud-provider/` — new: `foundation_ai` deployed on Cloudflare
+  calling external AI vendors (OpenAI + Anthropic) via `FetchHttpClient`
+  (proves change #2; the end-to-end validation).
 - `backends/foundation_toolings` tests (or a spec test crate) — miniflare smoke
   tests driving the examples through `harness::Miniflare`.
 
@@ -293,13 +321,17 @@ impl RoutableProvider for WorkersAiProvider {
       streaming; unit test against a mocked `fetch`; red test = first streamed
       token arrives.
 - [ ] **T5 — examples.** `cf-agent-loop` (agentic + Workers AI via `dispatch_cf`)
-      and `cf-cloud-provider` (cloud provider → `FetchHttpClient`); both
+      and `cf-cloud-provider` (`foundation_ai` deployed on Cloudflare calling
+      external AI vendors — OpenAI + Anthropic — via `FetchHttpClient`); both
       `cargo check --target wasm32-unknown-unknown` + `wasm-pack build`.
 - [ ] **T6 — miniflare-local verification.** Drive each example through
-      `foundation_toolings::harness::Miniflare` (wrangler `dev --local`); red test =
-      a request round-trips and streams locally.
-- [ ] **T7 — on-Cloudflare verification.** `wrangler deploy` each example and smoke
-      test against the live Worker; red test = a request round-trips on Cloudflare.
+      `foundation_toolings::harness::Miniflare` (wrangler `dev --local`), with a
+      **mocked vendor `fetch`** (no live keys); red test = an OpenAI/Anthropic
+      provider request streams through the Worker locally.
+- [ ] **T7 — on-Cloudflare verification.** `wrangler deploy` each example; smoke
+      test with a **live external-vendor call gated behind env secrets**
+      (OpenAI/Anthropic keys in Worker bindings) plus the mocked path; red test =
+      a real vendor answer streams from the deployed Worker.
 
 ## Testing
 
@@ -312,9 +344,12 @@ impl RoutableProvider for WorkersAiProvider {
 3. **Dependency audit** — all five AI crates pass their wasm32 `cargo check` with
    the system's feature set.
 4. **Workers AI provider streams** — a mocked `fetch` body streams unbuffered.
-5. **Miniflare smoke** — `cf-agent-loop` and `cf-cloud-provider` serve and stream
-   under `wrangler dev --local` via the `Miniflare` harness.
-6. **Cloudflare smoke** — both examples round-trip against a deployed Worker.
+5. **Miniflare smoke (external vendors)** — `cf-cloud-provider` calls the OpenAI
+   and Anthropic providers through `FetchHttpClient` under `wrangler dev --local`
+   with a mocked vendor `fetch`; tokens stream unbuffered.
+6. **Cloudflare smoke (external vendors)** — the deployed `cf-cloud-provider`
+   Worker calls a real OpenAI/Anthropic endpoint (env-secret-gated) and streams
+   the answer back, proving `foundation_ai`'s provider path works on Cloudflare.
 
 ### Local run commands
 
@@ -336,6 +371,9 @@ cargo test -p foundation_toolings --test miniflare_smoke   # harness-driven
 - [ ] CI `wasm-check` covers the AI crates and fails on regression
 - [ ] `cf-agent-loop` + `cf-cloud-provider` verified via miniflare locally **and**
       on Cloudflare
+- [ ] A deployed Cloudflare Worker running `foundation_ai` streams a real
+      OpenAI/Anthropic answer (env-secret-gated), validating the cross-platform
+      provider path end-to-end
 - [ ] No TODO/FIXME/stubs; streamed, typed; no ignored `Result`s
 
 ---
