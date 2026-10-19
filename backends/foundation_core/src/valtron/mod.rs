@@ -44,6 +44,13 @@ pub use task::*;
 pub use types::*;
 pub use wake::*;
 
+// `futures_lite::StreamExt` — `.next().await`, `.collect::<Vec<_>>().await`,
+// `.for_each(..).await`, … on the `futures_core::Stream` bridges returned by
+// `into_next_stream()`/`into_future_stream()`. Re-exported so a consumer needs no
+// separate `futures`/`futures-lite` dependency to drain a valtron stream.
+#[cfg(feature = "std")]
+pub use futures_lite::StreamExt;
+
 // Re-export foundation_compact::trace so #[valtron_test] can reference
 // foundation_core::valtron::trace::try_init_tracing_with() without every
 // crate adding foundation_compact as a direct dependency.

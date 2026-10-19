@@ -181,31 +181,38 @@ whatever the turn needs.
 ### Synchronous transition
 
 ```rust
-use foundation_core::valtron::{valtron, sync_one, task, Ctx, TaskStatus};
+use foundation_core::valtron::{execute, valtron, task, Ctx, StreamIteratorExt, TaskStatus};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-enum Stage { Foundation, Walls, Roof }
+enum Stage { Foundation, Walls, Roof, Done }
 
 #[derive(Debug, PartialEq)]
 struct House { walls: u32 }
 
-// One building step per poll. `Ready` is terminal (the machine stops after it);
-// intermediate turns use `Ignore` — "nothing produced yet, keep driving me".
+// One building step per poll. `Ready` is *not* terminal: the final step emits
+// `Ready(House)` and advances to `Stage::Done`, whose `None` ends the machine.
+// Intermediate turns use `Ignore` — "nothing produced yet, keep driving me".
 #[task]
 fn build_house(ctx: Ctx, stage: Stage) -> Option<(Stage, TaskStatus<House, ()>)> {
     let _ = ctx;
     match stage {
         Stage::Foundation => Some((Stage::Walls, TaskStatus::Ignore)),
         Stage::Walls      => Some((Stage::Roof,  TaskStatus::Ignore)),
-        Stage::Roof       => Some((Stage::Roof,  TaskStatus::Ready(House { walls: 4 }))),
+        Stage::Roof       => Some((Stage::Done,  TaskStatus::Ready(House { walls: 4 }))),
+        Stage::Done       => None,
     }
 }
 
 #[valtron]
-fn main() {
-    // `build_house::new(stage)` is the generated struct — drive it like any task.
-    let houses = sync_one(build_house::new(Stage::Foundation)).unwrap();
-    assert_eq!(houses, vec![House { walls: 4 }]);
+async fn main() {
+    // `build_house::new(stage)` is the generated struct — drive it like any task,
+    // and await its `Ready` through the ready-future bridge (no collect-all).
+    let (house, _rest) = execute(build_house::new(Stage::Foundation), None)
+        .expect("engine live")
+        .into_ready_future()
+        .await
+        .expect("a house was built");
+    assert_eq!(house, House { walls: 4 });
 
     // The transition itself stays directly callable:
     let (next, status) = build_house(Ctx::new(), Stage::Walls).unwrap();
@@ -247,34 +254,52 @@ impl Future for Work {
 #[derive(Clone, Debug, PartialEq)]
 struct House { walls: u32 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Building { Raising(u32), Done }
+
 #[task]
-async fn build_house(ctx: Ctx, walls: u32) -> Option<(u32, TaskStatus<House, ()>)> {
+async fn build_house(ctx: Ctx, walls: Building) -> Option<(Building, TaskStatus<House, ()>)> {
     let _ = ctx;
-    if walls < 4 {
-        Work(2).await; // async work happens *inside* the transition
-        Some((walls + 1, TaskStatus::Ignore))
-    } else {
-        Some((walls, TaskStatus::Ready(House { walls })))
+    match walls {
+        Building::Done => None,
+        Building::Raising(n) => {
+            if n < 4 {
+                Work(2).await; // async work happens *inside* the transition
+                Some((Building::Raising(n + 1), TaskStatus::Ignore))
+            } else {
+                Some((Building::Done, TaskStatus::Ready(House { walls: n })))
+            }
+        }
     }
 }
 
 #[valtron]
 async fn main() {
-    let houses = execute(build_house::new(0), None)
+    let (house, _rest) = execute(build_house::new(Building::Raising(0)), None)
         .expect("engine live")
-        .into_collect_future()
-        .await;
-    assert_eq!(houses, vec![House { walls: 4 }]);
+        .into_ready_future()
+        .await
+        .expect("a house was built");
+    assert_eq!(house, House { walls: 4 });
 }
 ```
 
 ### Semantics
 
-- **`Ready` is terminal** in both forms: the machine emits it once, then returns
-  `None` forever after. Intermediate turns must use a non-`Ready` status —
-  `Ignore` is the idiomatic "not yet" — or `Pending` / `Delayed` / `Spawn` /
-  `Depends` for real scheduling signals.
-- **`None` is terminal** too: returning it finishes the task with no final value.
+- **`None` is terminal** — returning it finishes the task and yields neither a
+  `next` state nor a `TaskStatus`. That is the *only* way a machine ends.
+- **`Ready` is *not* terminal** in either form: the machine emits it, threads the
+  returned `next` state back, and keeps running. A single machine may emit `Ready`
+  many times (e.g. one value per step); it ends only when it returns `None`.
+  Intermediate turns may use any status — `Ignore` is the idiomatic "not yet" —
+  or `Pending` / `Delayed` / `Spawn` / `Depends` for real scheduling signals.
+- **Reach that terminal `None` with an explicit `Done` variant on the state enum:**
+  `SomeVariant(..)` = "still running", `Done` = done. The transition is a plain
+  `match state { Done => None, .. }` — the terminal branch is spelled out, not
+  implicit. After the final `Ready` you advance the state to `Done`, so the
+  *next* turn's `Done => None` ends the machine. An `Option<T>` state is also
+  valid (`let v = state?;` early-returns the terminal `None`), but the enum
+  `Done` variant is the clearer, more explicit form.
 - **The transition keeps its name.** The generated struct is a *braced* struct
   (type namespace only), so it never collides with the `fn` of the same name
   (value namespace).

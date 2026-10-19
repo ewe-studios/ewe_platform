@@ -4991,6 +4991,7 @@ dependencies = [
  "foundation_testing",
  "foundation_wasm",
  "futures-core",
+ "futures-lite",
  "js-sys",
  "ntest",
  "reqwest 0.12.28",

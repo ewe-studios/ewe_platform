@@ -33,6 +33,10 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
+# `StreamExt` (`.next().await`, `.collect::<Vec<_>>().await`, …) for the valtron
+# `futures_core::Stream` bridges. Optional + pulled in by `std`, so `no_std`
+# builds stay `futures-core`-only.
+futures-lite = { version = "2", default-features = false, features = ["std"], optional = true }
 derive_more = { version = "2.0", features = ["from", "debug", "error", "display"] }
 serde = { version = "1", features = ["derive"] }
 concurrent-queue = { version = "2.5.0" }
@@ -77,7 +81,7 @@ log_info = []
 
 # Valtron utilities features
 alloc = ["futures-core/alloc"]
-std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std"]
+std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std", "dep:futures-lite"]
 multi = ["std", "alloc"]  # Multi-threaded executor requires std
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)

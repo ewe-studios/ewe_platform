@@ -19,9 +19,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use foundation_core::valtron::{
-    execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus,
-};
+use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
 
 /// A tiny future that simulates a unit of async work: it yields `steps` times
 /// (each yield is one `Poll::Pending` with a self-wake) before completing.
@@ -41,35 +39,48 @@ impl Future for Work {
     }
 }
 
-/// The finished product, emitted as the terminal `Ready` value.
+/// The finished product, emitted as the `Ready` value.
 #[derive(Clone, Debug, PartialEq)]
 struct House {
     walls: u32,
 }
 
+/// An enum state: either still raising walls, or done.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Building {
+    Raising(u32),
+    Done,
+}
+
 /// Raise one wall per step, awaiting some async work in between.
 ///
 /// The pending type here is `()` — the same shape as the synchronous form.
+/// `Ready` is **not** terminal; reaching the target emits `Ready(House)` once
+/// and moves to `Building::Done`, so the next turn (`Done => None`) ends the
+/// machine.
 #[task]
-async fn build_house(
-    ctx: Ctx,
-    walls: u32,
-) -> Option<(u32, TaskStatus<House, ()>)> {
+async fn build_house(ctx: Ctx, walls: Building) -> Option<(Building, TaskStatus<House, ()>)> {
     let _ = ctx;
-    if walls < 4 {
-        Work(2).await; // async work happens *inside* the transition
-        Some((walls + 1, TaskStatus::Ignore))
-    } else {
-        Some((walls, TaskStatus::Ready(House { walls })))
+    match walls {
+        Building::Done => None,
+        Building::Raising(n) => {
+            if n < 4 {
+                Work(2).await; // async work happens *inside* the transition
+                Some((Building::Raising(n + 1), TaskStatus::Ignore))
+            } else {
+                Some((Building::Done, TaskStatus::Ready(House { walls: n })))
+            }
+        }
     }
 }
 
 #[valtron]
 async fn main() {
-    let houses = execute(build_house::new(0), None)
+    let (house, _rest) = execute(build_house::new(Building::Raising(0)), None)
         .expect("engine live")
-        .into_collect_future()
-        .await;
-    assert_eq!(houses, vec![House { walls: 4 }]);
-    println!("async build_house -> {houses:?}");
+        .into_ready_future()
+        .await
+        .expect("a house was built");
+    assert_eq!(house, House { walls: 4 });
+    println!("async build_house -> {house:?}");
 }

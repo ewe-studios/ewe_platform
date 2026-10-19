@@ -55,8 +55,10 @@ against the code as it now stands:
   `valtron/mod.rs`, so `AsyncStateTask` reuses them directly.
 - `TaskStatus` has the full variant set (`Delayed`, `Spawn(BoxedExecutionAction)`,
   `Pending(P)`, `Init`, `Ready(D)`, `Ignore`, `Wait`, `Spread`, `Depends`).
-  `StateTask` passes any non-`Ready` status straight through, so a transition may
-  legally emit `Delayed`/`Depends`/`Wait`/`Spread`/`Spawn` too.
+  `StateTask` passes **every** status — `Ready` included — straight through and
+  threads its `next` state back; only `None` is terminal. A transition may
+  therefore legally emit `Delayed`/`Depends`/`Wait`/`Spread`/`Spawn`, and may
+  emit `Ready` many times.
 - `map_pending` already exists as the `TMapPending` combinator in
   `TaskIteratorExt`, so no per-task `map` helper is needed — the pending type
   is the user's own `P` and maps directly.
@@ -94,9 +96,10 @@ where
         if self.completed { return None; }
         let state = self.state.take()?;
         match (self.transition)(ctx, state) {
-            Some((next, TaskStatus::Ready(r))) => { self.completed = true; Some(TaskStatus::Ready(r)) }
-            Some((next, status))              => { self.state = Some(next); Some(status) }
-            None                              => { self.completed = true; None }
+            // `Ready` is NOT terminal: `next` is threaded back into `state`, so
+            // a single machine may emit `Ready` many times. Only `None` ends it.
+            Some((next, status)) => { self.state = Some(next); Some(status) }
+            None                 => { self.completed = true; None }
         }
     }
 }
@@ -140,10 +143,8 @@ impl<T, R, P> TaskIterator for AsyncStateTask<T, R, P> {
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().unwrap().as_mut().poll(&mut cx) {
-            Poll::Ready(Some((next, TaskStatus::Ready(r)))) => {
-                self.completed = true;
-                Some(TaskStatus::Ready(r))
-            }
+            // `Ready` is NOT terminal: `next` is threaded back and the future
+            // rebuilt, so one async machine may emit `Ready` many times.
             Poll::Ready(Some((next, status))) => {
                 self.state = Some(next);
                 self.future = None;

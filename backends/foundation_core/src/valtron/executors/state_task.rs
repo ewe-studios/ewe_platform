@@ -31,9 +31,11 @@ pub type TransitionOutput<T, R, P> = Option<(T, TaskStatus<R, P>)>;
 ///
 /// The transition `F` receives the engine [`Ctx`] and the current state, and
 /// returns either `None` (terminal) or the next state paired with the
-/// [`TaskStatus`] to emit this turn. Any non-`Ready` status is passed through
-/// unchanged, so a transition may legally emit `Pending`, `Delayed`, `Spawn`,
-/// `Depends`, `Wait`, `Spread`, etc.
+/// [`TaskStatus`] to emit this turn. Every status — `Ready` included — is
+/// passed through unchanged and its `next` state is threaded back for the next
+/// turn, so a single machine may emit `Ready` many times; only `None` ends it.
+/// A transition may therefore legally emit `Pending`, `Delayed`, `Spawn`,
+/// `Depends`, `Wait`, `Spread`, and multiple `Ready`s.
 pub struct StateTask<T, R, P, F> {
     state: Option<T>,
     transition: F,
@@ -69,10 +71,8 @@ where
         }
         let state = self.state.take()?;
         match (self.transition)(ctx, state) {
-            Some((_next, TaskStatus::Ready(ready))) => {
-                self.completed = true;
-                Some(TaskStatus::Ready(ready))
-            }
+            // `Ready` is NOT terminal: `next` is threaded back into `state`, so a
+            // single machine may emit `Ready` many times. Only `None` ends it.
             Some((next, status)) => {
                 self.state = Some(next);
                 Some(status)
@@ -175,10 +175,9 @@ where
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().unwrap().as_mut().poll(&mut cx) {
-            Poll::Ready(Some((_next, TaskStatus::Ready(ready)))) => {
-                self.completed = true;
-                Some(TaskStatus::Ready(ready))
-            }
+            // `Ready` is NOT terminal: `next` is threaded back into `state` and
+            // the future is rebuilt for the next step, so one async machine may
+            // emit `Ready` many times. Only `None` ends it.
             Poll::Ready(Some((next, status))) => {
                 self.state = Some(next);
                 self.future = None;
@@ -231,10 +230,8 @@ where
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().unwrap().as_mut().poll(&mut cx) {
-            Poll::Ready(Some((_next, TaskStatus::Ready(ready)))) => {
-                self.completed = true;
-                Some(TaskStatus::Ready(ready))
-            }
+            // `Ready` is NOT terminal (see the `multi` impl above): `next` is
+            // threaded back and the future rebuilt, so many `Ready`s are fine.
             Poll::Ready(Some((next, status))) => {
                 self.state = Some(next);
                 self.future = None;

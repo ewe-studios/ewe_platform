@@ -4,7 +4,8 @@
 //! These tests pin the state-machine contract:
 //! - a transition is `fn(ctx: Ctx, state: T) -> Option<(T, TaskStatus<R, P>)>`
 //!   (sync and async share the same shape);
-//! - intermediate statuses pass through; the first `Ready` is terminal;
+//! - every status — `Ready` included — threads its `next` state back; only
+//!   `None` is terminal, so a single machine may emit `Ready` many times;
 //! - the async core parks on `TaskStatus::Depends` (no busy-poll) and resumes
 //!   only when its wake queue receives a `WakeToken`;
 //! - `#[valtron::task]` generates a same-named struct with `new(T)`, keeps the
@@ -26,10 +27,11 @@ use foundation_core::valtron::{
 // Core: StateTask (sync)
 // ============================================================================
 
-/// A three-step countdown driven manually: `Ignore`, `Ignore`, `Ready(1)`, end.
+/// A three-step countdown driven manually: `Ready(3)`, `Ready(2)`, `Ready(1)`, end.
 ///
 /// The transition is a plain `FnMut` closure — no macro — proving `StateTask`
-/// forwards the engine `Ctx` and the current state on every poll.
+/// forwards the engine `Ctx` and the current state on every poll, and that a
+/// single machine emits `Ready` once *per step* (not once ever).
 #[test]
 fn sync_state_task_drives_a_multi_state_machine() {
     let ctx = Ctx::new();
@@ -41,26 +43,26 @@ fn sync_state_task_drives_a_multi_state_machine() {
         }
     });
 
-    // NOTE: `Ready` is terminal — the machine emits one `Ready` then ends, so
-    // this variant exercises the *terminal* arm (the multi-state case below
-    // uses `Ignore` for the intermediate steps).
+    // `Ready` is NOT terminal: each step's `Ready(n)` threads `n - 1` back into
+    // the machine, so it emits three `Ready`s before `None` ends it.
     assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(3)));
+    assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(2)));
+    assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(1)));
     assert_eq!(task.next_status(ctx.clone()), None);
     assert_eq!(task.next_status(ctx.clone()), None, "stays terminal");
 }
 
 /// Non-`Ready` statuses (`Pending`, `Delayed`, `Spawn`, …) pass straight through
-/// unchanged; only `Ready` (or `None`) ends the machine.
+/// unchanged and thread the next state; `Ready` does too — only `None` ends the
+/// machine.
 #[test]
 fn sync_state_task_passes_non_ready_statuses_through() {
     let ctx = Ctx::new();
     let mut task: StateTask<u32, u32, &'static str, _> =
-        StateTask::new(0, |_ctx, n| {
-            if n == 0 {
-                Some((1, TaskStatus::Pending("waiting")))
-            } else {
-                Some((n, TaskStatus::Ready(42)))
-            }
+        StateTask::new(0, |_ctx, n| match n {
+            0 => Some((1, TaskStatus::Pending("waiting"))),
+            1 => Some((2, TaskStatus::Ready(42))),
+            _ => None,
         });
 
     assert_eq!(
@@ -99,6 +101,13 @@ impl Future for WakeParkFuture {
     }
 }
 
+/// A single-value state machine's state: `Run(v)` still has a value to emit,
+/// `Done` ends it — the explicit terminal variant, no extra `bool` flag.
+enum RunOnce {
+    Run(u32),
+    Done,
+}
+
 /// WHY: The async variant must park (not busy-poll) when its in-flight future
 ///      returns `Pending` without a self-wake, and complete only once an
 ///      external `wake()` lands.
@@ -116,28 +125,31 @@ fn async_state_task_parks_then_resumes_on_wake() {
     let ready = Arc::new(AtomicBool::new(false));
     let waker_slot: Arc<Mutex<Option<Waker>>> = Arc::new(Mutex::new(None));
 
-    // The transition awaits the wake-park future, then returns `Ready`.
-    let transition: AsyncTransition<u32, u32, ()> = {
+    // The transition awaits the wake-park future, emits `Ready(value)`, then
+    // advances to `RunOnce::Done` — so the following step (`Done => None`) is
+    // terminal. The `Done` variant is the explicit "done" marker: no extra flag.
+    let transition: AsyncTransition<RunOnce, u32, ()> = {
         let poll_count = poll_count.clone();
         let ready = ready.clone();
         let waker_slot = waker_slot.clone();
-        Box::new(move |_ctx, n| {
+        Box::new(move |_ctx, state: RunOnce| {
             let poll_count = poll_count.clone();
             let ready = ready.clone();
             let waker_slot = waker_slot.clone();
             Box::pin(async move {
+                let RunOnce::Run(value) = state else { return None };
                 WakeParkFuture {
                     poll_count,
                     ready,
                     waker_slot,
                 }
                 .await;
-                Some((n, TaskStatus::Ready(n)))
+                Some((RunOnce::Done, TaskStatus::Ready(value)))
             })
         })
     };
 
-    let mut task = AsyncStateTask::new(42u32, transition);
+    let mut task = AsyncStateTask::new(RunOnce::Run(42), transition);
 
     // First poll: the future parks → `Depends` over a not-ready signal.
     let signal = match task.next_status(ctx.clone()) {
@@ -172,7 +184,7 @@ fn async_state_task_parks_then_resumes_on_wake() {
 // ============================================================================
 
 /// A countdown that emits `Ignore` for the intermediate steps and a single
-/// terminal `Ready(1)` at the end.
+/// final `Ready(1)`, then terminates by returning `None`.
 #[task]
 fn count_down(ctx: Ctx, n: u32) -> Option<(u32, TaskStatus<u32, ()>)> {
     let _ = ctx;
@@ -207,7 +219,7 @@ fn task_macro_sync_drives_to_ready_and_stays_callable() {
 }
 
 /// The generated struct schedules on the real executor like any other task and
-/// collects its single terminal `Ready`.
+/// collects its single `Ready` value.
 #[valtron_test]
 fn task_macro_sync_schedules_on_pool() {
     let results = sync_one(count_down::new(3)).expect("engine must be initialized");
@@ -238,7 +250,7 @@ impl Future for YieldOnce {
 }
 
 /// An async countdown: awaits `YieldOnce` across each intermediate step, then
-/// returns a terminal `Ready(1)`.
+/// returns a final `Ready(1)` (the `None` that follows terminates it).
 #[task]
 async fn async_count_down(
     ctx: Ctx,
@@ -292,24 +304,36 @@ fn task_macro_async_schedules_on_pool() {
 #[derive(Debug, PartialEq)]
 struct Seed(u32);
 
+/// A one-shot state machine's state: `Go` runs the single step, `Done` ends it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Once {
+    Go,
+    Done,
+}
+
 /// Reads the engine-seeded value out of `ctx` on its single transition.
 #[task]
-fn read_seeded_ctx(ctx: Ctx, n: u32) -> Option<(u32, TaskStatus<u32, ()>)> {
-    let seed = ctx.get::<Seed>().expect("engine seeded the marker").0;
-    Some((n, TaskStatus::Ready(seed)))
+fn read_seeded_ctx(ctx: Ctx, state: Once) -> Option<(Once, TaskStatus<u32, ()>)> {
+    match state {
+        Once::Done => None,
+        Once::Go => {
+            let seed = ctx.get::<Seed>().expect("engine seeded the marker").0;
+            Some((Once::Done, TaskStatus::Ready(seed)))
+        }
+    }
 }
 
 /// WHY: feature 05 threaded `ctx: Ctx` into `next_status`; the `#[task]`
 ///      transition must receive that engine `Ctx`, not an empty one (UCS-C7).
 ///
-/// WHAT: seed `Seed(42)` into the `Ctx`, drive `read_seeded_ctx::new(0)`, and
-///       assert the transition reads it back as its `Ready` value.
+/// WHAT: seed `Seed(42)` into the `Ctx`, drive `read_seeded_ctx::new(Once::Go)`,
+///       and assert the transition reads it back as its `Ready` value.
 #[test]
 fn transition_receives_the_engine_ctx() {
     let ctx = Ctx::new();
     ctx.insert::<Seed>(Arc::new(Seed(42)));
 
-    let mut task = read_seeded_ctx::new(0);
+    let mut task = read_seeded_ctx::new(Once::Go);
     assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(42)));
     assert_eq!(task.next_status(ctx.clone()), None);
 }
@@ -317,13 +341,15 @@ fn transition_receives_the_engine_ctx() {
 /// Reads the engine-seeded value out of `ctx` *after* an `.await`, proving the
 /// in-flight future owns its `ctx` clone (no borrow, no drop across the yield).
 #[task]
-async fn async_read_seeded_ctx(
-    ctx: Ctx,
-    n: u32,
-) -> Option<(u32, TaskStatus<u32, ()>)> {
-    YieldOnce(false).await; // suspend, then read `ctx` on resume
-    let seed = ctx.get::<Seed>().expect("seed visible across await").0;
-    Some((n, TaskStatus::Ready(seed)))
+async fn async_read_seeded_ctx(ctx: Ctx, state: Once) -> Option<(Once, TaskStatus<u32, ()>)> {
+    match state {
+        Once::Done => None,
+        Once::Go => {
+            YieldOnce(false).await; // suspend, then read `ctx` on resume
+            let seed = ctx.get::<Seed>().expect("seed visible across await").0;
+            Some((Once::Done, TaskStatus::Ready(seed)))
+        }
+    }
 }
 
 /// WHY: the async transition's future must own its `ctx` clone across `.await`
@@ -336,7 +362,7 @@ fn async_transition_owns_ctx_across_await() {
     let ctx = Ctx::new();
     ctx.insert::<Seed>(Arc::new(Seed(7)));
 
-    let mut task = async_read_seeded_ctx::new(0);
+    let mut task = async_read_seeded_ctx::new(Once::Go);
     assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ignore)); // self-wake
     assert_eq!(task.next_status(ctx.clone()), Some(TaskStatus::Ready(7)));
     assert_eq!(task.next_status(ctx.clone()), None);

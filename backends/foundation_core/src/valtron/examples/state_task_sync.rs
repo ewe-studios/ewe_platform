@@ -16,7 +16,7 @@
 //!
 //! [run]: ../../../examples/valtron_state_task.rs
 
-use foundation_core::valtron::{sync_one, task, valtron, Ctx, TaskStatus};
+use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
 
 /// The stages a house passes through on its way to completion.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,9 +24,10 @@ enum Stage {
     Foundation,
     Walls,
     Roof,
+    Done,
 }
 
-/// The finished product, emitted as the terminal `Ready` value.
+/// The finished product, emitted as the `Ready` value.
 #[derive(Debug, PartialEq)]
 struct House {
     walls: u32,
@@ -35,25 +36,31 @@ struct House {
 /// One building step per poll.
 ///
 /// Intermediate steps return `TaskStatus::Ignore` ("nothing produced yet, keep
-/// driving me"); the final step returns `TaskStatus::Ready(House)`, which is
-/// terminal — the machine emits it once, then returns `None`. The engine `Ctx`
-/// is available on every turn if you need it.
+/// driving me"). `Ready` is **not** terminal: the final step emits
+/// `Ready(House)` and advances to `Stage::Done`, whose `None` is what ends the
+/// machine. The engine `Ctx` is available on every turn if you need it.
 #[task]
 fn build_house(ctx: Ctx, stage: Stage) -> Option<(Stage, TaskStatus<House, ()>)> {
     let _ = ctx;
     match stage {
         Stage::Foundation => Some((Stage::Walls, TaskStatus::Ignore)),
         Stage::Walls => Some((Stage::Roof, TaskStatus::Ignore)),
-        Stage::Roof => Some((Stage::Roof, TaskStatus::Ready(House { walls: 4 }))),
+        Stage::Roof => Some((Stage::Done, TaskStatus::Ready(House { walls: 4 }))),
+        Stage::Done => None,
     }
 }
 
 #[valtron]
-fn main() {
-    // `build_house::new(stage)` is the generated struct — drive it like any task.
-    let houses = sync_one(build_house::new(Stage::Foundation)).expect("engine live");
-    assert_eq!(houses, vec![House { walls: 4 }]);
-    println!("sync  build_house -> {houses:?}");
+async fn main() {
+    // `build_house::new(stage)` is the generated struct — drive it like any task,
+    // and await its `Ready` through the ready-future bridge (no collect-all).
+    let (house, _rest) = execute(build_house::new(Stage::Foundation), None)
+        .expect("engine live")
+        .into_ready_future()
+        .await
+        .expect("a house was built");
+    assert_eq!(house, House { walls: 4 });
+    println!("sync  build_house -> {house:?}");
 
     // The transition itself remains directly callable:
     let (next, status) = build_house(Ctx::new(), Stage::Walls).expect("transition step");

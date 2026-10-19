@@ -1,4 +1,5 @@
-//! Asynchronous state-machine task with `#[valtron::task]`.
+//! Asynchronous `#[valtron::task]` driven by an **enum** state, awaited with the
+//! ready-future bridge (a normal `.await`, not a collect-all).
 //!
 //! Run with:
 //!
@@ -15,13 +16,8 @@ use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-// The engine macros expand to `crate::valtron::…` when they run inside this
-// package's own example targets (`proc_macro_crate` reports `Itself`), so bring
-// the *module* name into the example's crate root to make that path resolve.
 use foundation_core::valtron;
-use foundation_core::valtron::{
-    execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus,
-};
+use foundation_core::valtron::{execute, task, valtron, Ctx, StreamIteratorExt, TaskStatus};
 
 /// A tiny future that simulates a unit of async work: it yields `steps` times
 /// (each yield is one `Poll::Pending` with a self-wake) before completing.
@@ -41,35 +37,51 @@ impl Future for Work {
     }
 }
 
-/// The finished product, emitted as the terminal `Ready` value.
-#[derive(Clone, Debug, PartialEq)]
-struct House {
-    walls: u32,
+/// An enum state: either still heating toward the target, or done.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Thermostat {
+    Heating { current: u32, target: u32 },
+    Done,
 }
 
-/// Raise one wall per step, awaiting some async work in between.
+/// The finished product, emitted as the `Ready` value.
+#[derive(Debug, PartialEq)]
+struct Reading {
+    reached: u32,
+}
+
+/// Step one degree toward the target, awaiting some async work in between.
 ///
-/// The pending type here is `()` — the same shape as the synchronous form.
+/// Reaching the target emits `Ready(Reading)` and moves to `Thermostat::Done`,
+/// whose arm returns `None` (terminal) on the next turn. `Ready` is not
+/// terminal — `None` is.
 #[task]
-async fn build_house(
-    ctx: Ctx,
-    walls: u32,
-) -> Option<(u32, TaskStatus<House, ()>)> {
+async fn regulate(ctx: Ctx, state: Thermostat) -> Option<(Thermostat, TaskStatus<Reading, ()>)> {
     let _ = ctx;
-    if walls < 4 {
-        Work(2).await; // async work happens *inside* the transition
-        Some((walls + 1, TaskStatus::Ignore))
-    } else {
-        Some((walls, TaskStatus::Ready(House { walls })))
+    match state {
+        Thermostat::Done => None,
+        Thermostat::Heating { current, target } => {
+            if current == target {
+                Some((Thermostat::Done, TaskStatus::Ready(Reading { reached: current })))
+            } else {
+                Work(2).await; // async work happens *inside* the transition
+                Some((
+                    Thermostat::Heating { current: current + 1, target },
+                    TaskStatus::Ignore,
+                ))
+            }
+        }
     }
 }
 
 #[valtron]
 async fn main() {
-    let houses = execute(build_house::new(0), None)
+    let start = Thermostat::Heating { current: 18, target: 21 };
+    let (reading, _rest) = execute(regulate::new(start), None)
         .expect("engine live")
-        .into_collect_future()
-        .await;
-    assert_eq!(houses, vec![House { walls: 4 }]);
-    println!("async build_house -> {houses:?}");
+        .into_ready_future()
+        .await
+        .expect("thermostat reached its target");
+    assert_eq!(reading, Reading { reached: 21 });
+    println!("async regulate -> {reading:?}");
 }
