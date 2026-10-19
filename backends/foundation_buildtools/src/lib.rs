@@ -11,7 +11,9 @@ mod emsdk;
 mod target;
 mod wasm;
 
-pub use cranelift::{is_cranelift_active, set_cranelift_cfg};
+pub use cranelift::{
+    is_cranelift_active, profile_codegen_backend, profile_from_out_dir, set_cranelift_cfg,
+};
 pub use emsdk::Emsdk;
 pub use target::{AppleVariant, TargetInfo, TargetOs, WindowsVariant};
 pub use wasm::WasmFlavor;

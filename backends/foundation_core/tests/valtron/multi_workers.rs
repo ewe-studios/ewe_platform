@@ -161,6 +161,10 @@ fn can_queue_use_stream_iterator_from_task_iterator() {
 // pool (letting block_on's waitgroup().wait() return) without ever calling
 // get_pool() after the guard clears the global registry.
 #[test]
+#[cfg_attr(
+    cranelift_backend,
+    ignore = "cranelift does not support panic unwinding: the task's panic aborts the process"
+)]
 fn can_finish_even_when_task_panics() {
     let seed = fastrand::u64(..);
 
