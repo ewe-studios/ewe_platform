@@ -2,14 +2,16 @@
 //!
 //! WHY: `bridge_park.rs` drives each bridge by hand with a counting waker. It
 //! never runs a bridged future as a valtron task, so it cannot catch a wake that
-//! is registered correctly but never makes the executor re-poll the parked
-//! future. `foundation_netio`'s `async_caller_through_future_adapters` hung that
-//! way after the stream-wake change (7394ae813).
+//! is registered but never makes the executor re-poll the parked future.
+//! `foundation_netio`'s `async_caller_through_future_adapters` hung that way
+//! after the stream-wake change (7394ae813): a fast producer pushed every status
+//! and closed before the consumer registered its wake, so nothing fired.
 //!
-//! HOW: an async `#[valtron_test]` (so the body runs through `block_on_future`)
-//! awaits `execute(task).into_next_stream()`. The producer task yields `Pending`
-//! for a while, and in the slow variant sleeps between items, so the consumer
-//! must park and be woken by the producer's pushes and by the final close.
+//! HOW: async `#[valtron_test]`s (the body runs through `block_on_future`) await
+//! each bridge over `execute(producer)`. Producers emit every non-value status a
+//! task can (`Pending`, `Delayed`, `Init`, `Wait`, `Ignore`) before and between
+//! their values, either as fast as possible or with a pause before each status,
+//! so the consumer both races the producer and parks waiting on it.
 
 use std::pin::Pin;
 use std::time::Duration;
@@ -19,12 +21,30 @@ use foundation_core::valtron::{
 };
 use futures_core::Stream as FuturesStream;
 
-/// Yields `pendings` `Pending` statuses, then each of `items` as `Ready`,
-/// sleeping `gap` before every status.
+/// One status a producer emits.
+#[derive(Clone, Copy, Debug)]
+enum Step {
+    Pending,
+    Delayed(Duration),
+    Init,
+    Wait,
+    Ignore,
+    Value(u32),
+}
+
+/// Emits `steps` in order, pausing `gap` before each.
 struct Producer {
-    pendings: usize,
-    items: Vec<u32>,
+    steps: Vec<Step>,
     gap: Duration,
+}
+
+impl Producer {
+    fn new(steps: &[Step], gap: Duration) -> Self {
+        Self {
+            steps: steps.to_vec(),
+            gap,
+        }
+    }
 }
 
 impl TaskIterator for Producer {
@@ -36,18 +56,56 @@ impl TaskIterator for Producer {
         if !self.gap.is_zero() {
             std::thread::sleep(self.gap);
         }
-        if self.pendings > 0 {
-            self.pendings -= 1;
-            return Some(TaskStatus::Pending(()));
-        }
-        if self.items.is_empty() {
+        if self.steps.is_empty() {
             return None;
         }
-        Some(TaskStatus::Ready(self.items.remove(0)))
+        Some(match self.steps.remove(0) {
+            Step::Pending => TaskStatus::Pending(()),
+            Step::Delayed(d) => TaskStatus::Delayed(d),
+            Step::Init => TaskStatus::Init,
+            Step::Wait => TaskStatus::Wait,
+            Step::Ignore => TaskStatus::Ignore,
+            Step::Value(v) => TaskStatus::Ready(v),
+        })
     }
 }
 
-async fn drain(producer: Producer) -> Vec<u32> {
+fn values(steps: &[Step]) -> Vec<u32> {
+    steps
+        .iter()
+        .filter_map(|s| match s {
+            Step::Value(v) => Some(*v),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every non-value status, then values with statuses between them.
+const MIXED: &[Step] = &[
+    Step::Init,
+    Step::Pending,
+    Step::Wait,
+    Step::Delayed(Duration::from_micros(200)),
+    Step::Ignore,
+    Step::Value(1),
+    Step::Wait,
+    Step::Pending,
+    Step::Value(2),
+    Step::Delayed(Duration::from_millis(2)),
+    Step::Value(3),
+    Step::Wait,
+];
+
+/// Statuses only after the last value: the consumer must still see the end.
+const TRAILING: &[Step] = &[
+    Step::Value(9),
+    Step::Wait,
+    Step::Delayed(Duration::from_millis(1)),
+    Step::Pending,
+    Step::Wait,
+];
+
+async fn drain_next_stream(producer: Producer) -> Vec<u32> {
     let mut stream = execute(producer, None).expect("execute").into_next_stream();
     let mut got = Vec::new();
     while let Some(item) = std::future::poll_fn(|cx| Pin::new(&mut stream).poll_next(cx)).await {
@@ -56,37 +114,79 @@ async fn drain(producer: Producer) -> Vec<u32> {
     got
 }
 
+async fn drain_collect(producer: Producer) -> Vec<u32> {
+    execute(producer, None)
+        .expect("execute")
+        .into_collect_future()
+        .await
+}
+
+async fn first_ready(producer: Producer) -> Option<u32> {
+    execute(producer, None)
+        .expect("execute")
+        .into_ready_future()
+        .await
+        .map(|(v, _rest)| v)
+}
+
+const FAST: Duration = Duration::ZERO;
+const SLOW: Duration = Duration::from_millis(20);
+
 #[valtron_test(threads = 4, timeout = 20_000)]
-async fn next_stream_in_block_on_future_sees_every_item_and_the_end() {
-    let got = drain(Producer {
-        pendings: 3,
-        items: vec![1, 2, 3],
-        gap: Duration::ZERO,
-    })
-    .await;
-    assert_eq!(got, vec![1, 2, 3]);
+async fn next_stream_sees_every_value_and_the_end() {
+    for gap in [FAST, SLOW] {
+        for steps in [MIXED, TRAILING] {
+            let got = drain_next_stream(Producer::new(steps, gap)).await;
+            assert_eq!(got, values(steps), "gap {gap:?}, steps {steps:?}");
+        }
+    }
 }
 
 #[valtron_test(threads = 4, timeout = 20_000)]
-async fn next_stream_parks_and_is_woken_by_a_slow_producer() {
-    let got = drain(Producer {
-        pendings: 2,
-        items: vec![10, 20],
-        gap: Duration::from_millis(50),
-    })
-    .await;
-    assert_eq!(got, vec![10, 20]);
+async fn collect_future_sees_every_value_and_the_end() {
+    for gap in [FAST, SLOW] {
+        for steps in [MIXED, TRAILING] {
+            let got = drain_collect(Producer::new(steps, gap)).await;
+            assert_eq!(got, values(steps), "gap {gap:?}, steps {steps:?}");
+        }
+    }
 }
 
 #[valtron_test(threads = 4, timeout = 20_000)]
-async fn next_stream_ends_when_the_task_finishes_after_its_last_item() {
-    // The end of the stream arrives on its own, well after the last item: the
-    // consumer is parked on an empty, still-open queue when the close lands.
-    let got = drain(Producer {
-        pendings: 0,
-        items: vec![7],
-        gap: Duration::from_millis(100),
-    })
-    .await;
-    assert_eq!(got, vec![7]);
+async fn ready_future_gets_the_first_value() {
+    for gap in [FAST, SLOW] {
+        let got = first_ready(Producer::new(MIXED, gap)).await;
+        assert_eq!(got, Some(1), "gap {gap:?}");
+    }
+}
+
+#[valtron_test(threads = 4, timeout = 20_000)]
+async fn ready_future_ends_with_none_when_no_value_comes() {
+    let steps = [Step::Pending, Step::Wait, Step::Delayed(Duration::from_millis(1))];
+    for gap in [FAST, SLOW] {
+        assert_eq!(first_ready(Producer::new(&steps, gap)).await, None, "gap {gap:?}");
+    }
+}
+
+#[valtron_test(threads = 4, timeout = 20_000)]
+async fn pending_future_gets_the_first_pending() {
+    let steps = [Step::Value(1), Step::Wait, Step::Init, Step::Pending, Step::Value(2)];
+    for gap in [FAST, SLOW] {
+        let got = execute(Producer::new(&steps, gap), None)
+            .expect("execute")
+            .into_pending_future()
+            .await
+            .map(|(p, _rest)| p);
+        assert_eq!(got, Some(()), "gap {gap:?}");
+    }
+}
+
+/// The race is timing-dependent: repeat the fast case to give every
+/// interleaving of producer and consumer a chance to occur.
+#[valtron_test(threads = 4, timeout = 60_000)]
+async fn fast_producers_never_strand_a_consumer() {
+    for round in 0..200 {
+        let got = drain_next_stream(Producer::new(MIXED, FAST)).await;
+        assert_eq!(got, values(MIXED), "round {round}");
+    }
 }

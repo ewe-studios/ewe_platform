@@ -69,7 +69,7 @@ where
                             // Register-then-recheck: a `push` between our last
                             // `next()` (empty) and `wake()` already fired the
                             // still-empty registry and will not re-fire. Catch it
-                            // here; park only if the source is still empty.
+                            // here; park only if still non-target.
                             match iter.next() {
                                 Some(Stream::Next(v)) => this.collected.push(v),
                                 Some(Stream::Ignore) => {}
@@ -80,17 +80,12 @@ where
                                         }
                                     }
                                 }
-                                // Park only on `Wait`: the source reported empty AFTER the wake
-                                // was registered, so the next push or close fires it.
-                                Some(Stream::Wait) => return Poll::Pending,
-                                // Any other non-target status is an item this recheck just
-                                // consumed, so the queue was not empty. If the producer pushed it
-                                // (and everything after it, and closed) before we registered, no
-                                // wake will ever fire: self-wake to be polled again instead.
-                                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init) => {
-                                    cx.waker().wake_by_ref();
-                                    return Poll::Pending;
-                                }
+                                Some(
+                                    Stream::Pending(_)
+                                    | Stream::Delayed(_)
+                                    | Stream::Init
+                                    | Stream::Wait,
+                                ) => return Poll::Pending,
                                 None => {
                                     return Poll::Ready(std::mem::take(&mut this.collected));
                                 }
@@ -149,7 +144,7 @@ where
                             // Register-then-recheck: a `push` between our last
                             // `next()` (empty) and `wake()` already fired the
                             // still-empty registry and will not re-fire. Catch it
-                            // here; park only if the source is still empty.
+                            // here; park only if still non-target.
                             match iter.next() {
                                 Some(Stream::Next(v)) => {
                                     let remaining = this.inner.take().expect("inner should exist");
@@ -165,17 +160,12 @@ where
                                         }
                                     }
                                 }
-                                // Park only on `Wait`: the source reported empty AFTER the wake
-                                // was registered, so the next push or close fires it.
-                                Some(Stream::Wait) => return Poll::Pending,
-                                // Any other non-target status is an item this recheck just
-                                // consumed, so the queue was not empty. If the producer pushed it
-                                // (and everything after it, and closed) before we registered, no
-                                // wake will ever fire: self-wake to be polled again instead.
-                                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init) => {
-                                    cx.waker().wake_by_ref();
-                                    return Poll::Pending;
-                                }
+                                Some(
+                                    Stream::Pending(_)
+                                    | Stream::Delayed(_)
+                                    | Stream::Init
+                                    | Stream::Wait,
+                                ) => return Poll::Pending,
                                 None => return Poll::Ready(None),
                             }
                         }
@@ -238,7 +228,7 @@ where
                             // Register-then-recheck: a `push` between our last
                             // `next()` (empty) and `wake()` already fired the
                             // still-empty registry and will not re-fire. Catch it
-                            // here; park only if the source is still empty.
+                            // here; park only if still non-target.
                             match iter.next() {
                                 Some(Stream::Pending(p)) => {
                                     let remaining = this.inner.take().expect("inner should exist");
@@ -254,17 +244,12 @@ where
                                         }
                                     }
                                 }
-                                // Park only on `Wait`: the source reported empty AFTER the wake
-                                // was registered, so the next push or close fires it.
-                                Some(Stream::Wait) => return Poll::Pending,
-                                // Any other non-target status is an item this recheck just
-                                // consumed, so the queue was not empty. If the producer pushed it
-                                // (and everything after it, and closed) before we registered, no
-                                // wake will ever fire: self-wake to be polled again instead.
-                                Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init) => {
-                                    cx.waker().wake_by_ref();
-                                    return Poll::Pending;
-                                }
+                                Some(
+                                    Stream::Next(_)
+                                    | Stream::Delayed(_)
+                                    | Stream::Init
+                                    | Stream::Wait,
+                                ) => return Poll::Pending,
                                 None => return Poll::Ready(None),
                             }
                         }
@@ -385,7 +370,7 @@ where
                             // Register-then-recheck: a `push` between our last
                             // `next()` (empty) and `wake()` already fired the
                             // still-empty registry and will not re-fire. Catch it
-                            // here; park only if the source is still empty.
+                            // here; park only if still non-target.
                             match iter.next() {
                                 Some(Stream::Next(v)) => return Poll::Ready(Some(v)),
                                 Some(Stream::Ignore) => {}
@@ -399,17 +384,12 @@ where
                                         return Poll::Ready(Some(this.spread.remove(0)));
                                     }
                                 }
-                                // Park only on `Wait`: the source reported empty AFTER the wake
-                                // was registered, so the next push or close fires it.
-                                Some(Stream::Wait) => return Poll::Pending,
-                                // Any other non-target status is an item this recheck just
-                                // consumed, so the queue was not empty. If the producer pushed it
-                                // (and everything after it, and closed) before we registered, no
-                                // wake will ever fire: self-wake to be polled again instead.
-                                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init) => {
-                                    cx.waker().wake_by_ref();
-                                    return Poll::Pending;
-                                }
+                                Some(
+                                    Stream::Pending(_)
+                                    | Stream::Delayed(_)
+                                    | Stream::Init
+                                    | Stream::Wait,
+                                ) => return Poll::Pending,
                                 None => {
                                     this.inner = None;
                                     return Poll::Ready(None);

@@ -400,8 +400,20 @@ impl<T> NotifyQueue<T> {
 
     /// Registers a one-shot wake callback, fired on the next successful `push` or on
     /// the open→closed transition.
+    ///
+    /// If the queue already holds an item or is already closed, the callback fires
+    /// immediately. A consumer registers after `next()` hands it a status it isn't
+    /// waiting for (`Pending`, `Delayed`, `Init`, or a producer-pushed `Wait`), and
+    /// that status says nothing about what is queued behind it. When the producer
+    /// has already pushed everything and closed, no later `push` or `close` would
+    /// ever fire, so the wake has to be delivered here or it is lost.
     pub fn register_wake(&self, cb: WakeCallback) {
         self.wake.register(cb);
+        // A push or close racing this check fires the registry itself; firing it
+        // again here only finds it empty.
+        if !self.queue.is_empty() || self.queue.is_closed() {
+            self.wake.fire();
+        }
     }
 
     /// Returns a reference to the underlying queue.
