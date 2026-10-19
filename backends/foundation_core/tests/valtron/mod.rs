@@ -1,5 +1,6 @@
 #[cfg(not(target_family = "wasm"))]
 mod bridge_park;
+mod bridge_park_executor;
 #[cfg(not(target_family = "wasm"))]
 mod broadcast_tests;
 mod builder_tests;
