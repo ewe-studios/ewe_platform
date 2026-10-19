@@ -179,7 +179,8 @@ fn lines_under_the_cap_still_parse() {
         max_line: 16,
         ..FrameLimits::default()
     };
-    let (reader, _) = Generated::new(b"one\ntwo\n", 0, b'-', b"");
+    // The line parser ends a line at CRLF (or a blank line); EOF ends the last.
+    let (reader, _) = Generated::new(b"one\r\ntwo\r\n", 0, b'-', b"");
     let stream = SharedByteBufferStream::ref_cell(reader);
     let lines: Vec<_> = SimpleLineFeedIterator::new(SimpleHeaders::new(), stream)
         .with_limits(limits)

@@ -5713,27 +5713,29 @@ impl<T: std::io::Read + Send + Sync> SimpleHttpChunkIterator<T> {
         Some(Err(Box::new(HttpReaderError::WouldBlock)))
     }
 
-    /// Hand out the next piece of the current chunk's data: whatever is
-    /// buffered, up to `CHUNK_PIECE` and the bytes left in the chunk.
+    /// Hand out the next piece of the current chunk's data: `piece_size`
+    /// bytes, or the rest of the chunk if that is less. A chunk no larger than
+    /// `piece_size` therefore arrives whole, as one item.
     fn next_piece(&self, progress: &mut ChunkProgress) -> Option<Result<ChunkedData, BoxedError>> {
         let remaining = progress.remaining;
         let piece_size = self.piece_size;
+        #[allow(clippy::cast_possible_truncation)]
+        let want = piece_size.min(remaining.min(usize::MAX as u64) as usize);
         let piece = self.stream.do_once_mut(|reader| {
-            let available = match super::framing::some_buffered(reader) {
-                Ok(Some(n)) => n,
-                Ok(None) => return Ok(None),
-                Err(err) => return Err(err),
-            };
-            if available == 0 {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::UnexpectedEof,
-                    format!("connection closed with {remaining} bytes of the chunk unread"),
-                ));
+            while reader.remaining() < want {
+                match reader.fill_up() {
+                    Ok(0) => {
+                        return Err(std::io::Error::new(
+                            std::io::ErrorKind::UnexpectedEof,
+                            format!("connection closed with {remaining} bytes of the chunk unread"),
+                        ));
+                    }
+                    Ok(_) => {}
+                    Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => return Ok(None),
+                    Err(err) => return Err(err),
+                }
             }
-            #[allow(clippy::cast_possible_truncation)]
-            let take = available
-                .min(piece_size)
-                .min(remaining.min(usize::MAX as u64) as usize);
+            let take = want;
             // `peek_pos == pos` between parses, so this takes exactly `take`
             // buffered bytes without touching the socket.
             let _ = reader.forward_by(take);
