@@ -222,7 +222,6 @@ fn send_recheck_closes_wake_before_park_race() {
 ///      producer parks when full and the consumer parks when empty, and every
 ///      item arrives in FIFO order.
 #[cfg(feature = "multi")]
-#[cfg_attr(feature = "multi", tracing_test::traced_test)]
 #[foundation_core::valtron::valtron_test(threads = 2)]
 fn pipe_backpressure_roundtrip_on_pool() {
     use foundation_core::valtron::{from_future, get_pool, NotificationItem, TaskStatus};

@@ -204,7 +204,6 @@ fn wake_before_park_is_never_lost() {
 /// HOW: `from_future` + `schedule_iter`; wake from a side thread after the waker
 ///      is stashed.
 #[cfg(feature = "multi")]
-#[cfg_attr(feature = "multi", tracing_test::traced_test)]
 #[foundation_core::valtron::valtron_test(threads = 2)]
 fn future_parks_and_wakes_on_pool() {
     use foundation_core::valtron::{get_pool, NotificationItem};

@@ -22,7 +22,6 @@ use foundation_core::{
         ExecutionAction, LocalThreadExecutor, ProcessController, ProgressIndicator,
     },
 };
-use tracing_test::traced_test;
 
 // ── boilerplate ────────────────────────────────────────────────────────
 
@@ -70,7 +69,6 @@ where
 /// WHY: `as_scheduled().action()` builds an `InlineAction` that, when
 /// applied, schedules the task and sends outputs through the receiver.
 #[test]
-#[traced_test]
 fn test_builder_action_schedule() {
     let executor = new_executor();
     let task = WrapTask::new(vec![10, 20].into_iter());
@@ -95,7 +93,6 @@ fn test_builder_action_schedule() {
 /// WHY: `as_lifted().action()` builds an `InlineAction` with `Lift`
 /// behaviour — dispatched to the top of the local queue.
 #[test]
-#[traced_test]
 fn test_builder_action_lift() {
     let executor = new_executor();
     let task = WrapTask::new(vec![1, 2].into_iter());
@@ -120,7 +117,6 @@ fn test_builder_action_lift() {
 /// WHY: `broadcast().action()` must use `spawn_broadcaster` (the `Send`
 /// resolver variant) so the `Send` bounds are satisfied.
 #[test]
-#[traced_test]
 fn test_builder_action_broadcast() {
     let executor = new_executor();
     let task = WrapTask::new(vec![7, 8, 9].into_iter());
@@ -146,7 +142,6 @@ fn test_builder_action_broadcast() {
 
 /// WHY: `from_parts` constructs a valid `InlineAction` from raw components.
 #[test]
-#[traced_test]
 fn test_from_parts_works() {
     use foundation_core::valtron::NotifyQueue;
 
@@ -174,7 +169,6 @@ fn test_from_parts_works() {
 
 /// WHY: applying a consumed `InlineAction` must return an error.
 #[test]
-#[traced_test]
 fn test_action_applied_twice_errors() {
     let executor = new_executor();
     let task = WrapTask::new(vec![1].into_iter());
@@ -201,7 +195,6 @@ fn test_action_applied_twice_errors() {
 /// WHAT: Build the action directly via `from_parts` with `Sequenced`
 /// behaviour, then call `apply(None, …)`.
 #[test]
-#[traced_test]
 fn test_sequenced_without_parent_errors() {
     use foundation_core::valtron::NotifyQueue;
 

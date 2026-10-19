@@ -3,10 +3,8 @@
 #![cfg(all(feature = "std", not(feature = "multi")))]
 
 use foundation_core::valtron::{ThreadedIterFuture, ThreadedValue};
-use tracing_test::traced_test;
 
 #[test]
-#[traced_test]
 fn test_threaded_future_basic() {
     let threaded = ThreadedIterFuture::new(|| async {
         Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2), Ok(3)].into_iter())
@@ -24,7 +22,6 @@ fn test_threaded_future_basic() {
 }
 
 #[test]
-#[traced_test]
 fn test_threaded_future_error() {
     let threaded = ThreadedIterFuture::new(|| async {
         Err::<std::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed")
@@ -42,7 +39,6 @@ fn test_threaded_future_error() {
 }
 
 #[test]
-#[traced_test]
 fn test_threaded_future_empty_iterator() {
     let threaded = ThreadedIterFuture::new(|| async { Ok::<_, ()>(vec![].into_iter()) });
 
@@ -57,7 +53,6 @@ fn test_threaded_future_empty_iterator() {
 }
 
 #[test]
-#[traced_test]
 fn test_threaded_future_large_iterator() {
     let threaded = ThreadedIterFuture::new(|| async {
         Ok::<_, ()>((0..1000).map(Ok).collect::<Vec<_>>().into_iter())
