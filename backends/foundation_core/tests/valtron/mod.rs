@@ -49,3 +49,13 @@ mod pipe_primitive;
 mod pipe_mapped_tests;
 #[cfg(feature="multi")]
 mod multi_workers;
+#[cfg(not(target_family = "wasm"))]
+mod background_jobs;
+#[cfg(not(target_family = "wasm"))]
+mod delayed_iterators;
+mod drain;
+mod multi_allocatable_threads;
+#[cfg(not(target_family = "wasm"))]
+mod single_executor;
+mod task_status;
+mod wrappers;
