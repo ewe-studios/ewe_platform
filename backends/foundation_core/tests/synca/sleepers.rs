@@ -260,6 +260,19 @@ fn test_sleepers_timing_max_duration() {
     assert!(max.is_some());
 }
 
+/// WHY: the local executor sleeps for `min_duration()` so the NEAREST
+/// sleeper wakes on time; returning the furthest made short timers fire late.
+/// WHAT: with a ready (0s) and a pending (1s) sleeper, min is 0s and max is 1s.
+#[test]
+fn test_sleepers_timing_min_and_max_differ() {
+    let sleepers = Sleepers::new();
+    sleepers.insert(Entry { id: 1, gen: 0 }, MockSleeper { ready: true });
+    sleepers.insert(Entry { id: 2, gen: 0 }, MockSleeper { ready: false });
+
+    assert_eq!(sleepers.min_duration(), Some(time::Duration::ZERO));
+    assert_eq!(sleepers.max_duration(), Some(time::Duration::from_secs(1)));
+}
+
 #[test]
 fn test_sleepers_minimum_deadline() {
     let sleepers = Sleepers::new();

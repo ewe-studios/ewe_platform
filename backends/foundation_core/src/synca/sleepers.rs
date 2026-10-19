@@ -219,7 +219,7 @@ impl<T: Timeable + Waiter + std::fmt::Debug> Timing for Sleepers<T> {
         sleepers
             .values()
             .filter_map(|sleeper| sleeper.remaining_duration())
-            .max()
+            .min()
     }
 
     /// Returns the maximum duration of time of all entries in the
