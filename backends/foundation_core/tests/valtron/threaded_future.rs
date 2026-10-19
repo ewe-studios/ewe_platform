@@ -121,15 +121,21 @@ fn test_threaded_future_backpressure() {
     );
 }
 
-/// A deterministic `Waiting` heartbeat: an inner iterator that sleeps ~1.2 s
+/// A deterministic `Waiting` heartbeat: an inner iterator that sleeps ~3 s
 /// before each value drains the queue empty long enough to exhaust the native
 /// `max_spins = 100 × 10 ms` condvar budget, so the consumer provably yields
 /// `ThreadedValue::Waiting` before the next value.
+///
+/// The gap is deliberately 3× the ~1 s condvar budget, not just above it. The
+/// budget is measured in *spins*, and each spin's 10 ms `wait_timeout` can be
+/// inflated by scheduler preemption when the full suite runs in parallel — so a
+/// 1.2 s gap (200 ms of margin) flakes: the consumer's 100 spins take longer
+/// than the gap and the value lands before the budget is exhausted.
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_yields_waiting_on_empty_queue() {
     let threaded = ThreadedIterFuture::new(|| async {
         Ok::<_, ()>((0..2).map(|i| {
-            std::thread::sleep(std::time::Duration::from_millis(1200));
+            std::thread::sleep(std::time::Duration::from_millis(3000));
             Ok::<i32, ()>(i)
         }))
     });
@@ -149,6 +155,6 @@ fn test_threaded_future_yields_waiting_on_empty_queue() {
     assert_eq!(values, vec![0, 1]);
     assert!(
         saw_waiting,
-        "a ~1.2 s empty-queue gap must yield at least one Waiting heartbeat"
+        "a ~3 s empty-queue gap must yield at least one Waiting heartbeat"
     );
 }

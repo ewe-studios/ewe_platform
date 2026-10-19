@@ -18,7 +18,7 @@
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
 use crate::http::HttpConnectionPool;
 use crate::shared::http::{Http11, HttpClientError, RenderHttp};
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 
@@ -73,7 +73,7 @@ where
     type Spawner = BoxedSendExecutionAction;
     type Ready = super::HttpStreamReady;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.0.take()? {
             HttpOperationState::Init => {
                 if self.1.request.is_none() {

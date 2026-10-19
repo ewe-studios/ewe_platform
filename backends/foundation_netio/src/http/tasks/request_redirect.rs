@@ -34,7 +34,7 @@ use crate::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
 use foundation_core::io::ioutils::ReadTimeoutOperations;
-use foundation_core::valtron::{AnyReadiness, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, AnyReadiness, BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -970,7 +970,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     type Ready = HttpRequestRedirectResponse;
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| match self.0.take()? {
             HttpRequestRedirectState::Init(mut inner_opt) => {

@@ -66,7 +66,7 @@ impl TaskIterator for CountingTask {
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.current >= self.max {
             return None;
         }
@@ -87,7 +87,7 @@ impl TaskIterator for YieldingTask {
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.current >= self.max {
             return None;
         }

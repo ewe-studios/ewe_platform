@@ -141,14 +141,14 @@ impl ProjectBuilderTask {
 
 // -- TaskIterator impl
 
-use foundation_core::valtron::{NoSpawner, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, NoSpawner, TaskIterator, TaskStatus};
 
 impl TaskIterator for ProjectBuilderTask {
     type Ready = BuildResult;
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // 1. Drain watch events → dispatch to builders
         self.drain_watch_events();
 

@@ -1,6 +1,6 @@
 use crate::synca::Entry;
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionIterator, SpawnInfo, State,
+    BoxedExecutionEngine, BoxedExecutionIterator, Ctx, ExecutionIterator, SpawnInfo, State,
 };
 
 #[allow(dead_code)]
@@ -40,7 +40,7 @@ impl DualSequeunceChildAndParentLinkedTask {
 }
 
 impl ExecutionIterator for DualSequeunceChildAndParentLinkedTask {
-    fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine) -> Option<State> {
+    fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         // Feature 02: Check for pending parent state first
         // If the parent previously returned a state requiring executor action
         // (Pending with duration, SpawnFinished, Panicked, Reschedule), we
@@ -50,13 +50,13 @@ impl ExecutionIterator for DualSequeunceChildAndParentLinkedTask {
         }
 
         if let Some(mut child) = self.0.child.take() {
-            if let Some(child_state) = child.next(parent_id, engine.boxed_engine()) {
+            if let Some(child_state) = child.next(parent_id, engine.boxed_engine(), ctx.clone()) {
                 if child_state != State::Done {
                     self.0.child = Some(child);
 
                     // Poll the parent but capture its actual state
                     if let Some(mut parent) = self.0.parent.take() {
-                        if let Some(parent_state) = parent.next(parent_id, engine) {
+                        if let Some(parent_state) = parent.next(parent_id, engine, ctx.clone()) {
                             // Feature 02: Check if parent state requires executor action
                             // These states need to be propagated to the executor even
                             // when the child is active
@@ -91,7 +91,7 @@ impl ExecutionIterator for DualSequeunceChildAndParentLinkedTask {
 
         // Child is exhausted (Done or None), continue with parent only
         if let Some(mut parent) = self.0.parent.take() {
-            if let Some(parent_state) = parent.next(parent_id, engine) {
+            if let Some(parent_state) = parent.next(parent_id, engine, ctx.clone()) {
                 if parent_state != State::Done {
                     self.0.parent = Some(parent);
                 }
@@ -134,9 +134,9 @@ impl FinishChildBeforeParentTask {
 }
 
 impl ExecutionIterator for FinishChildBeforeParentTask {
-    fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine) -> Option<State> {
+    fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         if let Some(mut child) = self.0.child.take() {
-            if let Some(child_state) = child.next(parent_id, engine.boxed_engine()) {
+            if let Some(child_state) = child.next(parent_id, engine.boxed_engine(), ctx.clone()) {
                 if child_state != State::Done {
                     self.0.child = Some(child);
                     return Some(child_state);
@@ -148,7 +148,7 @@ impl ExecutionIterator for FinishChildBeforeParentTask {
         // until parent returns None.
         if let Some(mut parent) = self.0.parent.take() {
             // if the parent outputs Some then reset the parent
-            if let Some(parent_state) = parent.next(parent_id, engine) {
+            if let Some(parent_state) = parent.next(parent_id, engine, ctx.clone()) {
                 self.0.parent = Some(parent);
                 return Some(parent_state);
             }

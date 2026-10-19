@@ -34,7 +34,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     self, BoxedSendExecutionAction, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator,
     TaskStatus, TryRecvError,
 };
@@ -394,13 +394,13 @@ impl TaskIterator for H3Pump {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.phase == Phase::Done {
             return None;
         }
 
         // `quinn-proto` is sans-IO: nothing moves unless the driver runs.
-        let _ = self.driver.next_status();
+        let _ = self.driver.next_status(ctx);
 
         match self.phase {
             Phase::Setup => match self.conn.poll_setup() {

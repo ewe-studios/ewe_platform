@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{BoolSignal, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, BoolSignal, BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::shared::http::{
     HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
@@ -796,7 +796,7 @@ impl TaskIterator for ConnectionHandler {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let state = self.state.take()?;
 
         match state {

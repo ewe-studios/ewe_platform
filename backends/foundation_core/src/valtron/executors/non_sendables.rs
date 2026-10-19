@@ -1,6 +1,7 @@
 #![cfg(not(feature = "multi"))]
 
 use super::single;
+pub use super::single::fork_ctx;
 
 use crate::valtron::executors::local::NotifyQueue;
 use crate::valtron::StreamConfig;
@@ -10,7 +11,7 @@ use std::sync::Arc;
 
 use crate::valtron::DEFAULT_WAIT_CYCLE;
 use crate::valtron::{
-    collect_one, collect_result, ExecutionAction, GenericResult, NotificationItem,
+    collect_one, collect_result, Ctx, ExecutionAction, GenericResult, NotificationItem,
     NotifyQueueStreamIterator, NotifyRecvIterator, ProgressIndicator, State, Stream,
     StreamIterator, StreamIteratorExt, StreamSpread, TaskIterator, TaskStatus, WakeCallback,
     WakeResult, WakeableStream,
@@ -220,15 +221,15 @@ where
 /// calls the execution methods in the situations of single threaded
 /// or wasm context will auto-drive the execution engine.
 #[must_use]
-#[tracing::instrument(skip(incoming))]
-pub fn drive_iterator<T>(incoming: T) -> DrivenTaskIterator<T>
+#[tracing::instrument(skip(incoming, ctx))]
+pub fn drive_iterator<T>(incoming: T, ctx: Ctx) -> DrivenTaskIterator<T>
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
     T::Spawner: ExecutionAction + 'static,
 {
-    DrivenTaskIterator::new(incoming)
+    DrivenTaskIterator::new(incoming, ctx)
 }
 
 /// Creates an `InlineAction` + `DrivenRecvIterator` pair — a convenience
@@ -265,13 +266,13 @@ where
 /// uses the [`run_until_next_state`] function.
 #[cfg(any(feature = "std", feature = "alloc"))]
 #[must_use]
-#[tracing::instrument(skip(stream))]
-pub fn drive_future_stream<S>(stream: S) -> DrivenTaskIterator<StreamTask<S>>
+#[tracing::instrument(skip(stream, ctx))]
+pub fn drive_future_stream<S>(stream: S, ctx: Ctx) -> DrivenTaskIterator<StreamTask<S>>
 where
     S: futures_core::Stream + 'static,
     S::Item: 'static,
 {
-    drive_iterator(crate::valtron::from_stream(stream))
+    drive_iterator(crate::valtron::from_stream(stream), ctx)
 }
 
 /// `drive_future` creates a new [`DrivenTaskIterator<FutureTask<F>>`]
@@ -284,12 +285,12 @@ where
 /// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
 #[cfg(any(feature = "std", feature = "alloc"))]
-pub fn drive_future<F>(future: F) -> DrivenTaskIterator<FutureTask<F>>
+pub fn drive_future<F>(future: F, ctx: Ctx) -> DrivenTaskIterator<FutureTask<F>>
 where
     F: Future + 'static,
     F::Output: 'static,
 {
-    drive_iterator(crate::valtron::from_future(future))
+    drive_iterator(crate::valtron::from_future(future), ctx)
 }
 
 /// Block the calling thread until `future` completes, returning its output
@@ -315,7 +316,7 @@ where
     F: Future + 'static,
     F::Output: 'static,
 {
-    for status in drive_future(future) {
+    for status in drive_future(future, single::fork_ctx()) {
         if let TaskStatus::Ready(output) = status {
             return output;
         }
@@ -1134,7 +1135,7 @@ where
     }
 }
 
-pub struct DrivenTaskIterator<T>(Option<T>)
+pub struct DrivenTaskIterator<T>(Option<T>, Ctx)
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
@@ -1148,8 +1149,8 @@ where
     T::Pending: 'static,
     T::Spawner: ExecutionAction + 'static,
 {
-    pub fn new(task_iterator: T) -> Self {
-        Self(Some(task_iterator))
+    pub fn new(task_iterator: T, ctx: Ctx) -> Self {
+        Self(Some(task_iterator), ctx)
     }
 }
 
@@ -1167,7 +1168,7 @@ where
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
-            let next_value = task_iterator.next_status();
+            let next_value = task_iterator.next_status(self.1.clone());
 
             // if the next value is Some(_) then set back the
             // executor for the next call.

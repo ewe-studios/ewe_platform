@@ -7,7 +7,7 @@ use std::{any::Any, marker::PhantomData};
 use crate::synca::Entry;
 use crate::valtron::{
     BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
-    ExecutionAction, ExecutionIterator, FnMutReady, FnReady, State, TaskIterator,
+    Ctx, ExecutionAction, ExecutionIterator, FnMutReady, FnReady, State, TaskIterator,
     TaskReadyResolver, TaskStatus,
 };
 
@@ -127,9 +127,9 @@ where
     Action: ExecutionAction,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.task.lock().unwrap().next_status()
+            self.task.lock().unwrap().next_status(ctx.clone())
         })) {
             Ok(inner) => inner,
             Err(panic_error) => {

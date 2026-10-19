@@ -23,7 +23,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::{PeekError, PeekableReadStream, SharedByteBufferStream};
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::detect::{detect_protocol, DetectedProtocol, H2C_PREFACE_PEEK_LEN};
 use foundation_netio::netcap::{ConnectionContext, RawStream};
@@ -87,7 +87,7 @@ impl TaskIterator for ProtocolDetectHandler {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         if self.shutdown.probe() {
             return None;
         }

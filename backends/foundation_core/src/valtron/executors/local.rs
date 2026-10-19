@@ -17,7 +17,7 @@ use std::{
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
     valtron::{
-        AnyResult, EventReadinessPtr, ExecutionEngine, ExecutionIterator, NoAction, State,
+        AnyResult, Ctx, EventReadinessPtr, ExecutionEngine, ExecutionIterator, NoAction, State,
         TaskIterator, TaskStatus,
     },
 };
@@ -72,7 +72,7 @@ where
     type Ready = T;
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         self.iter.next().map(TaskStatus::Ready)
     }
 }
@@ -726,6 +726,14 @@ pub struct ExecutorState {
     /// Track consecutive `State::Depends(true)` violations per entry.
     /// After `DEPENDS_TRUE_PANIC_THRESHOLD` consecutive violations, the task panics.
     pub depends_true_violations: rc::Rc<cell::RefCell<HashMap<Entry, u32>>>,
+
+    /// The engine-owned root [`Ctx`]. Forked once per `ExecutionIterator` when a
+    /// task enters the engine; each fork is stored in `task_ctx` and shared (by
+    /// value clone) with the task on every poll.
+    pub root: Ctx,
+
+    /// Per-entry [`Ctx`] fork: one per `ExecutionIterator`, keyed by its `Entry`.
+    pub task_ctx: rc::Rc<cell::RefCell<HashMap<Entry, Ctx>>>,
 }
 
 // --- constructors
@@ -775,6 +783,8 @@ impl ExecutorState {
                 DEQUEUE_CAPACITY,
             ))),
             depends_true_violations: rc::Rc::new(cell::RefCell::new(HashMap::new())),
+            root: Ctx::new(),
+            task_ctx: rc::Rc::new(cell::RefCell::new(HashMap::new())),
         }
     }
 }
@@ -837,6 +847,8 @@ impl Clone for ExecutorState {
             packed_tasks: self.packed_tasks.clone(),
             processing: self.processing.clone(),
             depends_true_violations: rc::Rc::new(cell::RefCell::new(HashMap::new())),
+            root: self.root.clone(),
+            task_ctx: rc::Rc::new(cell::RefCell::new(HashMap::new())),
         }
     }
 }
@@ -1070,6 +1082,25 @@ impl ExecutorState {
         let _ = self.sleepers.remove(entry);
     }
 
+    /// Insert a task into the local task list and fork a dedicated [`Ctx`] for it.
+    ///
+    /// Each `ExecutionIterator` gets its own fork of [`ExecutorState::root`] so a
+    /// task's `ctx.insert(..)` never collides with a sibling's; the fork is then
+    /// shared (cloned) with the task on every poll.
+    #[inline]
+    fn insert_local_task(&self, task: BoxedExecutionIterator) -> Entry {
+        let entry = self.local_tasks.borrow_mut().insert(task);
+        self.task_ctx.borrow_mut().insert(entry, self.root.fork());
+        entry
+    }
+
+    /// Drop a task's per-entry [`Ctx`] fork once the task is permanently removed
+    /// from the local task list.
+    #[inline]
+    fn remove_task_ctx(&self, entry: &Entry) {
+        self.task_ctx.borrow_mut().remove(entry);
+    }
+
     /// `schedule_next` will attempt to pull a new task from the
     /// global queue if no task is pending on the local queue
     /// and if so returns true to indicate success else a false
@@ -1083,7 +1114,7 @@ impl ExecutorState {
 
         match self.global_tasks.pop() {
             Ok(task) => {
-                let task_entry = self.local_tasks.borrow_mut().insert(task);
+                let task_entry = self.insert_local_task(task);
                 self.processing.borrow_mut().push_front(task_entry);
                 ScheduleOutcome::GlobalTaskAcquired
             }
@@ -1248,7 +1279,13 @@ impl ExecutorState {
         );
 
         let mut iter = iter_container.unwrap();
-        let next_result = iter.next(top_entry, engine);
+        let ctx = self
+            .task_ctx
+            .borrow()
+            .get(&top_entry)
+            .cloned()
+            .unwrap_or_else(|| self.root.fork());
+        let next_result = iter.next(top_entry, engine, ctx);
 
         // if result is none
         if next_result.is_none() {
@@ -1259,6 +1296,7 @@ impl ExecutorState {
             self.remove_sleepers_for_entry(&top_entry);
 
             self.local_tasks.borrow_mut().take(&top_entry);
+            self.remove_task_ctx(&top_entry);
 
             // Task Iterator is really done
             if remaining_tasks == 0 {
@@ -1286,6 +1324,7 @@ impl ExecutorState {
                 // Clean up sleepers before removing the task
                 self.remove_sleepers_for_entry(&top_entry);
                 self.local_tasks.borrow_mut().take(&top_entry);
+                self.remove_task_ctx(&top_entry);
 
                 // no need to push entry since it must have
 
@@ -1302,6 +1341,7 @@ impl ExecutorState {
                 // Clean up sleepers before removing the task
                 self.remove_sleepers_for_entry(&top_entry);
                 self.local_tasks.borrow_mut().take(&top_entry);
+                self.remove_task_ctx(&top_entry);
 
                 // no need to push entry since it must have
 
@@ -1336,10 +1376,15 @@ impl ExecutorState {
                                 .take(&child_entry)
                                 .expect("get child task");
 
+                            // The parent and child are recombined into a single task
+                            // below; their individual forks are no longer polled.
+                            self.remove_task_ctx(&top_entry);
+                            self.remove_task_ctx(&child_entry);
+
                             let task =
                                 FinishChildBeforeParentTask::new(info, parent_task, child_task);
 
-                            let new_task_id = self.local_tasks.borrow_mut().insert(Box::new(task));
+                            let new_task_id = self.insert_local_task(Box::new(task));
 
                             // push entry back into processing mut
                             self.processing.borrow_mut().push_front(new_task_id);
@@ -1387,9 +1432,14 @@ impl ExecutorState {
                             .take(&child_entry)
                             .expect("get child task");
 
+                        // The parent and child are recombined into a single task
+                        // below; their individual forks are no longer polled.
+                        self.remove_task_ctx(&parent_entry);
+                        self.remove_task_ctx(&child_entry);
+
                         let task = FinishChildBeforeParentTask::new(info, parent_task, child_task);
 
-                        let new_task_id = self.local_tasks.borrow_mut().insert(Box::new(task));
+                        let new_task_id = self.insert_local_task(Box::new(task));
 
                         // push entry back into processing mut
                         self.processing.borrow_mut().push_front(new_task_id);
@@ -1423,13 +1473,18 @@ impl ExecutorState {
                             .take(&child_entry)
                             .expect("get child task");
 
+                        // The parent and child are recombined into a single task
+                        // below; their individual forks are no longer polled.
+                        self.remove_task_ctx(&parent_entry);
+                        self.remove_task_ctx(&child_entry);
+
                         let task = DualSequeunceChildAndParentLinkedTask::new(
                             info,
                             parent_task,
                             child_task,
                         );
 
-                        let new_task_id = self.local_tasks.borrow_mut().insert(Box::new(task));
+                        let new_task_id = self.insert_local_task(Box::new(task));
 
                         // push entry back into processing mut
                         self.processing.borrow_mut().push_front(new_task_id);
@@ -1463,6 +1518,7 @@ impl ExecutorState {
                 self.remove_sleepers_for_entry(&top_entry);
 
                 self.local_tasks.borrow_mut().take(&top_entry);
+                self.remove_task_ctx(&top_entry);
 
                 // Task Iterator is really done
                 if remaining_tasks == 0 {
@@ -1659,7 +1715,7 @@ impl ExecutorState {
             None => unreachable!("Parent task should never truly be empty at this point"),
         }
 
-        let task_entry = self.local_tasks.borrow_mut().insert(task);
+        let task_entry = self.insert_local_task(task);
 
         Ok(SpawnInfo::new(
             SpawnType::Sequenced,
@@ -1703,7 +1759,7 @@ impl ExecutorState {
             }
         }
 
-        let task_entry = self.local_tasks.borrow_mut().insert(task);
+        let task_entry = self.insert_local_task(task);
 
         Ok(if parent.is_some() {
             SpawnInfo::new(SpawnType::LiftedWithParent, Some(task_entry), parent)
@@ -1725,7 +1781,7 @@ impl ExecutorState {
     /// and it never affects its execution or priority.
     #[inline]
     pub fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError> {
-        let task_entry = self.local_tasks.borrow_mut().insert(task);
+        let task_entry = self.insert_local_task(task);
         self.processing.borrow_mut().push_back(task_entry);
         Ok(SpawnInfo::new(SpawnType::Scheduled, Some(task_entry), None))
     }
@@ -1817,6 +1873,19 @@ impl ReferencedExecutorState {
     #[must_use]
     pub fn get_rng(&self) -> rc::Rc<cell::RefCell<ChaCha8Rng>> {
         self.inner.get_rng()
+    }
+
+    /// Fork a fresh [`Ctx`] from this engine's stable root.
+    ///
+    /// The engine owns one root [`Ctx`] seeded at construction; every task it
+    /// drives gets a fork of that root (see [`ExecutorState::insert_local_task`]).
+    /// This exposes the same fork to code that drives a task alongside the engine
+    /// (e.g. [`super::non_sendables::DrivenTaskIterator`]) so it never mints an
+    /// unrelated `Ctx::new()`.
+    #[inline]
+    #[must_use]
+    pub fn fork_ctx(&self) -> Ctx {
+        self.inner.root.fork()
     }
 
     #[inline]
@@ -2439,6 +2508,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.boxed_engine()
     }
 
+    /// Fork a fresh [`Ctx`] from this engine's stable root.
+    #[inline]
+    #[must_use]
+    pub fn fork_ctx(&self) -> Ctx {
+        self.state.fork_ctx()
+    }
+
     #[inline]
     pub fn number_of_sleepers(&self) -> usize {
         self.state.number_of_sleepers()
@@ -2832,7 +2908,7 @@ mod test_local_thread_executor {
         type Spawner = NoSpawner;
         type Pending = time::Duration;
 
-        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let old_count = self.1;
             let new_count = old_count + 1;
             self.1 = new_count;
@@ -2866,7 +2942,7 @@ mod test_local_thread_executor {
         type Pending = ();
         type Spawner = BoxedSendExecutionAction;
 
-        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             match self.1.take() {
                 Some(val) => match val {
                     ListItemInner::List(mut items) => {
@@ -3749,7 +3825,7 @@ mod test_local_thread_executor {
         type Pending = ();
         type Spawner = DaemonSpawner;
 
-        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let current = self.0.load(Ordering::SeqCst);
             println!("Current state: {:?}", current);
             if current == 0 {
@@ -3784,7 +3860,7 @@ mod test_local_thread_executor {
         type Pending = ();
         type Spawner = NoSpawner;
 
-        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let old_count = self.1;
             let new_count = old_count + 1;
             self.1 = new_count;
@@ -4260,7 +4336,7 @@ mod test_local_thread_executor {
         type Spawner = NoSpawner;
         type Pending = time::Duration;
 
-        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             self.count += 1;
 
             if self.count >= self.max {
@@ -4492,7 +4568,7 @@ mod test_local_thread_executor {
         type Spawner = NoSpawner;
         type Pending = time::Duration;
 
-        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             self.count += 1;
             if self.count >= self.max {
                 return None;

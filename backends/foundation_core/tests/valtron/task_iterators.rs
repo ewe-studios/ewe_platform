@@ -1,5 +1,5 @@
 // Integration tests for TaskIterator combinators
-use foundation_core::valtron::{NoAction, Stream, TaskIteratorExt, TaskStatus};
+use foundation_core::valtron::{Ctx, NoAction, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
 
 // Simple test task iterator for unit tests
 struct TestTask {
@@ -12,16 +12,22 @@ impl TestTask {
     }
 }
 
-impl Iterator for TestTask {
-    type Item = TaskStatus<u32, String, NoAction>;
+impl TaskIterator for TestTask {
+    type Ready = u32;
+    type Pending = String;
+    type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         self.items.pop()
     }
 }
 
 #[test]
 fn test_map_ready() {
+    let ctx = Ctx::new();
     let items = vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(10),
@@ -32,16 +38,17 @@ fn test_map_ready() {
 
     // pop() returns items in reverse order: 5, 10, Pending
     // After mapping: 10 (5*2), 20 (10*2), Pending
-    assert_eq!(Iterator::next(&mut mapped), Some(TaskStatus::Ready(10)));
-    assert_eq!(Iterator::next(&mut mapped), Some(TaskStatus::Ready(20)));
+    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Ready(10)));
+    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Ready(20)));
     assert_eq!(
-        Iterator::next(&mut mapped),
+        mapped.next_status(ctx.clone()),
         Some(TaskStatus::Pending("wait".to_string()))
     );
 }
 
 #[test]
 fn test_map_pending() {
+    let ctx = Ctx::new();
     let items = vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(5),
@@ -49,12 +56,13 @@ fn test_map_pending() {
     let task = TestTask::new(items);
     let mut mapped = task.map_pending(|s| s.len());
 
-    assert_eq!(Iterator::next(&mut mapped), Some(TaskStatus::Ready(5)));
-    assert_eq!(Iterator::next(&mut mapped), Some(TaskStatus::Pending(4)));
+    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Ready(5)));
+    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Pending(4)));
 }
 
 #[test]
 fn test_filter_ready() {
+    let ctx = Ctx::new();
     let items = vec![
         TaskStatus::Ready(3),
         TaskStatus::Ready(10),
@@ -65,14 +73,15 @@ fn test_filter_ready() {
 
     // pop() returns: Ready(5), Ready(10), Ready(3)
     // filter: 5 > 5 = false → Ignore, 10 > 5 = true → Ready(10), 3 > 5 = false → Ignore
-    assert_eq!(Iterator::next(&mut filtered), Some(TaskStatus::Ignore)); // 5 was filtered out
-    assert_eq!(Iterator::next(&mut filtered), Some(TaskStatus::Ready(10)));
-    assert_eq!(Iterator::next(&mut filtered), Some(TaskStatus::Ignore)); // 3 was filtered out
-    assert_eq!(Iterator::next(&mut filtered), None);
+    assert_eq!(filtered.next_status(ctx.clone()), Some(TaskStatus::Ignore)); // 5 was filtered out
+    assert_eq!(filtered.next_status(ctx.clone()), Some(TaskStatus::Ready(10)));
+    assert_eq!(filtered.next_status(ctx.clone()), Some(TaskStatus::Ignore)); // 3 was filtered out
+    assert_eq!(filtered.next_status(ctx.clone()), None);
 }
 
 #[test]
 fn test_split_collector_map_sends_transformed_items() {
+    let ctx = Ctx::new();
     let items = vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(10),
@@ -86,7 +95,7 @@ fn test_split_collector_map_sends_transformed_items() {
         task.split_collector_map(|x| (*x > 5, Some(format!("val:{x}"))), 10);
 
     // Drive the continuation to completion
-    while Iterator::next(&mut continuation).is_some() {}
+    while continuation.next_status(ctx.clone()).is_some() {}
 
     // Observer should have transformed items
     let collected: Vec<_> = observer
@@ -103,6 +112,7 @@ fn test_split_collector_map_sends_transformed_items() {
 
 #[test]
 fn test_split_collector_map_transform_returns_none_skips() {
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::Ready(10), TaskStatus::Ready(5)];
     let task = TestTask::new(items);
 
@@ -121,7 +131,7 @@ fn test_split_collector_map_transform_returns_none_skips() {
         10,
     );
 
-    while Iterator::next(&mut continuation).is_some() {}
+    while continuation.next_status(ctx.clone()).is_some() {}
 
     let collected: Vec<_> = observer
         .filter_map(|item| match item {
@@ -139,6 +149,7 @@ fn test_split_collector_map_transform_returns_none_skips() {
 /// observer must be driven in lockstep, and every match is delivered (zero loss).
 #[test]
 fn test_split_collect_one_map() {
+    let ctx = Ctx::new();
     // TestTask pops in reverse, so this yields 20, 10, 3.
     let items = vec![
         TaskStatus::Ready(3),
@@ -160,7 +171,7 @@ fn test_split_collect_one_map() {
                 _ => break,
             }
         }
-        match Iterator::next(&mut continuation) {
+        match continuation.next_status(ctx.clone()) {
             Some(_) => {}
             None => break,
         }
@@ -177,6 +188,7 @@ fn test_split_collect_one_map() {
 
 #[test]
 fn test_stream_collect() {
+    let ctx = Ctx::new();
     let items = vec![
         TaskStatus::Ready(2),
         TaskStatus::Pending("wait".to_string()),
@@ -186,19 +198,19 @@ fn test_stream_collect() {
     let mut collected = task.stream_collect();
 
     // First Ready is collected, returns Ignore
-    assert_eq!(Iterator::next(&mut collected), Some(TaskStatus::Ignore));
+    assert_eq!(collected.next_status(ctx.clone()), Some(TaskStatus::Ignore));
 
     // Should pass through Pending
     assert_eq!(
-        Iterator::next(&mut collected),
+        collected.next_status(ctx.clone()),
         Some(TaskStatus::Pending("wait".to_string()))
     );
 
     // Second Ready is collected, returns Ignore
-    assert_eq!(Iterator::next(&mut collected), Some(TaskStatus::Ignore));
+    assert_eq!(collected.next_status(ctx.clone()), Some(TaskStatus::Ignore));
 
     // Should yield collected Vec at the end
-    match Iterator::next(&mut collected) {
+    match collected.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(vec)) => {
             assert_eq!(vec.len(), 2);
             assert!(vec.contains(&1));
@@ -208,20 +220,26 @@ fn test_stream_collect() {
     }
 
     // Should be done after yielding the collected result
-    assert_eq!(Iterator::next(&mut collected), None);
+    assert_eq!(collected.next_status(ctx.clone()), None);
 }
 
 #[test]
 fn test_map_iter_flattens_nested_iterators() {
+    let ctx = Ctx::new();
     // Test using the extension method with a simple test task
     struct VecTask {
         items: std::vec::IntoIter<TaskStatus<Vec<u32>, String, NoAction>>,
     }
 
-    impl Iterator for VecTask {
-        type Item = TaskStatus<Vec<u32>, String, NoAction>;
+    impl TaskIterator for VecTask {
+        type Ready = Vec<u32>;
+        type Pending = String;
+        type Spawner = NoAction;
 
-        fn next(&mut self) -> Option<Self::Item> {
+        fn next_status(
+            &mut self,
+            _ctx: Ctx,
+        ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             self.items.next()
         }
     }
@@ -253,39 +271,45 @@ fn test_map_iter_flattens_nested_iterators() {
 
     // Should flatten: 1, 2, 3, 4, 5
     assert!(matches!(
-        Iterator::next(&mut flattened),
+        flattened.next_status(ctx.clone()),
         Some(TaskStatus::Ready(1))
     ));
     assert!(matches!(
-        Iterator::next(&mut flattened),
+        flattened.next_status(ctx.clone()),
         Some(TaskStatus::Ready(2))
     ));
     assert!(matches!(
-        Iterator::next(&mut flattened),
+        flattened.next_status(ctx.clone()),
         Some(TaskStatus::Ready(3))
     ));
     assert!(matches!(
-        Iterator::next(&mut flattened),
+        flattened.next_status(ctx.clone()),
         Some(TaskStatus::Ready(4))
     ));
     assert!(matches!(
-        Iterator::next(&mut flattened),
+        flattened.next_status(ctx.clone()),
         Some(TaskStatus::Ready(5))
     ));
-    assert_eq!(Iterator::next(&mut flattened), None);
+    assert_eq!(flattened.next_status(ctx.clone()), None);
 }
 
 #[test]
 fn test_map_iter_passes_through_pending() {
+    let ctx = Ctx::new();
     // Test using the extension method with a simple test task
     struct VecTask {
         items: std::vec::IntoIter<TaskStatus<Vec<u32>, String, NoAction>>,
     }
 
-    impl Iterator for VecTask {
-        type Item = TaskStatus<Vec<u32>, String, NoAction>;
+    impl TaskIterator for VecTask {
+        type Ready = Vec<u32>;
+        type Pending = String;
+        type Spawner = NoAction;
 
-        fn next(&mut self) -> Option<Self::Item> {
+        fn next_status(
+            &mut self,
+            _ctx: Ctx,
+        ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             self.items.next()
         }
     }
@@ -318,22 +342,22 @@ fn test_map_iter_passes_through_pending() {
 
     // Should flatten with pending passed through
     assert!(matches!(
-        Iterator::next(&mut flattened),
+        flattened.next_status(ctx.clone()),
         Some(TaskStatus::Ready(1))
     ));
     assert!(matches!(
-        Iterator::next(&mut flattened),
+        flattened.next_status(ctx.clone()),
         Some(TaskStatus::Pending(ref s)) if s == "wait"
     ));
     assert!(matches!(
-        Iterator::next(&mut flattened),
+        flattened.next_status(ctx.clone()),
         Some(TaskStatus::Ready(2))
     ));
     assert!(matches!(
-        Iterator::next(&mut flattened),
+        flattened.next_status(ctx.clone()),
         Some(TaskStatus::Ready(3))
     ));
-    assert_eq!(Iterator::next(&mut flattened), None);
+    assert_eq!(flattened.next_status(ctx.clone()), None);
 }
 
 /// Regression: an observer must not lose the final item that the producer
@@ -351,13 +375,17 @@ fn test_map_iter_passes_through_pending() {
 fn test_split_collect_until_map_never_loses_the_closing_item() {
     use foundation_core::valtron::CollectionState;
 
+    let ctx = Ctx::new();
     for round in 0..2_000u32 {
         let task = TestTask::new(vec![TaskStatus::Ready(round)]);
         let (observer, mut continuation) =
             task.split_collect_until_map(|x| (CollectionState::Close(true), Some(*x)), 1);
 
+        // Clone into the closure's `move` capture so the loop-level `ctx` stays
+        // usable for the next round.
+        let ctx = ctx.clone();
         let producer =
-            std::thread::spawn(move || while Iterator::next(&mut continuation).is_some() {});
+            std::thread::spawn(move || while continuation.next_status(ctx.clone()).is_some() {});
 
         let mut got = None;
         for stream in observer {

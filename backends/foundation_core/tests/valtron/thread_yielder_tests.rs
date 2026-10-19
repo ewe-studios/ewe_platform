@@ -12,7 +12,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::multi::get_num_threads;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     multi::{initialize_pool, spawn},
     FnReady, NoSpawner, TaskIterator, TaskStatus,
 };
@@ -28,7 +28,7 @@ impl TaskIterator for DelayedTask {
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         self.ran.fetch_add(1, Ordering::Relaxed);
         Some(TaskStatus::Delayed(self.delay))
     }
@@ -42,7 +42,7 @@ impl TaskIterator for ImmediateTask {
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Some(TaskStatus::Ready(()))
     }
 }

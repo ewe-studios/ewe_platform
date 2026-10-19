@@ -20,8 +20,9 @@ use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 use futures_core::Stream as FuturesStream;
 
 use foundation_core::valtron::{
-    collect_one, collect_result, execute, valtron_test, NoAction, Stream, StreamCollectFuture,
-    StreamIteratorExt, StreamSpread, TaskSpread, TaskStatus, WakeCallback, WakeResult, WakeableStream,
+    collect_one, collect_result, execute, valtron_test, Ctx, NoAction, Stream, StreamCollectFuture,
+    StreamIteratorExt, StreamSpread, TaskIterator, TaskSpread, TaskStatus, WakeCallback, WakeResult,
+    WakeableStream,
 };
 
 // ============================================================================
@@ -367,10 +368,15 @@ impl Default for SpreadTask {
     }
 }
 
-impl Iterator for SpreadTask {
-    type Item = TaskStatus<i32, &'static str, NoAction>;
+impl TaskIterator for SpreadTask {
+    type Ready = i32;
+    type Pending = &'static str;
+    type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.emitted {
             None
         } else {

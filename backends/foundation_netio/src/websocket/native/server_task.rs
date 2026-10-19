@@ -19,7 +19,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::{BoxedSendExecutionAction, PipeSender, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, PipeSender, TaskIterator, TaskStatus};
 
 use crate::netcap::RawStream;
 use crate::websocket::shared::assembler::MessageAssembler;
@@ -150,7 +150,7 @@ impl TaskIterator for WebSocketServerTask {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // Flush pending outbound writes every poll.
         let _ = self.writer.flush();
 
@@ -293,7 +293,7 @@ mod tests {
     fn drain(task: &mut WebSocketServerTask, n: usize) -> Vec<WebSocketMessage> {
         let mut msgs = Vec::new();
         for _ in 0..n {
-            match task.next_status() {
+            match task.next_status(Ctx::new()) {
                 Some(TaskStatus::Ready(m)) => msgs.push(m),
                 Some(TaskStatus::Pending(())) => continue,
                 _ => break,
@@ -349,7 +349,7 @@ mod tests {
 
         let msgs = drain(&mut task, 10);
         assert!(msgs.is_empty());
-        assert!(task.next_status().is_none(), "task ends after close");
+        assert!(task.next_status(Ctx::new()).is_none(), "task ends after close");
     }
 
     #[test]
@@ -367,6 +367,6 @@ mod tests {
         let msgs = drain(&mut task, 10);
         // No messages — violation sends close and drains.
         assert!(msgs.is_empty());
-        assert!(task.next_status().is_none());
+        assert!(task.next_status(Ctx::new()).is_none());
     }
 }

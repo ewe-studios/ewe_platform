@@ -2,7 +2,7 @@
 #![allow(clippy::type_complexity)]
 
 use crate::valtron::multi;
-pub use crate::valtron::multi::{block_on, get_pool};
+pub use crate::valtron::multi::{block_on, fork_ctx, get_pool};
 
 use crate::valtron::CancellableFutureTask;
 use crate::valtron::FutureTask;
@@ -11,7 +11,7 @@ use crate::valtron::StreamConfig;
 use crate::valtron::StreamTask;
 use crate::valtron::ThreadedValue;
 use crate::valtron::{
-    collect_one, collect_result, ExecutionAction, GenericResult, NotificationItem,
+    collect_one, collect_result, Ctx, ExecutionAction, GenericResult, NotificationItem,
     NotifyQueueStreamIterator, NotifyRecvIterator, Stream, StreamIterator, TaskIterator,
     TaskStatus, WakeCallback, WakeResult, WakeableStream,
 };
@@ -527,12 +527,12 @@ where
 ///
 /// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
-pub fn drive_future<F>(future: F) -> DrivenTaskIterator<FutureTask<F>>
+pub fn drive_future<F>(future: F, ctx: Ctx) -> DrivenTaskIterator<FutureTask<F>>
 where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
 {
-    drive_iterator(crate::valtron::from_future(future))
+    drive_iterator(crate::valtron::from_future(future), ctx)
 }
 
 /// `drive_future_stream` creates a new [`DrivenTaskIterator<StreamTask<S>>`]
@@ -544,12 +544,12 @@ where
 ///
 /// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
-pub fn drive_future_stream<S>(stream: S) -> DrivenTaskIterator<StreamTask<S>>
+pub fn drive_future_stream<S>(stream: S, ctx: Ctx) -> DrivenTaskIterator<StreamTask<S>>
 where
     S: futures_core::Stream + Send + 'static,
     S::Item: Send + 'static,
 {
-    drive_iterator(crate::valtron::from_stream(stream))
+    drive_iterator(crate::valtron::from_stream(stream), ctx)
 }
 
 /// Wrap a future into a [`CancellableFutureTask`] (native — requires Send).
@@ -658,15 +658,15 @@ where
 /// calls the execution methods in the situations of single threaded
 /// or wasm context will auto-drive the execution engine.
 #[must_use]
-#[tracing::instrument(skip(incoming))]
-pub fn drive_iterator<T>(incoming: T) -> DrivenTaskIterator<T>
+#[tracing::instrument(skip(incoming, ctx))]
+pub fn drive_iterator<T>(incoming: T, ctx: Ctx) -> DrivenTaskIterator<T>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
-    DrivenTaskIterator::new(incoming)
+    DrivenTaskIterator::new(incoming, ctx)
 }
 
 /// [`drive_receiver`] provides a convenient function to
@@ -919,7 +919,7 @@ where
 /// This is good for send-safe types you want to be send-safe.
 ///
 /// It internally uses the [`run_until_next_state`] function.
-pub struct DrivenTaskIterator<T>(Option<T>)
+pub struct DrivenTaskIterator<T>(Option<T>, Ctx)
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -933,8 +933,8 @@ where
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
-    pub fn new(task_iterator: T) -> Self {
-        Self(Some(task_iterator))
+    pub fn new(task_iterator: T, ctx: Ctx) -> Self {
+        Self(Some(task_iterator), ctx)
     }
 }
 
@@ -959,7 +959,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
 
-            let next_value = task_iterator.next_status();
+            let next_value = task_iterator.next_status(self.1.clone());
 
             // if the next value is Some(_) then set back the
             // executor for the next call.

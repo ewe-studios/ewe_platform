@@ -23,7 +23,7 @@ use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
 use boringtun::x25519::{PublicKey, StaticSecret};
-use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
 use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
 use foundation_nativeapis::native::poll::{Interest, Token};
@@ -406,7 +406,7 @@ impl WgNode {
             // the atomic readiness cache asynchronously.
             let mut task = mesh_wrapper;
             while !task.stop.load(Ordering::Relaxed) {
-                match task.next_status() {
+                match task.next_status(Ctx::new()) {
                     // Task completed.
                     None => break,
                     // Ready/Ready work done — re-tick immediately.
@@ -845,7 +845,7 @@ impl TaskIterator for MeshTask {
     type Pending = ();
     type Spawner = foundation_core::valtron::BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.stop.load(Ordering::Relaxed) {
             return None;
         }

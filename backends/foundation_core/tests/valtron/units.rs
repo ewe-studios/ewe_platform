@@ -11,8 +11,8 @@
 //! - `execute_map_all_pending_and_done`: executes with state visibility
 
 use foundation_core::valtron::{
-    execute_map_all_pending_and_done, valtron_test, CollectAll, MapAllDone,
-    MapAllPendingAndDone, Stream, TaskStatus, DEFAULT_WAIT_CYCLE,
+    execute_map_all_pending_and_done, valtron_test, CollectAll, Ctx, MapAllDone,
+    MapAllPendingAndDone, Stream, TaskIterator, TaskStatus, DEFAULT_WAIT_CYCLE,
 };
 
 use tracing_test::traced_test;
@@ -228,10 +228,15 @@ impl CounterTask {
     }
 }
 
-impl Iterator for CounterTask {
-    type Item = TaskStatus<u32, u32, foundation_core::valtron::NoAction>;
+impl TaskIterator for CounterTask {
+    type Ready = u32;
+    type Pending = u32;
+    type Spawner = foundation_core::valtron::NoAction;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         println!("Count: {} {}", &self.current, self.ready_value);
         if self.current < self.ready_value {
             let res = Some(TaskStatus::Pending(self.current));
@@ -446,10 +451,15 @@ impl SplitTestTask {
     }
 }
 
-impl Iterator for SplitTestTask {
-    type Item = TaskStatus<u32, String, foundation_core::valtron::NoAction>;
+impl TaskIterator for SplitTestTask {
+    type Ready = u32;
+    type Pending = String;
+    type Spawner = foundation_core::valtron::NoAction;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.index < self.items.len() {
             let item = self.items[self.index].clone();
             self.index += 1;
@@ -465,6 +475,7 @@ impl Iterator for SplitTestTask {
 fn test_split_collector_observer_receives_matched_items() {
     use foundation_core::valtron::TaskIteratorExt;
 
+    let ctx = Ctx::new();
     // Create task that produces: Ready(5), Ready(10), Ready(15)
     let task = SplitTestTask::new(vec![
         TaskStatus::Ready(5),
@@ -477,7 +488,7 @@ fn test_split_collector_observer_receives_matched_items() {
 
     // Continuation should produce all original values
     let mut continuation_values = Vec::new();
-    for status in &mut continuation {
+    while let Some(status) = continuation.next_status(ctx.clone()) {
         if let TaskStatus::Ready(v) = status {
             continuation_values.push(v);
         }
@@ -508,6 +519,7 @@ fn test_split_collector_observer_receives_matched_items() {
 fn test_split_collect_one_first_match() {
     use foundation_core::valtron::TaskIteratorExt;
 
+    let ctx = Ctx::new();
     // Create task with multiple values
     let task = SplitTestTask::new(vec![
         TaskStatus::Ready(1),
@@ -531,7 +543,7 @@ fn test_split_collect_one_first_match() {
                 _ => break,
             }
         }
-        match continuation.next() {
+        match continuation.next_status(ctx.clone()) {
             Some(TaskStatus::Ready(v)) => continuation_values.push(v),
             Some(_) => {} // Depends (parked on full) / Pending — keep driving
             None => break,
@@ -555,6 +567,7 @@ fn test_split_collect_one_first_match() {
 fn test_split_collector_observer_stream_type() {
     use foundation_core::valtron::TaskIteratorExt;
 
+    let ctx = Ctx::new();
     let task = SplitTestTask::new(vec![
         TaskStatus::Pending("wait".to_string()),
         TaskStatus::Ready(42),
@@ -567,7 +580,7 @@ fn test_split_collector_observer_stream_type() {
     // Use a scoped block to ensure continuation is dropped before we iterate observer
     {
         let mut continuation = continuation;
-        for _status in &mut continuation {
+        while continuation.next_status(ctx.clone()).is_some() {
             // Drive the continuation
         }
         // continuation is dropped here, closing the queue
@@ -589,6 +602,7 @@ fn test_split_collector_observer_stream_type() {
 fn test_split_collector_continuation_forwards_all_states() {
     use foundation_core::valtron::TaskIteratorExt;
 
+    let ctx = Ctx::new();
     let task = SplitTestTask::new(vec![
         TaskStatus::Pending("wait1".to_string()),
         TaskStatus::Ready(10),
@@ -596,9 +610,12 @@ fn test_split_collector_continuation_forwards_all_states() {
         TaskStatus::Ready(20),
     ]);
 
-    let (_, continuation) = task.split_collector(|_| true, 10);
+    let (_, mut continuation) = task.split_collector(|_| true, 10);
 
-    let states: Vec<_> = continuation.collect();
+    let mut states = Vec::new();
+    while let Some(status) = continuation.next_status(ctx.clone()) {
+        states.push(status);
+    }
 
     // Should have all states including Pending and Ready
     let mut pending_count = 0;

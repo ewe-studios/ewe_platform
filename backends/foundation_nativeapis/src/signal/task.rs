@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{NoSpawner, QueueReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, NoSpawner, QueueReadiness, TaskIterator, TaskStatus};
 
 use crate::signal::{SignalBus, SignalEvent, SignalHandle};
 
@@ -33,7 +33,7 @@ impl TaskIterator for SignalTask {
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // Drain received signals
         if let Ok(event) = self.my_queue.pop() {
             return Some(TaskStatus::Ready(event));

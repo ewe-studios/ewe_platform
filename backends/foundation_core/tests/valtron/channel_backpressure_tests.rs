@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{SharedTaskQueue, TaskStatus, WrapTask};
+use foundation_core::valtron::{Ctx, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask};
 use foundation_core::valtron::{
     ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotifyQueue,
     PriorityOrder, NotificationItem,
@@ -303,10 +303,15 @@ struct SeqTask {
     items: std::vec::IntoIter<TaskStatus<u32, String, foundation_core::valtron::NoAction>>,
 }
 
-impl Iterator for SeqTask {
-    type Item = TaskStatus<u32, String, foundation_core::valtron::NoAction>;
+impl TaskIterator for SeqTask {
+    type Ready = u32;
+    type Pending = String;
+    type Spawner = foundation_core::valtron::NoAction;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         self.items.next()
     }
 }
@@ -323,6 +328,7 @@ impl Iterator for SeqTask {
 fn test_split_continuation_parks_on_full_observer_no_loss() {
     use foundation_core::valtron::{Stream, TaskIteratorExt};
 
+    let ctx = Ctx::new();
     // Three matched items through a depth-1 (queue_size = 1) observer queue.
     let task = SeqTask {
         items: vec![
@@ -336,25 +342,31 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
 
     // Step 1: pushes 10 into the depth-1 queue and forwards Ready(10).
     assert!(
-        matches!(continuation.next(), Some(TaskStatus::Ready(10))),
+        matches!(continuation.next_status(ctx.clone()), Some(TaskStatus::Ready(10))),
         "first step forwards the source value and fills the observer queue"
     );
 
     // Steps 2 & 3: the queue is full, so the source PARKS on vacancy instead of
     // dropping 10 — turn-count stays flat (repeated Depends, no value consumed).
     assert!(
-        matches!(continuation.next(), Some(TaskStatus::Depends(_))),
+        matches!(
+            continuation.next_status(ctx.clone()),
+            Some(TaskStatus::Depends(_))
+        ),
         "full observer queue parks the source rather than dropping"
     );
     assert!(
-        matches!(continuation.next(), Some(TaskStatus::Depends(_))),
+        matches!(
+            continuation.next_status(ctx.clone()),
+            Some(TaskStatus::Depends(_))
+        ),
         "still parked while the observer stays full"
     );
 
     // Drain one slot: the stashed copy of 20 now lands and the source advances.
     assert!(matches!(observer.next(), Some(Stream::Next(10))));
     assert!(
-        matches!(continuation.next(), Some(TaskStatus::Ready(20))),
+        matches!(continuation.next_status(ctx.clone()), Some(TaskStatus::Ready(20))),
         "draining a slot unparks the source and delivers the stashed item"
     );
 
@@ -367,7 +379,7 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
                 _ => break,
             }
         }
-        match continuation.next() {
+        match continuation.next_status(ctx.clone()) {
             Some(_) => {}
             None => break,
         }
@@ -393,6 +405,7 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
 fn test_split_continuation_survives_dropped_observer() {
     use foundation_core::valtron::TaskIteratorExt;
 
+    let ctx = Ctx::new();
     let task = SeqTask {
         items: vec![
             TaskStatus::Ready(1),
@@ -408,7 +421,7 @@ fn test_split_continuation_survives_dropped_observer() {
 
     // The continuation must keep forwarding every source value (no park, no panic).
     let mut forwarded = Vec::new();
-    while let Some(status) = continuation.next() {
+    while let Some(status) = continuation.next_status(ctx.clone()) {
         if let TaskStatus::Ready(v) = status {
             forwarded.push(v);
         }

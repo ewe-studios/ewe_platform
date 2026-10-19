@@ -10,7 +10,7 @@
 //!
 //! HOW: Delegates `next_status()` to whichever variant is active.
 
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     BoxedSendExecutionAction, ExecutionAction, TaskIterator, TaskStatus,
 };
 
@@ -32,10 +32,10 @@ where
     type Pending = P;
     type Spawner = S;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self {
-            Self::Left(a) => a.next_status(),
-            Self::Right(b) => b.next_status(),
+            Self::Left(a) => a.next_status(ctx),
+            Self::Right(b) => b.next_status(ctx),
         }
     }
 }
@@ -60,7 +60,7 @@ where
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         self.value.take().map(TaskStatus::Ready)
     }
 }

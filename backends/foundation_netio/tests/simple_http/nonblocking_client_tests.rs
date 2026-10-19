@@ -28,7 +28,7 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     self, valtron_test, BoxedSendExecutionAction, Stream, StreamIteratorExt, TaskIterator,
     TaskStatus,
 };
@@ -258,7 +258,7 @@ impl TaskIterator for Releaser {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         self.stage += 1;
         match self.stage {
             1 => Some(TaskStatus::Delayed(Duration::from_millis(50))),

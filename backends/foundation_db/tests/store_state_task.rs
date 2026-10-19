@@ -1,6 +1,6 @@
 //! Integration tests for `StoreStateTask` and `StoreStateIdentifierTask`.
 
-use foundation_core::valtron::TaskIterator;
+use foundation_core::valtron::{Ctx, TaskIterator};
 use foundation_db::core::state::file::FileStateStore;
 use foundation_db::core::state::resource_identifier::ResourceIdentifier;
 use foundation_db::core::state::store_state_task::{StoreStateIdentifierTask, StoreStateTask};
@@ -184,7 +184,7 @@ fn test_store_state_task_success() {
     let mut task = store_task;
     let mut found_success = false;
 
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         match status {
             foundation_core::valtron::TaskStatus::Ready(Ok(result)) => {
                 assert_eq!(result.id, "res-123");
@@ -246,7 +246,7 @@ fn test_store_state_task_inner_failure() {
     let mut task = store_task;
     let mut found_error = false;
 
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         match status {
             foundation_core::valtron::TaskStatus::Ready(Err(_)) => {
                 found_error = true;
@@ -310,7 +310,7 @@ fn test_store_state_identifier_task_success() {
     let mut task = store_task;
     let mut found_success = false;
 
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         match status {
             foundation_core::valtron::TaskStatus::Ready(Ok(result)) => {
                 assert_eq!(result.id, "res-456");
@@ -369,7 +369,7 @@ fn test_store_state_identifier_task_inner_failure() {
     let mut task = store_task;
     let mut found_error = false;
 
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         match status {
             foundation_core::valtron::TaskStatus::Ready(Err(_)) => {
                 found_error = true;

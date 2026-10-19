@@ -6,7 +6,7 @@
 //! HOW: Uses TestHttpServer (or raw TcpListener) bound to localhost with
 //! SSE-formatted responses.
 
-use foundation_core::valtron::TaskIterator;
+use foundation_core::valtron::{Ctx, TaskIterator};
 use foundation_core::valtron::TaskStatus;
 use foundation_netio::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use foundation_netio::shared::client::{MockDnsResolver, StaticSocketAddr};
@@ -54,7 +54,7 @@ fn test_event_source_task_connects_to_server() {
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
     // First call: Init → Connecting, returns Pending(Connecting)
-    let first = task.next_status();
+    let first = task.next_status(Ctx::new());
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -65,7 +65,7 @@ fn test_event_source_task_connects_to_server() {
     );
 
     // Second call: Connecting → AwaitingHeaders, returns Pending(Connecting)
-    let second = task.next_status();
+    let second = task.next_status(Ctx::new());
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -76,7 +76,7 @@ fn test_event_source_task_connects_to_server() {
     );
 
     // Third call: AwaitingHeaders → ReadingStream, returns Pending(Reading)
-    let third = task.next_status();
+    let third = task.next_status(Ctx::new());
     assert_eq!(
         third.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -87,7 +87,7 @@ fn test_event_source_task_connects_to_server() {
     );
 
     // Fourth call: ReadingStream → parse event → Ready(ParseResult)
-    let fourth = task.next_status();
+    let fourth = task.next_status(Ctx::new());
     match fourth {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
@@ -106,7 +106,7 @@ fn test_event_source_task_connects_to_server() {
     }
 
     // Fifth call: stream exhausted → None (Closed)
-    let fifth = task.next_status();
+    let fifth = task.next_status(Ctx::new());
     assert!(fifth.is_none(), "Expected None after stream exhausted");
 }
 
@@ -126,7 +126,7 @@ fn test_event_source_task_dns_resolves_to_server() {
             .unwrap();
 
     // First call: Init → Connecting, returns Pending(Connecting)
-    let first = task.next_status();
+    let first = task.next_status(Ctx::new());
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -137,7 +137,7 @@ fn test_event_source_task_dns_resolves_to_server() {
     );
 
     // Second call: Connecting → AwaitingHeaders, returns Pending(Connecting)
-    let second = task.next_status();
+    let second = task.next_status(Ctx::new());
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -148,7 +148,7 @@ fn test_event_source_task_dns_resolves_to_server() {
     );
 
     // Third call: AwaitingHeaders → ReadingStream, returns Pending(Reading)
-    let third = task.next_status();
+    let third = task.next_status(Ctx::new());
     assert_eq!(
         third.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -159,7 +159,7 @@ fn test_event_source_task_dns_resolves_to_server() {
     );
 
     // Fourth call: should yield the event
-    let fourth = task.next_status();
+    let fourth = task.next_status(Ctx::new());
     match fourth {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
@@ -188,7 +188,7 @@ fn test_event_source_task_url_with_query() {
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
     // First call: Init → Connecting
-    let first = task.next_status();
+    let first = task.next_status(Ctx::new());
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -199,7 +199,7 @@ fn test_event_source_task_url_with_query() {
     );
 
     // Second call: Connecting → AwaitingHeaders
-    let second = task.next_status();
+    let second = task.next_status(Ctx::new());
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -210,7 +210,7 @@ fn test_event_source_task_url_with_query() {
     );
 
     // Third call: AwaitingHeaders → ReadingStream
-    let third = task.next_status();
+    let third = task.next_status(Ctx::new());
     assert_eq!(
         third.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -221,7 +221,7 @@ fn test_event_source_task_url_with_query() {
     );
 
     // Fourth call: should receive the event
-    let fourth = task.next_status();
+    let fourth = task.next_status(Ctx::new());
     match fourth {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
@@ -250,7 +250,7 @@ fn test_event_source_task_localhost_url() {
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
     // First call: Init → Connecting
-    let first = task.next_status();
+    let first = task.next_status(Ctx::new());
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -261,7 +261,7 @@ fn test_event_source_task_localhost_url() {
     );
 
     // Second call: Connecting → AwaitingHeaders
-    let second = task.next_status();
+    let second = task.next_status(Ctx::new());
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -272,7 +272,7 @@ fn test_event_source_task_localhost_url() {
     );
 
     // Third call: AwaitingHeaders → ReadingStream
-    let third = task.next_status();
+    let third = task.next_status(Ctx::new());
     assert_eq!(
         third.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -283,7 +283,7 @@ fn test_event_source_task_localhost_url() {
     );
 
     // Fourth call: should receive the event
-    let fourth = task.next_status();
+    let fourth = task.next_status(Ctx::new());
     match fourth {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
@@ -316,7 +316,7 @@ fn test_event_source_task_connection_refused() {
     .unwrap();
 
     // First call: Init → Connecting, returns Pending(Connecting)
-    let first = task.next_status();
+    let first = task.next_status(Ctx::new());
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -327,7 +327,7 @@ fn test_event_source_task_connection_refused() {
     );
 
     // Second call: Connection fails → Closed → None
-    let second = task.next_status();
+    let second = task.next_status(Ctx::new());
     assert!(
         second.is_none(),
         "Connection refused should return None (Closed)"
@@ -352,7 +352,7 @@ fn test_event_source_task_stream_exhaust() {
     let mut got_pending_reading = false;
     let mut got_event = false;
 
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         match status {
             TaskStatus::Pending(EventSourceProgress::Connecting) => {
                 got_pending_connecting = true;
@@ -386,7 +386,7 @@ fn test_event_source_task_stream_exhaust() {
 
     // Task should be exhausted (Closed state is terminal)
     assert!(
-        task.next_status().is_none(),
+        task.next_status(Ctx::new()).is_none(),
         "Exhausted task should keep returning None"
     );
 }
@@ -428,7 +428,7 @@ fn test_event_source_task_with_body_uses_post() {
         .with_body(SendSafeBody::Text(json_body.to_string()));
 
     let mut got_event = false;
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { ref data, .. },
             ..
@@ -477,7 +477,7 @@ fn test_event_source_task_default_method_is_get() {
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
     let mut got_event = false;
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         if let TaskStatus::Ready(ParseResult {
             event: Event::Message { ref data, .. },
             ..

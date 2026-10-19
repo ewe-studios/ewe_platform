@@ -29,7 +29,7 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
     TextContent, ToolArguments, UserModelContent,
 };
-use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type TestMemStore = KvMemoryStore<MemoryStorage>;
@@ -151,7 +151,7 @@ fn user_msg(text: &str) -> Messages {
 fn drive(h: &mut Harness) -> Vec<SessionRecord> {
     let mut records = Vec::new();
     for _ in 0..2_000 {
-        match h.agent.next_status() {
+        match h.agent.next_status(Ctx::new()) {
             None => return records,
             Some(TaskStatus::Ready(record)) => records.push(record),
             Some(_) => {}
@@ -241,7 +241,7 @@ fn loop_terminates_and_yields_none() {
 
     drive(&mut h);
     assert!(
-        h.agent.next_status().is_none(),
+        h.agent.next_status(Ctx::new()).is_none(),
         "a completed loop must keep yielding None"
     );
 }
@@ -1088,7 +1088,7 @@ fn a_priority_message_during_generation_discards_and_reassembles() {
     let mut saw_mid_gen_steering = false;
 
     for _ in 0..2_000 {
-        match h.agent.next_status() {
+        match h.agent.next_status(Ctx::new()) {
             None => break,
             Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
                 // The loop is now inside InnerGenerate. Inject here so the
@@ -1131,7 +1131,7 @@ fn mid_generation_steering_drains_the_priority_queue() {
 
     let mut injected = false;
     for _ in 0..2_000 {
-        match h.agent.next_status() {
+        match h.agent.next_status(Ctx::new()) {
             None => break,
             Some(TaskStatus::Pending(AgentProgress::Generating { .. })) => {
                 if !injected {

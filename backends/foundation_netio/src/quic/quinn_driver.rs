@@ -37,7 +37,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     BoxedSendExecutionAction, EventReadinessPtr, TaskIterator, TaskStatus,
 };
 use quinn_proto::{
@@ -430,7 +430,7 @@ impl TaskIterator for QuicDriver {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.done {
             return None;
         }

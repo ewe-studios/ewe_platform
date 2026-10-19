@@ -3,7 +3,7 @@
 //! Tests reconnection logic, backoff, Last-Event-ID tracking, and max retries.
 //! Uses `MockDnsResolver` — no real network connections.
 
-use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_netio::event_source::native::ReconnectingEventSourceTask;
 use foundation_netio::shared::client::MockDnsResolver;
 use foundation_netio::shared::http::DnsError;
@@ -68,14 +68,14 @@ fn test_reconnecting_task_exhausts_after_max_retries() {
 
     // Drive the task until it exhausts
     let mut steps = 0;
-    while task.next_status().is_some() {
+    while task.next_status(Ctx::new()).is_some() {
         steps += 1;
         // Safety: prevent infinite loop
         assert!(steps < 100, "Task did not exhaust within 100 steps");
     }
 
     // Should be exhausted now
-    assert!(task.next_status().is_none(), "Task should stay exhausted");
+    assert!(task.next_status(Ctx::new()).is_none(), "Task should stay exhausted");
 }
 
 /// WHY: When DNS has no configured response, initial connection fails.
@@ -93,7 +93,7 @@ fn test_reconnecting_task_attempts_reconnection_on_failure() {
     let mut saw_delayed = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         if let foundation_core::valtron::TaskStatus::Delayed(_) = status {
             saw_delayed = true;
         }
@@ -150,7 +150,7 @@ fn test_reconnecting_task_initial_connection_failure_reconnects() {
 
     let mut states: Vec<String> = Vec::new();
 
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         let label = match status {
             foundation_core::valtron::TaskStatus::Init => "Init".to_string(),
             foundation_core::valtron::TaskStatus::Pending(p) => format!("Pending({:?})", p),

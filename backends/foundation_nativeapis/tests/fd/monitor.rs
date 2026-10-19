@@ -11,7 +11,7 @@ use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use foundation_core::valtron::TaskIterator;
+use foundation_core::valtron::{Ctx, TaskIterator};
 use foundation_nativeapis::native::fd::RegisteredFd;
 use foundation_nativeapis::{Poll, Token};
 use foundation_nativeapis::FdMonitorTask;
@@ -69,7 +69,7 @@ fn fd_monitor_task_invokes_callback_on_readiness() {
     }
 
     // Tick the task via TaskIterator
-    let status = task.next_status();
+    let status = task.next_status(Ctx::new());
     assert!(status.is_some(), "task should not terminate");
 
     // Verify callback received data
@@ -91,7 +91,7 @@ fn fd_monitor_task_no_callback() {
     let mut task = FdMonitorTask::new(registered);
 
     // Tick — should not panic, just return NotReady
-    let status = task.next_status();
+    let status = task.next_status(Ctx::new());
     assert!(status.is_some());
 }
 
@@ -134,7 +134,7 @@ fn fd_monitor_task_poll_interval() {
 
     // Tick when no data available
     let start = std::time::Instant::now();
-    let status = task.next_status();
+    let status = task.next_status(Ctx::new());
     let elapsed = start.elapsed();
 
     // next_status returns immediately (it doesn't block — blocking is handled by valtron executor)

@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity)]
 
-use crate::valtron::{Stream, StreamSpread};
+use crate::valtron::{Ctx, Stream};
 use concurrent_queue::ConcurrentQueue;
 use derive_more::From;
 
@@ -549,71 +549,26 @@ pub trait TaskIterator {
     type Spawner: ExecutionAction;
 
     /// Advances the iterator and returns the next value.
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
 
-    /// `into_stream_iter` consumes the implementation and wraps
-    /// it in an iterator type that emits
-    /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
-    /// match the behavior desired for an iterator.
-    fn into_stream_iter(self) -> impl Iterator<Item = Stream<Self::Ready, Self::Pending>>
-    where
-        Self: Sized + 'static,
-    {
-        TaskAsStreamIterator(Box::new(self))
-    }
-
-    /// `into_iter` consumes the implementation and wraps
-    /// it in an iterator type that emits
-    /// `TaskStatus<TaskIterator::Pending ,TaskIterator::Done>`
-    /// match the behavior desired for an iterator.
-    fn into_iter(
-        self,
-    ) -> impl Iterator<Item = TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>
-    where
-        Self: Sized + 'static,
-    {
-        TaskAsIterator(Box::new(self))
-    }
-
-    /// `into_asstream` returns a [`AsStream`] instance which takes ownership
-    /// of implementer of `TaskIterator` directly without boxing the underlying type
-    /// within a [`Box`] essentially it is stack friendly but due to limitations for the
-    /// iterator type, `self` is still boxed and wrapped with a [`TaskAsIterator`].
+    /// Wraps this task in the contextual orchestrator, [`TaskAsIterator`], seeding
+    /// it with `ctx`.
     ///
-    /// Returns all values as [`Stream`].
-    fn into_asstream(
-        self,
-    ) -> AsStream<
-        Self::Ready,
-        Self::Pending,
-        Self::Spawner,
-        TaskAsIterator<Self::Ready, Self::Pending, Self::Spawner>,
-    >
+    /// This is the single bridge from a bare [`TaskIterator`] to the contextual
+    /// orchestration surface. The returned orchestrator holds `ctx`, and every
+    /// terminal drain on it (e.g. [`TaskAsIterator::collect_ready`]) pulls that
+    /// stored ctx — `Ctx` is never minted internally. Combinators remain available
+    /// on the task itself via [`TaskIteratorExt`] before calling `with_ctx`, since
+    /// they only forward `ctx` through `next_status` at drive time rather than
+    /// needing a ctx of their own.
+    fn with_ctx(self, ctx: Ctx) -> TaskAsIterator<Self::Ready, Self::Pending, Self::Spawner>
     where
         Self: Sized + 'static,
+        Self::Ready: 'static,
+        Self::Pending: 'static,
+        Self::Spawner: ExecutionAction + 'static,
     {
-        AsStream::new(TaskAsIterator(Box::new(self)))
-    }
-
-    /// `into_ready_values` returns a [`ReadyValues`] iterator implementing instance
-    /// which takes ownership of implementer of `TaskIterator` directly without boxing
-    /// the underlying type within a [`Box`] essentially it is stack friendly but
-    /// due to limitations for the iterator type, `self` is still
-    /// boxed and wrapped with a [`TaskAsIterator`].
-    ///
-    /// Returns all values as [`Stream`].
-    fn into_ready_values(
-        self,
-    ) -> ReadyValues<
-        Self::Ready,
-        Self::Pending,
-        Self::Spawner,
-        TaskAsIterator<Self::Ready, Self::Pending, Self::Spawner>,
-    >
-    where
-        Self: Sized + 'static,
-    {
-        ReadyValues::new(TaskAsIterator(Box::new(self)))
+        TaskAsIterator::from_impl(self, ctx)
     }
 }
 
@@ -641,139 +596,57 @@ impl<T: TaskIterator> TaskIterator for TaskIter<T> {
     type Pending = T::Pending;
     type Spawner = T::Spawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        self.0.next_status()
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.0.next_status(ctx)
     }
 }
 
-// TaskIterator implementations for wrapper types
-//
-impl<M, R, P, S> TaskIterator for M
-where
-    M: Iterator<Item = TaskStatus<R, P, S>> + ?Sized,
-    R: 'static,
-    P: 'static,
-    S: ExecutionAction + 'static,
+// Boxed trait objects keep the `TaskIterator` surface so they stay usable with
+// `TaskIteratorExt` combinators (e.g. returning `impl TaskIterator + Send`).
+// The inner `dyn TaskIterator` forwards its `ctx` by value.
+impl<D: 'static, P: 'static, S: ExecutionAction + 'static> TaskIterator
+    for Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>
 {
-    type Ready = R;
+    type Ready = D;
     type Pending = P;
     type Spawner = S;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        (**self).next_status(ctx)
     }
 }
 
-// 1. Implementation for standard trait objects
-impl<R, P, S> Iterator for Box<dyn TaskIterator<Ready = R, Pending = P, Spawner = S> + '_>
-where
-    R: 'static,
-    P: 'static,
-    S: ExecutionAction + 'static,
+impl<D: 'static, P: 'static, S: ExecutionAction + 'static> TaskIterator
+    for Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S> + Send>
 {
-    type Item = TaskStatus<R, P, S>;
+    type Ready = D;
+    type Pending = P;
+    type Spawner = S;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        // Use as_mut() to access the trait method on the inner dyn object
-        // to avoid the blanket Iterator -> TaskIterator loop
-        self.as_mut().next_status()
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        (**self).next_status(ctx)
     }
 }
 
-// 2. Implementation for Send trait objects (Crucial for your error message!)
-//
-// This was added to resolve below error:
-//
-//  But i got this error:error[E0277]:
-// `dyn TaskIterator<Pending = gen_model_descriptors::FetchPending, Ready = Vec<ModelEntry>, Spawner = Box<(dyn ExecutionAction + Send + 'static)>> + Send` is not an iterator
-//
-// Why as_mut()?
-// By calling self.as_mut().next_status(), you are explicitly telling Rust to use
-// the next_status method defined on the dyn TaskIterator trait itself, rather than
-// the one provided by the blanket Iterator implementation. This prevents the infinite loop.
-//
-// Why the Send block?
-//
-// In Rust, Box<dyn Trait> and Box<dyn Trait + Send> are different types. Since your
-// error specifically mentioned a + Send trait object, you must provide the
-// Iterator implementation for that specific variant.
-//
-// Does valtron::execute require the iterator to be Sync as well, or is Send
-// enough for your current setup?
-//
-// You are on the right track by implementing Iterator for the Box, but you’ve
-// actually hit a coherence and recursion loop because of how your blanket
-// implementation works.
-//
-// Here is what is happening:
-//
-// You have a blanket impl: impl TaskIterator for M where M: Iterator.
-// You implemented Iterator for Box<dyn TaskIterator>.
-//
-// Because of #2, the compiler sees that Box<dyn TaskIterator> is now an Iterator.
-// Because of #1, the compiler says: "Oh, since it's an Iterator, I will automatically
-// implement TaskIterator for it!"
-//
-// The Problem:
-//
-// Since the TaskIterator impl for the box is now "automatic" via the blanket impl,
-// your Iterator::next call to self.next_status() calls the blanket next_status,
-// which calls Iterator::next... resulting in infinite recursion.
-//
-// The Fix:
-//
-// To break the loop and satisfy the Send requirement from your error message,
-// you need to explicitly implement Iterator for the Send version of the box and
-// call the inner trait method directly.
-//
-impl<R, P, S> Iterator for Box<dyn TaskIterator<Ready = R, Pending = P, Spawner = S> + Send + '_>
-where
-    R: Send + 'static,
-    P: Send + 'static,
-    S: ExecutionAction + Send + 'static,
-{
-    type Item = TaskStatus<R, P, S>;
+// NOTE: there is intentionally no `impl<M: Iterator> TaskIterator for M` blanket
+// here. `TaskIterator` is valtron's internal driver trait and every task must
+// implement it explicitly (forwarding its `Ctx`). The only `Iterator`-based
+// surface is `StreamIterator`, so callers never bridge from a raw `Iterator`
+// into `TaskIterator` implicitly.
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.as_mut().next_status()
-    }
-}
-
-pub struct TaskAsStreamIterator<D, P, S>(
-    Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>,
-);
-
-impl<D, P, S> TaskAsStreamIterator<D, P, S> {
-    pub fn from_impl(t: impl TaskIterator<Ready = D, Pending = P, Spawner = S> + 'static) -> Self {
-        Self(Box::new(t))
-    }
-
-    #[must_use]
-    pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>) -> Self {
-        Self(t)
-    }
-}
-
-impl<D: 'static, P: 'static, S: ExecutionAction + 'static> Iterator
-    for TaskAsStreamIterator<D, P, S>
-{
-    type Item = crate::valtron::Stream<D, P>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next_status().map(std::convert::Into::into)
-    }
-}
-
-pub struct TaskAsIterator<D, P, S>(Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>);
+pub struct TaskAsIterator<D, P, S>(Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>, Ctx);
 
 impl<D, P, S> TaskAsIterator<D, P, S> {
-    pub fn from_impl(t: impl TaskIterator<Ready = D, Pending = P, Spawner = S> + 'static) -> Self {
-        Self(Box::new(t))
+    pub fn from_impl(
+        t: impl TaskIterator<Ready = D, Pending = P, Spawner = S> + 'static,
+        ctx: Ctx,
+    ) -> Self {
+        Self(Box::new(t), ctx)
     }
 
     #[must_use]
-    pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>) -> Self {
-        Self(t)
+    pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>, ctx: Ctx) -> Self {
+        Self(t, ctx)
     }
 }
 
@@ -781,7 +654,54 @@ impl<D: 'static, P: 'static, S: ExecutionAction + 'static> Iterator for TaskAsIt
     type Item = TaskStatus<D, P, S>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next_status()
+        self.0.next_status(self.1.clone())
+    }
+}
+
+/// Terminal (draining) methods for the contextual orchestrator.
+///
+/// These drive the wrapped task to completion, always threading the `ctx` this
+/// orchestrator was seeded with — never minting a fresh `Ctx::new()`.
+impl<D: 'static, P: 'static, S: ExecutionAction + 'static> TaskAsIterator<D, P, S> {
+    /// Drives the task, returning the first `Ready` value (if any).
+    pub fn first_ready(mut self) -> Option<D> {
+        while let Some(status) = self.0.next_status(self.1.clone()) {
+            if let TaskStatus::Ready(value) = status {
+                return Some(value);
+            }
+        }
+        None
+    }
+
+    /// Drives the task, returning the first `Pending` value (if any).
+    pub fn first_pending(mut self) -> Option<P> {
+        while let Some(status) = self.0.next_status(self.1.clone()) {
+            if let TaskStatus::Pending(value) = status {
+                return Some(value);
+            }
+        }
+        None
+    }
+
+    /// Drains the task, collecting every `Ready` value into a `Vec`.
+    pub fn collect_ready(mut self) -> Vec<D> {
+        let mut out = Vec::new();
+        while let Some(status) = self.0.next_status(self.1.clone()) {
+            if let TaskStatus::Ready(value) = status {
+                out.push(value);
+            }
+        }
+        out
+    }
+
+    /// Drains the task, returning the first `Ready` value (if any).
+    pub fn collect_one_ready(mut self) -> Option<D> {
+        while let Some(status) = self.0.next_status(self.1.clone()) {
+            if let TaskStatus::Ready(value) = status {
+                return Some(value);
+            }
+        }
+        None
     }
 }
 
@@ -905,7 +825,7 @@ pub type BoxedExecutionEngine = Box<dyn ExecutionEngine>;
 /// progressively generate progress for task only based on
 /// the underlying state information it returns.
 pub trait ExecutionIterator {
-    fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine) -> Option<State>;
+    fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State>;
 }
 
 pub trait IntoBoxedExecutionIterator {
@@ -984,8 +904,8 @@ impl Clone for CanCloneExecutionIterator {
 }
 
 impl ExecutionIterator for CanCloneExecutionIterator {
-    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
-        self.0.next(entry, engine)
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
+        self.0.next(entry, engine, ctx)
     }
 }
 
@@ -994,8 +914,8 @@ impl<'a, M> ExecutionIterator for &'a mut M
 where
     M: ExecutionIterator,
 {
-    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
-        (**self).next(entry, engine)
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
+        (**self).next(entry, engine, ctx)
     }
 }
 
@@ -1003,8 +923,8 @@ impl<M> ExecutionIterator for RefCell<Box<M>>
 where
     M: ExecutionIterator + ?Sized,
 {
-    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
-        self.get_mut().next(entry, engine)
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
+        self.get_mut().next(entry, engine, ctx)
     }
 }
 
@@ -1012,8 +932,8 @@ impl<M> ExecutionIterator for Rc<RefCell<Box<M>>>
 where
     M: ExecutionIterator + ?Sized,
 {
-    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
-        self.borrow_mut().next(entry, engine)
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
+        self.borrow_mut().next(entry, engine, ctx)
     }
 }
 
@@ -1021,8 +941,8 @@ impl<M> ExecutionIterator for Mutex<Box<M>>
 where
     M: ExecutionIterator + ?Sized,
 {
-    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
-        self.get_mut().unwrap().next(entry, engine)
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
+        self.get_mut().unwrap().next(entry, engine, ctx)
     }
 }
 
@@ -1030,8 +950,8 @@ impl<M> ExecutionIterator for Arc<Mutex<Box<M>>>
 where
     M: ExecutionIterator + ?Sized,
 {
-    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
-        self.lock().unwrap().next(entry, engine)
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
+        self.lock().unwrap().next(entry, engine, ctx)
     }
 }
 
@@ -1039,8 +959,8 @@ impl<M> ExecutionIterator for Box<M>
 where
     M: ExecutionIterator + ?Sized,
 {
-    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine) -> Option<State> {
-        (**self).next(entry, engine)
+    fn next(&mut self, entry: Entry, engine: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
+        (**self).next(entry, engine, ctx)
     }
 }
 
@@ -1476,52 +1396,6 @@ where
     }
 }
 
-pub struct AsStream<D, P, S: ExecutionAction, T: Iterator<Item = TaskStatus<D, P, S>>> {
-    iter: T,
-}
-
-impl<D, P, S, T> AsStream<D, P, S, T>
-where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
-{
-    pub fn new(item: T) -> Self {
-        Self { iter: item }
-    }
-}
-
-impl<D, P, S, T> Iterator for AsStream<D, P, S, T>
-where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
-{
-    type Item = Stream<D, P>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
-            Some(elem) => match elem {
-                TaskStatus::Init => Some(Stream::Init),
-                TaskStatus::Spawn(_) => Some(Stream::Ignore),
-                TaskStatus::Delayed(inner) => Some(Stream::Delayed(inner)),
-                TaskStatus::Pending(inner) => Some(Stream::Pending(inner)),
-                TaskStatus::Ready(item) => Some(Stream::Next(item)),
-                TaskStatus::Ignore => Some(Stream::Ignore),
-                TaskStatus::Wait => Some(Stream::Wait),
-                TaskStatus::Spread(items) => Some(Stream::Spread(
-                    items
-                        .into_iter()
-                        .map(|item| match item {
-                            TaskSpread::Ready(d) => StreamSpread::Done(d),
-                            TaskSpread::Pending(p) => StreamSpread::Pending(p),
-                        })
-                        .collect(),
-                )),
-                TaskStatus::Depends(_) => Some(Stream::Ignore),
-            },
-            None => None,
-        }
-    }
-}
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ReadyValue<P> {

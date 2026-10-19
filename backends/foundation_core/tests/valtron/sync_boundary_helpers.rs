@@ -9,8 +9,8 @@
 
 use foundation_core::valtron::Stream;
 use foundation_core::valtron::{
-    collect_one, collect_result, sync_all, sync_collect_one, sync_one, valtron_test, NoAction,
-    TaskStatus,
+    collect_one, collect_result, sync_all, sync_collect_one, sync_one, valtron_test, Ctx, NoAction,
+    TaskIterator, TaskStatus,
 };
 
 // ---------------------------------------------------------------------------
@@ -38,10 +38,15 @@ impl CounterTask {
     }
 }
 
-impl Iterator for CounterTask {
-    type Item = TaskStatus<u32, u32, NoAction>;
+impl TaskIterator for CounterTask {
+    type Ready = u32;
+    type Pending = u32;
+    type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         use std::cmp::Ordering;
         match self.current.cmp(&self.pending_count) {
             Ordering::Less => {
@@ -77,10 +82,15 @@ impl MultiValueTask {
     }
 }
 
-impl Iterator for MultiValueTask {
-    type Item = TaskStatus<u32, (), NoAction>;
+impl TaskIterator for MultiValueTask {
+    type Ready = u32;
+    type Pending = ();
+    type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.index < self.values.len() {
             let val = self.values[self.index];
             self.index += 1;

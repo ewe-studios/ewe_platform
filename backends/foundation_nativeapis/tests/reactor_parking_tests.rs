@@ -19,7 +19,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     collect_result, execute, initialize_pool, BoxedSendExecutionAction, EventReadiness,
     EventReadinessPtr, PoolGuard, TaskIterator, TaskStatus,
 };
@@ -58,7 +58,7 @@ impl TaskIterator for ParkUntilReady {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.done {
             return None;
         }
@@ -89,7 +89,7 @@ impl TaskIterator for ReadOnReady {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.done {
             return None;
         }

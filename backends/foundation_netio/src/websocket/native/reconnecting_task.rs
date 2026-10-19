@@ -17,7 +17,7 @@ use crate::shared::client::DnsResolver;
 use crate::shared::http::{SimpleHeader, SimpleHeaders};
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
+use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace};
@@ -250,14 +250,14 @@ where
     type Pending = ReconnectingWebSocketProgress;
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let state = self.state.take()?;
 
         match state {
             ReconnectingWebSocketState::Connected(mut inner) => {
                 trace!(state = "Connected", "Forwarding from inner task");
 
-                match inner.next_status() {
+                match inner.next_status(ctx) {
                     Some(TaskStatus::Ready(msg_result)) => {
                         trace!("Message received from inner task");
 
