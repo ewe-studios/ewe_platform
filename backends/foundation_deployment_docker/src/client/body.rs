@@ -17,6 +17,8 @@
 //!   that error, mapped by the endpoint ([`DockerError::PullFailed`],
 //!   [`DockerError::PushFailed`], [`DockerError::BuildFailed`]).
 //! - [`EventStream`] — `/events`, one [`EventMessage`] per event.
+//! - [`StatsStream`] — `/containers/{id}/stats`, one
+//!   [`ContainerStatsResponse`] per sample.
 //! - [`ByteBody`] — raw chunks (tar archives).
 //! - [`LogStream`] — demultiplexed stdout/stderr frames (logs, attach, exec).
 //!
@@ -39,6 +41,7 @@ use crate::error::DockerError;
 use crate::generated::create::CreateImageInfo;
 use crate::generated::events::EventMessage;
 use crate::generated::push::PushImageInfo;
+use crate::generated::stats::ContainerStatsResponse;
 use crate::generated::shared::{BuildInfo, ErrorDetail};
 use crate::streaming::decoder::{LogFrameDecoder, LogOutput};
 
@@ -229,6 +232,59 @@ impl core::fmt::Debug for EventStream {
 
 impl FuturesStream for EventStream {
     type Item = Result<EventMessage, DockerError>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        Pin::new(&mut self.get_mut().lines)
+            .poll_next(cx)
+            .map(|item| item.map(|r| r.map_err(DockerError::from)))
+    }
+}
+
+// ── stats ───────────────────────────────────────────────────────────────
+
+/// `/containers/{id}/stats`, one [`ContainerStatsResponse`] per line.
+///
+/// With `stream=true` — what [`DockerClient::container_stats_stream`] asks
+/// for, and dockerd's default — the daemon writes a sample about once a second
+/// for as long as the container runs: the stream ends only when the caller
+/// drops it (which closes the connection) or the daemon closes the feed (the
+/// container is removed, or the daemon stops). With `stream=false` the body is
+/// a single line, which [`DockerClient::container_stats`] reads for you.
+///
+/// [`DockerClient::container_stats_stream`]: crate::client::DockerClient::container_stats_stream
+/// [`DockerClient::container_stats`]: crate::client::DockerClient::container_stats
+pub struct StatsStream {
+    lines: JsonLinesStream<ContainerStatsResponse>,
+}
+
+impl StatsStream {
+    /// Wrap a `/containers/{id}/stats` body.
+    #[must_use]
+    pub fn new(lines: JsonLinesStream<ContainerStatsResponse>) -> Self {
+        Self { lines }
+    }
+
+    /// The next sample, `None` once the daemon closes the feed.
+    ///
+    /// # Errors
+    ///
+    /// A malformed sample ([`DockerError::JsonParse`]) or a failed read
+    /// ([`DockerError::Transport`]); the stream ends after it.
+    pub async fn next(&mut self) -> Option<Result<ContainerStatsResponse, DockerError>> {
+        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+    }
+}
+
+impl core::fmt::Debug for StatsStream {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("StatsStream")
+            .field("lines", &self.lines)
+            .finish()
+    }
+}
+
+impl FuturesStream for StatsStream {
+    type Item = Result<ContainerStatsResponse, DockerError>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         Pin::new(&mut self.get_mut().lines)

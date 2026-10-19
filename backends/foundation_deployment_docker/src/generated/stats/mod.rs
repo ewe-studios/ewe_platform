@@ -204,6 +204,11 @@ pub struct ContainerStatsArgs {
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
+/// # Response body
+///
+/// Returned unread, as a stream of `ContainerStatsResponse`, one per line: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
 /// # Example
 ///
 /// ```ignore
@@ -216,7 +221,10 @@ pub async fn container_stats_request<F>(
     args: &ContainerStatsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<ContainerStatsResponse>, super::shared::ApiError>
+) -> Result<
+    ApiResponse<super::shared::JsonLinesStream<ContainerStatsResponse>>,
+    super::shared::ApiError,
+>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -233,5 +241,10 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
+    Ok(ApiResponse {
+        status,
+        headers,
+        body: super::shared::JsonLinesStream::new(body),
+    })
 }

@@ -10,6 +10,13 @@
 //! [`split_exchange`] to split head + body, and returns the three handles:
 //! `(ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation)`.
 //!
+//! Container stats have no raw variant here: the generated
+//! `container_stats_request` hands back its body unread as a typed JSON-lines
+//! stream, which [`DockerClient::container_stats_stream`] wraps as a
+//! [`StatsStream`](crate::client::body::StatsStream).
+//!
+//! [`DockerClient::container_stats_stream`]: crate::client::DockerClient::container_stats_stream
+//!
 //! HOW: Every function takes `base_url: &str` (e.g. `"http://localhost/v1.53"`),
 //! matching the generated `*_request` functions. Pass
 //! [`DockerClient::api_url()`](crate::client::DockerClient::api_url) for the
@@ -58,28 +65,6 @@ pub fn container_logs(
     if let Some(u) = until {
         builder = builder.query("until", Some(&u.to_string()));
     }
-
-    split_exchange(client, builder)
-}
-
-/// Streaming request for container stats (`GET /containers/{id}/stats`).
-///
-/// Each body chunk is a JSON object (one per line when `stream=true`). Use
-/// [`JsonLineDecoder`] to extract complete JSON objects from the stream.
-#[must_use]
-pub fn container_stats(
-    client: DynNetClient,
-    base_url: &str,
-    container_id: &str,
-    stream: bool,
-    one_shot: bool,
-) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
-    let url = format!("{base_url}/containers/{container_id}/stats");
-
-    let builder = PreparedRequestBuilder::get(&url)
-        .expect("valid stats URL")
-        .query("stream", Some(if stream { "1" } else { "0" }))
-        .query("one-shot", Some(if one_shot { "1" } else { "0" }));
 
     split_exchange(client, builder)
 }
