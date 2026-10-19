@@ -1,6 +1,6 @@
 //! WebSocket `TaskIterator` state machine tests.
 
-use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{WebSocketProgress, WebSocketTask};
 use tracing_test::traced_test;
@@ -104,7 +104,7 @@ fn test_fresh_task_pending_connecting() {
 
     // First next() should return Pending(Connecting) as it tries to connect
     // (connection will fail since port 1 is not listening)
-    let status = task.next_status();
+    let status = task.next_status(Ctx::new());
     assert!(status.is_some(), "should return Some status");
 
     if let Some(TaskStatus::Pending(progress)) = status {
@@ -131,7 +131,7 @@ fn test_failing_connection_eventual_closed() {
 
     while iterations < max_iterations {
         iterations += 1;
-        if task.next_status().is_none() {
+        if task.next_status(Ctx::new()).is_none() {
             got_closed = true;
             break;
         }

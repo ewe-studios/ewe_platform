@@ -623,8 +623,11 @@ mod test_channels {
             sender_clone.send(42).unwrap();
         });
 
+        // The timeout must be comfortably longer than the sender's 100 ms sleep:
+        // a 2 ms margin flaked under scheduler load, where the sender thread can
+        // be preempted past a ~100 ms timeout and the recv times out first.
         assert_eq!(
-            receiver.recv_timeout(Duration::from_millis(102)).unwrap(),
+            receiver.recv_timeout(Duration::from_millis(500)).unwrap(),
             42
         );
         join_handler.join().expect("should finish");

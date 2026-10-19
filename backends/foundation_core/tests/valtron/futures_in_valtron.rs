@@ -1,21 +1,22 @@
-use foundation_core::valtron::{FutureTask, TaskStatus, from_future};
+use foundation_core::valtron::{Ctx, FutureTask, TaskStatus, from_future};
 use foundation_core::valtron::TaskIterator;
 
 /// WHY: `FutureTask` must poll and complete a simple future
 /// WHAT: Future that returns Ready immediately should complete on first poll
 #[test]
 fn test_future_task_immediate_ready() {
+    let ctx = Ctx::new();
     let future = core::future::ready(42);
     let mut task = FutureTask::new(future);
 
     // First poll should return Ready(42)
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(42)) => {}
         other => panic!("Expected Ready(42), got {other:?}"),
     }
 
     // Task is complete
-    assert!(task.next_status().is_none());
+    assert!(task.next_status(ctx.clone()).is_none());
 }
 
 /// WHY: `FutureTask` must park (not busy-poll) when the inner future is pending
@@ -27,6 +28,7 @@ fn test_future_task_pending() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
+    let ctx = Ctx::new();
     struct PendingThenReady {
         polled: bool,
     }
@@ -49,7 +51,7 @@ fn test_future_task_pending() {
 
     // First poll parks the task: Depends over an (empty) wake queue — the signal
     // is NOT ready, so the executor would sleep instead of re-polling.
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => {
             assert!(
                 !signal.is_ready(None),
@@ -60,23 +62,24 @@ fn test_future_task_pending() {
     }
 
     // Second poll should be Ready
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(100)) => {}
         other => panic!("Expected Ready(100), got {other:?}"),
     }
 
     // Task is complete
-    assert!(task.next_status().is_none());
+    assert!(task.next_status(ctx.clone()).is_none());
 }
 
 /// WHY: `from_future()` convenience function must work
 /// WHAT: Creates `FutureTask` correctly
 #[test]
 fn test_from_future_convenience() {
+    let ctx = Ctx::new();
     let future = core::future::ready("hello");
     let mut task = from_future(future);
 
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready("hello")) => {}
         other => panic!("Expected Ready(hello), got {other:?}"),
     }
@@ -107,6 +110,7 @@ fn test_self_wake_returns_pending_not_depends() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
+    let ctx = Ctx::new();
     struct SelfWakeThenReady {
         polled: bool,
     }
@@ -128,7 +132,7 @@ fn test_self_wake_returns_pending_not_depends() {
     let mut task = FutureTask::new(SelfWakeThenReady { polled: false });
 
     // Poll 1: self-wake → Pending (requeue), NOT Depends.
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
         Some(TaskStatus::Depends(_)) => {
             panic!("self-wake must NOT return Depends — it is a requeue, not a park")
@@ -137,12 +141,12 @@ fn test_self_wake_returns_pending_not_depends() {
     }
 
     // Poll 2: Ready.
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(42)) => {}
         other => panic!("expected Ready(42) on second poll, got {other:?}"),
     }
 
-    assert!(task.next_status().is_none(), "task complete");
+    assert!(task.next_status(ctx.clone()).is_none(), "task complete");
 }
 
 /// WHY: A future that returns `Pending` WITHOUT self-waking (stashes waker) must
@@ -151,11 +155,12 @@ fn test_self_wake_returns_pending_not_depends() {
 /// WHAT: Verify the event-driven path is unchanged.
 #[test]
 fn test_pending_without_self_wake_returns_depends_not_ready() {
+    let ctx = Ctx::new();
     let future = core::future::pending::<i32>();
     let mut task = FutureTask::new(future);
 
     // Poll: no self-wake, no external wake → Depends(not-ready).
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => {
             assert!(
                 !signal.is_ready(None),
@@ -177,6 +182,7 @@ fn test_self_wake_loop_no_depends_violations() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
+    let ctx = Ctx::new();
     const CYCLES: usize = 20;
 
     struct MultiSelfWake {
@@ -200,7 +206,7 @@ fn test_self_wake_loop_no_depends_violations() {
     let mut task = FutureTask::new(MultiSelfWake { remaining: CYCLES });
 
     for i in 0..CYCLES {
-        match task.next_status() {
+        match task.next_status(ctx.clone()) {
             Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
             Some(TaskStatus::Depends(s)) => {
                 panic!(
@@ -216,12 +222,12 @@ fn test_self_wake_loop_no_depends_violations() {
     }
 
     // Final poll: Ready.
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(CYCLES)) => {}
         other => panic!("expected Ready({CYCLES}) after {CYCLES} self-wake cycles, got {other:?}"),
     }
 
-    assert!(task.next_status().is_none(), "task complete");
+    assert!(task.next_status(ctx.clone()).is_none(), "task complete");
 }
 
 /// WHY: A future may alternate between self-wake (stream progress) and genuine
@@ -234,6 +240,7 @@ fn test_mixed_self_wake_then_external_park() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
+    let ctx = Ctx::new();
     struct MixedFuture {
         stage: u8,
     }
@@ -266,11 +273,11 @@ fn test_mixed_self_wake_then_external_park() {
 
     let mut task = FutureTask::new(MixedFuture { stage: 0 });
 
-    assert!(matches!(task.next_status(), Some(TaskStatus::Pending(FuturePollState::Pending))));
-    assert!(matches!(task.next_status(), Some(TaskStatus::Pending(FuturePollState::Pending))));
+    assert!(matches!(task.next_status(ctx.clone()), Some(TaskStatus::Pending(FuturePollState::Pending))));
+    assert!(matches!(task.next_status(ctx.clone()), Some(TaskStatus::Pending(FuturePollState::Pending))));
 
     // Third poll: no self-wake → Depends(not-ready).
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => {
             assert!(!signal.is_ready(None), "stashed waker, no external event → not ready");
         }
@@ -298,6 +305,7 @@ fn test_external_wake_makes_depends_ready() {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, Ordering};
 
+    let ctx = Ctx::new();
     struct GateFuture {
         open: Arc<AtomicBool>,
     }
@@ -321,7 +329,7 @@ fn test_external_wake_makes_depends_ready() {
     let mut task = FutureTask::new(GateFuture { open: gate.clone() });
 
     // Poll 1: gate closed → stash waker, no self-wake → Depends(not-ready).
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => {
             assert!(!signal.is_ready(None), "gate closed → not ready");
         }
@@ -332,10 +340,10 @@ fn test_external_wake_makes_depends_ready() {
     gate.store(true, Ordering::Release);
 
     // Poll 2: queue drained (still empty), future re-polled → gate open → Ready.
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready("gated")) => {}
         other => panic!("expected Ready(gated) after gate opened, got {other:?}"),
     }
 
-    assert!(task.next_status().is_none(), "task complete");
+    assert!(task.next_status(ctx.clone()).is_none(), "task complete");
 }

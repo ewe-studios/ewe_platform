@@ -17,7 +17,7 @@ use std::{
     time::{self},
 };
 
-use crate::valtron::{Stream, DEFAULT_YIELD_WAIT_TIME};
+use crate::valtron::{Ctx, Stream, DEFAULT_YIELD_WAIT_TIME};
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
 use foundation_compact::rng::ChaCha8Rng;
@@ -221,6 +221,26 @@ pub fn get_pool() -> LocalPoolHandle {
         .clone()
         .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
     LocalPoolHandle::new(&registry)
+}
+
+/// Fork a fresh [`Ctx`] from the pool's stable root.
+///
+/// The multi-threaded pool owns one root [`Ctx`] (on [`ThreadRegistry`]) and forks
+/// it per task on each worker. This exposes that same root-fork to code that drives
+/// a task alongside the pool (e.g. [`super::sendables::DrivenTaskIterator`]) so it
+/// never mints an unrelated `Ctx::new()`.
+///
+/// # Panics
+///
+/// Panics if the thread pool has not been initialized (mirrors [`get_pool`]).
+#[must_use]
+pub fn fork_ctx() -> Ctx {
+    let registry = REGISTRY
+        .lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .clone()
+        .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
+    registry.fork_ctx()
 }
 
 /// [`block_on`] instantiates the thread registry, spawns worker threads,
@@ -1240,6 +1260,9 @@ pub struct ThreadRegistry {
 
     // Thread management
     rng: Mutex<ChaCha8Rng>,
+    /// The pool-owned root [`Ctx`], forked per task on each worker — mirrors the
+    /// single-threaded engine's `ExecutorState::root`.
+    root: Ctx,
     pub(crate) max_threads: usize,
     pub(crate) live_threads: Arc<AtomicUsize>,
     idle_threads: Arc<AtomicUsize>,
@@ -1340,6 +1363,7 @@ impl ThreadRegistry {
             activity_receiver,
             waitgroup: WaitGroup::new(),
             rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
+            root: Ctx::new(),
             max_threads: num_threads,
             live_threads: Arc::new(AtomicUsize::new(0)),
             idle_threads: Arc::new(AtomicUsize::new(0)),
@@ -1384,6 +1408,12 @@ impl ThreadRegistry {
     #[must_use]
     pub fn shared_tasks(&self) -> Arc<ConcurrentQueue<BoxedSendExecutionIterator>> {
         self.shared_tasks.clone()
+    }
+
+    /// Fork a fresh [`Ctx`] from the pool's stable root.
+    #[must_use]
+    pub fn fork_ctx(&self) -> Ctx {
+        self.root.fork()
     }
 
     /// Accessor for latch.

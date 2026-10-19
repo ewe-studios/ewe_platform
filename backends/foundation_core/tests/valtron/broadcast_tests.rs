@@ -12,7 +12,9 @@
 //! depth-bounded branch queue never permanently backs up — the only correct way to
 //! consume a backpressured broadcast.
 
-use foundation_core::valtron::{NoAction, Stream, StreamIteratorExt, TaskIteratorExt, TaskStatus};
+use foundation_core::valtron::{
+    Ctx, NoAction, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
+};
 
 /// A finite task source yielding a scripted list of `TaskStatus` values.
 struct BroadcastTestTask {
@@ -26,10 +28,15 @@ impl BroadcastTestTask {
     }
 }
 
-impl Iterator for BroadcastTestTask {
-    type Item = TaskStatus<u32, String, NoAction>;
+impl TaskIterator for BroadcastTestTask {
+    type Ready = u32;
+    type Pending = String;
+    type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_status(
+        &mut self,
+        _ctx: Ctx,
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.index < self.items.len() {
             let item = self.items[self.index].clone();
             self.index += 1;
@@ -55,9 +62,10 @@ fn drive_lockstep<C, O>(
     drain: &[bool],
 ) -> (Vec<u32>, Vec<Vec<u32>>, bool)
 where
-    C: Iterator<Item = TaskStatus<u32, String, NoAction>>,
+    C: TaskIterator<Ready = u32, Pending = String, Spawner = NoAction>,
     O: Iterator<Item = Stream<u32, String>>,
 {
+    let ctx = Ctx::new();
     let n = observers.len();
     let mut branches: Vec<Vec<u32>> = vec![Vec::new(); n];
     let mut forwarded: Vec<u32> = Vec::new();
@@ -76,7 +84,7 @@ where
                 }
             }
         }
-        match cont.next() {
+        match cont.next_status(ctx.clone()) {
             Some(TaskStatus::Ready(v)) => forwarded.push(v),
             Some(TaskStatus::Depends(_)) => parked = true, // parked on a full branch
             Some(_) => {}                                  // Pending/Init/etc. — keep driving
@@ -177,22 +185,29 @@ fn pop_next<O: Iterator<Item = Stream<u32, String>>>(obs: &mut O) -> Option<u32>
 /// branch is full, then resume and deliver once both branches drain — zero loss.
 #[test]
 fn test_broadcast_parks_on_full_branch_and_resumes() {
+    let ctx = Ctx::new();
     let task = BroadcastTestTask::new(vec![TaskStatus::Ready(10), TaskStatus::Ready(20)]);
     let (mut observers, mut cont) = task.broadcast(2, |_v| true, 1);
 
     // Step 1: branches empty → deliver 10 to both, forward Ready(10).
     assert!(
-        matches!(cont.next(), Some(TaskStatus::Ready(10))),
+        matches!(cont.next_status(ctx.clone()), Some(TaskStatus::Ready(10))),
         "first value delivered + forwarded"
     );
 
     // Step 2: both branches now full → the source parks (does NOT drop 20).
     assert!(
-        matches!(cont.next(), Some(TaskStatus::Depends(_))),
+        matches!(
+            cont.next_status(ctx.clone()),
+            Some(TaskStatus::Depends(_))
+        ),
         "a full branch must park the source, not drop the value"
     );
     // Stepping again while still full re-parks (idempotent, no double-delivery).
-    assert!(matches!(cont.next(), Some(TaskStatus::Depends(_))));
+    assert!(matches!(
+        cont.next_status(ctx.clone()),
+        Some(TaskStatus::Depends(_))
+    ));
 
     // Drain both branches → free a slot on every branch.
     assert_eq!(pop_next(&mut observers[0]), Some(10));
@@ -200,7 +215,7 @@ fn test_broadcast_parks_on_full_branch_and_resumes() {
 
     // Step 3: all branches have vacancy → deliver the stashed 20, forward Ready(20).
     assert!(
-        matches!(cont.next(), Some(TaskStatus::Ready(20))),
+        matches!(cont.next_status(ctx.clone()), Some(TaskStatus::Ready(20))),
         "resumes and delivers the stashed value once branches drain"
     );
 
@@ -209,7 +224,7 @@ fn test_broadcast_parks_on_full_branch_and_resumes() {
     assert_eq!(pop_next(&mut observers[1]), Some(20));
 
     // Source exhausted.
-    assert!(cont.next().is_none());
+    assert!(cont.next_status(ctx.clone()).is_none());
 }
 
 /// A dropped observer closes its branch; the source stops copying to it but keeps

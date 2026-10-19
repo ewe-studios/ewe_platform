@@ -25,7 +25,7 @@ use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 
 use bytes::{Buf, Bytes};
-use foundation_core::valtron::{Stream, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskStatus};
 
 use foundation_netio::quic::{
     client_config_trusting_pem, server_config_from_pem, QuicBidiStream, QuicConnection, QuicDriver,
@@ -43,8 +43,8 @@ const BUDGET: Duration = Duration::from_secs(5);
 
 /// Step both drivers once. Returns `true` if either made progress.
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) -> bool {
-    let s = server.next_status();
-    let c = client.next_status();
+    let s = server.next_status(Ctx::new());
+    let c = client.next_status(Ctx::new());
     matches!(s, Some(TaskStatus::Ready(_) | TaskStatus::Pending(_)))
         || matches!(c, Some(TaskStatus::Ready(_) | TaskStatus::Pending(_)))
 }
@@ -373,7 +373,7 @@ fn idle_driver_parks_on_injected_readiness_instead_of_spinning() {
 
     // No datagrams, no connections: the driver has nothing to do. It must park on
     // the reactor, not burn a worker with `Delayed`.
-    let status = server.next_status().expect("server driver keeps running");
+    let status = server.next_status(Ctx::new()).expect("server driver keeps running");
     assert!(
         matches!(status, TaskStatus::Depends(_)),
         "an idle driver with an injected readiness signal must park via Depends, \
@@ -386,7 +386,7 @@ fn idle_driver_without_readiness_falls_back_to_delayed() {
     let server_cfg = server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config");
     let mut server = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
 
-    let status = server.next_status().expect("server driver keeps running");
+    let status = server.next_status(Ctx::new()).expect("server driver keeps running");
     assert!(
         matches!(status, TaskStatus::Delayed(_)),
         "without a readiness signal the driver must yield with Delayed rather than \

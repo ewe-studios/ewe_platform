@@ -10,7 +10,7 @@
 use std::fs::File;
 use std::path::PathBuf;
 
-use foundation_core::valtron::TaskIterator;
+use foundation_core::valtron::{Ctx, TaskIterator};
 use foundation_nativeapis::{EventBroadcaster, FileWatcherTask};
 use foundation_nativeapis::{NativeWatcher, PollWatcher};
 
@@ -97,7 +97,7 @@ fn file_watcher_task_delivers_events() {
     File::create(&file_path).expect("create failed");
 
     // Manually tick the task via TaskIterator
-    let status = task.next_status();
+    let status = task.next_status(Ctx::new());
     assert!(
         status.is_some(),
         "task should not terminate"
@@ -121,8 +121,8 @@ fn file_watcher_task_delivers_events() {
 fn file_watcher_task_handles_poll_error() {
     // Create a task that will poll — even with no watches, it shouldn't panic
     let mut task = FileWatcherTask::with_watcher(Box::new(PollWatcher::new()));
-    let _ = task.next_status(); // Should not panic
-    let _ = task.next_status(); // Should not panic
+    let _ = task.next_status(Ctx::new()); // Should not panic
+    let _ = task.next_status(Ctx::new()); // Should not panic
 }
 
 /// Test: FileWatcherTask with no subscribers works fine
@@ -137,7 +137,7 @@ fn file_watcher_task_no_subscribers() {
     }));
 
     // Don't subscribe — just tick
-    let status = task.next_status();
+    let status = task.next_status(Ctx::new());
     // Should still work even with no subscribers
     assert!(status.is_some());
 }
@@ -158,6 +158,6 @@ fn file_watcher_task_unwatch() {
     // Create file after unwatch — should not generate events
     File::create(dir.path().join("after_unwatch.txt")).expect("create failed");
 
-    let status = task.next_status();
+    let status = task.next_status(Ctx::new());
     assert!(status.is_some());
 }

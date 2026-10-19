@@ -2,21 +2,23 @@
 
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{sleep_async, valtron_test, SleepingTask, TaskIterator};
+use foundation_core::valtron::{Ctx, sleep_async, valtron_test, SleepingTask, TaskIterator};
 
 // ── SleepingTask unit tests (no executor needed) ──────────────────────
 
 #[test]
 fn sleeping_task_elapsed_returns_none() {
+    let ctx = Ctx::new();
     let mut t = SleepingTask::sleep(Duration::ZERO);
-    assert!(t.next_status().is_none(), "already-elapsed sleep should be done");
+    assert!(t.next_status(ctx.clone()).is_none(), "already-elapsed sleep should be done");
 }
 
 #[test]
 fn sleeping_task_future_yields_delayed() {
+    let ctx = Ctx::new();
     let deadline = Instant::now() + Duration::from_millis(500);
     let mut t = SleepingTask::new(deadline);
-    let status = t.next_status();
+    let status = t.next_status(ctx.clone());
     assert!(
         matches!(status, Some(foundation_core::valtron::TaskStatus::Delayed(_))),
         "future deadline should yield Delayed"
@@ -25,10 +27,11 @@ fn sleeping_task_future_yields_delayed() {
 
 #[test]
 fn sleeping_task_eventually_completes() {
+    let ctx = Ctx::new();
     let mut t = SleepingTask::sleep(Duration::from_millis(1));
     // Drive until done — the Delayed loop should terminate
     for _ in 0..10 {
-        match t.next_status() {
+        match t.next_status(ctx.clone()) {
             None => return, // done
             Some(foundation_core::valtron::TaskStatus::Delayed(_)) => {
                 std::thread::sleep(Duration::from_millis(1));

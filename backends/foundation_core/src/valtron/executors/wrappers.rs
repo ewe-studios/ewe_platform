@@ -3,7 +3,7 @@
 //! This module provides composable wrappers that add retry logic, timeouts,
 //! and backoff strategies to any `TaskIterator`, enabling robust task execution.
 
-use crate::valtron::{TaskIterator, TaskStatus};
+use crate::valtron::{Ctx, TaskIterator, TaskStatus};
 use std::time::Duration;
 
 // ============================================================================
@@ -54,7 +54,7 @@ where
     type Pending = T::Pending;
     type Spawner = T::Spawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.timed_out.is_some() {
             return None; // Task stops on timeout
         }
@@ -71,7 +71,7 @@ where
         }
 
         // Poll inner task and wrap pending states
-        self.inner.next_status().map(|status| match status {
+        self.inner.next_status(ctx).map(|status| match status {
             TaskStatus::Pending(p) => TaskStatus::Pending(p),
             TaskStatus::Ready(r) => TaskStatus::Ready(r),
             TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
@@ -125,14 +125,14 @@ where
     type Pending = T::Pending;
     type Spawner = T::Spawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.current_polls >= self.max_polls {
             tracing::warn!("Task exceeded poll limit of {}", self.max_polls);
             return None;
         }
 
         self.current_polls += 1;
-        self.inner.next_status()
+        self.inner.next_status(ctx)
     }
 }
 
@@ -242,14 +242,14 @@ where
     type Pending = T::Pending;
     type Spawner = T::Spawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // If we're in a delay, emit it
         if let Some(delay) = self.in_delay.take() {
             return Some(TaskStatus::Delayed(delay));
         }
 
         // Poll inner task
-        match self.inner.next_status() {
+        match self.inner.next_status(ctx) {
             Some(TaskStatus::Ready(result)) => {
                 // On completion, calculate delay for next retry
                 // (if this task will be retried by outer RetryingTask)
@@ -285,7 +285,7 @@ mod tests {
         type Pending = ();
         type Spawner = NoAction;
 
-        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             if self.index < self.values.len() {
                 let val = self.values[self.index];
                 self.index += 1;
@@ -303,6 +303,7 @@ mod tests {
     fn test_timeout_task_stops_after_duration() {
         use std::thread;
 
+        let ctx = Ctx::new();
         struct SlowTask {
             count: u32,
         }
@@ -314,6 +315,7 @@ mod tests {
 
             fn next_status(
                 &mut self,
+                _ctx: Ctx,
             ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
                 thread::sleep(Duration::from_millis(50));
                 self.count += 1;
@@ -330,13 +332,13 @@ mod tests {
 
         // Poll a few times
         loop {
-            if timeout_task.next_status().is_none() {
+            if timeout_task.next_status(ctx.clone()).is_none() {
                 break;
             }
         }
 
         // Should eventually timeout
-        let res = timeout_task.next_status();
+        let res = timeout_task.next_status(ctx.clone());
         assert!(res.is_none(), "Expected None but got: {res:?}");
     }
 
@@ -344,6 +346,7 @@ mod tests {
     /// WHAT: Task exceeding poll limit should return None
     #[test]
     fn test_poll_limit_task_stops_after_max_polls() {
+        let ctx = Ctx::new();
         struct InfiniteTask;
 
         impl TaskIterator for InfiniteTask {
@@ -353,6 +356,7 @@ mod tests {
 
             fn next_status(
                 &mut self,
+                _ctx: Ctx,
             ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
                 Some(TaskStatus::Pending(()))
             }
@@ -364,14 +368,14 @@ mod tests {
         // Should allow 5 polls
         for i in 0..5 {
             assert!(
-                limited_task.next_status().is_some(),
+                limited_task.next_status(ctx.clone()).is_some(),
                 "Poll {} should succeed",
                 i
             );
         }
 
         // 6th poll should return None
-        assert!(limited_task.next_status().is_none());
+        assert!(limited_task.next_status(ctx.clone()).is_none());
     }
 
     /// WHY: BackoffStrategy::Fixed must return constant delay

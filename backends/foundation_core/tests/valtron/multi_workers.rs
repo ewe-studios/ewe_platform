@@ -6,7 +6,7 @@ use std::{
 };
 
 use foundation_core::synca::mpp;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     block_on, get_pool, valtron_test, FnReady, NoSpawner, NotificationItem, Stream, TaskIterator,
     TaskStatus,
 };
@@ -30,7 +30,7 @@ impl TaskIterator for DCounter {
 
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let mut items = self.1.lock().unwrap();
         let item_size = items.len();
 
@@ -61,7 +61,7 @@ impl TaskIterator for Counter {
 
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         tracing::debug!("Counter Task is running");
 
         let result = {
@@ -97,7 +97,7 @@ impl TaskIterator for PanicCounter {
 
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         tracing::debug!("PanicCounter Task is running");
         panic!("Bad stuff");
     }

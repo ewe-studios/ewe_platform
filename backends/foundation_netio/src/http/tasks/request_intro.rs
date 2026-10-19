@@ -31,7 +31,7 @@ use crate::shared::http::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
     SimpleHttpBody,
 };
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskStatus};
 
 /// Cloneable subset of `RequestIntro` for observer patterns.
 ///
@@ -203,7 +203,7 @@ impl TaskIterator for GetRequestIntroTask {
     type Ready = RequestIntro;
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.state.take()? {
             GetRequestIntroState::Init(inner) => match inner {
                 Some(stream) => {
@@ -433,7 +433,7 @@ mod tests {
         let mut ready_failures = 0usize;
         let mut terminated = false;
         for _ in 0..MAX_STEPS {
-            match task.next_status() {
+            match task.next_status(Ctx::new()) {
                 None => {
                     terminated = true;
                     break;
@@ -514,7 +514,7 @@ mod tests {
         let mut timeouts = 0usize;
         let mut terminated = false;
         for _ in 0..MAX_STEPS {
-            match task.next_status() {
+            match task.next_status(Ctx::new()) {
                 None => {
                     terminated = true;
                     break;

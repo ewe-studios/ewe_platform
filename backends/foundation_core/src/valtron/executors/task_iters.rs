@@ -14,7 +14,7 @@ use crate::valtron::{
     task::{TaskSpread, TaskStatus}, BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
 };
 use crate::valtron::{
-    BoxedExecutionIterator, ExecutionIterator, QueueVacancyReadiness, State,
+    BoxedExecutionIterator, Ctx, ExecutionIterator, QueueVacancyReadiness, State,
 };
 // Only the `multi`-gated `Into<BoxedSendExecutionIterator>` impls use this alias.
 #[cfg(feature = "multi")]
@@ -125,7 +125,7 @@ where
     /// `multi` (for `QueueVacancyReadiness` coercion into `EventReadinessPtr`)
     /// are supplied by the wrapper's own bounds rather than leaking into this
     /// inherent method.
-    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, on_full: impl FnOnce() -> State) -> Option<State> {
+    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
         if self.alive.is_none() {
             return None;
         }
@@ -164,7 +164,7 @@ where
         }
 
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.task.lock().unwrap().next_status()
+            self.task.lock().unwrap().next_status(ctx.clone())
         })) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -314,12 +314,12 @@ where
     Done: Send + 'static,
     Pending: Send + 'static,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
         let on_full = move || {
             State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
         };
-        self.drive(entry, executor, on_full)
+        self.drive(entry, executor, ctx, on_full)
     }
 }
 
@@ -332,12 +332,12 @@ where
     Done: 'static,
     Pending: 'static,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
         let on_full = move || {
             State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
         };
-        self.drive(entry, executor, on_full)
+        self.drive(entry, executor, ctx, on_full)
     }
 }
 
@@ -440,7 +440,7 @@ where
     Action: ExecutionAction,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
-    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, on_full: impl FnOnce() -> State) -> Option<State> {
+    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
         if self.alive.is_none() {
             return None;
         }
@@ -479,7 +479,7 @@ where
         }
 
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.task.lock().unwrap().next_status()
+            self.task.lock().unwrap().next_status(ctx.clone())
         })) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -620,12 +620,12 @@ where
     Done: Send + 'static,
     Pending: Send + 'static,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
         let on_full = move || {
             State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
         };
-        self.drive(entry, executor, on_full)
+        self.drive(entry, executor, ctx, on_full)
     }
 }
 
@@ -638,12 +638,12 @@ where
     Done: 'static,
     Pending: 'static,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
         let on_full = move || {
             State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
         };
-        self.drive(entry, executor, on_full)
+        self.drive(entry, executor, ctx, on_full)
     }
 }
 
@@ -745,7 +745,7 @@ where
     Action: ExecutionAction,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
-    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, on_full: impl FnOnce() -> State) -> Option<State> {
+    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
         self.alive?;
 
         // Retry stashed pending message from previous backpressure
@@ -782,7 +782,7 @@ where
         }
 
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.task.lock().unwrap().next_status()
+            self.task.lock().unwrap().next_status(ctx.clone())
         })) {
             Ok(inner) => inner,
             Err(panic_error) => {
@@ -887,12 +887,12 @@ where
     Done: Send + 'static,
     Pending: Send + 'static,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
         let on_full = move || {
             State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
         };
-        self.drive(entry, executor, on_full)
+        self.drive(entry, executor, ctx, on_full)
     }
 }
 
@@ -905,11 +905,11 @@ where
     Done: 'static,
     Pending: 'static,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
         let on_full = move || {
             State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
         };
-        self.drive(entry, executor, on_full)
+        self.drive(entry, executor, ctx, on_full)
     }
 }

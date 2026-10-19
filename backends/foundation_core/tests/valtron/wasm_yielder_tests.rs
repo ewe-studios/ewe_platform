@@ -26,7 +26,7 @@ impl TaskIterator for FiniteTask {
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.remaining == 0 {
             return None; // Task complete
         }
@@ -46,7 +46,7 @@ impl TaskIterator for CounterTask {
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.current >= self.max {
             return None; // Task complete
         }

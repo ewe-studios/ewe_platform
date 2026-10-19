@@ -22,7 +22,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     BoxedSendExecutionAction, FutureTask, Stream, TaskIterator, TaskStatus,
 };
 use foundation_netio::http3::H3Connection;
@@ -96,7 +96,7 @@ impl TaskIterator for H3AcceptTask {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         if self.shutdown.probe() {
             return None;
         }

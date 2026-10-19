@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     CancellableFutureTask, CancelOutcome, Stream, TaskIterator, TaskStatus,
 };
 
@@ -11,16 +11,17 @@ use foundation_core::valtron::{
 
 #[test]
 fn immediate_ready_wraps_in_ok() {
+    let ctx = Ctx::new();
     let cancel = Arc::new(AtomicBool::new(false));
     let future = core::future::ready(42);
     let mut task = CancellableFutureTask::new(future, cancel);
 
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(Ok(42))) => {}
         other => panic!("expected Ready(Ok(42)), got {other:?}"),
     }
 
-    assert!(task.next_status().is_none());
+    assert!(task.next_status(ctx.clone()).is_none());
 }
 
 #[test]
@@ -29,6 +30,7 @@ fn pending_then_ready() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
+    let ctx = Ctx::new();
     struct PendingOnce(bool);
 
     impl Future for PendingOnce {
@@ -47,28 +49,29 @@ fn pending_then_ready() {
     let mut task = CancellableFutureTask::new(PendingOnce(false), cancel);
 
     // Pending now parks via Depends (composed with the not-set cancel signal).
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => {
             assert!(!signal.is_ready(None), "not cancelled + inner parked -> not ready");
         }
         other => panic!("expected Depends, got {other:?}"),
     }
 
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(Ok("done"))) => {}
         other => panic!("expected Ready(Ok(\"done\")), got {other:?}"),
     }
 
-    assert!(task.next_status().is_none());
+    assert!(task.next_status(ctx.clone()).is_none());
 }
 
 #[test]
 fn cancel_before_first_poll() {
+    let ctx = Ctx::new();
     let cancel = Arc::new(AtomicBool::new(true));
     let future = core::future::ready(99);
     let mut task = CancellableFutureTask::new(future, cancel);
 
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled))) => {}
         other => panic!("expected Cancelled, got {other:?}"),
     }
@@ -80,6 +83,7 @@ fn cancel_after_pending() {
     use core::pin::Pin;
     use core::task::{Context, Poll};
 
+    let ctx = Ctx::new();
     struct AlwaysPending;
     impl Future for AlwaysPending {
         type Output = i32;
@@ -93,7 +97,7 @@ fn cancel_after_pending() {
 
     // The always-pending inner future parks via Depends; the composed signal is
     // not ready while the cancel flag is unset.
-    let signal = match task.next_status() {
+    let signal = match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => signal,
         other => panic!("expected Depends, got {other:?}"),
     };
@@ -104,7 +108,7 @@ fn cancel_after_pending() {
     cancel.store(true, Ordering::Release);
     assert!(signal.is_ready(None), "cancel flips the composed signal ready");
 
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled))) => {}
         other => panic!("expected Cancelled, got {other:?}"),
     }

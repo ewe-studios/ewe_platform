@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::synca::mpp::Receiver;
-use foundation_core::valtron::{BoxedSendExecutionAction, DrivenStreamIterator, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, DrivenStreamIterator, TaskIterator, TaskStatus};
 use foundation_core::valtron::{execute, GenericResult};
 
 use crate::shared::error::Result;
@@ -96,8 +96,8 @@ impl TaskIterator for FileWatcherTask {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    #[tracing::instrument(skip(self), fields(stop = self.stop.is_stopped()))]
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    #[tracing::instrument(skip(self, ctx), fields(stop = self.stop.is_stopped()))]
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.stop.is_stopped() {
             return None;
         }

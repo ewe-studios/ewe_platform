@@ -17,7 +17,7 @@ use crate::core::state::resource_identifier::ResourceIdentifier;
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::hash::config_hash;
 use crate::core::state::types::{ResourceState, StateStatus};
-use foundation_core::valtron::{TaskIterator, TaskSpread, TaskStatus, ThreadedValue};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus, ThreadedValue};
 use serde::Serialize;
 use std::sync::Arc;
 
@@ -242,7 +242,7 @@ where
     type Spawner = Inner::Spawner;
 
     #[allow(clippy::missing_panics_doc, clippy::too_many_lines)]
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.state.take()? {
             StoreStatePrecomputed::Inner {
                 mut inner,
@@ -253,7 +253,7 @@ where
                 input,
                 environment,
             } => {
-                match inner.next_status()? {
+                match inner.next_status(ctx)? {
                     TaskStatus::Ready(Ok(output)) => {
                         // Inner task succeeded - build state and call state_store.set()
                         let config_snapshot = match serde_json::to_value(&input) {
@@ -551,7 +551,7 @@ where
     type Spawner = Inner::Spawner;
 
     #[allow(clippy::missing_panics_doc, clippy::too_many_lines)]
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.state.take()? {
             StoreStateIdentifierInner::Inner {
                 mut inner,
@@ -559,7 +559,7 @@ where
                 input,
                 environment,
             } => {
-                match inner.next_status()? {
+                match inner.next_status(ctx)? {
                     TaskStatus::Ready(Ok(output)) => {
                         // Inner task succeeded - compute resource info from output
                         let resource_id = output.generate_resource_id(&input);

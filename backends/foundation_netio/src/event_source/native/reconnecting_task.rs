@@ -18,7 +18,7 @@ use crate::shared::client::DnsResolver;
 use crate::shared::http::timeout::TimeoutCalculator;
 use crate::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod, TryClone};
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
+use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -303,7 +303,7 @@ where
     type Pending = ReconnectingProgress;
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let state = self.state.take()?;
 
         match state {
@@ -322,7 +322,7 @@ where
             ReconnectingState::Connected(mut inner) => {
                 trace!(state = "Connected", "Forwarding from inner task");
 
-                match inner.next_status() {
+                match inner.next_status(ctx) {
                     Some(TaskStatus::Ready(parse_result)) => {
                         trace!("Event received from inner task");
                         self.track_event_id(&parse_result);

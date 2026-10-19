@@ -19,7 +19,7 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Stream, TaskIterator};
+use foundation_core::valtron::{Ctx, Stream, TaskIterator};
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
 use foundation_netio::http3::{request_from_fields, response_to_fields};
 use foundation_netio::netcap::context::ConnectionContext;
@@ -38,8 +38,8 @@ const CA_PEM: &[u8] = include_bytes!("../fixtures/quic_ca.pem");
 const BUDGET: Duration = Duration::from_secs(5);
 
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) {
-    let _ = server.next_status();
-    let _ = client.next_status();
+    let _ = server.next_status(Ctx::new());
+    let _ = client.next_status(Ctx::new());
 }
 
 /// Drive both QUIC drivers until `done` yields.
@@ -88,8 +88,8 @@ macro_rules! until {
                 _ => {}
             }
             assert!(Instant::now() < deadline, "timed out driving HTTP/3");
-            let _ = $server.next_status();
-            let _ = $client.next_status();
+            let _ = $server.next_status(Ctx::new());
+            let _ = $client.next_status(Ctx::new());
         }
     }};
 }

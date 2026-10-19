@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Ctx, Stream};
 use foundation_netio::quic::{QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError, StreamId};
 use foundation_netio::webtransport::proto::*;
 use foundation_netio::webtransport::session::{NoIoSession, WtAcceptor, WtConnector, WtSession, WtSessionState};
@@ -254,8 +254,8 @@ const KEY_PEM: &[u8] = include_bytes!("../fixtures/quic_key.pem");
 const CA_PEM: &[u8] = include_bytes!("../fixtures/quic_ca.pem");
 
 fn pump(server: &mut QuicDriver, client: &mut QuicDriver) {
-    let _ = server.next_status();
-    let _ = client.next_status();
+    let _ = server.next_status(Ctx::new());
+    let _ = client.next_status(Ctx::new());
 }
 
 fn drive_until<T>(
@@ -302,8 +302,8 @@ fn webtransport_datagram_round_trip_over_real_quinn_proto() {
     // Pump the QUIC drivers so reordered packets don't starve either side.
     let deadline = Instant::now() + Duration::from_secs(5);
     while Instant::now() < deadline {
-        let _ = srv_driver.next_status();
-        let _ = cli_driver.next_status();
+        let _ = srv_driver.next_status(Ctx::new());
+        let _ = cli_driver.next_status(Ctx::new());
 
         // Client sends a datagram.
         let _ = client_session.queue_datagram(Bytes::from("hello-quic"));

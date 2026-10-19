@@ -4,7 +4,7 @@
 //! - `TestHttpServer` (request-response) — verifies initial connection sends body/headers
 //! - `SseTestServer` (streaming) — verifies reconnection behavior with controlled close
 
-use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_netio::event_source::native::ReconnectingEventSourceTask;
 use foundation_netio::shared::client::StaticSocketAddr;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod};
@@ -104,7 +104,7 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
         .with_max_retries(0);
 
     let mut events = Vec::new();
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         if let TaskStatus::Ready(parse_result) = status {
             events.push(parse_result);
         }
@@ -264,7 +264,7 @@ fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
 
     let mut events = Vec::new();
     let mut steps = 0;
-    while let Some(status) = task.next_status() {
+    while let Some(status) = task.next_status(Ctx::new()) {
         if let TaskStatus::Ready(parse_result) = status {
             events.push(parse_result);
         }

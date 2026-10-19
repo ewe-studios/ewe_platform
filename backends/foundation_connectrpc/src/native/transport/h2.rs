@@ -21,7 +21,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     self, BoxedSendExecutionAction, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
     TryRecvError,
 };
@@ -351,7 +351,7 @@ impl TaskIterator for H2Pump {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         // Set non-blocking
         self.stream.set_nonblocking(true).ok();
 

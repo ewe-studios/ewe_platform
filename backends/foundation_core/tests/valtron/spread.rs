@@ -6,11 +6,41 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 use foundation_core::valtron::{
-    NoAction, Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt,
-    StreamPendingFuture, StreamReadyFuture, StreamSpread, TaskIteratorExt, TaskSpread, TaskStatus,
+    Ctx, NoAction, Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt,
+    StreamPendingFuture, StreamReadyFuture, StreamSpread, TaskIterator, TaskIteratorExt, TaskSpread,
+    TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 use tracing_test::traced_test;
+
+/// Test-only `TaskIterator` over a `Vec<TaskStatus>` — there is no blanket
+/// `Iterator → TaskIterator` impl, so combinator tests need this explicit source.
+struct VecTask<D, P, S: foundation_core::valtron::ExecutionAction> {
+    items: std::vec::IntoIter<TaskStatus<D, P, S>>,
+}
+
+impl<D, P, S: foundation_core::valtron::ExecutionAction> VecTask<D, P, S> {
+    fn new(items: Vec<TaskStatus<D, P, S>>) -> Self {
+        Self {
+            items: items.into_iter(),
+        }
+    }
+}
+
+impl<D, P, S> TaskIterator for VecTask<D, P, S>
+where
+    D: 'static,
+    P: 'static,
+    S: foundation_core::valtron::ExecutionAction + 'static,
+{
+    type Ready = D;
+    type Pending = P;
+    type Spawner = S;
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<D, P, S>> {
+        self.items.next()
+    }
+}
 
 // ============================================================================
 // No-Op Waker for sync polling
@@ -186,6 +216,7 @@ fn test_stream_map_pending_passthrough_spread_done() {
 
 #[test]
 fn test_task_map_ready_transforms_spread_done() {
+    let ctx = Ctx::new();
     let items = vec![
         TaskStatus::<i32, &str, NoAction>::Ready(5),
         TaskStatus::Spread(vec![
@@ -194,11 +225,11 @@ fn test_task_map_ready_transforms_spread_done() {
             TaskSpread::Ready(3),
         ]),
     ];
-    let mut mapped = items.into_iter().map_ready(|x| x * 10);
+    let mut mapped = VecTask::new(items).map_ready(|x| x * 10);
 
-    assert_eq!(Iterator::next(&mut mapped), Some(TaskStatus::Ready(50)));
+    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Ready(50)));
     assert_eq!(
-        Iterator::next(&mut mapped),
+        mapped.next_status(ctx.clone()),
         Some(TaskStatus::Spread(vec![
             TaskSpread::Ready(10),
             TaskSpread::Ready(20),
@@ -209,6 +240,7 @@ fn test_task_map_ready_transforms_spread_done() {
 
 #[test]
 fn test_task_map_pending_transforms_spread_pending() {
+    let ctx = Ctx::new();
     let items = vec![
         TaskStatus::<i32, String, NoAction>::Pending("hi".to_string()),
         TaskStatus::Spread(vec![
@@ -216,11 +248,11 @@ fn test_task_map_pending_transforms_spread_pending() {
             TaskSpread::Pending("c".to_string()),
         ]),
     ];
-    let mut mapped = items.into_iter().map_pending(|s| s.len());
+    let mut mapped = VecTask::new(items).map_pending(|s| s.len());
 
-    assert_eq!(Iterator::next(&mut mapped), Some(TaskStatus::Pending(2)));
+    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Pending(2)));
     assert_eq!(
-        Iterator::next(&mut mapped),
+        mapped.next_status(ctx.clone()),
         Some(TaskStatus::Spread(vec![
             TaskSpread::Pending(2),
             TaskSpread::Pending(1),
@@ -230,13 +262,14 @@ fn test_task_map_pending_transforms_spread_pending() {
 
 #[test]
 fn test_task_map_ready_passthrough_spread_pending() {
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Pending("a"),
         TaskSpread::Pending("b"),
     ])];
-    let mut mapped = items.into_iter().map_ready(|x| x * 2);
+    let mut mapped = VecTask::new(items).map_ready(|x| x * 2);
     assert_eq!(
-        Iterator::next(&mut mapped),
+        mapped.next_status(ctx.clone()),
         Some(TaskStatus::Spread(vec![
             TaskSpread::Pending("a"),
             TaskSpread::Pending("b"),
@@ -246,13 +279,14 @@ fn test_task_map_ready_passthrough_spread_pending() {
 
 #[test]
 fn test_task_map_pending_passthrough_spread_done() {
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
     ])];
-    let mut mapped = items.into_iter().map_pending(|s: &str| s.len());
+    let mut mapped = VecTask::new(items).map_pending(|s: &str| s.len());
     assert_eq!(
-        Iterator::next(&mut mapped),
+        mapped.next_status(ctx.clone()),
         Some(TaskStatus::Spread(vec![
             TaskSpread::Ready(1),
             TaskSpread::Ready(2),
@@ -268,13 +302,14 @@ fn test_task_map_pending_passthrough_spread_done() {
 fn test_task_enumerate_spread_done() {
     use foundation_core::valtron::TaskIteratorExt;
 
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Ready(10),
         TaskSpread::Ready(20),
         TaskSpread::Ready(30),
     ])];
-    let mut enumd = TaskIteratorExt::enumerate(items.into_iter());
-    let result = Iterator::next(&mut enumd).unwrap();
+    let mut enumd = TaskIteratorExt::enumerate(VecTask::new(items));
+    let result = enumd.next_status(ctx.clone()).unwrap();
     match result {
         TaskStatus::Spread(items) => {
             assert_eq!(items.len(), 3);
@@ -288,107 +323,115 @@ fn test_task_enumerate_spread_done() {
 
 #[test]
 fn test_task_find_spread_done() {
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
         TaskSpread::Ready(3),
     ])];
-    let mut found = items.into_iter().find(|x| *x == 2);
-    assert_eq!(Iterator::next(&mut found), Some(TaskStatus::Ready(Some(2))));
+    let mut found = VecTask::new(items).find(|x| *x == 2);
+    assert_eq!(found.next_status(ctx.clone()), Some(TaskStatus::Ready(Some(2))));
 }
 
 #[test]
 fn test_task_find_no_match_in_spread_done() {
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
         TaskSpread::Ready(3),
     ])];
-    let mut found = items.into_iter().find(|x| *x == 5);
+    let mut found = VecTask::new(items).find(|x| *x == 5);
     // Returns Ignore when no match found in spread
-    assert_eq!(Iterator::next(&mut found), Some(TaskStatus::Ignore));
+    assert_eq!(found.next_status(ctx.clone()), Some(TaskStatus::Ignore));
 }
 
 #[test]
 fn test_task_fold_spread_done() {
     use foundation_core::valtron::TaskIteratorExt;
 
+    let ctx = Ctx::new();
     let items = vec![
         TaskStatus::<i32, &str, NoAction>::Ready(1),
         TaskStatus::Spread(vec![TaskSpread::Ready(2), TaskSpread::Ready(3)]),
     ];
-    let mut folded = TaskIteratorExt::fold(items.into_iter(), 0, |acc, x| acc + x);
+    let mut folded = TaskIteratorExt::fold(VecTask::new(items), 0, |acc, x| acc + x);
     // fold processes Ready → Ignore, then Spread → Ignore, then exhaustion → Ready
-    assert_eq!(Iterator::next(&mut folded), Some(TaskStatus::Ignore));
-    assert_eq!(Iterator::next(&mut folded), Some(TaskStatus::Ignore));
-    assert_eq!(Iterator::next(&mut folded), Some(TaskStatus::Ready(6)));
+    assert_eq!(folded.next_status(ctx.clone()), Some(TaskStatus::Ignore));
+    assert_eq!(folded.next_status(ctx.clone()), Some(TaskStatus::Ignore));
+    assert_eq!(folded.next_status(ctx.clone()), Some(TaskStatus::Ready(6)));
 }
 
 #[test]
 fn test_task_all_spread_done() {
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Ready(2),
         TaskSpread::Ready(4),
         TaskSpread::Ready(6),
     ])];
-    let mut all = items.into_iter().all(|x| x % 2 == 0);
+    let mut all = VecTask::new(items).all(|x| x % 2 == 0);
     // all processes Spread items and returns Ignore, then Ready(true) on exhaustion
-    assert_eq!(Iterator::next(&mut all), Some(TaskStatus::Ignore));
-    assert_eq!(Iterator::next(&mut all), Some(TaskStatus::Ready(true)));
+    assert_eq!(all.next_status(ctx.clone()), Some(TaskStatus::Ignore));
+    assert_eq!(all.next_status(ctx.clone()), Some(TaskStatus::Ready(true)));
 }
 
 #[test]
 fn test_task_all_spread_done_false() {
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Ready(2),
         TaskSpread::Ready(3),
         TaskSpread::Ready(6),
     ])];
-    let mut all = items.into_iter().all(|x| x % 2 == 0);
-    assert_eq!(Iterator::next(&mut all), Some(TaskStatus::Ready(false)));
+    let mut all = VecTask::new(items).all(|x| x % 2 == 0);
+    assert_eq!(all.next_status(ctx.clone()), Some(TaskStatus::Ready(false)));
 }
 
 #[test]
 fn test_task_any_spread_done() {
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
         TaskSpread::Ready(5),
     ])];
-    let mut any = items.into_iter().any(|x| x % 2 == 0);
+    let mut any = VecTask::new(items).any(|x| x % 2 == 0);
     // any processes Spread items; 2%2==0 → returns Ready(true) immediately
-    assert_eq!(Iterator::next(&mut any), Some(TaskStatus::Ready(true)));
+    assert_eq!(any.next_status(ctx.clone()), Some(TaskStatus::Ready(true)));
     // After finding a match, any_true=true, so next returns None
-    assert_eq!(Iterator::next(&mut any), None);
+    assert_eq!(any.next_status(ctx.clone()), None);
 }
 
 #[test]
 fn test_task_any_spread_done_false() {
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(3),
         TaskSpread::Ready(5),
     ])];
-    let mut any = items.into_iter().any(|x| x % 2 == 0);
+    let mut any = VecTask::new(items).any(|x| x % 2 == 0);
     // no items match → returns Ignore, then Ready(false) on exhaustion
-    assert_eq!(Iterator::next(&mut any), Some(TaskStatus::Ignore));
-    assert_eq!(Iterator::next(&mut any), Some(TaskStatus::Ready(false)));
+    assert_eq!(any.next_status(ctx.clone()), Some(TaskStatus::Ignore));
+    assert_eq!(any.next_status(ctx.clone()), Some(TaskStatus::Ready(false)));
 }
 
 #[test]
 fn test_task_count_spread_done() {
     use foundation_core::valtron::TaskIteratorExt;
 
+    let ctx = Ctx::new();
     let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
         TaskSpread::Ready(3),
         TaskSpread::Ready(4),
     ])];
-    let mut count = TaskIteratorExt::count(items.into_iter());
+    let mut count = TaskIteratorExt::count(VecTask::new(items));
     // count processes Spread and returns Ignore, then Ready(total) on exhaustion
-    assert_eq!(Iterator::next(&mut count), Some(TaskStatus::Ignore));
-    assert_eq!(Iterator::next(&mut count), Some(TaskStatus::Ready(4)));
+    assert_eq!(count.next_status(ctx.clone()), Some(TaskStatus::Ignore));
+    assert_eq!(count.next_status(ctx.clone()), Some(TaskStatus::Ready(4)));
 }
 
 // ============================================================================
@@ -866,6 +909,7 @@ fn test_map_done_then_collect_with_spread_done_in_chain() {
 fn test_task_map_ready_then_collect_with_spread_done() {
     use foundation_core::valtron::TaskStatus;
 
+    let ctx = Ctx::new();
     let items = vec![
         TaskStatus::<i32, &str, NoAction>::Ready(5),
         TaskStatus::Spread(vec![
@@ -874,11 +918,11 @@ fn test_task_map_ready_then_collect_with_spread_done() {
             TaskSpread::Ready(3),
         ]),
     ];
-    let mut mapped = items.into_iter().map_ready(|x| x * 10);
+    let mut mapped = VecTask::new(items).map_ready(|x| x * 10);
 
-    assert_eq!(Iterator::next(&mut mapped), Some(TaskStatus::Ready(50)));
+    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Ready(50)));
     // Spread with Ready is mapped: each item * 10, re-wrapped as Spread with Ready
-    match Iterator::next(&mut mapped).unwrap() {
+    match mapped.next_status(ctx.clone()).unwrap() {
         TaskStatus::Spread(items) => {
             let ready_items: Vec<_> = items
                 .into_iter()

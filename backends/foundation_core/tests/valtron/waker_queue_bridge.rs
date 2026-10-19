@@ -20,7 +20,7 @@ use core::task::{Context, Poll, Waker};
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
-    from_future, queue_waker, FutureTask, TaskIterator, TaskStatus, WakeToken,
+    from_future, queue_waker, Ctx, FutureTask, TaskIterator, TaskStatus, WakeToken,
 };
 
 // ============================================================================
@@ -99,6 +99,7 @@ impl Future for WakeParkFuture {
 ///      this) and inspect the returned readiness signal.
 #[test]
 fn pending_future_parks_then_completes_on_wake() {
+    let ctx = Ctx::new();
     let poll_count = Arc::new(AtomicUsize::new(0));
     let ready = Arc::new(AtomicBool::new(false));
     let waker_slot: Arc<Mutex<Option<Waker>>> = Arc::new(Mutex::new(None));
@@ -109,7 +110,7 @@ fn pending_future_parks_then_completes_on_wake() {
         waker_slot: waker_slot.clone(),
     });
 
-    let signal = match task.next_status() {
+    let signal = match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => signal,
         other => panic!("expected Depends on first poll, got {other:?}"),
     };
@@ -128,12 +129,12 @@ fn pending_future_parks_then_completes_on_wake() {
     assert!(signal.is_ready(None), "wake() makes the signal ready to re-run");
 
     // The unparked re-run drains the stale token, re-polls, and completes.
-    match task.next_status() {
+    match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(99)) => {}
         other => panic!("expected Ready(99) after wake, got {other:?}"),
     }
     assert_eq!(poll_count.load(Ordering::SeqCst), 2, "exactly two polls total");
-    assert!(task.next_status().is_none(), "task is complete");
+    assert!(task.next_status(ctx.clone()).is_none(), "task is complete");
 }
 
 /// A future that wakes itself during its first poll, then completes on the next.
@@ -171,22 +172,23 @@ impl Future for SelfWakeOnceFuture {
 fn wake_before_park_is_never_lost() {
     use foundation_core::valtron::FuturePollState;
 
+    let ctx = Ctx::new();
     for iteration in 0..2000 {
         let mut task = FutureTask::new(SelfWakeOnceFuture { polled: false });
 
         // First poll: future self-wakes → Pending (requeue), not Depends.
-        match task.next_status() {
+        match task.next_status(ctx.clone()) {
             Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
             other => panic!("iter {iteration}: expected Pending(FuturePollState::Pending), got {other:?}"),
         };
 
         // Second poll: future returns Ready.
-        match task.next_status() {
+        match task.next_status(ctx.clone()) {
             Some(TaskStatus::Ready(1)) => {}
             other => panic!("iter {iteration}: expected Ready(1), got {other:?}"),
         };
 
-        assert!(task.next_status().is_none(), "iter {iteration}: complete");
+        assert!(task.next_status(ctx.clone()).is_none(), "iter {iteration}: complete");
     }
 }
 

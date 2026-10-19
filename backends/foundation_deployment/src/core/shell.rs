@@ -15,7 +15,7 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use foundation_core::valtron::{execute, NoAction, Stream, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, execute, NoAction, Stream, TaskIterator, TaskStatus};
 
 // Re-export collect_one from foundation_core for use by providers
 pub use foundation_core::valtron::collect_one;
@@ -179,7 +179,7 @@ impl TaskIterator for ShellTask {
     type Pending = ShellPending;
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<ShellDone, ShellPending, NoAction>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<ShellDone, ShellPending, NoAction>> {
         match std::mem::replace(&mut self.phase, ShellPhase::Done) {
             ShellPhase::NotStarted => {
                 let mut cmd = Command::new(&self.command);

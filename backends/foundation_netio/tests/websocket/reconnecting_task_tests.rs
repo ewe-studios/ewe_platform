@@ -2,7 +2,7 @@
 
 //! WebSocket `ReconnectingWebSocketTask` state machine tests.
 
-use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use tracing_test::traced_test;
@@ -192,7 +192,7 @@ fn test_fresh_task_pending_connecting() {
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1").unwrap();
 
     // First next() should return Pending(Connecting) as it tries to connect
-    let status = task.next_status();
+    let status = task.next_status(Ctx::new());
     assert!(status.is_some(), "should return Some status");
 
     if let Some(TaskStatus::Pending(progress)) = status {
@@ -219,7 +219,7 @@ fn test_failing_connection_eventual_exhaust() {
 
     while iterations < max_iterations {
         iterations += 1;
-        if task.next_status().is_none() {
+        if task.next_status(Ctx::new()).is_none() {
             got_exhaust = true;
             break;
         }

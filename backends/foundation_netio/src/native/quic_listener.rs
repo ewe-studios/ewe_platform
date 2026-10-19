@@ -21,7 +21,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 #[cfg(all(feature = "quic", not(target_family = "wasm")))]
-use foundation_core::valtron::TaskIterator;
+use foundation_core::valtron::{Ctx, TaskIterator};
 #[cfg(all(feature = "quic", not(target_family = "wasm")))]
 use crate::quic::{QuicDriver, QuinnConnection, ServerConfig};
 
@@ -53,7 +53,7 @@ impl QuicListener {
             if let Some(conn) = self.driver.take_accepted() {
                 return Ok(conn);
             }
-            let _ = self.driver.next_status();
+            let _ = self.driver.next_status(Ctx::new());
             if Instant::now() > deadline {
                 return Err(io::Error::new(
                     io::ErrorKind::TimedOut,

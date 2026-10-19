@@ -15,7 +15,7 @@ use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
 use crate::shared::http::SimpleHeaders;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     execute, BoxedSendExecutionAction, DrivenStreamIterator, Stream, StreamSpread, TaskIterator,
     TaskSpread, TaskStatus,
 };
@@ -379,13 +379,13 @@ where
     type Pending = WsPending;
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self {
             Self::Single(t) => t
-                .next_status()
+                .next_status(ctx)
                 .map(|s| remap_task_status(s, WsPending::Task)),
             Self::Reconnecting(t) => t
-                .next_status()
+                .next_status(ctx)
                 .map(|s| remap_task_status(s, WsPending::Reconnecting)),
         }
     }

@@ -26,7 +26,7 @@
 use std::sync::Arc;
 
 use foundation_core::synca::mpp::{Receiver, ReceiverError};
-use foundation_core::valtron::{execute, GenericResult};
+use foundation_core::valtron::{Ctx, execute, GenericResult};
 use foundation_core::valtron::{
     BoxedSendExecutionAction, DrivenStreamIterator, EventReadiness, TaskIterator, TaskStatus,
 };
@@ -128,8 +128,8 @@ impl TaskIterator for VfsTask {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    #[tracing::instrument(skip(self), fields(stop = self.stop.is_stopped()))]
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    #[tracing::instrument(skip(self, ctx), fields(stop = self.stop.is_stopped()))]
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.stop.is_stopped() {
             return None;
         }

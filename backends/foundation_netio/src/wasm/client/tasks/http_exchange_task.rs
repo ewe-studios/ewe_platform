@@ -17,7 +17,7 @@ use std::pin::Pin;
 
 use foundation_compact::SendWrapper;
 use foundation_core::extensions::result_ext::SendableBoxedError;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     from_future, BoxedSendExecutionAction, FutureTask, Stream, TaskIterator, TaskStatus,
 };
 
@@ -94,9 +94,9 @@ impl TaskIterator for WasmHttpExchangeTask {
     // so it can unify with the native task behind `HttpExchangeClientTask` (F51).
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match &mut self.state {
-            WasmExchangeState::Polling { ref mut task } => match task.next_status() {
+            WasmExchangeState::Polling { ref mut task } => match task.next_status(ctx) {
                 Some(TaskStatus::Ready(Ok(FetchOutput {
                     status,
                     headers,
@@ -192,6 +192,6 @@ mod tests {
             extensions: Extensions::new(),
         };
         let mut task = new_http_exchange_task(request);
-        let _status = task.next_status();
+        let _status = task.next_status(Ctx::new());
     }
 }

@@ -12,8 +12,8 @@ use crate::valtron::{
         BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
         DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
-    ExecutionAction, LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator,
-    SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskSpawnConfig,
+    Ctx, ExecutionAction, LocalThreadExecutor, PriorityOrder, ProcessController,
+    ProgressIndicator, SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskSpawnConfig,
 };
 
 use crate::{
@@ -203,6 +203,24 @@ where
     });
 }
 
+/// Fork a fresh [`Ctx`] from the current engine's stable root.
+///
+/// The single-threaded engine owns one root [`Ctx`] seeded at construction and
+/// forks it per task. This exposes that same root-fork to code that drives a
+/// task alongside the engine (e.g. [`super::non_sendables::DrivenTaskIterator`])
+/// so it never mints an unrelated `Ctx::new()`.
+///
+/// # Panics
+///
+/// Panics if the pool has not been initialized (mirrors [`run_until`]).
+#[must_use]
+pub fn fork_ctx() -> Ctx {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
+        Some(pool) => pool.fork_ctx(),
+        None => panic!("Thread pool not initialized, ensure to call initialize() first"),
+    })
+}
+
 /// `run_once` calls the `LocalExecution` queue and processes
 /// the next pending message by moving it forward just once.
 ///
@@ -331,7 +349,7 @@ mod single_threaded_tests {
 
     use crate::valtron::{
         single::{initialize_pool, run_until, run_until_complete, spawn},
-        FnReady, NoSpawner, Stream, TaskIterator, TaskStatus,
+        Ctx, FnReady, NoSpawner, Stream, TaskIterator, TaskStatus,
     };
 
     struct Counter(usize, Rc<RefCell<Vec<usize>>>);
@@ -351,6 +369,7 @@ mod single_threaded_tests {
 
         fn next_status(
             &mut self,
+            _ctx: Ctx,
         ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let item_size = self.1.borrow().len();
 

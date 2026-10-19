@@ -4,7 +4,7 @@ use std::io;
 use std::os::unix::io::AsRawFd;
 use std::sync::Arc;
 
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     BoxedSendExecutionAction, EventReadiness, TaskIterator, TaskStatus,
 };
 
@@ -74,7 +74,7 @@ impl<T: AsRawFd + Send + Sync + 'static> TaskIterator for FdMonitorTask<T> {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.stop.is_stopped() {
             return None;
         }

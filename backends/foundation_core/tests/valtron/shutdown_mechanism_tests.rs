@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     multi::spawn,
     valtron_test,
     FnReady, NoSpawner, TaskIterator, TaskStatus,
@@ -26,7 +26,7 @@ impl TaskIterator for FiniteTask {
     type Pending = ();
     type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.remaining == 0 {
             return None;
         }

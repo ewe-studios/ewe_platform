@@ -229,7 +229,7 @@ fn idle_pump_is_a_noop() {
 #[cfg(feature = "valtron")]
 #[test]
 fn valtron_stream_and_driver_integration() {
-    use foundation_core::valtron::{NoSpawner, TaskIterator, TaskStatus};
+    use foundation_core::valtron::{Ctx, NoSpawner, TaskIterator, TaskStatus};
     use foundation_signals::HubDriver;
 
     let (_runtime, ctx, hub) = setup();
@@ -242,14 +242,14 @@ fn valtron_stream_and_driver_integration() {
     let mut driver = HubDriver::new(hub);
 
     // Drive manually as the executor would: pump until Ready, then drain.
-    let status = driver.next_status().expect("driver alive");
+    let status = driver.next_status(Ctx::new()).expect("driver alive");
     assert!(matches!(status, TaskStatus::Ready(report) if report.commands_applied == 1));
     assert!(
-        matches!(driver.next_status(), Some(TaskStatus::Pending(()))),
+        matches!(driver.next_status(Ctx::new()), Some(TaskStatus::Pending(()))),
         "idle tick is Pending, never blocking"
     );
 
-    let next: Option<TaskStatus<i32, (), NoSpawner>> = stream.next_status();
+    let next: Option<TaskStatus<i32, (), NoSpawner>> = stream.next_status(Ctx::new());
     assert!(matches!(next, Some(TaskStatus::Ready(5))));
-    assert!(matches!(stream.next_status(), Some(TaskStatus::Pending(()))));
+    assert!(matches!(stream.next_status(Ctx::new()), Some(TaskStatus::Pending(()))));
 }

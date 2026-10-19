@@ -24,7 +24,7 @@
 use std::sync::Arc;
 
 use foundation_core::extensions::result_ext::SendableBoxedError;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     inlined_task, BoxedSendExecutionAction, InlineActionBehaviour, Stream, TaskIterator, TaskStatus,
 };
 
@@ -378,7 +378,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
     type Pending = HttpExchangePending;
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // First call — emit the Spawn so the executor runs the child.
         if let Some(action) = self.spawn.take() {
             return Some(TaskStatus::Spawn(action));

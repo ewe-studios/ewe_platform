@@ -12,7 +12,7 @@ use core::marker::PhantomData;
 use core::task::{RawWaker, RawWakerVTable, Waker};
 
 #[cfg(any(feature = "std", feature = "alloc"))]
-use crate::valtron::{NoAction, QueueReadiness, TaskIterator, TaskStatus};
+use crate::valtron::{Ctx, NoAction, QueueReadiness, TaskIterator, TaskStatus};
 #[cfg(any(feature = "std", feature = "alloc"))]
 use concurrent_queue::ConcurrentQueue;
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -262,7 +262,7 @@ where
     type Pending = FuturePollState;
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.completed {
             return None;
         }
@@ -324,7 +324,7 @@ where
     type Pending = FuturePollState;
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.completed {
             return None;
         }
@@ -412,7 +412,7 @@ where
     type Pending = StreamPollState;
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.exhausted {
             return None;
         }
@@ -455,7 +455,7 @@ where
     type Pending = StreamPollState;
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.exhausted {
             return None;
         }
@@ -574,11 +574,11 @@ where
     type Pending = FuturePollState;
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.is_cancelled() {
             return Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled)));
         }
-        match self.inner.next_status() {
+        match self.inner.next_status(ctx) {
             Some(TaskStatus::Ready(v)) => Some(TaskStatus::Ready(Ok(v))),
             Some(TaskStatus::Pending(p)) => Some(TaskStatus::Pending(p)),
             Some(TaskStatus::Init) => Some(TaskStatus::Init),
@@ -621,11 +621,11 @@ where
     type Pending = FuturePollState;
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.is_cancelled() {
             return Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled)));
         }
-        match self.inner.next_status() {
+        match self.inner.next_status(ctx) {
             Some(TaskStatus::Ready(v)) => Some(TaskStatus::Ready(Ok(v))),
             Some(TaskStatus::Pending(p)) => Some(TaskStatus::Pending(p)),
             Some(TaskStatus::Init) => Some(TaskStatus::Init),

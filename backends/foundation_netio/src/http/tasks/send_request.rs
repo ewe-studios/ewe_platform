@@ -23,7 +23,7 @@ use crate::shared::http::{
     SimpleMethod, Status,
 };
 use foundation_core::url::Uri;
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineAction,
     TaskIterator, TaskStatus,
 };
@@ -181,7 +181,7 @@ where
     type Spawner = BoxedSendExecutionAction;
 
     #[allow(clippy::too_many_lines)]
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.0.take()? {
             SendRequestState::Init(mut inner) => match inner.take() {
                 Some(boxed_req) => {

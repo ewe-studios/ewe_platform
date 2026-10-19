@@ -13,7 +13,7 @@ use std::net::TcpListener;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{self, valtron_test, Stream, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{Ctx, self, valtron_test, Stream, TaskIterator, TaskIteratorExt};
 use foundation_netio::http::NativeHttpClient;
 use foundation_netio::network_client::HttpClientBuilder;
 use foundation_netio::shared::client::http_client::HttpClient;
@@ -299,7 +299,7 @@ fn http_exchange_client_task_smoke() {
     let req = get_request("http://example.com/");
     let client = Arc::new(system_client().max_redirects(0));
     let mut task = client.open_exchange(req);
-    assert!(task.next_status().is_some());
+    assert!(task.next_status(Ctx::new()).is_some());
 }
 
 // ============================================================================

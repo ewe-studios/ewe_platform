@@ -7,7 +7,7 @@
 //! - GET / — serves a static HTML page that fetches /counter
 //! - GET /counter — streams valtron counter ticks via ReadableStream
 
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     Stream, StreamIteratorExt, TaskIterator, TaskStatus, NoAction, execute, initialize_pool, PoolGuard,
 };
 
@@ -48,7 +48,7 @@ impl TaskIterator for CounterTaskIterator {
     type Pending = u64;
     type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.current > self.max {
             web_sys::console::log_1(&"CounterTaskIterator: returning None (task complete)".into());
             return None;

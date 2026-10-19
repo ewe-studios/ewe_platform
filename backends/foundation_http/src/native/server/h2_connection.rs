@@ -24,7 +24,7 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{
+use foundation_core::valtron::{Ctx, 
     BoxedSendExecutionAction, FutureTask, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
     TryRecvError,
 };
@@ -123,7 +123,7 @@ impl TaskIterator for H2ConnectionHandler {
     type Pending = ();
     type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
         if self.shutdown.probe() {
             tracing::debug!("h2 server: shutdown signaled, closing connection");
             return None;
