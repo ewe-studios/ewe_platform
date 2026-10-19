@@ -175,58 +175,131 @@ fn test_scheme_default_ports() {
 // HttpClientConnection Tests - Connection Establishment
 // ========================================================================
 
+/// A resolver that maps `host` to a local listener's address.
+fn local_resolver(host: &str, addr: SocketAddr) -> MockDnsResolver {
+    MockDnsResolver::new().with_response(host, vec![addr])
+}
+
 /// WHY: Verify `HttpClientConnection` can establish HTTP connections
-/// WHAT: Tests that `connect()` successfully creates a TCP connection
+/// WHAT: `connect()` opens a TCP connection to a local listener
 /// IMPORTANCE: Basic HTTP connectivity is core functionality
 #[test]
-#[ignore = "Requires actual network - run with `cargo test -- --ignored`"]
-fn test_connection_http_real() {
-    let url = Uri::parse("http://httpbin.org").unwrap();
-    let resolver = SystemDnsResolver::new();
+fn test_connection_http_local() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let accepted = std::thread::spawn(move || listener.accept().map(|(_, peer)| peer));
 
+    let url = Uri::parse(&format!("http://local.test:{}", addr.port())).unwrap();
     let result =
-        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_secs(10)));
+        HttpClientConnection::connect(&url, &local_resolver("local.test", addr), Some(Duration::from_secs(5)));
 
-    assert!(result.is_ok(), "Should connect to httpbin.org");
+    assert!(result.is_ok(), "connect failed: {:?}", result.err());
+    let peer = accepted.join().expect("server thread").expect("accept");
+    assert!(peer.ip().is_loopback());
 }
 
 /// WHY: Verify `HttpClientConnection` can establish HTTPS connections with TLS
-/// WHAT: Tests that `connect()` performs TLS handshake for HTTPS URLs
+/// WHAT: `connect_with_tls_config()` completes a TLS handshake with a local
+/// rustls server whose certificate (CN/SAN `localhost`) the client trusts
 /// IMPORTANCE: HTTPS is the primary use case for secure connections
 #[test]
 #[cfg(feature = "ssl-rustls")]
-fn test_connection_https_real() {
-    let url = Uri::parse("https://httpbin.org").unwrap();
-    let resolver = SystemDnsResolver::new();
+fn test_connection_https_local() {
+    use foundation_netio::netcap::connection::Connection;
+    use foundation_netio::netcap::ssl::rustls::{RustlsAcceptor, RustlsConnector};
+    use rustls::pki_types::pem::PemObject;
+    use std::sync::Arc;
+    use zeroize::Zeroizing;
 
-    let result =
-        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_secs(10)));
+    let fixture = |name: &str| {
+        std::fs::read(format!(
+            "{}/tests/tcp_and_tls/fixtures/{name}",
+            env!("CARGO_MANIFEST_DIR")
+        ))
+        .expect("read TLS fixture")
+    };
+    let cert = fixture("cert.pem");
+    let acceptor =
+        RustlsAcceptor::from_pem(cert.clone(), Zeroizing::new(fixture("key.pem"))).expect("acceptor");
 
-    assert!(result.is_ok(), "Should connect to httpbin.org with TLS");
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let handshake = std::thread::spawn(move || {
+        let (socket, _) = listener.accept().expect("accept");
+        acceptor.accept(Connection::Tcp(socket)).map(|_| ())
+    });
+
+    let mut roots = rustls::RootCertStore::empty();
+    roots
+        .add(rustls::pki_types::CertificateDer::from_pem_slice(&cert).expect("cert der"))
+        .expect("trust fixture");
+    let client_tls = rustls::ClientConfig::builder()
+        .with_root_certificates(roots)
+        .with_no_client_auth();
+    let connector = RustlsConnector::with_config(Arc::new(client_tls));
+
+    let url = Uri::parse(&format!("https://localhost:{}", addr.port())).unwrap();
+    let result = HttpClientConnection::connect_with_tls_config(
+        &url,
+        &local_resolver("localhost", addr),
+        Some(Duration::from_secs(5)),
+        Some(&connector),
+    );
+
+    assert!(result.is_ok(), "TLS connect failed: {:?}", result.err());
+    handshake
+        .join()
+        .expect("server thread")
+        .expect("server-side handshake");
 }
 
 /// WHY: Verify `HttpClientConnection` respects connection timeout
-/// WHAT: Tests that `connect()` fails when timeout is exceeded
+/// WHAT: `connect()` returns `ConnectionTimeout` when the peer never completes
+/// the TCP handshake. A local listener whose accept queue is full stands in for
+/// an unreachable host: Linux drops new SYNs to it, so the connect hangs until
+/// the client's own deadline.
 /// IMPORTANCE: Prevents hanging connections from blocking indefinitely
 #[test]
-#[ignore = "Requires network - timeout test"]
+#[cfg(target_os = "linux")]
 fn test_connection_timeout() {
-    // Use a non-routable IP to trigger timeout
-    let url = Uri::parse("http://192.0.2.1").unwrap(); // TEST-NET-1, non-routable
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
 
-    let resolver = MockDnsResolver::new().with_response(
-        "192.0.2.1",
-        vec![SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)), 80)],
+    // Fill the accept queue (never accepting) until a connect stalls.
+    let mut held = Vec::new();
+    let mut queue_full = false;
+    for _ in 0..8192 {
+        match std::net::TcpStream::connect_timeout(&addr, Duration::from_millis(200)) {
+            Ok(stream) => held.push(stream),
+            Err(err) if err.kind() == std::io::ErrorKind::TimedOut => {
+                queue_full = true;
+                break;
+            }
+            Err(err) => panic!("unexpected connect error while filling the queue: {err}"),
+        }
+    }
+    assert!(queue_full, "accept queue never filled after {} connects", held.len());
+
+    let url = Uri::parse(&format!("http://stalled.test:{}", addr.port())).unwrap();
+    let started = std::time::Instant::now();
+    let result = HttpClientConnection::connect(
+        &url,
+        &local_resolver("stalled.test", addr),
+        Some(Duration::from_millis(100)),
     );
 
-    let result =
-        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_millis(100)));
-
-    assert!(result.is_err());
-    assert!(matches!(
-        result.unwrap_err(),
-        HttpClientError::ConnectionTimeout(_)
-    ));
+    let err = result.expect_err("connect must time out");
+    assert!(
+        matches!(err, HttpClientError::ConnectionTimeout(_)),
+        "expected ConnectionTimeout, got {err:?}"
+    );
+    assert!(
+        started.elapsed() < Duration::from_secs(2),
+        "timed out only after {:?}",
+        started.elapsed()
+    );
+    drop(held);
+    drop(listener);
 }
 
 /// WHY: Verify `HttpClientConnection` handles DNS resolution failures
