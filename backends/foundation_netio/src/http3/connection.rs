@@ -61,6 +61,8 @@ pub mod error_code {
     pub const H3_CLOSED_CRITICAL_STREAM: u64 = 0x0104;
     /// The first control frame was not SETTINGS.
     pub const H3_MISSING_SETTINGS: u64 = 0x010a;
+    /// The request or its response was cancelled.
+    pub const H3_REQUEST_CANCELLED: u64 = 0x010c;
     /// A malformed request or response.
     pub const H3_MESSAGE_ERROR: u64 = 0x010e;
     /// QPACK could not decode a field section.
@@ -342,8 +344,7 @@ impl<C: QuicConnection> H3Connection<C> {
         match self.conn.accept_bidi() {
             Stream::Next(Ok(stream)) => {
                 let mut req = H3Request::new(stream, self.max_field_section_size);
-                loop {
-                    match req.poll_headers() {
+                match req.poll_headers() {
                         Stream::Next(Ok(headers)) => {
                             let method = headers.iter().find(|(k, _)| k.as_ref() == b":method" as &[u8]);
                             let protocol = headers.iter().find(|(k, _)| k.as_ref() == b":protocol" as &[u8]);
@@ -354,19 +355,15 @@ impl<C: QuicConnection> H3Connection<C> {
                                 let resp = crate::webtransport::session::WtAcceptor::<C>::build_connect_response_headers();
                                 let encoded = H3Request::<C::BidiStream>::encode_headers(&resp);
                                 let mut pending = encoded;
-                                loop {
-                                    match req.poll_send_headers(&mut pending) {
-                                        Stream::Next(Ok(())) => break,
-                                        Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
-                                        _ => return Stream::Pending(()),
-                                    }
+                                match req.poll_send_headers(&mut pending) {
+                                    Stream::Next(Ok(())) => {}
+                                    Stream::Next(Err(e)) => return Stream::Next(Err(e)),
+                                    _ => return Stream::Pending(()),
                                 }
-                                loop {
-                                    match req.poll_finish() {
-                                        Stream::Next(Ok(())) => break,
-                                        Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
-                                        _ => return Stream::Pending(()),
-                                    }
+                                match req.poll_finish() {
+                                    Stream::Next(Ok(())) => {}
+                                    Stream::Next(Err(e)) => return Stream::Next(Err(e)),
+                                    _ => return Stream::Pending(()),
                                 }
                                 return Stream::Next(Ok(true));
                             }
@@ -376,7 +373,6 @@ impl<C: QuicConnection> H3Connection<C> {
                         Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
                         Stream::Pending(()) | Stream::Init | Stream::Ignore | Stream::Spread(_) | Stream::Delayed(_) | Stream::Wait => return Stream::Pending(()),
                     }
-                }
             }
             Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
             _ => Stream::Pending(()),
@@ -624,6 +620,18 @@ impl<S: QuicBidiStream> H3Request<S> {
     /// Abort the stream with an HTTP/3 error code.
     pub fn reset(&mut self, code: u64) {
         self.framed.get_mut().reset(code);
+    }
+
+    /// WHY: a server that answers before reading the whole request (an early
+    /// `413`, or a response that ends while the request is still open) must tell
+    /// the peer to stop sending, or the unread bytes keep consuming the stream's
+    /// and the connection's flow-control credit (RFC 9114 §4.1.1).
+    ///
+    /// WHAT: abort the receive half with STOP_SENDING carrying `code`
+    /// (`H3_NO_ERROR` when the response is complete and simply does not need the
+    /// rest of the request).
+    pub fn stop_sending(&mut self, code: u64) {
+        QuicRecvStream::stop_sending(self.framed.get_mut(), code);
     }
 
     /// This request's QUIC stream id.
