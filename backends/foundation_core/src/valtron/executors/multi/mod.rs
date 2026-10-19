@@ -532,39 +532,6 @@ pub fn get_allocatable_thread_count() -> usize {
     desired_threads
 }
 
-#[cfg(test)]
-mod test_allocatable_threads {
-    use serial_test::serial;
-    use tracing_test::traced_test;
-
-    use super::*;
-
-    #[test]
-    #[traced_test]
-    #[serial]
-    fn get_allocatable_thread_count_as_far_as_1_remains() {
-        let max_threads = get_max_threads();
-        assert!(max_threads > 3);
-
-        env::remove_var("VALTRON_NUM_THREADS");
-
-        let new_thread_count = max_threads - 2;
-        tracing::debug!("Setting thread count to: {new_thread_count:}");
-
-        let new_thread_count_str = format!("{new_thread_count:}");
-        env::set_var("VALTRON_NUM_THREADS", new_thread_count_str.clone());
-        assert_eq!(
-            env::var("VALTRON_NUM_THREADS").unwrap(),
-            new_thread_count_str
-        );
-
-        // Very flaky, for now asset non-zero
-        // assert!(get_allocatable_thread_count() != 0);
-        //
-        assert_eq!(get_allocatable_thread_count(), max_threads - 2);
-    }
-}
-
 /// [`get_max_threads`] returns the max threads allowed
 /// in the current system.
 pub fn get_max_threads() -> usize {

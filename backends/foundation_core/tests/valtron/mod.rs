@@ -35,6 +35,7 @@ mod task_iterators;
 mod thread_yielder_tests;
 #[cfg(not(target_family = "wasm"))]
 mod threaded_future;
+mod threaded_future_std;
 mod units;
 mod wasm_js_yield_integration;
 mod wasm_yielder_tests;
@@ -49,3 +50,13 @@ mod pipe_primitive;
 mod pipe_mapped_tests;
 #[cfg(feature="multi")]
 mod multi_workers;
+#[cfg(not(target_family = "wasm"))]
+mod background_jobs;
+#[cfg(not(target_family = "wasm"))]
+mod delayed_iterators;
+mod drain;
+mod multi_allocatable_threads;
+#[cfg(not(target_family = "wasm"))]
+mod single_executor;
+mod task_status;
+mod wrappers;

@@ -100,36 +100,6 @@ impl MemoryLimiter {
     }
 }
 
-#[cfg(test)]
-mod memory_limiter_tests {
-    use super::*;
-
-    #[test]
-    fn cant_expand_usage_pass_limits() {
-        let limiter_rc = MemoryLimiter::create_shared(10);
-        let mut limiter = limiter_rc.borrow_mut();
-
-        assert_eq!(limiter.current_usage(), 0);
-
-        assert!(matches!(
-            limiter.increase_usage(15),
-            MemoryResult::Err(MemoryErrors::MemoryLimitExceededError)
-        ));
-        assert_eq!(limiter.current_usage(), 15);
-    }
-
-    #[test]
-    fn can_get_current_usage() {
-        let limiter_rc = MemoryLimiter::create_shared(10);
-        let mut limiter = limiter_rc.borrow_mut();
-
-        assert_eq!(limiter.current_usage(), 0);
-
-        assert!(matches!(limiter.increase_usage(5), Ok(())));
-        assert_eq!(limiter.current_usage(), 5);
-    }
-}
-
 /// Arena provides a pre-allocated memory that can grow and wont de-allocates
 /// will still being used and in the liftetime of
 #[derive(Debug, Clone)]
@@ -225,34 +195,6 @@ impl Index<usize> for Arena {
 impl Drop for Arena {
     fn drop(&mut self) {
         self.limiter.borrow_mut().decrease_usage(self.data.len());
-    }
-}
-
-#[cfg(test)]
-mod arena_tests {
-
-    use super::*;
-
-    #[test]
-    fn can_create_arena() {
-        let limiter = MemoryLimiter::create_shared(10);
-        let mut arena = Arena::new(rc::Rc::clone(&limiter), 2);
-
-        arena.append(&[1, 2]).unwrap();
-        assert_eq!(arena.bytes(), &[1, 2]);
-        assert_eq!(limiter.borrow().current_usage(), 2);
-
-        arena.append(&[3, 4]).unwrap();
-        assert_eq!(arena.bytes(), &[1, 2, 3, 4]);
-        assert_eq!(limiter.borrow().current_usage(), 4);
-
-        arena.append(&[5, 6, 7, 8, 9, 10]).unwrap();
-        assert_eq!(arena.bytes(), &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-        assert_eq!(limiter.borrow().current_usage(), 10);
-
-        let err = arena.append(&[11]).unwrap_err();
-
-        assert_eq!(err, MemoryErrors::MemoryLimitExceededError);
     }
 }
 
@@ -405,83 +347,6 @@ impl<T> Drop for TypeArena<T> {
     }
 }
 
-#[cfg(test)]
-mod type_area_tests {
-    use super::*;
-    use std::rc::Rc;
-
-    #[test]
-    fn current_usage() {
-        {
-            let limiter = MemoryLimiter::create_shared(10);
-            let mut vec_u8: TypeArena<u8> = TypeArena::new(Rc::clone(&limiter));
-
-            vec_u8.push(1).unwrap();
-            vec_u8.push(2).unwrap();
-            assert_eq!(limiter.borrow().current_usage(), 2);
-        }
-
-        {
-            let limiter = MemoryLimiter::create_shared(10);
-            let mut vec_u32: TypeArena<u32> = TypeArena::new(Rc::clone(&limiter));
-
-            vec_u32.push(1).unwrap();
-            vec_u32.push(2).unwrap();
-            assert_eq!(limiter.borrow().current_usage(), 8);
-        }
-    }
-
-    #[test]
-    fn max_limit() {
-        let limiter = MemoryLimiter::create_shared(2);
-        let mut vector: TypeArena<u8> = TypeArena::new(Rc::clone(&limiter));
-
-        vector.push(1).unwrap();
-        vector.push(2).unwrap();
-
-        let err = vector.push(3).unwrap_err();
-
-        assert_eq!(err, MemoryErrors::MemoryLimitExceededError);
-    }
-
-    #[test]
-    fn drop() {
-        let limiter = MemoryLimiter::create_shared(1);
-
-        {
-            let mut vector: TypeArena<u8> = TypeArena::new(Rc::clone(&limiter));
-
-            vector.push(1).unwrap();
-            assert_eq!(limiter.borrow().current_usage(), 1);
-        }
-
-        assert_eq!(limiter.borrow().current_usage(), 0);
-    }
-
-    #[test]
-    fn drain() {
-        let limiter = MemoryLimiter::create_shared(10);
-        let mut vector: TypeArena<u8> = TypeArena::new(Rc::clone(&limiter));
-
-        vector.push(1).unwrap();
-        vector.push(2).unwrap();
-        vector.push(3).unwrap();
-        assert_eq!(limiter.borrow().current_usage(), 3);
-
-        vector.drain(0..3);
-        assert_eq!(limiter.borrow().current_usage(), 0);
-
-        vector.push(1).unwrap();
-        vector.push(2).unwrap();
-        vector.push(3).unwrap();
-        vector.push(4).unwrap();
-        assert_eq!(limiter.borrow().current_usage(), 4);
-
-        vector.drain(1..=2);
-        assert_eq!(limiter.borrow().current_usage(), 2);
-    }
-}
-
 pub type ReferencedType<T> = rc::Rc<cell::RefCell<T>>;
 
 pub type GeneratorFunc<T> = dyn Fn(&mut ArenaPool<T>) -> T;
@@ -608,64 +473,5 @@ impl<T: Resettable> ArenaPool<T> {
         let gen = self.generator.clone();
         let elem = gen.generate(self);
         Ok(elem)
-    }
-}
-
-#[cfg(test)]
-mod arena_pool_tests {
-    use super::*;
-
-    type ResettableU8 = &'static u8;
-
-    impl Resettable for ResettableU8 {
-        fn reset(&mut self) {
-            *self = &0;
-        }
-    }
-
-    #[test]
-    fn test_arena_pool() {
-        let limiter = MemoryLimiter::create_shared(800);
-        let mut pool: ArenaPool<ResettableU8> = ArenaPool::new(
-            &limiter,
-            FnGenerator::new(|_| {
-                let new_value: ResettableU8 = &0;
-                new_value
-            }),
-        );
-
-        assert_eq!(pool.allocated(), 0);
-
-        let mut _my_number = pool.allocate().unwrap();
-
-        assert_eq!(pool.allocated(), 8);
-
-        _my_number = &1;
-
-        assert_eq!(*_my_number, 1);
-
-        pool.deallocate(_my_number);
-
-        _ = _my_number;
-    }
-
-    #[test]
-    fn test_arena_pool_limits() {
-        let limiter = MemoryLimiter::create_shared(8);
-        let mut pool: ArenaPool<ResettableU8> = ArenaPool::new(
-            &limiter,
-            FnGenerator::new(|_| {
-                let new_value: ResettableU8 = &0;
-                new_value
-            }),
-        );
-
-        assert_eq!(pool.allocated(), 0);
-
-        _ = pool.allocate().unwrap();
-
-        assert_eq!(pool.allocated(), 8);
-
-        assert!(matches!(pool.allocate(), MemoryResult::Err(_)));
     }
 }
