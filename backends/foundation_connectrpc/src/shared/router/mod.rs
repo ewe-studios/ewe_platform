@@ -42,7 +42,7 @@ use erased::{
     ErasedStreamHandler, ErasedUnaryHandler, StreamHandlerImpl, UnaryHandlerImpl,
 };
 
-pub use dispatch::ConnectRpcHandler;
+pub use dispatch::{in_memory_body, CollectingSink, ConnectRpcHandler, RequestBody, ResponseSink};
 pub use erased::RequestStream;
 pub(crate) use erased::ProcedureMeta;
 

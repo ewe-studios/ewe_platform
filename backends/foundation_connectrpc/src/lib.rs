@@ -24,7 +24,10 @@ pub use shared::error_writer::ErrorWriter;
 // `service!`/`generate!` proc-macros re-exported below and stays in-crate.
 
 pub use shared::message::{Request, Response};
-pub use shared::router::{ConnectRpcHandler, HandlerOptions, RequestStream, Router};
+pub use shared::router::{
+    in_memory_body, CollectingSink, ConnectRpcHandler, HandlerOptions, RequestBody, RequestStream,
+    ResponseSink, Router,
+};
 
 /// Proc-macro for code-first ConnectRPC service generation (Feature 27,
 /// Decision 10 Mode 3). See `foundation_macros::service` for docs.
@@ -48,7 +51,7 @@ pub use buffa;
 pub use shared::client::{BidiStream, Client, ClientOptions, ClientStream, ServerStream};
 
 #[cfg(not(target_family = "wasm"))]
-pub use native::server::ConnectRpcServe;
+pub use native::server::{ConnectRpcServe, ServeTimeouts};
 #[cfg(not(target_family = "wasm"))]
 pub use native::h2_serve::ConnectRpcServeH2;
 
