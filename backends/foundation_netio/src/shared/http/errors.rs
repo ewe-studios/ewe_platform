@@ -423,6 +423,11 @@ pub enum HttpReaderError {
     ChunkSizeTooLarge(usize),
     #[from(ignore)]
     ReadTimeout(Duration),
+
+    /// A header block, chunk-size line, trailer section, line or event grew past
+    /// its cap without being terminated. See [`super::framing`].
+    #[from(ignore)]
+    FrameTooLarge(super::framing::FrameTooLarge),
 }
 
 impl HttpReaderError {
@@ -440,6 +445,8 @@ impl HttpReaderError {
     pub fn from_read_io(err: std::io::Error) -> Self {
         if err.kind() == std::io::ErrorKind::WouldBlock {
             HttpReaderError::WouldBlock
+        } else if let Some(too_large) = super::framing::FrameTooLarge::in_io(&err) {
+            HttpReaderError::FrameTooLarge(too_large)
         } else {
             HttpReaderError::LineReadFailed(Box::new(err))
         }

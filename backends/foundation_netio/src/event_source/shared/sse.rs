@@ -106,6 +106,12 @@ impl<R: Read> SseParser<R> {
         }
     }
 
+    /// The stream this parser reads from.
+    #[must_use]
+    pub fn stream(&self) -> &SharedByteBufferStream<R> {
+        &self.buffer
+    }
+
     /// Get the last event ID seen.
     ///
     /// WHY: Client needs to track last event ID for reconnection resume.

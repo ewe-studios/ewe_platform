@@ -4417,13 +4417,10 @@ where
                 // driving task can park and retry. A blocking socket fills
                 // here instead of inside the parser; nothing else changes.
                 let buffered = self.reader.do_once_mut(|buffer| {
-                    super::framing::buffer_until(
-                        buffer,
-                        super::framing::plain(super::framing::header_block),
-                    )
+                    super::framing::buffer_until(buffer, super::framing::header_block)
                 });
                 match buffered {
-                    Ok(super::framing::BufferOutcome::Ready { .. }) => {}
+                    Ok(super::framing::BufferOutcome::Ready) => {}
                     Ok(super::framing::BufferOutcome::WouldBlock) => {
                         tracing::trace!("Header block incomplete; parking for retry");
                         return Some(Err(HttpReaderError::WouldBlock));
@@ -5521,6 +5518,19 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleLineFeedIterator<T> {
     type Item = Result<LineFeed, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Buffer the whole (capped) line before the parser consumes any of it:
+        // a `WouldBlock` cannot split it, and a line that never ends errors at
+        // `MAX_LINE` instead of growing the buffer without bound.
+        match self
+            .1
+            .do_once_mut(|reader| super::framing::buffer_until(reader, super::framing::line))
+        {
+            Ok(super::framing::BufferOutcome::Ready) => {}
+            Ok(super::framing::BufferOutcome::WouldBlock) => {
+                return Some(Err(Box::new(HttpReaderError::WouldBlock)));
+            }
+            Err(err) => return Some(Err(Box::new(HttpReaderError::from_read_io(err)))),
+        }
         match LineFeed::stream_line_feeds(self.1.clone()) {
             Ok(line) => {
                 tracing::trace!("LineFeed::next_line: {:?}", &line);
@@ -5564,6 +5574,22 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleSseIterator<T> {
     type Item = Result<crate::event_source::ParseResult, SendableBoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Buffer the whole (capped) event before the parser reads its lines: a
+        // `WouldBlock` cannot split it, and an event that never ends errors at
+        // `MAX_SSE_EVENT` instead of growing the buffer without bound.
+        match self.1.stream().do_once_mut(|reader| {
+            super::framing::buffer_until(reader, super::framing::sse_event)
+        }) {
+            Ok(super::framing::BufferOutcome::Ready) => {}
+            Ok(super::framing::BufferOutcome::WouldBlock) => {
+                return Some(Err(Box::new(HttpReaderError::WouldBlock) as SendableBoxedError));
+            }
+            Err(err) => {
+                return Some(Err(
+                    Box::new(HttpReaderError::from_read_io(err)) as SendableBoxedError
+                ));
+            }
+        }
         match self.1.parse_next() {
             Ok(Some(result)) => {
                 tracing::trace!("SseIterator::next: got event");
@@ -5581,11 +5607,33 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleSseIterator<T> {
     }
 }
 
+/// Progress through the chunk currently being streamed.
+#[derive(Debug, Default)]
+struct ChunkProgress {
+    /// Data bytes of the current chunk not yet handed out.
+    remaining: u64,
+    /// The current chunk's extensions, attached to its first piece.
+    extensions: Option<Extensions>,
+}
+
+/// Iterates a chunked body, handing out chunk data in pieces of at most
+/// [`super::framing::CHUNK_PIECE`] bytes as they arrive.
+///
+/// WHY: a chunk can be up to `MAX_CHUNK_SIZE` (16 MiB). Reading each one whole
+/// held that much per connection, and on a non-blocking socket the old gate
+/// waited for the whole chunk before parsing. Only the chunk-size line (and the
+/// trailer section after the last chunk) is now buffered, each with a small cap;
+/// the data streams.
+///
+/// On a non-blocking socket, a step that would block yields
+/// `Err(HttpReaderError::WouldBlock)` with nothing consumed, so the driving task
+/// parks and calls `next` again. A blocking socket never sees it.
 pub struct SimpleHttpChunkIterator<T: std::io::Read + Send + Sync>(
     Vec<String>,
     SimpleHeaders,
     SharedByteBufferStream<T>,
     Arc<AtomicBool>,
+    Arc<std::sync::Mutex<ChunkProgress>>,
 );
 
 impl<T: std::io::Read + Send + Sync> Clone for SimpleHttpChunkIterator<T> {
@@ -5595,6 +5643,7 @@ impl<T: std::io::Read + Send + Sync> Clone for SimpleHttpChunkIterator<T> {
             self.1.clone(),
             self.2.clone(),
             self.3.clone(),
+            self.4.clone(),
         )
     }
 }
@@ -5611,7 +5660,56 @@ impl<T: std::io::Read + Send + Sync> SimpleHttpChunkIterator<T> {
             headers,
             stream,
             Arc::new(AtomicBool::new(false)),
+            Arc::new(std::sync::Mutex::new(ChunkProgress::default())),
         )
+    }
+
+    fn would_block() -> Option<Result<ChunkedData, BoxedError>> {
+        Some(Err(Box::new(HttpReaderError::WouldBlock)))
+    }
+
+    /// Hand out the next piece of the current chunk's data: whatever is
+    /// buffered, up to `CHUNK_PIECE` and the bytes left in the chunk.
+    fn next_piece(&self, progress: &mut ChunkProgress) -> Option<Result<ChunkedData, BoxedError>> {
+        let remaining = progress.remaining;
+        let piece = self.2.do_once_mut(|reader| {
+            let available = match super::framing::some_buffered(reader) {
+                Ok(Some(n)) => n,
+                Ok(None) => return Ok(None),
+                Err(err) => return Err(err),
+            };
+            if available == 0 {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::UnexpectedEof,
+                    format!("connection closed with {remaining} bytes of the chunk unread"),
+                ));
+            }
+            #[allow(clippy::cast_possible_truncation)]
+            let take = available
+                .min(super::framing::CHUNK_PIECE)
+                .min(remaining.min(usize::MAX as u64) as usize);
+            // `peek_pos == pos` between parses, so this takes exactly `take`
+            // buffered bytes without touching the socket.
+            let _ = reader.forward_by(take);
+            reader.consume().map(Some)
+        });
+        match piece {
+            Ok(Some(bytes)) => {
+                progress.remaining -= bytes.len() as u64;
+                tracing::trace!(
+                    "ChunkState::Chunk::Piece: len={} remaining={}",
+                    bytes.len(),
+                    progress.remaining
+                );
+                // Chunk data is opaque octets, returned untouched. (It used to
+                // have every CR stripped, which corrupted binary bodies; see
+                // specifications/11-foundation-deployment/features/
+                // 05-gcp-cloud-run-cli-provider/CR_BYTE_INVESTIGATION.md.)
+                Some(Ok(ChunkedData::Data(bytes, progress.extensions.take())))
+            }
+            Ok(None) => Self::would_block(),
+            Err(err) => Some(Err(Box::new(err))),
+        }
     }
 }
 
@@ -5625,6 +5723,8 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
         if ending_indicator.load(Ordering::Acquire) {
             tracing::trace!("ChunKState::ParsingTrailer");
 
+            // The trailer section was buffered (and capped) together with the
+            // last chunk's size line, so this parse reads only buffered bytes.
             return match ChunkState::parse_http_trailer_from_pointer(self.2.clone()) {
                 Ok(value) => match value {
                     Some(item) => match item {
@@ -5653,76 +5753,49 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
             };
         }
 
+        let progress_handle = self.4.clone();
+        let Ok(mut progress) = progress_handle.lock() else {
+            return Some(Err(Box::new(HttpReaderError::GuardedResourceAccess)));
+        };
+
+        // Inside a chunk: stream its next piece.
+        if progress.remaining > 0 {
+            return self.next_piece(&mut progress);
+        }
+
+        // Between chunks: buffer the whole (capped) size line before parsing, so
+        // a `WouldBlock` cannot split it and an endless line cannot grow the
+        // buffer without bound.
+        match self.2.do_once_mut(|reader| {
+            super::framing::buffer_until(reader, super::framing::chunk_header)
+        }) {
+            Ok(super::framing::BufferOutcome::Ready) => {}
+            Ok(super::framing::BufferOutcome::WouldBlock) => return Self::would_block(),
+            Err(err) => {
+                return Some(Err(Box::new(HttpReaderError::from_read_io(err))));
+            }
+        }
+
         tracing::trace!("ChunKState::StillParsingChunks");
         match ChunkState::parse_http_chunk_from_pointer(self.2.clone()) {
-            Ok(chunk) => {
-                match chunk {
-                    ChunkState::Chunk(size, _, opt_exts) => {
-                        // // calculate whats left in our in-mem pointer
-                        // let remaining_bytes = head_pointer.rem_len();
-                        //
-                        // // how much exactly did it take to get the length of the chunk
-                        // let total_header_bytes_used = total_header_read - remaining_bytes;
-                        //
-                        // // so add that to the size, so we can pull the chunk size + actual
-                        // // data together since before we peeked.
-                        // let bytes_we_need = total_header_bytes_used + (size as usize);
-
-                        match self.2.do_once_mut(|reader| {
-                            tracing::trace!("ChunkState::Chunk::GetSize: {:?}", size);
-
-                            #[allow(clippy::cast_possible_truncation)]
-                            let mut chunk_data = vec![0; size as usize];
-                            if let Err(err) = reader.read_exact(&mut chunk_data) {
-                                return Err(Box::new(err));
-                            }
-                            let chunk_data = chunk_data;
-
-                            // Chunk data is opaque octets: `size` says exactly how
-                            // many bytes belong to this chunk, and CRLF only
-                            // delimits the framing *around* it. So the bytes read
-                            // here are returned untouched.
-                            //
-                            // This used to strip every CR byte from chunk data, to
-                            // work around JSON from the GCP Discovery API. That
-                            // silently corrupted every binary chunked response:
-                            // Docker's multiplexed log stream, for one, puts the
-                            // payload length in the frame header, so a 13-byte log
-                            // line carries a literal 0x0D there — stripping it
-                            // desynchronised the frame and the log came back empty.
-                            // Any tar, gzip or protobuf body has the same problem.
-                            // If a *text* payload from some server really does carry
-                            // stray CRs, that is for the caller parsing that text to
-                            // deal with, not for the transport to guess at.
-                            //
-                            // Full story, and where a GCP-side fix belongs instead:
-                            // specifications/11-foundation-deployment/features/
-                            //   05-gcp-cloud-run-cli-provider/CR_BYTE_INVESTIGATION.md
-                            //   ("Update 2026-07-17")
-                            tracing::trace!(
-                                "ChunkState::Chunk::DataRead: len={:?}",
-                                chunk_data.len(),
-                            );
-
-                            Ok(ChunkedData::Data(chunk_data, opt_exts))
-                        }) {
-                            Ok(value) => Some(Ok(value)),
-                            Err(err) => Some(Err(Box::new(err))),
-                        }
-                    }
-                    ChunkState::LastChunk => {
-                        // set the state store as false
-                        ending_indicator.store(true, Ordering::Release);
-
-                        tracing::trace!("Received last Chunk, ending");
-                        Some(Ok(ChunkedData::DataEnded))
-                    }
-                    ChunkState::Trailer(_) => {
-                        tracing::error!("Trailer should not be recieved");
-                        Some(Err(Box::new(HttpReaderError::TrailerShouldNotOccurHere)))
-                    }
+            Ok(chunk) => match chunk {
+                ChunkState::Chunk(size, _, opt_exts) => {
+                    tracing::trace!("ChunkState::Chunk::GetSize: {:?}", size);
+                    progress.remaining = size;
+                    progress.extensions = opt_exts;
+                    self.next_piece(&mut progress)
                 }
-            }
+                ChunkState::LastChunk => {
+                    ending_indicator.store(true, Ordering::Release);
+
+                    tracing::trace!("Received last Chunk, ending");
+                    Some(Ok(ChunkedData::DataEnded))
+                }
+                ChunkState::Trailer(_) => {
+                    tracing::error!("Trailer should not be recieved");
+                    Some(Err(Box::new(HttpReaderError::TrailerShouldNotOccurHere)))
+                }
+            },
             Err(err) => Some(Err(Box::new(err))),
         }
     }
