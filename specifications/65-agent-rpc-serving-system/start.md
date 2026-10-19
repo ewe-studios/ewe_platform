@@ -17,8 +17,10 @@ created: 2026-10-19
 5. Navigate to `features/[feature]/start.md` and follow that feature's workflow.
 6. **ALWAYS UPDATE `LEARNINGS.md`** after each completed task/milestone.
 
-**Feature order:** 0 (agent-rpc) and 1 (installer) are independent leaves; 2
-(proxy registration) extends the proxy; 3 (registrar) composes 1 + 2.
+**Feature order:** build `0` (foundation — wasm/CF-Workers readiness) first.
+After that: 1 (agent-rpc) and 2 (installer) are independent leaves; 3 (proxy
+registration) extends the proxy; 4 (registrar) composes 2 + 3; 5 (cloudflare)
+consumes 0 + 1.
 
 ---
 

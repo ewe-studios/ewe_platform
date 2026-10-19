@@ -4,8 +4,8 @@ description: "A sidecar (foundation_registrar) that reads the manifest independe
 status: "pending"
 priority: "high"
 depends_on:
-  - "01-manifest-installer"
-  - "02-proxy-registration"
+  - "02-manifest-installer"
+  - "03-proxy-registration"
 estimated_effort: "medium"
 created: 2026-10-19
 last_updated: 2026-10-19
@@ -25,7 +25,7 @@ tasks:
 the manifest" and "served by the proxy." It reads the manifest independently,
 reviews it to determine **which installed binaries must be proxied**, and then
 tells the proxy — via the authenticated registration handshake from
-`02-proxy-registration` — "this binary is here at host:port" and keeps that
+`03-proxy-registration` — "this binary is here at host:port" and keeps that
 registration alive.
 
 It owns the **registration auth channel** (token → mTLS) to the proxy. It has no
@@ -49,15 +49,15 @@ Docker deployments. Both are the same binary, differently placed.
 
 - [ ] Read `.agents/skills/rust-clean-code/skill.md`.
 - [ ] Read `.agents/skills/rust-valtron-usage/skill.md` (heartbeat loop as a task).
-- [ ] Read `01-manifest-installer/feature.md` (the manifest schema it parses).
-- [ ] Read `02-proxy-registration/feature.md` (the handshake it speaks).
+- [ ] Read `02-manifest-installer/feature.md` (the manifest schema it parses).
+- [ ] Read `03-proxy-registration/feature.md` (the handshake it speaks).
 
 ---
 
 ## Requirements
 
 1. **Read the manifest independently.**
-   - Parse the same JSON contract as `01-manifest-installer`, but from this crate's
+   - Parse the same JSON contract as `02-manifest-installer`, but from this crate's
      own types (no shared library with the installer). Only `entry.proxy` blocks
      matter to the registrar; the rest of the manifest is ignored.
 
@@ -93,7 +93,7 @@ Docker deployments. Both are the same binary, differently placed.
   both paths share the manifest-review → register → heartbeat pipeline.
 - **Manifest is input, not shared code.** The registrar parses `entry.proxy` from
   the same JSON the installer uses, using its own structs.
-- **Registration is a generated client** against `02-proxy-registration`'s
+- **Registration is a generated client** against `03-proxy-registration`'s
   `RegistrationService`, with token → mTLS layered on.
 
 ### Component Structure

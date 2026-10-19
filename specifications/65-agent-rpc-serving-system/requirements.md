@@ -1,5 +1,5 @@
 ---
-description: "A host-based agentic serving system: an agent-rpc model server (load-once, threaded inference, named instances) fronted by the proxy, distributed by a manifest-driven installer, and coordinated by a sidecar registrar that registers installed binaries with the proxy."
+description: "A host-based agentic serving system: an agent-rpc model server (load-once, threaded inference, named instances) fronted by the proxy, distributed by a manifest-driven installer, and coordinated by a sidecar registrar that registers installed binaries with the proxy — with a wasm/Cloudflare-Workers foundation (00-foundation) making foundation_ai run on the edge first."
 status: "in-progress"
 priority: "high"
 created: 2026-10-19
@@ -21,23 +21,26 @@ metadata:
     - mtls
     - model-server
     - deployment
+    - wasm
+    - cloudflare-workers
   stack_files: [rust.md]
   skills:
     - rust-clean-code
     - rust-valtron-usage
   tools: []
 has_features: true
-has_fundamentals: false
+has_fundamentals: true
 builds_on: ""
 related_specs:
+  - "specifications/completed/28-cloudflare-workers-readiness"
   - "specifications/63-connectrpc-proxy"
   - "specifications/61-llama-vendoring-and-crate-publishing"
   - "specifications/29-wasm-http-client"
   - "specifications/completed/41-connectrpc"
 features:
   completed: 0
-  uncompleted: 4
-  total: 4
+  uncompleted: 6
+  total: 6
   completion_percentage: 0
 ---
 
@@ -52,6 +55,15 @@ manifest, pulls a Rust installer, and the installer places everything else
 (software, systemd units, or containers). A sidecar registrar reads that same
 manifest, decides which installed binaries must be proxied, and tells the proxy
 "this binary is here at this host/port" so it can serve them.
+
+**Foundation first.** Before any of the above is built, `00-foundation` makes
+`foundation_ai` and its dependencies compile and run on `wasm32-unknown-unknown`,
+reusing the repo's existing cross-platform HTTP seam (`DynNetClient`/`HttpClient`
+— no new client type) and routing non-I/O primitives through `foundation_compact`
+(the central cross-platform substrate: time/entropy/RNG/IDs/crypto). It extends
+the completed `28-cloudflare-workers-readiness` work and is verified with
+miniflare locally and on Cloudflare, so the later Cloudflare target
+(`05-cloudflare`) builds on a proven foundation.
 
 The design rule that shapes every feature: **no tight coupling.** The installer,
 agent-rpc, registrar, and proxy each have exactly one mission. They are composed
@@ -81,12 +93,16 @@ layer (`foundation_connectrpc`), and extends the proxy work begun in
 
 # Goals
 
+- **Foundation:** make `foundation_ai` (and the crates it pulls in) compile and
+  run on `wasm32-unknown-unknown`, verified with miniflare locally and on
+  Cloudflare — before agent-rpc is built (`00-foundation`).
 - Ship an `agent-rpc` crate: a long-lived, per-machine RPC server that loads a
   model once, runs threaded inference, and exposes named agent "instances" as
   lightweight logical state over Connect/gRPC/gRPC-Web.
 - Ship a manifest-driven installer that produces platform install scripts via
   the existing templating stack and executes them through pluggable source and
-  deploy-target adapters (bare-metal systemd and Docker at a minimum).
+  deploy-target adapters (bare-metal systemd and Docker at a minimum). The
+  installer does **not** know about Cloudflare.
 - Extend `foundation_proxy` with a registration authority: authenticated
   register/deregister/heartbeat endpoints and a routing table of live backends.
 - Ship a sidecar registrar that reads the manifest, reviews which binaries must
@@ -99,32 +115,42 @@ layer (`foundation_connectrpc`), and extends the proxy work begun in
 
 - `backends/foundation_agent_rpc` — new crate: the agent-rpc model server.
 - `backends/foundation_installer` — new crate: manifest schema, source/deploy
-  adapters, bootstrap-script generation, installer binary.
+  adapters, bootstrap-script generation, installer binary (systemd + Docker only).
 - `backends/foundation_registrar` — new crate: the sidecar registrar binary.
 - `backends/foundation_proxy` — extended: registration authority + routing table.
+- `backends/foundation_ai` (+ `foundation_netio`, `foundation_arrow`, etc.) —
+  modified only for wasm/CF-Workers readiness in `00-foundation`; the agentic
+  design itself is untouched.
 - Reused, not modified unless required: `backends/foundation_connectrpc` (RPC
-  engine), `backends/foundation_ai` (harness), `backends/foundation_packager`
-  (templating), `backends/foundation_deployment_docker` (Docker).
+  engine), `backends/foundation_packager` (templating),
+  `backends/foundation_deployment_docker` (Docker),
+  `backends/foundation_deployment_cloudflare` (Cloudflare Workers + Sandboxes/Containers).
 - Feature specifications: `specifications/65-agent-rpc-serving-system/features/*/feature.md`.
 
 # Known Issues
 
-None yet — green-field. The three *latent* risks that gate the design are called
-out explicitly and turned into the first tasks of their features:
+The four *latent* risks that gate the design are called out explicitly and turned
+into the first tasks of their features:
 
-1. **Model shareability** (F0): the whole "load once, many threads" model
+1. **Model shareability** (F1): the whole "load once, many threads" model
    depends on `foundation_ai`'s loaded backend (llamacpp GGUF / Candle) being
    `Send + Sync` and handable to many `AgentSession`s. This is a verification
-   spike, not an assumption — see `00-agent-rpc`.
+   spike, not an assumption — see `01-agent-rpc`.
 2. **H2 trailer plumbing** (inherited from spec 63): a gRPC client cannot yet
    observe `grpc-status` through `foundation_connectrpc` until its H2 transport
    forwards trailing HEADERS. agent-rpc's gRPC status assertions are gated on
    spec 63's T1.
-3. **Cloudflare / WASM target** (in research): agent-rpc must also run on
-   Cloudflare — Workers (WASM, edge, single-threaded) and Sandboxes/Containers
-   (heavier, long-running). Whether `foundation_ai` (or its agentic layer alone)
-   compiles to `wasm32` for a Worker is under active research; the dedicated
-   Cloudflare feature will be written from those findings, not before.
+3. **Cloudflare / WASM target** (foundation-first): the full `foundation_ai`
+   (llamacpp/Candle) cannot compile to a Worker — those backends are already
+   `not(target_family = "wasm")`-gated and are infeasible (C FFI, threads, mmap,
+   ~128 MB). But the agentic layer + cloud providers are nearly wasm-clean. The
+   readiness work (wasm compile gate, cross-platform `HttpClient` seam, Workers AI
+   provider, miniflare + Cloudflare examples) is **`00-foundation`**, built before
+   agent-rpc. The Cloudflare *target* itself — thin WASM orchestrator on Workers,
+   full native model-server on Sandboxes/Containers — is **`05-cloudflare`**.
+4. **`foundation_arrow` wasm status unknown** — it shows no
+   `target_family = "wasm"` gating, so its wasm readiness is an explicit
+   `00-foundation` T2 audit item, not an assumption.
 
 # Language Stack
 
@@ -135,14 +161,14 @@ corresponding skills BEFORE implementation.
 
 | Language | Purpose | Skill Location |
 |----------|---------|----------------|
-| Rust | agent-rpc server, installer, registrar, proxy extension | `.agents/skills/rust-clean-code/skill.md` |
+| Rust | agent-rpc server, installer, registrar, proxy extension, wasm foundation | `.agents/skills/rust-clean-code/skill.md` |
 
 ### Mandatory Pre-Implementation Steps
 
 1. Read `.agents/skills/rust-clean-code/skill.md` (implementation standards) and
    `.agents/skills/rust-valtron-usage/skill.md` (async/valtron boundaries —
    agent-rpc is async on the RPC edge and threaded/valtron in the inference
-   core).
+   core; Workers run the executor single-threaded via `JSThreadYielder`).
 2. Follow `.agents/AGENTS.md`: stream bodies (never buffer them), use the
    generated/protocol types (fix the generator, don't hand-roll), async all the
    way down, no stubs, no ignored errors/return values.
@@ -151,10 +177,12 @@ corresponding skills BEFORE implementation.
 
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
-| 0  | [Agent RPC Model Server](./features/00-agent-rpc/feature.md) | Load-once, threaded-inference RPC server with named instances and client-facing token→mTLS auth | None | ⬜ Pending |
-| 1  | [Manifest Installer](./features/01-manifest-installer/feature.md) | Manifest schema + source/deploy adapters + bootstrap-script generation | None | ⬜ Pending |
-| 2  | [Proxy Registration Authority](./features/02-proxy-registration/feature.md) | Authenticated register/deregister/heartbeat + live backend routing table | None (extends spec 63) | ⬜ Pending |
-| 3  | [Registrar Sidecar](./features/03-registrar-sidecar/feature.md) | Reads manifest, reviews proxied binaries, registers them with the proxy | 1, 2 | ⬜ Pending |
+| 0  | [WASM & CF-Workers Readiness (foundation)](./features/00-foundation/feature.md) | Make foundation_ai + deps compile/run on wasm32, verified via miniflare + Cloudflare; reuses DynNetClient/HttpClient, extends spec 28 | None (extends spec 28) | ⬜ Pending |
+| 1  | [Agent RPC Model Server](./features/01-agent-rpc/feature.md) | Load-once, threaded-inference RPC server with named instances and client-facing token→mTLS auth | None | ⬜ Pending |
+| 2  | [Manifest Installer](./features/02-manifest-installer/feature.md) | Manifest schema + source/deploy adapters (systemd/Docker) + bootstrap-script generation | None | ⬜ Pending |
+| 3  | [Proxy Registration Authority](./features/03-proxy-registration/feature.md) | Authenticated register/deregister/heartbeat + live backend routing table | None (extends spec 63) | ⬜ Pending |
+| 4  | [Registrar Sidecar](./features/04-registrar-sidecar/feature.md) | Reads manifest, reviews proxied binaries, registers them with the proxy | 2, 3 | ⬜ Pending |
+| 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Thin WASM orchestrator on Workers + full model server on Sandboxes/Containers, consuming 00-foundation | 0, 1 | ⬜ Pending |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
@@ -183,9 +211,17 @@ conversation settled the shape across several corrections:
   templating crates, with pluggable source adapters (github-release/url/cargo/
   apt/mise/docker-image) and deploy-target adapters (systemd, Docker). Docker
   delegates to `foundation_deployment_docker`; pull-by-tag is preferred (CI/CD
-  builds the image), build is a fallback.
+  builds the image), build is a fallback. The installer does **not** target
+  Cloudflare — that overstep was corrected.
 - **The sidecar is a deployment-time choice, not an architecture change.** One
   sidecar per bare-metal host; in Docker, the sidecar rides in the container.
+- **Foundation before agent-rpc (wasm/CF-Workers).** Shore up `foundation_ai` +
+  deps for `wasm32-unknown-unknown` first, verified with miniflare and on
+  Cloudflare, before building agent-rpc — grounded in the pre-existing
+  `28-cloudflare-workers-readiness` work (cf-valtron-counter, ci-wasm-checks,
+  miniflare harness). Reuse the existing cross-platform `DynNetClient`/`HttpClient`
+  seam per use-case (singular `HttpClient` for HTTP-only providers, combined
+  `NetClient` only when WebSocket is needed) — no new `DynHttpClient` type.
 
 # High-Level Architecture
 
@@ -206,8 +242,15 @@ graph TD
         MODEL[Loaded model<br/>llamacpp / Candle]
     end
 
+    subgraph Edge[Cloudflare — follow-on]
+        WORCH[Thin WASM orchestrator<br/>Workers]
+        SB[Full agent-rpc<br/>Sandboxes/Containers]
+        WAI[Workers AI]
+    end
+
     INST[foundation_installer<br/>manifest + adapters]
     MANIFEST[(Manifest<br/>JSON)]
+    FOUND[foundation_ai wasm-ready<br/>00-foundation]
 
     CLI -->|"RPC: Connect/gRPC/gRPC-Web<br/>secret-token → mTLS"| PROXY
     PROXY -->|"forward registered backend"| ARPC
@@ -216,29 +259,46 @@ graph TD
     REG -.->|"reads manifest (reviews proxies)"| MANIFEST
     INST -.->|"reads manifest (installs)"| MANIFEST
     INST -->|"delegates Docker"| DOCKER[foundation_deployment_docker]
+
+    CLI -.->|"Connect/gRPC-Web (Cloudflare)"| WORCH
+    WORCH --> WAI
+    WORCH -.->|"remote agent-rpc (Connect client)"| ARPC
+    SB -->|"native model server"| ARPC
+    FOUND -.->|"wasm-clean foundation"| WORCH
 ```
 
 ### Component Responsibilities
 
+0. **foundation (`00-foundation`)** — makes `foundation_ai` and its AI deps
+   (`foundation_netio`/`foundation_vectors`/`foundation_compact`/
+   `foundation_arrow`/`foundation_connectrpc`) compile and run on
+   `wasm32-unknown-unknown`, reusing the existing `DynNetClient`/`HttpClient`
+   seam and extending spec 28's ci-wasm-checks. Verified with miniflare locally
+   and on Cloudflare. Not a new crate — a prerequisite slice across existing
+   crates.
 1. **agent-rpc (`foundation_agent_rpc`)** — a long-lived RPC server built on
    `foundation_connectrpc`. Loads a model once into a shared `ModelHandle`
    (`Send + Sync + 'static`), runs threaded inference, and exposes named
    instances (each a `foundation_ai::AgentSession` + memory store + provider
    config). Owns its own client-facing auth (secret-token → mTLS) and advertises
-   a bootstrap payload as base64/QR. See `00-agent-rpc`.
+   a bootstrap payload as base64/QR. See `01-agent-rpc`.
 2. **installer (`foundation_installer`)** — reads a manifest, resolves each
    entry through a source adapter, and applies it through a deploy-target
    adapter (systemd unit or Docker). Generates the tiny bootstrap script via
-   `foundation_packager`. See `01-manifest-installer`.
+   `foundation_packager`. No Cloudflare. See `02-manifest-installer`.
 3. **proxy (`foundation_proxy`, extended)** — receives authenticated
    registrations from the registrar and maintains a live routing table
    (backend name → host/port/protocol/health). Forwards to registered backends,
    reusing spec 63's per-endpoint protocol selection. See
-   `02-proxy-registration`.
+   `03-proxy-registration`.
 4. **registrar (`foundation_registrar`)** — the sidecar. Reads the manifest
    independently, reviews which installed binaries must be proxied, and keeps the
    proxy's routing table current. Owns the registration auth channel. See
-   `03-registrar-sidecar`.
+   `04-registrar-sidecar`.
+5. **Cloudflare target (`05-cloudflare`)** — the thin WASM orchestrator on
+   Workers and the full native model-server on Sandboxes/Containers, consuming
+   the `00-foundation` readiness. Cloudflare deployment lives in
+   `foundation_deployment_cloudflare` / `ewe_deployables`, not the installer.
 
 ### Cross-component contracts (the *only* touch points)
 
@@ -251,6 +311,10 @@ graph TD
 - **RPC service** — the agent-rpc service definition (instance + chat methods)
   is the contract between clients and agent-rpc. The proxy forwards it opaquely
   (spec 63); it does not interpret it.
+- **HTTP client seam** (`foundation_netio`) — `DynNetClient`/`HttpClient` is the
+  cross-platform contract used by `foundation_ai`'s providers; no new type.
+- **Cross-platform substrate** (`foundation_compact`) — the central home for
+  time/entropy/RNG/IDs/crypto; `foundation_ai` routes its primitives through it.
 
 ### Auth model (two independent channels)
 
@@ -264,20 +328,26 @@ agent-rpc client token; agent-rpc never sees the registration token.
 
 ### Deployment topology
 
+- **Foundation first:** `foundation_ai` is wasm-clean and proven via miniflare +
+  Cloudflare examples before any server is built (`00-foundation`).
 - **Single host (first milestone):** proxy + one or more agent-rpc instances +
   one registrar on the same machine; each agent-rpc on its own port/endpoint.
 - **Multi-host (follow-on):** the registrar reports backends by host + port, so
   the proxy can forward across machines. The registration message already
   carries host + port, so the data plane handles remote backends with no new
   mechanism.
-- **Cloudflare (follow-on):** the same agent-rpc surface targets Cloudflare —
-  Workers (WASM edge; a thin orchestration layer, or an agent whose model is
-  Cloudflare Workers AI / a remote agent-rpc) and Sandboxes/Containers (heavier,
-  hosting the full model server). The exact split is set by the WASM-
-  compilability research recorded in Known Issues.
+- **Cloudflare (follow-on):** two artifacts — a **thin WASM agent orchestrator**
+  on Workers (agentic layer + Workers-AI or remote agent-rpc model, served via
+  `foundation_http::wasm::dispatch_cf`), and the **full native model-server
+  agent-rpc** on Sandboxes/Containers. See `05-cloudflare` (consuming
+  `00-foundation`).
 
 # Success Criteria (Spec-Wide)
 
+0. `foundation_ai` (and its AI deps) compile clean to `wasm32-unknown-unknown`,
+   providers code against the `HttpClient`/`DynNetClient` seam, and the
+   miniflare + Cloudflare examples stream end-to-end — all before agent-rpc is
+   built.
 1. An operator can bootstrap a host from a manifest: the bootstrap script
    installs agent-rpc (and the sidecar), starts it under systemd (or as a
    container), and the sidecar registers it with the proxy — all without
@@ -293,18 +363,26 @@ agent-rpc client token; agent-rpc never sees the registration token.
    live connections.
 5. The components remain uncoupled: installer, registrar, agent-rpc, and proxy
    build and run independently, with the manifest as the only shared format and
-   the registration handshake as the only live coupling.
+   the registration handshake as the only live coupling. The installer never
+   targets Cloudflare.
 
 # Out of Scope
 
-- **Changes to `foundation_ai`** except where the model-shareability spike proves
-  them necessary (and then only the minimum to expose a `Send + Sync` shared
-  handle). The harness/agentic design itself is out of scope.
-- **Changes to `foundation_connectrpc`** except what spec 63 already tracks
-  (H2 trailer plumbing). agent-rpc *consumes* the RPC engine; it does not
-  redesign it.
+- **The agentic/harness design of `foundation_ai`** — only the minimum to make it
+  wasm/CF-Workers clean (`00-foundation`) and to expose a `Send + Sync` shared
+  handle if the spike proves it necessary (`01-agent-rpc`). The harness/agentic
+  design itself is out of scope.
+- **Changes to `foundation_connectrpc`** except what spec 63 tracks (H2 trailer
+  plumbing) and the F24 wasm fetch transport (`05-cloudflare`). agent-rpc
+  *consumes* the RPC engine; it does not redesign it.
+- **Cloudflare deployment in the installer** — explicitly out. The installer's
+  deploy targets are systemd and Docker. Cloudflare deployment belongs to
+  `foundation_deployment_cloudflare` / `ewe_deployables`.
 - **Reinventing Docker** — the installer's Docker path delegates to
   `foundation_deployment_docker` (pull-by-tag preferred, build as fallback).
+- **Porting local model backends to wasm** — llamacpp/Candle stay
+  `not(target_family = "wasm")`-gated; Workers use Workers AI or a remote
+  agent-rpc.
 - **gRPC-JSON transcoding / a REST façade** over the agent RPCs (separate surface,
   not requested).
 - **Cross-org or multi-tenant proxy federation** — registrations are within one
@@ -312,15 +390,31 @@ agent-rpc client token; agent-rpc never sees the registration token.
 
 # Module References
 
-- `backends/foundation_connectrpc/` — Router/Client/handlers; the RPC engine.
+- `backends/foundation_netio/src/network_client.rs` — `HttpClientBuilder`,
+  `DynNetClient`/`NetClient` (the cross-platform HTTP seam; no new client type).
+- `backends/foundation_netio/src/shared/client/http_client.rs` — the `HttpClient`
+  trait (`Arc<dyn HttpClient>`), object-safe, cross-platform.
+- `backends/foundation_netio/src/wasm/client/client.rs` — `FetchHttpClient`
+  (wasm-fetch).
+- `backends/foundation_compact/` — central cross-platform substrate: `time`,
+  `entropy` (vendored, all targets), `rng` (ChaCha, no getrandom), `ids`
+  (scru128), `crypto`, `send_wrapper`.
+- `backends/foundation_http/src/wasm/{serve_cf,dispatch_cf}.rs` — Worker serve
+  + dispatch.
+- `backends/foundation_toolings/src/harness/miniflare.rs` — the `Miniflare`
+  local-test harness (`wrangler dev --local` / `npx miniflare`).
+- `specifications/completed/28-cloudflare-workers-readiness/` — prior wasm
+  readiness (cf-valtron-counter example, ci-wasm-checks, three-tier strategy).
+- `backends/foundation_connectrpc/` — Router/Client/handlers; `shared/transport/wasm.rs`
+  (F24 stub); the RPC engine.
 - `backends/foundation_ai/src/harness/` — `RouterPreset`, `RouterMix`,
   `gguf_provider`, `candle_llama`, `into_agent_builder(_with_stores)`.
 - `backends/foundation_ai/src/agentic/` — `AgentSession`, `AgentSessionBuilder`,
   `AgentConfig`, `AgentContext`, memory stores.
 - `backends/foundation_packager/` — minijinja/tinytemplate script generation.
 - `backends/foundation_deployment_docker/` — pull/run/inspect/build.
-- `backends/foundation_deployment_platform/src/host_bootstrap/install.rs` — the
-  existing ad-hoc installer to generalize.
+- `backends/foundation_deployment_cloudflare/` — Workers + API v4 + `generated/ai`
+  (Sandboxes/Containers gap is `05-cloudflare` T3).
 - `backends/foundation_proxy/src/{config,router,h2_proxy,forward}.rs` — where the
   registration authority and routing table land.
 - `specifications/63-connectrpc-proxy/` — per-endpoint protocol selection the
@@ -330,4 +424,4 @@ agent-rpc client token; agent-rpc never sees the registration token.
 
 _Created: 2026-10-19_
 _Last Updated: 2026-10-19_
-_Structure: Feature-based (has_features: true)_
+_Structure: Feature-based (has_features: true, has_fundamentals: true)_
