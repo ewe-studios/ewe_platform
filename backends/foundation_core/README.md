@@ -294,6 +294,7 @@ impl TaskIterator for Counter {
 
     fn next_status(
         &mut self,
+        _ctx: crate::valtron::Ctx,
     ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending>> {
         let item_size = self.1.borrow().len();
 

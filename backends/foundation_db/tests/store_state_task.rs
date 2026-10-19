@@ -36,6 +36,7 @@ impl<T: Clone + Send + 'static> TaskIterator for MockSuccessTask<T> {
 
     fn next_status(
         &mut self,
+        _ctx: Ctx,
     ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending>>
     {
         if self.called {
@@ -71,6 +72,7 @@ impl TaskIterator for MockFailResourceTask {
 
     fn next_status(
         &mut self,
+        _ctx: Ctx,
     ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending>>
     {
         if self.called {
@@ -106,6 +108,7 @@ impl TaskIterator for MockFailTask {
 
     fn next_status(
         &mut self,
+        _ctx: Ctx,
     ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending>>
     {
         if self.called {
