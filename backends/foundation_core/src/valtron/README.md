@@ -284,6 +284,22 @@ async fn main() {
 }
 ```
 
+### From `#[task]` to a future or stream
+
+`#[task]` lowers a transition function into a **`TaskIterator`** — the state
+machine. `execute(..)` schedules that iterator on the engine and hands back a
+**`StreamIterator`**, a stream that emits the machine's `Stream<D, P>` states one
+by one. The `into_*` bridges then reshape that stream into whichever shape you
+want to consume it as:
+
+- **a future** — `into_ready_future()` (the first `Ready` value *plus* the
+  remaining iterator) or `into_collect_future()` (all `Ready` values);
+- **a `futures::Stream`** — `into_next_stream()` (`Item = D`, the `Ready`
+  payloads) or `into_future_stream()` (the raw `Stream<D, P>` items).
+
+Short form: `#[task]` → `TaskIterator` → `execute(..)` schedules it →
+`StreamIterator` of states → `into_*` → future or `futures::Stream`.
+
 ### Semantics
 
 - **`None` is terminal** — returning it finishes the task and yields neither a

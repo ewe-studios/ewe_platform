@@ -165,6 +165,9 @@ async fn main() {
     let toast = execute(toast_bread::new(ToastStage::Bread), None).expect("engine live");
 
     // Join: await each at the boundary — the others kept cooking meanwhile.
+    // `into_ready_future().await` resolves to Option<(value, rest)>: the first
+    // `Ready` payload plus the remaining iterator. `_` drops the (now-finished)
+    // rest — each cook emits a single `Ready`, then returns `None`.
     let (eggs, _) = eggs.into_ready_future().await.expect("eggs fried");
     let (coffee, _) = coffee.into_ready_future().await.expect("coffee brewed");
     let (toast, _) = toast.into_ready_future().await.expect("toast done");
