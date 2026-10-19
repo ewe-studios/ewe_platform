@@ -283,13 +283,10 @@ impl TaskIterator for Releaser {
 /// ran, and each client gave up on the handshake after its 3s timer. With
 /// readiness parking the workers stay free. The release happens within
 /// milliseconds, and every client waits for its `100` before sending the body.
-#[test]
-#[ntest::timeout(60_000)]
-#[serial_test::serial]
+#[valtron_test(seed = 29_001, threads = 4, timeout = 60_000)]
 fn waiting_clients_do_not_hold_workers() {
     const CLIENTS: usize = 4;
     // 4 threads = 2 task workers (+ background), fewer than the 4 clients.
-    let _guard = valtron::initialize_pool(29_001, Some(4));
 
     let flag = Arc::new(AtomicBool::new(false));
     let (addr, seen) = serve_tcp(CLIENTS, Continue::When(flag.clone()), Reply::Whole("ok"));
@@ -373,11 +370,8 @@ fn waiting_clients_do_not_hold_workers() {
 
 /// A server that sends `100 Continue` at once: the body follows immediately,
 /// nowhere near the 3s timer.
-#[test]
-#[ntest::timeout(60_000)]
-#[serial_test::serial]
+#[valtron_test(seed = 29_002, threads = 4, timeout = 60_000)]
 fn continue_from_server_sends_body_at_once() {
-    let _guard = valtron::initialize_pool(29_002, Some(4));
     let (addr, seen) = serve_tcp(1, Continue::Immediately, Reply::Whole("done"));
     let url = format!("http://127.0.0.1:{}/upload", addr.port());
 
@@ -405,11 +399,8 @@ fn continue_from_server_sends_body_at_once() {
 /// A server that never sends `100 Continue`: RFC 9110 §10.1.1 says the client
 /// sends the body anyway after a wait. The wait is the configured timer, now a
 /// readiness wait with a deadline instead of a blocking read timeout.
-#[test]
-#[ntest::timeout(60_000)]
-#[serial_test::serial]
+#[valtron_test(seed = 29_003, threads = 4, timeout = 60_000)]
 fn silent_server_gets_body_when_the_timer_fires() {
-    let _guard = valtron::initialize_pool(29_003, Some(4));
     let (addr, seen) = serve_tcp(1, Continue::Never, Reply::Whole("late"));
     let url = format!("http://127.0.0.1:{}/upload", addr.port());
     let timer = Duration::from_millis(300);
@@ -438,11 +429,8 @@ fn silent_server_gets_body_when_the_timer_fires() {
 /// The response head and a chunked body arrive in many small writes. Header
 /// lines, chunk-size lines and chunk data are split across reads. The client
 /// must not lose a header line or misframe a chunk on a `WouldBlock`.
-#[test]
-#[ntest::timeout(60_000)]
-#[serial_test::serial]
+#[valtron_test(seed = 29_004, threads = 4, timeout = 60_000)]
 fn trickled_chunked_response_parses_intact() {
-    let _guard = valtron::initialize_pool(29_004, Some(4));
     let pieces: Vec<&'static [u8]> = vec![
         b"HTTP/1.1 200 OK\r\nX-One: ",
         b"1\r\nTransfer-Enc",
@@ -494,11 +482,8 @@ fn trickled_chunked_response_parses_intact() {
 /// A streaming request body whose producer pushes late. The renderer sees "no
 /// data yet" for a while. The client must back off without spinning, and must
 /// not hold a worker, then deliver every chunk once the producer pushes.
-#[test]
-#[ntest::timeout(60_000)]
-#[serial_test::serial]
+#[valtron_test(seed = 29_005, threads = 4, timeout = 60_000)]
 fn slow_streaming_request_body_is_delivered() {
-    let _guard = valtron::initialize_pool(29_005, Some(4));
     let (addr, seen) = serve_tcp(1, Continue::Immediately, Reply::Whole("got it"));
     let url = format!("http://127.0.0.1:{}/stream", addr.port());
 
@@ -604,11 +589,8 @@ mod tls {
     /// lazily on the first non-blocking write. The TLS session decides whether a
     /// stall waits for readable or writable. `100 Continue`, a trickled header
     /// block and a trickled chunked body all cross TLS records.
-    #[test]
-    #[ntest::timeout(60_000)]
-    #[serial_test::serial]
+    #[valtron_test(seed = 29_007, threads = 4, timeout = 60_000)]
     fn rustls_exchange_with_continue_and_trickled_body() {
-        let _guard = valtron::initialize_pool(29_007, Some(4));
         let cert = fixture("cert.pem");
         let acceptor = RustlsAcceptor::from_pem(cert.clone(), Zeroizing::new(fixture("key.pem")))
             .expect("acceptor");
