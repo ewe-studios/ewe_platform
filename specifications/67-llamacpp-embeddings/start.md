@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/64-llamacpp-embeddings"
-this_file: "specifications/64-llamacpp-embeddings/start.md"
+spec_directory: "specifications/67-llamacpp-embeddings"
+this_file: "specifications/67-llamacpp-embeddings/start.md"
 created: 2026-10-18
 ---
 
