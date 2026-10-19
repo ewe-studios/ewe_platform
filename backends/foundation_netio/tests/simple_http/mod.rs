@@ -15,6 +15,7 @@
 mod actions_tests;
 mod chunked_encoding;
 mod chunked_request_framing_tests;
+mod body_memory_bound_tests;
 mod chunked_tests;
 mod client_tests;
 mod compliance_tests;

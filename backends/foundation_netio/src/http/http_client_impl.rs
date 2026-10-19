@@ -364,6 +364,15 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         self
     }
 
+    /// Caps on the frames a parser must buffer whole (response header block,
+    /// chunk-size line, line, server-sent event). See
+    /// [`crate::shared::http::framing::FrameLimits`].
+    #[must_use]
+    pub fn frame_limits(mut self, limits: crate::shared::http::framing::FrameLimits) -> Self {
+        self.config.frame_limits = limits;
+        self
+    }
+
     #[must_use]
     pub fn full_body_threshold(mut self, threshold: u64) -> Self {
         self.config.full_body_threshold = threshold;
