@@ -45,6 +45,89 @@ use crate::generated::top::{container_top_request, ContainerTopArgs, ContainerTo
 use super::DockerClient;
 use super::NoMod;
 
+/// What [`DockerClient::container_logs`] asks for (`GET
+/// /containers/{id}/logs` query parameters).
+///
+/// The default reads everything the container has written so far, stdout
+/// and stderr, without following — the daemon rejects a request that asks for
+/// neither stream.
+#[derive(Debug, Clone)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "one field per boolean query parameter of the endpoint"
+)]
+pub struct ContainerLogsOptions {
+    /// Keep the stream open and send new output as the container writes it
+    /// (`follow`). The stream then ends only when the container stops or the
+    /// caller drops it.
+    pub follow: bool,
+    /// Include stdout (`stdout`).
+    pub stdout: bool,
+    /// Include stderr (`stderr`).
+    pub stderr: bool,
+    /// Only output written at or after this UNIX timestamp (`since`).
+    pub since: Option<String>,
+    /// Only output written before this UNIX timestamp (`until`).
+    pub until: Option<String>,
+    /// Prefix every line with its timestamp (`timestamps`).
+    pub timestamps: bool,
+    /// Only this many lines from the end (`tail`); `None` is all of them.
+    pub tail: Option<String>,
+}
+
+impl Default for ContainerLogsOptions {
+    fn default() -> Self {
+        Self {
+            follow: false,
+            stdout: true,
+            stderr: true,
+            since: None,
+            until: None,
+            timestamps: false,
+            tail: None,
+        }
+    }
+}
+
+/// What [`DockerClient::container_attach`] asks for (`POST
+/// /containers/{id}/attach` query parameters).
+///
+/// The default attaches to the live stdout and stderr, as `docker attach
+/// --no-stdin` does: no earlier output, no stdin.
+#[derive(Debug, Clone)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "one field per boolean query parameter of the endpoint"
+)]
+pub struct ContainerAttachOptions {
+    /// The key sequence that detaches from the container (`detachKeys`);
+    /// `None` keeps the daemon's default.
+    pub detach_keys: Option<String>,
+    /// Replay the output written before attaching (`logs`).
+    pub logs: bool,
+    /// Stream output as the container writes it (`stream`).
+    pub stream: bool,
+    /// Attach stdin (`stdin`).
+    pub stdin: bool,
+    /// Attach stdout (`stdout`).
+    pub stdout: bool,
+    /// Attach stderr (`stderr`).
+    pub stderr: bool,
+}
+
+impl Default for ContainerAttachOptions {
+    fn default() -> Self {
+        Self {
+            detach_keys: None,
+            logs: false,
+            stream: true,
+            stdin: false,
+            stdout: true,
+            stderr: true,
+        }
+    }
+}
+
 impl DockerClient {
     // ── restart_container ───────────────────────────────────────────────
 
@@ -177,6 +260,9 @@ impl DockerClient {
     /// WHAT: Returns the log unread, as a [`LogStream`] of demultiplexed
     /// stdout/stderr frames (for a container without a TTY).
     ///
+    /// [`ContainerLogsOptions::default`] reads stdout and stderr written so
+    /// far, without following.
+    ///
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status (checked
@@ -184,23 +270,17 @@ impl DockerClient {
     pub async fn container_logs(
         &self,
         id: &str,
-        follow: bool,
-        stdout: bool,
-        stderr: bool,
-        since: Option<&str>,
-        until: Option<&str>,
-        timestamps: bool,
-        tail: Option<&str>,
+        opts: &ContainerLogsOptions,
     ) -> Result<LogStream, DockerError> {
         let args = ContainerLogsArgs {
             id: id.to_string(),
-            follow: Some(follow.to_string()),
-            stdout: Some(stdout.to_string()),
-            stderr: Some(stderr.to_string()),
-            since: since.map(str::to_string),
-            until: until.map(str::to_string),
-            timestamps: Some(timestamps.to_string()),
-            tail: tail.map(str::to_string),
+            follow: Some(opts.follow.to_string()),
+            stdout: Some(opts.stdout.to_string()),
+            stderr: Some(opts.stderr.to_string()),
+            since: opts.since.clone(),
+            until: opts.until.clone(),
+            timestamps: Some(opts.timestamps.to_string()),
+            tail: opts.tail.clone(),
         };
         let response =
             container_logs_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
@@ -328,6 +408,9 @@ impl DockerClient {
     /// WHAT: Returns the output unread, as a [`LogStream`] of demultiplexed
     /// frames (for a container without a TTY).
     ///
+    /// [`ContainerAttachOptions::default`] attaches to the live stdout and
+    /// stderr.
+    ///
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status (checked
@@ -335,21 +418,16 @@ impl DockerClient {
     pub async fn container_attach(
         &self,
         id: &str,
-        detach_keys: Option<&str>,
-        logs: bool,
-        stream: bool,
-        stdin: bool,
-        stdout: bool,
-        stderr: bool,
+        opts: &ContainerAttachOptions,
     ) -> Result<LogStream, DockerError> {
         let args = ContainerAttachArgs {
             id: id.to_string(),
-            detach_keys: detach_keys.map(str::to_string),
-            logs: Some(logs.to_string()),
-            stream: Some(stream.to_string()),
-            stdin: Some(stdin.to_string()),
-            stdout: Some(stdout.to_string()),
-            stderr: Some(stderr.to_string()),
+            detach_keys: opts.detach_keys.clone(),
+            logs: Some(opts.logs.to_string()),
+            stream: Some(opts.stream.to_string()),
+            stdin: Some(opts.stdin.to_string()),
+            stdout: Some(opts.stdout.to_string()),
+            stderr: Some(opts.stderr.to_string()),
         };
         let response =
             container_attach_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;

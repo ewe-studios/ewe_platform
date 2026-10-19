@@ -396,10 +396,10 @@ impl LogStream {
         while let Some(frame) = self.next().await {
             match frame? {
                 LogOutput::StdOut { message } => {
-                    stdout.push_str(&String::from_utf8_lossy(&message))
+                    stdout.push_str(&String::from_utf8_lossy(&message));
                 }
                 LogOutput::StdErr { message } => {
-                    stderr.push_str(&String::from_utf8_lossy(&message))
+                    stderr.push_str(&String::from_utf8_lossy(&message));
                 }
                 LogOutput::StdIn { .. } | LogOutput::Console { .. } => {}
             }

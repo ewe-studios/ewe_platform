@@ -16,6 +16,7 @@ use std::net::{Ipv4Addr, SocketAddr, TcpStream, UdpSocket};
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::sleep_async;
+use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
 use foundation_deployment_docker::streaming::decoder::LogOutput;
 use foundation_deployment_docker::DockerClient;
 use foundation_netio::http::SimpleHttpClient;
@@ -232,16 +233,7 @@ async fn wait_for_stdout(
 
     loop {
         let mut frames = client
-            .container_logs(
-                container_id,
-                false, // follow
-                true,  // stdout
-                true,  // stderr
-                None,  // since
-                None,  // until
-                false, // timestamps
-                None,  // tail (all)
-            )
+            .container_logs(container_id, &ContainerLogsOptions::default())
             .await
             .map_err(|e| {
                 docker_err(classify_docker_client_err("container_logs", e))

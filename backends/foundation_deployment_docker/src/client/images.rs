@@ -49,6 +49,28 @@ pub struct ImageBuildOptions {
     pub force_rm: bool,
 }
 
+/// What [`DockerClient::image_commit`] commits, and as what (`POST /commit`
+/// query parameters). Every field is optional; the default commits nothing
+/// in particular and the daemon rejects it — set at least `container`.
+#[derive(Debug, Clone, Default)]
+pub struct ImageCommitOptions {
+    /// The container to commit, by id or name (`container`).
+    pub container: Option<String>,
+    /// Repository name for the new image (`repo`).
+    pub repo: Option<String>,
+    /// Tag for the new image (`tag`).
+    pub tag: Option<String>,
+    /// Commit message (`comment`).
+    pub comment: Option<String>,
+    /// Author of the image, e.g. `Name <email>` (`author`).
+    pub author: Option<String>,
+    /// Pause the container while committing (`pause`); `None` keeps the
+    /// daemon's default, which pauses.
+    pub pause: Option<bool>,
+    /// Dockerfile instructions to apply while committing (`changes`).
+    pub changes: Option<String>,
+}
+
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 use foundation_netio::PreparedRequestBuilder;
 
@@ -231,24 +253,15 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn image_commit(
-        &self,
-        container: Option<&str>,
-        repo: Option<&str>,
-        tag: Option<&str>,
-        comment: Option<&str>,
-        author: Option<&str>,
-        pause: Option<bool>,
-        changes: Option<&str>,
-    ) -> Result<IDResponse, DockerError> {
+    pub async fn image_commit(&self, opts: &ImageCommitOptions) -> Result<IDResponse, DockerError> {
         let args = ImageCommitArgs {
-            container: container.map(str::to_string),
-            repo: repo.map(str::to_string),
-            tag: tag.map(str::to_string),
-            comment: comment.map(str::to_string),
-            author: author.map(str::to_string),
-            pause: pause.map(|v| v.to_string()),
-            changes: changes.map(str::to_string),
+            container: opts.container.clone(),
+            repo: opts.repo.clone(),
+            tag: opts.tag.clone(),
+            comment: opts.comment.clone(),
+            author: opts.author.clone(),
+            pause: opts.pause.map(|v| v.to_string()),
+            changes: opts.changes.clone(),
             body: ContainerConfig::default(),
         };
         let response =
