@@ -61,6 +61,8 @@ pub mod error_code {
     pub const H3_CLOSED_CRITICAL_STREAM: u64 = 0x0104;
     /// The first control frame was not SETTINGS.
     pub const H3_MISSING_SETTINGS: u64 = 0x010a;
+    /// The request or its response was cancelled.
+    pub const H3_REQUEST_CANCELLED: u64 = 0x010c;
     /// A malformed request or response.
     pub const H3_MESSAGE_ERROR: u64 = 0x010e;
     /// QPACK could not decode a field section.
@@ -624,6 +626,18 @@ impl<S: QuicBidiStream> H3Request<S> {
     /// Abort the stream with an HTTP/3 error code.
     pub fn reset(&mut self, code: u64) {
         self.framed.get_mut().reset(code);
+    }
+
+    /// WHY: a server that answers before reading the whole request (an early
+    /// `413`, or a response that ends while the request is still open) must tell
+    /// the peer to stop sending, or the unread bytes keep consuming the stream's
+    /// and the connection's flow-control credit (RFC 9114 §4.1.1).
+    ///
+    /// WHAT: abort the receive half with STOP_SENDING carrying `code`
+    /// (`H3_NO_ERROR` when the response is complete and simply does not need the
+    /// rest of the request).
+    pub fn stop_sending(&mut self, code: u64) {
+        QuicRecvStream::stop_sending(self.framed.get_mut(), code);
     }
 
     /// This request's QUIC stream id.
