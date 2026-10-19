@@ -23,6 +23,7 @@ use std::sync::Arc;
 use concurrent_queue::ConcurrentQueue;
 
 use crate::synca::mpp::RecvIterator;
+use crate::valtron::wake::WakeableStream;
 
 #[derive(Clone)]
 pub enum StreamSpread<D, P> {
@@ -162,6 +163,7 @@ pub trait StreamIterator: Iterator<Item = Stream<Self::D, Self::P>> {
 /// provides an `Iterator` impl that delegates to the inner value.  The
 /// value-add is ergonomic — `.into_stream_iter().map_done(…)` is
 /// unambiguously the valtron combinator.
+#[derive(Debug)]
 pub struct StreamIter<S: StreamIterator>(pub S);
 
 impl<S: StreamIterator> Iterator for StreamIter<S> {
@@ -170,6 +172,27 @@ impl<S: StreamIterator> Iterator for StreamIter<S> {
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
     }
+}
+
+// `StreamIter` is the plain-iterator entry point: it must NOT forward `wake`, so a
+// waking chain that routes through `into_stream_iter()` degrades to self-wake
+// (correct — never a lost wake).
+#[cfg(feature = "multi")]
+impl<S> WakeableStream for StreamIter<S>
+where
+    S: StreamIterator,
+    S::D: Send + 'static,
+    S::P: Send + 'static,
+{
+}
+
+#[cfg(not(feature = "multi"))]
+impl<S> WakeableStream for StreamIter<S>
+where
+    S: StreamIterator,
+    S::D: 'static,
+    S::P: 'static,
+{
 }
 
 // Blanket implementation for any compatible iterator (Send variant — multi-threaded)

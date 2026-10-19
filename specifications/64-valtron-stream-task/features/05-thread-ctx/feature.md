@@ -3,7 +3,7 @@ feature: "Thread Ctx"
 description: "Expand TaskIterator::next_status and ExecutionIterator::next to take ctx: Ctx by value; the engine owns + clones the Ctx; update every impl, the poll sites, and the wrappers."
 status: "pending"
 priority: "high"
-depends_on: ["00-ctx"]
+depends_on: ["04-ctx"]
 estimated_effort: "large"
 created: 2026-10-18
 last_updated: 2026-10-18
@@ -19,7 +19,7 @@ tasks:
 
 ## Overview
 
-The engine owns the single `Ctx` (feature 00) and hands a clone to every poll.
+The engine owns the single `Ctx` (feature 04) and hands a clone to every poll.
 This feature makes that mechanical: the two iterator traits gain a `ctx: Ctx`
 parameter **by value**, and every implementation forwards or consumes it.
 
@@ -94,7 +94,7 @@ No new error paths. The `catch_unwind(AssertUnwindSafe(|| …))` closures around
 
 - Large diff, but mechanical and compiler-driven (a missing `ctx` is a compile
   error at each impl).
-- The RNG-in-Ctx open decision from feature 00 must be settled before wiring
+- The RNG-in-Ctx open decision from feature 04 must be settled before wiring
   `ctx.rng()` into tasks, but the *plumbing* here is independent of it.
 
 ## Tasks

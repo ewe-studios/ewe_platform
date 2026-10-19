@@ -1,7 +1,7 @@
 # 01-migrate-recv-iterator — Feature Start
 
 1. Read `feature.md` (migration scope + the Pipe-vs-NotifyQueue rationale).
-2. Read `../LEARNINGS.md` (parent spec).
+2. Read `../../LEARNINGS.md` (parent spec).
 3. Read `.agents/AGENTS.md`.
 4. Read `.agents/skills/rust-valtron-usage/skill.md` and `rust-valtron-iterator/skill.md`.
 5. Work ONE task at a time, in order.

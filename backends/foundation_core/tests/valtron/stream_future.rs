@@ -56,7 +56,7 @@ mod sync_tests {
             Stream::<i32, &str>::Next(1),
             Stream::Next(2),
             Stream::Next(3),
-        ].into_iter();
+        ].into_iter().into_stream_iter();
         let mut future = StreamCollectFuture::new(iter);
 
         match poll_once(&mut future) {
@@ -76,7 +76,7 @@ mod sync_tests {
             Stream::<i32, &str>::Next(1),
             Stream::Pending("wait"),
             Stream::Next(2),
-        ].into_iter();
+        ].into_iter().into_stream_iter();
         let mut future = StreamCollectFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -99,7 +99,7 @@ mod sync_tests {
             Stream::<i32, &str>::Ignore,
             Stream::Next(42),
             Stream::Ignore,
-        ].into_iter();
+        ].into_iter().into_stream_iter();
         let mut future = StreamCollectFuture::new(iter);
 
         match poll_once(&mut future) {
@@ -115,7 +115,7 @@ mod sync_tests {
     #[traced_test]
     fn test_collect_future_empty_returns_empty_vec() {
         let iter: Vec<Stream<i32, &str>> = vec![];
-        let mut future = StreamCollectFuture::new(iter.into_iter());
+        let mut future = StreamCollectFuture::new(iter.into_iter().into_stream_iter());
 
         match poll_once(&mut future) {
             Poll::Ready(v) => {
@@ -137,7 +137,7 @@ mod sync_tests {
         let iter = vec![
             Stream::<i32, &str>::Next(42),
             Stream::Next(99),
-        ].into_iter();
+        ].into_iter().into_stream_iter();
         let mut future = StreamReadyFuture::new(iter);
 
         match poll_once(&mut future) {
@@ -159,7 +159,7 @@ mod sync_tests {
             Stream::<i32, &str>::Init,
             Stream::Pending("loading"),
             Stream::Next(1),
-        ].into_iter();
+        ].into_iter().into_stream_iter();
         let mut future = StreamReadyFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -182,7 +182,7 @@ mod sync_tests {
         let iter = vec![
             Stream::<i32, &str>::Ignore,
             Stream::Init,
-        ].into_iter();
+        ].into_iter().into_stream_iter();
         let mut future = StreamReadyFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -207,7 +207,7 @@ mod sync_tests {
             Stream::<i32, &str>::Next(1),
             Stream::Pending("waiting"),
             Stream::Next(2),
-        ].into_iter();
+        ].into_iter().into_stream_iter();
         let mut future = StreamPendingFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -229,7 +229,7 @@ mod sync_tests {
         let iter = vec![
             Stream::<i32, &str>::Next(1),
             Stream::Next(2),
-        ].into_iter();
+        ].into_iter().into_stream_iter();
         let mut future = StreamPendingFuture::new(iter);
 
         assert!(matches!(poll_once(&mut future), Poll::Pending));
@@ -293,6 +293,7 @@ mod smol_ext_tests {
         let result = smol::block_on(
             vec![Stream::<&str, &str>::Next("a"), Stream::Next("b")]
                 .into_iter()
+                .into_stream_iter()
                 .into_collect_future()
         );
         tracing::info!("collect via ext: {:?}", result);
@@ -305,6 +306,7 @@ mod smol_ext_tests {
         let (value, mut remaining) = smol::block_on(
             vec![Stream::<i32, &str>::Next(42), Stream::Next(1)]
                 .into_iter()
+                .into_stream_iter()
                 .into_ready_future()
         ).unwrap();
         tracing::info!("ready via ext: value={}, remaining exhausted={}", value, remaining.next().is_none());
@@ -318,6 +320,7 @@ mod smol_ext_tests {
         let (ctx, _) = smol::block_on(
             vec![Stream::<i32, &str>::Next(1), Stream::Pending("x")]
                 .into_iter()
+                .into_stream_iter()
                 .into_pending_future()
         ).unwrap();
         tracing::info!("pending via ext: ctx={}", ctx);
@@ -360,7 +363,7 @@ async fn test_tokio_await_collect() {
         Stream::<i32, &str>::Next(1),
         Stream::Next(2),
         Stream::Next(3),
-    ].into_iter().into_collect_future().await;
+    ].into_iter().into_stream_iter().into_collect_future().await;
     tracing::info!("tokio collect result: {:?}", result);
     assert_eq!(result, vec![1, 2, 3]);
 }
@@ -372,7 +375,7 @@ async fn test_tokio_await_ready_future() {
     let (value, mut remaining) = vec![
         Stream::<i32, &str>::Next(42),
         Stream::Pending("wait"),
-    ].into_iter().into_ready_future().await.unwrap();
+    ].into_iter().into_stream_iter().into_ready_future().await.unwrap();
     tracing::info!("tokio ready: value={}, remaining exhausted={}", value, remaining.next().is_none());
     assert_eq!(value, 42);
     assert!(remaining.next().is_none());
@@ -385,7 +388,7 @@ async fn test_tokio_await_pending_future_first() {
     let (ctx, _) = vec![
         Stream::<i32, &str>::Pending("done"),
         Stream::Next(1),
-    ].into_iter().into_pending_future().await.unwrap();
+    ].into_iter().into_stream_iter().into_pending_future().await.unwrap();
     tracing::info!("tokio pending: ctx={}", ctx);
     assert_eq!(ctx, "done");
 }
@@ -398,7 +401,7 @@ async fn test_tokio_await_pending_future_after_next() {
         Stream::<i32, &str>::Next(1),
         Stream::Next(2),
         Stream::Pending("done"),
-    ].into_iter().into_pending_future().await.unwrap();
+    ].into_iter().into_stream_iter().into_pending_future().await.unwrap();
     tracing::info!("tokio pending: ctx={}", ctx);
     assert_eq!(ctx, "done");
 }
@@ -432,7 +435,7 @@ fn test_smol_run_collect() {
         vec![
             Stream::<i32, &str>::Next(10),
             Stream::Next(20),
-        ].into_iter().into_collect_future().await
+        ].into_iter().into_stream_iter().into_collect_future().await
     });
     tracing::info!("smol collect result: {:?}", result);
     assert_eq!(result, vec![10, 20]);
@@ -446,7 +449,7 @@ fn test_smol_run_ready_future() {
         vec![
             Stream::<i32, &str>::Init,
             Stream::Next(99),
-        ].into_iter().into_ready_future().await.unwrap()
+        ].into_iter().into_stream_iter().into_ready_future().await.unwrap()
     });
     tracing::info!("smol ready: value={}, remaining exhausted={}", value, remaining.next().is_none());
     assert_eq!(value, 99);
@@ -483,6 +486,7 @@ fn test_combinator_then_collect_future() {
             Stream::Next(2),
             Stream::Next(3),
         ].into_iter()
+            .into_stream_iter()
             .map_done(|v| v * 10)
             .into_collect_future()
             .await
@@ -499,6 +503,7 @@ fn test_combinator_then_ready_future() {
             Stream::<i32, &str>::Pending("a"),
             Stream::Next(42),
         ].into_iter()
+            .into_stream_iter()
             .map_pending(str::len)
             .into_ready_future()
             .await

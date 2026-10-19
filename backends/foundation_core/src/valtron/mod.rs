@@ -12,6 +12,7 @@ mod stream_future;
 mod streams;
 mod task;
 mod types;
+mod wake;
 
 // modules exported as is
 pub mod delayed_iterators;
@@ -37,6 +38,7 @@ pub use stream_future::*;
 pub use streams::*;
 pub use task::*;
 pub use types::*;
+pub use wake::*;
 
 // Re-export foundation_compact::trace so #[valtron_test] can reference
 // foundation_core::valtron::trace::try_init_tracing_with() without every

@@ -1,4 +1,6 @@
 #[cfg(not(target_family = "wasm"))]
+mod bridge_park;
+#[cfg(not(target_family = "wasm"))]
 mod broadcast_tests;
 mod builder_tests;
 #[cfg(not(target_family = "wasm"))]
@@ -26,6 +28,8 @@ mod units;
 mod wasm_js_yield_integration;
 mod wasm_yielder_tests;
 mod valtron_macro_tests;
+#[cfg(not(target_family = "wasm"))]
+mod wakeable_stream;
 #[cfg(not(target_family = "wasm"))]
 mod waker_queue_bridge;
 #[cfg(not(target_family = "wasm"))]

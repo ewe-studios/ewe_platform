@@ -3,7 +3,7 @@ feature: "State task macro"
 description: "StateTask (sync) + AsyncStateTask (async) core TaskIterators whose transition is fn(ctx: Ctx, state: T) -> Option<(T, TaskStatus<R,P,S>)>, plus #[valtron::task] generating a same-named struct."
 status: "pending"
 priority: "high"
-depends_on: ["01-thread-ctx"]
+depends_on: ["05-thread-ctx"]
 estimated_effort: "large"
 created: 2026-10-18
 last_updated: 2026-10-18
@@ -23,7 +23,7 @@ The state-machine pattern is the ergonomic payoff. A transition **function** —
 `fn(ctx: Ctx, state: T) -> Option<(T, TaskStatus<R, P, S>)>` — is wrapped by a
 native core iterator (`StateTask` sync, `AsyncStateTask` async) and surfaced as
 `#[valtron::task]`. The transition receives the **engine Ctx** on every turn
-(threaded by feature 01), so the iterator does **not** own a Ctx of its own.
+(threaded by feature 05), so the iterator does **not** own a Ctx of its own.
 
 ## Core iterators
 

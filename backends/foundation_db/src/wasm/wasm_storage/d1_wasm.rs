@@ -488,7 +488,7 @@ impl D1WasmStorage {
         let stream = schedule_future(async move {
             Self::do_set_async(&this.db, &this.table_prefix, &key, value).await
         })?;
-        let future = StreamReadyFuture::new(stream);
+        let future = StreamReadyFuture::new(stream.into_stream_iter());
         let result = future.await;
         match result {
             Some((Ok(()), _)) => Ok(()),
@@ -507,7 +507,7 @@ impl D1WasmStorage {
         let stream = schedule_future(async move {
             Self::do_get_async::<V>(&this.db, &this.table_prefix, &key).await
         })?;
-        let future = StreamReadyFuture::new(stream);
+        let future = StreamReadyFuture::new(stream.into_stream_iter());
         let result = future.await;
         match result {
             Some((Ok(v), _)) => Ok(v),

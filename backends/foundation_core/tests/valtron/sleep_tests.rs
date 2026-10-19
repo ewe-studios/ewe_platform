@@ -2,7 +2,7 @@
 
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{sleep, sleep_async, valtron_test, SleepingTask, TaskIterator};
+use foundation_core::valtron::{sleep_async, valtron_test, SleepingTask, TaskIterator};
 
 // ── SleepingTask unit tests (no executor needed) ──────────────────────
 

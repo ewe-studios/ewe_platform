@@ -12,7 +12,8 @@ use crate::valtron::DEFAULT_WAIT_CYCLE;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, GenericResult, NotificationItem,
     NotifyQueueStreamIterator, NotifyRecvIterator, ProgressIndicator, State, Stream,
-    StreamIterator, StreamIteratorExt, StreamSpread, TaskIterator, TaskStatus,
+    StreamIterator, StreamIteratorExt, StreamSpread, TaskIterator, TaskStatus, WakeCallback,
+    WakeResult, WakeableStream,
 };
 #[cfg(any(feature = "std", feature = "alloc"))]
 use core::future::Future;
@@ -800,7 +801,7 @@ where
         return Err("empty tasks not allowed".into());
     }
 
-    let mut stream = execute_collect_all(tasks, None)?;
+    let stream = execute_collect_all(tasks, None)?;
     // execute_collect_all yields Pending(count) while in flight, then a single
     // Next(Vec<T::Ready>) when all complete. filter_map skips non-Next items.
     stream
@@ -1109,6 +1110,26 @@ where
             next_value
         } else {
             None
+        }
+    }
+}
+
+impl<T> WakeableStream for DrivenStreamIterator<T>
+where
+    T: TaskIterator + 'static,
+    T::Ready: 'static,
+    T::Pending: 'static,
+    T::Spawner: ExecutionAction + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        // Forward to the waking terminal held inside. If the inner has been
+        // taken out (exhausted), there is nothing left to register against.
+        match self.0.as_mut() {
+            Some(inner) => inner.wake(cb),
+            None => {
+                let _ = cb;
+                WakeResult::NotSupported
+            }
         }
     }
 }

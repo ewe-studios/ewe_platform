@@ -33,6 +33,8 @@ use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 #[allow(unused)]
 use crate::compati::Mutex;
 
+use crate::valtron::{WakeCallback, WakeRegistry, WakeResult, WakeableStream};
+
 use crate::valtron::{
     BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction, ExecutorError, GlobalTask,
     ProcessController, SharedTaskQueue, SpawnInfo, SpawnType, TaskReadyResolver, TaskSpawnConfig,
@@ -247,6 +249,9 @@ pub struct NotifyQueue<T> {
     mutex: Arc<foundation_nostd::comp::condvar_comp::Mutex<bool>>,
     /// Maximum number of CondVar wait retries before yielding back.
     max_spins: AtomicUsize,
+    /// One-shot stream-wake callbacks, fired on `push` and on `close`. Shared
+    /// across clones so a consumer's registration is visible to any producer.
+    wake: Arc<WakeRegistry>,
 }
 
 impl<T> Clone for NotifyQueue<T> {
@@ -256,6 +261,7 @@ impl<T> Clone for NotifyQueue<T> {
             condvar: self.condvar.clone(),
             mutex: self.mutex.clone(),
             max_spins: AtomicUsize::new(self.max_spins.load(Ordering::Relaxed)),
+            wake: self.wake.clone(),
         }
     }
 }
@@ -268,6 +274,7 @@ impl<T> NotifyQueue<T> {
             condvar: Arc::new(foundation_nostd::comp::condvar_comp::CondVar::new()),
             mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
             max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
+            wake: Arc::new(WakeRegistry::new()),
         }
     }
 
@@ -278,6 +285,7 @@ impl<T> NotifyQueue<T> {
             condvar: Arc::new(foundation_nostd::comp::condvar_comp::CondVar::new()),
             mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
             max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
+            wake: Arc::new(WakeRegistry::new()),
         }
     }
 
@@ -289,6 +297,11 @@ impl<T> NotifyQueue<T> {
     /// Pushes an item to the queue and notifies one waiting consumer.
     pub fn push(&self, item: T) -> Result<(), PushError<T>> {
         self.queue.push(item)?;
+        // Fire any registered stream-wake callbacks. This is level-triggered: an
+        // item is now available, so a parked consumer (stream bridge) re-polls.
+        // Independent of the CondVar notify below, which serves the thread-blocking
+        // `wait_for_item` consumers.
+        self.wake.fire();
         // Set notification flag and notify one waiting consumer
         let mut guard = self.mutex.lock().unwrap();
         *guard = true;
@@ -376,7 +389,19 @@ impl<T> NotifyQueue<T> {
 
     /// Closes the queue.
     pub fn close(&self) -> bool {
-        self.queue.close()
+        let closed = self.queue.close();
+        if closed {
+            // Wake a consumer parked on an empty-but-open queue so it observes the
+            // close. No-op if the queue was already closed (nothing new to observe).
+            self.wake.fire();
+        }
+        closed
+    }
+
+    /// Registers a one-shot wake callback, fired on the next successful `push` or on
+    /// the open→closed transition.
+    pub fn register_wake(&self, cb: WakeCallback) {
+        self.wake.register(cb);
     }
 
     /// Returns a reference to the underlying queue.
@@ -598,6 +623,30 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
                 None
             }
         }
+    }
+}
+
+#[cfg(feature = "multi")]
+impl<D, P> WakeableStream for NotifyQueueStreamIterator<D, P>
+where
+    D: Send + 'static,
+    P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.chan.register_wake(cb);
+        WakeResult::Successful
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<D, P> WakeableStream for NotifyQueueStreamIterator<D, P>
+where
+    D: 'static,
+    P: 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.chan.register_wake(cb);
+        WakeResult::Successful
     }
 }
 

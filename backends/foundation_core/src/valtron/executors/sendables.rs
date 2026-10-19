@@ -13,7 +13,7 @@ use crate::valtron::ThreadedValue;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, GenericResult, NotificationItem,
     NotifyQueueStreamIterator, NotifyRecvIterator, Stream, StreamIterator, TaskIterator,
-    TaskStatus,
+    TaskStatus, WakeCallback, WakeResult, WakeableStream,
 };
 use core::future::Future;
 use std::sync::Arc;
@@ -1044,6 +1044,26 @@ where
             next_value
         } else {
             None
+        }
+    }
+}
+
+impl<T> WakeableStream for DrivenStreamIterator<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        // Forward to the waking terminal held inside. If the inner has been
+        // taken out (exhausted), there is nothing left to register against.
+        match self.0.as_mut() {
+            Some(inner) => inner.wake(cb),
+            None => {
+                let _ = cb;
+                WakeResult::NotSupported
+            }
         }
     }
 }

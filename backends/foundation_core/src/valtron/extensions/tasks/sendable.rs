@@ -3656,3 +3656,38 @@ where
         }
     }
 }
+
+// ============================================================================
+// WakeableStream impls (Feature 02) — stream observers default to NotSupported.
+// Their backing Pipe already bridges via RecvFuture, not the stream wake path.
+// ============================================================================
+
+use crate::valtron::WakeableStream;
+
+impl<D, P> WakeableStream for CollectorStreamIterator<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+impl<D, P> WakeableStream for SplitUntilObserver<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+impl<D, P> WakeableStream for SplitUntilObserverMap<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+impl<M, P> WakeableStream for SplitCollectorMapObserver<M, P>
+where
+    M: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}

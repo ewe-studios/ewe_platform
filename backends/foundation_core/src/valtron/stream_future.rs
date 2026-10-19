@@ -9,6 +9,7 @@ use core::task::{Context, Poll};
 use futures_core::Stream as FuturesStream;
 
 use super::streams::{Stream, StreamIterator, StreamSpread};
+use super::wake::{WakeResult, WakeableStream};
 
 // ============================================================================
 // StreamCollectFuture
@@ -34,7 +35,7 @@ impl<SI: StreamIterator> StreamCollectFuture<SI> {
 #[cfg(any(feature = "std", feature = "alloc"))]
 impl<SI> Future for StreamCollectFuture<SI>
 where
-    SI: StreamIterator + Unpin,
+    SI: WakeableStream + Unpin,
     SI::D: Unpin,
 {
     type Output = Vec<SI::D>;
@@ -54,8 +55,27 @@ where
                     | Stream::Wait
                     | Stream::Spread(_),
                 ) => {
-                    cx.waker().wake_by_ref();
-                    return Poll::Pending;
+                    let waker = cx.waker().clone();
+                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                        WakeResult::Successful => {
+                            // Register-then-recheck: a `push` between our last
+                            // `next()` (empty) and `wake()` already fired the
+                            // still-empty registry and will not re-fire. Catch it
+                            // here; park only if still non-target.
+                            match iter.next() {
+                                Some(Stream::Next(v)) => this.collected.push(v),
+                                Some(Stream::Ignore) => {}
+                                Some(_) => return Poll::Pending,
+                                None => {
+                                    return Poll::Ready(std::mem::take(&mut this.collected));
+                                }
+                            }
+                        }
+                        WakeResult::NotSupported => {
+                            cx.waker().wake_by_ref();
+                            return Poll::Pending;
+                        }
+                    }
                 }
                 None => {
                     return Poll::Ready(std::mem::take(&mut this.collected));
@@ -82,7 +102,7 @@ impl<SI: StreamIterator> StreamReadyFuture<SI> {
 
 impl<SI> Future for StreamReadyFuture<SI>
 where
-    SI: StreamIterator + Unpin,
+    SI: WakeableStream + Unpin,
 {
     type Output = Option<(SI::D, SI)>;
 
@@ -98,8 +118,42 @@ where
                 }
                 Some(Stream::Ignore) => {}
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
-                    cx.waker().wake_by_ref();
-                    return Poll::Pending;
+                    let waker = cx.waker().clone();
+                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                        WakeResult::Successful => {
+                            // Register-then-recheck: a `push` between our last
+                            // `next()` (empty) and `wake()` already fired the
+                            // still-empty registry and will not re-fire. Catch it
+                            // here; park only if still non-target.
+                            match iter.next() {
+                                Some(Stream::Next(v)) => {
+                                    let remaining = this.inner.take().expect("inner should exist");
+                                    return Poll::Ready(Some((v, remaining)));
+                                }
+                                Some(Stream::Ignore) => {}
+                                Some(Stream::Spread(items)) => {
+                                    for item in items {
+                                        if let StreamSpread::Done(v) = item {
+                                            let remaining =
+                                                this.inner.take().expect("inner should exist");
+                                            return Poll::Ready(Some((v, remaining)));
+                                        }
+                                    }
+                                }
+                                Some(
+                                    Stream::Pending(_)
+                                    | Stream::Delayed(_)
+                                    | Stream::Init
+                                    | Stream::Wait,
+                                ) => return Poll::Pending,
+                                None => return Poll::Ready(None),
+                            }
+                        }
+                        WakeResult::NotSupported => {
+                            cx.waker().wake_by_ref();
+                            return Poll::Pending;
+                        }
+                    }
                 }
                 Some(Stream::Spread(items)) => {
                     for item in items {
@@ -132,7 +186,7 @@ impl<SI: StreamIterator> StreamPendingFuture<SI> {
 
 impl<SI> Future for StreamPendingFuture<SI>
 where
-    SI: StreamIterator + Unpin,
+    SI: WakeableStream + Unpin,
 {
     type Output = Option<(SI::P, SI)>;
 
@@ -148,8 +202,42 @@ where
                 }
                 Some(Stream::Ignore) => {}
                 Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
-                    cx.waker().wake_by_ref();
-                    return Poll::Pending;
+                    let waker = cx.waker().clone();
+                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                        WakeResult::Successful => {
+                            // Register-then-recheck: a `push` between our last
+                            // `next()` (empty) and `wake()` already fired the
+                            // still-empty registry and will not re-fire. Catch it
+                            // here; park only if still non-target.
+                            match iter.next() {
+                                Some(Stream::Pending(p)) => {
+                                    let remaining = this.inner.take().expect("inner should exist");
+                                    return Poll::Ready(Some((p, remaining)));
+                                }
+                                Some(Stream::Ignore) => {}
+                                Some(Stream::Spread(items)) => {
+                                    for item in items {
+                                        if let StreamSpread::Pending(p) = item {
+                                            let remaining =
+                                                this.inner.take().expect("inner should exist");
+                                            return Poll::Ready(Some((p, remaining)));
+                                        }
+                                    }
+                                }
+                                Some(
+                                    Stream::Next(_)
+                                    | Stream::Delayed(_)
+                                    | Stream::Init
+                                    | Stream::Wait,
+                                ) => return Poll::Pending,
+                                None => return Poll::Ready(None),
+                            }
+                        }
+                        WakeResult::NotSupported => {
+                            cx.waker().wake_by_ref();
+                            return Poll::Pending;
+                        }
+                    }
                 }
                 Some(Stream::Spread(items)) => {
                     for item in items {
@@ -209,9 +297,9 @@ where
 ///
 /// HOW: On `Next(v)` returns `Ready(Some(v))`; on `Spread` buffers every `Done`
 /// payload and drains them one per poll; on `Wait`/`Pending`/`Delayed`/`Init`
-/// self-wakes via `wake_by_ref()` and returns `Pending` so the executor gets a
-/// turn (the self-wake mechanics the existing bridges use); on `Ignore` loops; on
-/// `None` returns `Ready(None)` permanently.
+/// registers a wake through [`WakeableStream::wake`] and parks (falling back to
+/// a `wake_by_ref()` self-wake when the iterator reports `NotSupported`); on
+/// `Ignore` loops; on `None` returns `Ready(None)` permanently.
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub struct StreamNextStream<SI: StreamIterator> {
     inner: Option<SI>,
@@ -233,7 +321,7 @@ impl<SI: StreamIterator> StreamNextStream<SI> {
 #[cfg(any(feature = "std", feature = "alloc"))]
 impl<SI> FuturesStream for StreamNextStream<SI>
 where
-    SI: StreamIterator + Unpin,
+    SI: WakeableStream + Unpin,
     SI::D: Unpin,
 {
     type Item = SI::D;
@@ -256,8 +344,43 @@ where
                 Some(Stream::Next(v)) => return Poll::Ready(Some(v)),
                 Some(Stream::Ignore) => {}
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
-                    cx.waker().wake_by_ref();
-                    return Poll::Pending;
+                    let waker = cx.waker().clone();
+                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                        WakeResult::Successful => {
+                            // Register-then-recheck: a `push` between our last
+                            // `next()` (empty) and `wake()` already fired the
+                            // still-empty registry and will not re-fire. Catch it
+                            // here; park only if still non-target.
+                            match iter.next() {
+                                Some(Stream::Next(v)) => return Poll::Ready(Some(v)),
+                                Some(Stream::Ignore) => {}
+                                Some(Stream::Spread(items)) => {
+                                    for item in items {
+                                        if let StreamSpread::Done(v) = item {
+                                            this.spread.push(v);
+                                        }
+                                    }
+                                    if !this.spread.is_empty() {
+                                        return Poll::Ready(Some(this.spread.remove(0)));
+                                    }
+                                }
+                                Some(
+                                    Stream::Pending(_)
+                                    | Stream::Delayed(_)
+                                    | Stream::Init
+                                    | Stream::Wait,
+                                ) => return Poll::Pending,
+                                None => {
+                                    this.inner = None;
+                                    return Poll::Ready(None);
+                                }
+                            }
+                        }
+                        WakeResult::NotSupported => {
+                            cx.waker().wake_by_ref();
+                            return Poll::Pending;
+                        }
+                    }
                 }
                 Some(Stream::Spread(items)) => {
                     for item in items {

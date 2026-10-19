@@ -1193,16 +1193,26 @@
 // }
 // ```
 // 
-// ### Critical: `wake_by_ref()` on `Poll::Pending`
-// 
-// All bridge `Future` impls call `cx.waker().wake_by_ref()` before returning `Poll::Pending`. This is required because:
-// 
-// 1. The wrapped `StreamIterator` is synchronous — data is always ready
-// 2. Returning `Poll::Pending` contracts: "I'm not resolved, schedule me again"
-// 3. Without `wake_by_ref()`, the runtime never re-polls → hangs forever
-// 4. `wake_by_ref()` signals "re-poll me immediately" — the runtime coalesces the wake
-// 
-// **This is correct Future semantics, not a workaround.** It simulates the waker firing that would happen in a real async context when I/O completes.
+// ### Critical: parking on `Poll::Pending`
+//
+// The bridge `Future`/`Stream` impls (`StreamCollectFuture`, `StreamReadyFuture`,
+// `StreamPendingFuture`, `StreamNextStream`) no longer self-wake on every empty poll.
+// Instead they register a readiness callback through [`WakeableStream::wake`] and
+// park:
+//
+// 1. On an empty `next()`, the bridge clones the task waker and calls
+//    `iter.wake(cb)` (register-then-recheck, the Pipe discipline).
+// 2. `WakeResult::Successful` means the callback is registered; the bridge re-checks
+//    `next()` once to catch a lost wakeup, then returns `Poll::Pending` and sleeps.
+// 3. A producer `push`/`close` fires the callback, the task wakes, and the bridge
+//    re-polls — no busy loop, no self-wake.
+// 4. `WakeResult::NotSupported` (a plain `StreamIter`, a buffering combinator, or a
+//    `ConcurrentQueue`-backed split observer) falls back to `wake_by_ref()` and the
+//    legacy self-wake loop, preserving the old behavior for those iterators.
+//
+// `StreamAsFutureStream` is the exception: it is a raw lens that always returns
+// `Poll::Ready(iter.next())` and never parks, so it carries no `WakeableStream`
+// bound.
 // 
 // ### `Unpin` Requirements
 // 
@@ -1405,9 +1415,13 @@
 // let driven_iter = drive_stream(iter);
 // ```
 // 
-// ### StreamAsFutureStream Must Call `wake_by_ref()` on `Poll::Pending`
-// 
-// When wrapping valtron's sync iterators as `futures_core::Stream`, returning `Poll::Pending` without calling `cx.waker().wake_by_ref()` causes the future to never be re-polled. `Stream::Wait` from the executor must still trigger a re-poll.
+// ### `StreamAsFutureStream` Never Parks
+//
+// `StreamAsFutureStream` (from `into_future_stream()`) is a raw lens: `poll_next`
+// always returns `Poll::Ready(iter.next())`, surfacing `Stream<D, P>` items as-is
+// (including `Wait`). It never returns `Poll::Pending` and never self-wakes, so it
+// carries no `WakeableStream` bound. To consume payloads as an awaitable stream that
+// parks over in-band control states, use `into_next_stream()` (`StreamNextStream`).
 // 
 // ## Error Handling: `foundation_errstacks` Required
 // 

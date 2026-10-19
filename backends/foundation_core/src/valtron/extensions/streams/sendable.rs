@@ -613,28 +613,35 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     #[cfg(any(feature = "std", feature = "alloc"))]
     fn into_collect_future(self) -> crate::valtron::StreamCollectFuture<Self>
     where
+        Self: WakeableStream,
         Self::D: Clone;
 
     /// Wrap into a [`Future`] that resolves on the first `Next(D)` value.
     ///
     /// Returns `Some(value, remaining_iterator)` if a `Next` is found,
     /// `None` if the iterator exhausts before producing one.
-    fn into_ready_future(self) -> crate::valtron::StreamReadyFuture<Self>;
+    fn into_ready_future(self) -> crate::valtron::StreamReadyFuture<Self>
+    where
+        Self: WakeableStream;
 
     /// Wrap into a [`Future`] that resolves on the first `Pending(P)` value.
     ///
     /// Returns `Some(context, remaining_iterator)` if a `Pending` is found,
     /// `None` if the iterator exhausts before producing one.
-    fn into_pending_future(self) -> crate::valtron::StreamPendingFuture<Self>;
+    fn into_pending_future(self) -> crate::valtron::StreamPendingFuture<Self>
+    where
+        Self: WakeableStream;
 
     /// Wrap into a `futures_core::Stream` that yields each `Stream<D, P>` item as-is.
     fn into_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self>;
 
     /// Wrap into a `futures_core::Stream<Item = D>` that surfaces `Next` / `Spread`
-    /// `Done` payloads and self-wakes over in-band control states, enabling
+    /// `Done` payloads and parks over in-band control states, enabling
     /// `while let Some(chunk) = body.next().await` consumption (F45 Resolution 5).
     #[cfg(any(feature = "std", feature = "alloc"))]
-    fn into_next_stream(self) -> crate::valtron::StreamNextStream<Self>;
+    fn into_next_stream(self) -> crate::valtron::StreamNextStream<Self>
+    where
+        Self: WakeableStream;
 
     /// Wrap in a [`StreamIter`](crate::valtron::StreamIter) — the valtron-native
     /// entry point for chaining combinators without `Iterator` ambiguity.
@@ -1169,16 +1176,23 @@ where
     #[cfg(any(feature = "std", feature = "alloc"))]
     fn into_collect_future(self) -> crate::valtron::StreamCollectFuture<Self>
     where
+        Self: WakeableStream,
         Self::D: Clone,
     {
         crate::valtron::StreamCollectFuture::new(self)
     }
 
-    fn into_ready_future(self) -> crate::valtron::StreamReadyFuture<Self> {
+    fn into_ready_future(self) -> crate::valtron::StreamReadyFuture<Self>
+    where
+        Self: WakeableStream,
+    {
         crate::valtron::StreamReadyFuture::new(self)
     }
 
-    fn into_pending_future(self) -> crate::valtron::StreamPendingFuture<Self> {
+    fn into_pending_future(self) -> crate::valtron::StreamPendingFuture<Self>
+    where
+        Self: WakeableStream,
+    {
         crate::valtron::StreamPendingFuture::new(self)
     }
 
@@ -1187,7 +1201,10 @@ where
     }
 
     #[cfg(any(feature = "std", feature = "alloc"))]
-    fn into_next_stream(self) -> crate::valtron::StreamNextStream<Self> {
+    fn into_next_stream(self) -> crate::valtron::StreamNextStream<Self>
+    where
+        Self: WakeableStream,
+    {
         crate::valtron::StreamNextStream::new(self)
     }
 
@@ -3723,4 +3740,438 @@ where
 
         Some(Stream::Pending(self.sources.len()))
     }
+}
+
+// ============================================================================
+// WakeableStream impls (Feature 02) — forward (per-item) vs default (buffering)
+// ============================================================================
+
+use crate::valtron::{WakeCallback, WakeResult, WakeableStream};
+
+impl<I, R> WakeableStream for TryMapDone<I, R>
+where
+    I: WakeableStream,
+    R: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, R> WakeableStream for MapDone<I, R>
+where
+    I: WakeableStream,
+    R: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, R> WakeableStream for MapPending<I, R>
+where
+    I: WakeableStream,
+    R: Send + 'static,
+    I::D: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, R> WakeableStream for MapPendingAndDone<I, R>
+where
+    I: WakeableStream,
+    R: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I> WakeableStream for FilterDone<I>
+where
+    I: WakeableStream,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I> WakeableStream for MapDelayed<I>
+where
+    I: WakeableStream,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I> WakeableStream for MapCircuit<I>
+where
+    I: WakeableStream,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F, R> WakeableStream for SMapState<I, F, R>
+where
+    I: WakeableStream,
+    F: Fn(Stream<I::D, I::P>) -> Stream<R, I::P> + Send + 'static,
+    R: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for SInspectState<I, F>
+where
+    I: WakeableStream,
+    F: Fn(&Stream<I::D, I::P>) + Send + 'static,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for SFilterState<I, F>
+where
+    I: WakeableStream,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for STakeWhileState<I, F>
+where
+    I: WakeableStream,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for STransformUntil<I, F>
+where
+    I: WakeableStream,
+    F: Fn(Stream<I::D, I::P>) -> Option<Stream<I::D, I::P>> + Send + 'static,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for SSkipWhileState<I, F>
+where
+    I: WakeableStream,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for STakeState<I, F>
+where
+    I: WakeableStream,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for SSkipState<I, F>
+where
+    I: WakeableStream,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I> WakeableStream for SEnumerate<I>
+where
+    I: WakeableStream,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for SFind<I, F>
+where
+    I: WakeableStream,
+    F: Fn(&I::D) -> bool + Send + 'static,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F, R> WakeableStream for SFindMap<I, F, R>
+where
+    I: WakeableStream,
+    F: Fn(I::D) -> Option<R> + Send + 'static,
+    R: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F, R> WakeableStream for SFold<I, F, R>
+where
+    I: WakeableStream,
+    F: Fn(R, I::D) -> R + Send + 'static,
+    R: Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for SAll<I, F>
+where
+    I: WakeableStream,
+    F: Fn(I::D) -> bool + Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I, F> WakeableStream for SAny<I, F>
+where
+    I: WakeableStream,
+    F: Fn(I::D) -> bool + Send + 'static,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I> WakeableStream for SCount<I>
+where
+    I: WakeableStream,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I> WakeableStream for SCountAll<I>
+where
+    I: WakeableStream,
+    I::P: Send + 'static,
+{
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
+impl<I> WakeableStream for Collect<I>
+where
+    I: StreamIterator,
+    I::D: Clone + Send + 'static,
+    I::P: Send + 'static,
+{
+}
+
+impl<D, P> WakeableStream for SCollectorStreamIterator<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+impl<I, D, P> WakeableStream for SSplitCollectorContinuation<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+impl<I, D, P> WakeableStream for SBroadcastContinuation<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+impl<D, P> WakeableStream for SSplitUntilObserver<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+impl<I, D, P> WakeableStream for SSplitUntilContinuation<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+impl<DM, PM> WakeableStream for SSplitCollectorMapObserver<DM, PM>
+where
+    DM: Clone + Send + 'static,
+    PM: Clone + Send + 'static,
+{
+}
+
+impl<I, D, P, DM, PM> WakeableStream for SSplitCollectorMapContinuation<I, D, P, DM, PM>
+where
+    I: StreamIterator<D = D, P = P>,
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+    DM: Clone + Send + 'static,
+    PM: Clone + Send + 'static,
+{
+}
+
+impl<I, D, P> WakeableStream for CollectAll<I, D, P>
+where
+    I: StreamIterator<D = D, P = P> + Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+}
+
+impl<I, F, D, P, O> WakeableStream for MapAllDone<I, F, D, P, O>
+where
+    I: StreamIterator<D = D, P = P> + Send + 'static,
+    F: Fn(Vec<D>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+}
+
+impl<I, F, D, P, O> WakeableStream for MapAllPendingAndDone<I, F, D, P, O>
+where
+    I: StreamIterator<D = D, P = P> + Send + 'static,
+    F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+}
+
+impl<Outer, F, Inner, InnerP> WakeableStream for MapIterPending<Outer, F, Inner, InnerP>
+where
+    F: Fn(Outer::P) -> Inner,
+    Outer: StreamIterator,
+    Inner: StreamIterator<D = Outer::D, P = InnerP>,
+    Outer::D: Send + 'static,
+    Inner::P: Send + 'static,
+{
+}
+
+impl<Outer, F, Inner, InnerD> WakeableStream for MapIterDone<Outer, F, Inner, InnerD>
+where
+    F: Fn(Outer::D) -> Inner,
+    Outer: StreamIterator,
+    Inner: StreamIterator<D = InnerD, P = Outer::P>,
+    Inner::D: Send + 'static,
+    Outer::P: Send + 'static,
+{
+}
+
+impl<Outer, F, Inner> WakeableStream for MapIter<Outer, F, Inner>
+where
+    Outer: StreamIterator,
+    F: Fn(Stream<Outer::D, Outer::P>) -> Inner,
+    Inner: StreamIterator,
+    Inner::D: Send + 'static,
+    Inner::P: Send + 'static,
+{
+}
+
+impl<I> WakeableStream for SFlattenNext<I>
+where
+    I: StreamIterator,
+    I::D: IntoIterator,
+    <I::D as IntoIterator>::Item: Send + 'static,
+    I::P: Send + 'static,
+{
+}
+
+impl<I> WakeableStream for SFlattenPending<I>
+where
+    I: StreamIterator,
+    I::P: IntoIterator,
+    <I::P as IntoIterator>::Item: Send + 'static,
+    I::D: Send + 'static,
+{
+}
+
+impl<I, F, U> WakeableStream for SFlatMapNext<I, F, U>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> U,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::P: Send + 'static,
+{
+}
+
+impl<I, F, U> WakeableStream for SFlatMapPending<I, F, U>
+where
+    I: StreamIterator,
+    F: Fn(I::P) -> U,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::D: Send + 'static,
+{
+}
+
+impl<I, D, P> WakeableStream for CollectNextFromStreams<I, D, P>
+where
+    I: StreamIterator<D = D, P = P> + Send + 'static,
+    D: Send + 'static,
+    P: Send + 'static,
+{
 }

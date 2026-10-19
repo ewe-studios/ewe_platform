@@ -1,7 +1,7 @@
-# 00-ctx — Feature Start
+# 04-ctx — Feature Start
 
 1. Read `feature.md`.
-2. Read `../LEARNINGS.md` (parent spec) and parent `VERIFICATION.md` if present.
+2. Read `../../LEARNINGS.md` (parent spec) and parent `VERIFICATION.md` if present.
 3. Read `.agents/AGENTS.md`.
 4. Read `.agents/skills/rust-valtron-usage/skill.md` and `rust-valtron-iterator/skill.md`.
 5. Generate `compacted.md` from the feature context.

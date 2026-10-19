@@ -466,7 +466,7 @@ fn test_collect_future_next_values_collected() {
         Stream::Next(2),
         Stream::Next(3),
     ]
-    .into_iter();
+    .into_iter().into_stream_iter();
     let mut future = StreamCollectFuture::new(iter);
 
     match poll_once(&mut future) {
@@ -483,7 +483,7 @@ fn test_collect_future_spread_pending_returns_pending() {
         Stream::Spread(vec![StreamSpread::Pending("a"), StreamSpread::Pending("b")]),
         Stream::Next(2),
     ]
-    .into_iter();
+    .into_iter().into_stream_iter();
     let mut future = StreamCollectFuture::new(iter);
 
     // Spread with Pending triggers Poll::Pending (stream signaled not-ready)
@@ -504,7 +504,7 @@ fn test_collect_future_spread_done_returns_pending() {
         Stream::<i32, &str>::Next(1),
         Stream::Spread(vec![StreamSpread::Done(2), StreamSpread::Done(3)]),
     ]
-    .into_iter();
+    .into_iter().into_stream_iter();
     let mut future = StreamCollectFuture::new(iter);
 
     // Spread with Done triggers Poll::Pending
@@ -528,7 +528,7 @@ fn test_ready_future_spread_done_returns_first_value() {
         StreamSpread::Done(99),
         StreamSpread::Done(100),
     ])]
-    .into_iter();
+    .into_iter().into_stream_iter();
     let mut future = StreamReadyFuture::new(iter);
 
     match poll_once(&mut future) {
@@ -542,7 +542,7 @@ fn test_ready_future_spread_done_returns_first_value() {
 #[test]
 #[traced_test]
 fn test_ready_future_spread_done_empty_returns_pending() {
-    let iter = vec![Stream::<i32, &str>::Spread(vec![])].into_iter();
+    let iter = vec![Stream::<i32, &str>::Spread(vec![])].into_iter().into_stream_iter();
     let mut future = StreamReadyFuture::new(iter);
 
     // Empty Spread: no value to return, iterator exhausted → None
@@ -559,7 +559,7 @@ fn test_ready_future_spread_pending_returns_pending() {
         Stream::<i32, &str>::Spread(vec![StreamSpread::Pending("a"), StreamSpread::Pending("b")]),
         Stream::Next(42),
     ]
-    .into_iter();
+    .into_iter().into_stream_iter();
     let mut future = StreamReadyFuture::new(iter);
 
     // With unified Spread, StreamReadyFuture iterates through spread items,
@@ -582,7 +582,7 @@ fn test_pending_future_spread_pending_returns_first_value() {
         StreamSpread::Pending("b"),
         StreamSpread::Pending("c"),
     ])]
-    .into_iter();
+    .into_iter().into_stream_iter();
     let mut future = StreamPendingFuture::new(iter);
 
     // StreamPendingFuture returns Ready immediately on Spread with Pending (first value)
@@ -597,7 +597,7 @@ fn test_pending_future_spread_pending_returns_first_value() {
 #[test]
 #[traced_test]
 fn test_pending_future_spread_pending_empty_returns_pending() {
-    let iter = vec![Stream::<i32, &str>::Spread(vec![])].into_iter();
+    let iter = vec![Stream::<i32, &str>::Spread(vec![])].into_iter().into_stream_iter();
     let mut future = StreamPendingFuture::new(iter);
 
     // Empty Spread: no value to return, iterator exhausted → None
@@ -614,7 +614,7 @@ fn test_pending_future_spread_done_returns_pending() {
         Stream::<i32, &str>::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2)]),
         Stream::Pending("x"),
     ]
-    .into_iter();
+    .into_iter().into_stream_iter();
     let mut future = StreamPendingFuture::new(iter);
 
     // With unified Spread, StreamPendingFuture iterates through spread items,
@@ -722,6 +722,7 @@ async fn test_tokio_collect_with_spread_pending_in_chain() {
         Stream::Next(2),
     ]
     .into_iter()
+    .into_stream_iter()
     .into_collect_future()
     .await;
     // Collect sees Next(1), then Spread with Pending → Pending (wakes), then Next(2)
@@ -737,6 +738,7 @@ async fn test_tokio_ready_future_with_spread_done() {
         StreamSpread::Done(99),
     ])]
     .into_iter()
+    .into_stream_iter()
     .into_ready_future()
     .await
     .unwrap();
@@ -751,6 +753,7 @@ async fn test_tokio_pending_future_with_spread_pending() {
         Stream::Spread(vec![StreamSpread::Pending("done")]),
     ]
     .into_iter()
+    .into_stream_iter()
     .into_pending_future()
     .await
     .unwrap();
@@ -794,6 +797,7 @@ fn test_smol_collect_with_spread_pending() {
             Stream::Next(20),
         ]
         .into_iter()
+        .into_stream_iter()
         .into_collect_future()
         .await
     });
@@ -809,6 +813,7 @@ fn test_smol_ready_future_with_spread_done() {
             Stream::Next(1),
         ]
         .into_iter()
+        .into_stream_iter()
         .into_ready_future()
         .await
         .unwrap()
@@ -851,6 +856,7 @@ fn test_map_done_then_collect_with_spread_done_in_chain() {
             ]),
         ]
         .into_iter()
+        .into_stream_iter()
         .map_done(|v| v * 2)
         .into_collect_future()
         .await
