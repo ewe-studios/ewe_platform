@@ -25,7 +25,7 @@ use regex::{self, Regex};
 use std::collections::HashSet;
 use std::io::Cursor;
 use std::ops::{Deref, DerefMut};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::{
     collections::BTreeMap, convert::Infallible, io::Read, str::FromStr, string::FromUtf8Error,
@@ -97,11 +97,25 @@ impl ChunkedData {
 pub type ChunkedVecIterator<E> = BoxedResultIterator<ChunkedData, E>;
 pub type LineFeedVecIterator<E> = BoxedResultIterator<LineFeed, E>;
 
+/// Caps the total number of chunk payload bytes a chunked body may yield.
+///
+/// Every item from `parent` is passed through while the running total of
+/// [`ChunkedData::Data`] payload bytes stays `<= limit`. The item that would
+/// take the total past `limit` is not yielded; instead the iterator yields
+/// [`HttpReaderError::LimitReached`] once and is finished from then on.
+///
+/// [`ChunkedData::DataEnded`] and [`ChunkedData::Trailers`] carry no body
+/// payload and do not count toward the limit (trailer size is the chunk
+/// parser's concern).
+///
+/// Errors from `parent` are propagated unchanged, after which the iterator is
+/// finished: a chunked stream cannot be resynchronised after a framing error.
+/// Once `parent` returns `None` it is never polled again.
 pub struct ChunkedDataLimitIterator {
     limit: BodySizeLimit,
     parent: ChunkedVecIterator<BoxedError>,
-    collected: AtomicUsize,
-    exhausted: AtomicBool,
+    collected: usize,
+    finished: bool,
 }
 
 impl ChunkedDataLimitIterator {
@@ -110,8 +124,8 @@ impl ChunkedDataLimitIterator {
         Self {
             limit,
             parent,
-            collected: AtomicUsize::new(0),
-            exhausted: AtomicBool::new(true),
+            collected: 0,
+            finished: false,
         }
     }
 }
@@ -120,30 +134,34 @@ impl Iterator for ChunkedDataLimitIterator {
     type Item = Result<ChunkedData, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.exhausted.load(Ordering::SeqCst) {
+        if self.finished {
             return None;
         }
 
-        if self.collected.load(Ordering::Relaxed) > self.limit {
-            self.exhausted.store(true, Ordering::Relaxed);
-            return Some(Err(Box::new(HttpReaderError::LimitReached(self.limit))));
+        let Some(item) = self.parent.next() else {
+            self.finished = true;
+            return None;
+        };
+
+        let data = match item {
+            Ok(data) => data,
+            Err(err) => {
+                self.finished = true;
+                return Some(Err(err));
+            }
+        };
+
+        if let ChunkedData::Data(content, _) = &data {
+            match self.collected.checked_add(content.len()) {
+                Some(total) if total <= self.limit => self.collected = total,
+                _ => {
+                    self.finished = true;
+                    return Some(Err(Box::new(HttpReaderError::LimitReached(self.limit))));
+                }
+            }
         }
 
-        match self.parent.next() {
-            Some(chunked_result) => match chunked_result {
-                Ok(data) => {
-                    let chunked_size: usize = match &data {
-                        ChunkedData::Data(content, _) => content.len(),
-                        ChunkedData::DataEnded => 0,
-                        ChunkedData::Trailers(c) => c.len(),
-                    };
-                    let _ = self.collected.fetch_add(chunked_size, Ordering::SeqCst);
-                    Some(Ok(data))
-                }
-                Err(err) => Some(Err(err)),
-            },
-            None => None,
-        }
+        Some(Ok(data))
     }
 }
 
