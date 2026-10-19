@@ -10,7 +10,6 @@ use foundation_core::valtron::{Ctx,
     block_on, get_pool, valtron_test, FnReady, NoSpawner, NotificationItem, Stream, TaskIterator,
     TaskStatus,
 };
-use tracing_test::traced_test;
 
 use foundation_core::synca::WaitGroup;
 use foundation_core::valtron::multi::{PoolGuard, ThreadRegistry};
@@ -105,7 +104,6 @@ impl TaskIterator for PanicCounter {
 
 // No #[test]/#[serial]: `#[valtron_test]` emits its own `#[test]`, and the
 // pool lifecycle lock (initialize_pool) serializes pool users process-wide.
-#[traced_test]
 #[valtron_test(threads = 2)]
 fn can_queue_and_complete_task_with_iterator() {
     let shared_list = Arc::new(Mutex::new(Vec::new()));
@@ -132,7 +130,6 @@ fn can_queue_and_complete_task_with_iterator() {
     assert_eq!(complete, vec![1, 2, 3, 4, 5]);
 }
 
-#[traced_test]
 #[valtron_test(threads = 2)]
 fn can_queue_use_stream_iterator_from_task_iterator() {
     let shared_list = Arc::new(Mutex::new(Vec::new()));
@@ -164,7 +161,10 @@ fn can_queue_use_stream_iterator_from_task_iterator() {
 // pool (letting block_on's waitgroup().wait() return) without ever calling
 // get_pool() after the guard clears the global registry.
 #[test]
-#[traced_test]
+#[cfg_attr(
+    cranelift_backend,
+    ignore = "cranelift does not support panic unwinding: the task's panic aborts the process"
+)]
 fn can_finish_even_when_task_panics() {
     let seed = fastrand::u64(..);
 
@@ -197,7 +197,6 @@ fn can_finish_even_when_task_panics() {
 // waitgroup().wait() can return, and must not touch get_pool() after the guard
 // drops (which clears the global registry).
 #[test]
-#[traced_test]
 fn can_queue_and_complete_task() {
     let seed = fastrand::u64(..);
 

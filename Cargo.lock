@@ -4681,6 +4681,7 @@ dependencies = [
  "rand_chacha 0.10.0",
  "rand_core 0.10.1",
  "serde",
+ "tracing",
  "tracing-subscriber",
  "wasm-bindgen",
  "wasm-bindgen-test",
@@ -4724,7 +4725,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tracing",
- "tracing-test",
  "zstd",
 ]
 

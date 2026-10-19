@@ -46,10 +46,8 @@ fn poll_stream_next<S: FuturesStream + Unpin>(s: &mut S) -> Poll<Option<S::Item>
 #[cfg(not(target_family = "wasm"))]
 mod sync_tests {
     use super::*;
-    use tracing_test::traced_test;
 
     #[test]
-    #[traced_test]
     fn test_collect_future_all_next_completes_in_one_poll() {
         tracing::info!("creating StreamCollectFuture with 3 Next items");
         let iter = vec![
@@ -69,7 +67,6 @@ mod sync_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_collect_future_with_pending_returns_pending_then_completes() {
         tracing::info!("creating StreamCollectFuture with Next + Pending + Next");
         let iter = vec![
@@ -92,7 +89,6 @@ mod sync_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_collect_future_skips_ignore() {
         tracing::info!("creating StreamCollectFuture with Ignore items");
         let iter = vec![
@@ -112,7 +108,6 @@ mod sync_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_collect_future_empty_returns_empty_vec() {
         let iter: Vec<Stream<i32, &str>> = vec![];
         let mut future = StreamCollectFuture::new(iter.into_iter().into_stream_iter());
@@ -131,7 +126,6 @@ mod sync_tests {
     // ============================================================================
 
     #[test]
-    #[traced_test]
     fn test_ready_future_returns_first_next_with_remaining() {
         tracing::info!("creating StreamReadyFuture with two Next items");
         let iter = vec![
@@ -152,7 +146,6 @@ mod sync_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_ready_future_skips_init_and_pending() {
         tracing::info!("creating StreamReadyFuture with Init + Pending + Next");
         let iter = vec![
@@ -176,7 +169,6 @@ mod sync_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_ready_future_none_on_no_next() {
         tracing::info!("creating StreamReadyFuture with no Next values");
         let iter = vec![
@@ -200,7 +192,6 @@ mod sync_tests {
     // ============================================================================
 
     #[test]
-    #[traced_test]
     fn test_pending_future_returns_first_pending() {
         tracing::info!("creating StreamPendingFuture with Next + Pending + Next");
         let iter = vec![
@@ -223,7 +214,6 @@ mod sync_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_pending_future_none_on_no_pending() {
         tracing::info!("creating StreamPendingFuture with no Pending values");
         let iter = vec![
@@ -247,7 +237,6 @@ mod sync_tests {
     // ============================================================================
 
     #[test]
-    #[traced_test]
     fn test_future_stream_yields_all_items_one_to_one() {
         tracing::info!("creating StreamAsFutureStream");
         let mut stream = StreamAsFutureStream::new(vec![
@@ -264,7 +253,6 @@ mod sync_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_future_stream_empty() {
         tracing::info!("creating StreamAsFutureStream with empty iterator");
         let mut stream = StreamAsFutureStream::new(Vec::<Stream<i32, &str>>::new().into_iter());
@@ -285,10 +273,8 @@ mod sync_tests {
 mod smol_ext_tests {
     use super::*;
     
-    use tracing_test::traced_test;
 
     #[test]
-    #[traced_test]
     fn test_into_collect_future_via_ext() {
         let result = smol::block_on(
             vec![Stream::<&str, &str>::Next("a"), Stream::Next("b")]
@@ -301,7 +287,6 @@ mod smol_ext_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_into_ready_future_via_ext() {
         let (value, mut remaining) = smol::block_on(
             vec![Stream::<i32, &str>::Next(42), Stream::Next(1)]
@@ -315,7 +300,6 @@ mod smol_ext_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_into_pending_future_via_ext() {
         let (ctx, _) = smol::block_on(
             vec![Stream::<i32, &str>::Next(1), Stream::Pending("x")]
@@ -328,7 +312,6 @@ mod smol_ext_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_into_future_stream_via_ext() {
         let mut stream = vec![
             Stream::<i32, &str>::Next(1),
@@ -353,10 +336,8 @@ mod tokio_tests {
     use super::*;
     
     
-    use tracing_test::traced_test;
 
 #[tokio::test]
-#[traced_test]
 async fn test_tokio_await_collect() {
     tracing::info!("tokio: awaiting collect future");
     let result = vec![
@@ -369,7 +350,6 @@ async fn test_tokio_await_collect() {
 }
 
 #[tokio::test]
-#[traced_test]
 async fn test_tokio_await_ready_future() {
     tracing::info!("tokio: awaiting ready future");
     let (value, mut remaining) = vec![
@@ -382,7 +362,6 @@ async fn test_tokio_await_ready_future() {
 }
 
 #[tokio::test]
-#[traced_test]
 async fn test_tokio_await_pending_future_first() {
     tracing::info!("tokio: awaiting pending future (target first)");
     let (ctx, _) = vec![
@@ -394,7 +373,6 @@ async fn test_tokio_await_pending_future_first() {
 }
 
 #[tokio::test]
-#[traced_test]
 async fn test_tokio_await_pending_future_after_next() {
     tracing::info!("tokio: awaiting pending future (after Next values)");
     let (ctx, _) = vec![
@@ -407,7 +385,6 @@ async fn test_tokio_await_pending_future_after_next() {
 }
 
 #[tokio::test]
-#[traced_test]
 async fn test_tokio_await_future_stream() {
     tracing::info!("tokio: awaiting future stream");
     let mut stream = vec![
@@ -428,7 +405,6 @@ async fn test_tokio_await_future_stream() {
 // ============================================================================
 
 #[test]
-#[traced_test]
 fn test_smol_run_collect() {
     tracing::info!("smol: block_on collect");
     let result = smol::block_on(async {
@@ -442,7 +418,6 @@ fn test_smol_run_collect() {
 }
 
 #[test]
-#[traced_test]
 fn test_smol_run_ready_future() {
     tracing::info!("smol: block_on ready future");
     let (value, mut remaining) = smol::block_on(async {
@@ -457,7 +432,6 @@ fn test_smol_run_ready_future() {
 }
 
 #[test]
-#[traced_test]
 fn test_smol_run_future_stream() {
     tracing::info!("smol: block_on future stream");
     let mut stream = vec![
@@ -478,7 +452,6 @@ fn test_smol_run_future_stream() {
 // ============================================================================
 
 #[test]
-#[traced_test]
 fn test_combinator_then_collect_future() {
     let result = smol::block_on(async {
         vec![
@@ -496,7 +469,6 @@ fn test_combinator_then_collect_future() {
 }
 
 #[test]
-#[traced_test]
 fn test_combinator_then_ready_future() {
     let (value, _) = smol::block_on(async {
         vec![
@@ -514,7 +486,6 @@ fn test_combinator_then_ready_future() {
 }
 
 #[test]
-#[traced_test]
 fn test_combinator_then_future_stream() {
     let mut stream = vec![
         Stream::<i32, &str>::Next(1),

@@ -17,7 +17,6 @@ use foundation_core::{
     synca::{IdleMan, SleepyMan},
     valtron::{ProcessController, ProgressIndicator},
 };
-use tracing_test::traced_test;
 
 /// No-op process controller for tests
 #[derive(Default, Clone)]
@@ -96,7 +95,6 @@ fn test_store_and_retry_pattern() {
 /// Test that `NotifyQueue` with bounded capacity properly coordinates
 /// producer and consumer through backpressure.
 #[test]
-#[traced_test]
 // producer/produced/consumer/consumed are the domain vocabulary here — renaming
 // them to satisfy similar_names would make the test harder to follow.
 #[allow(clippy::similar_names)]
@@ -173,7 +171,6 @@ fn test_bounded_queue_producer_consumer_coordination() {
 /// without losing messages. The store-and-retry pattern ensures all
 /// values are eventually delivered.
 #[test]
-#[traced_test]
 fn test_executor_fast_producer_slow_consumer_no_loss() {
     let global: SharedTaskQueue =
         Arc::new(ConcurrentQueue::bounded(10));
@@ -234,7 +231,6 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
 /// Test that `ready_iter` with bounded channel produces all values without loss.
 /// This verifies the `ReadyConsumingIter` store-and-retry pattern works correctly.
 #[test]
-#[traced_test]
 fn test_executor_ready_iter_no_message_loss() {
     // Use a simple test with multiple values to stress the channel
     let global: SharedTaskQueue =
@@ -324,7 +320,6 @@ impl TaskIterator for SeqTask {
 /// flat) rather than a value; draining a slot unparks it and the stashed item
 /// lands — zero loss.
 #[test]
-#[traced_test]
 fn test_split_continuation_parks_on_full_observer_no_loss() {
     use foundation_core::valtron::{Stream, TaskIteratorExt};
 
@@ -401,7 +396,6 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
 /// (observer queue closed) but keeps forwarding source values (Feature 45 Part
 /// C1 observer-dropped policy).
 #[test]
-#[traced_test]
 fn test_split_continuation_survives_dropped_observer() {
     use foundation_core::valtron::TaskIteratorExt;
 

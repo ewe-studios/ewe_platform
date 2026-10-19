@@ -23,7 +23,6 @@ use foundation_core::{
     synca::{IdleMan, SleepyMan},
     valtron::{ProcessController, ProgressIndicator, Stream},
 };
-use tracing_test::traced_test;
 
 /// No-op process controller for tests
 #[derive(Default, Clone)]
@@ -42,7 +41,6 @@ impl ProcessController for NoYielder {
 /// Test that `NotifyQueue` blocks until item is available in single-threaded mode.
 /// Uses a producer thread to push items while consumer waits.
 #[test]
-#[traced_test]
 fn test_notify_queue_blocks_until_item_available() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
     let queue_clone = queue.clone();
@@ -77,7 +75,6 @@ fn test_notify_queue_blocks_until_item_available() {
 
 /// Test that `NotifyQueue` returns None when queue is closed.
 #[test]
-#[traced_test]
 fn test_notify_queue_returns_none_when_closed() {
     let queue: NotifyQueue<i32> = NotifyQueue::unbounded();
 
@@ -91,7 +88,6 @@ fn test_notify_queue_returns_none_when_closed() {
 
 /// Test that `NotifyQueue` correctly receives items with notification.
 #[test]
-#[traced_test]
 fn test_notify_queue_receives_item_with_notification() {
     let queue: NotifyQueue<i32> = NotifyQueue::unbounded();
 
@@ -106,7 +102,6 @@ fn test_notify_queue_receives_item_with_notification() {
 /// Test `NotifyQueue` handles multiple items with blocking behavior.
 /// This simulates a stream of values being processed.
 #[test]
-#[traced_test]
 fn test_notify_queue_multiple_items_blocking() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
     let queue_clone = queue.clone();
@@ -139,7 +134,6 @@ fn test_notify_queue_multiple_items_blocking() {
 /// Test that demonstrates the timeout race condition handling.
 /// Item added between initial check and lock acquisition.
 #[test]
-#[traced_test]
 fn test_notify_queue_race_condition_handling() {
     let queue: NotifyQueue<i32> = NotifyQueue::unbounded();
 
@@ -162,7 +156,6 @@ fn test_notify_queue_race_condition_handling() {
 
 /// Test bounded `NotifyQueue` capacity handling in single-threaded mode.
 #[test]
-#[traced_test]
 fn test_notify_queue_bounded_capacity() {
     let queue: NotifyQueue<i32> = NotifyQueue::bounded(2);
 
@@ -187,7 +180,6 @@ fn test_notify_queue_bounded_capacity() {
 /// Test that extremely short timeout parameter still results in blocking behavior.
 /// The timeout is just for internal re-checking, not for returning None.
 #[test]
-#[traced_test]
 fn test_notify_queue_timeout_is_recheck_interval() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
     let queue_clone = queue.clone();
@@ -226,7 +218,6 @@ fn test_notify_queue_timeout_is_recheck_interval() {
 
 /// Test that `NotifyRecvIter` blocks until item is available.
 #[test]
-#[traced_test]
 fn test_notify_recv_iterator_blocks_until_item() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
     let recv_iter = NotifyRecvIter::new(queue.clone());
@@ -262,7 +253,6 @@ fn test_notify_recv_iterator_blocks_until_item() {
 
 /// Test `NotifyRecvIterator` correctly iterates with notification.
 #[test]
-#[traced_test]
 fn test_notify_recv_iterator_iterates_with_notification() {
     let queue: Arc<NotifyQueue<i32>> = Arc::new(NotifyQueue::unbounded());
     let iterator = NotifyRecvIterator::from_notify_queue(queue.clone(), Duration::from_micros(100));
@@ -289,7 +279,6 @@ fn test_notify_recv_iterator_iterates_with_notification() {
 
 /// Test `NotifyQueueStreamIterator` blocks until values are available.
 #[test]
-#[traced_test]
 fn test_notify_queue_stream_iterator_blocks_until_values() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
     let queue_clone = queue.clone();
@@ -329,7 +318,6 @@ Stream::Delayed(_) | Stream::Spread(_)) => {} // Not a value — keep polling
 
 /// Test `NotifyQueueStreamIterator` returns None when queue is closed.
 #[test]
-#[traced_test]
 fn test_notify_queue_stream_iterator_returns_none_when_closed() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
 
@@ -370,7 +358,6 @@ fn test_notify_queue_stream_iterator_receives_values() {
 /// Single-threaded executor test with notification-based tasks.
 /// Verifies that tasks using NotifyQueue-based receivers don't block progress.
 #[test]
-#[traced_test]
 fn test_single_threaded_executor_with_notification_tasks() {
     let global: SharedTaskQueue =
         Arc::new(ConcurrentQueue::bounded(10));
@@ -430,7 +417,6 @@ fn test_single_threaded_executor_with_notification_tasks() {
 /// Test that single-threaded executor handles tasks that pend/sleep
 /// without blocking indefinitely. Uses very short wait timeouts.
 #[test]
-#[traced_test]
 fn test_single_threaded_executor_pends_without_blocking() {
     let global: SharedTaskQueue =
         Arc::new(ConcurrentQueue::bounded(10));
@@ -516,7 +502,6 @@ fn test_single_threaded_executor_pends_without_blocking() {
 /// This simulates the real executor scenario where tasks produce and consume
 /// values in the same thread.
 #[test]
-#[traced_test]
 fn test_single_threaded_producer_consumer_interleaved() {
     let queue: Arc<NotifyQueue<usize>> = Arc::new(NotifyQueue::unbounded());
     let short_timeout = Duration::from_micros(25);

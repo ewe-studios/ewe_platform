@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 use std::time::Duration;
 
 use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
+use crate::shared::http::framing::FrameLimits;
 use crate::shared::http::{SimpleHeader, SimpleHeaders, SimpleHttpBody};
 
 use super::proxy;
@@ -50,6 +51,11 @@ pub struct ClientConfig {
     pub full_body_threshold: u64,
     pub batch_size: usize,
     pub max_retries: usize,
+    /// Caps on the frames a parser must buffer whole: the response header
+    /// block, a chunk-size line, one line of a line-delimited body, one
+    /// server-sent event. Body data is never capped by these; it streams in
+    /// `batch_size` pieces.
+    pub frame_limits: FrameLimits,
     /// Redirect-following policy (auth/cookie preservation, etc.).
     pub redirect: RedirectConfig,
     /// When `true`, requests carrying a body negotiate with an
@@ -86,6 +92,7 @@ impl ClientConfig {
             self.batch_size,
             self.max_retries,
         )
+        .with_frame_limits(self.frame_limits)
     }
 
     #[must_use]
@@ -196,6 +203,41 @@ impl ClientConfig {
         self
     }
 
+    /// Replace all frame caps at once.
+    #[must_use]
+    pub fn with_frame_limits(mut self, limits: FrameLimits) -> Self {
+        self.frame_limits = limits;
+        self
+    }
+
+    /// Cap the response header block (and a chunked body's trailer section).
+    #[must_use]
+    pub fn with_max_header_block(mut self, bytes: usize) -> Self {
+        self.frame_limits.max_header_block = bytes;
+        self
+    }
+
+    /// Cap a chunked body's chunk-size line (size octets and extensions).
+    #[must_use]
+    pub fn with_max_chunk_header_line(mut self, bytes: usize) -> Self {
+        self.frame_limits.max_chunk_header_line = bytes;
+        self
+    }
+
+    /// Cap one line of a line-delimited body.
+    #[must_use]
+    pub fn with_max_line(mut self, bytes: usize) -> Self {
+        self.frame_limits.max_line = bytes;
+        self
+    }
+
+    /// Cap one server-sent event.
+    #[must_use]
+    pub fn with_max_sse_event(mut self, bytes: usize) -> Self {
+        self.frame_limits.max_sse_event = bytes;
+        self
+    }
+
     #[must_use]
     pub fn with_max_retries(mut self, max_retries: usize) -> Self {
         self.max_retries = max_retries;
@@ -265,6 +307,7 @@ impl Default for ClientConfig {
             full_body_threshold: 512 * 1024,
             batch_size: 8192,
             max_retries: 5,
+            frame_limits: FrameLimits::default(),
             redirect: RedirectConfig::default(),
             expect_continue_enabled: true,
             headers_to_pass_on_redirect: None,

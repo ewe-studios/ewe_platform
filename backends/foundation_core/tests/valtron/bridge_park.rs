@@ -249,3 +249,142 @@ fn pending_future_spurious_wake_reparks_and_reregisters() {
         other => panic!("expected Ready(Some((\"ctx\", _))), got {other:?}"),
     }
 }
+
+// ============================================================================
+// (e) Registering on a queue that already has items, or is closed, fires at once
+// ============================================================================
+//
+// A bridge registers its wake after `next()` hands it a status it is not
+// waiting for. That status (`Pending`, `Delayed`, `Init`, or a producer-pushed
+// `Wait`) says nothing about what is queued behind it. When the producer has
+// already pushed everything and closed, no later push or close will fire, so
+// `NotifyQueue::register_wake` must fire at registration. Without that, each
+// case below parks with zero wakes and an executor never polls it again.
+
+/// WHY: The registry itself must deliver a wake when work is already queued.
+/// WHAT: Registering on an empty open queue does not fire; on a non-empty queue
+///       or a closed queue it fires immediately, once.
+#[test]
+fn register_wake_fires_at_once_when_items_are_queued_or_the_queue_is_closed() {
+    let fired = |queue: &NotifyQueue<Stream<i32, ()>>| {
+        let count = Arc::new(AtomicUsize::new(0));
+        let c = Arc::clone(&count);
+        queue.register_wake(Box::new(move || {
+            c.fetch_add(1, Ordering::SeqCst);
+        }));
+        count.load(Ordering::SeqCst)
+    };
+
+    let empty: NotifyQueue<Stream<i32, ()>> = NotifyQueue::unbounded();
+    assert_eq!(fired(&empty), 0, "empty and open: wait for a push");
+
+    let queued: NotifyQueue<Stream<i32, ()>> = NotifyQueue::unbounded();
+    queued.push(Stream::Next(1)).unwrap();
+    assert_eq!(fired(&queued), 1, "an item is already queued");
+
+    let closed: NotifyQueue<Stream<i32, ()>> = NotifyQueue::unbounded();
+    assert!(closed.close());
+    assert_eq!(fired(&closed), 1, "already closed");
+}
+
+/// Builds a closed queue holding `items`, the state a fast producer leaves
+/// behind when it finishes before the consumer's first poll.
+fn finished_iter<D, P>(
+    items: Vec<Stream<D, P>>,
+) -> NotifyQueueStreamIterator<D, P> {
+    let (iterator, queue) = waking_iter::<D, P>();
+    for item in items {
+        assert!(queue.push(item).is_ok(), "push");
+    }
+    assert!(queue.close());
+    iterator
+}
+
+/// WHY: `StreamReadyFuture` consumes `Pending`, registers, and its recheck
+///      consumes the producer's own `Wait`. It returns `Pending`, so the wake
+///      must already have fired or the queued `Next` is never reached.
+#[test]
+fn ready_future_on_a_finished_producer_is_woken() {
+    let iterator = finished_iter(vec![
+        Stream::<i32, &'static str>::Pending("p"),
+        Stream::Wait,
+        Stream::Next(1),
+    ]);
+    let mut future = StreamReadyFuture::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll(&mut future, &waker), Poll::Pending));
+    assert!(count.load(Ordering::SeqCst) >= 1, "the wake was delivered");
+    match poll(&mut future, &waker) {
+        Poll::Ready(Some((1, _))) => {}
+        other => panic!("expected Ready(Some((1, _))), got {other:?}"),
+    }
+}
+
+/// Same for `StreamNextStream`, past a `Delayed` status, through to the end.
+#[test]
+fn next_stream_on_a_finished_producer_is_woken_through_delayed() {
+    let iterator = finished_iter(vec![
+        Stream::<i32, &'static str>::Delayed(Duration::from_millis(1)),
+        Stream::Wait,
+        Stream::Next(5),
+    ]);
+    let mut stream = StreamNextStream::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert!(count.load(Ordering::SeqCst) >= 1, "the wake was delivered");
+    assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(Some(5)));
+    assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(None));
+}
+
+/// Same for `StreamCollectFuture`, past an `Init` status.
+#[test]
+fn collect_future_on_a_finished_producer_is_woken_through_init() {
+    let iterator = finished_iter(vec![
+        Stream::<i32, &'static str>::Init,
+        Stream::Wait,
+        Stream::Next(1),
+        Stream::Next(2),
+    ]);
+    let mut future = StreamCollectFuture::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll(&mut future, &waker), Poll::Pending));
+    assert!(count.load(Ordering::SeqCst) >= 1, "the wake was delivered");
+    assert_eq!(poll(&mut future, &waker), Poll::Ready(vec![1, 2]));
+}
+
+/// Same for `StreamPendingFuture`, whose non-target statuses include `Next`.
+#[test]
+fn pending_future_on_a_finished_producer_is_woken() {
+    let iterator = finished_iter(vec![
+        Stream::<i32, &'static str>::Next(1),
+        Stream::Wait,
+        Stream::Pending("ctx"),
+    ]);
+    let mut future = StreamPendingFuture::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll(&mut future, &waker), Poll::Pending));
+    assert!(count.load(Ordering::SeqCst) >= 1, "the wake was delivered");
+    match poll(&mut future, &waker) {
+        Poll::Ready(Some(("ctx", _))) => {}
+        other => panic!("expected Ready(Some((\"ctx\", _))), got {other:?}"),
+    }
+}
+
+/// A bridge parked on an empty, open queue is still woken by a later close, and
+/// a registration made after the close fires at once.
+#[test]
+fn next_stream_parked_then_closed_ends() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut stream = StreamNextStream::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked on an empty queue");
+    assert!(queue.close());
+    assert_eq!(count.load(Ordering::SeqCst), 1, "close fired the wake");
+    assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(None));
+}

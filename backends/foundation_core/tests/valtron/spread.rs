@@ -11,7 +11,6 @@ use foundation_core::valtron::{
     TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
-use tracing_test::traced_test;
 
 /// Test-only `TaskIterator` over a `Vec<TaskStatus>` — there is no blanket
 /// `Iterator → TaskIterator` impl, so combinator tests need this explicit source.
@@ -502,7 +501,6 @@ fn test_empty_spread_done_via_map_done() {
 // ============================================================================
 
 #[test]
-#[traced_test]
 fn test_collect_future_next_values_collected() {
     let iter = vec![
         Stream::<i32, &str>::Next(1),
@@ -519,7 +517,6 @@ fn test_collect_future_next_values_collected() {
 }
 
 #[test]
-#[traced_test]
 fn test_collect_future_spread_pending_skipped_not_parked() {
     let iter = vec![
         Stream::<i32, &str>::Next(1),
@@ -539,7 +536,6 @@ fn test_collect_future_spread_pending_skipped_not_parked() {
 }
 
 #[test]
-#[traced_test]
 fn test_collect_future_spread_done_collected() {
     let iter = vec![
         Stream::<i32, &str>::Next(1),
@@ -560,7 +556,6 @@ fn test_collect_future_spread_done_collected() {
 // ============================================================================
 
 #[test]
-#[traced_test]
 fn test_ready_future_spread_done_returns_first_value() {
     let iter = vec![Stream::<i32, &str>::Spread(vec![
         StreamSpread::Done(42),
@@ -579,7 +574,6 @@ fn test_ready_future_spread_done_returns_first_value() {
 }
 
 #[test]
-#[traced_test]
 fn test_ready_future_spread_done_empty_returns_pending() {
     let iter = vec![Stream::<i32, &str>::Spread(vec![])].into_iter().into_stream_iter();
     let mut future = StreamReadyFuture::new(iter);
@@ -592,7 +586,6 @@ fn test_ready_future_spread_done_empty_returns_pending() {
 }
 
 #[test]
-#[traced_test]
 fn test_ready_future_spread_pending_returns_pending() {
     let iter = vec![
         Stream::<i32, &str>::Spread(vec![StreamSpread::Pending("a"), StreamSpread::Pending("b")]),
@@ -614,7 +607,6 @@ fn test_ready_future_spread_pending_returns_pending() {
 // ============================================================================
 
 #[test]
-#[traced_test]
 fn test_pending_future_spread_pending_returns_first_value() {
     let iter = vec![Stream::<i32, &str>::Spread(vec![
         StreamSpread::Pending("a"),
@@ -634,7 +626,6 @@ fn test_pending_future_spread_pending_returns_first_value() {
 }
 
 #[test]
-#[traced_test]
 fn test_pending_future_spread_pending_empty_returns_pending() {
     let iter = vec![Stream::<i32, &str>::Spread(vec![])].into_iter().into_stream_iter();
     let mut future = StreamPendingFuture::new(iter);
@@ -647,7 +638,6 @@ fn test_pending_future_spread_pending_empty_returns_pending() {
 }
 
 #[test]
-#[traced_test]
 fn test_pending_future_spread_done_returns_pending() {
     let iter = vec![
         Stream::<i32, &str>::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2)]),
@@ -669,7 +659,6 @@ fn test_pending_future_spread_done_returns_pending() {
 // ============================================================================
 
 #[test]
-#[traced_test]
 fn test_future_stream_spread_done_yielded_as_single_item() {
     // StreamAsFutureStream passes through iterator items as-is
     let mut stream = StreamAsFutureStream::new(
@@ -700,7 +689,6 @@ fn test_future_stream_spread_done_yielded_as_single_item() {
 }
 
 #[test]
-#[traced_test]
 fn test_future_stream_spread_pending_yielded_as_single_item() {
     let mut stream = StreamAsFutureStream::new(
         vec![
@@ -725,7 +713,6 @@ fn test_future_stream_spread_pending_yielded_as_single_item() {
 }
 
 #[test]
-#[traced_test]
 fn test_future_stream_empty_spread() {
     let mut stream = StreamAsFutureStream::new(
         vec![Stream::<i32, &str>::Spread(vec![]), Stream::Spread(vec![])].into_iter(),
@@ -750,10 +737,8 @@ fn test_future_stream_empty_spread() {
 mod tokio_tests {
     use super::*;
     
-    use tracing_test::traced_test;
 
 #[tokio::test]
-#[traced_test]
 async fn test_tokio_collect_with_spread_pending_in_chain() {
     let result = vec![
         Stream::<i32, &str>::Next(1),
@@ -770,7 +755,6 @@ async fn test_tokio_collect_with_spread_pending_in_chain() {
 }
 
 #[tokio::test]
-#[traced_test]
 async fn test_tokio_ready_future_with_spread_done() {
     let (value, _) = vec![Stream::<i32, &str>::Spread(vec![
         StreamSpread::Done(42),
@@ -785,7 +769,6 @@ async fn test_tokio_ready_future_with_spread_done() {
 }
 
 #[tokio::test]
-#[traced_test]
 async fn test_tokio_pending_future_with_spread_pending() {
     let (ctx, _) = vec![
         Stream::<i32, &str>::Next(1),
@@ -800,7 +783,6 @@ async fn test_tokio_pending_future_with_spread_pending() {
 }
 
 #[tokio::test]
-#[traced_test]
 async fn test_tokio_future_stream_with_spread() {
     let mut stream = vec![
         Stream::<i32, &str>::Next(1),
@@ -827,7 +809,6 @@ async fn test_tokio_future_stream_with_spread() {
 // ============================================================================
 
 #[test]
-#[traced_test]
 fn test_smol_collect_with_spread_pending() {
     let result = smol::block_on(async {
         vec![
@@ -844,7 +825,6 @@ fn test_smol_collect_with_spread_pending() {
 }
 
 #[test]
-#[traced_test]
 fn test_smol_ready_future_with_spread_done() {
     let (value, mut remaining) = smol::block_on(async {
         vec![
@@ -863,7 +843,6 @@ fn test_smol_ready_future_with_spread_done() {
 }
 
 #[test]
-#[traced_test]
 fn test_smol_future_stream_with_spread() {
     let mut stream = vec![
         Stream::<i32, &str>::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2)]),
@@ -883,7 +862,6 @@ fn test_smol_future_stream_with_spread() {
 // ============================================================================
 
 #[test]
-#[traced_test]
 fn test_map_done_then_collect_with_spread_done_in_chain() {
     let result = smol::block_on(async {
         vec![
@@ -905,7 +883,6 @@ fn test_map_done_then_collect_with_spread_done_in_chain() {
 }
 
 #[test]
-#[traced_test]
 fn test_task_map_ready_then_collect_with_spread_done() {
     use foundation_core::valtron::TaskStatus;
 
