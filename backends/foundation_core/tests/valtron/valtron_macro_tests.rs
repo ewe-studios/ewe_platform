@@ -187,6 +187,10 @@ impl TaskIterator for PanickingTask {
 /// `sync_collect_one`, another picks up `PanickingTask` and panics → channel
 /// closes → the blocked worker wakes and sees `Err`.
 #[valtron_test]
+#[cfg_attr(
+    cranelift_backend,
+    ignore = "cranelift does not support panic unwinding: the task's panic aborts the process"
+)]
 fn panicking_task_closes_channel_and_unblocks_caller() {
     // Watchdog: if this test ever hangs (because someone reverted the
     // channel.close() fix), the watchdog fires after 10s and panics so the
