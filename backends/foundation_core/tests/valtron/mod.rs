@@ -7,6 +7,8 @@ mod builder_tests;
 mod channel_backpressure_tests;
 mod flatten_combinators;
 mod cancellable_future;
+#[cfg(feature = "std")]
+mod ctx;
 mod futures_in_valtron;
 mod map_circuit;
 #[cfg(not(target_family = "wasm"))]

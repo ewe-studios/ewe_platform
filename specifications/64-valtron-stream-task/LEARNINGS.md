@@ -168,6 +168,37 @@ Consolidated from `64-valtron-state-task`, `65-valtron-stream-cleanup`, and
 - **Same-name struct** (`fn build_house` → `struct build_house`) relies on Rust's
   separate value/type namespaces.
 
+### Phase 3 implementation notes (feature 04, landed)
+
+- **`Ctx` is `std`-gated, not `alloc`-gated.** The spec's
+  `#[cfg(any(feature = "std", feature = "alloc"))]` was tightened to
+  `#[cfg(feature = "std")]` — the type map needs `std::collections::HashMap`, and
+  the traits `Ctx` threads through (`TaskIterator`/`ExecutionIterator`) are
+  themselves `std`-gated today. Documented deviation; the `alloc`-only relaxation
+  is deferred until a `!std` build actually needs `Ctx`.
+- **Concrete standard-element types.** `Rng` = `foundation_compact::rng::ChaCha8Rng`
+  (the executor's own RNG, so they stay interchangeable), default-seeded
+  `seed_from_u64(0)` and engine-replaceable at init. `Clock` = a minimal `Copy`
+  struct over `foundation_compact::Instant` (`new`/`now`/`elapsed`). `Config` = a
+  minimal `Copy` unit struct (`Default`) — a stable handle for a later feature to
+  populate. Draws go through `ctx.rng().lock().next_u64()` with
+  `use foundation_compact::rng::Rng;` in scope — `RngCore` is deprecated on
+  rand_core 0.10.
+- **`insert` returns `Option<Arc<T>>` but is not `#[must_use]`.** Matching
+  `HashMap::insert`, replacing an entry is a normal operation whose return value a
+  caller may legitimately ignore; `#[must_use]` here raised six "unused return
+  value" warnings at bare `ctx.insert(…)` call sites.
+- **Accessors return owned `Arc<T>`, never a guard.** `ctx.rng().lock()` on the
+  temporary `Arc` borrows from a dropped temporary (E0716) — bind `let rng =
+  ctx.rng();` first. This is why `clock`/`config`/`rng` return `Arc<T>` rather than
+  `&T`: a task can hold the `Arc` across `.await` without borrowing from `self`, and
+  the RNG guard never outlives a temporary.
+- **`fork()` copies the map *snapshot* — insertion order decides `contains`.** A
+  `fork()` taken before an insert does not see it (and vice versa). The doc example
+  and `fork_isolates_the_map` test insert *before* forking for the shared case and
+  *after* for the isolated case; swapping them yields a false "parent sees the
+  fork's write" assertion.
+
 ## Challenges
 
 - Distinguishing "no callers" from "only test callers" vs "only doc-comment

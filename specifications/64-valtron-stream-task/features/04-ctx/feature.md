@@ -1,18 +1,18 @@
 ---
 feature: "Ctx"
 description: "Ctx = Arc<CtxInner>: a cloneable, Send + Sync handle over an interior-mutable type map, seeded by the engine with standard elements (clock, config, RNG)."
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: []
 estimated_effort: "small"
 created: 2026-10-18
-last_updated: 2026-10-18
+last_updated: 2026-10-19
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 5
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Ctx
@@ -73,7 +73,11 @@ impl Default for Ctx { /* Ctx::new() */ }
 - **`Mutex`** is the codebase's `compati::Mutex` (`std::sync::Mutex` under `std`).
 - **Type erasure** is `Arc<dyn Any + Send + Sync>`; `get` downcasts via
   `Arc::downcast::<T>()` (`T: Any + Send + Sync + 'static`).
-- **Gating:** `#[cfg(any(feature = "std", feature = "alloc"))]`.
+- **Gating (landed):** `#[cfg(feature = "std")]`. The type map and standard
+  elements need `std` (`HashMap`, `Arc`, `TypeId`, `dyn Any`, and a monotonic
+  clock). The spec's original `alloc`-only relaxation is a documented deviation —
+  deferred until a `!std` build actually needs `Ctx` (the traits it threads
+  through, `TaskIterator`/`ExecutionIterator`, are themselves `std`-gated today).
 - **`fork()` copies the map structure, not the values.** Each entry is an `Arc`,
   so the fresh `HashMap` holds shared `Arc` pointers — structural isolation
   (insert/remove/replace are private) while the values stay shareable on purpose.
@@ -113,6 +117,20 @@ shared RNG; per-task seeded clones are dropped.
 Note: cross-run reproducibility holds for a deterministic (single-threaded)
 scheduler. Under `multi`, the interleaving of `lock()` draws is schedule-dependent,
 so a single global sequence is only guaranteed on the single-threaded engine.
+
+**Landed concrete types** (resolving the open decision):
+
+- **`Rng` = `foundation_compact::rng::ChaCha8Rng`** — the same RNG the executor
+  already draws from, so the two stay interchangeable. The default engine seed is
+  deterministic (`ChaCha8Rng::seed_from_u64(0)`) and the engine replaces it at init
+  when it wants a non-default seed. Draws go through `ctx.rng().lock().next_u64()`
+  with `use foundation_compact::rng::Rng;` in scope (`RngCore` is deprecated on
+  rand_core 0.10).
+- **`Clock`** = a minimal `Copy` struct wrapping `foundation_compact::Instant`
+  (`new`/`now`/`elapsed`). Read-only; no interior mutation, so it is safe to share.
+- **`Config`** = a minimal opaque unit struct (`Copy`, `Default`) as a stable
+  handle for a later feature to populate; the engine owns the real configuration
+  source.
 
 ## Error handling
 

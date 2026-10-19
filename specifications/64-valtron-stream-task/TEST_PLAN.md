@@ -23,14 +23,18 @@ arc, organised around four coverage areas the user asked to nail down:
 4. **Area D — Gap analysis.** What is left to implement in this spec, and which
    test suites are currently missing or under-covered.
 
-> **SCOPE NOTE (read first).** Features `00-cleanup`, `01-migrate-recv-iterator`,
-> `02-wakeable-stream`, `03-bridge-park` are **landed** in `foundation_core`
-> (plus the follow-up `Spread`-drain fix, commit `8d5d53adb`). Features
-> `04-ctx`, `05-thread-ctx`, `06-state-task` are **spec-only** — there is no
-> `Ctx` type in `backends/foundation_core/src` today. Area A and Area B are
-> testable **now**; Area C is a forward spec that becomes testable only after
-> features 04–06 land. Do not write Area C tests against the current tree —
-> they will not compile.
+> **SCOPE NOTE (read first).** Features `02-wakeable-stream`, `03-bridge-park` and
+> `04-ctx` are **landed** in `foundation_core` (plus the follow-up `Spread`-drain
+> fix, commit `8d5d53adb`). Features `00-cleanup` and `01-migrate-recv-iterator`
+> are **NOT landed** — `StreamRecvIterator`/`ConcurrentQueueStreamIterator` remain
+> in `streams.rs` and `ThreadedIterFuture` still drives `mpp::RecvIterator`
+> (`future_task.rs:677,786`); their commits (`ee0e42ab0`, `10af143b3`) only
+> authored the spec `.md` files. Features `05-thread-ctx` and `06-state-task` are
+> **spec-only** (no `Ctx` threading or state-task macro in source). Area A and
+> Area B are testable **now**; Area C (Ctx-from-the-engine) is testable for the
+> `Ctx` unit surface after feature 04, and fully after features 05–06. Do not
+> write Area C threading/macro tests against the current tree — they will not
+> compile.
 
 ---
 
@@ -423,12 +427,15 @@ form), C8.
 The `requirements.md` Feature Index and frontmatter are stale relative to the
 landed commits:
 
-- Features `00-cleanup`, `01-migrate-recv-iterator`, `02-wakeable-stream` are
-  marked `⬜ Pending` but are **landed** (LEARNINGS.md documents them; commits
-  `ee0e42ab0`, `10af143b3`, `7394ae813`).
-- Frontmatter still reads `completed: 0 / uncompleted: 7`. It should read
-  `completed: 4 / uncompleted: 3` (features 04–06 remaining), and feature 03 is
-  already correctly `✅ Complete`.
+- Feature `02-wakeable-stream` is marked `⬜ Pending` but is **landed**
+  (`wake.rs`; commit `7394ae813`). Feature `04-ctx` is **landed** (`ctx.rs`).
+- Features `00-cleanup` and `01-migrate-recv-iterator` are marked `⬜ Pending`,
+  which is **correct** — they are *not* landed: `StreamRecvIterator`/
+  `ConcurrentQueueStreamIterator` remain in `streams.rs`, and `ThreadedIterFuture`
+  still drives `mpp::RecvIterator` (`future_task.rs:677,786`). Commits
+  `ee0e42ab0`/`10af143b3` only authored the spec `.md` files.
+- Frontmatter reads `completed: 0 / uncompleted: 7`. It should read
+  `completed: 3 / uncompleted: 4` (features 00, 01, 05, 06 remaining).
 
 ### D.3 Test coverage gaps to close (testable now)
 

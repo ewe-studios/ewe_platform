@@ -1,4 +1,6 @@
 mod branches;
+#[cfg(feature = "std")]
+mod ctx;
 mod doc;
 mod drain;
 mod executors;
@@ -26,6 +28,8 @@ pub mod multi_iterator;
 pub use foundation_macros::{timeout, valtron, valtron_test};
 
 pub use branches::*;
+#[cfg(feature = "std")]
+pub use ctx::*;
 pub use drain::*;
 pub use executors::*;
 pub use extensions::*;

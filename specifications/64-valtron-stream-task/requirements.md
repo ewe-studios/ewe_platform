@@ -6,7 +6,7 @@ created: 2026-10-18
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-10-18
+  last_updated: 2026-10-19
   estimated_effort: "large"
   tags:
     - valtron
@@ -35,10 +35,10 @@ related_specs:
   - "specifications/33-valtron-singleton"
   - "specifications/50-valtron-async-readiness"
 features:
-  completed: 0
-  uncompleted: 7
+  completed: 3
+  uncompleted: 4
   total: 7
-  completion_percentage: 0
+  completion_percentage: 43
 ---
 
 # Overview
@@ -192,9 +192,9 @@ boundary and `Send`/`!Send` rules from `.agents/AGENTS.md`.
 |---|---------|-------------|--------------|--------|
 | 0 | [Cleanup dead stream iterators](./features/00-cleanup/feature.md) | Remove `StreamRecvIterator`/`ConcurrentQueueStreamIterator`; full cross-crate audit as the task list | None | ⬜ Pending |
 | 1 | [Migrate RecvIterator to NotifyQueue](./features/01-migrate-recv-iterator/feature.md) | `ThreadedIterFuture` worker-channel: `mpp::RecvIterator` → `NotifyQueue` (condvar) | 00 | ⬜ Pending |
-| 2 | [WakeableStream capability](./features/02-wakeable-stream/feature.md) | `WakeableStream` trait + `WakeRegistry` + `NotifyQueue` firing + terminal/combinator/wrapper impls | None | ⬜ Pending |
+| 2 | [WakeableStream capability](./features/02-wakeable-stream/feature.md) | `WakeableStream` trait + `WakeRegistry` + `NotifyQueue` firing + terminal/combinator/wrapper impls | None | ✅ Complete |
 | 3 | [Parking bridges](./features/03-bridge-park/feature.md) | Rewrite the four parking `stream_future.rs` bridges to require `WakeableStream`, park on `Successful`, fall back on `NotSupported`; audit cross-crate callers | 02 | ✅ Complete |
-| 4 | [Ctx](./features/04-ctx/feature.md) | `Ctx = Arc<CtxInner>`; interior-mutable type map + engine-seeded standard elements | None | ⬜ Pending |
+| 4 | [Ctx](./features/04-ctx/feature.md) | `Ctx = Arc<CtxInner>`; interior-mutable type map + engine-seeded standard elements | None | ✅ Complete |
 | 5 | [Thread Ctx](./features/05-thread-ctx/feature.md) | `next_status(&mut self, ctx: Ctx)` + `next(…, ctx: Ctx)`; executor owns + clones; update all impls | 04 | ⬜ Pending |
 | 6 | [State task macro](./features/06-state-task/feature.md) | `StateTask`/`AsyncStateTask`/`TransitionPending` + `#[valtron::task]` | 05 | ⬜ Pending |
 
@@ -402,6 +402,6 @@ graph TD
 ---
 
 _Created: 2026-10-18_
-_Last Updated: 2026-10-18_
+_Last Updated: 2026-10-19_
 _Structure: Feature-based (has_features: true)_
 _Consolidates: 64-valtron-state-task, 65-valtron-stream-cleanup, 66-valtron-stream-wake_
