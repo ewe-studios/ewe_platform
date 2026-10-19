@@ -1,11 +1,15 @@
 //! Tests for `ThreadedIterFuture` executor.
+//!
+//! NOTE: these use `#[valtron_test]` alone (no `#[traced_test]`). `#[valtron_test]`
+//! already installs a tracing subscriber, and `traced_test`'s
+//! `set_global_default().expect(..)` panics with `SetGlobalDefaultError` once any
+//! earlier test in the binary has set the global default. The tests here don't use
+//! `logs_contain`/`logs_assert`, so `#[traced_test]` adds nothing.
 
 #![cfg(feature = "multi")]
 
 use foundation_core::valtron::{valtron_test, ThreadedIterFuture, ThreadedValue};
-use tracing_test::traced_test;
 
-#[traced_test]
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_basic() {
 
@@ -24,7 +28,6 @@ fn test_threaded_future_basic() {
     assert_eq!(results, vec![1, 2, 3]);
 }
 
-#[traced_test]
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_future_error() {
 
@@ -34,16 +37,16 @@ fn test_threaded_future_future_error() {
 
     let iter = threaded.execute().expect("should submit job");
     let results: Vec<Result<i32, &'static str>> = iter
-        .map(|v| match v {
-            ThreadedValue::Value(result) => result,
-            ThreadedValue::Waiting => unreachable!("sync iteration should not yield Waiting"),
+        .filter_map(|v| match v {
+            ThreadedValue::Value(result) => Some(result),
+            ThreadedValue::Waiting => None,
         })
         .collect();
 
-    dbg!(&results);
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0], Err("future failed"));
 }
 
-#[traced_test]
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_empty_iterator() {
 
@@ -51,16 +54,15 @@ fn test_threaded_future_empty_iterator() {
 
     let iter = threaded.execute().expect("should submit job");
     let results: Vec<Result<i32, ()>> = iter
-        .map(|v| match v {
-            ThreadedValue::Value(result) => result,
-            ThreadedValue::Waiting => unreachable!("sync iteration should not yield Waiting"),
+        .filter_map(|v| match v {
+            ThreadedValue::Value(result) => Some(result),
+            ThreadedValue::Waiting => None,
         })
         .collect();
 
     assert!(results.is_empty());
 }
 
-#[traced_test]
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_custom_queue_size() {
 
@@ -89,7 +91,6 @@ fn test_threaded_future_custom_queue_size() {
 ///
 /// WHAT: Produces 100 items with a queue size of only 4, forcing many
 /// backpressure cycles
-#[traced_test]
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_backpressure() {
 
@@ -102,12 +103,13 @@ fn test_threaded_future_backpressure() {
 
     let iter = threaded.execute().expect("should submit job");
 
-    // Collect results using the iterator directly
+    // Collect results using the iterator directly, tolerating the `Waiting`
+    // heartbeats the condvar path now yields between backpressure cycles.
     let results: Vec<i32> = iter
-        .map(|v| match v {
-            ThreadedValue::Value(Ok(val)) => val,
+        .filter_map(|v| match v {
+            ThreadedValue::Value(Ok(val)) => Some(val),
             ThreadedValue::Value(Err(e)) => panic!("Unexpected error: {e:?}"),
-            ThreadedValue::Waiting => unreachable!("sync iteration should not yield Waiting"),
+            ThreadedValue::Waiting => None,
         })
         .collect();
 
@@ -116,5 +118,37 @@ fn test_threaded_future_backpressure() {
         100,
         "Should have received all 100 items despite backpressure (got {})",
         results.len()
+    );
+}
+
+/// A deterministic `Waiting` heartbeat: an inner iterator that sleeps ~1.2 s
+/// before each value drains the queue empty long enough to exhaust the native
+/// `max_spins = 100 × 10 ms` condvar budget, so the consumer provably yields
+/// `ThreadedValue::Waiting` before the next value.
+#[valtron_test(seed = 42, threads = 4)]
+fn test_threaded_future_yields_waiting_on_empty_queue() {
+    let threaded = ThreadedIterFuture::new(|| async {
+        Ok::<_, ()>((0..2).map(|i| {
+            std::thread::sleep(std::time::Duration::from_millis(1200));
+            Ok::<i32, ()>(i)
+        }))
+    });
+
+    let iter = threaded.execute().expect("should submit job");
+
+    let mut values = Vec::new();
+    let mut saw_waiting = false;
+    for item in iter {
+        match item {
+            ThreadedValue::Value(Ok(val)) => values.push(val),
+            ThreadedValue::Value(Err(e)) => panic!("unexpected error: {e:?}"),
+            ThreadedValue::Waiting => saw_waiting = true,
+        }
+    }
+
+    assert_eq!(values, vec![0, 1]);
+    assert!(
+        saw_waiting,
+        "a ~1.2 s empty-queue gap must yield at least one Waiting heartbeat"
     );
 }

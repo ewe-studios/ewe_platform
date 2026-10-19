@@ -15,8 +15,8 @@ Consolidated from `64-valtron-state-task`, `65-valtron-stream-cleanup`, and
 - **Two dead types, plus one to migrate.** `RecvIterator` (`synca/mpp`) looked
   suspicious but is alive — its sole non-test caller is `ThreadedIterFuture`
   (`future_task.rs`, `multi`), the `!Send`-iterator sync bridge. Only its
-  `StreamRecvIterator` wrapper is dead. Feature 01 migrates that caller to
-  `NotifyQueue`, so `RecvIterator` loses its last user while the `mpp` module itself
+  `StreamRecvIterator` wrapper is dead. Feature 01 migrated that caller to
+  `NotifyQueue`, so `RecvIterator` lost its last user while the `mpp` module itself
   stays (`Broadcaster`/`Receiver`/`recv_timeout` are used cross-crate).
 - **`Pipe` is waker-based, not thread-blocking.** `Pipe<T>` parks by stashing a
   `Waker` and exposes no blocking receive / `Iterator`, so it cannot block the raw
@@ -61,6 +61,29 @@ Consolidated from `64-valtron-state-task`, `65-valtron-stream-cleanup`, and
   `Stream::Wait` on timeout. `max_turns` is still plumbed through the struct and its
   accessor but unused by the poll loop — a pre-existing gap left for feature 01 / a
   follow-up, not a feature-00 concern.
+
+### Phase 1 implementation notes (feature 01, landed)
+
+- **`#[traced_test]` + `#[valtron_test]` must not be stacked.** `#[valtron_test]`
+  already installs a tracing subscriber via `try_init_tracing_with`
+  (`foundation_compact::trace`, `Once` + `try_init().ok()` — idempotent). `tracing-test`
+  0.2.6's `traced_test` injects `set_global_default(subscriber).expect(..)`, which
+  panics with `SetGlobalDefaultError` once *any* earlier subscriber is set. Because
+  `#[valtron_test]` expands first (outer attr `#[traced_test]` wraps it), the
+  valtron body's `try_init_tracing_with` wins the race and `traced_test`'s `expect`
+  panics — every stacked test fails, not just the first. The established convention
+  is already documented at `foundation_deployment_docker/tests/integration_tests.rs:175`
+  ("no `#[traced_test]` here"). Feature 01 stripped the redundant `#[traced_test]`
+  from `threaded_future.rs`. (`units.rs` and `multi_workers.rs` carry the same
+  latent bug; out of feature-01 scope.)
+- **`threaded_future_std.rs` is orphaned.** It is never wired into
+  `tests/valtron/mod.rs` (no `mod threaded_future_std;`), so its `!multi` tests are
+  dead code. The `!multi` verification is therefore `cargo check` only; the 6 live
+  `threaded_future` tests exercise the migrated `multi` path.
+- **The `Waiting` heartbeat is ~1 s, so the slow-iterator test must sleep >1 s.**
+  Native `max_spins = 100` × 10 ms = 1 s of empty queue before `NotificationItem::None`.
+  A ~1.2 s sleep between two items deterministically yields `Waiting`; a shorter
+  sleep would race the budget.
 
 ### Phase 2 — Stream wake (was 66)
 

@@ -191,7 +191,7 @@ boundary and `Send`/`!Send` rules from `.agents/AGENTS.md`.
 | # | Feature | Description | Dependencies | Status |
 |---|---------|-------------|--------------|--------|
 | 0 | [Cleanup dead stream iterators](./features/00-cleanup/feature.md) | Remove `StreamRecvIterator`/`ConcurrentQueueStreamIterator`; full cross-crate audit as the task list | None | ✅ Complete |
-| 1 | [Migrate RecvIterator to NotifyQueue](./features/01-migrate-recv-iterator/feature.md) | `ThreadedIterFuture` worker-channel: `mpp::RecvIterator` → `NotifyQueue` (condvar) | 00 | ⬜ Pending |
+| 1 | [Migrate RecvIterator to NotifyQueue](./features/01-migrate-recv-iterator/feature.md) | `ThreadedIterFuture` worker-channel: `mpp::RecvIterator` → `NotifyQueue` (condvar) | 00 | ✅ Complete |
 | 2 | [WakeableStream capability](./features/02-wakeable-stream/feature.md) | `WakeableStream` trait + `WakeRegistry` + `NotifyQueue` firing + terminal/combinator/wrapper impls | None | ✅ Complete |
 | 3 | [Parking bridges](./features/03-bridge-park/feature.md) | Rewrite the four parking `stream_future.rs` bridges to require `WakeableStream`, park on `Successful`, fall back on `NotSupported`; audit cross-crate callers | 02 | ✅ Complete |
 | 4 | [Ctx](./features/04-ctx/feature.md) | `Ctx = Arc<CtxInner>`; interior-mutable type map + engine-seeded standard elements | None | ✅ Complete |

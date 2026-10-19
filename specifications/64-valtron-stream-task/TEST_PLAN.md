@@ -23,17 +23,15 @@ arc, organised around four coverage areas the user asked to nail down:
 4. **Area D — Gap analysis.** What is left to implement in this spec, and which
    test suites are currently missing or under-covered.
 
-> **SCOPE NOTE (read first).** Features `00-cleanup`, `02-wakeable-stream`,
-> `03-bridge-park` and `04-ctx` are **landed** in `foundation_core` (plus the
-> follow-up `Spread`-drain fix, commit `8d5d53adb`). Feature
-> `01-migrate-recv-iterator` is **NOT landed** — `ThreadedIterFuture` still drives
-> `mpp::RecvIterator` (`future_task.rs:677,786`); its commit (`10af143b3`) only
-> authored the spec `.md` file. Features `05-thread-ctx` and `06-state-task` are
-> **spec-only** (no `Ctx` threading or state-task macro in source). Area A and
-> Area B are testable **now**; Area C (Ctx-from-the-engine) is testable for the
-> `Ctx` unit surface after feature 04, and fully after features 05–06. Do not
-> write Area C threading/macro tests against the current tree — they will not
-> compile.
+> **SCOPE NOTE (read first).** Features `00-cleanup`, `01-migrate-recv-iterator`,
+> `02-wakeable-stream`, `03-bridge-park` and `04-ctx` are **landed** in
+> `foundation_core` (plus the follow-up `Spread`-drain fix, commit `8d5d53adb`).
+> `ThreadedIterFuture` now drives `NotifyQueue`/`NotifyRecvIterator` (feature 01).
+> Features `05-thread-ctx` and `06-state-task` are **spec-only** (no `Ctx`
+> threading or state-task macro in source). Area A and Area B are testable
+> **now**; Area C (Ctx-from-the-engine) is testable for the `Ctx` unit surface
+> after feature 04, and fully after features 05–06. Do not write Area C
+> threading/macro tests against the current tree — they will not compile.
 
 ---
 
@@ -426,14 +424,11 @@ form), C8.
 The `requirements.md` Feature Index and frontmatter are stale relative to the
 landed commits:
 
-- Features `00-cleanup`, `02-wakeable-stream` and `04-ctx` are **landed**
-  (`streams.rs` cleanup, `wake.rs`, `ctx.rs`); the Feature Index now marks them
+- Features `00-cleanup`, `01-migrate-recv-iterator`, `02-wakeable-stream` and
+  `04-ctx` are **landed** (`streams.rs` cleanup, `future_task.rs` NotifyQueue
+  migration, `wake.rs`, `ctx.rs`); the Feature Index now marks them
   `✅ Complete`.
-- Feature `01-migrate-recv-iterator` is marked `⬜ Pending`, which is
-  **correct** — it is *not* landed: `ThreadedIterFuture` still drives
-  `mpp::RecvIterator` (`future_task.rs:677,786`). Commit `10af143b3` only
-  authored the spec `.md` file.
-- Frontmatter now reads `completed: 4 / uncompleted: 3` (features 01, 05, 06
+- Frontmatter now reads `completed: 5 / uncompleted: 2` (features 05, 06
   remaining).
 
 ### D.3 Test coverage gaps to close (testable now)

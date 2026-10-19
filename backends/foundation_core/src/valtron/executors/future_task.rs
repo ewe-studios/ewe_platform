@@ -31,7 +31,12 @@ use alloc::boxed::Box;
 use alloc::sync::Arc;
 
 #[cfg(all(feature = "std", feature = "multi"))]
-use crate::synca::mpp::{self, SenderError};
+use crate::valtron::executors::{
+    local::{NotificationItem, NotifyQueue, NotifyRecvIterator},
+    DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT,
+};
+#[cfg(all(feature = "std", feature = "multi"))]
+use concurrent_queue::PushError;
 
 use crate::valtron::EventReadinessPtr;
 
@@ -668,13 +673,15 @@ pub enum ThreadedValue<T, E> {
 // Multi-threaded implementation (std + multi)
 // ============================================================================
 
-/// Iterator wrapper around Receiver for ThreadedIterFuture.
+/// Iterator wrapper around `NotifyRecvIterator` for `ThreadedIterFuture`.
 ///
-/// Uses `Receiver.into_recv_iter()` which already provides the Iterator
-/// implementation with proper blocking/consumption logic.
+/// Maps the notification-based receive onto the public `ThreadedValue`
+/// contract: a ready value passes through, an open-but-empty queue (after
+/// `max_spins` condvar timeouts) yields `ThreadedValue::Waiting`, and a closed
+/// queue ends iteration.
 #[cfg(feature = "multi")]
 pub struct FutureIterator<T, E> {
-    iter: mpp::RecvIterator<ThreadedValue<T, E>>,
+    iter: NotifyRecvIterator<ThreadedValue<T, E>>,
 }
 
 #[cfg(feature = "multi")]
@@ -682,7 +689,11 @@ impl<T, E> Iterator for FutureIterator<T, E> {
     type Item = ThreadedValue<T, E>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
+        match self.iter.next() {
+            Some(NotificationItem::Ready(value)) => Some(value),
+            Some(NotificationItem::None) => Some(ThreadedValue::Waiting),
+            None => None,
+        }
     }
 }
 
@@ -738,7 +749,8 @@ where
     pub fn execute(
         self,
     ) -> crate::valtron::GenericResult<impl Iterator<Item = ThreadedValue<T, E>>> {
-        let (sender, receiver) = mpp::bounded::<ThreadedValue<T, E>>(self.queue_size);
+        let queue = Arc::new(NotifyQueue::bounded(self.queue_size));
+        let worker_queue = queue.clone();
         let backpressure_sleep = self.backpressure_sleep;
 
         super::run_background_job(move || {
@@ -751,7 +763,7 @@ where
                 match future.as_mut().poll(&mut cx) {
                     Poll::Ready(Ok(iter)) => break Some(iter),
                     Poll::Ready(Err(e)) => {
-                        let _ = sender.send(ThreadedValue::Value(Err(e)));
+                        let _ = worker_queue.push(ThreadedValue::Value(Err(e)));
                         break None;
                     }
                     Poll::Pending => std::thread::yield_now(),
@@ -763,9 +775,9 @@ where
                 for result in iter {
                     let mut value = ThreadedValue::Value(result);
                     loop {
-                        match sender.send(value) {
+                        match worker_queue.push(value) {
                             Ok(()) => break,
-                            Err(SenderError::Full(v)) => {
+                            Err(PushError::Full(v)) => {
                                 value = v;
                                 if let Some(sleep_dur) = backpressure_sleep {
                                     std::thread::sleep(sleep_dur);
@@ -773,17 +785,20 @@ where
                                     std::hint::spin_loop();
                                 }
                             }
-                            Err(SenderError::Closed(_)) => return,
+                            Err(PushError::Closed(_)) => return,
                         }
                     }
                 }
             }
 
-            let _ = sender.close();
+            let _ = worker_queue.close();
         })?;
 
         Ok(FutureIterator {
-            iter: receiver.into_recv_iter(),
+            iter: NotifyRecvIterator::from_notify_queue(
+                queue,
+                DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT,
+            ),
         })
     }
 

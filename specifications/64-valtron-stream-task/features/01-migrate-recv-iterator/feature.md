@@ -1,18 +1,18 @@
 ---
 feature: "Migrate RecvIterator to NotifyQueue"
 description: "Replace ThreadedIterFuture's worker-channel RecvIterator (mpp park-timeout spin) with NotifyQueue/NotifyRecvIterator (condvar wake) — same bounded-channel + backpressure + close semantics, no 100 ms park latency."
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["00-cleanup"]
 estimated_effort: "small"
 created: 2026-10-18
-last_updated: 2026-10-18
+last_updated: 2026-10-19
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 7
+  completed: 7
+  uncompleted: 0
   total: 7
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Migrate RecvIterator to NotifyQueue
@@ -117,3 +117,32 @@ stays fast.
   `mpp::bounded`/`into_recv_iter` in the execute path.
 - Item handoff is condvar-driven: no 100 ms `park_timeout` floor.
 - `foundation_core` + DB backends compile and pass under `multi` and `!multi`.
+
+## Landed implementation
+
+- `FutureIterator<T, E>` (`future_task.rs`) now wraps
+  `NotifyRecvIterator<ThreadedValue<T, E>>`; `next()` maps
+  `NotificationItem::Ready(v) → Some(v)`, `NotificationItem::None →
+  Some(ThreadedValue::Waiting)`, closed `None → None`.
+- `ThreadedIterFuture::execute()` (`multi`) builds
+  `Arc::new(NotifyQueue::bounded(queue_size))`, pushes from the worker via
+  `worker_queue.push(...)` (mapping `PushError::Full` → backpressure sleep/retry,
+  `PushError::Closed` → stop), closes with `worker_queue.close()`, and returns
+  `NotifyRecvIterator::from_notify_queue(queue, DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT)`.
+- Imports: dropped `crate::synca::mpp::{self, SenderError}`; added
+  `crate::valtron::executors::local::{NotificationItem, NotifyQueue,
+  NotifyRecvIterator}` + `DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT`, and
+  `concurrent_queue::PushError`.
+- Tests (`tests/valtron/threaded_future.rs`): the three `Waiting ⇒ unreachable!`
+  tests converted to tolerant `filter_map`; added
+  `test_threaded_future_yields_waiting_on_empty_queue` (a ~1.2 s sleep between
+  items drains the queue past the native `max_spins` budget and pins the new
+  `Waiting` heartbeat). **Also removed the stacked `#[traced_test]`** on every
+  test — `#[valtron_test]` already installs a subscriber, and `traced_test`'s
+  `set_global_default().expect(..)` panics with `SetGlobalDefaultError` once any
+  earlier test in the binary has set the global default (see LEARNINGS.md).
+- Verified: `cargo check` under `multi` and `!multi`; `threaded_future` 6/6 pass;
+  `foundation_db --features libsql` compiles and `libsql_generic_instantiation_compiles`
+  passes (the other `libsql_storage_tests` fns are dead code — no `#[test]` —
+  a pre-existing gap, not this feature).
+
