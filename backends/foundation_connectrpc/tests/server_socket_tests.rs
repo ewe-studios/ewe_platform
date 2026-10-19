@@ -46,7 +46,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use futures::StreamExt;
-use tracing_test::traced_test;
 
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
 use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
@@ -420,7 +419,6 @@ fn h1_transport_capabilities_are_correct() {
 ///    polls `head` for the response status, and drains `recv_body`.
 ///
 #[valtron_test(seed = 44, threads = 8)]
-#[traced_test]
 async fn h1_client_transport_over_real_socket() {
     use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;
@@ -533,7 +531,6 @@ async fn h1_client_transport_over_real_socket() {
 ///    frame arrived — proving the H1 client consumes a multi-frame server stream,
 ///    not just a single unary body.
 #[valtron_test(seed = 45, threads = 8)]
-#[traced_test]
 async fn h1_client_server_stream_over_real_socket() {
     use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;

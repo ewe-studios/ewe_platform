@@ -56,26 +56,3 @@ macro_rules! error {
         tracing::error!($($t)*);
     };
 }
-
-#[cfg(all(test, not(target_family = "wasm")))]
-mod tests {
-    use tracing_test::traced_test;
-
-    #[test]
-    #[traced_test]
-    fn test_logs_without_arg() {
-        info!("Help me out");
-        debug!("Help me out");
-        warn!("Help me out");
-        error!("Help me out");
-    }
-
-    #[test]
-    #[traced_test]
-    fn test_logs_with_arg() {
-        info!("Help me out: {}", 1);
-        debug!("Help me out: {}", 1);
-        warn!("Help me out: {}", 1);
-        error!("Help me out: {}", 1);
-    }
-}

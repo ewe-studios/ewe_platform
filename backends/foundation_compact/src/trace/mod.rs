@@ -15,8 +15,8 @@
 /// and the `#[valtron_test]` macro can tune tracing without touching the RUST_LOG
 /// env var.
 ///
-/// Defaults: stderr, no targets/file/line/ansi, thread ids on, filter from
-/// `RUST_LOG` (fallback `"info"`).
+/// Defaults: libtest-captured output, no targets/file/line/ansi, thread ids on,
+/// filter from `RUST_LOG` (fallback `"info"`).
 #[derive(Debug, Clone)]
 pub struct TracingTestConfig {
     /// Override the standard `RUST_LOG` env-var filter. When `None` (default),
@@ -56,34 +56,56 @@ impl Default for TracingTestConfig {
 #[cfg(not(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"))))]
 mod imp {
     use super::TracingTestConfig;
+    use std::sync::OnceLock;
+    use tracing_subscriber::{fmt, layer::SubscriberExt, reload, util::SubscriberInitExt, EnvFilter, Registry};
+
+    /// Handle to the installed subscriber's filter, so each call can set its own.
+    static FILTER: OnceLock<Option<reload::Handle<EnvFilter, Registry>>> = OnceLock::new();
+
+    fn filter_for(config: &TracingTestConfig) -> EnvFilter {
+        match config.env_filter {
+            Some(ref s) => EnvFilter::new(s.clone()),
+            None => EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
+        }
+    }
 
     /// Initialise a tracing subscriber for test diagnostics with the given
-    /// [`TracingTestConfig`]. Idempotent: subsequent calls are no-ops (the global
-    /// subscriber can only be set once).
+    /// [`TracingTestConfig`].
+    ///
+    /// The first call installs one process-wide subscriber. It writes through
+    /// libtest's output capture (`with_test_writer`), so a passing test's logs
+    /// stay hidden and a failing test's logs are printed with its failure. Threads
+    /// a test spawns, such as valtron's pool workers, inherit that capture.
+    ///
+    /// Every call, the first included, sets the filter to `config.env_filter`, or
+    /// to `RUST_LOG` (fallback `"info"`) when that is `None`. The filter is
+    /// process-wide: tests running at the same time share whichever was set last.
+    /// The formatting knobs (`targets`, `thread_ids`, …) come from the first call.
+    ///
+    /// If some other subscriber was installed first, this leaves it alone.
     pub fn try_init_tracing_with(config: TracingTestConfig) {
-        use std::sync::Once;
-        use tracing_subscriber::fmt;
-        use tracing_subscriber::EnvFilter;
-
-        static INIT: Once = Once::new();
-        INIT.call_once(|| {
-            let filter = match config.env_filter {
-                Some(ref s) => EnvFilter::new(s.clone()),
-                None => EnvFilter::try_from_default_env()
-                    .unwrap_or_else(|_| EnvFilter::new("info")),
-            };
-            fmt()
-                .with_env_filter(filter)
-                .with_target(config.targets)
-                .with_thread_ids(config.thread_ids)
-                .with_thread_names(config.thread_names)
-                .with_file(config.files)
-                .with_line_number(config.line_numbers)
-                .with_ansi(config.ansi)
-                .with_writer(std::io::stderr)
+        let handle = FILTER.get_or_init(|| {
+            let (filter, handle) = reload::Layer::new(filter_for(&config));
+            let installed = tracing_subscriber::registry()
+                .with(filter)
+                .with(
+                    fmt::layer()
+                        .with_target(config.targets)
+                        .with_thread_ids(config.thread_ids)
+                        .with_thread_names(config.thread_names)
+                        .with_file(config.files)
+                        .with_line_number(config.line_numbers)
+                        .with_ansi(config.ansi)
+                        .with_test_writer(),
+                )
                 .try_init()
-                .ok();
+                .is_ok();
+            installed.then_some(handle)
         });
+        if let Some(handle) = handle {
+            // Only fails if the subscriber was dropped, which a global one never is.
+            let _ = handle.reload(filter_for(&config));
+        }
     }
 
     /// Convenience — [`try_init_tracing_with`] with [`TracingTestConfig::default`].

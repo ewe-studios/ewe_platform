@@ -1464,8 +1464,8 @@
 // ```rust
 // use foundation_core::valtron::valtron_test;
 // 
-// #[valtron_test]                     // emits #[test]; brings the pool up/down
-// #[tracing_test::traced_test]        // optional: log visibility
+// #[valtron_test]                     // emits #[test]; brings the pool up/down,
+//                                     // and installs tracing (captured per test)
 // fn test_name() {
 //     // The pool is already live here — call get_pool()/spawn() directly.
 //     // Do NOT call initialize_pool() yourself; the macro did it.
@@ -1490,7 +1490,16 @@
 // Why you can't rely on the macro to strip a stray `#[test]`: attribute macros
 // expand outermost-first, so an outer `#[serial]` rewrites the function (hoisting
 // `#[test]`) before `#[valtron_test]` ever sees it. The contract is: never write
-// both. Non-test attributes like `#[tracing_test::traced_test]` are fine.
+// both.
+//
+// ### DO NOT add `#[traced_test]`
+//
+// `#[valtron_test]` installs the tracing subscriber itself (once per process,
+// writing through libtest's output capture, with its `tracing = "..."` filter
+// applied per test). `#[tracing_test::traced_test]` installs a global subscriber
+// too, and panics if one is already installed; that poisons its `Once`, and every
+// later `#[traced_test]` in the binary fails. For log output, pass
+// `#[valtron_test(tracing = "debug")]` and run with `--nocapture`.
 // 
 // ### Arguments: `seed` and `threads`
 // 
@@ -1550,7 +1559,7 @@
 // (NOT `get_pool()`, which races the guard tearing down the global registry):
 // 
 // ```rust
-// #[tracing_test::traced_test]             // NO #[test], NO #[serial]
+// #[test]                                  // NO #[serial], NO #[traced_test]
 // fn drives_to_completion() {
 //     block_on(seed, None, |pool| {
 //         let pool_clone = pool.clone();

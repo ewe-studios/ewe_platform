@@ -37,7 +37,6 @@ serde = { workspace = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.2" }
-tracing-test = { version = "0.2", features = ["no-env-filter"] }
 futures-lite = "2"
 
 [features]
