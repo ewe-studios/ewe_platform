@@ -7,7 +7,7 @@
 //!
 //! WHAT: Auto-generated API client functions live in `generated/` (run
 //! `cargo run --bin genapi -- generate docker` to regenerate). Hand-written
-//! Docker-specific glue (`DockerClient`, streaming endpoints, `Deployable`
+//! Docker-specific glue (`DockerClient`, typed body streams, `Deployable`
 //! impls, `LogFrameDecoder`) lives alongside.
 //!
 //! HOW: The generator emits `async fn` per endpoint that call
