@@ -32,7 +32,7 @@ impl TaskIterator for SignalTask {
     type Ready = SignalEvent;
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         // Drain received signals
         if let Ok(event) = self.my_queue.pop() {
             return Some(TaskStatus::Ready(event));

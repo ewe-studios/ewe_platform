@@ -86,7 +86,7 @@ impl TaskIterator for ProtocolDetectHandler {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         if self.shutdown.probe() {
             return None;
         }

@@ -123,7 +123,7 @@ impl TaskIterator for BinaryRunnerTask {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.state {
             RunnerState::Idle => {
                 // Check for build complete signal

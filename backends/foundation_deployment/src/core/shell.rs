@@ -178,7 +178,7 @@ impl TaskIterator for ShellTask {
     type Ready = ShellDone;
     type Pending = ShellPending;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<ShellDone, ShellPending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<ShellDone, ShellPending>> {
         match std::mem::replace(&mut self.phase, ShellPhase::Done) {
             ShellPhase::NotStarted => {
                 let mut cmd = Command::new(&self.command);

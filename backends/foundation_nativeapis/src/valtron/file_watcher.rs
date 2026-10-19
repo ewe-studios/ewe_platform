@@ -95,8 +95,8 @@ impl TaskIterator for FileWatcherTask {
     type Ready = WatchEvent;
     type Pending = ();
 
-    #[tracing::instrument(skip(self, ctx), fields(stop = self.stop.is_stopped()))]
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    #[tracing::instrument(skip(self, _ctx), fields(stop = self.stop.is_stopped()))]
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.stop.is_stopped() {
             return None;
         }
