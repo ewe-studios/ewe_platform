@@ -113,7 +113,7 @@ deno_web = { version = "0.282", optional = true }  # console/url/encoding folded
 deno_webidl = { version = "0.251", optional = true }
 deno_fetch = { version = "0.275", optional = true }  # fetch / Request / Response / Headers
 deno_websocket = { version = "0.256", optional = true }  # WebSocket global (pairs with deno_core 0.404)
-deno_net = { version = "0.243", optional = true }    # net/TLS JS deno_fetch lazy-loads
+deno_net = { version = "0.251", optional = true }    # net/TLS JS deno_fetch lazy-loads
 deno_permissions = { version = "0.110", optional = true }  # op_fetch's PermissionsContainer (allow-all for tests)
 sys_traits = { version = "0.1", features = ["real", "libc"], optional = true }  # RealSys for the permission descriptor parser
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"], optional = true }  # CryptoProvider for deno_tls
