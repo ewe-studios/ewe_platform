@@ -1396,28 +1396,45 @@ dependencies = [
  "rustversion",
  "serde",
  "serde_json",
- "smoothutf8",
+ "smoothutf8 0.1.1",
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "buffa"
+version = "0.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a92f2f5df67a9d5ccfc65237bfc954c56328aee40a04a9b92381ecba370be246"
+dependencies = [
+ "bytes",
+ "foldhash 0.1.5",
+ "hashbrown 0.15.5",
+ "once_cell",
+ "rustversion",
+ "serde",
+ "serde_json",
+ "smoothutf8 0.2.3",
  "thiserror 2.0.19",
 ]
 
 [[package]]
 name = "buffa-build"
-version = "0.8.1"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef33217cabddfad99c0a54d42ddb7ca5b73fa492f7b16ddb621132ef51107556"
+checksum = "eee6b6b4a8d23f1f98a043f188f4d9d2ef8bee43191f42e93ac577f3c3b0f334"
 dependencies = [
- "buffa",
+ "buffa 0.9.2",
  "buffa-codegen",
  "tempfile",
 ]
 
 [[package]]
 name = "buffa-codegen"
-version = "0.8.1"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6681b562b18ea719622d0d12684e88ecbdca600d517557dc7bcef7704631e28"
+checksum = "bb4bea10ef85ea3d06a20412c67cb612527feb25f33367eab850139441fb5dd9"
 dependencies = [
- "buffa",
+ "buffa 0.9.2",
  "buffa-descriptor",
  "prettyplease",
  "proc-macro2",
@@ -1428,11 +1445,11 @@ dependencies = [
 
 [[package]]
 name = "buffa-descriptor"
-version = "0.8.1"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57ed423c4ecec86d1500879ce42e7e5f6def01bc632985ac756c1fd723fa21fc"
+checksum = "2b7dd79a6898e70dac8adae959c8ad2cae51ed96397935c91c996280cedcb55e"
 dependencies = [
- "buffa",
+ "buffa 0.9.2",
  "rustversion",
  "serde",
  "serde_json",
@@ -1444,7 +1461,7 @@ version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22cb54bcbf6946c58e550eeaf6209047146363dbc7cbdc87e49e67089ed2ff5f"
 dependencies = [
- "buffa",
+ "buffa 0.8.1",
  "bytes",
  "serde",
  "serde_json",
@@ -4941,7 +4958,7 @@ version = "0.0.1"
 dependencies = [
  "base64 0.22.1",
  "brotli 8.0.4",
- "buffa",
+ "buffa 0.8.1",
  "bytes",
  "concurrent-queue",
  "flate2",
@@ -5125,7 +5142,7 @@ name = "foundation_deployment_docker"
 version = "0.1.0"
 dependencies = [
  "base85rs",
- "buffa",
+ "buffa 0.8.1",
  "buffa-build",
  "buffa-types",
  "bytes",
@@ -12661,6 +12678,15 @@ name = "smoothutf8"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "36358427d32ecdb1624616deed99eccfef0a167fe5bf40ddb51efe6980bc1ec8"
+dependencies = [
+ "simdutf8",
+]
+
+[[package]]
+name = "smoothutf8"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b4ec95892483d6d94284caccfddb9b77111a4dcac33ed25d624248def0fa5f1"
 dependencies = [
  "simdutf8",
 ]
