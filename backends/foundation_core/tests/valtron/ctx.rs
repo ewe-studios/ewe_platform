@@ -6,10 +6,10 @@
 //! single-threaded unit tests of the `Ctx` value type — no pool, no executor.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use foundation_compact::rng::Rng;
-use foundation_core::valtron::{Clock, Config, Ctx};
+use foundation_core::valtron::{Clock, Config, Ctx, MonotonicClock};
 
 /// Compile-time assertion that a type is usable across threads (and on the
 /// single-threaded engine). Fails to compile if it stops being `Send + Sync`.
@@ -18,7 +18,8 @@ fn assert_send_sync<T: Send + Sync>() {}
 #[test]
 fn ctx_is_send_and_sync() {
     assert_send_sync::<Ctx>();
-    assert_send_sync::<Clock>();
+    assert_send_sync::<MonotonicClock>();
+    assert_send_sync::<Arc<dyn Clock>>();
     assert_send_sync::<Config>();
 }
 
@@ -164,4 +165,69 @@ fn fork_preserves_shared_rng_stream_state() {
     let a = ctx.rng().lock().expect("lock").next_u64();
     let b = fork.rng().lock().expect("lock").next_u64();
     assert_ne!(a, b, "shared RNG advances across fork handles");
+}
+
+/// A manual clock that lets a test move simulated time **forward** (`advance`)
+/// or **backward** (`rewind`) — mock-only affordances the real `MonotonicClock`
+/// deliberately lacks. It stays `Send + Sync` and object-safe, so the same value
+/// seeds `Ctx` as `Arc<dyn Clock>` while the test keeps the concrete
+/// `Arc<MockClock>` to drive it.
+#[derive(Debug, Clone)]
+struct MockClock {
+    origin: foundation_compact::Instant,
+    now: Arc<Mutex<foundation_compact::Instant>>,
+}
+
+impl MockClock {
+    fn new() -> Self {
+        let origin = foundation_compact::Instant::now();
+        Self {
+            origin,
+            now: Arc::new(Mutex::new(origin)),
+        }
+    }
+
+    /// Move simulated time forward by `d`.
+    fn advance(&self, d: foundation_compact::Duration) {
+        let mut now = self.now.lock().expect("mock clock poisoned");
+        *now = *now + d;
+    }
+
+    /// Move simulated time backward by `d`. Once `now` falls below the origin,
+    /// `Clock::elapsed` clamps to zero — a monotonic clock never reports
+    /// negative elapsed.
+    fn rewind(&self, d: foundation_compact::Duration) {
+        let mut now = self.now.lock().expect("mock clock poisoned");
+        *now = now.checked_sub(d).unwrap_or(self.origin);
+    }
+}
+
+impl Clock for MockClock {
+    fn now(&self) -> foundation_compact::Instant {
+        *self.now.lock().expect("mock clock poisoned")
+    }
+
+    fn elapsed(&self) -> foundation_compact::Duration {
+        self.now().saturating_duration_since(self.origin)
+    }
+}
+
+#[test]
+fn mock_clock_moves_time_forward_and_backward() {
+    let clock = MockClock::new();
+
+    clock.advance(foundation_compact::Duration::from_millis(5));
+    assert_eq!(clock.elapsed(), foundation_compact::Duration::from_millis(5));
+
+    clock.rewind(foundation_compact::Duration::from_millis(3));
+    assert_eq!(clock.elapsed(), foundation_compact::Duration::from_millis(2));
+
+    // Rewinding below the origin clamps elapsed to zero rather than going negative.
+    clock.rewind(foundation_compact::Duration::from_millis(10));
+    assert_eq!(clock.elapsed(), foundation_compact::Duration::ZERO);
+
+    // Object-safe: the same manual clock seeds `Ctx` as an `Arc<dyn Clock>`.
+    let erased: Arc<dyn Clock> = Arc::new(clock);
+    assert_eq!(erased.elapsed(), foundation_compact::Duration::ZERO);
+    assert_send_sync::<Arc<dyn Clock>>();
 }

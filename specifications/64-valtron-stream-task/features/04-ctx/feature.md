@@ -37,7 +37,7 @@ pub(crate) struct CtxInner {
     // general extension point: arbitrary Arc<T> entries keyed by TypeId
     map: Mutex<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>,
     // engine-seeded standard elements
-    clock: Arc<Clock>,            // read-only; shared
+    clock: Arc<dyn Clock>,        // read-only; shared (trait object; default MonotonicClock)
     config: Arc<Config>,          // read-only; shared
     rng: Arc<Mutex<Rng>>,         // single shared stream — all tasks draw from one Rng
 }
@@ -53,7 +53,7 @@ impl Ctx {
     // Standard elements return Arc<T> (owned, cheap clone), not &T — so a task can
     // hold them across `.await` or move them into a spawned sub-task without
     // borrowing from `self`.
-    pub fn clock(&self) -> Arc<Clock>;
+    pub fn clock(&self) -> Arc<dyn Clock>;
     pub fn config(&self) -> Arc<Config>;
     pub fn rng(&self) -> Arc<Mutex<Rng>>;     // lock() to draw
 
@@ -67,7 +67,7 @@ impl Clone for Ctx { /* clones the Arc — SHARES the map */ }
 impl Default for Ctx { /* Ctx::new() */ }
 // Ctx: Send + Sync automatically — Arc<CtxInner> is Send + Sync iff CtxInner is
 // Send + Sync, and every field (Mutex<HashMap<…>>, Arc<dyn Any + Send + Sync>,
-// Arc<Clock>, Arc<Config>, Arc<Mutex<Rng>>) is Send + Sync.
+// Arc<dyn Clock>, Arc<Config>, Arc<Mutex<Rng>>) is Send + Sync.
 ```
 
 - **`Mutex`** is the codebase's `compati::Mutex` (`std::sync::Mutex` under `std`).
@@ -126,8 +126,11 @@ so a single global sequence is only guaranteed on the single-threaded engine.
   when it wants a non-default seed. Draws go through `ctx.rng().lock().next_u64()`
   with `use foundation_compact::rng::Rng;` in scope (`RngCore` is deprecated on
   rand_core 0.10).
-- **`Clock`** = a minimal `Copy` struct wrapping `foundation_compact::Instant`
-  (`new`/`now`/`elapsed`). Read-only; no interior mutation, so it is safe to share.
+- **`Clock`** = an object-safe `Send + Sync + 'static` trait (`now`/`elapsed`), so
+  the engine can seed a mock as easily as the real clock. Its default
+  implementation, **`MonotonicClock`**, is a minimal `Copy` struct wrapping
+  `foundation_compact::Instant` (`new`/`now`/`elapsed`). `Ctx` stores
+  `Arc<dyn Clock>`; read-only, no interior mutation, safe to share.
 - **`Config`** = a minimal opaque unit struct (`Copy`, `Default`) as a stable
   handle for a later feature to populate; the engine owns the real configuration
   source.

@@ -2,7 +2,8 @@
 //!
 //! [`Ctx`] is a cloneable `Send + Sync` handle over a [`CtxInner`]: an
 //! interior-mutable type map keyed by [`TypeId`], plus three engine-seeded
-//! standard elements — a [`Clock`], a [`Config`], and a shared [`ChaCha8Rng`].
+//! standard elements — a [`Clock`] (default [`MonotonicClock`]), a [`Config`],
+//! and a shared [`ChaCha8Rng`].
 //! Two operations distinguish the sharing modes:
 //!
 //! - [`Ctx::clone`] **shares** the map (a cheap `Arc` refcount bump) — used
@@ -53,19 +54,35 @@ use crate::compati::Mutex;
 use foundation_compact::rng::{ChaCha8Rng, SeedableRng};
 use foundation_compact::{Duration, Instant};
 
-/// A read-only monotonic clock, seeded by the engine and shared as an `Arc`.
+/// A read-only monotonic clock, seeded by the engine and shared as an
+/// `Arc<dyn Clock>`.
 ///
 /// Tasks read the current instant or the time elapsed since the clock was
-/// created. `Clock` is `Copy` and has no interior mutation — it is safe to share
-/// across threads and tasks.
+/// seeded. The trait is object-safe so the engine can seed any implementation —
+/// the real [`MonotonicClock`] or a test mock — and swap it at init without
+/// changing [`Ctx`]'s shape.
+pub trait Clock: Send + Sync + 'static {
+    /// The current instant.
+    #[must_use]
+    fn now(&self) -> Instant;
+
+    /// The time elapsed since this clock was seeded.
+    #[must_use]
+    fn elapsed(&self) -> Duration;
+}
+
+/// The default [`Clock`]: a real, [`foundation_compact`]-backed monotonic clock.
+///
+/// On native, `Instant` is `std::time::Instant`; on wasm it is the JS-backed
+/// performance clock, so [`Clock::now`] and [`Clock::elapsed`] work across web
+/// and non-web endpoints without any platform branch here. `Copy`, no interior
+/// mutation — safe to share across threads and tasks.
 #[derive(Debug, Clone, Copy)]
-pub struct Clock {
+pub struct MonotonicClock {
     origin: Instant,
 }
 
-// TODO: does this take into account wasm for web and non-web endpoints,
-// there should be a crate to make these easily work across already in the backends/ find it and correctly use it, more so, the clock should probably be meeting a trait instead, so that its easy for us to swap in a mock for its usage.
-impl Clock {
+impl MonotonicClock {
     /// A clock whose origin is "now".
     #[must_use]
     pub fn new() -> Self {
@@ -73,21 +90,19 @@ impl Clock {
             origin: Instant::now(),
         }
     }
+}
 
-    /// The current instant.
-    #[must_use]
-    pub fn now(&self) -> Instant {
+impl Clock for MonotonicClock {
+    fn now(&self) -> Instant {
         Instant::now()
     }
 
-    /// The time elapsed since this clock was created.
-    #[must_use]
-    pub fn elapsed(&self) -> Duration {
+    fn elapsed(&self) -> Duration {
         self.origin.elapsed()
     }
 }
 
-impl Default for Clock {
+impl Default for MonotonicClock {
     fn default() -> Self {
         Self::new()
     }
@@ -118,7 +133,7 @@ pub(crate) struct CtxInner {
     /// General extension point: arbitrary `Arc<T>` entries keyed by `TypeId`.
     map: Mutex<HashMap<TypeId, Arc<dyn Any + Send + Sync>>>,
     /// Engine-seeded standard elements.
-    clock: Arc<Clock>,
+    clock: Arc<dyn Clock>,
     config: Arc<Config>,
     rng: Arc<Mutex<ChaCha8Rng>>,
 }
@@ -130,7 +145,7 @@ impl Ctx {
     pub fn new() -> Self {
         Ctx(Arc::new(CtxInner {
             map: Mutex::new(HashMap::new()),
-            clock: Arc::new(Clock::new()),
+            clock: Arc::new(MonotonicClock::new()),
             config: Arc::new(Config::new()),
             rng: Arc::new(Mutex::new(ChaCha8Rng::seed_from_u64(0))),
         }))
@@ -197,9 +212,10 @@ impl Ctx {
             .contains_key(&TypeId::of::<T>())
     }
 
-    /// The shared, read-only clock.
+    /// The shared, read-only clock (a `dyn Clock`; the default is
+    /// [`MonotonicClock`]).
     #[must_use]
-    pub fn clock(&self) -> Arc<Clock> {
+    pub fn clock(&self) -> Arc<dyn Clock> {
         self.0.clock.clone()
     }
 

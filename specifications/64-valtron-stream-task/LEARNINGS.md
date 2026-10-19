@@ -212,6 +212,20 @@ Consolidated from `64-valtron-state-task`, `65-valtron-stream-cleanup`, and
   populate. Draws go through `ctx.rng().lock().next_u64()` with
   `use foundation_compact::rng::Rng;` in scope — `RngCore` is deprecated on
   rand_core 0.10.
+- **`Clock` became an object-safe trait, not a struct.** The feature shipped
+  `Clock` as a concrete `Copy` struct over `foundation_compact::Instant`; a
+  follow-up extracted it into a `Send + Sync + 'static` trait (`now`/`elapsed`)
+  with `MonotonicClock` as the default impl, and `Ctx` now stores
+  `Arc<dyn Clock>` so a mock swaps in as easily as the real clock. A mock can
+  even carry `advance`/`rewind` methods to move simulated time forward and
+  backward — affordances the real clock deliberately lacks — while still seeding
+  `Ctx` through the same object-safe trait. This resolves
+  the mockability TODO without touching the `std` gating: `foundation_compact`
+  already supplies cross-platform `Instant`/`Duration` (JS-backed on wasm,
+  `std::time` on native), so the clock never needed `std` — the gate is the type
+  map's `HashMap`/`Arc`, not the clock. Leaving `Ctx` `std`-gated stays correct;
+  `alloc`-only builds do not compile crate-wide (no `extern crate alloc`), so
+  relaxing the gate would only relocate that error.
 - **`insert` returns `Option<Arc<T>>` but is not `#[must_use]`.** Matching
   `HashMap::insert`, replacing an entry is a normal operation whose return value a
   caller may legitimately ignore; `#[must_use]` here raised six "unused return
