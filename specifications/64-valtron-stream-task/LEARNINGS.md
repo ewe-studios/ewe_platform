@@ -124,6 +124,29 @@ Consolidated from `64-valtron-state-task`, `65-valtron-stream-cleanup`, and
   `SplitCollectorMapObserver` have empty `WakeableStream` impls, so the connectrpc
   `into_next_stream()` callers self-wake — behavior-preserving, no rewrite needed.
 
+### Spread-draining bug class (fixed after feature 03 landed)
+
+- **`Stream::Spread` is a multi-value `Done`/`Pending` item; a Done-collector must
+  *drain* it, never drop it or park on it.** `StreamCollectFuture` originally
+  grouped `Spread(_)` into the parking arm (dropping every `Done` payload), and
+  `collect_result`/`collect_one` used `filter_map`/`find_map` matching only
+  `Stream::Next`, silently discarding every `Done` inside a `Spread`. The
+  canonical collector is the `Collect` combinator (`sendable.rs:1554-1558`):
+  drain every `StreamSpread::Done(d)` into the accumulator, skip `Pending`.
+- **The lost-wakeup re-check arm has the same bug.** A `Spread` can land between
+  the bridge's empty `next()` and its `wake()`; the re-check `next()` then
+  consumed it and the `Some(_) => Poll::Pending` catch-all dropped its `Done`
+  payloads forever. The fix adds a dedicated `Spread` arm to the re-check too.
+- **`StreamReadyFuture` / `StreamPendingFuture` peel only the first matching
+  payload from a `Spread`** (`Done`/`Pending` respectively) and discard the rest —
+  correct by contract (they return a single value + the remaining iterator), not
+  a bug. `StreamNextStream` buffers all `Done` (the lossless fan-out path).
+- **Tests that asserted the buggy behavior had to be rewritten** (`spread.rs`:
+  `test_collect_future_spread_done_returns_pending` and
+  `test_map_done_then_collect_with_spread_done_in_chain` both asserted that
+  `Spread(Done)` was dropped). Regression coverage now lives in
+  `tests/valtron/spread_drain.rs`.
+
 ### Phase 3 — State task (was 64)
 
 - **Engine-owned `Ctx`, forked per ExecutionIterator.** The engine owns a root `Ctx`

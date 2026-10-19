@@ -477,7 +477,7 @@ fn test_collect_future_next_values_collected() {
 
 #[test]
 #[traced_test]
-fn test_collect_future_spread_pending_returns_pending() {
+fn test_collect_future_spread_pending_skipped_not_parked() {
     let iter = vec![
         Stream::<i32, &str>::Next(1),
         Stream::Spread(vec![StreamSpread::Pending("a"), StreamSpread::Pending("b")]),
@@ -486,9 +486,9 @@ fn test_collect_future_spread_pending_returns_pending() {
     .into_iter().into_stream_iter();
     let mut future = StreamCollectFuture::new(iter);
 
-    // Spread with Pending triggers Poll::Pending (stream signaled not-ready)
-    assert!(matches!(poll_once(&mut future), Poll::Pending));
-    // After re-wake, Next(2) is collected, then iterator exhausted
+    // Spread with only Pending payloads is drained (no Done values), then
+    // Next(2) is collected in the same poll — the bridge does not park on
+    // a Spread whose Done payloads are all absent.
     match poll_once(&mut future) {
         Poll::Ready(v) => assert_eq!(v, vec![1, 2]),
         Poll::Pending => panic!("expected Ready"),
@@ -497,9 +497,7 @@ fn test_collect_future_spread_pending_returns_pending() {
 
 #[test]
 #[traced_test]
-fn test_collect_future_spread_done_returns_pending() {
-    // Spread with Done is treated as a signal to re-wake (not-ready),
-    // consistent with the implementation's handling of spread in futures.
+fn test_collect_future_spread_done_collected() {
     let iter = vec![
         Stream::<i32, &str>::Next(1),
         Stream::Spread(vec![StreamSpread::Done(2), StreamSpread::Done(3)]),
@@ -507,11 +505,9 @@ fn test_collect_future_spread_done_returns_pending() {
     .into_iter().into_stream_iter();
     let mut future = StreamCollectFuture::new(iter);
 
-    // Spread with Done triggers Poll::Pending
-    assert!(matches!(poll_once(&mut future), Poll::Pending));
-    // After re-wake, iterator is exhausted
+    // Spread with Done drains every payload into the collected Vec.
     match poll_once(&mut future) {
-        Poll::Ready(v) => assert_eq!(v, vec![1]),
+        Poll::Ready(v) => assert_eq!(v, vec![1, 2, 3]),
         Poll::Pending => panic!("expected Ready"),
     }
 }
@@ -861,8 +857,8 @@ fn test_map_done_then_collect_with_spread_done_in_chain() {
         .into_collect_future()
         .await
     });
-    // Spread with Done triggers Pending, so only Next(5) collected
-    assert_eq!(result, vec![10]);
+    // Next(5) -> Next(10); Spread Done payloads drained: 1,2,3 -> 2,4,6
+    assert_eq!(result, vec![10, 2, 4, 6]);
 }
 
 #[test]

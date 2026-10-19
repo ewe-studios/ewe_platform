@@ -16,6 +16,8 @@ mod shutdown_mechanism_tests;
 mod sleep_tests;
 #[cfg(not(target_family = "wasm"))]
 mod spread;
+#[cfg(not(target_family = "wasm"))]
+mod spread_drain;
 mod stream_future;
 mod stream_iterators;
 mod sync_boundary_helpers;

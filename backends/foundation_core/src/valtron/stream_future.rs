@@ -48,12 +48,20 @@ where
             match iter.next() {
                 Some(Stream::Next(v)) => this.collected.push(v),
                 Some(Stream::Ignore) => {}
+                Some(Stream::Spread(items)) => {
+                    // A Spread carries multiple Done payloads; collect every one
+                    // and skip Pending payloads (they are not values to collect).
+                    for item in items {
+                        if let StreamSpread::Done(v) = item {
+                            this.collected.push(v);
+                        }
+                    }
+                }
                 Some(
                     Stream::Pending(_)
                     | Stream::Delayed(_)
                     | Stream::Init
-                    | Stream::Wait
-                    | Stream::Spread(_),
+                    | Stream::Wait,
                 ) => {
                     let waker = cx.waker().clone();
                     match iter.wake(Box::new(move || waker.wake_by_ref())) {
@@ -65,7 +73,19 @@ where
                             match iter.next() {
                                 Some(Stream::Next(v)) => this.collected.push(v),
                                 Some(Stream::Ignore) => {}
-                                Some(_) => return Poll::Pending,
+                                Some(Stream::Spread(items)) => {
+                                    for item in items {
+                                        if let StreamSpread::Done(v) = item {
+                                            this.collected.push(v);
+                                        }
+                                    }
+                                }
+                                Some(
+                                    Stream::Pending(_)
+                                    | Stream::Delayed(_)
+                                    | Stream::Init
+                                    | Stream::Wait,
+                                ) => return Poll::Pending,
                                 None => {
                                     return Poll::Ready(std::mem::take(&mut this.collected));
                                 }
