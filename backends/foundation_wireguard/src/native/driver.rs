@@ -376,7 +376,7 @@ impl TaskIterator for TunnelDriverTask {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.stop.load(Ordering::Relaxed) {
             return None;
         }

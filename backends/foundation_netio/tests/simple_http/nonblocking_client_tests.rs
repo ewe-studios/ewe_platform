@@ -257,7 +257,7 @@ impl TaskIterator for Releaser {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         self.stage += 1;
         match self.stage {
             1 => Some(TaskStatus::Delayed(Duration::from_millis(50))),
