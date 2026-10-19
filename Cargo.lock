@@ -4920,6 +4920,7 @@ dependencies = [
  "rand_chacha 0.10.0",
  "rand_core 0.10.1",
  "serde",
+ "serde_test",
  "tracing",
  "tracing-subscriber",
  "wasm-bindgen",
@@ -12247,6 +12248,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2789234a13a53fc4be1b51ea1bab45a3c338bdb884862a257d10e5a74ae009e6"
 dependencies = [
  "serde_core",
+]
+
+[[package]]
+name = "serde_test"
+version = "1.0.177"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f901ee573cab6b3060453d2d5f0bae4e6d628c23c0a962ff9b5f1d7c8d4f1ed"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

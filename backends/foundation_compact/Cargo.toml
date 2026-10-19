@@ -43,6 +43,7 @@ crypto-chacha = ["dep:chacha20poly1305"]
 
 [target.'cfg(not(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"))))'.dev-dependencies]
 tracing = "0.1"
+serde_test = "1"
 
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
