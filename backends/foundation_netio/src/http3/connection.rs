@@ -344,8 +344,7 @@ impl<C: QuicConnection> H3Connection<C> {
         match self.conn.accept_bidi() {
             Stream::Next(Ok(stream)) => {
                 let mut req = H3Request::new(stream, self.max_field_section_size);
-                loop {
-                    match req.poll_headers() {
+                match req.poll_headers() {
                         Stream::Next(Ok(headers)) => {
                             let method = headers.iter().find(|(k, _)| k.as_ref() == b":method" as &[u8]);
                             let protocol = headers.iter().find(|(k, _)| k.as_ref() == b":protocol" as &[u8]);
@@ -356,19 +355,15 @@ impl<C: QuicConnection> H3Connection<C> {
                                 let resp = crate::webtransport::session::WtAcceptor::<C>::build_connect_response_headers();
                                 let encoded = H3Request::<C::BidiStream>::encode_headers(&resp);
                                 let mut pending = encoded;
-                                loop {
-                                    match req.poll_send_headers(&mut pending) {
-                                        Stream::Next(Ok(())) => break,
-                                        Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
-                                        _ => return Stream::Pending(()),
-                                    }
+                                match req.poll_send_headers(&mut pending) {
+                                    Stream::Next(Ok(())) => {}
+                                    Stream::Next(Err(e)) => return Stream::Next(Err(e)),
+                                    _ => return Stream::Pending(()),
                                 }
-                                loop {
-                                    match req.poll_finish() {
-                                        Stream::Next(Ok(())) => break,
-                                        Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
-                                        _ => return Stream::Pending(()),
-                                    }
+                                match req.poll_finish() {
+                                    Stream::Next(Ok(())) => {}
+                                    Stream::Next(Err(e)) => return Stream::Next(Err(e)),
+                                    _ => return Stream::Pending(()),
                                 }
                                 return Stream::Next(Ok(true));
                             }
@@ -378,7 +373,6 @@ impl<C: QuicConnection> H3Connection<C> {
                         Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
                         Stream::Pending(()) | Stream::Init | Stream::Ignore | Stream::Spread(_) | Stream::Delayed(_) | Stream::Wait => return Stream::Pending(()),
                     }
-                }
             }
             Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
             _ => Stream::Pending(()),

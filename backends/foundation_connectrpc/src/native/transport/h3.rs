@@ -305,10 +305,9 @@ impl H3Pump {
                 },
             };
             match self.head_tx.try_send(head) {
-                Ok(()) => self.head_delivered = true,
-                // Nobody will read the head: the streaming client protocols take
-                // only the body. The body still has to flow.
-                Err(TrySendError::Closed(_)) => self.head_delivered = true,
+                // `Closed`: nobody will read the head — the streaming client
+                // protocols take only the body — but the body still has to flow.
+                Ok(()) | Err(TrySendError::Closed(_)) => self.head_delivered = true,
                 Err(TrySendError::Full(head)) => {
                     self.pending_head = Some(head);
                     return Ok(());

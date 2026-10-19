@@ -115,7 +115,7 @@ pub async fn dispatch_h3(
     };
 
     let allowed = allowed_methods(entry);
-    if !allowed.iter().any(|m| *m == request.method) {
+    if !allowed.contains(&request.method) {
         let resp = method_not_allowed(&request, &allowed);
         send_h3_response(&mut req, resp).await?;
         return Ok(());
@@ -188,7 +188,7 @@ pub async fn dispatch_h3(
                     let resp = status_only(&request, Status::PayloadTooLarge);
                     return send_h3_response(&mut req, resp).await;
                 }
-                Err(e) => return Err(abort_call(&mut req, ctx.cancel_signal(), e)),
+                Err(e) => return Err(abort_call(&mut req, ctx.cancel_signal(), &e)),
             };
             let mut request = request;
             request.body = Some(SendSafeBody::Bytes(body));
@@ -277,22 +277,16 @@ async fn run_streaming_h3(
     // is returned so the call is aborted, instead of the handler mistaking a
     // truncated request for a complete one.
     let feeder = async {
-        loop {
-            match poll_shared(&shared, H3Request::poll_body).await? {
-                Some(chunk) => {
-                    if req_tx.send(chunk).await.is_err() {
-                        // The protocol reader is gone and will never read the
-                        // rest; the response side decides the outcome.
-                        tracing::debug!("h3 request pipe closed by its reader; abandoning the body");
-                        break;
-                    }
-                }
-                None => {
-                    body_done.store(true, Ordering::Release);
-                    break;
-                }
+        while let Some(chunk) = poll_shared(&shared, H3Request::poll_body).await? {
+            if req_tx.send(chunk).await.is_err() {
+                // The protocol reader is gone and will never read the rest;
+                // the response side decides the outcome.
+                tracing::debug!("h3 request pipe closed by its reader; abandoning the body");
+                req_tx.close();
+                return Ok(());
             }
         }
+        body_done.store(true, Ordering::Release);
         req_tx.close();
         Ok::<(), io::Error>(())
     };
@@ -363,7 +357,7 @@ async fn run_streaming_h3(
         .map_err(|_| io::Error::other("h3 request lock poisoned"))?;
     let (reader_res, writer_res, handler_res, pumped) = match outcome {
         Ok(results) => results,
-        Err(e) => return Err(abort_call(&mut req, &cancel, e)),
+        Err(e) => return Err(abort_call(&mut req, &cancel, &e)),
     };
 
     if !body_done.load(Ordering::Acquire) {
@@ -394,7 +388,7 @@ async fn run_streaming_h3(
 
 /// The request body failed mid-read (peer reset, broken framing, connection
 /// gone): cancel the call, reset our response half, and return the error.
-fn abort_call(req: &mut Req, cancel: &CancelSignal, error: io::Error) -> io::Error {
+fn abort_call(req: &mut Req, cancel: &CancelSignal, error: &io::Error) -> io::Error {
     tracing::debug!(error = %error, "h3 request body failed; cancelling the call");
     cancel.cancel();
     req.reset(error_code::H3_REQUEST_CANCELLED);

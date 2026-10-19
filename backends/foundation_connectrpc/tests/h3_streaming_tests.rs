@@ -1,4 +1,4 @@
-//! ConnectRPC request streaming over HTTP/3 (F35).
+//! Request streaming for Connect RPC over HTTP/3 (F35).
 //!
 //! WHY: `dispatch_h3` used to read the whole request body into memory before a
 //! streaming RPC ran. A client-stream handler then saw nothing until the client
@@ -438,13 +438,11 @@ fn unary_over_read_max_bytes_gets_413_without_reading_whole_body() {
     let err = loop {
         let mut frame = Req::encode_data(Bytes::from(vec![b'x'; 1024]));
         let res = loop {
-            match h.client.poll_send_data(&mut frame) {
-                VStream::Next(res) => break res,
-                _ => {
-                    h.step();
-                    assert!(Instant::now() < dl, "timed out writing after 413");
-                }
+            if let VStream::Next(res) = h.client.poll_send_data(&mut frame) {
+                break res;
             }
+            h.step();
+            assert!(Instant::now() < dl, "timed out writing after 413");
         };
         if let Err(e) = res {
             break e;
@@ -536,16 +534,14 @@ fn peer_reset_mid_client_stream_cancels_the_call() {
     // successful response folded from a truncated request.
     let dl = Instant::now() + BUDGET;
     let res = loop {
-        match h.client.poll_headers() {
-            VStream::Next(res) => break res,
-            _ => {
-                h.step();
-                assert!(
-                    Instant::now() < dl,
-                    "timed out waiting for the server reset"
-                );
-            }
+        if let VStream::Next(res) = h.client.poll_headers() {
+            break res;
         }
+        h.step();
+        assert!(
+            Instant::now() < dl,
+            "timed out waiting for the server reset"
+        );
     };
     match res {
         Err(H3Error::Stream(QuicStreamError::Terminated { code })) => {
