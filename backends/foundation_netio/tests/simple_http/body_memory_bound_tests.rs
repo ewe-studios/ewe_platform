@@ -10,9 +10,9 @@
 //! the producer is done, and the parser's buffer never holds more than a small
 //! bound. Caps are set per test to prove they are configurable.
 
-use std::cell::Cell;
 use std::io::Read;
-use std::rc::Rc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::shared::http::framing::{FrameKind, FrameLimits, FrameTooLarge};
@@ -28,12 +28,12 @@ struct Generated {
     body_len: usize,
     fill: u8,
     suffix: Vec<u8>,
-    produced: Rc<Cell<usize>>,
+    produced: Arc<AtomicUsize>,
 }
 
 impl Generated {
-    fn new(prefix: &[u8], body_len: usize, fill: u8, suffix: &[u8]) -> (Self, Rc<Cell<usize>>) {
-        let produced = Rc::new(Cell::new(0));
+    fn new(prefix: &[u8], body_len: usize, fill: u8, suffix: &[u8]) -> (Self, Arc<AtomicUsize>) {
+        let produced = Arc::new(AtomicUsize::new(0));
         (
             Self {
                 prefix: prefix.to_vec(),
@@ -47,14 +47,14 @@ impl Generated {
     }
 
     /// A body that never ends.
-    fn endless(prefix: &[u8], fill: u8) -> (Self, Rc<Cell<usize>>) {
+    fn endless(prefix: &[u8], fill: u8) -> (Self, Arc<AtomicUsize>) {
         Self::new(prefix, usize::MAX, fill, b"")
     }
 }
 
 impl Read for Generated {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let at = self.produced.get();
+        let at = self.produced.load(Ordering::Relaxed);
         let body_end = self.prefix.len().saturating_add(self.body_len);
         let n = if at < self.prefix.len() {
             let n = (self.prefix.len() - at).min(buf.len());
@@ -70,7 +70,7 @@ impl Read for Generated {
             buf[..n].copy_from_slice(&self.suffix[off..off + n]);
             n
         };
-        self.produced.set(at + n);
+        self.produced.store(at + n, Ordering::Relaxed);
         Ok(n)
     }
 }
@@ -105,7 +105,7 @@ fn a_64_mib_chunk_streams_in_batch_size_pieces() {
             ChunkedData::Data(bytes, _) => {
                 assert!(bytes.len() <= PIECE, "piece of {} bytes", bytes.len());
                 assert!(bytes.iter().all(|b| *b == b'x'));
-                first_piece_at.get_or_insert(produced.get());
+                first_piece_at.get_or_insert(produced.load(Ordering::Relaxed));
                 total += bytes.len();
                 pieces += 1;
                 peak = peak.max(buffered(&stream));
@@ -148,7 +148,7 @@ fn an_oversized_chunk_size_line_errors_at_its_cap() {
             limit: 64
         })
     );
-    assert!(produced.get() < 256 * 1024, "read {} bytes", produced.get());
+    assert!(produced.load(Ordering::Relaxed) < 256 * 1024, "read {} bytes", produced.load(Ordering::Relaxed));
 }
 
 #[test]
@@ -170,7 +170,7 @@ fn an_endless_line_errors_at_the_configured_cap() {
         })
     );
     assert!(buffered(&stream) < 256 * 1024);
-    assert!(produced.get() < 256 * 1024, "read {} bytes", produced.get());
+    assert!(produced.load(Ordering::Relaxed) < 256 * 1024, "read {} bytes", produced.load(Ordering::Relaxed));
 }
 
 #[test]
@@ -209,7 +209,7 @@ fn an_endless_sse_event_errors_at_the_configured_cap() {
             limit: 4096
         })
     );
-    assert!(produced.get() < 256 * 1024, "read {} bytes", produced.get());
+    assert!(produced.load(Ordering::Relaxed) < 256 * 1024, "read {} bytes", produced.load(Ordering::Relaxed));
 }
 
 #[test]
@@ -237,7 +237,7 @@ fn an_endless_header_block_errors_at_the_configured_cap() {
         ),
         other => panic!("expected FrameTooLarge, got {other:?}"),
     }
-    assert!(produced.get() < 256 * 1024, "read {} bytes", produced.get());
+    assert!(produced.load(Ordering::Relaxed) < 256 * 1024, "read {} bytes", produced.load(Ordering::Relaxed));
 }
 
 /// A reader that returns `WouldBlock` once at each listed offset, like a
