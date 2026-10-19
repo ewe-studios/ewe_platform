@@ -3,8 +3,9 @@
 //!
 //! WHY: These are the remaining container endpoints from the Docker Engine API
 //! (v1.53) that complete the container lifecycle surface. Binary-stream endpoints
-//! (logs, export, archive, attach) return their body unread, as an async stream:
-//! a followed log never ends, and a container's filesystem can be gigabytes.
+//! (logs, export, archive, attach) and live stats return their body unread, as
+//! an async stream: a followed log or a stats feed never ends, and a
+//! container's filesystem can be gigabytes.
 //!
 //! WHAT: One `impl DockerClient` block with a method per endpoint, following the
 //! same pattern as `client/mod.rs` — construct the generated `Args` struct, call
@@ -12,15 +13,17 @@
 //!
 //! HOW: State-mutating commands (restart, kill, rename, resize, prune) use the
 //! generated async functions that return `ApiResponse<()>`. Query endpoints (top,
-//! stats, changes, list) use the generated functions and return the deserialized
-//! body. Binary-stream endpoints use the generated functions too, which check the
+//! changes, list) use the generated functions and return the deserialized
+//! body. Streaming endpoints use the generated functions too, which check the
 //! status and hand back the body unread; it is wrapped in a [`LogStream`]
-//! (multiplexed stdout/stderr) or a [`ByteBody`] (tar archives).
+//! (multiplexed stdout/stderr), a [`ByteBody`] (tar archives) or a
+//! [`StatsStream`] (one stats sample per line; a single sample is the first
+//! line of a `stream=false` answer).
 
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::PreparedRequestBuilder;
 
-use crate::client::body::{ByteBody, LogStream};
+use crate::client::body::{ByteBody, LogStream, StatsStream};
 use crate::error::DockerError;
 use crate::generated::archive::{container_archive_request, ContainerArchiveArgs};
 use crate::generated::attach::{container_attach_request, ContainerAttachArgs};
@@ -206,24 +209,72 @@ impl DockerClient {
 
     // ── container_stats ─────────────────────────────────────────────────
 
-    /// Get container stats based on resource usage (`GET /containers/{id}/stats`).
+    /// One resource-usage sample of a container (`GET
+    /// /containers/{id}/stats?stream=false`).
+    ///
+    /// WHAT: Asks for a single sample and reads the one line the daemon
+    /// answers with. With `one_shot`, the daemon does not wait for a second
+    /// CPU sample, so the answer comes back at once but `precpu_stats` is
+    /// empty (no CPU percentage can be computed from it); without it the
+    /// daemon takes about a second to fill `precpu_stats`. For a live feed use
+    /// [`Self::container_stats_stream`].
     ///
     /// # Errors
     ///
-    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    /// [`DockerError::Api`] for a non-2xx status (checked before the body is
+    /// read), [`DockerError::Transport`] if sending or reading fails, and
+    /// [`DockerError::JsonParse`] if the line is not a stats object or the
+    /// daemon sends no line at all.
     pub async fn container_stats(
+        &self,
+        id: &str,
+        one_shot: bool,
+    ) -> Result<ContainerStatsResponse, DockerError> {
+        let mut stats = self.send_container_stats(id, false, one_shot).await?;
+        match stats.next().await {
+            Some(sample) => sample,
+            None => Err(DockerError::JsonParse(format!(
+                "container {id} stats: the daemon answered with an empty body"
+            ))),
+        }
+    }
+
+    /// A container's live resource usage (`GET
+    /// /containers/{id}/stats?stream=true`), one sample per line.
+    ///
+    /// WHAT: Returns the feed unread, as a [`StatsStream`] of the generated
+    /// [`ContainerStatsResponse`]. The daemon writes a sample about once a
+    /// second for as long as the container runs; the stream ends only when the
+    /// caller drops it (which closes the connection) or the daemon closes the
+    /// feed.
+    ///
+    /// There is no `one_shot` here: the API allows `one-shot` only with
+    /// `stream=false`, and dockerd rejects the pair with a `400`.
+    ///
+    /// # Errors
+    ///
+    /// [`DockerError::Api`] for a non-2xx status (checked before the body is
+    /// read) or [`DockerError::Transport`] if sending fails; malformed samples
+    /// and read errors come out of the stream.
+    pub async fn container_stats_stream(&self, id: &str) -> Result<StatsStream, DockerError> {
+        self.send_container_stats(id, true, false).await
+    }
+
+    /// Send `GET /containers/{id}/stats` and hand back its body unread.
+    async fn send_container_stats(
         &self,
         id: &str,
         stream: bool,
         one_shot: bool,
-    ) -> Result<ContainerStatsResponse, DockerError> {
+    ) -> Result<StatsStream, DockerError> {
         let args = ContainerStatsArgs {
             id: id.to_string(),
             stream: Some(stream.to_string()),
             one_shot: Some(one_shot.to_string()),
         };
-        let response = container_stats_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
-        Ok(response.body)
+        let response =
+            container_stats_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        Ok(StatsStream::new(response.body))
     }
 
     // ── container_export ────────────────────────────────────────────────

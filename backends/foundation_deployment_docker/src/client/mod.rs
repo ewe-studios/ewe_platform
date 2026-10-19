@@ -169,7 +169,8 @@ pub mod images;
 pub mod build_context;
 
 /// Streamed answers as async streams of typed items ([`body::ProgressStream`],
-/// [`body::EventStream`], [`body::ByteBody`], [`body::LogStream`]) — large and
+/// [`body::EventStream`], [`body::StatsStream`], [`body::ByteBody`],
+/// [`body::LogStream`]) — large and
 /// long-lived bodies are read incrementally, never buffered whole.
 pub mod body;
 
