@@ -29,7 +29,7 @@ use crate::shared::http::{
 };
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 use std::time::Instant;
@@ -351,9 +351,8 @@ where
 {
     type Ready = ParseResult;
     type Pending = EventSourceProgress;
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 
         match state {

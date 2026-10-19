@@ -24,7 +24,7 @@ use crate::shared::http::{
 };
 use foundation_core::url::Uri;
 use foundation_core::valtron::{Ctx, 
-    drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineAction,
+    drive_receiver, inlined_task, DrivenRecvIterator, InlineAction,
     TaskIterator, TaskStatus,
 };
 use foundation_core::io::ioutils::ReadTimeoutOperations;
@@ -178,10 +178,9 @@ where
 {
     type Ready = RequestIntro;
     type Pending = HttpRequestPending;
-    type Spawner = BoxedSendExecutionAction;
 
     #[allow(clippy::too_many_lines)]
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.0.take()? {
             SendRequestState::Init(mut inner) => match inner.take() {
                 Some(boxed_req) => {

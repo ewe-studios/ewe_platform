@@ -20,23 +20,21 @@ use crate::compati::Mutex;
 ///
 /// The `CollectNext` is focused around just driving the underlying process/operation
 /// your iterator performs.
-pub struct CollectNext<'a, Action, Task, Done, Pending>
+pub struct CollectNext<'a, Task, Done, Pending>
 where
-    Action: ExecutionAction,
     Task: TaskIterator,
 {
     task: Mutex<Task>,
     panic_handler: Option<BoxedPanicHandler>,
-    _marker: PhantomData<(Action, Done, Pending)>,
-    list: &'a mut Vec<TaskStatus<Done, Pending, Action>>,
+    _marker: PhantomData<(Done, Pending)>,
+    list: &'a mut Vec<TaskStatus<Done, Pending>>,
 }
 
-impl<'a, Action, Task, Done, Pending> CollectNext<'a, Action, Task, Done, Pending>
+impl<'a, Task, Done, Pending> CollectNext<'a, Task, Done, Pending>
 where
-    Action: ExecutionAction + 'a,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub fn new(iter: Task, list: &'a mut Vec<TaskStatus<Done, Pending, Action>>) -> Self {
+    pub fn new(iter: Task, list: &'a mut Vec<TaskStatus<Done, Pending>>) -> Self {
         Self {
             list,
             panic_handler: None,
@@ -57,11 +55,10 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<'a: 'static, Action, Task, Done: Send + 'a, Pending: Send + 'a>
-    Into<BoxedSendExecutionIterator> for CollectNext<'a, Action, Task, Done, Pending>
+impl<'a: 'static, Task, Done: Send + 'a, Pending: Send + 'a>
+    Into<BoxedSendExecutionIterator> for CollectNext<'a, Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'a,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'a,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'a,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
@@ -69,11 +66,10 @@ where
 }
 
 #[allow(clippy::from_over_into)]
-impl<'a: 'static, Action, Task, Done: 'a, Pending: 'a> Into<BoxedExecutionIterator>
-    for CollectNext<'a, Action, Task, Done, Pending>
+impl<'a: 'static, Task, Done: 'a, Pending: 'a> Into<BoxedExecutionIterator>
+    for CollectNext<'a, Task, Done, Pending>
 where
-    Action: ExecutionAction + 'a,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'a,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'a,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
@@ -81,10 +77,9 @@ where
 }
 
 #[allow(clippy::needless_lifetimes)]
-impl<Task, Done, Pending, Action> ExecutionIterator for CollectNext<'_, Action, Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for CollectNext<'_, Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

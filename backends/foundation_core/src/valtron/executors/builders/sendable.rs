@@ -13,7 +13,7 @@ use crate::synca::Entry;
 use crate::valtron::executors::{DEFAULT_DELIVERY_CAPACITY, DEFAULT_MAX_TURNS};
 use crate::valtron::AnyResult;
 use crate::valtron::{
-    BoxedExecutionEngine, ConsumingIter, DoNext, ExecutionAction, ExecutorError, NotifyQueue,
+    BoxedExecutionEngine, ConsumingIter, DoNext, ExecutorError, NotifyQueue,
     NotifyQueueStreamIterator, NotifyRecvIterator, OnNext, SpawnInfo, Stream, StreamConsumingIter,
     TaskIterator, TaskReadyResolver, TaskStatus,
 };
@@ -21,22 +21,21 @@ use crate::valtron::{
 use super::{BroadcastBuilder, LiftBuilder, ScheduleBuilder, SequenceBuilder, TaskSpawnConfig};
 
 /// Build a `ConsumingIter` delivery and dispatch it, returning a `recv` iterator.
-fn recv_via<Done, Pending, Action, Resolver, Task>(
-    config: TaskSpawnConfig<Done, Pending, Action, Resolver, Task>,
+fn recv_via<Done, Pending, Resolver, Task>(
+    config: TaskSpawnConfig<Done, Pending, Resolver, Task>,
     wait: time::Duration,
     capacity: Option<usize>,
     dispatch: impl FnOnce(
         &BoxedExecutionEngine,
-        ConsumingIter<Action, Task, Done, Pending>,
+        ConsumingIter<Task, Done, Pending>,
         Option<Entry>,
     ) -> AnyResult<SpawnInfo, ExecutorError>,
-) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError>
+) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError>
 where
     Done: Send + 'static,
     Pending: Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Resolver: TaskReadyResolver<Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     if config.resolver.is_some() {
         return Err(ExecutorError::NotSupported);
@@ -45,7 +44,7 @@ where
     let Some(task) = config.task else {
         return Err(ExecutorError::TaskRequired);
     };
-    let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> = Arc::new(match capacity {
+    let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> = Arc::new(match capacity {
         Some(c) => NotifyQueue::bounded(c),
         None => NotifyQueue::unbounded(),
     });
@@ -54,23 +53,22 @@ where
 }
 
 /// Build a `StreamConsumingIter` delivery and dispatch it, returning a `stream`.
-fn stream_via<Done, Pending, Action, Resolver, Task>(
-    config: TaskSpawnConfig<Done, Pending, Action, Resolver, Task>,
+fn stream_via<Done, Pending, Resolver, Task>(
+    config: TaskSpawnConfig<Done, Pending, Resolver, Task>,
     wait: time::Duration,
     max_turns: usize,
     capacity: Option<usize>,
     dispatch: impl FnOnce(
         &BoxedExecutionEngine,
-        StreamConsumingIter<Action, Task, Done, Pending>,
+        StreamConsumingIter<Task, Done, Pending>,
         Option<Entry>,
     ) -> AnyResult<SpawnInfo, ExecutorError>,
 ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError>
 where
     Done: Send + 'static,
     Pending: Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Resolver: TaskReadyResolver<Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     if config.resolver.is_some() {
         return Err(ExecutorError::NotSupported);
@@ -93,19 +91,18 @@ where
 /// per-verb engine dispatch closures.
 macro_rules! delivery_terminals {
     ($builder:ident, $capacity:expr, $recv:expr, $stream:expr) => {
-        impl<Done, Pending, Action, Resolver, Task> $builder<Done, Pending, Action, Resolver, Task>
+        impl<Done, Pending, Resolver, Task> $builder<Done, Pending, Resolver, Task>
         where
             Done: Send + 'static,
             Pending: Send + 'static,
-            Action: ExecutionAction + Send + 'static,
-            Resolver: TaskReadyResolver<Action, Done, Pending>,
-            Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+            Resolver: TaskReadyResolver<Done, Pending>,
+            Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
         {
             /// Receive produced `TaskStatus` values via a `NotifyRecvIterator`.
             pub fn recv(
                 self,
                 wait: time::Duration,
-            ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError>
+            ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError>
             {
                 recv_via(self.config, wait, $capacity, $recv)
             }
@@ -162,23 +159,22 @@ delivery_terminals!(
 
 macro_rules! action_terminal {
     ($builder:ident, $behaviour:expr) => {
-        impl<Done, Pending, Action, Resolver, Task> $builder<Done, Pending, Action, Resolver, Task>
+        impl<Done, Pending, Resolver, Task> $builder<Done, Pending, Resolver, Task>
         where
             Done: Send + 'static,
             Pending: Send + 'static,
-            Action: ExecutionAction + Send + 'static,
-            Resolver: TaskReadyResolver<Action, Done, Pending>,
-            Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+            Resolver: TaskReadyResolver<Done, Pending>,
+            Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
         {
             pub fn action(
                 self,
                 wait: time::Duration,
             ) -> (
-                crate::valtron::InlineAction<Done, Pending, Action, Task>,
-                NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+                crate::valtron::InlineAction<Done, Pending, Task>,
+                NotifyRecvIterator<TaskStatus<Done, Pending>>,
             ) {
                 let task = self.config.task.expect("task required");
-                let channel: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+                let channel: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
                     Arc::new(NotifyQueue::unbounded());
                 let action = crate::valtron::InlineAction::from_parts(
                     $behaviour,
@@ -205,18 +201,17 @@ action_terminal!(
     crate::valtron::InlineActionBehaviour::Sequenced
 );
 
-impl<Done, Pending, Action, Resolver, Task> BroadcastBuilder<Done, Pending, Action, Resolver, Task>
+impl<Done, Pending, Resolver, Task> BroadcastBuilder<Done, Pending, Resolver, Task>
 where
     Done: Send + 'static,
     Pending: Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+    Resolver: TaskReadyResolver<Done, Pending> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
     pub fn recv(
         self,
         wait: time::Duration,
-    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
         recv_via(self.config, wait, None, |e: &BoxedExecutionEngine, it, _parent| {
             e.broadcast(it.into())
         })
@@ -256,12 +251,12 @@ where
         self,
         wait: time::Duration,
     ) -> (
-        crate::valtron::InlineAction<Done, Pending, Action, Task>,
-        NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+        crate::valtron::InlineAction<Done, Pending, Task>,
+        NotifyRecvIterator<TaskStatus<Done, Pending>>,
     ) {
         let _ = self.fallback;
         let task = self.config.task.expect("task required");
-        let channel: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+        let channel: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
             Arc::new(NotifyQueue::unbounded());
         let action = crate::valtron::InlineAction::from_parts(
             crate::valtron::InlineActionBehaviour::Broadcast,

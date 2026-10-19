@@ -37,8 +37,8 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
-use foundation_core::valtron::{Ctx, 
-    BoxedSendExecutionAction, EventReadinessPtr, TaskIterator, TaskStatus,
+use foundation_core::valtron::{Ctx,
+    EventReadinessPtr, TaskIterator, TaskStatus,
 };
 use quinn_proto::{
     ClientConfig, ConnectionHandle, DatagramEvent, Endpoint, EndpointConfig, ServerConfig,
@@ -428,9 +428,8 @@ fn conn_error_from(reason: &quinn_proto::ConnectionError) -> QuicConnError {
 impl TaskIterator for QuicDriver {
     type Ready = QuicEvent;
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.done {
             return None;
         }

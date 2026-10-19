@@ -6,7 +6,7 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 use foundation_core::valtron::{
-    Ctx, NoAction, Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt,
+    Ctx, Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt,
     StreamPendingFuture, StreamReadyFuture, StreamSpread, TaskIterator, TaskIteratorExt, TaskSpread,
     TaskStatus,
 };
@@ -14,29 +14,27 @@ use futures_core::Stream as FuturesStream;
 
 /// Test-only `TaskIterator` over a `Vec<TaskStatus>` — there is no blanket
 /// `Iterator → TaskIterator` impl, so combinator tests need this explicit source.
-struct VecTask<D, P, S: foundation_core::valtron::ExecutionAction> {
-    items: std::vec::IntoIter<TaskStatus<D, P, S>>,
+struct VecTask<D, P> {
+    items: std::vec::IntoIter<TaskStatus<D, P>>,
 }
 
-impl<D, P, S: foundation_core::valtron::ExecutionAction> VecTask<D, P, S> {
-    fn new(items: Vec<TaskStatus<D, P, S>>) -> Self {
+impl<D, P> VecTask<D, P> {
+    fn new(items: Vec<TaskStatus<D, P>>) -> Self {
         Self {
             items: items.into_iter(),
         }
     }
 }
 
-impl<D, P, S> TaskIterator for VecTask<D, P, S>
+impl<D, P> TaskIterator for VecTask<D, P>
 where
     D: 'static,
     P: 'static,
-    S: foundation_core::valtron::ExecutionAction + 'static,
 {
     type Ready = D;
     type Pending = P;
-    type Spawner = S;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<D, P, S>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<D, P>> {
         self.items.next()
     }
 }
@@ -69,7 +67,7 @@ fn poll_stream_next<S: FuturesStream + Unpin>(s: &mut S) -> Poll<Option<S::Item>
 
 #[test]
 fn test_task_status_spread_ready_converts_to_stream_spread_done() {
-    let ts: TaskStatus<i32, &str, NoAction> = TaskStatus::Spread(vec![
+    let ts: TaskStatus<i32, &str> = TaskStatus::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
         TaskSpread::Ready(3),
@@ -87,7 +85,7 @@ fn test_task_status_spread_ready_converts_to_stream_spread_done() {
 
 #[test]
 fn test_task_status_spread_pending_converts_to_stream_spread_pending() {
-    let ts: TaskStatus<&str, i32, NoAction> =
+    let ts: TaskStatus<&str, i32> =
         TaskStatus::Spread(vec![TaskSpread::Pending(10), TaskSpread::Pending(20)]);
     let stream: Stream<&str, i32> = ts.into();
     assert_eq!(
@@ -217,7 +215,7 @@ fn test_stream_map_pending_passthrough_spread_done() {
 fn test_task_map_ready_transforms_spread_done() {
     let ctx = Ctx::new();
     let items = vec![
-        TaskStatus::<i32, &str, NoAction>::Ready(5),
+        TaskStatus::<i32, &str>::Ready(5),
         TaskStatus::Spread(vec![
             TaskSpread::Ready(1),
             TaskSpread::Ready(2),
@@ -241,7 +239,7 @@ fn test_task_map_ready_transforms_spread_done() {
 fn test_task_map_pending_transforms_spread_pending() {
     let ctx = Ctx::new();
     let items = vec![
-        TaskStatus::<i32, String, NoAction>::Pending("hi".to_string()),
+        TaskStatus::<i32, String>::Pending("hi".to_string()),
         TaskStatus::Spread(vec![
             TaskSpread::Pending("ab".to_string()),
             TaskSpread::Pending("c".to_string()),
@@ -262,7 +260,7 @@ fn test_task_map_pending_transforms_spread_pending() {
 #[test]
 fn test_task_map_ready_passthrough_spread_pending() {
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Pending("a"),
         TaskSpread::Pending("b"),
     ])];
@@ -279,7 +277,7 @@ fn test_task_map_ready_passthrough_spread_pending() {
 #[test]
 fn test_task_map_pending_passthrough_spread_done() {
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
     ])];
@@ -302,7 +300,7 @@ fn test_task_enumerate_spread_done() {
     use foundation_core::valtron::TaskIteratorExt;
 
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Ready(10),
         TaskSpread::Ready(20),
         TaskSpread::Ready(30),
@@ -323,7 +321,7 @@ fn test_task_enumerate_spread_done() {
 #[test]
 fn test_task_find_spread_done() {
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
         TaskSpread::Ready(3),
@@ -335,7 +333,7 @@ fn test_task_find_spread_done() {
 #[test]
 fn test_task_find_no_match_in_spread_done() {
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
         TaskSpread::Ready(3),
@@ -351,7 +349,7 @@ fn test_task_fold_spread_done() {
 
     let ctx = Ctx::new();
     let items = vec![
-        TaskStatus::<i32, &str, NoAction>::Ready(1),
+        TaskStatus::<i32, &str>::Ready(1),
         TaskStatus::Spread(vec![TaskSpread::Ready(2), TaskSpread::Ready(3)]),
     ];
     let mut folded = TaskIteratorExt::fold(VecTask::new(items), 0, |acc, x| acc + x);
@@ -364,7 +362,7 @@ fn test_task_fold_spread_done() {
 #[test]
 fn test_task_all_spread_done() {
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Ready(2),
         TaskSpread::Ready(4),
         TaskSpread::Ready(6),
@@ -378,7 +376,7 @@ fn test_task_all_spread_done() {
 #[test]
 fn test_task_all_spread_done_false() {
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Ready(2),
         TaskSpread::Ready(3),
         TaskSpread::Ready(6),
@@ -390,7 +388,7 @@ fn test_task_all_spread_done_false() {
 #[test]
 fn test_task_any_spread_done() {
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
         TaskSpread::Ready(5),
@@ -405,7 +403,7 @@ fn test_task_any_spread_done() {
 #[test]
 fn test_task_any_spread_done_false() {
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(3),
         TaskSpread::Ready(5),
@@ -421,7 +419,7 @@ fn test_task_count_spread_done() {
     use foundation_core::valtron::TaskIteratorExt;
 
     let ctx = Ctx::new();
-    let items = vec![TaskStatus::<i32, &str, NoAction>::Spread(vec![
+    let items = vec![TaskStatus::<i32, &str>::Spread(vec![
         TaskSpread::Ready(1),
         TaskSpread::Ready(2),
         TaskSpread::Ready(3),
@@ -888,7 +886,7 @@ fn test_task_map_ready_then_collect_with_spread_done() {
 
     let ctx = Ctx::new();
     let items = vec![
-        TaskStatus::<i32, &str, NoAction>::Ready(5),
+        TaskStatus::<i32, &str>::Ready(5),
         TaskStatus::Spread(vec![
             TaskSpread::Ready(1),
             TaskSpread::Ready(2),

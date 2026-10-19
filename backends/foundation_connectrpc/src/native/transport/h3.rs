@@ -35,7 +35,7 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::valtron::{Ctx, 
-    self, BoxedSendExecutionAction, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator,
+    self, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator,
     TaskStatus, TryRecvError,
 };
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
@@ -392,9 +392,8 @@ fn split_response_fields(fields: &[(Bytes, Bytes)]) -> (Status, SimpleHeaders) {
 impl TaskIterator for H3Pump {
     type Ready = ();
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.phase == Phase::Done {
             return None;
         }

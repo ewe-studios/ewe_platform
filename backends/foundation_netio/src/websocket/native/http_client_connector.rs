@@ -18,7 +18,7 @@
 //! HOW: Delegates to [`WebSocketClient::connect_with_config`] for the client
 //! and [`WebSocketClient::connect_parts`] for the task path.
 
-use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus};
 
 use crate::http::NativeHttpClient;
 use crate::shared::client::DnsResolver;
@@ -44,14 +44,12 @@ where
     I: TaskIterator<
         Ready = Result<WebSocketMessage, WebSocketError>,
         Pending = WsPending,
-        Spawner = BoxedSendExecutionAction,
     >,
 {
     type Ready = Result<WebSocketMessage, WebSocketError>;
     type Pending = WsProgress;
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.inner.next_status(ctx)? {
             TaskStatus::Ready(d) => Some(TaskStatus::Ready(d)),
             TaskStatus::Pending(p) => Some(TaskStatus::Pending(native_progress(p))),

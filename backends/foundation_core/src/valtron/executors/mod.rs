@@ -11,6 +11,8 @@ mod inline_action;
 mod local;
 mod on_next;
 mod sleep;
+#[cfg(feature = "std")]
+mod state_task;
 mod sync;
 mod task_iters;
 mod wrappers;
@@ -28,6 +30,8 @@ pub use inline_action::*;
 pub use local::*;
 pub use on_next::*;
 pub use sleep::*;
+#[cfg(feature = "std")]
+pub use state_task::*;
 pub use sync::*;
 pub use task_iters::*;
 pub use wrappers::*;

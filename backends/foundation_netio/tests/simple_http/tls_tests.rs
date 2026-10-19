@@ -1,4 +1,4 @@
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator};
+use foundation_core::valtron::TaskIterator;
 use foundation_netio::http::{TlsHandshakeState, TlsHandshakeTask};
 
 #[test]
@@ -37,7 +37,6 @@ fn test_tls_handshake_task_associated_types() {
         T: TaskIterator<
             Pending = TlsHandshakeState,
             Ready = (),
-            Spawner = BoxedSendExecutionAction,
         >,
     {
     }

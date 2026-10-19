@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{Ctx, EventReadiness, NoSpawner, QueueReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, EventReadiness, QueueReadiness, TaskIterator, TaskStatus};
 
 use crate::types::ProjectDefinition;
 
@@ -122,9 +122,8 @@ impl BinaryRunnerTask {
 impl TaskIterator for BinaryRunnerTask {
     type Ready = ();
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.state {
             RunnerState::Idle => {
                 // Check for build complete signal

@@ -31,7 +31,7 @@ use crate::shared::http::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
     SimpleHttpBody,
 };
-use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 
 /// Cloneable subset of `RequestIntro` for observer patterns.
 ///
@@ -170,7 +170,7 @@ impl GetRequestIntroTask {
         &mut self,
         conn: &HttpClientConnection,
         resume: GetRequestIntroState,
-    ) -> TaskStatus<RequestIntro, (), BoxedSendExecutionAction> {
+    ) -> TaskStatus<RequestIntro, ()> {
         match nonblocking::park(conn, IoInterest::Readable, &mut self.idle) {
             Park::On(signal) => {
                 tracing::trace!("[INTRO] response not ready; parking on socket readiness");
@@ -201,9 +201,8 @@ impl GetRequestIntroTask {
 impl TaskIterator for GetRequestIntroTask {
     type Pending = ();
     type Ready = RequestIntro;
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.state.take()? {
             GetRequestIntroState::Init(inner) => match inner {
                 Some(stream) => {

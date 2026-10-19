@@ -20,7 +20,7 @@ use std::thread;
 use std::time::Duration;
 
 use foundation_core::valtron::{Ctx, 
-    collect_result, execute, initialize_pool, BoxedSendExecutionAction, EventReadiness,
+    collect_result, execute, initialize_pool, EventReadiness,
     EventReadinessPtr, PoolGuard, TaskIterator, TaskStatus,
 };
 use foundation_nativeapis::native::fd::{Reactor, RegisteredFd};
@@ -56,9 +56,8 @@ struct ParkUntilReady {
 impl TaskIterator for ParkUntilReady {
     type Ready = &'static str;
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.done {
             return None;
         }
@@ -87,9 +86,8 @@ struct ReadOnReady {
 impl TaskIterator for ReadOnReady {
     type Ready = Vec<u8>;
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.done {
             return None;
         }

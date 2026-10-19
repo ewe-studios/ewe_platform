@@ -12,7 +12,7 @@ use core::marker::PhantomData;
 use core::task::{RawWaker, RawWakerVTable, Waker};
 
 #[cfg(any(feature = "std", feature = "alloc"))]
-use crate::valtron::{Ctx, NoAction, QueueReadiness, TaskIterator, TaskStatus};
+use crate::valtron::{Ctx, QueueReadiness, TaskIterator, TaskStatus};
 #[cfg(any(feature = "std", feature = "alloc"))]
 use concurrent_queue::ConcurrentQueue;
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -199,16 +199,6 @@ pub fn queue_waker(queue: Arc<ConcurrentQueue<WakeToken>>, id: u64) -> Waker {
 // FutureTask - Wrap Future as TaskIterator (requires Box)
 // ============================================================================
 
-/// State reported while future is being polled.
-///
-/// WHY: `TaskIterator` needs a Pending type to communicate progress
-/// WHAT: Simple enum indicating future is still pending
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FuturePollState {
-    /// Future returned `Poll::Pending`
-    Pending,
-}
-
 /// Wraps a Future and implements `TaskIterator` to poll it.
 ///
 /// WHY: Enables executing async code through valtron without async runtime
@@ -259,10 +249,8 @@ where
     F::Output: 'static,
 {
     type Ready = F::Output;
-    type Pending = FuturePollState;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    type Pending = ();
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.completed {
             return None;
         }
@@ -287,7 +275,7 @@ where
                 //    poll, pushing a token onto this queue. This is the stream-future
                 //    pattern — the underlying `StreamIterator` advanced one step but
                 //    isn't ready yet; the future wants another poll after other tasks
-                //    run. → return `Pending(None)` to requeue without parking.
+                //    run. → return `Ignore` to requeue without parking.
                 //
                 // 2. **External-wake**: no token was pushed. The future stashed the waker
                 //    (e.g. `RecvFuture` waiting on a pipe, `SendFuture` waiting on
@@ -306,7 +294,7 @@ where
                     ))))
                 } else {
                     // Self-wake: requeue without parking.
-                    Some(TaskStatus::Pending(FuturePollState::Pending))
+                    Some(TaskStatus::Ignore)
                 }
             }
         }
@@ -321,10 +309,8 @@ where
     F::Output: Send + 'static,
 {
     type Ready = F::Output;
-    type Pending = FuturePollState;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    type Pending = ();
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.completed {
             return None;
         }
@@ -347,7 +333,7 @@ where
                         self.wake_queue.clone(),
                     ))))
                 } else {
-                    Some(TaskStatus::Pending(FuturePollState::Pending))
+                    Some(TaskStatus::Ignore)
                 }
             }
         }
@@ -357,17 +343,6 @@ where
 // ============================================================================
 // StreamTask - Wrap Stream as TaskIterator
 // ============================================================================
-
-/// State for stream polling.
-///
-/// WHY: `TaskIterator` needs a Pending type for streams
-/// WHAT: Simple enum indicating stream is pending more items
-#[cfg(any(feature = "std", feature = "alloc"))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum StreamPollState {
-    /// Stream returned `Poll::Pending`
-    Pending,
-}
 
 /// Wraps an async Stream and yields values through `TaskIterator`.
 ///
@@ -409,10 +384,8 @@ where
     S::Item: Send + 'static,
 {
     type Ready = Option<S::Item>;
-    type Pending = StreamPollState;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    type Pending = ();
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.exhausted {
             return None;
         }
@@ -436,7 +409,7 @@ where
                         self.wake_queue.clone(),
                     ))))
                 } else {
-                    Some(TaskStatus::Pending(StreamPollState::Pending))
+                    Some(TaskStatus::Ignore)
                 }
             }
         }
@@ -452,10 +425,8 @@ where
     S::Item: 'static,
 {
     type Ready = Option<S::Item>;
-    type Pending = StreamPollState;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    type Pending = ();
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.exhausted {
             return None;
         }
@@ -479,7 +450,7 @@ where
                         self.wake_queue.clone(),
                     ))))
                 } else {
-                    Some(TaskStatus::Pending(StreamPollState::Pending))
+                    Some(TaskStatus::Ignore)
                 }
             }
         }
@@ -571,10 +542,8 @@ where
     F::Output: Send + 'static,
 {
     type Ready = Result<F::Output, CancelOutcome>;
-    type Pending = FuturePollState;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    type Pending = ();
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.is_cancelled() {
             return Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled)));
         }
@@ -618,10 +587,8 @@ where
     F::Output: 'static,
 {
     type Ready = Result<F::Output, CancelOutcome>;
-    type Pending = FuturePollState;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    type Pending = ();
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.is_cancelled() {
             return Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled)));
         }

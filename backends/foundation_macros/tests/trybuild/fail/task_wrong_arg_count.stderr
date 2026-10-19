@@ -1,0 +1,5 @@
+error: #[task] transition must take exactly two arguments: `ctx: Ctx, state: T`
+ --> tests/trybuild/fail/task_wrong_arg_count.rs:5:15
+  |
+5 | fn three_args(ctx: Ctx, a: u32, b: u32) -> Option<(u32, TaskStatus<u32, ()>)> {
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^

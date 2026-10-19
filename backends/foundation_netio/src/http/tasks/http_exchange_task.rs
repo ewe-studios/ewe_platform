@@ -41,7 +41,7 @@ use crate::shared::http::{HttpClientError, IncomingResponseParts, SendSafeBody};
 
 type ChildReceiver<R> = foundation_core::valtron::DrivenRecvIterator<SendRequestTask<R>>;
 
-type ExchangeStatus = TaskStatus<HttpExchange, HttpExchangePending, BoxedSendExecutionAction>;
+type ExchangeStatus = TaskStatus<HttpExchange, HttpExchangePending>;
 
 /// The body-streaming state, split out so it can be borrowed independently of
 /// the pool handle.
@@ -354,9 +354,8 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
 impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
     type Ready = HttpExchange;
     type Pending = HttpExchangePending;
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         // First call — emit the Spawn so the executor runs the child.
         if let Some(action) = self.spawn.take() {
             return Some(TaskStatus::Spawn(action));

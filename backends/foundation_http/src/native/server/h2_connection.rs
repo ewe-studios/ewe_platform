@@ -25,7 +25,7 @@ use std::time::{Duration, Instant};
 use bytes::Bytes;
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
 use foundation_core::valtron::{Ctx, 
-    BoxedSendExecutionAction, FutureTask, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
+    FutureTask, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
     TryRecvError,
 };
 use foundation_netio::http2::conn::H2Conn;
@@ -121,9 +121,8 @@ impl H2ConnectionHandler {
 impl TaskIterator for H2ConnectionHandler {
     type Ready = ();
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         if self.shutdown.probe() {
             tracing::debug!("h2 server: shutdown signaled, closing connection");
             return None;
@@ -212,7 +211,7 @@ impl TaskIterator for H2ConnectionHandler {
 impl H2ConnectionHandler {
     /// No frame was available. Park on a timer; give up only once the connection
     /// has sat idle with no live streams for longer than [`IDLE_TIMEOUT`].
-    fn park(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn park(&mut self) -> Option<TaskStatus<(), ()>> {
         if !self.streams.is_empty() {
             self.idle_since = None;
             return Some(TaskStatus::Delayed(POLL_DELAY));

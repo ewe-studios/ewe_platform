@@ -22,6 +22,7 @@ mod theme_macro;
 mod theme_tokens;
 mod wasm_modes;
 mod serial_test;
+mod state_task;
 mod valtron_entry;
 mod wasm_test;
 mod bindgen_test;
@@ -624,6 +625,19 @@ pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron_test(attr.into(), item.into()).into()
+}
+
+/// `#[valtron::task]` — wrap a transition function into a state-machine task.
+///
+/// Applied to a transition `fn` or `async fn` of the shape
+/// `fn name(ctx: Ctx, state: T) -> Option<(T, TaskStatus<R, P>)>`, it generates
+/// a same-named struct `name` that implements `TaskIterator` and whose `new(T)`
+/// seeds the state. The transition stays callable under its own name.
+///
+/// Also exported as `foundation_core::valtron::task`.
+#[proc_macro_attribute]
+pub fn task(attr: TokenStream, item: TokenStream) -> TokenStream {
+    state_task::task(attr.into(), item.into()).into()
 }
 
 /// `#[serial_test]` — serialize tests that share process-global state.

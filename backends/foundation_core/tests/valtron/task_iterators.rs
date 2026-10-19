@@ -1,13 +1,13 @@
 // Integration tests for TaskIterator combinators
-use foundation_core::valtron::{Ctx, NoAction, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
+use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
 
 // Simple test task iterator for unit tests
 struct TestTask {
-    items: Vec<TaskStatus<u32, String, NoAction>>,
+    items: Vec<TaskStatus<u32, String>>,
 }
 
 impl TestTask {
-    fn new(items: Vec<TaskStatus<u32, String, NoAction>>) -> Self {
+    fn new(items: Vec<TaskStatus<u32, String>>) -> Self {
         Self { items }
     }
 }
@@ -15,12 +15,11 @@ impl TestTask {
 impl TaskIterator for TestTask {
     type Ready = u32;
     type Pending = String;
-    type Spawner = NoAction;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.pop()
     }
 }
@@ -228,18 +227,17 @@ fn test_map_iter_flattens_nested_iterators() {
     let ctx = Ctx::new();
     // Test using the extension method with a simple test task
     struct VecTask {
-        items: std::vec::IntoIter<TaskStatus<Vec<u32>, String, NoAction>>,
+        items: std::vec::IntoIter<TaskStatus<Vec<u32>, String>>,
     }
 
     impl TaskIterator for VecTask {
         type Ready = Vec<u32>;
         type Pending = String;
-        type Spawner = NoAction;
 
         fn next_status(
             &mut self,
             _ctx: Ctx,
-        ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
             self.items.next()
         }
     }
@@ -258,10 +256,8 @@ fn test_map_iter_flattens_nested_iterators() {
         _,
         u32,
         String,
-        NoAction,
         Vec<u32>,
         String,
-        NoAction,
     > = task.map_iter(|vec| {
         vec.into_iter()
             .map(TaskStatus::Ready)
@@ -298,18 +294,17 @@ fn test_map_iter_passes_through_pending() {
     let ctx = Ctx::new();
     // Test using the extension method with a simple test task
     struct VecTask {
-        items: std::vec::IntoIter<TaskStatus<Vec<u32>, String, NoAction>>,
+        items: std::vec::IntoIter<TaskStatus<Vec<u32>, String>>,
     }
 
     impl TaskIterator for VecTask {
         type Ready = Vec<u32>;
         type Pending = String;
-        type Spawner = NoAction;
 
         fn next_status(
             &mut self,
             _ctx: Ctx,
-        ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
             self.items.next()
         }
     }
@@ -329,10 +324,8 @@ fn test_map_iter_passes_through_pending() {
         _,
         u32,
         String,
-        NoAction,
         Vec<u32>,
         String,
-        NoAction,
     > = task.map_iter(|vec| {
         vec.into_iter()
             .map(TaskStatus::Ready)

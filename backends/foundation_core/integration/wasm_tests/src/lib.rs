@@ -22,7 +22,7 @@ use std::time::Duration;
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
     wasm::{JSThreadYielder, WaitStatus},
-    Ctx, FnReady, NoSpawner, ProcessController, TaskIterator, TaskStatus,
+    Ctx, FnReady, ProcessController, TaskIterator, TaskStatus,
 };
 use foundation_macros::wasm_test;
 use foundation_wasm::abi::web::{invoke_as_f64, register_function};
@@ -80,12 +80,11 @@ struct CountingTask {
 impl TaskIterator for CountingTask {
     type Ready = usize;
     type Pending = ();
-    type Spawner = NoSpawner;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None;
         }
@@ -104,12 +103,11 @@ struct YieldingTask {
 impl TaskIterator for YieldingTask {
     type Ready = ();
     type Pending = ();
-    type Spawner = NoSpawner;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None;
         }

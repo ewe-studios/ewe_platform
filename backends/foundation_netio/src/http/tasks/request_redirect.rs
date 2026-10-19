@@ -34,7 +34,7 @@ use crate::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
 use foundation_core::io::ioutils::ReadTimeoutOperations;
-use foundation_core::valtron::{Ctx, AnyReadiness, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, AnyReadiness, TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -68,7 +68,7 @@ type WriteBodyData<R> = Box<(
 )>;
 
 /// One step of the state machine.
-type Step = TaskStatus<HttpRequestRedirectResponse, HttpOperationState, BoxedSendExecutionAction>;
+type Step = TaskStatus<HttpRequestRedirectResponse, HttpOperationState>;
 
 /// Most body chunks written in one poll before yielding back to the executor, so
 /// a large in-memory body cannot monopolise a worker.
@@ -968,9 +968,8 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
 impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTask<R> {
     type Pending = HttpOperationState;
     type Ready = HttpRequestRedirectResponse;
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| match self.0.take()? {
             HttpRequestRedirectState::Init(mut inner_opt) => {

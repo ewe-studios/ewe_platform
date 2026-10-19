@@ -12,7 +12,7 @@ use foundation_compact::Instant;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn, NoThreadController},
-    FnReady, NoSpawner, ProcessController, TaskIterator, TaskStatus,
+    FnReady, ProcessController, TaskIterator, TaskStatus,
 };
 
 /// Task that returns Ready a limited number of times then completes
@@ -24,9 +24,8 @@ struct FiniteTask {
 impl TaskIterator for FiniteTask {
     type Ready = usize;
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.remaining == 0 {
             return None; // Task complete
         }
@@ -44,9 +43,8 @@ struct CounterTask {
 impl TaskIterator for CounterTask {
     type Ready = usize;
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None; // Task complete
         }

@@ -12,6 +12,8 @@ mod flatten_combinators;
 mod cancellable_future;
 #[cfg(feature = "std")]
 mod ctx;
+#[cfg(not(target_family = "wasm"))]
+mod cross_runtime;
 mod futures_in_valtron;
 mod map_circuit;
 #[cfg(not(target_family = "wasm"))]
@@ -23,6 +25,8 @@ mod sleep_tests;
 mod spread;
 #[cfg(not(target_family = "wasm"))]
 mod spread_drain;
+#[cfg(feature = "std")]
+mod state_task;
 mod stream_future;
 mod stream_iterators;
 mod sync_boundary_helpers;

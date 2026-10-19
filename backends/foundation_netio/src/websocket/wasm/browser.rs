@@ -33,7 +33,7 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
-use foundation_core::valtron::{BoxedSendExecutionAction, Pipe, PipeReceiver, Stream, TaskSpread, TaskStatus, TryRecvError};
+use foundation_core::valtron::{Pipe, PipeReceiver, Stream, TaskSpread, TaskStatus, TryRecvError};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{BinaryType, CloseEvent, Event, MessageEvent, WebSocket};
@@ -246,11 +246,11 @@ impl Iterator for WasmWebSocketBridge {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Wraps a [`BoxedWebSocketStream`] (`Iterator<Item = Stream<R, P>>`) and
-/// yields `TaskStatus<R, P, BoxedSendExecutionAction>` items, satisfying the
+/// yields `TaskStatus<R, P>` items, satisfying the
 /// `TaskIterator` trait via the blanket impl for `Iterator<Item = TaskStatus<...>>`.
 ///
-/// The wasm bridge has no sub-tasks to spawn, so `Spawner = BoxedSendExecutionAction`
-/// is never emitted — it exists only for type unification with the native path.
+/// The wasm bridge has no sub-tasks to spawn, so it never emits a `Spawn`
+/// variant — it exists only for type unification with the native path.
 pub(super) struct StreamToTaskAdapter {
     inner: BoxedWebSocketStream,
 }
@@ -259,7 +259,6 @@ impl Iterator for StreamToTaskAdapter {
     type Item = TaskStatus<
         Result<WebSocketMessage, WebSocketError>,
         WsProgress,
-        BoxedSendExecutionAction,
     >;
 
     fn next(&mut self) -> Option<Self::Item> {

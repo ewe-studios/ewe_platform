@@ -36,7 +36,7 @@ use bytes::{Bytes, BytesMut};
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::io::readers::{Data, DataBytesIterator};
 use foundation_core::valtron::{
-    self, BoxedSendExecutionAction, BoxedSendableDataIterator, BoxedSendableIterator,
+    self, BoxedSendableDataIterator, BoxedSendableIterator,
     CollectionState, SplitCollectorMapObserver, SplitUntilObserverMap, Stream, TaskIterator,
     TaskIteratorExt,
 };
@@ -3283,7 +3283,6 @@ pub type ExchangeContinuation = Box<
     dyn TaskIterator<
             Ready = HttpExchange,
             Pending = HttpExchangePending,
-            Spawner = BoxedSendExecutionAction,
         > + Send,
 >;
 
@@ -3293,7 +3292,6 @@ pub type ExchangeContinuation = Box<
     dyn TaskIterator<
         Ready = HttpExchange,
         Pending = HttpExchangePending,
-        Spawner = BoxedSendExecutionAction,
     >,
 >;
 

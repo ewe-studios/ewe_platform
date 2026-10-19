@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
-    Ctx, SharedTaskQueue, ExecutionAction, NoSpawner, TaskIterator, TaskStatus, WrapTask,
+    Ctx, ExecutionAction, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask,
 };
 use foundation_core::valtron::{
     InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotifyQueue,
@@ -444,10 +444,9 @@ fn test_single_threaded_executor_pends_without_blocking() {
     struct CountingTask(Arc<Mutex<usize>>);
     impl TaskIterator for CountingTask {
         type Ready = ();
-        type Spawner = NoSpawner;
         type Pending = Duration;
 
-        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
             let mut count = self.0.lock().unwrap();
             *count += 1;
             if *count >= 5 {

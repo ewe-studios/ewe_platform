@@ -18,7 +18,7 @@ use crate::shared::client::DnsResolver;
 use crate::shared::http::timeout::TimeoutCalculator;
 use crate::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod, TryClone};
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
-use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus};
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -301,9 +301,8 @@ where
 {
     type Ready = ParseResult;
     type Pending = ReconnectingProgress;
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 
         match state {

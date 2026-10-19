@@ -6,7 +6,7 @@
 
 use std::time::{Duration, Instant};
 
-use crate::valtron::{Ctx, NoAction, TaskIterator, TaskStatus};
+use crate::valtron::{Ctx, TaskIterator, TaskStatus};
 
 /// A [`TaskIterator`] that yields [`TaskStatus::Delayed(remaining)`] until
 /// the deadline passes, then returns `None`.
@@ -38,9 +38,8 @@ impl SleepingTask {
 impl TaskIterator for SleepingTask {
     type Ready = ();
     type Pending = ();
-    type Spawner = NoAction;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), (), NoAction>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         let now = Instant::now();
         if now >= self.deadline {
             None

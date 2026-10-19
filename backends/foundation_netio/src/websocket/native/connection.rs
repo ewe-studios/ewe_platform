@@ -15,8 +15,8 @@ use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
 use crate::shared::http::SimpleHeaders;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::{Ctx, 
-    execute, BoxedSendExecutionAction, DrivenStreamIterator, Stream, StreamSpread, TaskIterator,
+use foundation_core::valtron::{Ctx,
+    execute, DrivenStreamIterator, Stream, StreamSpread, TaskIterator,
     TaskSpread, TaskStatus,
 };
 use std::sync::Arc;
@@ -377,9 +377,8 @@ where
 {
     type Ready = Result<WebSocketMessage, WebSocketError>;
     type Pending = WsPending;
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self {
             Self::Single(t) => t
                 .next_status(ctx)
@@ -401,9 +400,9 @@ fn remap_spread<D, P1, P2>(sp: TaskSpread<D, P1>, f: fn(P1) -> P2) -> TaskSpread
 
 /// Remap the `Pending` type of a `TaskStatus`.
 fn remap_task_status<D, P1, P2>(
-    s: TaskStatus<D, P1, BoxedSendExecutionAction>,
+    s: TaskStatus<D, P1>,
     f: fn(P1) -> P2,
-) -> TaskStatus<D, P2, BoxedSendExecutionAction> {
+) -> TaskStatus<D, P2> {
     match s {
         TaskStatus::Ready(r) => TaskStatus::Ready(r),
         TaskStatus::Pending(p) => TaskStatus::Pending(f(p)),

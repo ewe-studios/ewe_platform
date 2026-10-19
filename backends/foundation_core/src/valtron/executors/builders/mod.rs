@@ -27,8 +27,8 @@ use std::{any::Any, marker::PhantomData};
 use crate::synca::Entry;
 use crate::valtron::AnyResult;
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedPanicHandler, DoNext, ExecutionAction, ExecutorError, FnMutReady,
-    FnReady, OnNext, SpawnInfo, TaskIterator, TaskReadyResolver, TaskStatus,
+    BoxedExecutionEngine, BoxedPanicHandler, DoNext, ExecutorError, FnMutReady, FnReady, OnNext,
+    SpawnInfo, TaskIterator, TaskReadyResolver, TaskStatus,
 };
 
 // The twins carry only inherent-impl terminals (no exported names), so they are
@@ -60,27 +60,25 @@ pub enum LocalFallback {
 /// ready-`Resolver`, and an optional panic handler. It carries only setters and
 /// the verb transitions — never a dispatch — so it needs no `Send` and lives in
 /// one ungated impl.
-pub struct TaskSpawnConfig<Done, Pending, Action, Resolver, Task>
+pub struct TaskSpawnConfig<Done, Pending, Resolver, Task>
 where
-    Action: ExecutionAction,
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Resolver: TaskReadyResolver<Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     pub(crate) engine: BoxedExecutionEngine,
     pub(crate) task: Option<Task>,
     pub(crate) parent: Option<Entry>,
     pub(crate) resolver: Option<Resolver>,
     pub(crate) panic_handler: Option<BoxedPanicHandler>,
-    pub(crate) _marker: PhantomData<(Done, Pending, Action)>,
+    pub(crate) _marker: PhantomData<(Done, Pending)>,
 }
 
-impl<Done, Pending, Action, Resolver, Task> TaskSpawnConfig<Done, Pending, Action, Resolver, Task>
+impl<Done, Pending, Resolver, Task> TaskSpawnConfig<Done, Pending, Resolver, Task>
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Resolver: TaskReadyResolver<Done, Pending> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Create an empty config bound to `engine`.
     #[must_use]
@@ -135,13 +133,13 @@ where
 
     /// Transition to a [`ScheduleBuilder`] (bottom of the local queue).
     #[must_use]
-    pub fn as_scheduled(self) -> ScheduleBuilder<Done, Pending, Action, Resolver, Task> {
+    pub fn as_scheduled(self) -> ScheduleBuilder<Done, Pending, Resolver, Task> {
         ScheduleBuilder { config: self }
     }
 
     /// Transition to a [`LiftBuilder`] (top of the local queue).
     #[must_use]
-    pub fn as_lifted(self) -> LiftBuilder<Done, Pending, Action, Resolver, Task> {
+    pub fn as_lifted(self) -> LiftBuilder<Done, Pending, Resolver, Task> {
         LiftBuilder { config: self }
     }
 
@@ -150,7 +148,7 @@ where
     pub fn as_sequenced(
         mut self,
         parent: Entry,
-    ) -> SequenceBuilder<Done, Pending, Action, Resolver, Task> {
+    ) -> SequenceBuilder<Done, Pending, Resolver, Task> {
         self.parent = Some(parent);
         SequenceBuilder { config: self }
     }
@@ -158,7 +156,7 @@ where
     /// Transition to a [`BroadcastBuilder`] (global queue under `multi`, else
     /// lift fallback).
     #[must_use]
-    pub fn as_broadcast(self) -> BroadcastBuilder<Done, Pending, Action, Resolver, Task> {
+    pub fn as_broadcast(self) -> BroadcastBuilder<Done, Pending, Resolver, Task> {
         BroadcastBuilder {
             config: self,
             fallback: LocalFallback::Lift,
@@ -168,7 +166,7 @@ where
     /// Transition to a [`BroadcastBuilder`] whose `multi = off` fallback is
     /// `lift` (optional parent honored).
     #[must_use]
-    pub fn as_broadcast_or_lift(self) -> BroadcastBuilder<Done, Pending, Action, Resolver, Task> {
+    pub fn as_broadcast_or_lift(self) -> BroadcastBuilder<Done, Pending, Resolver, Task> {
         BroadcastBuilder {
             config: self,
             fallback: LocalFallback::Lift,
@@ -181,7 +179,7 @@ where
     pub fn as_broadcast_or_sequenced(
         mut self,
         parent: Entry,
-    ) -> BroadcastBuilder<Done, Pending, Action, Resolver, Task> {
+    ) -> BroadcastBuilder<Done, Pending, Resolver, Task> {
         self.parent = Some(parent);
         BroadcastBuilder {
             config: self,
@@ -194,14 +192,12 @@ where
 // on_next / on_send_next resolver setters (Resolver is a concrete Fn wrapper)
 // ---------------------------------------------------------------------------
 
-impl<F, Done, Pending, Action, Task>
-    TaskSpawnConfig<Done, Pending, Action, FnReady<F, Action>, Task>
+impl<F, Done, Pending, Task> TaskSpawnConfig<Done, Pending, FnReady<F>, Task>
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
-    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
+    F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + 'static,
 {
     /// Install a `Fn` ready-handler as the resolver.
     #[must_use]
@@ -210,33 +206,29 @@ where
     }
 }
 
-impl<F, Done, Pending, Action, Task>
-    TaskSpawnConfig<Done, Pending, Action, FnMutReady<F, Action>, Task>
+impl<F, Done, Pending, Task> TaskSpawnConfig<Done, Pending, FnMutReady<F>, Task>
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
-    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
+    F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + 'static,
 {
     /// Install a `FnMut` ready-handler as the resolver.
     #[must_use]
     pub fn on_next_mut(self, action: F) -> Self
     where
-        F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
+        F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + 'static,
     {
         self.with_resolver(FnMutReady::new(action))
     }
 }
 
-impl<F, Done, Pending, Action, Task>
-    TaskSpawnConfig<Done, Pending, Action, FnReady<F, Action>, Task>
+impl<F, Done, Pending, Task> TaskSpawnConfig<Done, Pending, FnReady<F>, Task>
 where
     Done: Send + 'static,
     Pending: Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
     /// Install a `Send` `Fn` ready-handler as the resolver (broadcast path).
     #[must_use]
@@ -245,20 +237,18 @@ where
     }
 }
 
-impl<F, Done, Pending, Action, Task>
-    TaskSpawnConfig<Done, Pending, Action, FnMutReady<F, Action>, Task>
+impl<F, Done, Pending, Task> TaskSpawnConfig<Done, Pending, FnMutReady<F>, Task>
 where
     Done: Send + 'static,
     Pending: Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
     /// Install a `Send` `FnMut` ready-handler as the resolver (broadcast path).
     #[must_use]
     pub fn on_send_next_mut(self, action: F) -> Self
     where
-        F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + 'static,
+        F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + 'static,
     {
         self.with_resolver(FnMutReady::new(action))
     }
@@ -269,46 +259,42 @@ where
 // ---------------------------------------------------------------------------
 
 /// Dispatches to the **bottom** of the local queue (`ExecutionEngine::schedule`).
-pub struct ScheduleBuilder<Done, Pending, Action, Resolver, Task>
+pub struct ScheduleBuilder<Done, Pending, Resolver, Task>
 where
-    Action: ExecutionAction,
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Resolver: TaskReadyResolver<Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub(crate) config: TaskSpawnConfig<Done, Pending, Action, Resolver, Task>,
+    pub(crate) config: TaskSpawnConfig<Done, Pending, Resolver, Task>,
 }
 
 /// Dispatches to the **top** of the local queue (`ExecutionEngine::lift`).
-pub struct LiftBuilder<Done, Pending, Action, Resolver, Task>
+pub struct LiftBuilder<Done, Pending, Resolver, Task>
 where
-    Action: ExecutionAction,
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Resolver: TaskReadyResolver<Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub(crate) config: TaskSpawnConfig<Done, Pending, Action, Resolver, Task>,
+    pub(crate) config: TaskSpawnConfig<Done, Pending, Resolver, Task>,
 }
 
 /// Sequences the task with a parent (`ExecutionEngine::sequenced`). Its delivery
 /// queue is **bounded** (Feature 45 Part B), so the child parks on vacancy when
 /// it outruns the draining parent.
-pub struct SequenceBuilder<Done, Pending, Action, Resolver, Task>
+pub struct SequenceBuilder<Done, Pending, Resolver, Task>
 where
-    Action: ExecutionAction,
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Resolver: TaskReadyResolver<Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub(crate) config: TaskSpawnConfig<Done, Pending, Action, Resolver, Task>,
+    pub(crate) config: TaskSpawnConfig<Done, Pending, Resolver, Task>,
 }
 
 /// Broadcasts to the global queue under `multi`; falls back to a local verb when
 /// `multi` is off (see [`LocalFallback`]).
-pub struct BroadcastBuilder<Done, Pending, Action, Resolver, Task>
+pub struct BroadcastBuilder<Done, Pending, Resolver, Task>
 where
-    Action: ExecutionAction,
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Resolver: TaskReadyResolver<Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub(crate) config: TaskSpawnConfig<Done, Pending, Action, Resolver, Task>,
+    pub(crate) config: TaskSpawnConfig<Done, Pending, Resolver, Task>,
     pub(crate) fallback: LocalFallback,
 }
 
@@ -321,16 +307,15 @@ where
 /// WHY: the spawn form never touches a delivery queue or a readiness, so it boxes
 /// into the non-`Send` `BoxedExecutionIterator` the local engine verbs already
 /// accept — no `Send` bound is required, even under `multi`.
-fn local_spawn_task<Done, Pending, Action, Resolver, Task>(
+fn local_spawn_task<Done, Pending, Resolver, Task>(
     task: Task,
     resolver: Option<Resolver>,
 ) -> crate::valtron::BoxedExecutionIterator
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Resolver: TaskReadyResolver<Done, Pending> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     match resolver {
         Some(resolver) => OnNext::new(task, resolver).into(),
@@ -338,14 +323,12 @@ where
     }
 }
 
-impl<Done, Pending, Action, Resolver, Task>
-    ScheduleBuilder<Done, Pending, Action, Resolver, Task>
+impl<Done, Pending, Resolver, Task> ScheduleBuilder<Done, Pending, Resolver, Task>
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Resolver: TaskReadyResolver<Done, Pending> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Deliver the task to the bottom of the local queue.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
@@ -357,13 +340,12 @@ where
     }
 }
 
-impl<Done, Pending, Action, Resolver, Task> LiftBuilder<Done, Pending, Action, Resolver, Task>
+impl<Done, Pending, Resolver, Task> LiftBuilder<Done, Pending, Resolver, Task>
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Resolver: TaskReadyResolver<Done, Pending> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Deliver the task to the top of the local queue.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
@@ -376,14 +358,12 @@ where
     }
 }
 
-impl<Done, Pending, Action, Resolver, Task>
-    SequenceBuilder<Done, Pending, Action, Resolver, Task>
+impl<Done, Pending, Resolver, Task> SequenceBuilder<Done, Pending, Resolver, Task>
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Resolver: TaskReadyResolver<Done, Pending> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     /// Sequence the task with its parent on the local queue.
     pub fn spawn(self) -> AnyResult<SpawnInfo, ExecutorError> {
@@ -407,20 +387,18 @@ where
 /// `dyn TaskReadyResolver`, for the common local-dispatch paths.
 #[must_use]
 #[allow(clippy::type_complexity)]
-pub fn spawn_builder<Task, Action>(
+pub fn spawn_builder<Task>(
     engine: BoxedExecutionEngine,
 ) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
-    Task::Spawner,
-    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static>,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
     Task,
 >
 where
     Task::Ready: 'static,
     Task::Pending: 'static,
-    Task: TaskIterator<Spawner = Action> + 'static,
-    Action: ExecutionAction + 'static,
+    Task: TaskIterator + 'static,
 {
     TaskSpawnConfig::new(engine)
 }
@@ -429,20 +407,18 @@ where
 /// `Send` boxed `dyn TaskReadyResolver`, for the broadcast path.
 #[must_use]
 #[allow(clippy::type_complexity)]
-pub fn spawn_broadcaster<Task, Action>(
+pub fn spawn_broadcaster<Task>(
     engine: BoxedExecutionEngine,
 ) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
-    Task::Spawner,
-    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
     Task,
 >
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
-    Task: TaskIterator<Spawner = Action> + Send + 'static,
-    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator + Send + 'static,
 {
     TaskSpawnConfig::new(engine)
 }

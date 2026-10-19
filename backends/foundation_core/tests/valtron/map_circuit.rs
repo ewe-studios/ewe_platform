@@ -7,7 +7,7 @@
 //! 4. Combinators work correctly with boxed and mutex-wrapped iterators
 
 use foundation_core::valtron::{
-    Ctx, NoAction, ShortCircuit, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    Ctx, ShortCircuit, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt,
     TaskShortCircuit, TaskStatus,
 };
 use std::sync::{Arc, Mutex};
@@ -155,12 +155,11 @@ impl CountingTaskIterator {
 impl TaskIterator for CountingTaskIterator {
     type Ready = usize;
     type Pending = &'static str;
-    type Spawner = NoAction;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None;
         }

@@ -17,8 +17,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use foundation_core::valtron::{
-    BoxedSendExecutionAction, CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator,
-    Stream, TaskIterator, TaskStatus,
+    CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, Stream, TaskIterator,
+    TaskStatus,
 };
 use foundation_db::traits::DocumentStore;
 
@@ -238,7 +238,7 @@ impl AgentLoopState {
 /// iterator the valtron executor can schedule alongside other work.
 ///
 /// WHAT: Implements `TaskIterator<Ready = SessionRecord, Pending =
-/// AgentProgress, Spawner = BoxedSendExecutionAction>`. The outer loop
+/// AgentProgress>`. The outer loop
 /// drains `SteeringQueues` for follow-up messages; the inner loop runs
 /// model generation, tool execution, and output processing until the model
 /// stops requesting tool calls or a guard (budget, iteration cap, loop
@@ -633,7 +633,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_outer_boundary(
         &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         // A hard abort requested via `AgentSession::abort` (or `steer`'s Abort
         // code) terminates the turn at this boundary. Previously the Abort code
         // existed but nothing set it and the loop never read it — a stubbed
@@ -697,7 +697,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_inner_assemble(
         &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         // Honor a hard abort mid-turn (before starting another generation).
         if self.queues.is_aborted() {
             self.queues.reset_cancel();
@@ -815,7 +815,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_inner_generate(
         &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         // We need to take ownership of the state to pump the stream.
         let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
@@ -897,7 +897,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn on_generation_complete(
         &mut self,
         collected: &[Messages],
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         // Run loop detection (F17) synchronously on the model outputs.
         for msg in collected {
             if let Messages::Assistant { ref content, .. } = msg {
@@ -1149,7 +1149,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_inner_tool_calls(
         &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerToolCalls { calls } = previous else {
@@ -1200,7 +1200,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn transition_inner_executing(
         &mut self,
         ctx: Ctx,
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerExecuting {
@@ -1386,7 +1386,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_inner_emit_results(
         &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerEmitResults { results, idx } = previous else {
@@ -1430,7 +1430,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_output_processing(
         &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         // Fire memory triggers (F15) — check if observation/reflection needed.
         let action = self.memory.check_triggers();
         self.state = AgentLoopState::OuterBoundary;
@@ -1451,7 +1451,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_ending(
         &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         let snapshot = self.ledger.snapshot();
         let summary = SessionRecord::Summary {
             message_count: self.message_count,
@@ -1467,7 +1467,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     fn handle_error(
         &mut self,
         error: AgenticError,
-    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
         let action = self.policy.classify(error.clone());
         match action {
             AgentAction::Continue => TaskStatus::Ignore,
@@ -1575,9 +1575,8 @@ where
 {
     type Ready = SessionRecord;
     type Pending = AgentProgress;
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match &self.state {
             AgentLoopState::Initializing => {
                 self.state = AgentLoopState::OuterBoundary;

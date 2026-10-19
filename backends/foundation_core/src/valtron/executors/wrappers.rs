@@ -52,9 +52,8 @@ where
 {
     type Ready = T::Ready;
     type Pending = T::Pending;
-    type Spawner = T::Spawner;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.timed_out.is_some() {
             return None; // Task stops on timeout
         }
@@ -123,9 +122,8 @@ where
 {
     type Ready = T::Ready;
     type Pending = T::Pending;
-    type Spawner = T::Spawner;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current_polls >= self.max_polls {
             tracing::warn!("Task exceeded poll limit of {}", self.max_polls);
             return None;
@@ -240,9 +238,8 @@ where
 {
     type Ready = T::Ready;
     type Pending = T::Pending;
-    type Spawner = T::Spawner;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         // If we're in a delay, emit it
         if let Some(delay) = self.in_delay.take() {
             return Some(TaskStatus::Delayed(delay));
@@ -273,7 +270,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::valtron::NoAction;
 
     struct SimpleTask {
         values: Vec<i32>,
@@ -283,9 +279,8 @@ mod tests {
     impl TaskIterator for SimpleTask {
         type Ready = i32;
         type Pending = ();
-        type Spawner = NoAction;
 
-        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
             if self.index < self.values.len() {
                 let val = self.values[self.index];
                 self.index += 1;
@@ -311,12 +306,11 @@ mod tests {
         impl TaskIterator for SlowTask {
             type Ready = u32;
             type Pending = ();
-            type Spawner = NoAction;
-
+    
             fn next_status(
                 &mut self,
                 _ctx: Ctx,
-            ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
                 thread::sleep(Duration::from_millis(50));
                 self.count += 1;
                 if self.count < 100 {
@@ -352,12 +346,11 @@ mod tests {
         impl TaskIterator for InfiniteTask {
             type Ready = i32;
             type Pending = ();
-            type Spawner = NoAction;
-
+    
             fn next_status(
                 &mut self,
                 _ctx: Ctx,
-            ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
                 Some(TaskStatus::Pending(()))
             }
         }

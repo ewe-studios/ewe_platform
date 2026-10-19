@@ -22,7 +22,7 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::valtron::{Ctx, 
-    self, BoxedSendExecutionAction, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
+    self, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
     TryRecvError,
 };
 use foundation_netio::shared::http::{
@@ -349,9 +349,8 @@ impl H2Pump {
 impl TaskIterator for H2Pump {
     type Ready = ();
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         // Set non-blocking
         self.stream.set_nonblocking(true).ok();
 

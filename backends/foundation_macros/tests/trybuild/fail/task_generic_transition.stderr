@@ -1,0 +1,5 @@
+error: #[task] does not support generic transitions (yet)
+ --> tests/trybuild/fail/task_generic_transition.rs:5:11
+  |
+5 | fn generic<T>(ctx: Ctx, state: T) -> Option<(T, TaskStatus<u32, ()>)> {
+  |           ^^^

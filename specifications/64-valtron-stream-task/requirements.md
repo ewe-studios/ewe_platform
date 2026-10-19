@@ -1,6 +1,6 @@
 ---
 description: "Consolidate valtron's stream and task layers into one ordered arc: (1) stream cleanup — remove the dead ConcurrentQueue stream iterators and migrate ThreadedIterFuture off the mpp RecvIterator spin onto NotifyQueue; (2) stream wake — add the opt-in WakeableStream push-signal so the async bridge futures park on the queue_waker/QueueReadiness seam instead of self-wake busy-looping; (3) state task — give tasks an engine-seeded Ctx threaded through every poll and a #[valtron::task] macro that turns a state-transition function into a TaskIterator."
-status: "in-progress"
+status: "complete"
 priority: "high"
 created: 2026-10-18
 author: "Main Agent"
@@ -35,10 +35,10 @@ related_specs:
   - "specifications/33-valtron-singleton"
   - "specifications/50-valtron-async-readiness"
 features:
-  completed: 4
-  uncompleted: 3
+  completed: 7
+  uncompleted: 0
   total: 7
-  completion_percentage: 57
+  completion_percentage: 100
 ---
 
 # Overview
@@ -131,7 +131,7 @@ cleaned and made wake-capable *before* the larger state-task feature lands on to
 - `backends/foundation_core/src/valtron/executors/*` — poll sites + wrappers
   forward `ctx` (feature 05).
 - `backends/foundation_core/src/valtron/executors/state_task.rs` — `StateTask`,
-  `AsyncStateTask`, `TransitionPending` (feature 06).
+  `AsyncStateTask` (feature 06).
 - `backends/foundation_macros/src/state_task.rs` — `#[valtron::task]` (feature 06).
 
 # Known Issues
@@ -195,8 +195,8 @@ boundary and `Send`/`!Send` rules from `.agents/AGENTS.md`.
 | 2 | [WakeableStream capability](./features/02-wakeable-stream/feature.md) | `WakeableStream` trait + `WakeRegistry` + `NotifyQueue` firing + terminal/combinator/wrapper impls | None | ✅ Complete |
 | 3 | [Parking bridges](./features/03-bridge-park/feature.md) | Rewrite the four parking `stream_future.rs` bridges to require `WakeableStream`, park on `Successful`, fall back on `NotSupported`; audit cross-crate callers | 02 | ✅ Complete |
 | 4 | [Ctx](./features/04-ctx/feature.md) | `Ctx = Arc<CtxInner>`; interior-mutable type map + engine-seeded standard elements | None | ✅ Complete |
-| 5 | [Thread Ctx](./features/05-thread-ctx/feature.md) | `next_status(&mut self, ctx: Ctx)` + `next(…, ctx: Ctx)`; executor owns + clones; update all impls | 04 | ⬜ Pending |
-| 6 | [State task macro](./features/06-state-task/feature.md) | `StateTask`/`AsyncStateTask`/`TransitionPending` + `#[valtron::task]` | 05 | ⬜ Pending |
+| 5 | [Thread Ctx](./features/05-thread-ctx/feature.md) | `next_status(&mut self, ctx: Ctx)` + `next(…, ctx: Ctx)`; executor owns + clones; update all impls | 04 | ✅ Complete |
+| 6 | [State task macro](./features/06-state-task/feature.md) | `StateTask`/`AsyncStateTask` + `#[valtron::task]` | 05 | ✅ Complete |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
@@ -291,10 +291,12 @@ chain internally). See `start.md`.
   clones dropped); accessors return `Arc<T>`, not `&T`. **Decision (standard set):**
   clock + config + RNG in the first cut; deadline/cancellation and tracing span are
   candidates but not yet in scope.
-- **Termination via `Option`.** The transition returns `Option<(T, TaskStatus<R,P,S>)>`;
+- **Termination via `Option`.** The transition returns `Option<(T, TaskStatus<R,P>)>`;
   `None` = finished.
 - **Struct name == function name.** `fn build_house` → `struct build_house`
-  (separate value/type namespaces; `#[allow(non_camel_case_types)]`).
+  (separate value/type namespaces; `#[allow(non_camel_case_types)]`). The struct
+  is **braced**, not a tuple struct — a tuple struct would introduce a
+  value-namespace constructor `build_house(..)` that collides with the `fn`.
 
 # High-Level Architecture
 
@@ -325,7 +327,7 @@ graph TD
   the wake signal originates at `NotifyQueue::push`/`close` and lands in the bridges.
 - `Ctx` is threaded by value down `ExecutionIterator::next` →
   `TaskIterator::next_status`; the `#[valtron::task]` transition is
-  `fn(ctx: Ctx, state: T) -> Option<(T, TaskStatus<R,P,S>)>`.
+  `fn(ctx: Ctx, state: T) -> Option<(T, TaskStatus<R,P>)>`.
 
 # Success Criteria (Spec-Wide)
 
@@ -370,7 +372,8 @@ graph TD
   changing the `Stream` enum or `StreamIterator` item type.
 - A non-`Send` `Ctx`/`T` (for `Rc`/`JsFuture` entries). Deferred.
 - Yielding intermediate statuses from *inside* an async transition (async generators
-  are unstable); the async core synthesizes `TransitionPending::Awaiting`.
+  are unstable); the async core synthesizes `TaskStatus::Ignore` for the self-wake
+  "still in flight" case.
 - Deadline/cancellation and tracing-span standard elements (candidates only).
 - Removing the dormant `CloneableExecutionIterator`/`CanCloneExecutionIterator`
   cluster in `task.rs` — tracked separately.

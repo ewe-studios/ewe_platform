@@ -51,6 +51,5 @@ pub type HttpExchangeClientTask = Box<
     dyn foundation_core::valtron::TaskIterator<
             Ready = HttpExchange,
             Pending = HttpExchangePending,
-            Spawner = foundation_core::valtron::BoxedSendExecutionAction,
         > + Send,
 >;

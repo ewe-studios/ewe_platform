@@ -17,7 +17,7 @@ use std::{
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
     valtron::{
-        AnyResult, Ctx, EventReadinessPtr, ExecutionEngine, ExecutionIterator, NoAction, State,
+        AnyResult, Ctx, EventReadinessPtr, ExecutionEngine, ExecutionIterator, State,
         TaskIterator, TaskStatus,
     },
 };
@@ -36,7 +36,7 @@ use crate::compati::Mutex;
 use crate::valtron::{WakeCallback, WakeRegistry, WakeResult, WakeableStream};
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction, ExecutorError, GlobalTask,
+    BoxedExecutionEngine, BoxedExecutionIterator, ExecutorError, GlobalTask,
     ProcessController, SharedTaskQueue, SpawnInfo, SpawnType, TaskReadyResolver, TaskSpawnConfig,
 };
 
@@ -70,9 +70,8 @@ where
 {
     type Pending = ();
     type Ready = T;
-    type Spawner = NoAction;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.iter.next().map(TaskStatus::Ready)
     }
 }
@@ -2827,17 +2826,16 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 // --- Access Methods run once
 
 /// `typed_task` allows you to create a task builder but requiring specific
-/// definitions for your `Task`, `Action` and `Resolver` types.
+/// definitions for your `Task` and `Resolver` types.
 #[must_use]
-pub fn typed_task<Task, Action, Resolver>(
+pub fn typed_task<Task, Resolver>(
     engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<Task::Ready, Task::Pending, Task::Spawner, Resolver, Task>
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
 where
     Task::Ready: Send,
     Task::Pending: Send,
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Spawner = Action> + Send + 'static,
-    Resolver: TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static,
+    Task: TaskIterator + Send + 'static,
+    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + 'static,
 {
     TaskSpawnConfig::new(engine)
 }
@@ -2845,20 +2843,18 @@ where
 /// `any_task` allows you to create a task builder with less restrictive type
 /// requirements for the builder, specifically resolvers are Boxed.
 #[must_use]
-pub fn any_task<Task, Action>(
+pub fn any_task<Task>(
     engine: BoxedExecutionEngine,
 ) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
-    Task::Spawner,
-    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static>,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
     Task,
 >
 where
     Task::Ready: Send,
     Task::Pending: Send,
-    Task: TaskIterator<Spawner = Action> + Send + 'static,
-    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator + Send + 'static,
 {
     TaskSpawnConfig::new(engine)
 }
@@ -2867,20 +2863,18 @@ where
 /// task to the global queue instead of the local queue via the provided
 /// `ExecutionEngine`.
 #[must_use]
-pub fn send_any_task<Task, Action>(
+pub fn send_any_task<Task>(
     engine: BoxedExecutionEngine,
 ) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
-    Task::Spawner,
-    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
     Task,
 >
 where
     Task::Ready: Send,
     Task::Pending: Send,
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Spawner = Action> + Send + 'static,
+    Task: TaskIterator + Send + 'static,
 {
     TaskSpawnConfig::new(engine)
 }
@@ -2889,15 +2883,14 @@ where
 /// typed task to the global queue instead of the local queue via the provided
 /// `ExecutionEngine`.
 #[must_use]
-pub fn send_typed_task<Task, Action, Resolver>(
+pub fn send_typed_task<Task, Resolver>(
     engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<Task::Ready, Task::Pending, Task::Spawner, Resolver, Task>
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
-    Task: TaskIterator<Spawner = Action> + Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Resolver: TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static,
+    Task: TaskIterator + Send + 'static,
+    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static,
 {
     TaskSpawnConfig::new(engine)
 }

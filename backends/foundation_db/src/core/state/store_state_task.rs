@@ -239,10 +239,9 @@ where
 {
     type Ready = Result<D, ProviderError<E>>;
     type Pending = StoreStatePending<P>;
-    type Spawner = Inner::Spawner;
 
     #[allow(clippy::missing_panics_doc, clippy::too_many_lines)]
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.state.take()? {
             StoreStatePrecomputed::Inner {
                 mut inner,
@@ -548,10 +547,9 @@ where
 {
     type Ready = Result<O, ProviderError<E>>;
     type Pending = StoreStatePending<P>;
-    type Spawner = Inner::Spawner;
 
     #[allow(clippy::missing_panics_doc, clippy::too_many_lines)]
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.state.take()? {
             StoreStateIdentifierInner::Inner {
                 mut inner,

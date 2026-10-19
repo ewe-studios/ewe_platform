@@ -89,7 +89,7 @@ Tasks in Valtron are a custom iterator and in another sense can also become regu
 
 ```rust
 use foundation_core::{
-    valtron::{FnReady, NoSpawner, TaskIterator},
+    valtron::{FnReady, TaskIterator},
 };
 
 struct Counter(usize, usize);
@@ -110,14 +110,9 @@ impl TaskIterator for Counter {
     /// it can be returend as many times as possible.
     type Ready = usize;
 
-    /// Spawner provides us a way to declare a type that
-    /// if returned is provided an handle to the executor
-    /// to spawn sub-tasks that are related to this task.
-    type Spawner = NoSpawner;
-
     fn next(
         &mut self,
-    ) -> Option<crate::valtron::TaskStatus<Self::Done, Self::Pending, Self::Spawner>> {
+    ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending>> {
         let current = self.0;
         let next = current + 1;
 
@@ -281,7 +276,7 @@ use tracing_test::traced_test;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
-    FnReady, NoSpawner, TaskIterator,
+    FnReady, TaskIterator,
 };
 
 struct Counter(usize, Rc<RefCell<Vec<usize>>>);
@@ -297,11 +292,9 @@ impl TaskIterator for Counter {
 
     type Ready = usize;
 
-    type Spawner = NoSpawner;
-
     fn next_status(
         &mut self,
-    ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending>> {
         let item_size = self.1.borrow().len();
 
         if item_size == self.0 {
@@ -417,7 +410,7 @@ Valtron provides two parallel implementations of `StreamIteratorExt` (the combin
 | `multi` | `D: Send + 'static, P: Send + 'static` | `extensions/streams/sendable.rs` | Required |
 | `not(multi)` | `D: 'static, P: 'static` | `extensions/streams/non_sendable.rs` | Not required |
 
-The blanket `StreamIterator` impl is cfg-gated to match: on `multi` it requires `Send` bounds, on non-`multi` (wasm32, single-threaded native) it only requires `'static`. This means `DrivenStreamIterator<FutureTask<F>>` — which produces `Result<T, E>` and `FuturePollState` (neither `Send` on wasm32) — correctly implements `StreamIterator` on the non-`multi` path and gets access to `StreamIteratorExt` combinators.
+The blanket `StreamIterator` impl is cfg-gated to match: on `multi` it requires `Send` bounds, on non-`multi` (wasm32, single-threaded native) it only requires `'static`. This means `DrivenStreamIterator<FutureTask<F>>` — whose `Ready` is `Result<T, E>` (not `Send` when `T`/`E` aren't) and whose `Pending` is `()` — correctly implements `StreamIterator` on the non-`multi` path and gets access to `StreamIteratorExt` combinators.
 
 ### What this means for downstream code
 
@@ -452,9 +445,9 @@ The `multi` executor runs tasks on background worker threads, so all task output
 
 ```rust
 // Any Iterator<TaskStatus<...>> automatically implements TaskIterator
-impl<I, D, P, S> TaskIterator for I
+impl<I, D, P> TaskIterator for I
 where
-    I: Iterator<Item = TaskStatus<D, P, S>>,
+    I: Iterator<Item = TaskStatus<D, P>>,
     ...
 ```
 
@@ -467,7 +460,7 @@ pub struct BadWrapper<I: TaskIterator> {
 }
 
 impl<I: TaskIterator> Iterator for BadWrapper<I> {
-    type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
+    type Item = TaskStatus<I::Ready, I::Pending>;
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next_status() // Calls Iterator::next() due to blanket impl
         // Which calls next_status() again... infinite loop!
@@ -493,10 +486,9 @@ pub struct GoodWrapper<I: TaskIterator> {
 impl<I: TaskIterator> TaskIterator for GoodWrapper<I> {
     type Ready = I::Ready;
     type Pending = I::Pending;
-    type Spawner = I::Spawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        self.inner.next_status() // Direct delegation, no recursion
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        self.inner.next_status(ctx) // Direct delegation, no recursion
     }
 }
 ```

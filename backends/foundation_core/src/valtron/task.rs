@@ -341,8 +341,7 @@ impl<D: PartialEq, P: PartialEq> PartialEq for TaskSpread<D, P> {
 }
 
 /// completed and delivered from the iterator.
-#[derive(Clone)]
-pub enum TaskStatus<D, P, S: ExecutionAction> {
+pub enum TaskStatus<D, P> {
     /// Allows a task status to communicate a delay
     /// to continued operation.
     Delayed(time::Duration),
@@ -352,7 +351,13 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// priority on the same thread or be handled
     /// by an open thread from the global task queue
     /// when there is any available to process work
-    Spawn(S),
+    ///
+    /// The action is boxed — `Send + 'static` under `multi`, the plain
+    /// non-`Send` box otherwise — so no concrete spawner type is threaded.
+    #[cfg(feature = "multi")]
+    Spawn(BoxedSendExecutionAction),
+    #[cfg(not(feature = "multi"))]
+    Spawn(BoxedExecutionAction),
 
     /// Pending is a state indicative of the status
     /// of still awaiting the readiness of some operations
@@ -395,8 +400,8 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     Depends(EventReadinessPtr),
 }
 
-impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
-    fn from(val: TaskStatus<D, P, S>) -> Self {
+impl<D, P> From<TaskStatus<D, P>> for Stream<D, P> {
+    fn from(val: TaskStatus<D, P>) -> Self {
         match val {
             TaskStatus::Init => Stream::Init,
             TaskStatus::Spawn(_) => Stream::Ignore,
@@ -419,9 +424,9 @@ impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
     }
 }
 
-impl<D: PartialEq, P: PartialEq, S: ExecutionAction> Eq for TaskStatus<D, P, S> {}
+impl<D: PartialEq, P: PartialEq> Eq for TaskStatus<D, P> {}
 
-impl<D: PartialEq, P: PartialEq, S: ExecutionAction> PartialEq for TaskStatus<D, P, S> {
+impl<D: PartialEq, P: PartialEq> PartialEq for TaskStatus<D, P> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (TaskStatus::Delayed(me), TaskStatus::Delayed(them)) => me == them,
@@ -438,9 +443,7 @@ impl<D: PartialEq, P: PartialEq, S: ExecutionAction> PartialEq for TaskStatus<D,
     }
 }
 
-impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Display
-    for TaskStatus<D, P, S>
-{
+impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Display for TaskStatus<D, P> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[allow(unused)]
         #[derive(Debug)]
@@ -472,9 +475,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Di
     }
 }
 
-impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Debug
-    for TaskStatus<D, P, S>
-{
+impl<D: core::fmt::Debug, P: core::fmt::Debug> core::fmt::Debug for TaskStatus<D, P> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[allow(unused)]
         #[derive(Debug)]
@@ -509,10 +510,10 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
 /// `AsTaskIterator` represents a type for an iterator with
 /// the underlying output of the iterator to be `TaskStatus`
 /// and it's relevant semantics.
-pub type AsTaskIterator<D, P, S> = dyn Iterator<Item = TaskStatus<D, P, S>>;
+pub type AsTaskIterator<D, P> = dyn Iterator<Item = TaskStatus<D, P>>;
 
 /// `BoxedTaskIterator` provides a Boxed (heap-allocated) Iterator based on a `TaskIterator`.
-pub type BoxedTaskIterator<D, P, S> = Box<dyn Iterator<Item = TaskStatus<D, P, S>>>;
+pub type BoxedTaskIterator<D, P> = Box<dyn Iterator<Item = TaskStatus<D, P>>>;
 
 /// `TaskIterator` is an iterator engineered around the concept of asynchronouse
 /// task that have 3 states: PENDING, INIT (Initializing) and READY.
@@ -543,13 +544,8 @@ pub trait TaskIterator {
     /// time that is actual data.
     type Ready;
 
-    /// Spawner provides us a way to declare a type that
-    /// if returned is provided an handle to the executor
-    /// to spawn sub-tasks that are related to this task.
-    type Spawner: ExecutionAction;
-
     /// Advances the iterator and returns the next value.
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>>;
 
     /// Wraps this task in the contextual orchestrator, [`TaskAsIterator`], seeding
     /// it with `ctx`.
@@ -561,12 +557,11 @@ pub trait TaskIterator {
     /// on the task itself via [`TaskIteratorExt`] before calling `with_ctx`, since
     /// they only forward `ctx` through `next_status` at drive time rather than
     /// needing a ctx of their own.
-    fn with_ctx(self, ctx: Ctx) -> TaskAsIterator<Self::Ready, Self::Pending, Self::Spawner>
+    fn with_ctx(self, ctx: Ctx) -> TaskAsIterator<Self::Ready, Self::Pending>
     where
         Self: Sized + 'static,
         Self::Ready: 'static,
         Self::Pending: 'static,
-        Self::Spawner: ExecutionAction + 'static,
     {
         TaskAsIterator::from_impl(self, ctx)
     }
@@ -594,9 +589,8 @@ pub struct TaskIter<T: TaskIterator>(pub T);
 impl<T: TaskIterator> TaskIterator for TaskIter<T> {
     type Ready = T::Ready;
     type Pending = T::Pending;
-    type Spawner = T::Spawner;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.0.next_status(ctx)
     }
 }
@@ -604,26 +598,20 @@ impl<T: TaskIterator> TaskIterator for TaskIter<T> {
 // Boxed trait objects keep the `TaskIterator` surface so they stay usable with
 // `TaskIteratorExt` combinators (e.g. returning `impl TaskIterator + Send`).
 // The inner `dyn TaskIterator` forwards its `ctx` by value.
-impl<D: 'static, P: 'static, S: ExecutionAction + 'static> TaskIterator
-    for Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>
-{
+impl<D: 'static, P: 'static> TaskIterator for Box<dyn TaskIterator<Ready = D, Pending = P>> {
     type Ready = D;
     type Pending = P;
-    type Spawner = S;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         (**self).next_status(ctx)
     }
 }
 
-impl<D: 'static, P: 'static, S: ExecutionAction + 'static> TaskIterator
-    for Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S> + Send>
-{
+impl<D: 'static, P: 'static> TaskIterator for Box<dyn TaskIterator<Ready = D, Pending = P> + Send> {
     type Ready = D;
     type Pending = P;
-    type Spawner = S;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         (**self).next_status(ctx)
     }
 }
@@ -634,24 +622,21 @@ impl<D: 'static, P: 'static, S: ExecutionAction + 'static> TaskIterator
 // surface is `StreamIterator`, so callers never bridge from a raw `Iterator`
 // into `TaskIterator` implicitly.
 
-pub struct TaskAsIterator<D, P, S>(Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>, Ctx);
+pub struct TaskAsIterator<D, P>(Box<dyn TaskIterator<Ready = D, Pending = P>>, Ctx);
 
-impl<D, P, S> TaskAsIterator<D, P, S> {
-    pub fn from_impl(
-        t: impl TaskIterator<Ready = D, Pending = P, Spawner = S> + 'static,
-        ctx: Ctx,
-    ) -> Self {
+impl<D, P> TaskAsIterator<D, P> {
+    pub fn from_impl(t: impl TaskIterator<Ready = D, Pending = P> + 'static, ctx: Ctx) -> Self {
         Self(Box::new(t), ctx)
     }
 
     #[must_use]
-    pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>, ctx: Ctx) -> Self {
+    pub fn new(t: Box<dyn TaskIterator<Ready = D, Pending = P>>, ctx: Ctx) -> Self {
         Self(t, ctx)
     }
 }
 
-impl<D: 'static, P: 'static, S: ExecutionAction + 'static> Iterator for TaskAsIterator<D, P, S> {
-    type Item = TaskStatus<D, P, S>;
+impl<D: 'static, P: 'static> Iterator for TaskAsIterator<D, P> {
+    type Item = TaskStatus<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next_status(self.1.clone())
@@ -662,7 +647,7 @@ impl<D: 'static, P: 'static, S: ExecutionAction + 'static> Iterator for TaskAsIt
 ///
 /// These drive the wrapped task to completion, always threading the `ctx` this
 /// orchestrator was seeded with — never minting a fresh `Ctx::new()`.
-impl<D: 'static, P: 'static, S: ExecutionAction + 'static> TaskAsIterator<D, P, S> {
+impl<D: 'static, P: 'static> TaskAsIterator<D, P> {
     /// Drives the task, returning the first `Ready` value (if any).
     pub fn first_ready(mut self) -> Option<D> {
         while let Some(status) = self.0.next_status(self.1.clone()) {
@@ -1165,8 +1150,6 @@ where
     }
 }
 
-pub type NoSpawner = NoAction;
-
 #[derive(Default, Clone, Debug)]
 pub struct NoAction;
 
@@ -1181,9 +1164,9 @@ impl ExecutionAction for NoAction {
     }
 }
 
-pub type BoxedTaskReadyResolver<S, D, P> = Box<dyn TaskReadyResolver<S, D, P>>;
+pub type BoxedTaskReadyResolver<D, P> = Box<dyn TaskReadyResolver<D, P>>;
 
-pub type BoxedSendTaskReadyResolver<S, D, P> = Box<dyn TaskReadyResolver<S, D, P> + Send + 'static>;
+pub type BoxedSendTaskReadyResolver<D, P> = Box<dyn TaskReadyResolver<D, P> + Send + 'static>;
 
 /// `TaskResolver` are types implementing this trait to
 /// perform final resolution of a task when the task emits
@@ -1194,133 +1177,109 @@ pub type BoxedSendTaskReadyResolver<S, D, P> = Box<dyn TaskReadyResolver<S, D, P
 /// not care about the varying states of a `TaskIterator`
 /// but about the final state of the task when it signals
 /// it's readiness via the `TaskStatus::Ready` state.
-pub trait TaskReadyResolver<S: ExecutionAction, D, P> {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine);
+pub trait TaskReadyResolver<D, P> {
+    fn handle(&self, item: TaskStatus<D, P>, engine: BoxedExecutionEngine);
 }
 
-pub trait IntoBoxedSendTaskReadyResolver<S: ExecutionAction, D, P> {
-    fn into_box_send_task_ready_resolver(
-        self,
-    ) -> Box<dyn TaskReadyResolver<S, D, P> + Send + 'static>;
+pub trait IntoBoxedSendTaskReadyResolver<D, P> {
+    fn into_box_send_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static>;
 }
 
-impl<F, S, D, P> IntoBoxedSendTaskReadyResolver<S, D, P> for F
+impl<F, D, P> IntoBoxedSendTaskReadyResolver<D, P> for F
 where
-    S: ExecutionAction,
-    F: TaskReadyResolver<S, D, P> + Send + 'static,
+    F: TaskReadyResolver<D, P> + Send + 'static,
 {
-    fn into_box_send_task_ready_resolver(
-        self,
-    ) -> Box<dyn TaskReadyResolver<S, D, P> + Send + 'static> {
+    fn into_box_send_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static> {
         Box::new(self)
     }
 }
 
-pub trait IntoBoxedTaskReadyResolver<S: ExecutionAction, D, P> {
-    fn into_box_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<S, D, P>>;
+pub trait IntoBoxedTaskReadyResolver<D, P> {
+    fn into_box_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P>>;
 }
 
-impl<F, S, D, P> IntoBoxedTaskReadyResolver<S, D, P> for F
+impl<F, D, P> IntoBoxedTaskReadyResolver<D, P> for F
 where
-    S: ExecutionAction,
-    F: TaskReadyResolver<S, D, P> + Send + 'static,
+    F: TaskReadyResolver<D, P> + Send + 'static,
 {
-    fn into_box_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<S, D, P>> {
+    fn into_box_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P>> {
         Box::new(self)
     }
 }
 
-pub type NoResolver<Action, Done, Pending> = NoResolving<Action, Done, Pending>;
+pub type NoResolver<Done, Pending> = NoResolving<Done, Pending>;
 
-pub type NoResolverAndSpawner<Done, Pending> = NoResolving<NoSpawner, Done, Pending>;
+pub struct NoResolving<Done, Pending>(PhantomData<(Done, Pending)>);
 
-pub struct NoResolving<Action: ExecutionAction, Done, Pending>(
-    PhantomData<(Action, Done, Pending)>,
-);
-
-impl<Action, Done, Pending> NoResolving<Action, Done, Pending>
-where
-    Action: ExecutionAction,
-{
+impl<Done, Pending> NoResolving<Done, Pending> {
     #[must_use]
     pub fn new() -> Self {
         Self(PhantomData)
     }
 }
 
-impl<Action, Done, Pending> Default for NoResolving<Action, Done, Pending>
-where
-    Action: ExecutionAction,
-{
+impl<Done, Pending> Default for NoResolving<Done, Pending> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<Action, Done, Pending> TaskReadyResolver<Action, Done, Pending>
-    for NoResolving<Action, Done, Pending>
-where
-    Action: ExecutionAction,
-{
-    fn handle(&self, _item: TaskStatus<Done, Pending, Action>, _engine: BoxedExecutionEngine) {
+impl<Done, Pending> TaskReadyResolver<Done, Pending> for NoResolving<Done, Pending> {
+    fn handle(&self, _item: TaskStatus<Done, Pending>, _engine: BoxedExecutionEngine) {
         // do nothing
     }
 }
 
 #[allow(clippy::needless_lifetimes)]
-impl<'a, F, S, D, P> TaskReadyResolver<S, D, P> for &'a mut F
+impl<'a, F, D, P> TaskReadyResolver<D, P> for &'a mut F
 where
-    S: ExecutionAction,
-    F: TaskReadyResolver<S, D, P>,
+    F: TaskReadyResolver<D, P>,
 {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
+    fn handle(&self, item: TaskStatus<D, P>, engine: BoxedExecutionEngine) {
         (**self).handle(item, engine);
     }
 }
 
-impl<F, S, D, P> TaskReadyResolver<S, D, P> for Box<F>
+impl<F, D, P> TaskReadyResolver<D, P> for Box<F>
 where
-    S: ExecutionAction,
-    F: TaskReadyResolver<S, D, P> + ?Sized,
+    F: TaskReadyResolver<D, P> + ?Sized,
 {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
+    fn handle(&self, item: TaskStatus<D, P>, engine: BoxedExecutionEngine) {
         (**self).handle(item, engine);
     }
 }
 
-pub struct FnMutReady<F, S>(cell::RefCell<F>, PhantomData<S>);
+pub struct FnMutReady<F>(cell::RefCell<F>);
 
-impl<F, S> FnMutReady<F, S> {
+impl<F> FnMutReady<F> {
     pub fn new(f: F) -> Self {
-        Self(cell::RefCell::new(f), PhantomData)
+        Self(cell::RefCell::new(f))
     }
 }
 
-impl<F, S, D, P> TaskReadyResolver<S, D, P> for FnMutReady<F, S>
+impl<F, D, P> TaskReadyResolver<D, P> for FnMutReady<F>
 where
-    S: ExecutionAction,
-    F: FnMut(TaskStatus<D, P, S>, BoxedExecutionEngine),
+    F: FnMut(TaskStatus<D, P>, BoxedExecutionEngine),
 {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
+    fn handle(&self, item: TaskStatus<D, P>, engine: BoxedExecutionEngine) {
         let mut mut_fn = self.0.borrow_mut();
         (mut_fn)(item, engine);
     }
 }
 
-pub struct FnReady<F, S>(F, PhantomData<S>);
+pub struct FnReady<F>(F);
 
-impl<F, S> FnReady<F, S> {
+impl<F> FnReady<F> {
     pub fn new(f: F) -> Self {
-        Self(f, PhantomData)
+        Self(f)
     }
 }
 
-impl<F, S, D, P> TaskReadyResolver<S, D, P> for FnReady<F, S>
+impl<F, D, P> TaskReadyResolver<D, P> for FnReady<F>
 where
-    S: ExecutionAction,
-    F: Fn(TaskStatus<D, P, S>, BoxedExecutionEngine),
+    F: Fn(TaskStatus<D, P>, BoxedExecutionEngine),
 {
-    fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
+    fn handle(&self, item: TaskStatus<D, P>, engine: BoxedExecutionEngine) {
         self.0(item, engine);
     }
 }
@@ -1339,16 +1298,15 @@ where
 /// Usually yo use these types of iterator in instances where you control ownership
 /// of them and can retrieve them after whatever runs them (calling their next)
 /// consider it finished.
-pub struct OnceCache<D, P, S: ExecutionAction, T: Iterator<Item = TaskStatus<D, P, S>>> {
+pub struct OnceCache<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
     iter: T,
     used: Option<()>,
-    cache: Option<TaskStatus<D, P, S>>,
+    cache: Option<TaskStatus<D, P>>,
 }
 
-impl<D, P, S, T> OnceCache<D, P, S, T>
+impl<D, P, T> OnceCache<D, P, T>
 where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
+    T: Iterator<Item = TaskStatus<D, P>>,
 {
     pub fn new(item: T) -> Self {
         Self {
@@ -1358,17 +1316,16 @@ where
         }
     }
 
-    pub fn take(&mut self) -> Option<TaskStatus<D, P, S>> {
+    pub fn take(&mut self) -> Option<TaskStatus<D, P>> {
         self.cache.take()
     }
 }
 
-impl<D, P, S, T> Iterator for OnceCache<D, P, S, T>
+impl<D, P, T> Iterator for OnceCache<D, P, T>
 where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
+    T: Iterator<Item = TaskStatus<D, P>>,
 {
-    type Item = TaskStatus<D, P, S>;
+    type Item = TaskStatus<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.used.is_some() {
@@ -1412,24 +1369,22 @@ impl<P> ReadyValue<P> {
     }
 }
 
-pub struct ReadyValues<D, P, S: ExecutionAction, T: Iterator<Item = TaskStatus<D, P, S>>> {
+pub struct ReadyValues<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
     iter: T,
 }
 
-impl<D, P, S, T> ReadyValues<D, P, S, T>
+impl<D, P, T> ReadyValues<D, P, T>
 where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
+    T: Iterator<Item = TaskStatus<D, P>>,
 {
     pub fn new(item: T) -> Self {
         Self { iter: item }
     }
 }
 
-impl<D, P, S, T> Iterator for ReadyValues<D, P, S, T>
+impl<D, P, T> Iterator for ReadyValues<D, P, T>
 where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
+    T: Iterator<Item = TaskStatus<D, P>>,
 {
     type Item = ReadyValue<D>;
 
@@ -1465,15 +1420,14 @@ where
 /// of them and can retrieve them after whatever runs them (calling their next)
 /// consider it finished for one that inverts this behaviour i.e yielding the
 /// next value then being unusable till it's reset for reuse, see `UntilReset`.
-pub struct UntilTake<D, P, S: ExecutionAction, T: Iterator<Item = TaskStatus<D, P, S>>> {
+pub struct UntilTake<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
     iter: T,
-    next: Option<TaskStatus<D, P, S>>,
+    next: Option<TaskStatus<D, P>>,
 }
 
-impl<D, P, S, T> UntilTake<D, P, S, T>
+impl<D, P, T> UntilTake<D, P, T>
 where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
+    T: Iterator<Item = TaskStatus<D, P>>,
 {
     pub fn new(item: T) -> Self {
         Self {
@@ -1482,17 +1436,16 @@ where
         }
     }
 
-    pub fn take(&mut self) -> Option<TaskStatus<D, P, S>> {
+    pub fn take(&mut self) -> Option<TaskStatus<D, P>> {
         self.next.take()
     }
 }
 
-impl<D, P, S, T> Iterator for UntilTake<D, P, S, T>
+impl<D, P, T> Iterator for UntilTake<D, P, T>
 where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
+    T: Iterator<Item = TaskStatus<D, P>>,
 {
-    type Item = TaskStatus<D, P, S>;
+    type Item = TaskStatus<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.next.is_some() {
@@ -1522,15 +1475,14 @@ where
 /// `UntilUnblocked` implements an iterator that yields the first received
 /// value from a owned iterator after which it becomes blocked until
 /// you call `UntilUnblocked::reset` method to be reusable again.
-pub struct UntilUnblocked<D, P, S: ExecutionAction, T: Iterator<Item = TaskStatus<D, P, S>>> {
+pub struct UntilUnblocked<D, P, T: Iterator<Item = TaskStatus<D, P>>> {
     iter: T,
     blocked: Option<()>,
 }
 
-impl<D, P, S, T> UntilUnblocked<D, P, S, T>
+impl<D, P, T> UntilUnblocked<D, P, T>
 where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
+    T: Iterator<Item = TaskStatus<D, P>>,
 {
     pub fn new(item: T) -> Self {
         Self {
@@ -1544,12 +1496,11 @@ where
     }
 }
 
-impl<D, P, S, T> Iterator for UntilUnblocked<D, P, S, T>
+impl<D, P, T> Iterator for UntilUnblocked<D, P, T>
 where
-    S: ExecutionAction,
-    T: Iterator<Item = TaskStatus<D, P, S>>,
+    T: Iterator<Item = TaskStatus<D, P>>,
 {
-    type Item = TaskStatus<D, P, S>;
+    type Item = TaskStatus<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.blocked.is_some() {
@@ -1577,13 +1528,11 @@ where
 mod test_task_iterator {
     use std::time;
 
-    use crate::valtron::NoAction;
-
     use super::*;
 
     #[test]
     fn vec_iterator_is_task_iterator() {
-        let tasks: Vec<TaskStatus<(), (), NoAction>> = vec![
+        let tasks: Vec<TaskStatus<(), ()>> = vec![
             TaskStatus::Delayed(time::Duration::from_secs(1)),
             TaskStatus::Pending(()),
             TaskStatus::Init,
@@ -1592,7 +1541,7 @@ mod test_task_iterator {
 
         let task_iterator = Box::new(tasks.into_iter());
 
-        let collected_tasks: Vec<TaskStatus<(), (), NoAction>> = task_iterator.collect();
+        let collected_tasks: Vec<TaskStatus<(), ()>> = task_iterator.collect();
         assert_eq!(
             collected_tasks,
             vec![
@@ -1643,11 +1592,11 @@ mod test_task_iterator {
 ///         }
 ///     });
 /// ```
-pub enum TaskShortCircuit<D, P, S: ExecutionAction> {
+pub enum TaskShortCircuit<D, P> {
     /// Continue iteration with the wrapped item
-    Continue(TaskStatus<D, P, S>),
+    Continue(TaskStatus<D, P>),
     /// Return this item and then stop iteration permanently
-    ReturnAndStop(TaskStatus<D, P, S>),
+    ReturnAndStop(TaskStatus<D, P>),
     /// Stop iteration without returning anything
     Stop,
 }

@@ -230,12 +230,11 @@ impl CounterTask {
 impl TaskIterator for CounterTask {
     type Ready = u32;
     type Pending = u32;
-    type Spawner = foundation_core::valtron::NoAction;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         println!("Count: {} {}", &self.current, self.ready_value);
         if self.current < self.ready_value {
             let res = Some(TaskStatus::Pending(self.current));
@@ -439,32 +438,26 @@ fn test_map_all_pending_and_done_state_inspection() {
 
 /// Test task for `split_collector` that produces known sequence
 struct SplitTestTask {
-    items: Vec<TaskStatus<u32, String, foundation_core::valtron::NoAction>>,
-    index: usize,
+    items: std::vec::IntoIter<TaskStatus<u32, String>>,
 }
 
 impl SplitTestTask {
-    fn new(items: Vec<TaskStatus<u32, String, foundation_core::valtron::NoAction>>) -> Self {
-        Self { items, index: 0 }
+    fn new(items: Vec<TaskStatus<u32, String>>) -> Self {
+        Self {
+            items: items.into_iter(),
+        }
     }
 }
 
 impl TaskIterator for SplitTestTask {
     type Ready = u32;
     type Pending = String;
-    type Spawner = foundation_core::valtron::NoAction;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if self.index < self.items.len() {
-            let item = self.items[self.index].clone();
-            self.index += 1;
-            Some(item)
-        } else {
-            None
-        }
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        self.items.next()
     }
 }
 

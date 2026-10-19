@@ -401,16 +401,15 @@ impl<T> SignalStream<T> {
 
 #[cfg(feature = "valtron")]
 mod valtron_impls {
-    use foundation_core::valtron::{Ctx, NoSpawner, TaskIterator, TaskStatus};
+    use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 
     use super::{PumpReport, SignalHub, SignalStream, TryRecvError};
 
     impl<T: Send + 'static> TaskIterator for SignalStream<T> {
         type Ready = T;
         type Pending = ();
-        type Spawner = NoSpawner;
 
-        fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<T, (), NoSpawner>> {
+        fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<T, ()>> {
             // Never blocks (project rule): empty queue is Pending.
             match self.rx.try_recv() {
                 Ok(value) => Some(TaskStatus::Ready(value)),
@@ -436,9 +435,8 @@ mod valtron_impls {
     impl TaskIterator for HubDriver {
         type Ready = PumpReport;
         type Pending = ();
-        type Spawner = NoSpawner;
 
-        fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<PumpReport, (), NoSpawner>> {
+        fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<PumpReport, ()>> {
             let report = self.hub.pump();
             if report.commands_applied > 0 {
                 Some(TaskStatus::Ready(report))

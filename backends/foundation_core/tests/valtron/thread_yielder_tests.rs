@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 use foundation_core::valtron::multi::get_num_threads;
 use foundation_core::valtron::{Ctx, 
     multi::{initialize_pool, spawn},
-    FnReady, NoSpawner, TaskIterator, TaskStatus,
+    FnReady, TaskIterator, TaskStatus,
 };
 
 /// Task that returns Delayed with a specific duration
@@ -26,9 +26,8 @@ struct DelayedTask {
 impl TaskIterator for DelayedTask {
     type Ready = ();
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.ran.fetch_add(1, Ordering::Relaxed);
         Some(TaskStatus::Delayed(self.delay))
     }
@@ -40,9 +39,8 @@ struct ImmediateTask;
 impl TaskIterator for ImmediateTask {
     type Ready = ();
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         Some(TaskStatus::Ready(()))
     }
 }

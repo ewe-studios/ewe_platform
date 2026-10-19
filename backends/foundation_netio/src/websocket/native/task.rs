@@ -22,7 +22,7 @@ use crate::shared::http::{
 };
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, PipeReceiver, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, PipeReceiver, TaskIterator, TaskStatus};
 
 use std::io::Write;
 use std::sync::Arc;
@@ -375,10 +375,9 @@ where
 {
     type Ready = Result<WebSocketMessage, WebSocketError>;
     type Pending = WebSocketProgress;
-    type Spawner = BoxedSendExecutionAction;
 
     #[allow(clippy::too_many_lines)]
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 
         match state {

@@ -13,37 +13,31 @@
 //! consume a backpressured broadcast.
 
 use foundation_core::valtron::{
-    Ctx, NoAction, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
+    Ctx, Stream, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
 };
 
 /// A finite task source yielding a scripted list of `TaskStatus` values.
 struct BroadcastTestTask {
-    items: Vec<TaskStatus<u32, String, NoAction>>,
-    index: usize,
+    items: std::vec::IntoIter<TaskStatus<u32, String>>,
 }
 
 impl BroadcastTestTask {
-    fn new(items: Vec<TaskStatus<u32, String, NoAction>>) -> Self {
-        Self { items, index: 0 }
+    fn new(items: Vec<TaskStatus<u32, String>>) -> Self {
+        Self {
+            items: items.into_iter(),
+        }
     }
 }
 
 impl TaskIterator for BroadcastTestTask {
     type Ready = u32;
     type Pending = String;
-    type Spawner = NoAction;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        if self.index < self.items.len() {
-            let item = self.items[self.index].clone();
-            self.index += 1;
-            Some(item)
-        } else {
-            None
-        }
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        self.items.next()
     }
 }
 
@@ -62,7 +56,7 @@ fn drive_lockstep<C, O>(
     drain: &[bool],
 ) -> (Vec<u32>, Vec<Vec<u32>>, bool)
 where
-    C: TaskIterator<Ready = u32, Pending = String, Spawner = NoAction>,
+    C: TaskIterator<Ready = u32, Pending = String>,
     O: Iterator<Item = Stream<u32, String>>,
 {
     let ctx = Ctx::new();

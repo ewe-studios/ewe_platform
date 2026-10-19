@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{Ctx, BoolSignal, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, BoolSignal, TaskIterator, TaskStatus};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::shared::http::{
     HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
@@ -250,7 +250,7 @@ impl ConnectionHandler {
 
     // ---- Idle state -------------------------------------------------------
 
-    fn handle_idle(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn handle_idle(&mut self) -> Option<TaskStatus<(), ()>> {
         // Drain checkpoint (Decision 12 §10): if the server is shutting down and
         // this connection is idle between requests, stop taking new keep-alive
         // requests and end the task. An in-flight request is never interrupted
@@ -381,7 +381,7 @@ impl ConnectionHandler {
     /// transport supports readiness wakeups, or `None` for a blocking transport
     /// (whose caller falls back to the delay/timeout path). The `TunnelDriver`
     /// flips the `BoolSignal` when the socket becomes readable.
-    fn park_on_read_waker(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    fn park_on_read_waker(&mut self) -> Option<TaskStatus<(), ()>> {
         let signal = BoolSignal::new(false);
         let flag = signal.clone_inner();
         let waker: foundation_netio::native::connection::ConnWaker =
@@ -401,7 +401,7 @@ impl ConnectionHandler {
         }
     }
 
-    fn maybe_delay_idle(&mut self) -> TaskStatus<(), (), BoxedSendExecutionAction> {
+    fn maybe_delay_idle(&mut self) -> TaskStatus<(), ()> {
         if self.idle_poll_count < self.escalation_threshold {
             tracing::trace!(
                 client_ip = %self.client_ip,
@@ -434,7 +434,7 @@ impl ConnectionHandler {
         req: SimpleIncomingRequest,
         should_close: bool,
         continue_retries: usize,
-    ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    ) -> Option<TaskStatus<(), ()>> {
         if Self::has_expect_continue(&req) {
             // Always send 100-continue then skip waiting for no body there.
             // If there's no body, skip WaitingForBody and go straight to Processing.
@@ -533,7 +533,7 @@ impl ConnectionHandler {
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
-    ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    ) -> Option<TaskStatus<(), ()>> {
         let next_attempt = attempt + 1;
 
         tracing::trace!(
@@ -581,7 +581,7 @@ impl ConnectionHandler {
         should_close: bool,
         attempt: usize,
         next_attempt: usize,
-    ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    ) -> Option<TaskStatus<(), ()>> {
         tracing::trace!(
             client_ip = %self.client_ip,
             attempt = attempt,
@@ -635,7 +635,7 @@ impl ConnectionHandler {
         &mut self,
         mut req: SimpleIncomingRequest,
         should_close: bool,
-    ) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+    ) -> Option<TaskStatus<(), ()>> {
         tracing::trace!(
             client_ip = %self.client_ip,
             method = %req.method,
@@ -794,9 +794,8 @@ impl ConnectionHandler {
 impl TaskIterator for ConnectionHandler {
     type Ready = ();
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 
         match state {

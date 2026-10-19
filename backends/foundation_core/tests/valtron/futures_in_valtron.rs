@@ -98,12 +98,10 @@ fn test_from_future_convenience() {
 // pattern): it stashed the waker and waits for an external event. `FutureTask`
 // returns `Depends` (park).
 
-use foundation_core::valtron::FuturePollState;
-
 /// WHY: A future that self-wakes (calls `wake_by_ref()` during poll) must produce
-///      `Pending(FuturePollState::Pending)`, NOT `Depends`. The self-wake says
-///      "re-poll me" — it is NOT waiting for an external event.
-/// WHAT: Self-wake during first poll → Pending. Second poll → Ready(42).
+///      `Ignore`, NOT `Depends`. The self-wake says "re-poll me" — it is NOT
+///      waiting for an external event.
+/// WHAT: Self-wake during first poll → Ignore. Second poll → Ready(42).
 #[test]
 fn test_self_wake_returns_pending_not_depends() {
     use core::future::Future;
@@ -131,13 +129,13 @@ fn test_self_wake_returns_pending_not_depends() {
 
     let mut task = FutureTask::new(SelfWakeThenReady { polled: false });
 
-    // Poll 1: self-wake → Pending (requeue), NOT Depends.
+    // Poll 1: self-wake → Ignore (requeue), NOT Depends.
     match task.next_status(ctx.clone()) {
-        Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
+        Some(TaskStatus::Ignore) => {}
         Some(TaskStatus::Depends(_)) => {
             panic!("self-wake must NOT return Depends — it is a requeue, not a park")
         }
-        other => panic!("expected Pending(FuturePollState::Pending), got {other:?}"),
+        other => panic!("expected Ignore, got {other:?}"),
     }
 
     // Poll 2: Ready.
@@ -172,7 +170,7 @@ fn test_pending_without_self_wake_returns_depends_not_ready() {
 }
 
 /// WHY: Stream-future bridges (like `StreamReadyFuture`) cycle through many
-///      self-wake → Pending → requeue rounds before producing data. None of these
+///      self-wake → Ignore → requeue rounds before producing data. None of these
 ///      rounds should return `Depends(already_ready)` or trigger the executor's
 ///      `DEPENDS_TRUE_PANIC_THRESHOLD`.
 /// WHAT: A future that self-wakes for N consecutive polls, then completes.
@@ -207,17 +205,17 @@ fn test_self_wake_loop_no_depends_violations() {
 
     for i in 0..CYCLES {
         match task.next_status(ctx.clone()) {
-            Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
+            Some(TaskStatus::Ignore) => {}
             Some(TaskStatus::Depends(s)) => {
                 panic!(
                     "cycle {i}/{CYCLES}: self-wake returned Depends (is_ready={}) — \
-                     should be Pending. Each self-wake poll produces a token that \
-                     FutureTask must detect and turn into Pending(None), not \
+                     should be Ignore. Each self-wake poll produces a token that \
+                     FutureTask must detect and turn into Ignore, not \
                      Depends(already_ready).",
                     s.is_ready(None)
                 );
             }
-            other => panic!("cycle {i}/{CYCLES}: expected Pending, got {other:?}"),
+            other => panic!("cycle {i}/{CYCLES}: expected Ignore, got {other:?}"),
         }
     }
 
@@ -232,7 +230,7 @@ fn test_self_wake_loop_no_depends_violations() {
 
 /// WHY: A future may alternate between self-wake (stream progress) and genuine
 ///      park (pipe data arrival). Both paths must coexist in one `FutureTask`.
-/// WHAT: Two self-wake polls → Pending. Then stash waker → Depends(not-ready).
+/// WHAT: Two self-wake polls → Ignore. Then stash waker → Depends(not-ready).
 ///       FutureTask handles the transition cleanly.
 #[test]
 fn test_mixed_self_wake_then_external_park() {
@@ -273,8 +271,8 @@ fn test_mixed_self_wake_then_external_park() {
 
     let mut task = FutureTask::new(MixedFuture { stage: 0 });
 
-    assert!(matches!(task.next_status(ctx.clone()), Some(TaskStatus::Pending(FuturePollState::Pending))));
-    assert!(matches!(task.next_status(ctx.clone()), Some(TaskStatus::Pending(FuturePollState::Pending))));
+    assert!(matches!(task.next_status(ctx.clone()), Some(TaskStatus::Ignore)));
+    assert!(matches!(task.next_status(ctx.clone()), Some(TaskStatus::Ignore)));
 
     // Third poll: no self-wake → Depends(not-ready).
     match task.next_status(ctx.clone()) {

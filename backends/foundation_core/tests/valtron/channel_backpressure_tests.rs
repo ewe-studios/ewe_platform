@@ -9,8 +9,8 @@ use std::time::Duration;
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{Ctx, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask};
 use foundation_core::valtron::{
-    ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotifyQueue,
-    PriorityOrder, NotificationItem,
+    ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor,
+    NotifyQueue, PriorityOrder, NotificationItem,
 };
 use foundation_core::{
     retries::ExponentialBackoffDecider,
@@ -296,18 +296,17 @@ fn test_executor_ready_iter_no_message_loss() {
 
 /// Minimal in-order task iterator for the split backpressure tests.
 struct SeqTask {
-    items: std::vec::IntoIter<TaskStatus<u32, String, foundation_core::valtron::NoAction>>,
+    items: std::vec::IntoIter<TaskStatus<u32, String>>,
 }
 
 impl TaskIterator for SeqTask {
     type Ready = u32;
     type Pending = String;
-    type Spawner = foundation_core::valtron::NoAction;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.next()
     }
 }

@@ -1232,7 +1232,6 @@ fn create_fetch_task<F>(
         dyn TaskIterator<
                 Ready = Vec<ModelEntry>,
                 Pending = FetchPending,
-                Spawner = foundation_core::valtron::BoxedSendExecutionAction,
             > + Send
             + 'static,
     >,

@@ -20,23 +20,21 @@ use crate::valtron::{
 use core::future::Future;
 
 #[allow(clippy::type_complexity)]
-pub struct InlineAction<Done, Pending, Action, Task>(
+pub struct InlineAction<Done, Pending, Task>(
     Option<(
         InlineActionBehaviour,
         Task,
-        Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+        Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
     )>,
 )
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>;
+    Task: TaskIterator<Pending = Pending, Ready = Done>;
 
-impl<Done, Pending, Action, Task> InlineAction<Done, Pending, Action, Task>
+impl<Done, Pending, Task> InlineAction<Done, Pending, Task>
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     pub fn new(
         behaviour: InlineActionBehaviour,
@@ -44,9 +42,9 @@ where
         wait_cycle: std::time::Duration,
     ) -> (
         Self,
-        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending>>,
     ) {
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
             Arc::new(NotifyQueue::unbounded());
         (
             Self(Some((behaviour, task, iter_chan.clone()))),
@@ -60,19 +58,18 @@ where
     pub fn from_parts(
         behaviour: InlineActionBehaviour,
         task: Task,
-        channel: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+        channel: Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
     ) -> Self {
         Self(Some((behaviour, task, channel)))
     }
 }
 
-impl<Done, Pending, Action, Task> ExecutionAction
-    for InlineAction<Done, Pending, Action, Task>
+impl<Done, Pending, Task> ExecutionAction
+    for InlineAction<Done, Pending, Task>
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     fn apply(
         &mut self,
@@ -193,7 +190,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     DrivenStreamIterator::new(incoming)
 }
@@ -205,13 +201,12 @@ where
 #[must_use]
 #[tracing::instrument(skip(incoming))]
 pub fn drive_receiver<T>(
-    incoming: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
+    incoming: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>,
 ) -> DrivenRecvIterator<T>
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     DrivenRecvIterator::new(incoming)
 }
@@ -227,7 +222,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     DrivenTaskIterator::new(incoming, ctx)
 }
@@ -237,19 +231,18 @@ where
 ///
 /// This is predominantly when you specifically do not want a Send action and receiver type.
 #[must_use]
-pub fn inlined_task<Done, Pending, Action, Task>(
+pub fn inlined_task<Done, Pending, Task>(
     behaviour: InlineActionBehaviour,
     task: Task,
     wait_cycle: std::time::Duration,
 ) -> (
-    InlineAction<Done, Pending, Action, Task>,
+    InlineAction<Done, Pending, Task>,
     DrivenRecvIterator<Task>,
 )
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle);
     (task_action, drive_receiver(task_receiver))
@@ -348,7 +341,7 @@ pub fn cancel_signal() -> std::sync::Arc<core::sync::atomic::AtomicBool> {
 ///
 /// Returns `(stream, cancel_signal)` — the caller keeps the signal
 /// and sets it to `true` to cancel the in-flight future. The stream
-/// yields `Stream<Result<F::Output, CancelOutcome>, FuturePollState>`.
+/// yields `Stream<Result<F::Output, CancelOutcome>, ()>`.
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub fn drive_cancellable_future<F>(
     future: F,
@@ -452,7 +445,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     use super::single;
 
@@ -504,7 +496,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     use super::single;
 
@@ -578,7 +569,6 @@ where
 /// - `T: TaskIterator  + 'static`
 /// - `T::Ready:'static`
 /// - `T::Pending:'static`
-/// - `T::Spawner: ExecutionAction  + 'static`
 ///
 /// WHY: Provides single API that works across all platforms/configurations.
 /// WHAT: Auto-selects executor based on compile-time configuration and returns a
@@ -591,7 +581,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     use super::single;
     use crate::valtron::executors::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION};
@@ -681,7 +670,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     use crate::valtron::{drive_receiver, single};
 
@@ -727,7 +715,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     let stream = execute(task, None)?;
     collect_one(stream).ok_or_else(|| "sync_collect_one: stream produced no result".into())
@@ -761,7 +748,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     let stream = execute(task, None)?;
     Ok(collect_result(stream))
@@ -796,7 +782,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     if tasks.is_empty() {
         return Err("empty tasks not allowed".into());
@@ -864,7 +849,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     let streams: Vec<DrivenStreamIterator<T>> = tasks
         .into_iter()
@@ -964,15 +948,14 @@ pub fn run_until_ready_state() {
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 #[tracing::instrument(skip(stream, checker))]
 pub fn run_until_receiver_has_value<T, S>(
-    stream: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
+    stream: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>,
     #[allow(unused_variables)] checker: S,
-) -> NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>
+) -> NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>
 where
     S: Fn(ProgressIndicator) -> bool,
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     while stream.is_empty() {
         single::run_until(&checker);
@@ -996,7 +979,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     while stream.is_empty() && !stream.is_closed() {
         single::run_until(&checker);
@@ -1050,15 +1032,13 @@ pub struct DrivenStreamIterator<T>(Option<NotifyQueueStreamIterator<T::Ready, T:
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
-    T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static;
+    T::Pending: 'static;
 
 impl<T> DrivenStreamIterator<T>
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     #[must_use]
     pub fn new(task_iterator: NotifyQueueStreamIterator<T::Ready, T::Pending>) -> Self {
@@ -1091,7 +1071,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     type Item = Stream<T::Ready, T::Pending>;
 
@@ -1120,7 +1099,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         // Forward to the waking terminal held inside. If the inner has been
@@ -1139,15 +1117,13 @@ pub struct DrivenTaskIterator<T>(Option<T>, Ctx)
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
-    T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static;
+    T::Pending: 'static;
 
 impl<T> DrivenTaskIterator<T>
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     pub fn new(task_iterator: T, ctx: Ctx) -> Self {
         Self(Some(task_iterator), ctx)
@@ -1159,9 +1135,8 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
-    type Item = TaskStatus<T::Ready, T::Pending, T::Spawner>;
+    type Item = TaskStatus<T::Ready, T::Pending>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
@@ -1184,24 +1159,22 @@ where
 }
 
 pub struct DrivenRecvIterator<T>(
-    Option<NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>>,
+    Option<NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>>,
 )
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
-    T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static;
+    T::Pending: 'static;
 
 impl<T> DrivenRecvIterator<T>
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     #[must_use]
     pub fn new(
-        task_iterator: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
+        task_iterator: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>,
     ) -> Self {
         Self(Some(task_iterator))
     }
@@ -1212,9 +1185,8 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
-    type Item = TaskStatus<T::Ready, T::Pending, T::Spawner>;
+    type Item = TaskStatus<T::Ready, T::Pending>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
@@ -1253,7 +1225,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     sources: Vec<DrivenStreamIterator<T>>,
     collected: Vec<T::Ready>,
@@ -1266,7 +1237,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     /// Create a new `CollectAllTaskStream` from a vector of `DrivenStreamIterator`s.
     #[must_use]
@@ -1285,7 +1255,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     type Item = Stream<Vec<T::Ready>, usize>;
 
@@ -1366,7 +1335,6 @@ where
 //     T: TaskIterator +  'static,
 //     T::Ready:  'static,
 //     T::Pending:  'static,
-//     T::Spawner: ExecutionAction +  'static,
 // {
 //     type D = Vec<T::Ready>;
 //     type P = usize;
@@ -1608,7 +1576,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     let streams: Vec<DrivenStreamIterator<T>> = tasks
         .into_iter()
@@ -1628,7 +1595,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     sources: Vec<DrivenStreamIterator<T>>,
     mapper: F,
@@ -1642,7 +1608,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     /// Create a new `MapAllDoneStream` from sources and a mapper function.
     pub fn new(sources: Vec<DrivenStreamIterator<T>>, mapper: F) -> Self {
@@ -1662,7 +1627,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
     F: Fn(Vec<T::Ready>) -> O,
 {
     type Item = Stream<O, usize>;
@@ -1758,7 +1722,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
     F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> Vec<Stream<O, R>> + 'static,
 {
     let streams: Vec<DrivenStreamIterator<T>> = tasks
@@ -1792,7 +1755,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     sources: Vec<DrivenStreamIterator<T>>,
     mapper: F,
@@ -1805,7 +1767,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     /// Create a new `MapAllPendingAndDoneStream` from sources and a mapper.
     pub fn new(sources: Vec<DrivenStreamIterator<T>>, mapper: F) -> Self {
@@ -1823,7 +1784,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
     F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> Vec<Stream<O, R>>,
 {
     type Item = Stream<Vec<Stream<O, R>>, ()>;
@@ -1855,7 +1815,6 @@ where
 //     T: TaskIterator +  'static,
 //     T::Ready:  'static,
 //     T::Pending:  'static,
-//     T::Spawner: ExecutionAction +  'static,
 //     F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O +  'static,
 //     O:  'static,
 // {
@@ -1875,7 +1834,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     let streams: Vec<DrivenStreamIterator<T>> = tasks
         .into_iter()
@@ -1898,7 +1856,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     sources: Vec<DrivenStreamIterator<T>>,
     current_index: usize,
@@ -1910,7 +1867,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     /// Create a new `CollectNextFromAllStream` from a vector of `DrivenStreamIterator`s.
     #[must_use]
@@ -1928,7 +1884,6 @@ where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
 {
     type Item = Stream<T::Ready, usize>;
 

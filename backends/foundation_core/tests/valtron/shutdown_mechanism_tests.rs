@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 use foundation_core::valtron::{Ctx, 
     multi::spawn,
     valtron_test,
-    FnReady, NoSpawner, TaskIterator, TaskStatus,
+    FnReady, TaskIterator, TaskStatus,
 };
 /// Task that returns Ready a limited number of times then completes
 struct FiniteTask {
@@ -24,9 +24,8 @@ struct FiniteTask {
 impl TaskIterator for FiniteTask {
     type Ready = usize;
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.remaining == 0 {
             return None;
         }

@@ -13,6 +13,6 @@
 11. Delete `compacted.md` after commit.
 
 Build on `05-thread-ctx` (the `ctx: Ctx` signature is already in place). Add
-`StateTask` first, then `TransitionPending` + `map_pending`, then `AsyncStateTask`
-(reuse `FutureTask`'s wake_queue seam), then `#[valtron::task]` (reference
+`StateTask` first, then `AsyncStateTask` (reuse `FutureTask`'s wake_queue seam,
+self-wake via `TaskStatus::Ignore`), then `#[valtron::task]` (reference
 `foundation_macros/src/valtron_entry.rs` and `crate_paths.rs`).

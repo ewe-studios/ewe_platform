@@ -23,15 +23,13 @@ arc, organised around four coverage areas the user asked to nail down:
 4. **Area D — Gap analysis.** What is left to implement in this spec, and which
    test suites are currently missing or under-covered.
 
-> **SCOPE NOTE (read first).** Features `00-cleanup`, `01-migrate-recv-iterator`,
-> `02-wakeable-stream`, `03-bridge-park` and `04-ctx` are **landed** in
-> `foundation_core` (plus the follow-up `Spread`-drain fix, commit `8d5d53adb`).
-> `ThreadedIterFuture` now drives `NotifyQueue`/`NotifyRecvIterator` (feature 01).
-> Features `05-thread-ctx` and `06-state-task` are **spec-only** (no `Ctx`
-> threading or state-task macro in source). Area A and Area B are testable
-> **now**; Area C (Ctx-from-the-engine) is testable for the `Ctx` unit surface
-> after feature 04, and fully after features 05–06. Do not write Area C
-> threading/macro tests against the current tree — they will not compile.
+> **SCOPE NOTE (read first).** All features `00-cleanup` through `06-state-task`
+> are **landed** in `foundation_core` (plus the follow-up `Spread`-drain fix,
+> commit `8d5d53adb`). `ThreadedIterFuture` drives `NotifyQueue`/`NotifyRecvIterator`
+> (feature 01); `Ctx` landed (feature 04) and is threaded through
+> `TaskIterator::next_status(ctx)` (feature 05); `StateTask`/`AsyncStateTask` and
+> the `#[valtron::task]` macro landed (feature 06). Areas A, B and C are all
+> testable now.
 
 ---
 
@@ -53,14 +51,15 @@ stay consistent.
 - `StreamIter<S: StreamIterator>(pub S)` — the plain-iterator newtype entry
   point; its `WakeableStream` impl defaults to `NotSupported`.
 - `TaskIterator` (NOT `Iterator`) — `type Ready`, `type Pending`,
-  `type Spawner: ExecutionAction`, `fn next_status(&mut self) -> Option<TaskStatus<…>>`.
-  (Features 04–06 will change this signature to `next_status(&mut self, ctx: Ctx)`.)
-- `TaskStatus<D, P, S>` — `Delayed(time::Duration)`, `Spawn(S)`, `Pending(P)`,
+  `fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<…>>`.
+  (Feature 05 threaded `ctx: Ctx` by value into `next_status`.)
+- `TaskStatus<D, P>` — `Delayed(time::Duration)`, `Spawn(BoxedExecutionAction)`, `Pending(P)`,
   `Init`, `Ready(D)`, `Ignore`, `Wait`, `Spread(Vec<TaskSpread<D, P>>)`,
   `Depends(EventReadinessPtr)`.
 - `TaskSpread<D, P>` — `Pending(P) | Ready(D)` (note: `Ready`, not `Done`).
 - `ExecutionIterator` — `fn next(&mut self, parent_id: Entry, engine: BoxedExecutionEngine) -> Option<State>`.
-- `FuturePollState` — the `Pending`/self-wake classifier payload.
+- Self-wake ("still working, keep polling") is `TaskStatus::Ignore`; the
+  `FutureTask`/`StreamTask` `Pending` payload is `()`.
 
 **Wake capability (feature 02/03)**
 
@@ -149,8 +148,8 @@ A valtron task wraps `core::future::ready(v)`; the first `next_status()` returns
 
 **UCS-A2 — `from_future` over a self-waking async chain.**
 A hand-rolled future that self-wakes `N` times then completes is polled by
-`FutureTask` and must produce exactly `N` × `Pending(FuturePollState::Pending)`
-followed by one `Ready`, never a `Depends`. *Partially covered*
+`FutureTask` and must produce exactly `N` × `Ignore` (self-wake) followed by one
+`Ready`, never a `Depends`. *Partially covered*
 (`test_self_wake_loop_no_depends_violations`, N=20).
 
 **UCS-A3 — `from_future` over a stashing (event-driven) future.**
@@ -202,9 +201,8 @@ pool).
 
 ### A.4 Invariants to prove (Area A)
 
-- **I-A1 (classification).** `Pending(FuturePollState::Pending)` ⟺ the future
-  self-woke this poll; `Depends(_)` ⟺ it stashed and did not self-wake. No other
-  classification.
+- **I-A1 (classification).** `Ignore` ⟺ the future self-woke this poll;
+  `Depends(_)` ⟺ it stashed and did not self-wake. No other classification.
 - **I-A2 (no busy-poll on park).** When `wake` returns `Successful`, the bridge
   must not `cx.waker().wake_by_ref()` and re-enter the loop; it must park and be
   woken by the queue `push`/`close`.
@@ -231,20 +229,26 @@ never exercises a **real park**; it self-wakes. The genuine
 
 Enhancement: run the *same* task through `execute(…)` and await the bridge under
 tokio, smol, and valtron's own pool, asserting identical results. This proves the
-bridges are runtime-agnostic even on the parking path.
+bridges are runtime-agnostic even on the parking path. *Done — see
+`tests/valtron/cross_runtime.rs`.*
 
 ### B.2 Use-case stories (Area B)
 
 **UCS-B1 — same `execute` stream, three runtimes, one result.**
-One helper builds `execute(ProbeTask::default(), None)`; a `#[valtron_test]`
-awaits `into_collect_future()`, a `#[tokio::test]` awaits the same, and
-`smol::block_on` awaits the same; all assert `vec![…]`. *New.*
+One helper builds `execute(task, None)`; a `#[valtron_test]` awaits
+`into_collect_future()`, a tokio runtime awaits the same, and `smol::block_on`
+awaits the same; all assert `vec![…]`. *Done — `cross_runtime.rs`
+(`valtron_drives_*` / `tokio_drives_*` / `smol_drives_*`), using `#[valtron_test]`
+for pool init (never a manual `initialize_pool`) with a current-thread tokio
+runtime and `smol::block_on` for the foreign runtimes.*
 
 **UCS-B2 — parking under a foreign runtime.**
-A task emits `Pending(p)`, then its backing producer `push`es `Next(v)`. A
-`#[tokio::test]` and a `smol::block_on` each await `into_collect_future()` and
-must receive `v` — proving the `Successful` park is woken across runtimes, not
-just under valtron's pool. *New (currently only `bridge_park.rs`, noop-waker).*
+A task parks for real (`Depends`) and is woken across threads. A
+`#[valtron_test]`, a tokio runtime, and `smol::block_on` each await
+`into_collect_future()` and must receive the value — proving the `Successful`
+park is woken across runtimes, not just under valtron's pool. *Done —
+`cross_runtime.rs` `*_drives_parked_future_task` (a `from_future` task whose
+future parks without self-waking, then is woken by a background thread).*
 
 **UCS-B3 — `Spread` fan-out under every runtime.**
 `Spread([Done(1), Pending(x), Done(2)])` then `Next(3)` must yield `[1,2,3]`
@@ -290,11 +294,13 @@ the bridges if not present.*
 
 ---
 
-## Area C — Ctx from the engine (forward-scoped: features 04–06)
+## Area C — Ctx from the engine (features 04–06, landed)
 
-> **BLOCKED.** `Ctx` does not exist in source. These stories are written against
-> the feature-04 interface contract so they are ready to implement the moment
-> `ctx.rs` lands; do not attempt them before features 04–06.
+> **STATUS: unblocked.** `Ctx` landed (feature 04) and is threaded through
+> `next_status(ctx)` (feature 05) with the `#[valtron::task]` transition receiving
+> it (feature 06). UCS-C1–C6, C9 are covered in `tests/valtron/ctx.rs`;
+> UCS-C7/C8 (Ctx through the state-task transition, sync + async) are covered in
+> `tests/valtron/state_task.rs`.
 
 ### C.1 The Ctx API under test (from `features/04-ctx/feature.md`)
 
@@ -407,48 +413,46 @@ A `const`/`static` assertion that `Ctx: Send + Sync` (e.g.
 
 ### D.1 Remaining implementation (not test) work
 
-The spec's remaining **features are unimplemented**:
+All spec features are now **landed**:
 
-| Feature | Status | Effort | What it entails |
+| Feature | Status | Effort | What it entailed |
 |---|---|---|---|
-| `04-ctx` | ⬜ Pending | small | `ctx.rs`: `Ctx`/`CtxInner`, type map, `Clock`/`Config`/`Rng` concrete types (resolve the RNG decision), re-export from `valtron/mod.rs`, unit tests. |
-| `05-thread-ctx` | ⬜ Pending | large | Add `ctx: Ctx` (by value) to `TaskIterator::next_status` and `ExecutionIterator::next`; engine owns `root: Ctx` and forks per ExecutionIterator; update every impl, wrapper, poll site, and all backend task impls; compile `multi` + `!multi` (incl. wasm). |
-| `06-state-task` | ⬜ Pending | large | `StateTask` (sync) + `AsyncStateTask` (async) + `TransitionPending<P>`; `#[valtron::task]` proc-macro (signature validation, expansion, `crate_paths::foundation_core_path()`). |
+| `04-ctx` | ✅ Complete | small | `ctx.rs`: `Ctx`/`CtxInner`, type map, `Clock`/`Config`/`Rng` concrete types, re-export from `valtron/mod.rs`, unit tests. |
+| `05-thread-ctx` | ✅ Complete | large | `ctx: Ctx` (by value) on `TaskIterator::next_status` and `ExecutionIterator::next`; engine owns `root: Ctx` and forks per ExecutionIterator; every impl, wrapper, poll site and backend task impl updated; `multi` + `!multi` (incl. wasm) compile. |
+| `06-state-task` | ✅ Complete | large | `StateTask` (sync) + `AsyncStateTask` (async); `#[valtron::task]` proc-macro (signature validation, expansion, `crate_paths::foundation_core_path()`). |
 
-Area C tests become writable in this order: `04-ctx` unblocks UCS-C1–C4, C9;
-`05-thread-ctx` unblocks UCS-C6, C7; `06-state-task` unblocks UCS-C7 (macro
-form), C8.
+Area C tests are now all writable: `04-ctx` covers UCS-C1–C4, C9; `05-thread-ctx`
+covers UCS-C6, C7; `06-state-task` covers UCS-C7 (macro form), C8.
 
 ### D.2 Spec bookkeeping to correct
 
-The `requirements.md` Feature Index and frontmatter are stale relative to the
-landed commits:
+The `requirements.md` Feature Index and frontmatter were stale relative to the
+landed commits and have been corrected:
 
-- Features `00-cleanup`, `01-migrate-recv-iterator`, `02-wakeable-stream` and
-  `04-ctx` are **landed** (`streams.rs` cleanup, `future_task.rs` NotifyQueue
-  migration, `wake.rs`, `ctx.rs`); the Feature Index now marks them
-  `✅ Complete`.
-- Frontmatter now reads `completed: 5 / uncompleted: 2` (features 05, 06
-  remaining).
+- Features `00-cleanup`, `01-migrate-recv-iterator`, `02-wakeable-stream`,
+  `04-ctx`, `05-thread-ctx` and `06-state-task` are **landed**; the Feature Index
+  now marks them `✅ Complete`.
+- Frontmatter now reads `completed: 7 / uncompleted: 0`.
 
-### D.3 Test coverage gaps to close (testable now)
+### D.3 Test coverage gaps to close
 
 1. **Area A4/A5** — `execute(async_fn)` → `into_collect_future` / `into_next_stream`
-   driven by `#[valtron_test]` (only the `Spread` task is covered today).
-2. **Area A7** — producer-woken parking under valtron's own pool (currently only
-   `bridge_park.rs` noop-waker polling).
+   driven by `#[valtron_test]`. *Closed by `cross_runtime.rs` `valtron_drives_*`
+   (sync state task, async state task, general `TaskIterator`, `from_future`),
+   alongside `spread_drain.rs::valtron_execute_spread_task_collects_all_done`.*
+2. **Area A7** — producer-woken parking under valtron's own pool. *Closed by
+   `cross_runtime.rs::valtron_drives_parked_future_task`.*
 3. **Area B1/B2/B4** — the `Successful`-parking `execute` path awaited under
-   tokio and smol (currently only `NotSupported` static streams).
-4. **Area A6** — `sleep_async` completion under `#[valtron_test]`.
+   tokio and smol. *Closed by `cross_runtime.rs` (`tokio_drives_*` /
+   `smol_drives_*`, incl. `*_drives_parked_future_task` for the genuine park).*
+   UCS-B4 (combinator → bridge forwarding) remains open.
+4. **Area A6** — `sleep_async` completion under `#[valtron_test]`. *Still open.*
 
 ### D.4 Suggested implementation order
 
-1. Land `04-ctx` (small) → immediately add Area C tests UCS-C1–C4, C9 and
-   I-C1–C6, I-C8.
-2. Land `05-thread-ctx` (large, mechanical) → add UCS-C6, C7 (non-macro), I-C7.
-3. Land `06-state-task` (large) → add UCS-C7 (macro), C8.
-4. Close the Area A/B gaps (D.3) in parallel — they are independent of 04–06.
-5. Correct the `requirements.md` Feature Index (D.2).
+All implementation work (D.1) is landed. Remaining test-only gaps: close
+UCS-A6 (`sleep_async` under `#[valtron_test]`), UCS-B4 (combinator chain ending
+in a bridge, cross-runtime), and UCS-B5 (wasm single-threaded bridge coverage).
 
 ---
 

@@ -28,7 +28,7 @@ use std::sync::Arc;
 use foundation_core::synca::mpp::{Receiver, ReceiverError};
 use foundation_core::valtron::{Ctx, execute, GenericResult};
 use foundation_core::valtron::{
-    BoxedSendExecutionAction, DrivenStreamIterator, EventReadiness, TaskIterator, TaskStatus,
+    DrivenStreamIterator, EventReadiness, TaskIterator, TaskStatus,
 };
 
 use crate::shared::vfs::{ObservableFs, VfsEvent, VfsFileSystem};
@@ -115,7 +115,7 @@ impl VfsTask {
         self.broadcaster.subscriber_count()
     }
 
-    fn make_depends(&self) -> TaskStatus<VfsEvent, (), BoxedSendExecutionAction> {
+    fn make_depends(&self) -> TaskStatus<VfsEvent, ()> {
         TaskStatus::Depends(Arc::new(CompositeReadiness::new(
             Arc::new(VfsEventReadiness::new(self.receiver.clone())),
             Arc::new(self.stop.clone()),
@@ -126,10 +126,9 @@ impl VfsTask {
 impl TaskIterator for VfsTask {
     type Ready = VfsEvent;
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
     #[tracing::instrument(skip(self, ctx), fields(stop = self.stop.is_stopped()))]
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.stop.is_stopped() {
             return None;
         }

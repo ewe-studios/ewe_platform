@@ -17,7 +17,7 @@ use std::pin::Pin;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    execute, valtron_test, Ctx, NoAction, StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, valtron_test, Ctx, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -50,12 +50,11 @@ impl Producer {
 impl TaskIterator for Producer {
     type Ready = u32;
     type Pending = ();
-    type Spawner = NoAction;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if !self.gap.is_zero() {
             std::thread::sleep(self.gap);
         }

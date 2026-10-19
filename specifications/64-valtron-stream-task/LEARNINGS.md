@@ -214,8 +214,9 @@ Consolidated from `64-valtron-state-task`, `65-valtron-stream-cleanup`, and
   are first-class `TaskIterator` types (parallel to `FutureTask`/`StreamTask`); the
   macro is a thin layer over them.
 - **Async core erases the transition and future** (`Box<dyn Fn>` + `Box<dyn
-  Future>`) so `AsyncStateTask<T, R, P, S>` is nameable.
-- **Two-level `Pending` for async** (`TransitionPending::Awaiting | Domain(P)`).
+  Future>`) so `AsyncStateTask<T, R, P>` is nameable.
+- **`Ignore` for the async self-wake** ("still in flight") instead of a wrapper
+  type — the pending type stays the user's own `P`.
 - **Same-name struct** (`fn build_house` → `struct build_house`) relies on Rust's
   separate value/type namespaces.
 

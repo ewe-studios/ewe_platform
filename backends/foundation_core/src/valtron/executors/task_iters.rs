@@ -29,9 +29,8 @@ use crate::valtron::BoxedSendExecutionIterator;
 /// a wrapped [`ConcurrentQueue`] via the [`crate::synca::mpp::RecvIterator`].
 ///
 /// This also means these types must be send-safe.
-pub struct StreamConsumingIter<Action, Task, Done, Pending>
+pub struct StreamConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
     Task: TaskIterator,
 {
     task: Mutex<Task>,
@@ -42,13 +41,12 @@ where
     pending_msg: Option<Stream<Done, Pending>>,
     /// Spread items being iterated (for Spread)
     spread_items: Vec<Stream<Done, Pending>>,
-    _marker: PhantomData<(Action, Done, Pending)>,
+    _marker: PhantomData<(Done, Pending)>,
 }
 
-impl<Action, Task, Done, Pending> StreamConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> StreamConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     pub fn new(
         iter: Task,
@@ -77,11 +75,10 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: Send + 'static, Pending: Send + 'static>
-    Into<BoxedSendExecutionIterator> for StreamConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static>
+    Into<BoxedSendExecutionIterator> for StreamConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
@@ -90,11 +87,10 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedExecutionIterator>
-    for StreamConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedExecutionIterator>
+    for StreamConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
@@ -103,21 +99,19 @@ where
 
 #[cfg(not(feature = "multi"))]
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
-    for StreamConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
+    for StreamConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
     }
 }
 
-impl<Action, Task, Done, Pending> StreamConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> StreamConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     /// Shared `next()` body.  `on_full` builds the `State::Depends(...)` for a
     /// full delivery queue — the closure is constructed in the cfg-gated
@@ -306,11 +300,10 @@ where
 }
 
 #[cfg(feature = "multi")]
-impl<Task, Done, Pending, Action> ExecutionIterator
-    for StreamConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator
+    for StreamConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: Send + 'static,
     Pending: Send + 'static,
 {
@@ -324,11 +317,10 @@ where
 }
 
 #[cfg(not(feature = "multi"))]
-impl<Task, Done, Pending, Action> ExecutionIterator
-    for StreamConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator
+    for StreamConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: 'static,
     Pending: 'static,
 {
@@ -350,30 +342,28 @@ where
 /// a wrapped [`ConcurrentQueue`] via the [`crate::synca::mpp::RecvIterator`].
 ///
 /// This also means these types must be send-safe.
-pub struct ConsumingIter<Action, Task, Done, Pending>
+pub struct ConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
     Task: TaskIterator,
 {
     task: Mutex<Task>,
     alive: Option<()>,
     panic_handler: Option<BoxedPanicHandler>,
-    channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+    channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
     /// Pending message when channel is full (backpressure)
-    pending_msg: Option<TaskStatus<Done, Pending, Action>>,
+    pending_msg: Option<TaskStatus<Done, Pending>>,
     /// Spread items being iterated (for Spread)
-    spread_items: Vec<TaskStatus<Done, Pending, Action>>,
-    _marker: PhantomData<(Action, Done, Pending)>,
+    spread_items: Vec<TaskStatus<Done, Pending>>,
+    _marker: PhantomData<(Done, Pending)>,
 }
 
-impl<Action, Task, Done, Pending> ConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     pub fn new(
         iter: Task,
-        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
     ) -> Self {
         Self {
             channel: chan,
@@ -398,11 +388,10 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: Send + 'static, Pending: Send + 'static>
-    Into<BoxedSendExecutionIterator> for ConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static>
+    Into<BoxedSendExecutionIterator> for ConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
@@ -411,11 +400,10 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedExecutionIterator>
-    for ConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedExecutionIterator>
+    for ConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
@@ -424,21 +412,19 @@ where
 
 #[cfg(not(feature = "multi"))]
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
-    for ConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
+    for ConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
     }
 }
 
-impl<Action, Task, Done, Pending> ConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
         if self.alive.is_none() {
@@ -612,11 +598,10 @@ where
 }
 
 #[cfg(feature = "multi")]
-impl<Task, Done, Pending, Action> ExecutionIterator
-    for ConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator
+    for ConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: Send + 'static,
     Pending: Send + 'static,
 {
@@ -630,11 +615,10 @@ where
 }
 
 #[cfg(not(feature = "multi"))]
-impl<Task, Done, Pending, Action> ExecutionIterator
-    for ConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator
+    for ConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: 'static,
     Pending: 'static,
 {
@@ -655,30 +639,28 @@ where
 /// [`ConcurrentQueue`] via the [`crate::synca::mpp::RecvIterator`].
 ///
 /// This also means these types must be send-safe.
-pub struct ReadyConsumingIter<Action, Task, Done, Pending>
+pub struct ReadyConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
     Task: TaskIterator,
 {
     task: Mutex<Task>,
     alive: Option<()>,
     panic_handler: Option<BoxedPanicHandler>,
-    channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+    channel: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
     /// Pending message when channel is full (backpressure)
-    pending_msg: Option<TaskStatus<Done, Pending, Action>>,
+    pending_msg: Option<TaskStatus<Done, Pending>>,
     /// Spread items being iterated (for Spread)
-    spread_items: Vec<TaskStatus<Done, Pending, Action>>,
-    _marker: PhantomData<(Action, Done, Pending)>,
+    spread_items: Vec<TaskStatus<Done, Pending>>,
+    _marker: PhantomData<(Done, Pending)>,
 }
 
-impl<Action, Task, Done, Pending> ReadyConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ReadyConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     pub fn new(
         iter: Task,
-        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
     ) -> Self {
         Self {
             alive: Some(()),
@@ -703,11 +685,10 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: Send + 'static, Pending: Send + 'static>
-    Into<BoxedSendExecutionIterator> for ReadyConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static>
+    Into<BoxedSendExecutionIterator> for ReadyConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
@@ -716,11 +697,10 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedExecutionIterator>
-    for ReadyConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedExecutionIterator>
+    for ReadyConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
@@ -729,21 +709,19 @@ where
 
 #[cfg(not(feature = "multi"))]
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
-    for ReadyConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
+    for ReadyConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
     }
 }
 
-impl<Action, Task, Done, Pending> ReadyConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ReadyConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
         self.alive?;
@@ -879,11 +857,10 @@ where
 }
 
 #[cfg(feature = "multi")]
-impl<Task, Done, Pending, Action> ExecutionIterator
-    for ReadyConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator
+    for ReadyConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: Send + 'static,
     Pending: Send + 'static,
 {
@@ -897,11 +874,10 @@ where
 }
 
 #[cfg(not(feature = "multi"))]
-impl<Task, Done, Pending, Action> ExecutionIterator
-    for ReadyConsumingIter<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator
+    for ReadyConsumingIter<Task, Done, Pending>
 where
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: 'static,
     Pending: 'static,
 {

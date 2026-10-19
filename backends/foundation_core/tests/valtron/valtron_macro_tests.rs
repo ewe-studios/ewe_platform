@@ -21,8 +21,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, 
-    sync_collect_one, sync_one, valtron, valtron_test, NoSpawner, TaskIterator, TaskStatus,
+use foundation_core::valtron::{Ctx,
+    sync_collect_one, sync_one, valtron, valtron_test, TaskIterator, TaskStatus,
 };
 
 /// Produces `max` ready values, one per executor iteration.
@@ -34,9 +34,8 @@ struct CountingTask {
 impl TaskIterator for CountingTask {
     type Ready = usize;
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None;
         }
@@ -165,9 +164,8 @@ struct PanickingTask;
 impl TaskIterator for PanickingTask {
     type Ready = u32;
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         panic!("intentional panic from within a valtron task — this MUST be caught");
     }
 }

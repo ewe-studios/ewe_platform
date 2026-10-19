@@ -12,9 +12,8 @@ use crate::synca::Entry;
 /// actions and progress. It ignores the values of [`TaskStatus::Ready`]
 /// and only ensurs your task iterator progresses but specifcally ensures
 /// to handle your [`TaskStatus::Spawn`] against the executor.
-pub struct DoNext<Action, Task, Done, Pending>
+pub struct DoNext<Task, Done, Pending>
 where
-    Action: ExecutionAction,
     Task: TaskIterator,
 {
     // we wrap it in a Mutex to trade of some performance
@@ -22,13 +21,12 @@ where
     // task that is `UnwindSafe`
     task: Mutex<Task>,
     panic_handler: Option<BoxedPanicHandler>,
-    _marker: PhantomData<(Action, Done, Pending)>,
+    _marker: PhantomData<(Done, Pending)>,
 }
 
-impl<Action, Task, Done, Pending> DoNext<Action, Task, Done, Pending>
+impl<Task, Done, Pending> DoNext<Task, Done, Pending>
 where
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     pub fn new(iter: Task) -> Self {
         Self {
@@ -49,11 +47,10 @@ where
 }
 
 #[allow(clippy::from_over_into)]
-impl<Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
-    for DoNext<Action, Task, Done, Pending>
+impl<Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
+    for DoNext<Task, Done, Pending>
 where
-    Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
@@ -62,11 +59,10 @@ where
 
 #[allow(clippy::extra_unused_lifetimes)]
 #[allow(clippy::from_over_into)]
-impl<'a: 'static, Action, Task, Done: Send + 'a, Pending: Send + 'a>
-    Into<BoxedSendExecutionIterator> for DoNext<Action, Task, Done, Pending>
+impl<'a: 'static, Task, Done: Send + 'a, Pending: Send + 'a>
+    Into<BoxedSendExecutionIterator> for DoNext<Task, Done, Pending>
 where
-    Action: ExecutionAction + Send + 'a,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'a,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'a,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
@@ -74,10 +70,9 @@ where
 }
 
 #[allow(clippy::needless_lifetimes)]
-impl<Task, Done, Pending, Action> ExecutionIterator for DoNext<Action, Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for DoNext<Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

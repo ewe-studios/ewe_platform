@@ -117,9 +117,8 @@ struct StreamAsTask<S: StreamIterator> {
 impl<S: StreamIterator> TaskIterator for StreamAsTask<S> {
     type Ready = S::D;
     type Pending = S::P;
-    type Spawner = NoAction;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.stream.next()? {
             Stream::Next(v) => Some(TaskStatus::Ready(v)),
             Stream::Pending(p) => Some(TaskStatus::Pending(p)),

@@ -23,9 +23,8 @@ Every unit of work implements `TaskIterator`:
 trait TaskIterator {
     type Ready;  // The value yielded on completion
     type Pending; // Thin status emitted during work
-    type Spawner; // Action the executor can take (spawn new tasks)
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>>;
 }
 ```
 

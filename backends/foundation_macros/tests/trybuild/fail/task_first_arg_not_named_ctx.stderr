@@ -1,0 +1,5 @@
+error: #[task] first argument must be named `ctx`
+ --> tests/trybuild/fail/task_first_arg_not_named_ctx.rs:5:19
+  |
+5 | fn bad_first_name(context: Ctx, state: u32) -> Option<(u32, TaskStatus<u32, ()>)> {
+  |                   ^^^^^^^^^^^^

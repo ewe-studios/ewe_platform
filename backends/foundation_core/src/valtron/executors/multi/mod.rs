@@ -38,9 +38,9 @@ use crate::{
 };
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutionAction,
-    ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder, ProcessController,
-    ReadyConsumingIter, SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskStatus,
+    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutorError,
+    FnMutReady, FnReady, OnNext, PriorityOrder, ProcessController, ReadyConsumingIter,
+    SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskStatus,
 };
 
 use crate::valtron::{ThreadActivity, ThreadId};
@@ -166,20 +166,18 @@ impl LocalPoolHandle {
 
     /// Create a task builder for scheduling work.
     #[must_use]
-    pub fn spawn<Task, Action>(
+    pub fn spawn<Task>(
         &self,
     ) -> ThreadPoolTaskBuilder<
         Task::Ready,
         Task::Pending,
-        Task::Spawner,
-        Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
+        Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
         Task,
     >
     where
         Task::Ready: Send + 'static,
         Task::Pending: Send + 'static,
-        Task: TaskIterator<Spawner = Action> + Send + 'static,
-        Action: ExecutionAction + Send + 'static,
+        Task: TaskIterator + Send + 'static,
     {
         ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
             .with_yielders(self.yielders.clone())
@@ -187,15 +185,14 @@ impl LocalPoolHandle {
 
     /// Create a task builder with an explicit Resolver type.
     #[must_use]
-    pub fn spawn2<Task, Action, Resolver>(
+    pub fn spawn2<Task, Resolver>(
         &self,
-    ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Resolver, Task>
+    ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Resolver, Task>
     where
         Task::Ready: Send + 'static,
         Task::Pending: Send + 'static,
-        Task: TaskIterator<Spawner = Action> + Send + 'static,
-        Action: ExecutionAction + Send + 'static,
-        Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
+        Task: TaskIterator + Send + 'static,
+        Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static,
     {
         ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
             .with_yielders(self.yielders.clone())
@@ -351,35 +348,32 @@ pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<
 ///
 /// Uses the global registry's shared queue and latch.
 #[must_use]
-pub fn spawn<Task, Action>() -> ThreadPoolTaskBuilder<
+pub fn spawn<Task>() -> ThreadPoolTaskBuilder<
     Task::Ready,
     Task::Pending,
-    Task::Spawner,
-    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static>,
     Task,
 >
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
-    Task: TaskIterator<Spawner = Action> + Send + 'static,
-    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator + Send + 'static,
 {
-    get_pool().spawn::<Task, Action>()
+    get_pool().spawn::<Task>()
 }
 
 /// [`spawn2`] provides a builder which allows you to build out
 /// the underlying tasks with an explicit Resolver type.
 #[must_use]
-pub fn spawn2<Task, Action, Resolver>(
-) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Resolver, Task>
+pub fn spawn2<Task, Resolver>(
+) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Resolver, Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
-    Task: TaskIterator<Spawner = Action> + Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
+    Task: TaskIterator + Send + 'static,
+    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + Send + 'static,
 {
-    get_pool().spawn2::<Task, Action, Resolver>()
+    get_pool().spawn2::<Task, Resolver>()
 }
 
 // ============================================================================
@@ -912,9 +906,8 @@ impl core::fmt::Display for ThreadExecutionError {
 pub struct ThreadPoolTaskBuilder<
     Done: Send + 'static,
     Pending: Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+    Resolver: TaskReadyResolver<Done, Pending> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 > {
     tasks: SharedTaskQueue,
     latch: Arc<LockSignal>,
@@ -925,16 +918,15 @@ pub struct ThreadPoolTaskBuilder<
     panic_handler: Option<BoxedPanicHandler>,
     /// Channel capacity for bounded queues (None = unbounded)
     channel_capacity: Option<usize>,
-    _marker: PhantomData<(Done, Pending, Action)>,
+    _marker: PhantomData<(Done, Pending)>,
 }
 
 impl<
         Done: Send + 'static,
         Pending: Send + 'static,
-        Action: ExecutionAction + Send + 'static,
-        Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, Resolver, Task>
+        Resolver: TaskReadyResolver<Done, Pending> + Send + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    > ThreadPoolTaskBuilder<Done, Pending, Resolver, Task>
 {
     pub fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>) -> Self {
         Self {
@@ -1002,8 +994,8 @@ impl<
     pub fn ready_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
             match self.channel_capacity {
                 Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
                 None => Arc::new(NotifyQueue::unbounded()),
@@ -1127,8 +1119,8 @@ impl<
     pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
             match self.channel_capacity {
                 Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
                 None => Arc::new(NotifyQueue::unbounded()),
@@ -1210,11 +1202,10 @@ impl<
         F,
         Done: Send + 'static,
         Pending: Send + 'static,
-        Action: ExecutionAction + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, FnReady<F, Action>, Task>
+        Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    > ThreadPoolTaskBuilder<Done, Pending, FnReady<F>, Task>
 where
-    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+    F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
     pub fn on_next(self, action: F) -> Self {
         self.with_resolver(FnReady::new(action))
@@ -1225,11 +1216,10 @@ impl<
         F,
         Done: Send + 'static,
         Pending: Send + 'static,
-        Action: ExecutionAction + Send + 'static,
-        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, FnMutReady<F, Action>, Task>
+        Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    > ThreadPoolTaskBuilder<Done, Pending, FnMutReady<F>, Task>
 where
-    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+    F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
     pub fn on_next_mut(self, action: F) -> Self {
         self.with_resolver(FnMutReady::new(action))

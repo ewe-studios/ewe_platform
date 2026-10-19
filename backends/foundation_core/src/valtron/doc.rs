@@ -398,7 +398,6 @@
 //     T: TaskIterator + Send + 'static,
 //     T::Ready: Send + 'static,
 //     T::Pending: Send + 'static,
-//     T::Spawner: ExecutionAction + Send + 'static,
 // {
 //     let stream = execute(task, None)?;
 //     collect_one(stream).ok_or_else(|| /* error */)
@@ -416,7 +415,6 @@
 //     T: TaskIterator + Send + 'static,
 //     T::Ready: Send + 'static,
 //     T::Pending: Send + 'static,
-//     T::Spawner: ExecutionAction + Send + 'static,
 // {
 //     let stream = execute(task, None)?;
 //     Ok(collect_result(stream))
@@ -432,7 +430,6 @@
 //     T: TaskIterator + Send + 'static,
 //     T::Ready: Send + 'static,
 //     T::Pending: Send + 'static,
-//     T::Spawner: ExecutionAction + Send + 'static,
 // {
 //     let stream = execute_collect_all(tasks, None)?;
 //     // execute_collect_all already buffers and collects all results internally.
@@ -639,36 +636,30 @@
 // }
 // ```
 // 
-// ## Spawner Type: Prefer `BoxedSendExecutionAction` over `NoAction`
-// 
-// When implementing `TaskIterator`, the `Spawner` associated type controls whether the task can spawn sub-tasks during execution. **`NoAction` should be rarely used** — it prevents the task from ever spawning work.
-// 
-// **Default choice:** Use `BoxedSendExecutionAction` for the `Spawner` type. This allows tasks to spawn sub-work if needed and is compatible with all executor functions.
-// 
+// ## Spawning Sub-Tasks: Box the Action in `TaskStatus::Spawn`
+//
+// `TaskStatus` carries the spawn action inline, already boxed, in its `Spawn` variant —
+// there is no separate `Spawner` associated type to thread through the trait. To spawn
+// sub-work from `next_status`, box your action and return it:
+//
 // ```rust
-// use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-// 
-// // PREFERRED: Allows spawning sub-tasks
+// use foundation_core::valtron::{TaskIterator, TaskStatus};
+//
 // impl TaskIterator for MyTask {
 //     type Ready = MyResult;
 //     type Pending = MyProgress;
-//     type Spawner = BoxedSendExecutionAction;
-// 
-//     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+//
+//     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+//         // To spawn a sub-task, box its action directly in the variant:
+//         // Some(TaskStatus::Spawn(Box::new(some_action)))
 //         // ...
 //     }
 // }
-// 
-// // AVOID: Only use when you are certain the task will never need to spawn
-// impl TaskIterator for SimplePureComputeTask {
-//     type Ready = u32;
-//     type Pending = ();
-//     type Spawner = NoAction;  // Rarely appropriate
-//     // ...
-// }
 // ```
-// 
-// **When `NoAction` is acceptable:** Trivial tasks that are pure computation with no possibility of needing to delegate work (e.g., test fixtures, simple wrappers around `from_future`).
+//
+// The `Spawn` payload is a `BoxedSendExecutionAction` (`Box<dyn ExecutionAction + Send + 'static>`)
+// under the `multi` feature, or `BoxedExecutionAction` (`Box<dyn ExecutionAction>`) otherwise.
+// Any `ExecutionAction` can be boxed on the spot with `Box::new(...)`.
 // 
 // ## Valtron Quick Reference
 // 
@@ -676,7 +667,7 @@
 // 
 // | Type | Purpose |
 // |------|---------|
-// | `TaskStatus<D, P, S>` | Raw task state: Ready, Pending, Delayed, Init, Spawn, Ignore |
+// | `TaskStatus<D, P>` | Raw task state: Ready, Pending, Delayed, Init, Spawn, Ignore |
 // | `Stream<D, P>` | Stream state: Next, Pending, Delayed, Init, Ignore |
 // | `TaskIterator` | Trait for producing `TaskStatus` — input to `execute()` |
 // | `StreamIterator` | Trait for producing `Stream` — output from `execute()` |
@@ -1262,7 +1253,7 @@
 // 
 // ```rust
 // // BAD: Always returns Some — task never terminates
-// fn next_status(&mut self) -> Option<TaskStatus<...>> {
+// fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<...>> {
 //     if self.current >= self.max {
 //         return Some(TaskStatus::Ready(self.current)); // current never increments → infinite loop!
 //     }
@@ -1270,7 +1261,7 @@
 // }
 // 
 // // GOOD: Returns None after final Ready
-// fn next_status(&mut self) -> Option<TaskStatus<...>> {
+// fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<...>> {
 //     if self.current > self.max {
 //         return None;  // Task completes, queue closes, stream terminates
 //     }

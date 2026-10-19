@@ -843,9 +843,8 @@ impl MeshTask {
 impl TaskIterator for MeshTask {
     type Ready = ();
     type Pending = ();
-    type Spawner = foundation_core::valtron::BoxedSendExecutionAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.stop.load(Ordering::Relaxed) {
             return None;
         }

@@ -163,23 +163,21 @@ impl Future for SelfWakeOnceFuture {
 }
 
 /// WHY: A `wake()` produced *during* poll must not be lost (Decision 00 success
-///      criterion). The self-wake token triggers `Pending` (requeue) so the
+///      criterion). The self-wake token triggers `Ignore` (requeue) so the
 ///      executor re-runs the task and completes without parking.
 /// WHAT: A future that self-wakes on its first poll completes in exactly two polls
 ///       — no park, no `Depends-true`, no lost wakeup.
 /// HOW: Stress 2000 iterations; each fresh task must complete on the second poll.
 #[test]
 fn wake_before_park_is_never_lost() {
-    use foundation_core::valtron::FuturePollState;
-
     let ctx = Ctx::new();
     for iteration in 0..2000 {
         let mut task = FutureTask::new(SelfWakeOnceFuture { polled: false });
 
-        // First poll: future self-wakes → Pending (requeue), not Depends.
+        // First poll: future self-wakes → Ignore (requeue), not Depends.
         match task.next_status(ctx.clone()) {
-            Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
-            other => panic!("iter {iteration}: expected Pending(FuturePollState::Pending), got {other:?}"),
+            Some(TaskStatus::Ignore) => {}
+            other => panic!("iter {iteration}: expected Ignore, got {other:?}"),
         };
 
         // Second poll: future returns Ready.

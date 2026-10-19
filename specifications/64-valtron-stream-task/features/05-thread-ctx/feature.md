@@ -1,18 +1,18 @@
 ---
 feature: "Thread Ctx"
 description: "Expand TaskIterator::next_status and ExecutionIterator::next to take ctx: Ctx by value; the engine owns + clones the Ctx; update every impl, the poll sites, and the wrappers."
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["04-ctx"]
 estimated_effort: "large"
 created: 2026-10-18
-last_updated: 2026-10-18
+last_updated: 2026-10-19
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Thread Ctx
@@ -30,8 +30,7 @@ parameter **by value**, and every implementation forwards or consumes it.
 pub trait TaskIterator {
     type Pending;
     type Ready;
-    type Spawner: ExecutionAction;
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>>;
 }
 
 pub trait ExecutionIterator {

@@ -16,7 +16,7 @@
 
 use crate::netcap::{Connection, RawStream};
 use foundation_core::synca::mpp::Sender;
-use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 
 use crate::netcap::ssl::SSLConnector;
 
@@ -122,9 +122,8 @@ impl TlsHandshakeTask {
 impl TaskIterator for TlsHandshakeTask {
     type Pending = TlsHandshakeState;
     type Ready = ();
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.state {
             TlsHandshakeState::Init => {
                 // Validate we have a connection

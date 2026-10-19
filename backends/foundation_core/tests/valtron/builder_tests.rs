@@ -11,7 +11,7 @@ use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
-    InlineAction, InlineActionBehaviour, NoAction, NotificationItem,
+    ExecutionAction, InlineAction, InlineActionBehaviour, NotificationItem,
     NotifyRecvIterator, PriorityOrder, SharedTaskQueue, TaskStatus,
     WrapTask, spawn_builder, spawn_broadcaster,
 };
@@ -19,7 +19,7 @@ use foundation_core::{
     retries::ExponentialBackoffDecider,
     synca::{IdleMan, SleepyMan},
     valtron::{
-        ExecutionAction, LocalThreadExecutor, ProcessController, ProgressIndicator,
+        LocalThreadExecutor, ProcessController, ProgressIndicator,
     },
 };
 
@@ -50,11 +50,9 @@ fn new_executor() -> LocalThreadExecutor<NoYielder> {
     )
 }
 
-fn drain_results<R, P, A>(
-    receiver: NotifyRecvIterator<TaskStatus<R, P, A>>,
-) -> Vec<TaskStatus<R, P, A>>
-where
-    A: ExecutionAction,
+fn drain_results<R, P>(
+    receiver: NotifyRecvIterator<TaskStatus<R, P>>,
+) -> Vec<TaskStatus<R, P>>
 {
     receiver
         .filter_map(|item| match item {
@@ -148,7 +146,7 @@ fn test_from_parts_works() {
     let executor = new_executor();
     let task = WrapTask::new(vec![42].into_iter());
 
-    let channel: Arc<NotifyQueue<TaskStatus<usize, (), NoAction>>> =
+    let channel: Arc<NotifyQueue<TaskStatus<usize, ()>>> =
         Arc::new(NotifyQueue::unbounded());
     let mut action = InlineAction::from_parts(
         InlineActionBehaviour::Schedule,
@@ -200,7 +198,7 @@ fn test_sequenced_without_parent_errors() {
 
     let executor = new_executor();
     let task = WrapTask::new(vec![1].into_iter());
-    let channel: Arc<NotifyQueue<TaskStatus<usize, (), NoAction>>> =
+    let channel: Arc<NotifyQueue<TaskStatus<usize, ()>>> =
         Arc::new(NotifyQueue::unbounded());
     let mut action = InlineAction::from_parts(
         InlineActionBehaviour::Sequenced,

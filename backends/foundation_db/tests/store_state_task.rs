@@ -33,11 +33,10 @@ impl<T: Clone + Send + 'static> MockSuccessTask<T> {
 impl<T: Clone + Send + 'static> TaskIterator for MockSuccessTask<T> {
     type Ready = Result<T, String>;
     type Pending = ();
-    type Spawner = foundation_core::valtron::BoxedSendExecutionAction;
 
     fn next_status(
         &mut self,
-    ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>
+    ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending>>
     {
         if self.called {
             None
@@ -69,11 +68,10 @@ impl MockFailResourceTask {
 impl TaskIterator for MockFailResourceTask {
     type Ready = Result<TestResource, String>;
     type Pending = ();
-    type Spawner = foundation_core::valtron::BoxedSendExecutionAction;
 
     fn next_status(
         &mut self,
-    ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>
+    ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending>>
     {
         if self.called {
             None
@@ -105,11 +103,10 @@ impl MockFailTask {
 impl TaskIterator for MockFailTask {
     type Ready = Result<String, String>;
     type Pending = ();
-    type Spawner = foundation_core::valtron::BoxedSendExecutionAction;
 
     fn next_status(
         &mut self,
-    ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>
+    ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending>>
     {
         if self.called {
             None

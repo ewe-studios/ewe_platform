@@ -19,7 +19,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::{Ctx, BoxedSendExecutionAction, PipeSender, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, PipeSender, TaskIterator, TaskStatus};
 
 use crate::netcap::RawStream;
 use crate::websocket::shared::assembler::MessageAssembler;
@@ -148,9 +148,8 @@ impl WebSocketServerTask {
 impl TaskIterator for WebSocketServerTask {
     type Ready = WebSocketMessage;
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         // Flush pending outbound writes every poll.
         let _ = self.writer.flush();
 

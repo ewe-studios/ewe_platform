@@ -1,0 +1,5 @@
+error: #[task] transition must return `Option<...>`
+ --> tests/trybuild/fail/task_non_option_return.rs:5:39
+  |
+5 | fn no_option(ctx: Ctx, state: u32) -> (u32, TaskStatus<u32, ()>) {
+  |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^

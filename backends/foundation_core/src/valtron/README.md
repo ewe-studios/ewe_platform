@@ -7,16 +7,15 @@ can interleave, pause, prioritize, and resume many tasks cooperatively — on on
 thread, across a thread pool, or inside a WASM host, all behind one unified API.
 
 ```rust
-use foundation_core::valtron::{valtron, sync_one, NoSpawner, TaskIterator, TaskStatus};
+use foundation_core::valtron::{valtron, sync_one, Ctx, TaskIterator, TaskStatus};
 
 struct Counting { max: usize, current: usize }
 
 impl TaskIterator for Counting {
     type Ready = usize;
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self) -> Option<TaskStatus<usize, (), NoSpawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<usize, ()>> {
         if self.current >= self.max { return None; }
         self.current += 1;
         Some(TaskStatus::Ready(self.current))
@@ -112,15 +111,14 @@ impossible.
 
 ### `TaskIterator`
 
-The unit of work. Three associated types and one method:
+The unit of work. Two associated types and one method:
 
 ```rust
 pub trait TaskIterator {
     type Ready;                    // actual produced values
     type Pending;                  // progress signal while not ready
-    type Spawner: ExecutionAction; // sub-task spawning capability (or NoSpawner)
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>>;
 }
 ```
 
@@ -137,7 +135,7 @@ What a task can tell the executor on each turn:
 | `Ready(D)` | A real value was produced. |
 | `Pending(P)` | Still working; `P` carries progress info (e.g. a `Duration` estimate). |
 | `Delayed(Duration)` | Put me to sleep for at least this long. |
-| `Spawn(S)` | Hand this `ExecutionAction` to the executor to start related sub-tasks. |
+| `Spawn(BoxedExecutionAction)` | Hand this boxed `ExecutionAction` to the executor to start related sub-tasks. |
 
 ### Task relationships (`ExecutionAction`)
 
@@ -150,7 +148,148 @@ in [`executors/README.md`](./executors/README.md)):
 - **Distribute** — "Send it to the global queue; another thread may own it"
   (requires `Send`, only meaningful under `multi`).
 
-Use `NoSpawner` as `type Spawner` for tasks that never spawn anything.
+To spawn sub-work, box an `ExecutionAction` and return it in the `Spawn` variant
+(`TaskStatus::Spawn(Box::new(action))`). Tasks that never spawn simply never
+produce that variant.
+
+---
+
+## State tasks: `#[task]` transition functions (sync & async)
+
+The `Counting` example at the top of this file writes the whole
+`impl TaskIterator` by hand. Most state machines don't need that ceremony — they
+boil down to *"given my current state, what's my next state and what should I
+report this turn?"*, which is exactly one function. `#[task]` turns that
+function into a task for you.
+
+The transition has this shape:
+
+```rust
+// synchronous:
+fn transition(ctx: Ctx, state: T) -> Option<(T, TaskStatus<R, P>)>
+
+// asynchronous (same shape, with `.await` inside the body):
+async fn transition(ctx: Ctx, state: T) -> Option<(T, TaskStatus<R, P>)>
+```
+
+`#[task]` generates a **same-named struct** (`transition::new(state)`) that
+implements `TaskIterator`, and leaves the function untouched, so you can keep
+calling `transition(ctx, state)` directly. The `Ctx` is the same engine `Ctx`
+every task receives on `next_status` — use it for spawning, deadlines, or
+whatever the turn needs.
+
+### Synchronous transition
+
+```rust
+use foundation_core::valtron::{valtron, sync_one, task, Ctx, TaskStatus};
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Stage { Foundation, Walls, Roof }
+
+#[derive(Debug, PartialEq)]
+struct House { walls: u32 }
+
+// One building step per poll. `Ready` is terminal (the machine stops after it);
+// intermediate turns use `Ignore` — "nothing produced yet, keep driving me".
+#[task]
+fn build_house(ctx: Ctx, stage: Stage) -> Option<(Stage, TaskStatus<House, ()>)> {
+    let _ = ctx;
+    match stage {
+        Stage::Foundation => Some((Stage::Walls, TaskStatus::Ignore)),
+        Stage::Walls      => Some((Stage::Roof,  TaskStatus::Ignore)),
+        Stage::Roof       => Some((Stage::Roof,  TaskStatus::Ready(House { walls: 4 }))),
+    }
+}
+
+#[valtron]
+fn main() {
+    // `build_house::new(stage)` is the generated struct — drive it like any task.
+    let houses = sync_one(build_house::new(Stage::Foundation)).unwrap();
+    assert_eq!(houses, vec![House { walls: 4 }]);
+
+    // The transition itself stays directly callable:
+    let (next, status) = build_house(Ctx::new(), Stage::Walls).unwrap();
+    assert_eq!((next, status), (Stage::Roof, TaskStatus::Ignore));
+}
+```
+
+### Asynchronous transition
+
+An `async fn` transition can `.await` inside the body — the signature is the
+same shape as the synchronous form. While the future is still in flight it
+self-wakes into `TaskStatus::Ignore` ("still working, nothing to see"), and
+each `.await` parks on the same wake-queue seam `FutureTask` uses — no
+busy-polling.
+
+```rust
+use foundation_core::valtron::{execute, valtron, task, Ctx, StreamIteratorExt, TaskStatus};
+use std::future::Future;
+use std::pin::Pin;
+use std::task::{Context, Poll};
+
+// A tiny future that simulates a unit of async work: it yields `steps` times
+// (each yield is one `Poll::Pending` with a self-wake) before completing.
+struct Work(u32);
+
+impl Future for Work {
+    type Output = ();
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if self.0 == 0 {
+            Poll::Ready(())
+        } else {
+            self.0 -= 1;
+            cx.waker().wake_by_ref(); // "made progress, poll me again"
+            Poll::Pending
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct House { walls: u32 }
+
+#[task]
+async fn build_house(ctx: Ctx, walls: u32) -> Option<(u32, TaskStatus<House, ()>)> {
+    let _ = ctx;
+    if walls < 4 {
+        Work(2).await; // async work happens *inside* the transition
+        Some((walls + 1, TaskStatus::Ignore))
+    } else {
+        Some((walls, TaskStatus::Ready(House { walls })))
+    }
+}
+
+#[valtron]
+async fn main() {
+    let houses = execute(build_house::new(0), None)
+        .expect("engine live")
+        .into_collect_future()
+        .await;
+    assert_eq!(houses, vec![House { walls: 4 }]);
+}
+```
+
+### Semantics
+
+- **`Ready` is terminal** in both forms: the machine emits it once, then returns
+  `None` forever after. Intermediate turns must use a non-`Ready` status —
+  `Ignore` is the idiomatic "not yet" — or `Pending` / `Delayed` / `Spawn` /
+  `Depends` for real scheduling signals.
+- **`None` is terminal** too: returning it finishes the task with no final value.
+- **The transition keeps its name.** The generated struct is a *braced* struct
+  (type namespace only), so it never collides with the `fn` of the same name
+  (value namespace).
+- **The `Ctx` is threaded in on every turn** — neither `StateTask` nor
+  `AsyncStateTask` stores its own; they forward the engine's.
+
+Readable, in-module copies of these examples live in
+[`examples/state_task_sync.rs`](./examples/state_task_sync.rs) and
+[`examples/state_task_async.rs`](./examples/state_task_async.rs); the compiled,
+runnable versions are in [`foundation_core/examples/`](../../examples/):
+
+```sh
+cargo run -p foundation_core --example valtron_state_task
+cargo run -p foundation_core --example valtron_state_task_async
+```
 
 ---
 
@@ -377,6 +516,10 @@ for the canonical patterns: default init, explicit `seed`/`threads`,
 
 - [`executors/README.md`](./executors/README.md) — executor design: tasks,
   lift/schedule/distribute semantics, sleep/wake machinery.
+- [`executors/state_task.rs`](./executors/state_task.rs) — the `StateTask` /
+  `AsyncStateTask` adapters behind `#[task]`.
+- [`examples/`](./examples/) — readable, in-module example code (sync + async
+  `#[task]`), with compiled counterparts in `foundation_core/examples/`.
 - [`docs/smart_notification_and_streams.md`](./docs/smart_notification_and_streams.md) —
   why `TaskStatus::Depends` can park efficiently but `Stream::Wait` cannot, the
   producer/consumer split, the WASM/JS exception, the `readiness()` bridge, and why

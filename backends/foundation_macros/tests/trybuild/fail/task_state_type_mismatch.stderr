@@ -1,0 +1,5 @@
+error: #[task] the state type in the return tuple must match the `state` argument type
+ --> tests/trybuild/fail/task_state_type_mismatch.rs:5:52
+  |
+5 | fn state_mismatch(ctx: Ctx, state: u32) -> Option<(u64, TaskStatus<u32, ()>)> {
+  |                                                    ^^^

@@ -22,7 +22,7 @@ use foundation_compact::Instant;
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
     wasm::{JSThreadYielder, WaitStatus},
-    FnReady, NoSpawner, ProcessController, TaskIterator, TaskStatus,
+    FnReady, ProcessController, TaskIterator, TaskStatus,
 };
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::wasm_bindgen_test;
@@ -64,9 +64,8 @@ struct CountingTask {
 impl TaskIterator for CountingTask {
     type Ready = usize;
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None;
         }
@@ -85,9 +84,8 @@ struct YieldingTask {
 impl TaskIterator for YieldingTask {
     type Ready = ();
     type Pending = ();
-    type Spawner = NoSpawner;
 
-    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current >= self.max {
             return None;
         }

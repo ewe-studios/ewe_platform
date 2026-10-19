@@ -12,8 +12,8 @@ use crate::valtron::{
         BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
         DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
-    Ctx, ExecutionAction, LocalThreadExecutor, PriorityOrder, ProcessController,
-    ProgressIndicator, SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskSpawnConfig,
+    Ctx, LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator,
+    SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskSpawnConfig,
 };
 
 use crate::{
@@ -273,18 +273,16 @@ pub fn run_until_complete() {
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn<Task, Action>() -> TaskSpawnConfig<
+pub fn spawn<Task>() -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
-    Task::Spawner,
-    Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static>,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
     Task,
 >
 where
     Task::Ready: 'static,
     Task::Pending: 'static,
-    Task: TaskIterator<Spawner = Action> + 'static,
-    Action: ExecutionAction + 'static,
+    Task: TaskIterator + 'static,
 {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => TaskSpawnConfig::new(pool.boxed_engine()),
@@ -305,14 +303,13 @@ where
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn2<Task, Action, Resolver>(
-) -> TaskSpawnConfig<Task::Ready, Task::Pending, Action, Resolver, Task>
+pub fn spawn2<Task, Resolver>(
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,
-    Task: TaskIterator<Spawner = Action> + 'static,
-    Action: ExecutionAction + 'static,
-    Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + 'static,
+    Task: TaskIterator + 'static,
+    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + 'static,
 {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
         Some(pool) => TaskSpawnConfig::new(pool.boxed_engine()),
@@ -349,7 +346,7 @@ mod single_threaded_tests {
 
     use crate::valtron::{
         single::{initialize_pool, run_until, run_until_complete, spawn},
-        Ctx, FnReady, NoSpawner, Stream, TaskIterator, TaskStatus,
+        Ctx, FnReady, Stream, TaskIterator, TaskStatus,
     };
 
     struct Counter(usize, Rc<RefCell<Vec<usize>>>);
@@ -365,12 +362,10 @@ mod single_threaded_tests {
 
         type Ready = usize;
 
-        type Spawner = NoSpawner;
-
         fn next_status(
             &mut self,
             _ctx: Ctx,
-        ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending>> {
             let item_size = self.1.borrow().len();
 
             if item_size == self.0 {

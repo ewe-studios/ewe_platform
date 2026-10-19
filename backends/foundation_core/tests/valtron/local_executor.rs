@@ -17,8 +17,8 @@ use foundation_core::{
     retries::ExponentialBackoffDecider,
     synca::SleepyMan,
     valtron::{
-        BoolSignal, BoxedSendExecutionAction, EventReadiness, ExecutionAction, InlineAction,
-        InlineActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner, OnNext, ProcessController,
+        BoolSignal, EventReadiness, ExecutionAction, InlineAction,
+        InlineActionBehaviour, IntoBoxedSendExecutionAction, OnNext, ProcessController,
         TaskIterator, TaskStatus, WrapTask,
     },
 };
@@ -41,13 +41,12 @@ struct Counter(&'static str, usize, usize, usize);
 
 impl TaskIterator for Counter {
     type Ready = usize;
-    type Spawner = NoSpawner;
     type Pending = time::Duration;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let old_count = self.1;
         let new_count = old_count + 1;
         self.1 = new_count;
@@ -70,7 +69,7 @@ impl TaskIterator for Counter {
 
 enum ListItemInner {
     List(Option<Vec<usize>>),
-    Response(NotifyRecvIterator<TaskStatus<usize, (), NoSpawner>>),
+    Response(NotifyRecvIterator<TaskStatus<usize, ()>>),
     Done,
 }
 
@@ -79,12 +78,11 @@ struct ListItems(InlineActionBehaviour, Option<ListItemInner>);
 impl TaskIterator for ListItems {
     type Ready = usize;
     type Pending = ();
-    type Spawner = BoxedSendExecutionAction;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.1.take() {
             Some(val) => match val {
                 ListItemInner::List(mut items) => {
@@ -117,7 +115,7 @@ impl TaskIterator for ListItems {
                             TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                             TaskStatus::Ready(item) => Some(TaskStatus::Ready(item)),
                             TaskStatus::Spawn(action) => {
-                                Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
+                                Some(TaskStatus::Spawn(action))
                             }
                             TaskStatus::Ignore => Some(TaskStatus::Ignore),
                             TaskStatus::Wait => Some(TaskStatus::Wait),
@@ -225,7 +223,7 @@ fn test_task_line_send_action() {
 
     executor.run_until(|state| ProgressIndicator::NoWork == state);
 
-    let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver
+    let all_response: Vec<TaskStatus<usize, ()>> = receiver
         .filter_map(|item| match item {
             NotificationItem::Ready(v) => Some(v),
             NotificationItem::None => None,
@@ -275,7 +273,7 @@ fn test_task_line_send_action_for_parent_lifted() {
 
     executor.run_until(|state| ProgressIndicator::NoWork == state);
 
-    let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver
+    let all_response: Vec<TaskStatus<usize, ()>> = receiver
         .filter_map(|item| match item {
             NotificationItem::Ready(v) => Some(v),
             NotificationItem::None => None,
@@ -325,7 +323,7 @@ fn test_task_line_send_action_for_sequenced() {
 
     executor.run_until(|state| ProgressIndicator::NoWork == state);
 
-    let all_response: Vec<TaskStatus<usize, (), BoxedSendExecutionAction>> = receiver
+    let all_response: Vec<TaskStatus<usize, ()>> = receiver
         .filter_map(|item| match item {
             NotificationItem::Ready(v) => Some(v),
             NotificationItem::None => None,
@@ -350,7 +348,7 @@ fn test_task_line_send_action_for_sequenced() {
 fn scenario_0_can_kill_local_executor_via_kill_signal() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
+    let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration>>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -403,7 +401,7 @@ fn scenario_0_can_kill_local_executor_via_kill_signal() {
 fn scenario_one_task_a_runs_to_completion() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
+    let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration>>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -442,10 +440,10 @@ fn scenario_one_task_a_runs_to_completion() {
     assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
     assert_eq!(executor.number_of_sleepers(), 0);
 
-    let count_list = counts.lock().unwrap().clone();
+    let count_list = counts.lock().unwrap();
     assert_eq!(
-        count_list,
-        vec![TaskStatus::Ready(1), TaskStatus::Ready(2),]
+        &*count_list,
+        &vec![TaskStatus::Ready(1), TaskStatus::Ready(2),]
     );
 }
 
@@ -453,7 +451,7 @@ fn scenario_one_task_a_runs_to_completion() {
 fn scenario_one_can_use_local_executor_builder_to_queue_task() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
+    let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration>>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -492,10 +490,10 @@ fn scenario_one_can_use_local_executor_builder_to_queue_task() {
     assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
     assert_eq!(executor.number_of_sleepers(), 0);
 
-    let count_list = counts.lock().unwrap().clone();
+    let count_list = counts.lock().unwrap();
     assert_eq!(
-        count_list,
-        vec![TaskStatus::Ready(1), TaskStatus::Ready(2),]
+        &*count_list,
+        &vec![TaskStatus::Ready(1), TaskStatus::Ready(2),]
     );
 }
 
@@ -503,7 +501,7 @@ fn scenario_one_can_use_local_executor_builder_to_queue_task() {
 fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
+    let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration>>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -534,13 +532,13 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
         executor.run_once(),
         ProgressIndicator::CanProgress(_)
     ));
-    assert_eq!(counts.lock().unwrap().clone(), vec![TaskStatus::Ready(11),]);
+    assert_eq!(&*counts.lock().unwrap(), &vec![TaskStatus::Ready(11),]);
 
     assert_eq!(
         executor.run_once(),
         ProgressIndicator::SpinWait(time::Duration::from_millis(5))
     );
-    assert_eq!(counts.lock().unwrap().clone(), vec![TaskStatus::Ready(11),]);
+    assert_eq!(&*counts.lock().unwrap(), &vec![TaskStatus::Ready(11),]);
 
     // wait for 5ms and validate we made progress
     thread::sleep(time::Duration::from_millis(5));
@@ -550,8 +548,8 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![TaskStatus::Ready(11), TaskStatus::Ready(13),]
+        &*counts.lock().unwrap(),
+        &vec![TaskStatus::Ready(11), TaskStatus::Ready(13),]
     );
     assert!(matches!(
         executor.run_once(),
@@ -559,8 +557,8 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
     ));
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             TaskStatus::Ready(11),
             TaskStatus::Ready(13),
             TaskStatus::Ready(14),
@@ -572,7 +570,7 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
 fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -614,8 +612,8 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
     ));
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![("Counter1", TaskStatus::Ready(1)),]
+        &*counts.lock().unwrap(),
+        &vec![("Counter1", TaskStatus::Ready(1)),]
     );
 
     assert!(matches!(
@@ -624,8 +622,8 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
     ));
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![("Counter1", TaskStatus::Ready(1)),]
+        &*counts.lock().unwrap(),
+        &vec![("Counter1", TaskStatus::Ready(1)),]
     );
 
     assert_eq!(executor.number_of_sleepers(), 1);
@@ -635,8 +633,8 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
         ]
@@ -647,8 +645,8 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -666,8 +664,8 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -681,8 +679,8 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -695,8 +693,8 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -709,8 +707,8 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -725,7 +723,7 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
 fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -770,8 +768,8 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
     ));
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![("Counter1", TaskStatus::Ready(1)),]
+        &*counts.lock().unwrap(),
+        &vec![("Counter1", TaskStatus::Ready(1)),]
     );
 
     assert!(matches!(
@@ -780,8 +778,8 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
     ));
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![("Counter1", TaskStatus::Ready(1)),]
+        &*counts.lock().unwrap(),
+        &vec![("Counter1", TaskStatus::Ready(1)),]
     );
 
     assert_eq!(executor.number_of_sleepers(), 1);
@@ -791,8 +789,8 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
         ]
@@ -803,8 +801,8 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -822,8 +820,8 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -836,8 +834,8 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -852,8 +850,8 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -867,8 +865,8 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
         ProgressIndicator::CanProgress(_)
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -881,8 +879,8 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
     assert!(matches!(executor.run_once(), ProgressIndicator::NoWork));
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -952,12 +950,11 @@ struct DaemonCounter(Arc<AtomicUsize>);
 impl TaskIterator for DaemonCounter {
     type Ready = ();
     type Pending = ();
-    type Spawner = DaemonSpawner;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let current = self.0.load(Ordering::SeqCst);
         println!("Current state: {:?}", current);
         if current == 0 {
@@ -969,11 +966,11 @@ impl TaskIterator for DaemonCounter {
         }
 
         if current == 2 {
-            return Some(TaskStatus::Spawn(DaemonSpawner::InThread));
+            return Some(TaskStatus::Spawn(Box::new(DaemonSpawner::InThread)));
         }
 
         if current == 3 {
-            return Some(TaskStatus::Spawn(DaemonSpawner::TopOfThread));
+            return Some(TaskStatus::Spawn(Box::new(DaemonSpawner::TopOfThread)));
         }
 
         if current == 5 {
@@ -981,7 +978,7 @@ impl TaskIterator for DaemonCounter {
         }
 
         println!("Spawn out of thread task");
-        Some(TaskStatus::Spawn(DaemonSpawner::OutofThread))
+        Some(TaskStatus::Spawn(Box::new(DaemonSpawner::OutofThread)))
     }
 }
 
@@ -990,12 +987,11 @@ struct SimpleCounter(&'static str, usize, usize);
 impl TaskIterator for SimpleCounter {
     type Ready = usize;
     type Pending = ();
-    type Spawner = NoSpawner;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let old_count = self.1;
         let new_count = old_count + 1;
         self.1 = new_count;
@@ -1025,7 +1021,7 @@ impl TaskIterator for SimpleCounter {
 fn scenario_5_task_can_spawn_task_via_actions() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
+    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), ()>)>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -1057,7 +1053,7 @@ fn scenario_5_task_can_spawn_task_via_actions() {
 
     assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
-    assert_eq!(counts.lock().unwrap().clone(), vec![]);
+    assert_eq!(&*counts.lock().unwrap(), &vec![]);
 
     assert_eq!(executor.number_of_sleepers(), 0);
     assert_eq!(executor.number_of_local_tasks(), 1);
@@ -1069,8 +1065,8 @@ fn scenario_5_task_can_spawn_task_via_actions() {
         ProgressIndicator::CanProgress(Some(State::Progressed))
     );
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![("DaemonCounter", TaskStatus::Ready(())),]
+        &*counts.lock().unwrap(),
+        &vec![("DaemonCounter", TaskStatus::Ready(())),]
     );
 
     assert_eq!(executor.number_of_sleepers(), 0);
@@ -1083,8 +1079,8 @@ fn scenario_5_task_can_spawn_task_via_actions() {
         ProgressIndicator::CanProgress(Some(_))
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![("DaemonCounter", TaskStatus::Ready(())),]
+        &*counts.lock().unwrap(),
+        &vec![("DaemonCounter", TaskStatus::Ready(())),]
     );
 
     assert_eq!(executor.number_of_sleepers(), 0);
@@ -1095,8 +1091,8 @@ fn scenario_5_task_can_spawn_task_via_actions() {
         ProgressIndicator::CanProgress(Some(_))
     ));
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![("DaemonCounter", TaskStatus::Ready(())),]
+        &*counts.lock().unwrap(),
+        &vec![("DaemonCounter", TaskStatus::Ready(())),]
     );
 
     assert!(matches!(
@@ -1125,7 +1121,7 @@ fn scenario_5_task_can_spawn_task_via_actions() {
 fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_its_readiness() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
+    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), ()>)>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -1157,7 +1153,7 @@ fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_it
 
     assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
-    assert_eq!(counts.lock().unwrap().clone(), vec![]);
+    assert_eq!(&*counts.lock().unwrap(), &vec![]);
 
     assert_eq!(executor.number_of_sleepers(), 0);
     assert_eq!(executor.number_of_local_tasks(), 1);
@@ -1208,8 +1204,8 @@ fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_it
     assert_eq!(executor.number_of_sleepers(), 0);
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("DaemonCounter", TaskStatus::Ready(())),
             ("DaemonCounter", TaskStatus::Ready(())),
             ("DaemonCounter", TaskStatus::Ready(())),
@@ -1223,7 +1219,7 @@ fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_it
 fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_hits() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -1273,8 +1269,8 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
     });
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -1291,7 +1287,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
 fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -1343,8 +1339,8 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
     });
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -1361,7 +1357,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
 fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
-    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
+    let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration>)>>> =
         Arc::new(Mutex::new(Vec::new()));
 
     let seed = foundation_compact::rng::rng().next_u64();
@@ -1410,8 +1406,8 @@ fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
     });
 
     assert_eq!(
-        counts.lock().unwrap().clone(),
-        vec![
+        &*counts.lock().unwrap(),
+        &vec![
             ("Counter1", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(1)),
             ("Counter2", TaskStatus::Ready(2)),
@@ -1462,13 +1458,12 @@ impl DependsCounter {
 
 impl TaskIterator for DependsCounter {
     type Ready = usize;
-    type Spawner = NoSpawner;
     type Pending = time::Duration;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.count += 1;
 
         if self.count >= self.max {
@@ -1531,7 +1526,7 @@ fn depends_false_registers_as_sleeper() {
     let signal_clone = signal.clone();
     panic_if_failed!(global.push(Box::new(OnNext::on_next(
         DependsCounter::new(1, signal),
-        move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {
+        move |_next: TaskStatus<usize, time::Duration>, _engine| {
             // callback - we track via run_once return values
         }
     ))));
@@ -1577,7 +1572,7 @@ fn depends_signal_wakes_task_and_continues() {
 
     panic_if_failed!(global.push(Box::new(OnNext::on_next(
         DependsCounter::new(1, signal),
-        move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
+        move |_next: TaskStatus<usize, time::Duration>, _engine| {}
     ))));
 
     // Run 1: Depends(false) → registered as sleeper
@@ -1620,7 +1615,7 @@ fn depends_true_violation_pushed_to_back() {
 
     panic_if_failed!(global.push(Box::new(OnNext::on_next(
         DependsCounter::new(1, signal),
-        move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
+        move |_next: TaskStatus<usize, time::Duration>, _engine| {}
     ))));
 
     // Depends(true) → violation, treated as Pending, pushed to back
@@ -1661,7 +1656,7 @@ fn custom_event_readiness_flips_after_polls() {
             max: 3,
             signal: signal.clone(),
         },
-        move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
+        move |_next: TaskStatus<usize, time::Duration>, _engine| {}
     ))));
 
     // First run_once: Depends(false), registers as sleeper
@@ -1690,13 +1685,12 @@ struct DependsCounterCustom {
 
 impl TaskIterator for DependsCounterCustom {
     type Ready = usize;
-    type Spawner = NoSpawner;
     type Pending = time::Duration;
 
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.count += 1;
         if self.count >= self.max {
             return None;
@@ -1730,7 +1724,7 @@ fn bool_signal_clone_and_flip() {
 
     panic_if_failed!(global.push(Box::new(OnNext::on_next(
         DependsCounter::new(1, signal.clone()),
-        move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
+        move |_next: TaskStatus<usize, time::Duration>, _engine| {}
     ))));
 
     // Verify signal is initially false

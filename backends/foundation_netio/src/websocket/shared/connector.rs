@@ -22,14 +22,14 @@
 //! valtron task; wasm hands off to the browser `WebSocket` API. Both box their
 //! inbound stream into the shared [`WebSocketClient`] or [`WsExchangeTask`].
 
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator};
+use foundation_core::valtron::TaskIterator;
 
 use crate::websocket::shared::client::{MessageDelivery, WebSocketClient, WebSocketConnectConfig};
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::message::WebSocketMessage;
 
 /// Boxed, platform-erased WebSocket task — `Box<dyn TaskIterator>` with shared
-/// Ready/Pending/Spawner types. Mirrors
+/// Ready/Pending types. Mirrors
 /// [`HttpExchangeClientTask`](crate::shared::client::request_task::HttpExchangeClientTask).
 ///
 /// No platform types in the signature: native spawns a `WsTask` and maps
@@ -40,7 +40,6 @@ pub type WsExchangeTask = Box<
     dyn TaskIterator<
         Ready = Result<WebSocketMessage, WebSocketError>,
         Pending = crate::websocket::shared::client::WsProgress,
-        Spawner = BoxedSendExecutionAction,
     > + Send,
 >;
 

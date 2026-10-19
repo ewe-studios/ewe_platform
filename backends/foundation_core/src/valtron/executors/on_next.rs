@@ -25,23 +25,21 @@ use crate::compati::Mutex;
 /// stream) is expressed upstream via `TaskIteratorExt` combinators (`map_ready`,
 /// `map_pending`, `filter_ready`, …) applied to the `Task` before it reaches the
 /// builder — so `OnNext` carries no `Mapper` machinery, only the ready-`Resolver`.
-pub struct OnNext<Action, Resolver, Task, Done, Pending>
+pub struct OnNext<Resolver, Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
+    Resolver: TaskReadyResolver<Done, Pending>,
     Task: TaskIterator,
 {
     task: Mutex<Task>,
     resolver: Resolver,
     panic_handler: Option<BoxedPanicHandler>,
-    _types: PhantomData<(Action, Pending, Done)>,
+    _types: PhantomData<(Pending, Done)>,
 }
 
-impl<Action, Resolver, Task, Done, Pending> OnNext<Action, Resolver, Task, Done, Pending>
+impl<Resolver, Task, Done, Pending> OnNext<Resolver, Task, Done, Pending>
 where
-    Action: ExecutionAction,
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Resolver: TaskReadyResolver<Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     pub fn new(iter: Task, resolver: Resolver) -> Self {
         Self {
@@ -63,26 +61,24 @@ where
 }
 
 #[allow(clippy::self_named_constructors)]
-impl<F, Action, Task, Done, Pending> OnNext<Action, FnReady<F, Action>, Task, Done, Pending>
+impl<F, Task, Done, Pending> OnNext<FnReady<F>, Task, Done, Pending>
 where
     Done: Send,
     Pending: Send,
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
     pub fn on_next(t: Task, f: F) -> Self {
         OnNext::new(t, FnReady::new(f))
     }
 }
 
-impl<F, Action, Task, Done, Pending> OnNext<Action, FnMutReady<F, Action>, Task, Done, Pending>
+impl<F, Task, Done, Pending> OnNext<FnMutReady<F>, Task, Done, Pending>
 where
     Done: Send,
     Pending: Send,
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
 {
     pub fn on_next_mut(t: Task, f: F) -> Self {
         OnNext::new(t, FnMutReady::new(f))
@@ -90,14 +86,13 @@ where
 }
 
 #[allow(clippy::from_over_into)]
-impl<Action, Resolver, Task, Done, Pending> Into<BoxedExecutionIterator>
-    for OnNext<Action, Resolver, Task, Done, Pending>
+impl<Resolver, Task, Done, Pending> Into<BoxedExecutionIterator>
+    for OnNext<Resolver, Task, Done, Pending>
 where
     Done: 'static,
     Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    Resolver: TaskReadyResolver<Done, Pending> + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
 {
     fn into(self) -> BoxedExecutionIterator {
         Box::new(self)
@@ -106,26 +101,24 @@ where
 
 #[allow(clippy::needless_lifetimes)]
 #[allow(clippy::from_over_into)]
-impl<'a: 'static, Action, Resolver, Task, Done: Send + 'a, Pending: Send + 'a>
-    Into<BoxedSendExecutionIterator> for OnNext<Action, Resolver, Task, Done, Pending>
+impl<'a: 'static, Resolver, Task, Done: Send + 'a, Pending: Send + 'a>
+    Into<BoxedSendExecutionIterator> for OnNext<Resolver, Task, Done, Pending>
 where
     Done: Send,
     Pending: Send,
-    Action: ExecutionAction + Send + 'a,
-    Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'a,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'a,
+    Resolver: TaskReadyResolver<Done, Pending> + Send + 'a,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'a,
 {
     fn into(self) -> BoxedSendExecutionIterator {
         Box::new(self)
     }
 }
 
-impl<Task, Resolver, Done, Pending, Action> ExecutionIterator
-    for OnNext<Action, Resolver, Task, Done, Pending>
+impl<Task, Resolver, Done, Pending> ExecutionIterator
+    for OnNext<Resolver, Task, Done, Pending>
 where
-    Resolver: TaskReadyResolver<Action, Done, Pending>,
-    Action: ExecutionAction,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Resolver: TaskReadyResolver<Done, Pending>,
+    Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
