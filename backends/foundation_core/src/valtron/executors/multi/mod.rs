@@ -1020,7 +1020,7 @@ impl<
     /// `stream_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the state streams instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a `ConcurrentQueueStreamIterator` that implements the [`Iterator`] trait.
+    /// values from a `NotifyQueueStreamIterator` that implements the [`Iterator`] trait.
     ///
     /// But unlike `schedule_iter` returns [`Stream`] values that hide the underlying
     /// value types of `TaskStatus` which simplifies the trait types your usage
@@ -1039,7 +1039,7 @@ impl<
     }
 
     /// `stream_iter_with_config` adds a task into execution queue and returns
-    /// a `ConcurrentQueueStreamIterator` with configurable polling behavior.
+    /// a `NotifyQueueStreamIterator` with configurable polling behavior.
     ///
     /// But unlike `schedule_iter` returns [`Stream`] values that hide the underlying
     /// value types of `TaskStatus` which simplifies the trait types your usage
@@ -1050,12 +1050,12 @@ impl<
     ///
     /// # Arguments
     ///
-    /// * `wait_cycle` - Thread park duration when queue is empty (passed to `ConcurrentQueueStreamIterator`)
+    /// * `wait_cycle` - Wait duration when queue is empty (passed to `NotifyQueueStreamIterator`)
     /// * `max_turns` - Max poll attempts before yielding `Stream::Ignore`
     ///
     /// # Returns
     ///
-    /// Returns a `ConcurrentQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
     pub fn stream_iter_with_config(
         self,
         wait_cycle: time::Duration,

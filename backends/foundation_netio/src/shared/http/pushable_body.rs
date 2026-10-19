@@ -10,13 +10,13 @@
 //! drained by the request renderer.
 //!
 //! HOW: Bytes flow through the bounded pipe (backpressure, no whole-request
-//! buffering). This uses the 00-F4 `Pipe` primitive — **not**
-//! `ConcurrentQueueStreamIterator`, whose internal `max_turns`/`park_duration`
-//! polling handoff 00-F4 exists to remove: a full pipe parks the async producer on
-//! its vacancy waker, and an empty pipe lets the consuming task park on the pipe's
-//! `QueueReadiness` (feature 23's writer task). The sync `SendSafeBody::Stream`
-//! adapter surfaces a transient empty pipe as `Data::Retry` (the existing
-//! renderer's "no data yet" signal), never an internal spin.
+//! buffering). This uses the 00-F4 `Pipe` primitive — **not** a `max_turns` /
+//! `park_duration` polling iterator (the handoff 00-F4 exists to remove): a full
+//! pipe parks the async producer on its vacancy waker, and an empty pipe lets the
+//! consuming task park on the pipe's `QueueReadiness` (feature 23's writer task).
+//! The sync `SendSafeBody::Stream` adapter surfaces a transient empty pipe as
+//! `Data::Retry` (the existing renderer's "no data yet" signal), never an internal
+//! spin.
 
 use bytes::Bytes;
 

@@ -467,7 +467,7 @@ where
 ///
 /// This function allows configuring:
 /// - `wait_cycle`: Executor polling duration
-/// - `max_turns`: Poll attempts before yielding in ConcurrentQueueStreamIterator
+/// - `max_turns`: Poll attempts before yielding in NotifyQueueStreamIterator
 /// - `park_duration`: Thread park duration when queue is empty
 ///
 /// # Arguments
@@ -510,7 +510,7 @@ where
     tracing::debug!("Executing as a single stream in wasm with config");
 
     // schedule task and get iterator with config
-    // note: wait_cycle parameter is used as park_duration in concurrentqueuestreamiterator
+    // note: wait_cycle parameter is used as park_duration in NotifyQueueStreamIterator
     let iter = single::spawn()
         .with_task(task)
         .as_scheduled()

@@ -34,6 +34,34 @@ Consolidated from `64-valtron-state-task`, `65-valtron-stream-cleanup`, and
   `multi` tests assert `Waiting => unreachable!`; the assertion is now invalid and
   flaky under scheduling pressure — convert to tolerant and add a slow-iterator case.
 
+### Phase 1 implementation notes (feature 00, landed)
+
+- **`max_turns` / `park_duration` are not dead.** The cleanup audit flagged them as
+  candidates, but the live `NotifyQueueStreamIterator` (`local.rs`) takes the *same*
+  two parameter names, and `StreamConfig` / `DEFAULT_MAX_TURNS` /
+  `DEFAULT_PARK_DURATION` feed it via `stream_iter_with_config`. The removal was
+  therefore exactly two types; the constants and config fields stayed, and only
+  their doc-comment *names* moved `ConcurrentQueueStreamIterator` →
+  `NotifyQueueStreamIterator`.
+- **The module doc had four stalenesses, not one.** (1) two dead-type bullets,
+  (2) the "default iterator used by valtron executors" claim, (3) `StreamIteratorExt`
+  listed as an in-module item (it lives in `extensions/streams/*`), and (4) stale
+  constant values (`10` / `20ns` — actual `15` / `1ms`). All four fixed in one pass.
+- **A name swap is wrong where the type is used as a *contrast*.** `pushable_body.rs`
+  justified `Pipe` over "`ConcurrentQueueStreamIterator`, whose polling handoff 00-F4
+  exists to remove"; swapping in `NotifyQueueStreamIterator` would invert the
+  meaning. The sentence was rewritten to describe the `max_turns`/`park_duration`
+  polling handoff without naming a type.
+- **The type-name grep misses snake_case test-name references.**
+  `docs/panic_unwinding.md` listed `test_concurrent_queue_stream_iterator_panics_on_zero_max_turns`
+  in its "Affected Tests" table; that row survives a PascalCase grep and had to be
+  removed separately once the test section was retired.
+- **`NotifyQueueStreamIterator::next()` never loops `max_turns`.** It does one
+  non-blocking `pop()` then a single `wait_for_item(park_duration)`, yielding
+  `Stream::Wait` on timeout. `max_turns` is still plumbed through the struct and its
+  accessor but unused by the poll loop — a pre-existing gap left for feature 01 / a
+  follow-up, not a feature-00 concern.
+
 ### Phase 2 — Stream wake (was 66)
 
 - **The wake signal is a level-triggered "queue became non-empty" edge, decided by

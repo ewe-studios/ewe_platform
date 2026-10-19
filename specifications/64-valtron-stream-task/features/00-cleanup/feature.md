@@ -1,18 +1,18 @@
 ---
 feature: "Cleanup dead stream iterators"
 description: "Remove StreamRecvIterator and ConcurrentQueueStreamIterator (dead ConcurrentQueue<Stream<D,P>> iterators) and fix stale docs, driven by a full cross-crate audit recorded as the task list."
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: []
 estimated_effort: "small"
 created: 2026-10-18
-last_updated: 2026-10-18
+last_updated: 2026-10-19
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 9
+  completed: 9
+  uncompleted: 0
   total: 9
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Cleanup dead stream iterators

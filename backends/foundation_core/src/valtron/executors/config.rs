@@ -3,10 +3,10 @@
 /// # Fields
 ///
 /// * `wait_cycle` - Polling/wait duration for executor (defaults to [`DEFAULT_WAIT_CYCLE`])
-/// * `max_turns` - Max poll attempts before yielding in `ConcurrentQueueStreamIterator`
+/// * `max_turns` - Max poll attempts before yielding in `NotifyQueueStreamIterator`
 ///   (defaults to [`crate::valtron::executors::DEFAULT_MAX_TURNS`])
-/// * `park_duration` - Thread park duration when queue is empty, passed to
-///   `ConcurrentQueueStreamIterator` (defaults to [`crate::valtron::executors::DEFAULT_PARK_DURATION`])
+/// * `park_duration` - Wait duration when queue is empty, passed to
+///   `NotifyQueueStreamIterator` (defaults to [`crate::valtron::executors::DEFAULT_PARK_DURATION`])
 ///
 /// # Example
 ///
@@ -24,9 +24,9 @@
 pub struct StreamConfig {
     /// Wait cycle duration for executor polling
     pub wait_cycle: std::time::Duration,
-    /// Max turns for ConcurrentQueueStreamIterator
+    /// Max turns for NotifyQueueStreamIterator
     pub max_turns: usize,
-    /// Park duration for ConcurrentQueueStreamIterator (used as wait_cycle)
+    /// Park duration for NotifyQueueStreamIterator (used as wait_cycle)
     pub park_duration: std::time::Duration,
 }
 

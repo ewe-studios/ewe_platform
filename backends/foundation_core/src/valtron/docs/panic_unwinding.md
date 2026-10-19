@@ -118,7 +118,6 @@ Tests that verify panic behavior can often use `#[should_panic]` instead of
 |------|------|-----|
 | `test_panic_recovery` | `executors/background.rs` | `cfg_attr` ignore |
 | `test_waitgroup_guard_calls_done_during_panic` | `executors/threads.rs` | `cfg_attr` ignore |
-| `test_concurrent_queue_stream_iterator_panics_on_zero_max_turns` | `tests/stream_iterators.rs` | Rewritten to `#[should_panic]` |
 
 ## Design Decisions
 

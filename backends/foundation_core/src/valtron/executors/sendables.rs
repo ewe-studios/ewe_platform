@@ -349,7 +349,7 @@ where
 ///
 /// This function allows configuring:
 /// - `wait_cycle`: Executor polling duration
-/// - `max_turns`: Poll attempts before yielding in ConcurrentQueueStreamIterator
+/// - `max_turns`: Poll attempts before yielding in NotifyQueueStreamIterator
 /// - `park_duration`: Thread park duration when queue is empty
 ///
 /// # Arguments
@@ -392,7 +392,7 @@ where
     tracing::debug!("Executing as a multi-threaded stream in no-wasm with config");
 
     // Schedule task and get iterator with config
-    // Note: wait_cycle parameter is used as park_duration in ConcurrentQueueStreamIterator
+    // Note: wait_cycle parameter is used as park_duration in NotifyQueueStreamIterator
     let iter = multi::spawn()
         .with_task(task)
         .stream_iter_with_config(config.park_duration, config.max_turns)?;

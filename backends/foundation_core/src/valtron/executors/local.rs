@@ -521,9 +521,8 @@ use crate::valtron::iterators::Stream;
 
 /// `NotifyQueueStreamIterator` provides notification-based iteration over a `NotifyQueue<Stream<D, P>>`.
 ///
-/// This is the notification-aware counterpart to `ConcurrentQueueStreamIterator` in `streams.rs`.
-/// It uses CondVar notification instead of spin-polling, significantly reducing CPU usage
-/// when waiting for stream values.
+/// It uses CondVar notification instead of busy polling, significantly reducing CPU
+/// usage when waiting for stream values.
 ///
 /// The iterator polls the queue up to `max_turns` times, yielding `Stream::Wait` if no
 /// value is available. Between polls, it efficiently waits using CondVar notification.

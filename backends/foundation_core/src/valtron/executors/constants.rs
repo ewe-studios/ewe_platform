@@ -10,18 +10,18 @@ pub const MAX_ROUNDS_WHEN_SLEEPING_ENDS: u32 = 32;
 pub const DEFAULT_OP_READ_TIME: time::Duration = time::Duration::from_millis(100); // 100ms
 pub const DEFAULT_YIELD_WAIT_TIME: time::Duration = time::Duration::from_millis(4000); // 4.0s
 
-/// `DEFAULT_MAX_TURNS` is the default number of poll attempts before yielding `Stream::Ignore`
-/// in `ConcurrentQueueStreamIterator`. This balances responsiveness (checking other tasks)
-/// against throughput (busy polling for items).
+/// `DEFAULT_MAX_TURNS` is the default number of poll attempts before yielding
+/// in `NotifyQueueStreamIterator`. This balances responsiveness (checking other
+/// tasks) against throughput.
 pub const DEFAULT_MAX_TURNS: usize = 15;
 
-/// `DEFAULT_PARK_DURATION` is the default duration to park thread when queue is empty
-/// in `ConcurrentQueueStreamIterator` (std mode only).
+/// `DEFAULT_PARK_DURATION` is the default wait duration when the queue is empty
+/// in `NotifyQueueStreamIterator`.
 /// Changed from 20ns to 1ms in Feature 04 - 20ns was being rounded up by OS to microseconds anyway.
 pub const DEFAULT_PARK_DURATION: time::Duration = time::Duration::from_millis(1);
 
 /// `DEFAULT_WAIT_CYCLE` is the default duration to wait for queue items to appear
-/// in `ConcurrentQueueStreamIterator` (std mode only).
+/// in `NotifyQueueStreamIterator`.
 pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_micros(300);
 
 // ============================================================================
