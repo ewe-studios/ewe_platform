@@ -58,6 +58,24 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
 - **Ignored tests.**
   - 14 network-dependent tests are ignored: `http_external_validation`, `tls_integration`, `http_server_integration`. Make them hermetic (task #31).
   - 33 doctests are ignored (task #33).
+- **Wasm `fetch` blocks the isolate via `run_future`.** `wasm/client/client.rs`
+  `send` and `send_sse` wrap `do_fetch` in `run_future`, which does a synchronous
+  `ReadyValues::new(iter).collect()` that never yields to the JS event loop, so the
+  `fetch` promise never resolves and the whole isolate blocks (spec 65 T6 hang).
+  Fix in spec 65 feature `06-wasm-async-streaming`: make wasm `send_sse` lazy —
+  spawn `do_fetch` via `spawn_local` on first poll and flatten a `WasmSseIterator`,
+  instead of wrapping the fetch in `run_future`; and make `send` yield or drop it
+  from the wasm path.
+- **Wasm `send_sse_async` returns a non-parking stream.** It boxes via
+  `into_future_stream()` (`StreamAsFutureStream`, a raw lens whose `poll_next` is
+  `Poll::Ready(iter.next())`), so `Wait`/`Pending` are forwarded as items and the
+  stream busy-polls instead of parking. Fix in spec 65 feature
+  `06-wasm-async-streaming`: rename the raw lens to `into_pure_future_stream()` and
+  make `into_future_stream()` an await-friendly lens that parks on `Wait`/`Pending`
+  (with `impl WakeableStream for WasmSseIterator` — a `WakeRegistry` fired by its
+  `spawn_local` reader on each queue push). `send_sse_async` keeps the full-enum
+  item type, so it stays on `into_future_stream()` (now parking) rather than
+  switching to `into_next_stream()`.
 
 ## 3. foundation_http
 
@@ -87,6 +105,21 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
   - `PooledBuffer::owned` builds a throwaway pool for every buffer.
   - `PooledBuffer` has no `Debug`.
 - **`read_pooled_buffer` returns `None`** (the EOF signal) when `max_len == 0`.
+- **`run_future` / single-threaded `ThreadedIterFuture` are wasm-unsafe.**
+  - `executors/non_sendables.rs:408` `run_future` collects a `DrivenRecvIterator`
+    synchronously (`filter_map(ReadyValue::inner).collect()`) with no JS yield, so
+    it deadlocks on the single-threaded wasm executor.
+  - `run_future_iter` → single-threaded `ThreadedIterFuture`/`FutureIterator`
+    (`executors/future_task.rs:813-840`) polls the future inline with a no-op
+    waker and drops it after one `Pending`, so it never makes progress and loses
+    the future.
+  - Both are the sync-collect anti-pattern; the wasm-native bridge is `spawn_local`
+    + `ConcurrentQueue` + `Stream::Wait`, consumed by the parking
+    `into_next_stream`/`into_future_stream`. Fix in spec 65 feature
+    `06-wasm-async-streaming`: rename `run_future` → `block_on_future` and document
+    it wasm-unsafe (native-only); fix the single-threaded `ThreadedIterFuture` wasm
+    path; make wasm `send_sse` lazy (no `run_future`); and add a parking test to
+    guarantee `into_future_stream`/`into_next_stream` park on `Wait`/`Pending`.
 - **Release coupling.** `foundation_macros` calls `foundation_core::valtron::initialize_current_thread`, so the two crates need a coordinated version bump when published.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate

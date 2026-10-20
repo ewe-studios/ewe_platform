@@ -320,4 +320,80 @@ worth recording:
   → `shutdown(Write)` → EOF) is the purpose-built harness for exactly this; switching
   the test to it fixed the hang (`test_workers_ai_stream` passes in ~0.1 s).
 
+## WASM T6 hang (2026-10-20) — the sync `Model::stream` path blocks the isolate
+
+Local `wrangler dev --local` runs the Worker fine, but `POST /generate` hangs
+with 0 bytes **and blocks the whole isolate** (`GET /` stops answering too). The
+root cause is *not* the executor selection — the wasm single-threaded executor
+correctly selects `JSThreadYielder` (`single/mod.rs:77-88`), which hooks
+`setTimeout` to drive the engine. The bug is one layer up, in the **synchronous**
+streaming path:
+
+- `AgentLoop::transition_start_generate` (agent_loop.rs:798) calls the sync
+  `Model::stream(interaction, params)`.
+- `OpenAIModel::stream` calls `HttpClient::send_sse(req)` (sync).
+- `FetchHttpClient::send_sse` (wasm/client/client.rs:160) wraps its async
+  `do_fetch` future in `run_future(..)`.
+- `run_future` (non_sendables.rs:408) is `ReadyValues::new(iter).collect()` — a
+  synchronous loop that drives the future **inline** and never returns control to
+  JS. The `fetch` completion is scheduled on the JS microtask queue; `run_future`
+  re-polls the still-pending future in a tight loop, and the `setTimeout` callback
+  that would advance the engine never fires → deadlock.
+
+The transport-level async seam already exists and is the fix's foundation:
+`HttpClient::send_sse_async` (wasm/client/client.rs:118) is a real `async fn`
+that `.await`s `do_fetch`, genuinely yielding to JS. But its result
+(`BoxedSseFutureStream`, built by `into_future_stream()`) is a **raw lens** — it
+forwards `Stream::Wait`/`Stream::Pending` as ordinary `Ready(Some(..))` items and
+never parks — so it cannot be consumed with `while let Some(x) = stream.next().await`
+(that would busy-spin on `Wait`). The missing piece is a parking adapter that turns
+`Wait`/`Pending` into `Poll::Pending` (yielding to JS), which `00-foundation`
+never built because T5 was only ever compile-checked, never run against a live
+model.
+
+Resolution → `06-wasm-async-streaming` (corrected — **zero API change**): the
+`Model` trait is unchanged — `Model::stream()` already returns a `StreamIterator`
+of `Stream<ParseResult, SseProgress>`. The fix has two parts, both "make the
+sync path not block", not "add an async seam":
+
+1. **Make the bridge park.** `into_future_stream()` is rebuilt as a parking
+   full-enum lens (`StreamParkingFutureStream`) that registers a
+   `WakeableStream::wake` callback and returns `Poll::Pending` on
+   `Wait`/`Pending`/`Delayed`/`Init`; the old raw pass-through lens is renamed
+   `into_pure_future_stream()` (`StreamAsFutureStream`, no `WakeableStream` bound).
+2. **Remove `run_future` from the wasm sync path.** wasm `send_sse` becomes a lazy
+   `LazySseIterator` (spawns `do_fetch` via `spawn_local` on first poll, flattens a
+   `WasmSseIterator`), and `run_future` is renamed `block_on_future` + documented
+   wasm-unsafe (native-only). Fetch failures surface as `SseProgress::Failed(msg)`,
+   mapped to `ModelState::Error` by the OpenAI/Workers-AI streams.
+
+T1 lands the parking bridge; T2 removes `run_future`; T3 makes `send_sse` lazy;
+T4 maps the error; T5 verifies `cf-cloud-provider` streams live without blocking
+the isolate.
+
+## 06 T1 (2026-10-20) — the parking bridge lands (`into_future_stream` parks)
+
+- `into_future_stream()` now returns `StreamParkingFutureStream`, an await-friendly
+  full-enum lens (`Item = Stream<D, P>`) that parks on `Wait`/`Pending`/`Delayed`/
+  `Init` via `WakeableStream::wake` (register-then-recheck; `NotSupported` falls
+  back to `cx.waker().wake_by_ref()`), yields `Next(v)`/`Spread(items)` as-is, and
+  skips `Ignore`. It carries `where Self: WakeableStream`.
+- The raw lens is renamed `into_pure_future_stream()` → `StreamAsFutureStream`
+  (unchanged: `Poll::Ready(iter.next())`, no `WakeableStream` bound). All existing
+  raw-lens callers were moved to it: `http_client_impl.rs` `send_sse_async`,
+  `wasm/client/client.rs` `send_sse_async`, `cf-valtron-counter`, and the
+  `stream_future`/`spread` tests.
+- Six new parking tests in `tests/valtron/bridge_park.rs` pin the new lens:
+  park-then-wake-on-push, extension entry point, close-wakes-to-`None`,
+  `NotSupported` self-wake, finished-producer-through-`Delayed`, and
+  `Spread`-yielded-as-is. All 24 `bridge_park` tests pass under `--profile uat`.
+- Native `cargo check -p foundation_core --tests` and wasm
+  `cargo check --target wasm32-unknown-unknown -p foundation_core --no-default-features
+  --features std` both pass; `foundation_netio` (native + `wasm-fetch`) compiles.
+- Fixed two pre-existing broken tests (`test_into_ready_future_via_ext` and
+  `test_tokio_await_ready_future`) that asserted `remaining.next().is_none()`
+  after `into_ready_future()`, though the bridge returns the *remaining* iterator
+  (which still holds the unconsumed item). Corrected to assert the remaining item
+  then `None`. Now the whole foundation_core suite is green.
+
 

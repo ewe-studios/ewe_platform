@@ -12,4 +12,4 @@ compatibility_date = "2024-01-01"
 # of a live key: OPENROUTER_BASE_URL=http://127.0.0.1:<port>/api/v1
 
 [vars]
-MODEL = "google/gemma-4-26b-a4b-it:free"
+MODEL = "google/gemma-4-31b-it:free"

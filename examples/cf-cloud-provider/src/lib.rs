@@ -26,7 +26,12 @@ use foundation_core::valtron::{initialize_pool, PoolGuard, StreamIteratorExt};
 use foundation_netio::wasm::client::FetchHttpClient;
 
 /// OpenRouter free model (see `foundation_ai/examples/hello_openrouter.rs`).
-const DEFAULT_MODEL: &str = "google/gemma-4-26b-a4b-it:free";
+///
+/// `google/gemma-4-26b-a4b-it:free` (the original T5 default) is frequently
+/// rate-limited on OpenRouter's shared free pool, so we default to
+/// `google/gemma-4-31b-it:free`, a plain chat model that returns `delta.content`
+/// (no reasoning-only output). Override at runtime with the `MODEL` binding.
+const DEFAULT_MODEL: &str = "google/gemma-4-31b-it:free";
 const SYSTEM_PROMPT: &str = "You are a concise, helpful assistant.";
 
 /// valtron single-threaded executor, initialised once per isolate. The
@@ -62,6 +67,19 @@ fn read_base_url(env: &worker::Env) -> Option<String> {
     }
 }
 
+/// Model id from the `MODEL` binding, falling back to [`DEFAULT_MODEL`].
+fn read_model(env: &worker::Env) -> String {
+    let model = env
+        .var("MODEL")
+        .map(|v| v.to_string())
+        .unwrap_or_default();
+    if model.trim().is_empty() {
+        DEFAULT_MODEL.to_string()
+    } else {
+        model.trim().to_string()
+    }
+}
+
 /// Build (or reuse) the OpenRouter-backed session for this isolate.
 ///
 /// `AgentSession` is an `Arc` clone, so returning an owned clone is cheap and
@@ -80,7 +98,7 @@ fn get_or_build_session(env: &worker::Env) -> AgentSession {
             .create(Some(config))
             .expect("failed to build OpenRouter provider");
         let session = AgentSession::builder(provider)
-            .with_model(ModelId::from(DEFAULT_MODEL))
+            .with_model(ModelId::from(read_model(env)))
             .with_system_prompt(SYSTEM_PROMPT)
             .build()
             .expect("failed to build agent session");
@@ -147,22 +165,28 @@ document.getElementById('go').onclick = async () => {
 </html>"#;
 
 async fn handle_generate(env: &worker::Env, req: web_sys::Request) -> web_sys::Response {
+    web_sys::console::log_1(&"handle_generate: start".into());
     let prompt = match read_prompt(&req).await {
         Ok(p) if !p.trim().is_empty() => p,
         Ok(_) => return text_response("Send a prompt in the request body.", 400),
         Err(_) => return text_response("failed to read request body", 400),
     };
 
+    web_sys::console::log_1(&"handle_generate: building session".into());
     let session = get_or_build_session(env);
+    web_sys::console::log_1(&"handle_generate: session ready, running turn".into());
     let turn = match session.run_turn_stream(prompt) {
         Ok(t) => t,
         Err(e) => return text_response(&format!("error: {e}"), 500),
     };
+    web_sys::console::log_1(&"handle_generate: turn created".into());
 
     // `into_next_stream` (not `into_future_stream`) is the wasm bridge that
     // parks on valtron's in-band Wait/Pending states, yielding to the JS event
-    // loop so the in-flight fetch can resolve. `into_future_stream` never parks
-    // and would busy-spin through the model call.
+    // loop so the in-flight fetch can resolve, and surfaces `Next` payloads
+    // directly (`Item = Turn`). `into_future_stream` also parks but yields the
+    // full `Stream<Turn, _>` item type, so `into_next_stream` is the simpler
+    // drain for a byte/record consumer.
     let stream = Rc::new(RefCell::new(Some(turn.into_inner().into_next_stream())));
 
     let start_callback = Closure::wrap(Box::new(move |ctrl: JsValue| {
@@ -170,14 +194,19 @@ async fn handle_generate(env: &worker::Env, req: web_sys::Request) -> web_sys::R
         let stream = stream.borrow_mut().take().unwrap();
         let promise = future_to_promise(async move {
             let mut stream = stream;
+            let mut n = 0usize;
             while let Some(record) = stream.next().await {
                 let text = Turn::text_of(&record);
                 if !text.is_empty() {
+                    n += 1;
                     let chunk = format!("data: {}\n\n", text.replace('\n', " "));
                     let bytes = Uint8Array::from(chunk.as_bytes());
                     let _ = controller.enqueue_with_chunk(&bytes);
                 }
             }
+            web_sys::console::log_1(
+                &format!("handle_generate: stream done, {n} chunks").into(),
+            );
             let _ = controller.close();
             Ok(JsValue::NULL)
         });
