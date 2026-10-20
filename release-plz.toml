@@ -1,0 +1,45 @@
+# release-plz: how crates in this workspace are versioned and published.
+#
+# The flow (driven by .github/workflows/release-plz.yaml, after the Checks
+# workflow passes on master):
+#
+#   1. `release-plz release-pr` opens (or updates) one "chore: release" PR. It
+#      bumps the version of every crate whose code changed since its last
+#      crates.io release, updates the version requirements of the crates that
+#      depend on it, and adds CHANGELOG.md entries from the commit messages.
+#   2. Merging that PR changes versions on master. The next run of
+#      `release-plz release` publishes every crate whose version is not yet on
+#      crates.io, in dependency order, and tags each one `<crate>-v<version>`.
+#
+# Ordinary PRs never change versions, so they never publish anything; only a
+# merged release PR (or a deliberate manual bump) does.
+
+[workspace]
+# Publish whatever version is not on crates.io yet, on every green master run.
+# Versions only move through the release PR (or a deliberate bump), so this
+# is what makes "merge the release PR" publish, and lets a publish that died
+# halfway resume on the next run.
+release_always = true
+changelog_update = true
+# One tag per crate: foundation_core-v0.0.7.
+git_tag_enable = true
+git_tag_name = "{{ package }}-v{{ version }}"
+# A GitHub release per library crate would be noise; only the platform binary
+# gets one (see [[package]] below).
+git_release_enable = false
+# Most crates are 0.0.x, where every bump is already breaking under semver, so
+# cargo-semver-checks would only slow the PR down.
+semver_check = false
+# Keep third-party dependency upgrades out of release PRs; they go through
+# normal PRs and CI.
+dependencies_update = false
+pr_name = "chore: release"
+pr_labels = ["release"]
+pr_branch_prefix = "release-plz-"
+# Leave room for the crates that build llama.cpp when crates.io verifies them.
+publish_timeout = "60m"
+
+[[package]]
+name = "ewe_platform"
+# Its tag also triggers release.yaml, which builds and attaches the binaries.
+git_release_enable = true
