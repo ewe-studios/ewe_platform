@@ -51,7 +51,9 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.2" }
 foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.2" }
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.1" }
+# No version: path-only dev-dependencies are stripped on publish, which
+# breaks the connectrpc -> macros -> connectrpc cycle for `cargo publish`.
+foundation_connectrpc = { path = "../foundation_connectrpc" }
 futures = "0.3"
 
 [lints]
