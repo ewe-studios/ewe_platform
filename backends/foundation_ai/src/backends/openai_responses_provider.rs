@@ -6,7 +6,6 @@
 use foundation_compact::SystemTime;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::thread;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -25,7 +24,7 @@ use foundation_netio::shared::http::{
 use serde::{Deserialize, Serialize};
 
 use crate::backends::backend_utils::{
-    empty_usage_report, flatten_tools, model_id_to_string, tool_arguments_from_str,
+    empty_usage_report, flatten_tools, model_id_to_string, sleep, tool_arguments_from_str,
 };
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
@@ -464,7 +463,7 @@ impl ResponsesProvider {
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
                     attempt += 1;
-                    thread::sleep(Duration::from_secs(delay));
+                    sleep(Duration::from_secs(delay));
                 }
             }
         }
@@ -819,7 +818,7 @@ impl ResponsesModel {
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
                     attempt += 1;
-                    thread::sleep(Duration::from_secs(delay));
+                    sleep(Duration::from_secs(delay));
                 }
             }
         }

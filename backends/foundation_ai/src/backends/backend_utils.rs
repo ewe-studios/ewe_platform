@@ -5,6 +5,26 @@ use crate::types::{Tool, ToolArguments};
 // Helper Functions
 // ============================================================================
 
+/// Sleep for `duration` during provider retry backoff without blocking the
+/// runtime.
+///
+/// On native the provider path already runs on a pool worker thread, so a
+/// plain `std::thread::sleep` is fine. On wasm `std::thread::sleep` is not
+/// implemented ("time not implemented"), so we drive valtron's cooperative
+/// `sleep_async` (setTimeout-backed) through `run_future` — the same sync→async
+/// bridge the wasm `HttpClient::send` uses to run `fetch`.
+#[cfg(not(target_family = "wasm"))]
+pub(crate) fn sleep(duration: std::time::Duration) {
+    std::thread::sleep(duration);
+}
+
+#[cfg(target_family = "wasm")]
+pub(crate) fn sleep(duration: std::time::Duration) {
+    let _ = foundation_core::valtron::run_future(foundation_compact::SendWrapper::new(
+        foundation_core::valtron::sleep_async(duration),
+    ));
+}
+
 /// Flatten a `ToolDeclarations` into a flat Vec<Tool> for provider APIs.
 #[must_use]
 pub fn flatten_tools(shed: &ToolDeclarations) -> Vec<Tool> {
