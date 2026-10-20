@@ -18,6 +18,9 @@ foundation_ai = { path = "../foundation_ai", version = "0.0.2", default-features
 foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
 # RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.3" }
+# The listener (h1 + h2c, TLS) and the client/TLS plumbing.
+foundation_http = { path = "../foundation_http", version = "0.0.3" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
 derive_more = { version = "2.1", features = ["display", "error"] }
 # Runtime for the buffa-generated message types (same version connectrpc uses).
 buffa = { version = "0.8.1", features = ["json"] }
@@ -63,6 +66,10 @@ required-features = ["candle"]
 [[test]]
 name = "service_tests"
 path = "tests/service_tests.rs"
+
+[[test]]
+name = "connect_unary_tests"
+path = "tests/connect_unary_tests.rs"
 
 [[test]]
 name = "model_handle_tests"

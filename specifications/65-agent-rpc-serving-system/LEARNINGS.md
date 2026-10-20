@@ -621,3 +621,28 @@ the isolate.
 - `ChatStream` holds the instance's `TurnGuard` until the stream ends; dropping
   it mid-turn (client gone) or a cancelled `Ctx` aborts the session's turn.
 
+## 01 T6 (2026-10-20) — unary over Connect on loopback
+
+- **Server shape:** one listener, `ServerApp::Both` (HTTP/1.1 for Connect and
+  gRPC-Web, h2c for gRPC), every `AgentService` procedure routed to a
+  connectrpc handler. `ConnectRpcHandler` is not `Clone`, so the h1 and h2 apps
+  each get their own `agent_router` over the same `Arc<AgentRpcService>`. The
+  serve loop runs on a named std thread; `RunningServer::graceful_shutdown`
+  turns the `OnSignal` and joins it (also on drop). The builder refuses to build
+  until auth is chosen explicitly (`insecure_plaintext()` for local use).
+- **Worker starvation (important for operators):** the h1 connection driver
+  blocks its valtron worker in `poll(2)` for the whole call, and a turn also
+  needs workers for the client tasks and the agent loop. With 4 workers a
+  `Chat` never ran (client hit its deadline); with 8 it completes, and 10
+  sequential calls before it show no per-call leak. The same `chat` future
+  completes under `futures::executor::block_on` off the pool, so the wake path
+  is fine; it is pure pool exhaustion. Run agent-rpc with ≥ 8 workers plus one
+  per concurrent HTTP/1.1 call (backlog §1 has the root cause).
+- **connectrpc client bug fixed:** a non-200 Connect unary response was decoded
+  from the HTTP status only and the raw JSON body became the message, so
+  `aborted`/`already_exists` (both 409) and `invalid_argument`/
+  `failed_precondition` (both 400) were indistinguishable, and `is_wire_error()`
+  was false. `do_unary_round_trip` now reads the `WireError` body's code and
+  message first. connectrpc's connect/error/conformance/grpc-web/client/grpc
+  suites still pass.
+

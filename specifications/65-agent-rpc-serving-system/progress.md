@@ -17,7 +17,7 @@ otherwise (no agent-rpc / installer / registrar crates exist yet).
 | T3 — `ModelHandle` | ✅ | see git log (`spec 65 F1 T3`) |
 | T4 — `InstanceRegistry` | ✅ | see git log (`spec 65 F1 T4`) |
 | T5 — generated RPC service | ✅ | see git log (`spec 65 F1 T5`) |
-| T6 — unary round-trip | ⏳ | |
+| T6 — unary round-trip | ✅ | see git log (`spec 65 F1 T6`) |
 | T7 — streaming round-trip | ⏳ | |
 | T8 — client auth (token → mTLS) | ⏳ | |
 | T9 — bootstrap payload | ⏳ | |

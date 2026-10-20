@@ -10,6 +10,7 @@
 //! | [`error`] | [`AgentRpcError`] — the single error type + wire status mapping |
 //! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle |
 //! | [`proto`] | generated wire types + service stubs (`proto/`) |
+//! | [`server`] | [`AgentRpcServer`] — builder, listener, graceful shutdown |
 //! | [`service`] | [`AgentRpcService`] — the generated `AgentService` over the registry |
 //! | [`instance`] | [`InstanceRegistry`] — named instances over the shared models |
 //!
@@ -22,6 +23,7 @@ pub mod error;
 pub mod instance;
 pub mod model;
 pub mod proto;
+pub mod server;
 pub mod service;
 
 pub use error::{AgentRpcError, AgentRpcResult};
@@ -29,4 +31,5 @@ pub use instance::{
     InstanceConfig, InstanceHandle, InstanceMeta, InstanceRegistry, RegistryConfig, TurnGuard,
 };
 pub use model::{ModelHandle, ModelSource};
+pub use server::{AgentRpcServer, AgentRpcServerBuilder, RunningServer};
 pub use service::{agent_router, AgentRpcService, TurnEventStream};

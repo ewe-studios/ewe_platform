@@ -100,6 +100,33 @@ async fn instance_lifecycle_through_the_service() {
     assert_eq!(err.current_context().code(), Code::NotFound);
 }
 
+/// The server drives handlers with a waker-only executor (it sleeps until a
+/// waker fires): the turn stream must wake it when items arrive.
+#[valtron_test(threads = 4)]
+fn chat_completes_under_a_waker_driven_executor() {
+    let svc = service("woken");
+    futures::executor::block_on(async {
+        svc.create_instance(Ctx::background(), Request::new(create("alpha")))
+            .await
+            .expect("create");
+    });
+    let reply = std::thread::spawn(move || {
+        futures::executor::block_on(svc.chat(
+            Ctx::background(),
+            Request::new(ChatRequest {
+                instance: "alpha".into(),
+                prompt: "hi".into(),
+                ..Default::default()
+            }),
+        ))
+    })
+    .join()
+    .expect("thread")
+    .expect("chat")
+    .msg;
+    assert_eq!(reply.text, "woken");
+}
+
 #[valtron_test]
 async fn chat_runs_a_turn_on_the_instance() {
     let svc = service("hello from the model");

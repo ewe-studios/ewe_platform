@@ -4550,6 +4550,8 @@ dependencies = [
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
+ "foundation_http",
+ "foundation_netio",
  "futures",
  "prost 0.12.6",
  "prost-types",

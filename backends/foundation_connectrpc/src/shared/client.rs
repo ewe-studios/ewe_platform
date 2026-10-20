@@ -1396,6 +1396,14 @@ async fn do_unary_round_trip(
             frame: Bytes::from(body_buf),
         })
     } else {
+        // A Connect unary error body is a JSON `WireError` carrying the exact
+        // code; the HTTP status alone is ambiguous (aborted and already_exists
+        // are both 409, invalid_argument and failed_precondition both 400).
+        if let Ok(wire) = serde_json::from_slice::<crate::shared::error::WireError>(&body_buf) {
+            if let Some(code) = Code::from_str(&wire.code) {
+                return Err(ConnectError::wire(code, wire.message.unwrap_or_default()).into());
+            }
+        }
         let error_body = if body_buf.is_empty() {
             format!("HTTP {status}")
         } else {

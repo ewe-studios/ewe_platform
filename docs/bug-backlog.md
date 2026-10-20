@@ -29,6 +29,10 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
 - **HTTP/1.1 RPC holds a worker for its whole life.**
   - `foundation_http`'s `Serve` trait is synchronous, so a long-lived h1 stream occupies a valtron worker until it ends. Enough of them use up the pool.
   - Needs an async or pending `Serve` contract.
+  - Observed in spec 65 F1/T6: one agent-rpc `Chat` over HTTP/1.1 with a
+    4-worker pool deadlocks (the call's worker sleeps in `poll(2)`, the client
+    tasks hold others, and the agent loop never gets one); 8 workers suffice.
+    `foundation_agent_rpc` documents the pool sizing until this is fixed.
 - **Transports with no pollable fd fail.** `native/conn_io.rs` readiness waits return `Unsupported` for WireGuard overlay, io_uring completion sockets and openssl/native-tls.
   - With rustls, the fd is polled in the application's direction, so a TLS session that needs the opposite direction mid-stream waits until the timeout.
 - **Conformance coverage.** Add an 8-thread variant of the conformance suite (task #27).

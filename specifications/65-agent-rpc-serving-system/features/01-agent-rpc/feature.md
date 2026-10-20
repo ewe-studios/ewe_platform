@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 5
-  uncompleted: 5
+  completed: 6
+  uncompleted: 4
   total: 10
-  completion_percentage: 50
+  completion_percentage: 60
 ---
 
 # Agent RPC Model Server
@@ -321,7 +321,7 @@ service AgentService {
 - [x] **T5 — Generated RPC service.** Define + generate the `AgentService` types
       (CreateInstance/Chat/ChatStream/ListInstances/DestroyInstance/Health);
       wire into a connectrpc `Router`.
-- [ ] **T6 — Unary round-trip.** `CreateInstance` + `Chat` (unary) round-trip
+- [x] **T6 — Unary round-trip.** `CreateInstance` + `Chat` (unary) round-trip
       over Connect on loopback; error → status mapping asserted.
 - [ ] **T7 — Streaming round-trip.** `ChatStream` server-streaming over Connect;
       assert streaming (not buffered) with a slow producer.
