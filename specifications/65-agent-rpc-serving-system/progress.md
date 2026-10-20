@@ -19,7 +19,7 @@ otherwise (no agent-rpc / installer / registrar crates exist yet).
 | T5 — generated RPC service | ✅ | see git log (`spec 65 F1 T5`) |
 | T6 — unary round-trip | ✅ | see git log (`spec 65 F1 T6`) |
 | T7 — streaming round-trip | ✅ | see git log (`spec 65 F1 T7`) |
-| T8 — client auth (token → mTLS) | ⏳ | |
+| T8 — client auth (token → mTLS) | ✅ | see git log (`spec 65 F1 T8`) |
 | T9 — bootstrap payload | ⏳ | |
 | T10 — all three protocols e2e | ⏳ | |
 

@@ -196,8 +196,15 @@ fn request_url_string(req: &RequestDescriptor) -> String {
         .query()
         .map(|q| format!("?{q}"))
         .unwrap_or_default();
+    // Keep the caller's scheme: rebuilding every URL as `http://` sent
+    // plaintext HTTP to TLS servers (an `https://` base URL never used TLS).
+    let scheme = if req.request_uri.scheme().is_https() {
+        "https"
+    } else {
+        "http"
+    };
     format!(
-        "http://{}:{}{}{}",
+        "{scheme}://{}:{}{}{}",
         req.request_uri
             .host_str()
             .unwrap_or_else(|| "localhost".to_string()),

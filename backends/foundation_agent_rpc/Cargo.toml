@@ -19,14 +19,23 @@ foundation_db = { path = "../foundation_db", version = "0.0.4", default-features
 # RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.3" }
 # The listener (h1 + h2c, TLS) and the client/TLS plumbing.
-foundation_http = { path = "../foundation_http", version = "0.0.3" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
+foundation_http = { path = "../foundation_http", version = "0.0.3", features = ["multi", "ssl"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["ssl", "multi"] }
+# Entropy for bootstrap tokens (the cross-platform substrate).
+foundation_compact = { path = "../foundation_compact", version = "0.2.2" }
+# Client auth: CA + client/server certificates (ring backend, as
+# foundation_proxy), mutual-TLS server configs, fingerprints, secret hygiene.
+rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
+rustls = { version = "0.23", default-features = false, features = ["std", "ring", "tls12"] }
+sha2 = "0.10"
+base64 = "0.22"
+zeroize = "1"
+time = "0.3"
 derive_more = { version = "2.1", features = ["display", "error"] }
 # Runtime for the buffa-generated message types (same version connectrpc uses).
 buffa = { version = "0.8.1", features = ["json"] }
 # The generated service code names `futures::Stream`.
 futures = "0.3"
-bytes = "1"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
@@ -42,9 +51,9 @@ prost = "0.12"
 prost-types = "0.12"
 
 [dev-dependencies]
+tracing-subscriber = { workspace = true }
 # `testing`: MockModelProvider + message builders for deterministic server tests.
 foundation_ai = { path = "../foundation_ai", version = "0.0.2", default-features = false, features = ["multi", "testing"] }
-foundation_compact = { path = "../foundation_compact", version = "0.2.2" }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 
 [features]
@@ -75,6 +84,14 @@ path = "tests/connect_unary_tests.rs"
 [[test]]
 name = "connect_stream_tests"
 path = "tests/connect_stream_tests.rs"
+
+[[test]]
+name = "auth_tests"
+path = "tests/auth_tests.rs"
+
+[[test]]
+name = "auth_log_tests"
+path = "tests/auth_log_tests.rs"
 
 [[test]]
 name = "model_handle_tests"

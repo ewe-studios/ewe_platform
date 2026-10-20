@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 7
-  uncompleted: 3
+  completed: 8
+  uncompleted: 2
   total: 10
-  completion_percentage: 70
+  completion_percentage: 80
 ---
 
 # Agent RPC Model Server
@@ -325,7 +325,7 @@ service AgentService {
       over Connect on loopback; error → status mapping asserted.
 - [x] **T7 — Streaming round-trip.** `ChatStream` server-streaming over Connect;
       assert streaming (not buffered) with a slow producer.
-- [ ] **T8 — Client auth.** `BootstrapToken` → mTLS provisioning; reject a call
+- [x] **T8 — Client auth.** `BootstrapToken` → mTLS provisioning; reject a call
       without a valid cert after bootstrap; never log the token.
 - [ ] **T9 — Bootstrap payload.** Emit base64 + QR `BootstrapPayload`; round-trip
       decode asserts address/fingerprint/token/capabilities survive.

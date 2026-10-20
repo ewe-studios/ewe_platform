@@ -37,6 +37,11 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   - With rustls, the fd is polled in the application's direction, so a TLS session that needs the opposite direction mid-stream waits until the timeout.
 - **Conformance coverage.** Add an 8-thread variant of the conformance suite (task #27).
 
+- **No gRPC client over TLS.** `native/transport/h2.rs` `H2Transport` dials h2c
+  only (no TLS, no ALPN), so a gRPC client cannot reach a TLS/mTLS server (seen
+  in spec 65 F1: agent-rpc's mTLS listener is reachable over Connect/gRPC-Web
+  only). Likely fix: an `H2Transport::tls(connector)` that runs the rustls
+  handshake with ALPN `h2` before the h2 preface.
 - **`foundation_connectrpc_codegen` has 102 pedantic clippy warnings**
   (`src/generator.rs`: 76 `format_push_string`, 19 `doc_markdown`, a 231-line
   function, …). Likely fix: emit through `std::fmt::Write` (`writeln!`) and split

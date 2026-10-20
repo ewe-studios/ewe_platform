@@ -7,6 +7,8 @@
 //!
 //! | Module | Role |
 //! |---|---|
+//! | [`auth`] | bootstrap token, CA, mTLS config, `BootstrapService` (enrollment) |
+//! | [`client`] | enroll with a token, then a typed client over mutual TLS |
 //! | [`error`] | [`AgentRpcError`] — the single error type + wire status mapping |
 //! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle |
 //! | [`proto`] | generated wire types + service stubs (`proto/`) |
@@ -19,6 +21,8 @@
 //! `Arc`-backed handle. Modules are added as their task lands (see
 //! `specifications/65-agent-rpc-serving-system/features/01-agent-rpc`).
 
+pub mod auth;
+pub mod client;
 pub mod error;
 pub mod instance;
 pub mod model;

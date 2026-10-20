@@ -670,3 +670,40 @@ the isolate.
   client is unaffected, though server-side tasks parked on a worker that then
   blocks in an h1 call are affected the same way.
 
+## 01 T8 (2026-10-20) — bootstrap token → client certificate → mTLS
+
+- **Two listeners, no handler-level auth.** The agent listener is mutual TLS
+  (rustls `WebPkiClientVerifier` over our CA): a call without a CA-issued client
+  certificate fails in the handshake and never reaches a handler, so the router
+  has no auth logic (the spec's "auth gates the router"). A second, server-auth
+  TLS listener serves only `BootstrapService/Enroll`. One listener with optional
+  client auth would need the verified peer certificate plumbed into `Ctx`, which
+  `foundation_http` does not do.
+- **Enrollment = token + CSR.** The client generates its key locally and sends
+  a CSR; the CA copies only the CSR's public key (subject = validated client
+  name, non-CA, `clientAuth` EKU, our lifetime). The token is 256 bits of
+  `foundation_compact::entropy`, base64url, compared in constant time,
+  single-use by default (`MtlsConfig::with_max_enrollments`), rotatable
+  (`EnrollmentService::rotate`), zeroed on drop, redacted in `Debug`/`Display`.
+- **Before it has the CA, the client pins the server certificate's SHA-256**
+  (the fingerprint the bootstrap payload carries); handshake signatures are
+  still verified.
+- **Bugs fixed on the way (both made "https" silently not work):**
+  - `foundation_connectrpc` `H1Transport` rebuilt every URL as `http://`, so an
+    `https://` base URL sent plaintext to a TLS port (the client then read the
+    TLS alert as an HTTP status line).
+  - `foundation_netio` `NativeHttpClient::open_exchange` (the path H1Transport
+    uses) built a fresh connection pool, discarding the client's TLS connector
+    and custom `Connector` — custom roots and client certificates never applied
+    (`UnknownIssuer` against our CA). It now uses the client's pool.
+  - Added `RustlsAcceptor::with_config` (server twin of
+    `RustlsConnector::with_config`) so a server can use an mTLS `ServerConfig`.
+- **Log hygiene test:** `#[traced_test]` cannot coexist with `#[valtron_test]`
+  (both set the global subscriber), so `auth_log_tests` is its own binary that
+  installs a TRACE-level capturing subscriber before starting the pool and runs
+  the whole lifecycle — including logging the token's `Debug` on purpose.
+- **Not covered:** gRPC over TLS has no client (`H2Transport` is h2c only), so
+  gRPC is exercised in plaintext mode (T10). Proxy forwarding of the mTLS
+  channel is out of this feature (the spec's proxy terminates TLS; end-to-end
+  client certificates through it need passthrough — spec 65 F3).
+
