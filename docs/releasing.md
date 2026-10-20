@@ -6,9 +6,9 @@ configured in `release-plz.toml` and run by `.github/workflows/release-plz.yaml`
 ## How a release happens
 
 1. Merge PRs to `master` as usual. Don't bump crate versions by hand.
-2. When the **Checks** workflow passes on `master`, the **Publish crates to
+2. When the **Audit: Checks & Tests** workflow (`check.yaml`) passes on `master`, the **Publish crates to
    crates.io** workflow runs. Find it under **Actions**; it does not show
-   among a PR's checks, because it starts after Checks finishes on master.
+   among a PR's checks, because it starts after Audit: Checks & Tests finishes on master.
    It has two jobs:
    - **Publish to crates.io** publishes every crate whose version is not on
      crates.io yet (normally none, unless a release PR was just merged), and
@@ -19,7 +19,7 @@ configured in `release-plz.toml` and run by `.github/workflows/release-plz.yaml`
      requirements of the crates that depend on it, and adds `CHANGELOG.md`
      entries generated from the commit messages.
 3. Review the release PR (edit the changelog or versions on its branch if
-   needed) and merge it. The next green **Checks** run on `master` publishes
+   needed) and merge it. The next green **Audit: Checks & Tests** run on `master` publishes
    those versions, in dependency order.
 
 A publish that fails partway picks up where it stopped on the next run:
