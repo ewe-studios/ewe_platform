@@ -13,6 +13,11 @@ keywords.workspace = true
 include = [
     "wrapper.h",
     "wrapper_mtmd.h",
+    # C++ shims compiled by build.rs and included from wrapper.h.
+    "wrapper_chat.h",
+    "wrapper_chat.cpp",
+    "wrapper_mtp.h",
+    "wrapper_mtp.cpp",
     "build.rs",
     "/src",
 
