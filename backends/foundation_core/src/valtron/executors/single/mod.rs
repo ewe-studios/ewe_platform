@@ -188,6 +188,17 @@ pub fn has_runnable_work() -> bool {
     })
 }
 
+/// Whether this thread's engine has been initialized ([`initialize_pool`]).
+///
+/// Host callbacks that resume the executor (a JS timer or microtask queued by a
+/// yield) check this first: such a callback can fire on a thread that never
+/// created a pool, and with nothing to resume it must be a no-op rather than
+/// [`run_until`]'s panic.
+#[must_use]
+pub fn is_initialized() -> bool {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| pool.get().is_some())
+}
+
 /// `run_until` calls the `LocalExecution` queue and processes
 /// the next pending message by moving it forward just until
 /// the provided function returns true indicating it should stop.

@@ -87,16 +87,23 @@ rather than creating a new crate.
   (every native `#[test]` aborted the module; the start call is now dropped, as
   wasm-bindgen's own runner does), and had no `--filter`. The test file itself
   was stale (`Ctx` import, `.schedule()` → `.as_scheduled().spawn()`). ✅
-- **Tier B, owned path (`integration/wasm_tests`, embedded Deno)** — ❌ blocked.
-  The embedded-Deno testbed did not build (deno_v8 had no JS engine selected;
-  `deno_net` 0.251 pulled a second `deno_core`) — both fixed. But every case
-  (the 4 existing + 3 new: park/wake, microtask ordering, reschedule-in-callback)
-  fails at instantiation: `foundation_compact` uses wasm-bindgen/js-sys
-  unconditionally on wasm32-unknown-unknown (time, entropy), so a
-  `js-foundation-wasm` build imports `__wbindgen_placeholder__`, which the owned
-  runtime cannot supply. Fix (tracked in `docs/bug-backlog.md`): give
-  `foundation_compact` a non-wasm-bindgen time/entropy backend for the owned
-  path (host ABI imports that `foundation-wasm.js` implements).
+- **Tier B, owned path (`integration/wasm_tests`, embedded Deno)** — ✅ 10/10 via
+  `wasm-testbed deno backends/foundation_core/integration/wasm_tests`: the 4
+  ported cases, park/wake, microtask ordering, reschedule-in-callback, and 3
+  host-ABI cases (clock, an entropy fill past Web Crypto's 64 KiB limit, RNG
+  seeding). What unblocked it:
+  - `foundation_compact` used wasm-bindgen/js-sys unconditionally on
+    wasm32-unknown-unknown, so every `js-foundation-wasm` module imported
+    `__wbindgen_placeholder__` and could not be instantiated. Compact now has a
+    `host-abi` backend (`abi` imports `host_monotonic_now_ms`,
+    `host_time_origin_ms`, `host_wall_clock_ms`, `host_fill_random`, implemented
+    by `foundation-wasm.js`), selected by core's `js-foundation-wasm`.
+  - The embedded Deno had no `crypto.getRandomValues` (no `deno_crypto`, whose
+    `aes` pin clashes with turso); the testbed now installs one over OS entropy.
+  - A JS resume timer queued by a yield on a thread with no pool
+    (`js_yield_returns_immediately`) called `run_until` after the case and
+    aborted the runtime; resume callbacks now skip the run when
+    `single::is_initialized()` is false.
 - **Browser run** — not yet attempted here (needs the Playwright setup).
 
 # Goals

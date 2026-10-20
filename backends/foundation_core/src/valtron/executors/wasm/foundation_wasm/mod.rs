@@ -31,9 +31,12 @@ fn js_should_stop(signal: ProgressIndicator) -> bool {
 
 /// Module-level function called from the ScheduleRegistry callback.
 /// After the timer fires and the resumed flag is set, this re-invokes
-/// the valtron executor to continue processing.
+/// the valtron executor to continue processing. A no-op when this thread never
+/// initialized a pool (a yield outside any executor still queues the timer).
 fn js_yield_and_continue() {
-    crate::valtron::single::run_until(js_should_stop);
+    if crate::valtron::single::is_initialized() {
+        crate::valtron::single::run_until(js_should_stop);
+    }
 }
 
 /// Set while a resume microtask is queued, so a burst of wakes queues a single

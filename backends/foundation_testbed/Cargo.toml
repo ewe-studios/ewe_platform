@@ -67,12 +67,14 @@ wasm-embedded-js = [
   "dep:rustls",        # install the aws-lc-rs CryptoProvider deno_tls expects
   "dep:deno_error",    # JsErrorBox for the harness ops
   "dep:tokio",         # current-thread executor for deno_core's event loop
+  "dep:foundation_compact", # OS entropy behind the crypto.getRandomValues shim (no deno_crypto)
 ]
 
 [dependencies]
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["multi"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.2", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"
 tracing = "0.1"

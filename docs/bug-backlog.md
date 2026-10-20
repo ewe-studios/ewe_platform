@@ -183,6 +183,17 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   `wasm-embedded-js` testbed stopped building (deno_v8 had no JS engine selected)
   unnoticed. Add a CI job that runs `mise run test:wasm-testbed:deno` (embedded
   Deno; no browser needed) and `mise run test:wasm-bindgen:deno`.
+- **`wasm-testbed` warns on `Command::Bindgen(args)`** (`foundation_testbed/src/bin/wasm-testbed.rs:37`):
+  `args` is unused unless the `wasm-bindgen-test` feature is on (e.g. under
+  `--no-default-features --features wasm-embedded-js`). Gate the binding with the
+  same `cfg` as its use, or prefix it with `_` in the other arm.
+- **Running a wasm mise task installs every tool in `mise.toml`.** `mise exec`/`mise run`
+  first installs all pinned tools (bacon, cargo-nextest, cargo-audit, python…),
+  building several from source. On a small disk that fills it, and where the
+  GitHub attestation API is blocked the python install fails, so
+  `test:wasm-bindgen:deno` cannot start even though it only needs deno and
+  wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
+  task invoke the two binaries via `mise which`.
 
 ## 10. foundation_ai
 
