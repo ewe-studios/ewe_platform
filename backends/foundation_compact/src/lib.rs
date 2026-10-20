@@ -8,6 +8,7 @@
 //! - **`entropy`** — vendored OS entropy (getrandom backends for all targets)
 //! - **`rng`** — ChaCha-based CSPRNG seeded from entropy (no external rand/getrandom)
 //! - **`ids`** — scru128 monotonic IDs (folded from `foundation_rng`)
+//! - **`hash`** — deterministic, wasm-safe content hashing (foldhash, no getrandom)
 //!
 //! # Usage
 //!
@@ -45,6 +46,10 @@ pub mod ids;
 // ─── Crypto ────────────────────────────────────────────────────────────────────
 
 pub mod crypto;
+
+// ─── Hash ──────────────────────────────────────────────────────────────────────
+
+pub mod hash;
 
 // ─── Tracing ─────────────────────────────────────────────────────────────────
 

@@ -7,11 +7,10 @@
 use foundation_compact::SystemTime;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::thread;
 use std::time::Duration;
 
 use crate::backends::backend_utils::{
-    empty_usage_report, flatten_tools, model_id_to_string, tool_arguments_from_str,
+    empty_usage_report, flatten_tools, model_id_to_string, sleep, tool_arguments_from_str,
 };
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -313,7 +312,7 @@ impl OpenAIProvider {
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
                     attempt += 1;
-                    thread::sleep(Duration::from_secs(delay));
+                    sleep(Duration::from_secs(delay));
                 }
             }
         }
@@ -610,7 +609,7 @@ impl OpenAIModel {
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
                     attempt += 1;
-                    thread::sleep(Duration::from_secs(delay));
+                    sleep(Duration::from_secs(delay));
                 }
             }
         }

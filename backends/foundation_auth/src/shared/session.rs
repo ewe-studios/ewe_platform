@@ -12,7 +12,7 @@ use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Duration, Utc};
 use foundation_netio::shared::client::{Cookie, SameSite};
 use hmac::{Hmac, Mac};
-use rand::RngCore;
+use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use zeroize::Zeroizing;
@@ -569,7 +569,7 @@ impl TokenSigner {
 /// Generate a cryptographically random session token.
 fn generate_token() -> String {
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    foundation_compact::rng::rng().fill_bytes(&mut bytes);
     URL_SAFE_NO_PAD.encode(bytes)
 }
 

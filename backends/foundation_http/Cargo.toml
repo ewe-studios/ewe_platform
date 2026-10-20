@@ -11,7 +11,6 @@ keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.6" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 
 serde = { workspace = true }
@@ -30,11 +29,15 @@ async-trait = "0.1"
 # transitively, above netio, so no dependency cycle forms.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.3" }
+# netio is target-gated so wasm never pulls its `multi` feature (native =
+# defaults, wasm = `wasm-fetch`) — mirroring foundation_auth/foundation_ai.
+foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
 
 # On wasm32, uuid needs a randomness source
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { version = "1.6", features = ["v4", "js"] }
 getrandom = { version = "0.2", optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["wasm-fetch"] }
 
 # Wasm-bindgen bridge dependencies (optional)
 wasm-bindgen = { version = "0.2", optional = true }

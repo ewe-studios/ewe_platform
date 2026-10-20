@@ -4726,7 +4726,6 @@ dependencies = [
 name = "foundation_ai"
 version = "0.0.2"
 dependencies = [
- "ahash",
  "async-trait",
  "candle-core",
  "candle-nn",
@@ -4788,6 +4787,7 @@ dependencies = [
  "chacha20poly1305",
  "chrono",
  "derive_more",
+ "foundation_compact",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
@@ -4802,7 +4802,6 @@ dependencies = [
  "jwt-simple",
  "ntest",
  "pbkdf2",
- "rand 0.9.5",
  "serde",
  "serde_cbor",
  "serde_json",
@@ -4913,6 +4912,7 @@ version = "0.2.2"
 dependencies = [
  "cfg-if",
  "chacha20poly1305",
+ "foldhash 0.2.0",
  "forkguard",
  "fstr",
  "js-sys",

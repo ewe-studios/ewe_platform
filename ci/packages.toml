@@ -5,12 +5,19 @@
 #
 # Keys:
 #   skip            = "why"   leave the package out of CI entirely
-#   fmt / build / clippy / test  "enforce" (failure fails CI) | "report" (warning
-#                             only) | "off" (don't run)
+#   fmt / build / clippy / test / wasm  "enforce" (failure fails CI) | "report"
+#                             (warning only) | "off" (don't run)
 #   runs            = [...]   one `cargo test` per entry; each entry is the
 #                             feature flags for that run: "" (defaults),
 #                             "a b" (--features a,b), or raw flags starting
 #                             with "-" (e.g. "--no-default-features")
+#   wasm            = "enforce"|"report"|"off"  run the wasm32-unknown-unknown
+#                             compile gate (`cargo check --target wasm32`) for
+#                             this package; "off" (the default) skips it — most
+#                             crates are not wasm targets.
+#   wasm-runs       = [...]   one `cargo check --target wasm32` per entry, same
+#                             feature-flag syntax as `runs`. Only the wasm-
+#                             relevant crates set this.
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
 #   reason          = "why"   shown next to report-only failures
@@ -29,6 +36,9 @@ fmt = "report"
 build = "enforce"
 clippy = "enforce"
 test = "enforce"
+# Most crates are not wasm32 targets; only the foundation crates that must
+# compile for Cloudflare Workers opt in below.
+wasm = "off"
 runs = [""]
 timeout-minutes = 60
 
@@ -81,6 +91,10 @@ fmt = "enforce"
 # harness and backends compiling without llama.cpp or candle.
 runs = ["testing", "--no-default-features --features testing"]
 timeout-minutes = 90
+# Wasm gate (spec 65 00-foundation): the agentic layer + cloud providers must
+# compile to wasm32 with no local (llamacpp/candle) backends.
+wasm = "enforce"
+wasm-runs = ["--no-default-features"]
 
 [packages.foundation_core]
 # valtron has two executors chosen at compile time: the single-threaded one
@@ -133,3 +147,52 @@ runs = ["", "docker"]
 # at a time. Splitting the generated groups into their own crates is what
 # would remove this.
 env = { CARGO_BUILD_JOBS = "1" }
+
+# ---------------------------------------------------------------------------
+# Wasm32 compile gates (spec 65 00-foundation / spec 28 feature 07).
+#
+# The foundation crates that must compile for Cloudflare Workers get a
+# `cargo check --target wasm32-unknown-unknown` gate on their wasm-relevant
+# feature set. This re-establishes the spec-28 `wasm-check` job (lost in the
+# per-package refactor) and extends it to the AI crates, so a native-dep that
+# leaks into a wasm build — most often `foundation_netio`'s `multi` feature
+# (Send-required valtron) reaching netio's single-threaded `!Send` wasm code —
+# fails CI instead of regressing silently. The `--no-default-features` entries
+# are deliberate: several defaults (netio's `multi`, auth's `turso`, db's
+# `turso`/`d1`/`r2`) are native-only and would break the wasm build.
+
+[packages.foundation_core]
+wasm = "enforce"
+wasm-runs = ["--no-default-features --features std"]
+
+[packages.foundation_auth]
+wasm = "enforce"
+wasm-runs = ["--no-default-features --features wasm"]
+
+[packages.foundation_http]
+wasm = "enforce"
+wasm-runs = ["--no-default-features --features wasm"]
+
+[packages.foundation_db]
+wasm = "enforce"
+wasm-runs = ["--no-default-features --features wasm"]
+
+[packages.foundation_netio]
+wasm = "enforce"
+wasm-runs = ["--no-default-features --features wasm-fetch"]
+
+[packages.foundation_vectors]
+wasm = "enforce"
+wasm-runs = [""]
+
+[packages.foundation_compact]
+wasm = "enforce"
+wasm-runs = [""]
+
+[packages.foundation_arrow]
+wasm = "enforce"
+wasm-runs = [""]
+
+[packages.foundation_connectrpc]
+wasm = "enforce"
+wasm-runs = ["--no-default-features --features rpc"]

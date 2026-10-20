@@ -6,7 +6,6 @@
 use foundation_compact::SystemTime;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::thread;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -24,7 +23,7 @@ use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;
 
-use crate::backends::backend_utils::{tool_arguments_from_str, tool_arguments_from_value};
+use crate::backends::backend_utils::{sleep, tool_arguments_from_str, tool_arguments_from_value};
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
@@ -658,7 +657,7 @@ impl AnthropicModel {
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
                     attempt += 1;
-                    thread::sleep(Duration::from_secs(delay));
+                    sleep(Duration::from_secs(delay));
                 }
             }
         }

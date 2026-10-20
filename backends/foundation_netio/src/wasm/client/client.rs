@@ -136,7 +136,7 @@ impl HttpClient for FetchHttpClient {
                 .ok_or_else(|| HttpClientError::Reason("SSE response has no body".into()))?;
 
             let iter = WasmSseIterator::new(body);
-            let future_stream = iter.into_future_stream();
+            let future_stream = iter.into_pure_future_stream();
             Ok(Box::pin(future_stream) as BoxedSseFutureStream)
         })
         .await

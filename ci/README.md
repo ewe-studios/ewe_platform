@@ -14,7 +14,7 @@ can't hold up your PR.
      `rust-toolchain.toml`, `.cargo/`, `ci/`, `scripts/ci/`, the workflow
      itself) selects everything.
    - **Push to `master`, the nightly schedule:** every package.
-   - **Manual run** (Actions → Checks → Run workflow): `all`, or the packages
+   - **Manual run** (Actions → Audit: Checks & Tests → Run workflow): `all`, or the packages
      you name.
 2. **Package jobs.** Each selected package runs `rustfmt`, `cargo build`
    (all targets), `clippy` and `cargo test` as separate steps, so the Actions

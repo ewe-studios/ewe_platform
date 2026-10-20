@@ -462,14 +462,14 @@ impl TurnEvent {
 /// // Or take the valtron iterator back out.
 /// let mut raw = agent.run_turn_stream("Again")?.into_inner();
 /// ```
-pub struct TurnStream<D, M>(DrivenStreamIterator<AgentLoop<D, M>>)
+pub struct TurnStream<D, M>(foundation_compact::SendWrapper<DrivenStreamIterator<AgentLoop<D, M>>>)
 where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static;
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
     pub(crate) fn new(inner: DrivenStreamIterator<AgentLoop<D, M>>) -> Self {
-        Self(inner)
+        Self(foundation_compact::SendWrapper::new(inner))
     }
 
     /// True when no item is ready right now (polling without blocking).
@@ -487,7 +487,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
     /// The underlying valtron iterator.
     #[must_use]
     pub fn into_inner(self) -> DrivenStreamIterator<AgentLoop<D, M>> {
-        self.0
+        self.0.into_inner()
     }
 
     /// Borrow the underlying valtron iterator.
@@ -526,7 +526,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<D, M>
     for DrivenStreamIterator<AgentLoop<D, M>>
 {
     fn from(stream: TurnStream<D, M>) -> Self {
-        stream.0
+        stream.0.into_inner()
     }
 }
 

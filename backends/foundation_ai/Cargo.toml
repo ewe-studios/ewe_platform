@@ -17,7 +17,9 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
 foundation_auth = { path = "../foundation_auth", version = "0.0.4", default-features = false }
 foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
 foundation_core = { path = "../foundation_core", version = "0.0.6" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
+# foundation_netio is target-gated below (native vs wasm): native needs the
+# multi-threaded executor (`multi`) + TLS/compression/wire modules; wasm needs
+# only `wasm-fetch` (the browser fetch client) — matching foundation_auth.
 # foundation_deployment_huggingface is native-only (uses reqwest/std networking)
 # pulled in by llamacpp/candle features via the native target gate below
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
@@ -40,7 +42,6 @@ lazy-regex = { version = "3.1" }
 derive_more = { version = "2.1", features = ["from", "debug", "display", "error"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-ahash = "0.8"
 # Tool-boundary panic containment in the agentic loop (catch_unwind on the
 # tool future). Also a dev-dependency for block_on in tests.
 futures-lite = "2"
@@ -48,6 +49,7 @@ futures-lite = "2"
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_auth = { path = "../foundation_auth", version = "0.0.4", features = ["turso"], default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["multi"] }
 # vfs-search-fff (F18): the real fff search engine for native search_file, via
 # the CascadingVfsSearcher (fff → CLI rg/grep → in-code VFS walk fallback).
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.3", features = ["vfs", "vfs-search", "vfs-search-fff"] }
@@ -55,6 +57,11 @@ foundation_deployment_huggingface = { path = "../foundation_deployment_huggingfa
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_auth = { path = "../foundation_auth", version = "0.0.4", features = ["wasm"], default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["wasm-fetch"] }
+# VFS traits + in-code searcher only (`vfs` + `vfs-search`, no `vfs-search-fff`:
+# the fff engine and the CLI rg/grep cascade are native-only, already
+# cfg(not(target_family = "wasm"))-gated in foundation_nativeapis).
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.3", default-features = false, features = ["vfs", "vfs-search"] }
 
 # llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
 [target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]
