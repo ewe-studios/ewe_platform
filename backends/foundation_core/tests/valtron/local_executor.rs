@@ -1,31 +1,55 @@
 //! `LocalThreadExecutor` tests, moved out of `src/valtron/executors/local.rs`
 //! (tests live in `tests/`, never inline).
 //!
-//! Tests marked `#[cfg(feature = "multi")]` push tasks whose resolvers capture
-//! `TaskStatus` values onto the shared (cross-thread) queue, or build them with
-//! the `send_*_task` helpers. `TaskStatus` is only `Send` under `multi` (its
-//! `Spawn` variant boxes an `ExecutionAction` that is `Send` only there), so
-//! those tests are multi-only by construction.
+//! These run with and without `multi`: the executor is meant to work in both.
+//! Task builders and spawn actions differ by config (`Send` under `multi`, not
+//! otherwise), so the tests go through the gated helpers below
+//! (`any_task_for_mode`, `typed_task_for_mode`, `boxed_spawn_action`), which
+//! pick the `Send` or non-`Send` variant. Only tests that move work to
+//! another OS thread stay `#[cfg(feature = "multi")]`.
 #![cfg(not(target_family = "wasm"))]
 
 use std::time;
 
 use concurrent_queue::ConcurrentQueue;
-#[cfg(feature = "multi")]
 use foundation_core::compati::Mutex;
 use std::sync::atomic::{AtomicUsize, Ordering};
-#[cfg(feature = "multi")]
 use std::{thread, time::Duration};
 
+#[cfg(not(feature = "multi"))]
+use foundation_core::valtron::{
+    any_task as any_task_for_mode, typed_task as typed_task_for_mode, IntoBoxedExecutionAction,
+};
 #[cfg(feature = "multi")]
-use foundation_core::valtron::IntoBoxedSendExecutionAction;
+use foundation_core::valtron::{
+    send_any_task as any_task_for_mode, send_typed_task as typed_task_for_mode,
+    IntoBoxedSendExecutionAction,
+};
+
+/// Boxes an action for `TaskStatus::Spawn`, which holds a `Send` action
+/// under `multi` and a non-`Send` one otherwise.
+#[cfg(feature = "multi")]
+fn boxed_spawn_action<A>(action: A) -> foundation_core::valtron::BoxedSendExecutionAction
+where
+    A: IntoBoxedSendExecutionAction,
+{
+    action.into_box_send_execution_action()
+}
+
+#[cfg(not(feature = "multi"))]
+fn boxed_spawn_action<A>(action: A) -> foundation_core::valtron::BoxedExecutionAction
+where
+    A: IntoBoxedExecutionAction,
+{
+    action.into_box_execution_action()
+}
 use foundation_core::{
     panic_if_failed,
     retries::ExponentialBackoffDecider,
     synca::SleepyMan,
     valtron::{
-        BoolSignal, EventReadiness, ExecutionAction, InlineAction, InlineActionBehaviour,
-        OnNext, ProcessController, TaskIterator, TaskStatus, WrapTask,
+        BoolSignal, EventReadiness, ExecutionAction, InlineAction, InlineActionBehaviour, OnNext,
+        ProcessController, TaskIterator, TaskStatus, WrapTask,
     },
 };
 
@@ -43,18 +67,13 @@ impl ProcessController for NoYielder {
     fn yield_for(&self, _: time::Duration) {}
 }
 
-#[cfg(feature = "multi")]
 struct Counter(&'static str, usize, usize, usize);
 
-#[cfg(feature = "multi")]
 impl TaskIterator for Counter {
     type Ready = usize;
     type Pending = time::Duration;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let old_count = self.1;
         let new_count = old_count + 1;
         self.1 = new_count;
@@ -75,25 +94,19 @@ impl TaskIterator for Counter {
     }
 }
 
-#[cfg(feature = "multi")]
 enum ListItemInner {
     List(Option<Vec<usize>>),
     Response(NotifyRecvIterator<TaskStatus<usize, ()>>),
     Done,
 }
 
-#[cfg(feature = "multi")]
 struct ListItems(InlineActionBehaviour, Option<ListItemInner>);
 
-#[cfg(feature = "multi")]
 impl TaskIterator for ListItems {
     type Ready = usize;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.1.take() {
             Some(val) => match val {
                 ListItemInner::List(mut items) => {
@@ -105,9 +118,7 @@ impl TaskIterator for ListItems {
 
                         self.1 = Some(ListItemInner::Response(receiver));
 
-                        return Some(TaskStatus::Spawn(
-                            inline_action.into_box_send_execution_action(),
-                        ));
+                        return Some(TaskStatus::Spawn(boxed_spawn_action(inline_action)));
                     }
 
                     self.1 = Some(ListItemInner::Done);
@@ -125,9 +136,7 @@ impl TaskIterator for ListItems {
                             TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
                             TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                             TaskStatus::Ready(item) => Some(TaskStatus::Ready(item)),
-                            TaskStatus::Spawn(action) => {
-                                Some(TaskStatus::Spawn(action))
-                            }
+                            TaskStatus::Spawn(action) => Some(TaskStatus::Spawn(action)),
                             TaskStatus::Ignore => Some(TaskStatus::Ignore),
                             TaskStatus::Wait => Some(TaskStatus::Wait),
                             TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
@@ -201,7 +210,6 @@ fn test_task_line_action_directly() {
     );
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn test_task_line_send_action() {
     let seed = foundation_compact::rng::rng().next_u64();
@@ -225,7 +233,7 @@ fn test_task_line_send_action() {
         None,
     );
 
-    let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
+    let receiver = panic_if_failed!(any_task_for_mode(executor.boxed_engine())
         .with_task(ListItems(
             InlineActionBehaviour::Lift,
             Some(ListItemInner::List(Some(vec![1, 2, 3])))
@@ -252,7 +260,6 @@ fn test_task_line_send_action() {
     );
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn test_task_line_send_action_for_parent_lifted() {
     let seed = foundation_compact::rng::rng().next_u64();
@@ -276,7 +283,7 @@ fn test_task_line_send_action_for_parent_lifted() {
         None,
     );
 
-    let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
+    let receiver = panic_if_failed!(any_task_for_mode(executor.boxed_engine())
         .with_task(ListItems(
             InlineActionBehaviour::LiftWithParent,
             Some(ListItemInner::List(Some(vec![1, 2, 3])))
@@ -303,7 +310,6 @@ fn test_task_line_send_action_for_parent_lifted() {
     );
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn test_task_line_send_action_for_sequenced() {
     let seed = foundation_compact::rng::rng().next_u64();
@@ -327,7 +333,7 @@ fn test_task_line_send_action_for_sequenced() {
         None,
     );
 
-    let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
+    let receiver = panic_if_failed!(any_task_for_mode(executor.boxed_engine())
         .with_task(ListItems(
             InlineActionBehaviour::Sequenced,
             Some(ListItemInner::List(Some(vec![1, 2, 3])))
@@ -358,7 +364,6 @@ fn test_task_line_send_action_for_sequenced() {
 // PHASE 1: Local Executor tests
 // ============================================================================
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_0_can_kill_local_executor_via_kill_signal() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -386,7 +391,7 @@ fn scenario_0_can_kill_local_executor_via_kill_signal() {
     );
 
     let count_clone = Arc::clone(&counts);
-    panic_if_failed!(send_typed_task(executor.boxed_engine())
+    panic_if_failed!(typed_task_for_mode(executor.boxed_engine())
         .with_task(Counter("Counter1", 0, 3, 3))
         .on_next(move |next, _| count_clone.lock().unwrap().push(next))
         .as_broadcast()
@@ -412,7 +417,6 @@ fn scenario_0_can_kill_local_executor_via_kill_signal() {
     thread_handle.join().expect("should end correctly");
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_one_task_a_runs_to_completion() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -463,7 +467,6 @@ fn scenario_one_task_a_runs_to_completion() {
     );
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_one_can_use_local_executor_builder_to_queue_task() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -490,7 +493,7 @@ fn scenario_one_can_use_local_executor_builder_to_queue_task() {
     );
 
     let count_clone = Arc::clone(&counts);
-    panic_if_failed!(send_typed_task(executor.boxed_engine())
+    panic_if_failed!(typed_task_for_mode(executor.boxed_engine())
         .with_task(Counter("Counter1", 0, 3, 3))
         .on_next(move |next, _| count_clone.lock().unwrap().push(next))
         .as_broadcast()
@@ -514,7 +517,6 @@ fn scenario_one_can_use_local_executor_builder_to_queue_task() {
     );
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -584,7 +586,6 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
     );
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -738,7 +739,6 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
     );
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -911,7 +911,6 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
     );
 }
 
-#[cfg(feature = "multi")]
 #[derive(Clone, Default)]
 enum DaemonSpawner {
     #[default]
@@ -921,7 +920,6 @@ enum DaemonSpawner {
     OutofThread,
 }
 
-#[cfg(feature = "multi")]
 impl ExecutionAction for DaemonSpawner {
     fn apply(
         &mut self,
@@ -955,7 +953,7 @@ impl ExecutionAction for DaemonSpawner {
             }
             DaemonSpawner::OutofThread => {
                 tracing::debug!("Spawning task as OutOfThread");
-                match send_any_task(executor)
+                match any_task_for_mode(executor)
                     .with_task(SimpleCounter("SubTask3", 0, 5))
                     .as_broadcast()
                     .spawn()
@@ -968,17 +966,12 @@ impl ExecutionAction for DaemonSpawner {
     }
 }
 
-#[cfg(feature = "multi")]
 struct DaemonCounter(Arc<AtomicUsize>);
-#[cfg(feature = "multi")]
 impl TaskIterator for DaemonCounter {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let current = self.0.load(Ordering::SeqCst);
         println!("Current state: {:?}", current);
         if current == 0 {
@@ -1006,18 +999,13 @@ impl TaskIterator for DaemonCounter {
     }
 }
 
-#[cfg(feature = "multi")]
 struct SimpleCounter(&'static str, usize, usize);
 
-#[cfg(feature = "multi")]
 impl TaskIterator for SimpleCounter {
     type Ready = usize;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let old_count = self.1;
         let new_count = old_count + 1;
         self.1 = new_count;
@@ -1043,7 +1031,6 @@ impl TaskIterator for SimpleCounter {
     }
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_5_task_can_spawn_task_via_actions() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -1072,7 +1059,7 @@ fn scenario_5_task_can_spawn_task_via_actions() {
     let gen_state = Arc::new(AtomicUsize::new(0));
 
     let count_clone = counts.clone();
-    panic_if_failed!(send_typed_task(executor.boxed_engine())
+    panic_if_failed!(typed_task_for_mode(executor.boxed_engine())
         .with_task(DaemonCounter(gen_state.clone()))
         .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
         .as_broadcast()
@@ -1144,7 +1131,6 @@ fn scenario_5_task_can_spawn_task_via_actions() {
     assert_eq!(executor.number_of_local_tasks(), 5);
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_its_readiness() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -1173,7 +1159,7 @@ fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_it
     let gen_state = Arc::new(AtomicUsize::new(0));
 
     let count_clone = counts.clone();
-    panic_if_failed!(send_typed_task(executor.boxed_engine())
+    panic_if_failed!(typed_task_for_mode(executor.boxed_engine())
         .with_task(DaemonCounter(gen_state.clone()))
         .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
         .as_broadcast()
@@ -1243,7 +1229,6 @@ fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_it
     );
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_hits() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -1312,7 +1297,6 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
     assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -1383,7 +1367,6 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
     assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
 }
 
-#[cfg(feature = "multi")]
 #[test]
 fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -1491,10 +1474,7 @@ impl TaskIterator for DependsCounter {
     type Ready = usize;
     type Pending = time::Duration;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.count += 1;
 
         if self.count >= self.max {
@@ -1718,10 +1698,7 @@ impl TaskIterator for DependsCounterCustom {
     type Ready = usize;
     type Pending = time::Duration;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.count += 1;
         if self.count >= self.max {
             return None;

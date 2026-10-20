@@ -2850,40 +2850,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
 // --- Access Methods run once
 
-/// `typed_task` allows you to create a task builder but requiring specific
-/// definitions for your `Task` and `Resolver` types.
-#[must_use]
-pub fn typed_task<Task, Resolver>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
-where
-    Task::Ready: Send,
-    Task::Pending: Send,
-    Task: TaskIterator + Send + 'static,
-    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + 'static,
-{
-    TaskSpawnConfig::new(engine)
-}
-
-/// `any_task` allows you to create a task builder with less restrictive type
-/// requirements for the builder, specifically resolvers are Boxed.
-#[must_use]
-pub fn any_task<Task>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
-where
-    Task::Ready: Send,
-    Task::Pending: Send,
-    Task: TaskIterator + Send + 'static,
-{
-    TaskSpawnConfig::new(engine)
-}
-
 /// `send_any_task` will unlike [`any_task`] deliver the provided
 /// task to the global queue instead of the local queue via the provided
 /// `ExecutionEngine`.

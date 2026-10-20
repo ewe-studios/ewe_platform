@@ -17,6 +17,7 @@ use crate::valtron::{
 };
 use core::future::Future;
 use std::sync::Arc;
+use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
 use core::sync::atomic::AtomicBool;
 
 use crate::valtron::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION, DEFAULT_WAIT_CYCLE};
@@ -2041,4 +2042,65 @@ pub fn sleep(
 pub async fn sleep_async(duration: std::time::Duration) {
     use crate::valtron::StreamIteratorExt;
     let _ = sleep(duration).expect("sleep").into_ready_future().await;
+}
+
+// --- Task builders and `OnNext` constructors (`multi`: the task and resolver may move to another thread, so both must be `Send`.)
+
+/// `typed_task` allows you to create a task builder but requiring specific
+/// definitions for your `Task` and `Resolver` types.
+#[must_use]
+pub fn typed_task<Task, Resolver>(
+    engine: BoxedExecutionEngine,
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
+where
+    Task::Ready: Send,
+    Task::Pending: Send,
+    Task: TaskIterator + Send + 'static,
+    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + 'static,
+{
+    TaskSpawnConfig::new(engine)
+}
+
+/// `any_task` allows you to create a task builder with less restrictive type
+/// requirements for the builder, specifically resolvers are Boxed.
+#[must_use]
+pub fn any_task<Task>(
+    engine: BoxedExecutionEngine,
+) -> TaskSpawnConfig<
+    Task::Ready,
+    Task::Pending,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
+    Task,
+>
+where
+    Task::Ready: Send,
+    Task::Pending: Send,
+    Task: TaskIterator + Send + 'static,
+{
+    TaskSpawnConfig::new(engine)
+}
+
+#[allow(clippy::self_named_constructors)]
+impl<F, Task, Done, Pending> OnNext<FnReady<F>, Task, Done, Pending>
+where
+    Done: Send,
+    Pending: Send,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_next(t: Task, f: F) -> Self {
+        OnNext::new(t, FnReady::new(f))
+    }
+}
+
+impl<F, Task, Done, Pending> OnNext<FnMutReady<F>, Task, Done, Pending>
+where
+    Done: Send,
+    Pending: Send,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_next_mut(t: Task, f: F) -> Self {
+        OnNext::new(t, FnMutReady::new(f))
+    }
 }

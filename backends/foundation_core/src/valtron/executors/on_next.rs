@@ -7,7 +7,7 @@ use std::{any::Any, marker::PhantomData};
 use crate::synca::Entry;
 use crate::valtron::{
     BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
-    Ctx, ExecutionAction, ExecutionIterator, FnMutReady, FnReady, State, TaskIterator,
+    Ctx, ExecutionAction, ExecutionIterator, State, TaskIterator,
     TaskReadyResolver, TaskStatus,
 };
 
@@ -57,31 +57,6 @@ where
     {
         self.panic_handler = Some(Box::new(handler));
         self
-    }
-}
-
-#[allow(clippy::self_named_constructors)]
-impl<F, Task, Done, Pending> OnNext<FnReady<F>, Task, Done, Pending>
-where
-    Done: Send,
-    Pending: Send,
-    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
-    F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
-{
-    pub fn on_next(t: Task, f: F) -> Self {
-        OnNext::new(t, FnReady::new(f))
-    }
-}
-
-impl<F, Task, Done, Pending> OnNext<FnMutReady<F>, Task, Done, Pending>
-where
-    Done: Send,
-    Pending: Send,
-    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
-    F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
-{
-    pub fn on_next_mut(t: Task, f: F) -> Self {
-        OnNext::new(t, FnMutReady::new(f))
     }
 }
 

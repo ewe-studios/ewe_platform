@@ -8,6 +8,7 @@ use crate::valtron::StreamConfig;
 use crate::valtron::{BoxedExecutionEngine, ConsumingIter, ExecutorError, SpawnInfo};
 use super::inline_action::InlineActionBehaviour;
 use std::sync::Arc;
+use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
 
 use crate::valtron::DEFAULT_WAIT_CYCLE;
 use crate::valtron::{
@@ -106,7 +107,7 @@ where
                     tracing::debug!("Lift action for InlineAction");
                     let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
-                        .lift(consuming_iter.into(), None)
+                        .lift(consuming_iter.into(), key)
                         .map_err(Into::into)
                 }
                 InlineActionBehaviour::Schedule => {
@@ -2076,4 +2077,57 @@ pub fn sleep(
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub async fn sleep_async(duration: std::time::Duration) {
     let _ = sleep(duration).expect("sleep").into_ready_future().await;
+}
+
+// --- Task builders and `OnNext` constructors (single-threaded: nothing moves to another thread, so no `Send` bound.)
+
+/// `typed_task` allows you to create a task builder but requiring specific
+/// definitions for your `Task` and `Resolver` types.
+#[must_use]
+pub fn typed_task<Task, Resolver>(
+    engine: BoxedExecutionEngine,
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
+where
+    Task: TaskIterator + 'static,
+    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + 'static,
+{
+    TaskSpawnConfig::new(engine)
+}
+
+/// `any_task` allows you to create a task builder with less restrictive type
+/// requirements for the builder, specifically resolvers are Boxed.
+#[must_use]
+pub fn any_task<Task>(
+    engine: BoxedExecutionEngine,
+) -> TaskSpawnConfig<
+    Task::Ready,
+    Task::Pending,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
+    Task,
+>
+where
+    Task: TaskIterator + 'static,
+{
+    TaskSpawnConfig::new(engine)
+}
+
+#[allow(clippy::self_named_constructors)]
+impl<F, Task, Done, Pending> OnNext<FnReady<F>, Task, Done, Pending>
+where
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
+    F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + 'static,
+{
+    pub fn on_next(t: Task, f: F) -> Self {
+        OnNext::new(t, FnReady::new(f))
+    }
+}
+
+impl<F, Task, Done, Pending> OnNext<FnMutReady<F>, Task, Done, Pending>
+where
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
+    F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + 'static,
+{
+    pub fn on_next_mut(t: Task, f: F) -> Self {
+        OnNext::new(t, FnMutReady::new(f))
+    }
 }
