@@ -1,6 +1,6 @@
 [package]
 name = "foundation_cronjobs"
-version = "0.0.1"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,8 +10,8 @@ description = "Cron job scheduling with valtron executor and foundation_db persi
 keywords.workspace = true
 
 [dependencies]
-foundation_db = { path = "../foundation_db", version = "0.0.2" }
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_db = { path = "../foundation_db", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
 async-trait = "0.1"
 chrono = "0.4"
 serde = { version = "1", features = ["derive"] }
