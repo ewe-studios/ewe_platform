@@ -208,3 +208,44 @@ Native `foundation_ai`/`foundation_auth`/`foundation_compact` still compile afte
 these changes (verified `cargo check`), and the wasm gate is now **green**:
 `cargo check --target wasm32-unknown-unknown -p foundation_ai --no-default-features`
 exits 0 (only pre-existing dead-code warnings remain). T1 is complete.
+
+## WASM T2 resolution (2026-10-20) — the `multi` leak was transitive
+
+The T2 dependency-crate audit (`cargo check --target wasm32-unknown-unknown` on
+`foundation_netio`/`foundation_vectors`/`foundation_compact`/`foundation_arrow`/
+`foundation_connectrpc`) found **one real failure**, and it was *not* the crate the
+spec predicted (`foundation_arrow`):
+
+- **`foundation_vectors`, `foundation_compact`, `foundation_arrow` all pass
+  unchanged.** `foundation_arrow`'s `arrow-array → ahash/compile-time-rng` edge is
+  build-time `const-random` (host-only) and never reaches the wasm runtime graph.
+- **`foundation_connectrpc` failed** — but the error was inside `foundation_netio`
+  (`body_reader.rs:3370`, `map_ready` on a `!Send` boxed continuation). Root cause:
+  the same `multi` leak T1 fixed in `foundation_ai`, but **transitive** and deeper:
+
+  1. `foundation_connectrpc` declared `foundation_netio` and `foundation_http`
+     unconditionally with default features → `multi` on wasm.
+  2. `foundation_http` declared `foundation_netio` unconditionally with default
+     features → another `multi` edge.
+  3. `foundation_auth`'s **default feature `turso`** (`foundation_db/turso` →
+     `foundation_db/multi` → `foundation_core/multi` + `foundation_netio/multi`) is a
+     native-only backend that leaks `multi` on wasm. connectrpc's `auth` feature pulled
+     foundation_auth with default features, but its `shared/auth.rs` only needs JWT
+     verification (core), not Turso storage.
+
+  **Fix (done):** target-gate `foundation_netio` + `foundation_http` in both
+  `foundation_connectrpc` and `foundation_http` (native = defaults, wasm =
+  `wasm-fetch`/`wasm` — mirroring `foundation_auth`/`foundation_ai`), and pull
+  `foundation_auth` with `default-features = false` (`wasm` feature on the wasm target).
+
+**The rule generalised:** `foundation_netio`'s `multi` feature must never be enabled on
+wasm — netio's wasm code (`ExchangeContinuation`, `WasmWebSocketBridge`, the browser
+body-reader) is deliberately `!Send` for the single-threaded target, and `multi` flips
+valtron's `TaskIteratorExt` to its `+ Send` variant, which then no longer applies to
+those types. The leak is **always transitive**: any crate that depends on netio (or on
+`foundation_http`/`foundation_auth`/`foundation_db`, whose defaults reach netio/`multi`)
+must target-gate that dep and drop `default-features` on wasm. `foundation_db`'s
+`turso`/`libsql`/`d1`/`r2` features all pull `multi` — note `d1`/`r2` are Cloudflare
+(wasm) features that nevertheless enable `foundation_netio/multi`, a pre-existing smell
+to revisit when the DB layer is ported.
+

@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 1
-  uncompleted: 6
+  completed: 2
+  uncompleted: 5
   total: 7
-  completion_percentage: 14
+  completion_percentage: 29
 ---
 
 # WASM & Cloudflare Workers Readiness (Foundation)
@@ -166,8 +166,8 @@ provider-client status below differ from the original 2026-10-19 write-up.
 | 7 | `foundation_ai` | Use `foundation_compact::SystemTime` (not `std::time::SystemTime`) at the two `SystemTime::now()` sites | On wasm `foundation_compact::SystemTime` is a polyfill, not `std::time::SystemTime`, so `std::time::SystemTime::now()` no longer matches the `foundation_compact::SystemTime` struct fields. Sites: `agentic/tools/memory.rs:17` (import) + `:52,:138`, `agentic/agent_loop.rs:1028` (inconsistent with `:473,:1254` which already used `foundation_compact::SystemTime`). | T1 ✅ |
 | 8 | `foundation_ai` + `foundation_compact` | Wrap `TurnStream`'s `DrivenStreamIterator<AgentLoop<D, M>>` in `foundation_compact::SendWrapper` (and add `Deref`/`DerefMut` to `SendWrapper`) | `ToolImpl: Send + Sync` (`tool_impl.rs:349`) + `async_trait`'s `+ Send` future require `AgentTool<D, M>` → `Arc<Mutex<HashMap<String, AgentRun<D, M>>>>` → `TurnStream` → `DrivenStreamIterator<AgentLoop<D, M>>` to be `Send`, but `AgentLoop`'s valtron handles are `!Send` on wasm (no `multi`). `SendWrapper` asserts `Send`+`Sync` on single-threaded wasm (transparent on native); `Deref` added so `TurnStream`'s methods keep forwarding to the iterator. | T1 ✅ |
 | 9 | `foundation_ai` | Replace `std::thread::sleep` retry backoff with async sleep (runtime) | **Compiles on wasm but panics at runtime** ("time not implemented"). Sites: `openai_provider.rs:316,613`, `openai_responses_provider.rs:467,822`, `anthropic_messages_provider.rs:661`, `agentic/tools/agent.rs:788`. Not a T1 blocker; required before T6/T7 | T6 |
-| 10 | `foundation_arrow` | Audit + feature-flag native-only deps | its `arrow-array` dep pulls `ahash/compile-time-rng` (build-time `const-random`, host-only — not a wasm runtime issue); verify it passes wasm32 `cargo check` and gate anything else native-only | T2 |
-| 11 | `foundation_vectors`, `foundation_compact`, `foundation_connectrpc` | Verify wasm32 `cargo check` (fix only if a gate fails) | `vectors` has `not(wasm32)` gating; `compact` has wasm deps (time polyfill + Web Crypto); `connectrpc` `shared::Router` + handlers are wasm-compatible, H2/H3 native-only | T2 |
+| 10 | `foundation_arrow` | Audit only — verify wasm32 `cargo check` | Passes clean (`cargo check --target wasm32-unknown-unknown -p foundation_arrow` exits 0). The `arrow-array` → `ahash/compile-time-rng` concern is build-time `const-random` (host-only) and never reaches the wasm runtime graph — no change needed. | T2 ✅ |
+| 11 | `foundation_vectors`, `foundation_compact`, `foundation_connectrpc` (+ `foundation_http`) | Verify wasm32 `cargo check` (fix only if a gate fails) | `vectors` and `compact` pass clean. `connectrpc` **failed**: `foundation_netio`/`foundation_http` were unconditional default-feature deps, leaking `multi` into netio's single-threaded `!Send` wasm code (`body_reader.rs:3370` — its wasm `ExchangeContinuation` drops `+ Send`, so `map_ready`'s `Send` bound under `multi` no longer type-checks). Fix: target-gate `foundation_netio`+`foundation_http` in **both** `foundation_connectrpc` and `foundation_http` (native = defaults, wasm = `wasm-fetch`/`wasm`), and pull `foundation_auth` with `default-features = false` (its default `turso` → `foundation_db/turso` → `foundation_db/multi` is a native-only backend that also leaked `multi` on wasm). | T2 ✅ |
 | 12 | `.github/workflows/*` (CI) | Extend `wasm-check` job to `foundation_ai` + `foundation_netio` + `foundation_vectors` + `foundation_compact` + `foundation_arrow` + `foundation_connectrpc` | spec 28 feature 07 only checks core/auth/http/db; the AI crates regress silently (and `foundation_auth` itself had regressed — see #1) | T3 |
 | 13 | `foundation_ai` | New Workers AI `RoutableProvider`/`ModelBackend` | no Workers AI provider exists yet | T4 |
 
@@ -363,10 +363,15 @@ impl RoutableProvider for WorkersAiProvider {
       -p foundation_ai --no-default-features` exits 0 — **verified green** (only
       pre-existing dead-code warnings). Change #9 (`thread::sleep`) is
       runtime-readiness, not a compile blocker — deferred to T6.
-- [ ] **T2 — dependency-crate wasm audit.** `cargo check --target wasm32-unknown-unknown`
-      on `foundation_netio`, `foundation_vectors`, `foundation_compact`,
-      `foundation_arrow`, `foundation_connectrpc` (shared `Router`); fix
-      `foundation_arrow` if it has native-only deps (changes #10/#11).
+- [x] **T2 — dependency-crate wasm audit.** `cargo check --target wasm32-unknown-unknown`
+      on `foundation_netio` (`wasm-fetch`), `foundation_vectors`, `foundation_compact`,
+      `foundation_arrow`, `foundation_connectrpc` (`--no-default-features --features rpc`).
+      Four passed unchanged; `connectrpc` failed on a transitive `multi` leak and was
+      fixed (target-gate `foundation_netio`/`foundation_http` in `foundation_connectrpc`
+      **and** `foundation_http`, and pull `foundation_auth` with `default-features = false`
+      so its native-only `turso` backend stops leaking `foundation_db/multi` into wasm —
+      changes #10/#11). **Verified green**; native `foundation_http`/`foundation_connectrpc`
+      unchanged.
 - [ ] **T3 — extend CI `wasm-check`.** Add the five AI crates to the job (change #12);
       red test = CI fails to check a crate that regressed.
 - [ ] **T4 — Workers AI provider.** `WorkersAiProvider` as a `RoutableProvider`,
