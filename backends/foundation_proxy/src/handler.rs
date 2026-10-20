@@ -187,6 +187,14 @@ fn relay(
                     let _ = respond::text(&mut conn, 502, "Bad Gateway");
                     let _ = conn.flush();
                 }
+            } else if is_connect_request(&req) {
+                if let Err(e) = crate::rpc_relay::relay_connect_to_grpc(
+                    &mut conn, &backend, req, client_ip, scheme, sticky_header,
+                ) {
+                    tracing::warn!(url = %backend.url(), "connect relay failed, sending 502: {e}");
+                    let _ = respond::text(&mut conn, 502, "Bad Gateway");
+                    let _ = conn.flush();
+                }
             } else if is_upgrade_request(&req) {
                 // The upgrade splice consumes the connection; log on failure.
                 if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme, io_mode) {
@@ -248,6 +256,15 @@ fn header_first(req: &SimpleIncomingRequest, name: &SimpleHeader) -> Option<Stri
 fn is_grpc_web_request(req: &SimpleIncomingRequest) -> bool {
     header_first(req, &SimpleHeader::CONTENT_TYPE)
         .is_some_and(|ct| ct.starts_with("application/grpc-web"))
+}
+
+/// Whether the request's `Content-Type` marks a Connect exchange
+/// (`application/{codec}` unary or `application/connect+{codec}` streaming),
+/// which the D-leg relay translates to native gRPC for a `grpc://` backend.
+fn is_connect_request(req: &SimpleIncomingRequest) -> bool {
+    header_first(req, &SimpleHeader::CONTENT_TYPE)
+        .and_then(|ct| foundation_connectrpc::parse_connect_content_type(&ct))
+        .is_some()
 }
 
 /// Extract the `__proxy_sticky` cookie value from the request's Cookie header.

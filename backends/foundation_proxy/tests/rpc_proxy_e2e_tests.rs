@@ -40,8 +40,8 @@ use foundation_netio::shared::http::{
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
     Client, ClientOptions, ConnectResult, ConnectRpcServe, ConnectRpcServeH2, Ctx, Envelope,
-    H1Transport, H2Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response,
-    Router,
+    H1Transport, H2Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream,
+    Response, Router,
 };
 
 use foundation_proxy::config::ServiceConfig;
@@ -62,6 +62,8 @@ impl Msg {
 
 const UNARY: &str = "/e2e.Rpc/Unary";
 const SERVER_STREAM: &str = "/e2e.Rpc/ServerStream";
+const CLIENT_STREAM: &str = "/e2e.Rpc/ClientStream";
+const BIDI_STREAM: &str = "/e2e.Rpc/BidiStream";
 
 fn codecs() -> ProcedureCodecs<Msg, Msg> {
     ProcedureCodecs::<Msg, Msg>::of((JsonCodec,))
@@ -93,6 +95,31 @@ fn build_router() -> Router {
         HandlerOptions::new(),
     );
 
+    router.client_stream(
+        CLIENT_STREAM,
+        codecs(),
+        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+            use futures_util::StreamExt;
+            let mut parts = Vec::new();
+            let mut reqs = reqs;
+            while let Some(msg) = reqs.next().await {
+                parts.push(msg.map(|m| m.text).unwrap_or_else(|_| "<err>".to_string()));
+            }
+            Ok(Response::new(Msg::of(parts.join("+"))))
+        },
+        HandlerOptions::new(),
+    );
+
+    router.bidi_stream(
+        BIDI_STREAM,
+        codecs(),
+        |_ctx: Ctx, reqs: RequestStream<Msg>| async move {
+            use futures_util::StreamExt;
+            Ok(reqs.map(|msg| msg.map(|m| Msg::of(format!("re:{}", m.text)))))
+        },
+        HandlerOptions::new(),
+    );
+
     router
 }
 
@@ -106,12 +133,16 @@ fn start_backend() -> (u16, Arc<OnSignal>) {
     let mut h1_app = HttpApp::new_serve();
     h1_app.router.add_route_any(UNARY, &h1);
     h1_app.router.add_route_any(SERVER_STREAM, &h1);
+    h1_app.router.add_route_any(CLIENT_STREAM, &h1);
+    h1_app.router.add_route_any(BIDI_STREAM, &h1);
 
     // H2: gRPC requires HTTP/2 end-to-end.
     let h2: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
     let mut h2_app = HttpApp::new_h2_serve();
     h2_app.route_any_h2(UNARY, h2.clone());
-    h2_app.route_any_h2(SERVER_STREAM, h2);
+    h2_app.route_any_h2(SERVER_STREAM, h2.clone());
+    h2_app.route_any_h2(CLIENT_STREAM, h2.clone());
+    h2_app.route_any_h2(BIDI_STREAM, h2);
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind backend");
     let port = listener.local_addr().expect("backend addr").port();
@@ -134,7 +165,9 @@ fn start_backend_grpc_only() -> (u16, Arc<OnSignal>) {
     let h2: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
     let mut h2_app = HttpApp::new_h2_serve();
     h2_app.route_any_h2(UNARY, h2.clone());
-    h2_app.route_any_h2(SERVER_STREAM, h2);
+    h2_app.route_any_h2(SERVER_STREAM, h2.clone());
+    h2_app.route_any_h2(CLIENT_STREAM, h2.clone());
+    h2_app.route_any_h2(BIDI_STREAM, h2);
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind backend");
     let port = listener.local_addr().expect("backend addr").port();
@@ -586,5 +619,149 @@ async fn grpc_web_text_unary_via_grpc_backend() {
     assert!(
         trailer_text.contains("grpc-status: 0"),
         "trailer must carry grpc-status 0, got: {trailer_text:?}"
+    );
+}
+
+// ── D leg: Connect → native gRPC translation ────────────────────────────────
+
+/// WHY: a `grpc://` backend serves only native gRPC. An inbound Connect **unary**
+/// call (bare `application/json` body) must be translated: de-framed as bare
+/// bytes, enveloped as a single gRPC message, and the single gRPC response
+/// message decoded back to a bare Connect body.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_unary_via_grpc_backend() {
+    let (backend_port, backend_shutdown) = start_backend_grpc_only();
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = connect_h1_client(&addr, UNARY);
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("connect-relay")))
+        .await
+        .expect("connect unary through grpc backend");
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        resp.msg,
+        Msg::of("echo:connect-relay"),
+        "Connect unary must be translated to native gRPC and back"
+    );
+}
+
+/// WHY: a Connect server-stream through the D leg must be relayed frame-by-frame
+/// (not buffered whole), with the streaming shape (`application/connect+json`)
+/// preserved on the way back.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_server_stream_via_grpc_backend() {
+    let (backend_port, backend_shutdown) = start_backend_grpc_only();
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = connect_h1_client(&addr, SERVER_STREAM);
+    let got = collect_stream(&client, "connect-relay-stream").await;
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        got,
+        vec![
+            "connect-relay-stream-0",
+            "connect-relay-stream-1",
+            "connect-relay-stream-2"
+        ],
+        "Connect server-stream through a grpc:// backend must deliver all frames in order"
+    );
+}
+
+/// WHY: a Connect client-stream (many enveloped request frames, one response)
+/// must flow through the relay in the request direction, which the unary path
+/// never exercises.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_client_stream_via_grpc_backend() {
+    let (backend_port, backend_shutdown) = start_backend_grpc_only();
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = connect_h1_client(&addr, CLIENT_STREAM);
+    let reqs = futures_util::stream::iter(vec![Msg::of("a"), Msg::of("b"), Msg::of("c")]);
+    let resp = client
+        .client_stream(ctx(), reqs)
+        .await
+        .expect("connect client stream through grpc backend");
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        resp.msg,
+        Msg::of("a+b+c"),
+        "Connect client-stream must be translated to native gRPC and folded back"
+    );
+}
+
+/// WHY: Connect **bidi** (full-duplex) is the one stream shape Workstream 1 left
+/// unexercised, and it needs the H2 front end — the H1 leg is half-duplex. Each
+/// request message must be echoed back as it is sent, in both directions, through
+/// the D-leg translation to a native-gRPC backend.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_bidi_via_grpc_backend() {
+    let (backend_port, backend_shutdown) = start_backend_grpc_only();
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = connect_h2_client(&addr, BIDI_STREAM);
+    // `bidi_stream` hands back a drive-it-yourself `BidiStream`; the request is
+    // sent by explicit `send` calls, not the (ignored) input stream.
+    let mut stream = client
+        .bidi_stream(ctx(), futures_util::stream::empty())
+        .await
+        .expect("connect bidi stream through grpc backend");
+
+    stream.send(&Msg::of("a")).await.expect("send a");
+    stream.send(&Msg::of("b")).await.expect("send b");
+    stream.send(&Msg::of("c")).await.expect("send c");
+    stream.close_request().await.expect("close request");
+
+    let mut got = Vec::new();
+    while let Some(msg) = stream.receive().await.expect("receive") {
+        got.push(msg.text);
+    }
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        got,
+        vec!["re:a", "re:b", "re:c"],
+        "Connect bidi must echo every request message back through native gRPC"
+    );
+}
+
+/// WHY: a Connect **unary** call arriving over the H2 front end (bare
+/// `application/json` body) to a `grpc://` backend must take the same
+/// bare-bytes↔envelope translation as the H1 leg — the H2 leg must not downgrade
+/// it to H1 (the backend is H2-only) nor misroute it as streaming.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_unary_via_grpc_backend_h2() {
+    let (backend_port, backend_shutdown) = start_backend_grpc_only();
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = connect_h2_client(&addr, UNARY);
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("connect-h2-relay")))
+        .await
+        .expect("connect unary through grpc backend over h2");
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        resp.msg,
+        Msg::of("echo:connect-h2-relay"),
+        "Connect unary over H2 must be translated to native gRPC and back"
     );
 }
