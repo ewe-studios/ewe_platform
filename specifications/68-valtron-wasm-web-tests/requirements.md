@@ -1,6 +1,6 @@
 ---
 description: "Extend foundation_core's existing valtron test tree (native tests/valtron/) and its wasm integration crate (integration/wasm_tests/) with runtime checks — run headless via the wasm-testbed harness (embedded Deno) and in a browser (headless Chromium + Playwright) — so the parking bridge, WakeableStream/WakeRegistry, and the run_future → block_on_future rename plus run_future_iter wasm progress are proven at runtime on wasm32-unknown-unknown, not just compile-checked."
-status: "proposed"
+status: "in-progress"
 priority: "medium"
 created: 2026-10-20
 author: "Main Agent"
@@ -31,10 +31,10 @@ related_specs:
   - "specifications/completed/30-valtron-js-eventloop-yield"
   - "specifications/completed/64-valtron-stream-task"
 tasks:
-  completed: 0
-  uncompleted: 4
+  completed: 2
+  uncompleted: 2
   total: 4
-  completion_percentage: 0
+  completion_percentage: 50
 ---
 
 # Overview
@@ -70,6 +70,34 @@ has no wired wasm/browser tests — only native Rust tests plus an orphaned
 the model crate is `backends/foundation_core/integration/wasm_tests/`. This spec
 therefore **extends `foundation_core`'s existing test infrastructure in place**
 rather than creating a new crate.
+
+## Status (2026-10-20)
+
+- **Tier A (native)** — park/wake contract pinned in `tests/valtron/park_busy_loop.rs`
+  (`forever_wait_parks_not_busy_loops`, `forever_depends_parks_not_busy_loops`,
+  `wake_signal_is_ready_only_after_its_callback_runs`,
+  `depends_on_wake_signal_parks_then_resumes`), alongside the existing
+  `bridge_park.rs` / `wakeable_stream.rs` / `wake_registry.rs`. ✅
+- **Tier B, wasm-bindgen backend under Deno** — `tests/valtron/wasm_js_yield_integration.rs`
+  runs green via `mise run test:wasm-bindgen:deno` (5 cases, incl. the spec 65
+  feature 06 T5 regression `depends_task_parks_until_wake_signal_fires`, which
+  hangs without the fix). Getting there needed testbed fixes: the runner located
+  wasm by guessing target-dir paths (cargo's build-dir layout moved them; it now
+  reads cargo's JSON artifact messages), ran libtest's `main` as the module start
+  (every native `#[test]` aborted the module; the start call is now dropped, as
+  wasm-bindgen's own runner does), and had no `--filter`. The test file itself
+  was stale (`Ctx` import, `.schedule()` → `.as_scheduled().spawn()`). ✅
+- **Tier B, owned path (`integration/wasm_tests`, embedded Deno)** — ❌ blocked.
+  The embedded-Deno testbed did not build (deno_v8 had no JS engine selected;
+  `deno_net` 0.251 pulled a second `deno_core`) — both fixed. But every case
+  (the 4 existing + 3 new: park/wake, microtask ordering, reschedule-in-callback)
+  fails at instantiation: `foundation_compact` uses wasm-bindgen/js-sys
+  unconditionally on wasm32-unknown-unknown (time, entropy), so a
+  `js-foundation-wasm` build imports `__wbindgen_placeholder__`, which the owned
+  runtime cannot supply. Fix (tracked in `docs/bug-backlog.md`): give
+  `foundation_compact` a non-wasm-bindgen time/entropy backend for the owned
+  path (host ABI imports that `foundation-wasm.js` implements).
+- **Browser run** — not yet attempted here (needs the Playwright setup).
 
 # Goals
 
@@ -218,7 +246,7 @@ All in `backends/foundation_core/`, extended in place:
 
 # Tasks
 
-- [ ] **T1 — native parking/wake tests (`tests/valtron/`).** Extend the native
+- [x] **T1 — native parking/wake tests (`tests/valtron/`).** Extend the native
       tier with any parking-bridge and wake contract not yet pinned after the 06
       rename (`into_future_stream` parks / `into_pure_future_stream` stays raw,
       `block_on_future` is documented native-only). Overlaps spec 65 feature 06
@@ -236,7 +264,7 @@ All in `backends/foundation_core/`, extended in place:
       (currently that task runs only `foundation_testbed/integration/module`).
       Gate: `mise run test:wasm-testbed:deno` and `mise run test:wasm-testbed:web`
       green locally.
-- [ ] **T4 — CI gap note.** CI is compile-gate only (`ci/packages.toml` +
+- [x] **T4 — CI gap note.** (Recorded in `docs/bug-backlog.md` §9.) CI is compile-gate only (`ci/packages.toml` +
       `scripts/ci/ci.py --step wasm` → `cargo check --target
       wasm32-unknown-unknown`), and `integration/wasm_tests` is a standalone
       crate outside the root workspace, so the wasm runtime tests are local mise

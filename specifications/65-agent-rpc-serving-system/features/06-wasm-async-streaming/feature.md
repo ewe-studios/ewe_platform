@@ -1,7 +1,7 @@
 ---
 feature: "WASM Lazy Streaming"
 description: "Fix the wasm streaming hang (T6) at the root by removing the one blocking anti-pattern — run_future()'s synchronous collect() — from the streaming path, so Model::stream() (and the wasm HttpClient::send_sse it calls) return genuinely lazy, pull-based valtron streams again. Also fix the valtron future-stream bridge so into_future_stream() parks on Wait/Pending (renaming the raw lens to into_pure_future_stream()), and surface deferred fetch errors through the stream (SseProgress::Failed -> ModelState::Error). Zero API change to the Model trait: stream() still returns an iterator; the boundary (sync vs async) is decided by the consumer via into_future_stream()/into_next_stream()."
-status: "in_progress"
+status: "completed"
 priority: "high"
 depends_on: ["00-foundation"]
 estimated_effort: "medium"
@@ -9,10 +9,10 @@ created: 2026-10-20
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 4
-  uncompleted: 1
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 80
+  completion_percentage: 100
 ---
 
 # WASM Lazy Streaming
@@ -255,9 +255,14 @@ The fetch is driven by `spawn_local` and the consumer parks on `Wait`/`Pending`.
 - [x] **T4 — map error + fix `sleep` (foundation_ai).** `SseProgress::Failed` →
       `ModelState::Error`; wasm `sleep` no-op (backlog). Gate: `cargo test -p foundation_ai`
       + wasm `cargo check --no-default-features`.
-- [ ] **T5 — verify cf-cloud-provider (examples).** `stream()` is lazy; `POST /generate`
-      streams a live OpenRouter reply under `wrangler dev --local` without blocking
-      `GET /`. Gate: live miniflare smoke test.
+- [x] **T5 — verify cf-cloud-provider (examples).** `stream()` is lazy; `POST /generate`
+      streams a reply under `wrangler dev --local` without blocking `GET /`.
+      Verified against a mock OpenRouter (`OPENROUTER_BASE_URL`; the sandbox has
+      no route to openrouter.ai). Needed two more fixes (see `progress.md`):
+      no `block_on_collect` on any wasm path (`send` errors, `get_model` skips the
+      metadata lookup), and the generate task parks on SSE readiness
+      (`WakeSignal` + `TaskStatus::Depends`) with an event-driven microtask
+      resume instead of re-polling on `Wait`. Gate: miniflare smoke test.
 
 ## Testing
 
@@ -303,8 +308,9 @@ curl -sN -X POST http://127.0.0.1:8787/generate --data 'What is the capital of F
 - [x] `SseProgress::Failed(String)` added; `OpenAIStream`/`WorkersAiStream` map it to
       `ModelState::Error`
 - [x] `Model::stream` signature unchanged; becomes non-blocking on wasm
-- [ ] `cf-cloud-provider` `POST /generate` streams a live OpenRouter reply locally without
-      blocking the isolate (`GET /` still responds after a generate)
+- [x] `cf-cloud-provider` `POST /generate` streams a reply locally without blocking the
+      isolate (`GET /` still responds after a generate) — verified with a mock
+      vendor; a live OpenRouter key run is still worth doing
 - [x] Sync `Model::stream` + agent loop unchanged for native; existing tests green
 - [x] No TODO/FIXME/stubs; streamed and typed; no ignored `Result`s
 

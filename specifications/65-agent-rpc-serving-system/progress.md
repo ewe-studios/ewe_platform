@@ -2,8 +2,11 @@
 
 ## Status: In Progress
 
-Features 00–05 complete. Feature 06 (WASM Lazy Streaming) is in progress: T1–T4
-committed, T5 blocked on a parking bug whose root cause is now pinned.
+Feature 06 (WASM Lazy Streaming) is complete. Feature 00 (foundation) is 6/7:
+only T7 (deploy to Cloudflare with a live key) is open. Features 01–05 have not
+been started. An earlier version of
+this file said "Features 00–05 complete"; the feature docs and the code say
+otherwise (no agent-rpc / installer / registrar crates exist yet).
 
 ## Feature 06 — WASM Lazy Streaming
 
@@ -13,70 +16,87 @@ committed, T5 blocked on a parking bug whose root cause is now pinned.
 | T2 — `run_future` → `block_on_collect`, single-threaded `FutureIterator` fix | ✅ | `35d27d89f` |
 | T3 — lazy wasm `send_sse` + `SseProgress::Failed` error channel | ✅ | `4ce7ad6e5` |
 | T4 — map `Failed` → `ModelState::Error`, wasm `sleep` no-op | ✅ | `89db93212` |
-| T5 — verify `cf-cloud-provider` live streaming under `wrangler dev --local` | 🔧 in progress | — |
+| T5 — `cf-cloud-provider` live streaming under `wrangler dev --local` | ✅ | this branch (see git log) |
 
-## T5 root cause (pinned 2026-10-20, hard facts)
+## T5 — what was actually wrong (two hangs, in order)
 
-`POST /generate` hangs / returns 0 bytes under `wrangler dev --local` because the
-generate task is **kept active instead of parked** while the lazy SSE fetch is in
-flight.
+Smoke test: `wrangler dev --local` + a mock OpenRouter (`OPENROUTER_BASE_URL`)
+that streams 7 SSE chunks 300 ms apart.
 
-**Reproduction** — `foundation_core/tests/valtron/park_busy_loop.rs` (native,
-single-threaded `execute` engine) drives a task that emits `Init → Pending → Wait`
-forever and polls once:
+1. **The first turn froze before any fetch.** `OpenAIProvider::get_model` misses
+   its cache on the first turn and did a sync `GET models/{name}` through
+   `HttpClient::send`, which on wasm was `block_on_collect`: a nested executor
+   loop inside the running agent task. The running task's slot counts as active,
+   so that loop never saw "nothing runnable" and spun on `CanProgress(None)`. The
+   JS event loop never ran, so the fetch never left the isolate (the mock saw zero
+   requests). Fixed by removing `block_on_collect` from every wasm path: wasm
+   `HttpClient::send` now returns an error pointing at `send_async`, and wasm
+   `get_model` skips the optional metadata lookup (it already fell back on error).
+2. **Then the generate task busy-looped on `Wait`.** With the fetch in flight the
+   SSE stream yields `Stream::Wait`; the agent loop returned `TaskStatus::Wait`,
+   which keeps the task active and pushes a `Wait` item into the output queue.
+   Each push woke the consumer, whose re-poll started another `setTimeout`
+   chain, so timer chains multiplied (~1,700 wakeups/s, workerd ~100% CPU, still
+   zero fetches). Fixed by parking:
+   - `BoxedSseIterator` and `ModelStreamBox` are now `WakeableStream`s; the SSE
+     model streams forward `wake` to the SSE stream (wasm `LazySseIterator` /
+     `WasmSseIterator` fire on fetch resolve / every chunk / close).
+   - On `Stream::Wait` the agent loop registers a `WakeSignal` callback and
+     returns `TaskStatus::Depends(signal)` (falls back to `Wait` when the stream
+     reports `NotSupported`).
+   - JS wasm `run_until` returns to the event loop when every task is parked on
+     readiness (no spin, no timer).
+   - The wake is event-driven: `WakeSignal`'s callback calls
+     `request_executor_resume()`, which queues one coalesced executor run as a
+     microtask (`spawn_local` on wasm-bindgen; a new `schedule_microtask` host
+     import → `queueMicrotask` on foundation_wasm).
 
-- `forever_wait_parks_not_busy_loops` — **FAILED** (10 s `#[valtron_test]` timeout;
-  `poll_next` never returned).
-- `forever_depends_parks_not_busy_loops` — **PASSED** (parks, yields `Pending`).
+Result: `POST /generate` streams all chunks in ~8.5 s (7 × 0.3 s per model call),
+`GET /` answers right after, workerd at ~1.6% CPU.
 
-**Mechanism** — the two park arms diverge in
-`backends/foundation_core/src/valtron/executors/local.rs`:
+Also fixed on the way: `OPENROUTER_BASE_URL` doubled the version segment
+(`/api/v1/v1/chat/completions`); foundation_wasm ran scheduled callbacks under the
+registry lock (re-entrant lock on reschedule) and never removed fired timeouts;
+temporary `VALTRON-DBG` logs removed.
 
-- `State::Depends` (`local.rs:1635-1721`) registers `Sleepable::Readiness`, drops
-  the task from active work, and the executor goes idle until the signal fires. ✅
-- `State::Wait` (`local.rs:1624-1634`) unpacks the task, `push_front`s it back into
-  `processing` still active, and returns `ProgressIndicator::Wait` — it **never
-  parks** and never registers a sleeper, so the executor re-polls the same task
-  forever (native: `yield_for` sleep-loop → the measured hang; wasm: `setTimeout`
-  loop that never lets the isolate idle).
+Also fixed: **agent turns over HTTP backends tripped loop detection.** The HTTP
+SSE streams send snapshots (each chunk re-sends the text so far), which the agent
+loop's `coalesce_turn`/`join_text_chunks` already handle, but `LoopDetector` ran
+on the raw chunks and saw near-duplicates: a one-line answer took 4 model calls
+and ended in `LoopDetected(FuzzyLoop)`, natively and on wasm. Loop detection now
+runs on the coalesced turn, and `Turn::text()`/`Answer` join each run of chunks
+with the same rule (they concatenated every snapshot). Regression tests:
+`session_mock_tests::snapshot_stream_*` (fail without the fix).
 
-**Fault** — `backends/foundation_ai/src/agentic/agent_loop.rs:871-877` maps the
-in-flight SSE to the wrong status:
+Also fixed: native single-threaded drivers re-polled a task that returns
+`TaskStatus::Wait` forever without handing back to the caller
+(`park_busy_loop::forever_wait_parks_not_busy_loops`, which was red). `Wait`
+now reaches the executor as `State::Wait` on all targets and the stream driver
+returns to its caller on it (native); other native `run_until` loops keep
+re-polling.
 
-```rust
-Stream::Wait => TaskStatus::Wait   // "yield and re-poll me" — WRONG for I/O wait
-```
-
-`TaskStatus::Wait` means *yield, I'm still active*, not *park me until external
-data arrives*. The lazy `spawn_local` fetch delivers its chunks but nothing wakes
-the valtron task, because it was never parked on a readiness signal.
-
-**Fix** — park the generate task on the SSE delivery queue's readiness: expose a
-`QueueReadiness` from `LazySseIterator`'s delivery queue and return
-`TaskStatus::Depends(signal)` from the `Stream::Wait` arm (the pattern
-`steering.rs` already builds and netio's H1 client already uses via
-`TaskStatus::Depends(SocketReadiness)`).
+Found and recorded in `docs/bug-backlog.md`: readiness signals that never request
+a resume stall on wasm; nested blocking helpers spin on wasm; wasm SSE parser
+errors are swallowed; interval callbacks run under the registry lock.
 
 ## Feature status
 
-- **00-foundation** — ✅ complete
-- **01-agent-rpc** — ✅ complete
-- **02-manifest-installer** — ✅ complete
-- **03-proxy-registration** — ✅ complete
-- **04-registrar-sidecar** — ✅ complete
-- **05-cloudflare** — ✅ complete
-- **06-wasm-async-streaming** — 🔧 T5 in progress (root cause pinned, fix pending)
+- **00-foundation** — 🔧 6/7: T1–T6 done (T6:
+  `foundation_toolings/tests/cf_examples.rs`, both examples green under
+  miniflare with mocked vendors); T7 (deploy to Cloudflare, live key) open.
+- **01-agent-rpc** — ⏳ not started (0/10)
+- **02-manifest-installer** — ⏳ not started (0/9)
+- **03-proxy-registration** — ⏳ not started (0/8)
+- **04-registrar-sidecar** — ⏳ not started (0/7)
+- **05-cloudflare** — ⏳ not started (0/6)
+- **06-wasm-async-streaming** — ✅ complete (5/5)
 
 ## Next steps
 
-1. Expose the SSE delivery `QueueReadiness` from `LazySseIterator` /
-   `WasmSseIterator`.
-2. Change `agent_loop.rs:871` to return `TaskStatus::Depends(signal)` for the
-   in-flight `Stream::Wait` case.
-3. Re-run `cargo test -p foundation_core --profile uat --test mod valtron::park_busy_loop`
-   and the OpenAI / Workers-AI stream tests.
-4. `worker-build --release` + live smoke test under `wrangler dev --local`.
-5. Remove the temporary `VALTRON-DBG` logs (scattered in `local.rs`,
-   `wasm_bindgen/mod.rs`) in the same change; update `docs/bug-backlog.md`.
+1. Feature 01 (agent-rpc server), then 02 → 05 in order.
+2. Feature 00 T7: deploy + live OpenRouter run (needs a Cloudflare account and
+   `OPENROUTER_API_KEY`; not available in this sandbox).
+3. Spec 68 leftovers: the owned (`js-foundation-wasm`) path is blocked on
+   `foundation_compact`'s wasm-bindgen dependency (backlog §5); browser run.
 
 _Created: 2026-10-20_

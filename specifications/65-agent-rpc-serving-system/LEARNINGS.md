@@ -479,5 +479,53 @@ the isolate.
   foundation_ai --profile uat` (all suites pass, provider_tests 243→245) and wasm
   `cargo check --target wasm32-unknown-unknown -p foundation_ai --no-default-features`.
 
+## 06 T5 (2026-10-20) — the live smoke test: park, don't poll; wake from JS
 
+- **Reproduce before theorising.** `wrangler dev --local` plus a 40-line Python
+  mock of `/chat/completions` (SSE chunks 300 ms apart, wired in through
+  `OPENROUTER_BASE_URL`) reproduced the hang in seconds and showed the mock
+  received **zero** requests, so the isolate was frozen before the fetch, not
+  waiting on it.
+- **Hang 1: a hidden sync HTTP call.** `OpenAIProvider::get_model` does a sync
+  `GET models/{name}` on a cache miss (the first turn). On wasm, sync `send` was
+  `block_on_collect`, which runs a nested `run_until` *inside the running agent
+  task*. The running task's slot counts as active, so the nested loop spins on
+  `CanProgress(None)` forever. Lesson: no sync "block on" helper may be reachable
+  from a task on wasm. Wasm `send` now errors (`use send_async`), and `get_model`
+  skips the optional lookup on wasm.
+- **Hang 2: `TaskStatus::Wait` is not a park.** `Wait` keeps the task active
+  *and* pushes a `Stream::Wait` item to the output queue; every push wakes the
+  consumer, whose next poll drives the executor and arms another `setTimeout`
+  chain. Chains multiplied (~1,700 timer callbacks/s). Use
+  `TaskStatus::Depends(signal)` for I/O waits.
+- **Make the boxed streams wakeable.** `BoxedSseIterator`/`ModelStreamBox` became
+  `dyn WakeableStream` (the trait's default `wake` = `NotSupported`, so in-process
+  streams need only an empty impl). The valtron adapters (`MapPending`, …) and
+  `NotifyQueue` already forward `wake`, so native SSE gets real wakes too.
+  `NotifyQueue::register_wake` fires immediately if data is already queued; the
+  wasm SSE iterators now do the same (register-then-check), so a wake is never lost.
+- **Event-driven resume instead of timers.** JS wasm `run_until` now returns to
+  the event loop when every task is parked on readiness. Whoever flips the signal
+  calls `request_executor_resume()` (`WakeSignal::callback` does), which queues
+  one coalesced executor run as a microtask: `spawn_local` on wasm-bindgen, and a
+  new `schedule_microtask` host import (`queueMicrotask`) on foundation_wasm.
+  `setTimeout` stays only for real timers (`Delayed`/`SpinWait` deadlines).
+- **foundation_wasm schedule registry:** callbacks ran under the registry mutex
+  and fired timeouts were never removed. A callback that reschedules (valtron's
+  yield loop, `testing::run_async`) re-locked the same std `Mutex`. Callbacks are
+  now taken out (one-shot) and run after the lock drops; cancelling an
+  already-fired one is a no-op.
+- **Unrelated bugs the smoke test exposed:** `OPENROUTER_BASE_URL` ended in `/v1`
+  while `build_url` appends `api_version`, so every OpenRouter call hit
+  `/api/v1/v1/...` (fixed). And the agent loop ran `LoopDetector` on the raw
+  streamed chunks: HTTP backends send snapshots (the text so far), so every
+  answer looked like a loop (4 model calls, then `LoopDetected`). The loop already
+  had the right joiner (`join_text_chunks`); detection and `Turn::text`/`Answer`
+  just weren't using it. Fixed; `session_mock_tests::snapshot_stream_*` pin it.
+- **`TaskStatus::Wait` on native single-threaded** mapped to `State::Pending(None)`,
+  which no driver stop-check sees, so a forever-`Wait` task held the caller
+  (`park_busy_loop` was red). It is now `State::Wait` everywhere; the native stream
+  driver hands back on it, other native loops keep re-polling.
+- **`cargo test -p foundation_ai` skips the agentic suite**: `agentic_tests`
+  needs `--features testing`. Run it explicitly.
 
