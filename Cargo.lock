@@ -5538,6 +5538,7 @@ dependencies = [
  "foundation_nostd",
  "foundation_runtimes",
  "itertools 0.14.0",
+ "libc",
  "serde",
  "serde_json",
  "tracing",

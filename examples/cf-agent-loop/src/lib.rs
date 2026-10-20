@@ -116,8 +116,9 @@ async fn run_prompt(prompt: &str) -> Result<String, String> {
     // `into_collect_future` parks on valtron's Wait/Pending states, yielding to
     // the JS event loop so the in-flight Workers AI fetch can resolve.
     let records = turn.into_inner().into_collect_future().await;
-    let text = records.iter().map(Turn::text_of).collect::<String>();
-    Ok(text)
+    // Join the way the agent loop does: HTTP backends stream snapshots (each
+    // record re-sends the text so far), so concatenating them repeats the answer.
+    Ok(Turn::text_of_records(&records))
 }
 
 // ---------------------------------------------------------------------------

@@ -195,13 +195,28 @@ async fn handle_generate(env: &worker::Env, req: web_sys::Request) -> web_sys::R
         let promise = future_to_promise(async move {
             let mut stream = stream;
             let mut n = 0usize;
+            // HTTP backends stream snapshots (each record re-sends the text so
+            // far); local ones stream deltas. Send the client only what is new.
+            let mut sent = String::new();
             while let Some(record) = stream.next().await {
                 let text = Turn::text_of(&record);
-                if !text.is_empty() {
+                let delta = if let Some(rest) = text.strip_prefix(sent.as_str()) {
+                    let delta = rest.to_string();
+                    sent = text;
+                    delta
+                } else {
+                    sent.push_str(&text);
+                    text
+                };
+                if !delta.is_empty() {
                     n += 1;
-                    let chunk = format!("data: {}\n\n", text.replace('\n', " "));
+                    let chunk = format!("data: {}\n\n", delta.replace('\n', " "));
                     let bytes = Uint8Array::from(chunk.as_bytes());
-                    let _ = controller.enqueue_with_chunk(&bytes);
+                    if let Err(e) = controller.enqueue_with_chunk(&bytes) {
+                        // The client went away: stop pulling the model stream.
+                        web_sys::console::warn_1(&e);
+                        break;
+                    }
                 }
             }
             web_sys::console::log_1(
