@@ -11,7 +11,7 @@ created: 2026-10-19
 ## Agent Workflow
 
 1. Read `feature.md` (requirements + architecture + tasks).
-2. Read `specifications/63-connectrpc-proxy/features/00-connectrpc-proxy/feature.md`
+2. Read `specifications/completed/63-connectrpc-proxy/features/00-connectrpc-proxy/feature.md`
    — this feature extends it (per-endpoint `BackendProtocol` selection).
 3. **Identify language stack** — Rust. Read `.agents/skills/rust-clean-code/skill.md`
    and `.agents/skills/rust-valtron-usage/skill.md`.
