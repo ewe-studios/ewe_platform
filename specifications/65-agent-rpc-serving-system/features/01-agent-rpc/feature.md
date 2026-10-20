@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 1
-  uncompleted: 9
+  completed: 2
+  uncompleted: 8
   total: 10
-  completion_percentage: 10
+  completion_percentage: 20
 ---
 
 # Agent RPC Model Server
@@ -311,7 +311,7 @@ service AgentService {
       (llamacpp GGUF and/or Candle) is `Send + Sync` and that one loaded model
       serves two+ `AgentSession`s concurrently. Red test: two sessions on one
       model complete interleaved chats without per-session reload.
-- [ ] **T2 — Crate scaffold.** `foundation_agent_rpc` crate + workspace wiring;
+- [x] **T2 — Crate scaffold.** `foundation_agent_rpc` crate + workspace wiring;
       `lib.rs` module map; compile-clean with zero deps beyond the allowed set.
 - [ ] **T3 — `ModelHandle`.** `Arc`-backed load-once handle with the
       `Send + Sync + 'static` bound; if the backend isn't `Sync`, apply the

@@ -4502,8 +4502,10 @@ dependencies = [
 name = "foundation_agent_rpc"
 version = "0.0.1"
 dependencies = [
+ "derive_more",
  "foundation_ai",
  "foundation_compact",
+ "foundation_connectrpc",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",

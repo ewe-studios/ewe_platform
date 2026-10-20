@@ -16,6 +16,9 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 # the agentic layer, providers and `PreloadedProvider` need neither.
 foundation_ai = { path = "../foundation_ai", version = "0.0.2", default-features = false, features = ["multi"] }
 foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
+# RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.3" }
+derive_more = { version = "2.1", features = ["display", "error"] }
 tracing = { workspace = true }
 
 [dev-dependencies]

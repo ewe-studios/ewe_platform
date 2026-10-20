@@ -13,7 +13,7 @@ otherwise (no agent-rpc / installer / registrar crates exist yet).
 | Task | Status | Commit |
 |------|--------|--------|
 | T1 — shareability spike (candle: shared weights, per-generation KV) | ✅ | see git log (`spec 65 F1 T1`) |
-| T2 — crate scaffold | ⏳ | |
+| T2 — crate scaffold | ✅ | see git log (`spec 65 F1 T2`) |
 | T3 — `ModelHandle` | ⏳ | |
 | T4 — `InstanceRegistry` | ⏳ | |
 | T5 — generated RPC service | ⏳ | |
