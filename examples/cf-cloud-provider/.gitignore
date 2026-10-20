@@ -1,0 +1,2 @@
+# Local dev secrets (wrangler/miniflare) — never commit.
+.dev.vars

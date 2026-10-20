@@ -1,0 +1,11 @@
+name = "cf-cloud-provider"
+main = "build/index.js"
+compatibility_date = "2024-01-01"
+
+# The OpenRouter key is a Worker secret and must never be committed. Set it with:
+#   npx wrangler secret put OPENROUTER_API_KEY
+# or, for `wrangler dev` / miniflare, put it in an ignored `.dev.vars` file:
+#   OPENROUTER_API_KEY=sk-or-...
+
+[vars]
+MODEL = "google/gemma-4-26b-a4b-it:free"
