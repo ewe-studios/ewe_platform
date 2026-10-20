@@ -47,12 +47,16 @@ use foundation_connectrpc::shared::protocol::connect::{
 };
 use foundation_connectrpc::shared::protocol::grpc::content_type as grpc_content_type;
 use foundation_connectrpc::shared::transport::{BodyStream, HeadStream, SendBody, DEFAULT_PIPE_DEPTH};
-use foundation_connectrpc::{parse_connect_content_type, ConnectHandler, H2Transport, Transport};
+use foundation_connectrpc::{
+    parse_connect_content_type, CancelSignal, ConnectHandler, H2Transport, Transport,
+};
 use futures_util::StreamExt;
 
 use crate::config::BackendProtocol;
 use crate::forward::{forward_request_headers, strip_hop_by_hop, upstream_url, SharedHttpClient};
-use crate::rpc_relay::{build_streaming_relay_to_grpc, connect_unary_roundtrip};
+use crate::rpc_relay::{
+    build_streaming_relay_to_grpc, connect_unary_roundtrip, translate_connect_deadline_to_grpc,
+};
 use crate::runtime::BackendLease;
 use crate::state::ProxyState;
 
@@ -563,6 +567,7 @@ async fn relay_connect_streaming_h2(
         SimpleHeader::from("te".to_string()),
         vec!["trailers".to_string()],
     );
+    translate_connect_deadline_to_grpc(&mut out_headers);
 
     // Rebuild the incoming request so `ConnectHandler::new_conn` sees the full
     // shape (peer, headers); the body is streamed separately through `body`.
@@ -586,7 +591,7 @@ async fn relay_connect_streaming_h2(
     let (body_tx, body_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
     let (responder_tx, responder_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
 
-    let driver = match build_streaming_relay_to_grpc(
+    let (driver, cancel) = match build_streaming_relay_to_grpc(
         ConnectHandler,
         request,
         body_rx,
@@ -594,7 +599,7 @@ async fn relay_connect_streaming_h2(
         url.clone(),
         out_headers,
     ) {
-        Ok(d) => d,
+        Ok(relay) => relay,
         Err(e) => {
             tracing::warn!(%url, "connect→grpc h2 relay setup failed: {e}");
             let _ = tx.send(h2_status(502, true)).await;
@@ -623,12 +628,31 @@ async fn relay_connect_streaming_h2(
     // Three concurrent legs: H2 DATA → request pipe, the frame-relay driver, and
     // the response pipe → H2 DATA. The driver's cancel signal tears the outbound
     // side down if the client or the backend goes away.
-    futures_util::future::join3(
-        feed_request_body(body, body_tx),
+    //
+    // A client that aborts after its request body already ended (the normal
+    // server-stream cancel) never yields a `Reset` on the body pipe — the body
+    // pipe closed cleanly at `END_STREAM`. It surfaces instead as the response
+    // pipe (`tx`) closing, so race the relay against that closure and fire the
+    // shared cancel: the driver drops the outbound exchange, whose H2 pump then
+    // closes the backend socket (spec 63 T13).
+    let relay = futures_util::future::join3(
+        feed_request_body(body, body_tx, cancel.clone()),
         driver,
         drain_response_body(responder_rx, tx),
-    )
-    .await;
+    );
+    let client_gone = {
+        let cancel = cancel.clone();
+        async move {
+            tx.closed().await;
+            cancel.cancel();
+        }
+    };
+    let relay = Box::pin(relay);
+    let client_gone = Box::pin(client_gone);
+    match futures_util::future::select(relay, client_gone).await {
+        futures_util::future::Either::Left(_) => {}
+        futures_util::future::Either::Right(_) => {}
+    }
 
     drop(lease);
 }
@@ -677,6 +701,7 @@ async fn relay_connect_unary_h2(
         SimpleHeader::from("te".to_string()),
         vec!["trailers".to_string()],
     );
+    translate_connect_deadline_to_grpc(&mut out_headers);
 
     let request = match SimpleIncomingRequest::builder()
         .with_proto(Proto::HTTP20)
@@ -734,8 +759,15 @@ async fn relay_connect_unary_h2(
 }
 
 /// Stream H2 DATA frames into the relay's request body pipe, then half-close the
-/// request direction so the inbound reader sees end-of-stream.
-async fn feed_request_body(body: PipeReceiver<H2IncomingFrame>, body_tx: PipeSender<Bytes>) {
+/// request direction so the inbound reader sees end-of-stream. A client reset
+/// (RST_STREAM) is not a clean half-close — it cancels the call — so it fires the
+/// relay's shared cancel signal, tearing the outbound gRPC side down too
+/// (spec 63 T13).
+async fn feed_request_body(
+    body: PipeReceiver<H2IncomingFrame>,
+    body_tx: PipeSender<Bytes>,
+    cancel: CancelSignal,
+) {
     while let Some(frame) = body.receive().await {
         match frame {
             H2IncomingFrame::Data(bytes) => {
@@ -746,7 +778,10 @@ async fn feed_request_body(body: PipeReceiver<H2IncomingFrame>, body_tx: PipeSen
                     break;
                 }
             }
-            H2IncomingFrame::Reset(_) => break,
+            H2IncomingFrame::Reset(_) => {
+                cancel.cancel();
+                break;
+            }
         }
     }
     body_tx.close();

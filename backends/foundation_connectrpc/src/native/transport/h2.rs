@@ -344,6 +344,26 @@ impl H2Pump {
         }
         true
     }
+
+    /// Tell the peer to stop this stream: send `RST_STREAM(CANCEL)` and flush it.
+    ///
+    /// Used when the response consumer goes away mid-call. Dropping the socket
+    /// would also stop the flow, but an explicit reset is the protocol-correct
+    /// abort and reaches a peer whose server may not treat a bare FIN as an
+    /// error — `foundation_http`'s h2 server peeks for whole frames and reads
+    /// EOF as `WouldBlock`, so it would otherwise keep streaming into a socket
+    /// whose reader is gone.
+    fn abort_peer_stream(&mut self) {
+        if !self.request_sent {
+            return;
+        }
+        self.channel.send_rst_stream(self.stream_id);
+        let out = self.channel.drain_output();
+        if !out.is_empty() {
+            let _ = self.stream.write(&out);
+            self.stream.flush().ok();
+        }
+    }
 }
 
 impl TaskIterator for H2Pump {
@@ -513,6 +533,16 @@ impl TaskIterator for H2Pump {
                 }
 
                 PumpPhase::WaitingResponse => {
+                    // The response consumer went away (it dropped the head/body
+                    // pipes, e.g. on cancellation) before the head arrived. Nothing
+                    // will ever read this response — close up rather than leak the
+                    // socket waiting on a peer whose reader is gone.
+                    if self.head_tx.is_closed() {
+                        self.abort_peer_stream();
+                        self.body_tx.close();
+                        self.trailer_tx.close();
+                        return None;
+                    }
                     // Keep feeding the request: a bidi server may not answer until
                     // it has seen some (or all) of the request body.
                     if !self.pump_request_body() {
@@ -602,6 +632,18 @@ impl TaskIterator for H2Pump {
                     // The request direction may still be open (bidi).
                     if !self.pump_request_body() {
                         self.body_tx.close();
+                        return None;
+                    }
+
+                    // The response consumer went away mid-body (dropped
+                    // `recv_body`, e.g. on cancellation) while nothing was buffered
+                    // to reveal it through `flush_response_body`. Close up rather
+                    // than leak the socket. `response_ended` is still false, so the
+                    // pump has not closed `body_tx` itself — a closed pipe here
+                    // means the receiver is gone.
+                    if self.body_tx.is_closed() && !self.response_ended {
+                        self.abort_peer_stream();
+                        self.trailer_tx.close();
                         return None;
                     }
 
