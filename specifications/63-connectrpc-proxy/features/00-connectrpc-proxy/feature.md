@@ -1,18 +1,18 @@
 ---
 feature: "ConnectRPC Proxy"
 description: "Research whether foundation_proxy must understand Connect/gRPC/gRPC-Web to route them effectively, then lay out the option space and implement the chosen tier (B + D, per-endpoint protocol selection)."
-status: "pending"
+status: "in-progress"
 priority: "high"
 depends_on: []
 estimated_effort: "medium"
 created: 2026-10-18
-last_updated: 2026-10-18
+last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Feature: ConnectRPC Proxy
@@ -127,17 +127,20 @@ Ground truth from `backends/foundation_proxy/src/`.
 
 | # | Current behaviour | Source | Effect on RPC |
 |---|---|---|---|
-| 1 | H2 front end **terminates H2 and forwards to backends over HTTP/1.1** | `h2_proxy.rs:1` ("terminates H2 from clients, forwards to backends over HTTP/1.1") | **Breaks native gRPC** (needs H2) and Connect bidi/client-streaming |
-| 2 | Hop-by-hop strip list includes `te`, `trailer`, `trailers` | `forward.rs` `HOP_BY_HOP` | **Strips gRPC's required `te: trailers`** |
-| 3 | Response trailers are never forwarded (H2 path emits HEADERS + DATA + empty END_STREAM DATA, no trailing HEADERS) | `h2_proxy.rs` `forward_upstream` | **Drops `grpc-status`** |
-| 4 | Sets `Connection: close` on every upstream request | `forward.rs` `forward_request_headers` | Harmless for unary; hostile to long-lived streams |
+| 1 | ~~H2 front end **terminates H2 and forwards to backends over HTTP/1.1**~~ → **fixed for gRPC (T3)**: `application/grpc` forwards H2→H2 via `forward_upstream_h2`; plain (non-gRPC) H2 keeps the H1 path | `h2_proxy.rs` `forward_upstream_h2` | Native gRPC no longer breaks; Connect bidi/client-streaming over H2 still unexercised (D leg) |
+| 2 | ~~Hop-by-hop strip list includes `te`, `trailer`, `trailers`~~ → **fixed (T2)**: `strip_hop_by_hop_request` preserves them on requests | `forward.rs` | **No longer strips** gRPC's required `te: trailers` |
+| 3 | ~~Response trailers are never forwarded~~ → **fixed (T4)**: trailing HEADERS relayed as `H2Frame::Trailers` | `h2_proxy.rs` `forward_upstream_h2` | `grpc-status` now survives |
+| 4 | ~~Sets `Connection: close` on every upstream request~~ → **fixed (T5)**: `is_streaming_request` gates it so RPC streaming responses keep the connection open | `forward.rs` `forward_request_headers` | No longer tears down long-lived streams |
 | 5 | Load balancing is per-**backend** (connection/lease), not per-**stream** | `runtime.rs` / `router.rs` | With H2 multiplexing, RPCs pin to one backend |
 | 6 | Health checks are HTTP path probes (`/`, `GET`) | `health.rs` / `config.rs` `HealthCheckConfig` | Does not use the gRPC health protocol (`grpc.health.v1.Health/Check`) |
 | 7 | Routing is `Host` + `path_prefix` only | `router.rs` | Fine for Connect/gRPC (they use path), but no method-level policy |
 
-**Net:** Connect unary/server-streaming already work; gRPC-Web already works
-(if the backend speaks gRPC-Web); **native gRPC and Connect bidi/client-streaming
-are broken today** by items 1–3.
+**Net:** items 1–4 are now fixed (T2–T5) and verified end-to-end (T6): Connect
+unary/server-streaming, gRPC unary/server-streaming (`grpc-status` intact), and
+gRPC-Web all round-trip through the transparent `http`/`https` (B) leg to real
+`foundation_connectrpc` backends. Connect bidi/client-streaming over H2 is the
+one mode not yet exercised end-to-end — it rides the H2 relay but lacks a test,
+and is covered by the D leg's task list (Workstream 2).
 
 ---
 
@@ -366,7 +369,7 @@ Tasks run in order; each is independently shippable and gated on a named test
 going green (not on "it compiles"). T1 is a `foundation_connectrpc`
 prerequisite — its gap is documented in that crate's own `grpc_tests.rs`.
 
-- [ ] **T1 — connectrpc H2 transport forwards trailers** (prerequisite)
+- [x] **T1 — connectrpc H2 transport forwards trailers** (prerequisite)
   - *Red test:* `foundation_connectrpc/tests/grpc_tests.rs` — assert a gRPC
     response's `grpc-status` / `grpc-message` are observable at the typed
     `Client` over H2 (today "not yet verifiable" per the in-file note).
@@ -374,7 +377,7 @@ prerequisite — its gap is documented in that crate's own `grpc_tests.rs`.
     `ClientConn` trailer pipe.
   - *Gate:* `cargo test -p foundation_connectrpc --test grpc_tests`
 
-- [ ] **T2 — proxy preserves `te: trailers` for RPC**
+- [x] **T2 — proxy preserves `te: trailers` for RPC**
   - *Red test:* `foundation_proxy/tests/forward_headers_tests.rs` — a gRPC
     request's `te: trailers` (and `trailer` / `trailers`) reaches the backend
     intact instead of being stripped as hop-by-hop.
@@ -382,31 +385,41 @@ prerequisite — its gap is documented in that crate's own `grpc_tests.rs`.
     `HOP_BY_HOP` for Connect/gRPC requests.
   - *Gate:* `cargo test -p foundation_proxy --test forward_headers_tests`
 
-- [ ] **T3 — proxy forwards upstream over H2 (no downgrade)**
+- [x] **T3 — proxy forwards upstream over H2 (no downgrade)**
   - *Red test:* `foundation_proxy/tests/h2_integration_tests.rs` — an H2
     front-end request arrives at the backend as HTTP/2 (backend observes H2
     pseudo-headers), not re-emitted over HTTP/1.1.
-  - *Green:* add an H2 upstream path in `h2_proxy.rs` (`forward_upstream`) for
-    `http(s)` backends when the front end is H2 (or for `application/grpc`).
+  - *Green:* add an H2 upstream path (`forward_upstream_h2`) gated on
+    `application/grpc` / `application/grpc+*` (plain H2 keeps the existing H1
+    path), using connectrpc's `H2Transport` for streaming + trailers.
   - *Gate:* `cargo test -p foundation_proxy --test h2_integration_tests`
+  - *Dependency (decided 2026-10-20):* reuse connectrpc's `H2Transport` as the H2
+    upstream (streaming + trailers); `foundation_proxy` gains a real
+    `foundation_connectrpc` dependency. See LEARNINGS.md.
 
-- [ ] **T4 — proxy relays trailing HEADERS (`grpc-status`)**
+- [x] **T4 — proxy relays trailing HEADERS (`grpc-status`)**
   - *Red test:* `foundation_proxy/tests/h2_integration_tests.rs` — a backend
     sends `grpc-status` in trailing HEADERS; the H2 client observes it (not
     dropped, not defaulted to `Ok`).
-  - *Green:* forward trailing HEADERS in `forward_upstream` (today it emits only
-    HEADERS + DATA + empty END_STREAM DATA).
+  - *Green:* relay trailing HEADERS as `H2Frame::Trailers` in `forward_upstream_h2`
+    (the old H1 path emitted only HEADERS + DATA + empty END_STREAM DATA).
   - *Gate:* `cargo test -p foundation_proxy --test h2_integration_tests`
 
-- [ ] **T5 — stream bodies without buffering; relax `Connection: close`**
+- [x] **T5 — stream bodies without buffering; relax `Connection: close`**
   - *Red test:* a server-streaming response's first frame reaches the client
     before the stream completes (no full-body buffering), and a long-lived
     stream is not torn down by the proxy.
   - *Green:* stream DATA immediately; relax the `Connection: close` policy in
     `forward_request_headers` for streams.
   - *Gate:* `cargo test -p foundation_proxy --test h2_integration_tests`
+  - *Done:* added `is_streaming_request` (gRPC / `connect+` / `grpc-web` content
+    types) and made `forward_request_headers` insert `Connection: close` only for
+    non-streaming requests; `forward_request_headers` is now `pub` (shared with
+    the H2 leg), which no longer needs its own `headers.remove(&CONNECTION)`.
+    `forward_headers_tests` is 6/6 and `h2_integration_tests` 7/7. The streaming
+    test is signal-gated (see LEARNINGS.md), not time-gated.
 
-- [ ] **T6 — end-to-end RPC through the proxy (Layer 3, B leg)**
+- [x] **T6 — end-to-end RPC through the proxy (Layer 3, B leg)**
   - *Red test:* new `foundation_proxy/tests/rpc_proxy_e2e_tests.rs` — a real
     `foundation_connectrpc` `Router` + `HttpServer` backend, `foundation_proxy`
     fronting it, a real `foundation_connectrpc` typed `Client` calling through
@@ -415,10 +428,15 @@ prerequisite — its gap is documented in that crate's own `grpc_tests.rs`.
     `http`/`https` leg.
   - *Green:* confirm all four ConnectRPC modes round-trip; fix anything the test
     still surfaces.
+  - *Done:* 8/8 green. Surfaced and fixed two latent bugs — `PipeSender::drop`
+    closing the pipe on any clone's drop (lost gRPC trailers), and
+    `Http11ResponseIterator::ChunkedBodyStreaming` emitting malformed chunked
+    framing — detailed in LEARNINGS.md.
   - *Gate:* `cargo test -p foundation_proxy --test rpc_proxy_e2e_tests`
 
-Workstream 2 (D leg + per-endpoint protocol selection) is a separate task list,
-added when that workstream is started.
+Workstream 1 (B leg) is complete — T1–T6 are all green. Workstream 2 (D leg +
+per-endpoint protocol selection) is a separate task list, added when that
+workstream is started.
 
 ---
 
@@ -484,16 +502,17 @@ container testbed (`foundation_testbed`) proves stream-level LB actually spreads
 load across backends and the gRPC health gate flips on failure. This is the one
 layer that needs Docker and is not part of the fast local loop.
 
-### Known gap the tests must expose first
+### Known gap the tests must expose first — **closed (T1)**
 
-`foundation_connectrpc`'s own H2 transport does not yet forward HTTP/2 trailing
-HEADERS to its caller — `grpc_tests.rs` documents this ("`grpc-status` trailers
-are not yet verifiable … not plumbed into the seam's `ClientConn`"). So today a
-gRPC client cannot observe `grpc-status` through connectrpc's H2 transport. The
-Layer-3 "assert `grpc-status` at the client" test is therefore the correct red
-test: it stays red until trailer plumbing lands in **both** the proxy (§3 item 3)
-and connectrpc's H2 transport. The feature is gated on that test going green,
-not on "it compiles."
+The gap this section originally documented is now closed.
+`foundation_connectrpc`'s H2 transport forwards HTTP/2 trailing HEADERS through
+`TransportStream::trailers` into the seam's `ClientConn` (and
+`Response::trailers()`), and `grpc_tests.rs` asserts it directly
+(`grpc_trailers_readable_from_transport_stream`,
+`grpc_unary_response_carries_trailers`, `grpc_error_trailers_readable_from_response`).
+The remaining red test is the Layer-3 "assert `grpc-status` at the client through
+**the proxy**" — it stays red until the proxy relays trailing HEADERS (§3 item 3,
+T4), which is the one side of the pipe still missing.
 
 ### Test discipline
 
@@ -504,4 +523,4 @@ selection into one change and assume it works because it builds.
 ---
 
 _Created: 2026-10-18_
-_Last Updated: 2026-10-18_
+_Last Updated: 2026-10-20_

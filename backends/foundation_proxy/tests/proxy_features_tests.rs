@@ -46,6 +46,12 @@ fn start_id_backend(id: &str) -> (u16, Backend) {
                     let body = body.clone();
                     std::thread::spawn(move || {
                         let mut sock = sock;
+                        // Accepted sockets inherit the listener's non-blocking mode
+                        // on BSD/macOS (unlike Linux), which would make the blocking
+                        // `read` below return `WouldBlock` immediately and end the
+                        // backend after one exchange. Force blocking so the timeout
+                        // governs, matching Linux.
+                        sock.set_nonblocking(false).ok();
                         sock.set_read_timeout(Some(Duration::from_secs(5))).ok();
                         let mut buf = [0u8; 4096];
                         loop {
@@ -249,6 +255,10 @@ fn start_ws_echo_backend() -> (u16, Backend) {
                 Ok((sock, _)) => {
                     std::thread::spawn(move || {
                         let mut sock = sock;
+                        // Force blocking (see `start_id_backend`): BSD/macOS accepted
+                        // sockets inherit the listener's non-blocking mode, which
+                        // would turn the reads below into immediate `WouldBlock`s.
+                        sock.set_nonblocking(false).ok();
                         sock.set_read_timeout(Some(Duration::from_secs(5))).ok();
                         // Read the (proxied) upgrade request head.
                         let mut buf = [0u8; 4096];

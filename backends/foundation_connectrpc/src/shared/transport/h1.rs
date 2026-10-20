@@ -25,7 +25,7 @@ use foundation_netio::DynNetClient;
 use foundation_netio::shared::http::Extensions;
 use foundation_netio::shared::http::{
     pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
-    SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
+    SimpleHeader, SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -75,7 +75,22 @@ impl Transport for H1Transport {
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
         let url_str = request_url_string(&request);
         let method = request.method.clone();
-        let headers = request.headers.clone();
+        let mut headers = request.headers.clone();
+
+        // HTTP/1.1 requires a `Host` header (RFC 9112 §3.2), but the typed
+        // `Client` builds the request from a URI and leaves `Host` to the
+        // transport. Synthesise it from the request URI when absent — mirroring
+        // `ClientRequestBuilder::new` — so a caller behind a host-routing
+        // intermediary (e.g. the proxy) is not misrouted.
+        if !headers.contains_key(&SimpleHeader::HOST) {
+            let host_str = request.request_uri.host_str().unwrap_or_default();
+            let host = if request.request_uri.port().is_some() {
+                format!("{host_str}:{}", request.request_uri.port_or_default())
+            } else {
+                host_str
+            };
+            headers.insert(SimpleHeader::HOST, vec![host]);
+        }
 
         let (pushable, body_stream) = pushable_request_body_with_depth(DEFAULT_PUSHABLE_DEPTH);
         let send_body: ByteSink = pushable.into_sender();

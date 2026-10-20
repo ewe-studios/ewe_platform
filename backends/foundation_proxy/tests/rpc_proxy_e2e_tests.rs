@@ -1,0 +1,401 @@
+//! End-to-end RPC proxy tests — real connectrpc `Client` → `foundation_proxy` →
+//! real connectrpc `Router` backend.
+//!
+//! WHY: The proxy's RPC support must be proven with the *actual* RPC stack, not
+//! hand-rolled wire frames. gRPC in particular is only correct end-to-end: the
+//! client must observe `grpc-status` in trailing HEADERS, which only survives if
+//! the proxy forwards the H2 leg (`application/grpc`) without downgrade and
+//! relays the trailers. Connect and gRPC-Web are HTTP/1.1-transparent and must
+//! round-trip through the plain forward leg.
+//!
+//! WHAT: A dual-protocol backend serves one connectrpc `Router` over HTTP/1.1
+//! (`ConnectRpcServe`, answering Connect + gRPC-Web) and HTTP/2
+//! (`ConnectRpcServeH2`, answering gRPC + Connect-over-H2). `foundation_proxy`
+//! fronts it with the transparent `http` backend leg. A typed `Client` for each
+//! of the four protocol/transport shapes drives unary and server-streaming calls
+//! through the proxy and asserts the round-trip (and, for gRPC, `grpc-status`).
+//!
+//! HOW: Each test starts its own backend + proxy on ephemeral ports (`:0`), then
+//! dials the proxy with the appropriate `H1Transport` / `H2Transport` and
+//! protocol option (`with_connect` / `with_grpc` / `with_grpc_web`).
+
+use std::sync::Arc;
+use std::time::Duration;
+
+use foundation_core::synca::OnSignal;
+use foundation_core::valtron::valtron_test;
+use foundation_http::native::server::HttpServer;
+use foundation_http::native::serve::H2Serve;
+use foundation_http::shared::serve::Serve;
+use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::http::SimpleHeader;
+
+use foundation_connectrpc::shared::transport::Transport;
+use foundation_connectrpc::{
+    Client, ClientOptions, ConnectResult, ConnectRpcServe, ConnectRpcServeH2, Ctx, H1Transport,
+    H2Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router,
+};
+
+use foundation_proxy::config::ServiceConfig;
+use foundation_proxy::{ProxyConfig, ProxyServer};
+
+// ── Shared message + procedures ─────────────────────────────────────────────
+
+#[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+struct Msg {
+    text: String,
+}
+
+impl Msg {
+    fn of(text: impl Into<String>) -> Self {
+        Self { text: text.into() }
+    }
+}
+
+const UNARY: &str = "/e2e.Rpc/Unary";
+const SERVER_STREAM: &str = "/e2e.Rpc/ServerStream";
+
+fn codecs() -> ProcedureCodecs<Msg, Msg> {
+    ProcedureCodecs::<Msg, Msg>::of((JsonCodec,))
+}
+
+/// One router with a unary echo and a 3-item server-stream, dispatched by
+/// `Content-Type` for Connect, gRPC, and gRPC-Web alike (Decision 08).
+fn build_router() -> Router {
+    let mut router = Router::new();
+
+    router.unary(
+        UNARY,
+        codecs(),
+        |_ctx: Ctx, req: Request<Msg>| async move {
+            Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
+        },
+        HandlerOptions::new(),
+    );
+
+    router.server_stream(
+        SERVER_STREAM,
+        codecs(),
+        |_ctx: Ctx, req: Request<Msg>| async move {
+            let items: Vec<ConnectResult<Msg>> = (0..3)
+                .map(|i| Ok(Msg::of(format!("{}-{i}", req.msg.text))))
+                .collect();
+            Ok(futures_util::stream::iter(items))
+        },
+        HandlerOptions::new(),
+    );
+
+    router
+}
+
+// ── Dual-protocol backend ───────────────────────────────────────────────────
+
+/// Start a real `foundation_http` backend serving one connectrpc router over
+/// both HTTP/1.1 (Connect + gRPC-Web) and HTTP/2 (gRPC + Connect-over-H2).
+fn start_backend() -> (u16, Arc<OnSignal>) {
+    // H1: Connect and gRPC-Web are HTTP/1.1-native.
+    let h1: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(build_router().into_handler()));
+    let mut h1_app = HttpApp::new_serve();
+    h1_app.router.add_route_any(UNARY, &h1);
+    h1_app.router.add_route_any(SERVER_STREAM, &h1);
+
+    // H2: gRPC requires HTTP/2 end-to-end.
+    let h2: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
+    let mut h2_app = HttpApp::new_h2_serve();
+    h2_app.route_any_h2(UNARY, h2.clone());
+    h2_app.route_any_h2(SERVER_STREAM, h2);
+
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind backend");
+    let port = listener.local_addr().expect("backend addr").port();
+    let addr = format!("127.0.0.1:{port}");
+
+    let shutdown = Arc::new(OnSignal::new());
+    let server_shutdown = Arc::clone(&shutdown);
+    let server = HttpServer::from_app(ServerApp::both(h1_app, h2_app), &addr);
+    std::thread::spawn(move || {
+        server.serve_with_listener(&listener, &server_shutdown);
+    });
+
+    (port, shutdown)
+}
+
+// ── Proxy + client helpers ──────────────────────────────────────────────────
+
+/// Build a proxy config whose service routes host `127.0.0.1` to the backend.
+/// (The connectrpc clients dial the proxy and set the authority to the same
+/// loopback host, so the service host must be `127.0.0.1`, not a virtual name.)
+fn proxy_config(backend_port: u16) -> ProxyConfig {
+    let svc = ServiceConfig::new("rpc", "127.0.0.1")
+        .backend(&format!("http://127.0.0.1:{backend_port}"));
+    ProxyConfig::new("127.0.0.1", "127.0.0.1")
+        .bind("127.0.0.1:0")
+        .service(svc)
+}
+
+fn ctx() -> Ctx {
+    Ctx::background().with_deadline(Duration::from_secs(15))
+}
+
+/// A typed client over HTTP/1.1 speaking the Connect protocol.
+fn connect_h1_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
+    let transport: Arc<dyn Transport> =
+        Arc::new(H1Transport::new(Arc::new(NativeHttpClient::from_system())));
+    let url = format!("http://{addr}{procedure}");
+    Client::new(
+        transport,
+        &url,
+        codecs(),
+        ClientOptions::new().with_connect().with_codec("json"),
+    )
+    .expect("connect h1 client")
+}
+
+/// A typed client over HTTP/2 speaking the Connect protocol.
+fn connect_h2_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
+    let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+    let url = format!("http://{addr}{procedure}");
+    Client::new(
+        transport,
+        &url,
+        codecs(),
+        ClientOptions::new().with_connect().with_codec("json"),
+    )
+    .expect("connect h2 client")
+}
+
+/// A typed client over HTTP/2 speaking gRPC.
+fn grpc_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
+    let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+    let url = format!("http://{addr}{procedure}");
+    Client::new(
+        transport,
+        &url,
+        codecs(),
+        ClientOptions::new().with_grpc().with_codec("json"),
+    )
+    .expect("grpc client")
+}
+
+/// A typed client over HTTP/1.1 speaking gRPC-Web.
+fn grpc_web_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
+    let transport: Arc<dyn Transport> =
+        Arc::new(H1Transport::new(Arc::new(NativeHttpClient::from_system())));
+    let url = format!("http://{addr}{procedure}");
+    Client::new(
+        transport,
+        &url,
+        codecs(),
+        ClientOptions::new().with_grpc_web().with_codec("json"),
+    )
+    .expect("grpc-web client")
+}
+
+/// Read a server-stream to completion and return the message texts in order.
+async fn collect_stream(client: &Client<Msg, Msg>, seed: &str) -> Vec<String> {
+    let mut stream = client
+        .server_stream(ctx(), Request::new(Msg::of(seed)))
+        .await
+        .expect("open server stream");
+    let mut got = Vec::new();
+    while let Some(msg) = stream.receive().await.expect("receive") {
+        got.push(msg.text);
+    }
+    got
+}
+
+// ── Connect: unary + server-streaming over the H1 and H2 legs ───────────────
+
+/// WHY: Connect is HTTP/1.1-native and must pass through the proxy's plain H1
+/// forward leg untouched, over the H1 front end.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_unary_via_h1_proxy() {
+    let (backend_port, backend_shutdown) = start_backend();
+    let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = connect_h1_client(&addr, UNARY);
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("connect-h1")))
+        .await
+        .expect("connect unary");
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(resp.msg, Msg::of("echo:connect-h1"), "Connect unary over H1 must round-trip");
+}
+
+/// WHY: Connect server-streaming (framed `application/connect+json`) must flow
+/// through the H1 leg without buffering or dropping the envelope frames.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_server_stream_via_h1_proxy() {
+    let (backend_port, backend_shutdown) = start_backend();
+    let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = connect_h1_client(&addr, SERVER_STREAM);
+    let got = collect_stream(&client, "connect-h1-stream").await;
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        got,
+        vec!["connect-h1-stream-0", "connect-h1-stream-1", "connect-h1-stream-2"],
+        "Connect server-stream over H1 must deliver all frames in order"
+    );
+}
+
+/// WHY: Connect over an H2 front end is legal (Connect runs over HTTP/2 too);
+/// the proxy must not misroute it — it is not `application/grpc`, so it takes
+/// the HTTP/1.1 upstream leg without dropping the call.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_unary_via_h2_proxy() {
+    let (backend_port, backend_shutdown) = start_backend();
+    let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = connect_h2_client(&addr, UNARY);
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("connect-h2")))
+        .await
+        .expect("connect unary");
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(resp.msg, Msg::of("echo:connect-h2"), "Connect unary over H2 must round-trip");
+}
+
+/// WHY: Connect server-streaming over the H2 front end exercises the streaming
+/// forward path through the H2 front end's downgrade-to-H1 upstream leg.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_server_stream_via_h2_proxy() {
+    let (backend_port, backend_shutdown) = start_backend();
+    let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = connect_h2_client(&addr, SERVER_STREAM);
+    let got = collect_stream(&client, "connect-h2-stream").await;
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        got,
+        vec!["connect-h2-stream-0", "connect-h2-stream-1", "connect-h2-stream-2"],
+        "Connect server-stream over H2 must deliver all frames in order"
+    );
+}
+
+// ── gRPC: unary + streaming with `grpc-status` intact ───────────────────────
+
+/// WHY: gRPC requires HTTP/2 end-to-end and delivers status in trailing HEADERS.
+/// The proxy's H2 leg (`application/grpc`) must relay the backend's `grpc-status`
+/// trailer to the client — a lost trailer would surface as a silent `Ok(default)`.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn grpc_unary_via_proxy_carries_status() {
+    let (backend_port, backend_shutdown) = start_backend();
+    let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = grpc_client(&addr, UNARY);
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("grpc")))
+        .await
+        .expect("grpc unary");
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(resp.msg, Msg::of("echo:grpc"), "gRPC unary must round-trip");
+
+    let trailers = resp.trailers();
+    let grpc_status = trailers
+        .get(&SimpleHeader::GRPC_STATUS)
+        .and_then(|v| v.first())
+        .map(|s| s.as_str());
+    assert_eq!(grpc_status, Some("0"), "grpc-status must be relayed as 0");
+}
+
+/// WHY: gRPC server-streaming over the proxy's H2 leg must deliver every message
+/// in order *and* still carry `grpc-status` after the stream ends.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn grpc_server_stream_via_proxy_carries_status() {
+    let (backend_port, backend_shutdown) = start_backend();
+    let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = grpc_client(&addr, SERVER_STREAM);
+    let mut stream = client
+        .server_stream(ctx(), Request::new(Msg::of("grpc-stream")))
+        .await
+        .expect("grpc server stream");
+    let mut got = Vec::new();
+    while let Some(msg) = stream.receive().await.expect("receive") {
+        got.push(msg.text);
+    }
+    let trailers = stream
+        .response_trailers()
+        .await
+        .expect("grpc stream trailers");
+    let grpc_status = trailers
+        .get(&SimpleHeader::GRPC_STATUS)
+        .and_then(|v| v.first())
+        .map(|s| s.as_str());
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        got,
+        vec!["grpc-stream-0", "grpc-stream-1", "grpc-stream-2"],
+        "gRPC server-stream must deliver all messages in order"
+    );
+    assert_eq!(grpc_status, Some("0"), "grpc-status must follow the stream");
+}
+
+// ── gRPC-Web: unary + server-streaming ──────────────────────────────────────
+
+/// WHY: gRPC-Web is browser-compatible and HTTP/1.1-transparent; it must pass
+/// through the proxy's H1 leg to the backend's gRPC-Web dispatch untouched.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn grpc_web_unary_via_proxy() {
+    let (backend_port, backend_shutdown) = start_backend();
+    let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = grpc_web_client(&addr, UNARY);
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("grpc-web")))
+        .await
+        .expect("grpc-web unary");
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(resp.msg, Msg::of("echo:grpc-web"), "gRPC-Web unary must round-trip");
+}
+
+/// WHY: gRPC-Web server-streaming carries its status in a final body frame (not
+/// trailers); the proxy's transparent H1 leg must relay every frame so the
+/// client can reassemble the stream.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn grpc_web_server_stream_via_proxy() {
+    let (backend_port, backend_shutdown) = start_backend();
+    let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = grpc_web_client(&addr, SERVER_STREAM);
+    let got = collect_stream(&client, "grpc-web-stream").await;
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        got,
+        vec!["grpc-web-stream-0", "grpc-web-stream-1", "grpc-web-stream-2"],
+        "gRPC-Web server-stream must deliver all frames in order"
+    );
+}
