@@ -161,11 +161,24 @@ pub(crate) fn read_to_limit<R: Read>(
     Ok(out)
 }
 
-/// Per-message size limits (Decision 06). Defaults are **unlimited** (connect-go
-/// parity, P17/Q7) — a cap is opt-in.
+/// Per-message size limits (Decision 06).
+///
+/// `read_max_bytes` defaults to 4 MiB:
+/// gRPC's default maximum receive message size (grpc-go
+/// `defaultServerMaxReceiveMessageSize`, grpc-java
+/// `DEFAULT_MAX_MESSAGE_SIZE`), so the gRPC peers this server talks to never
+/// send a message it refuses by default. nginx's `client_max_body_size`
+/// (1 MiB) caps whole web-form bodies, and connect-go leaves the read limit
+/// unlimited but recommends setting one; an RPC message cap is the closer
+/// match, and leaving it unlimited lets one request (or one envelope's length
+/// prefix, or one compressed body) claim any amount of memory. `0` still opts
+/// out (unlimited). The other limits default to off.
 #[derive(Debug, Clone, Copy)]
 pub struct SizeLimits {
-    /// Maximum decompressed message size to accept (`0` = unlimited).
+    /// Maximum message size to accept, after decompression (`0` = unlimited).
+    /// Applies to a unary body, to each streaming envelope (checked against
+    /// its length prefix before the payload is read) and to decompressed
+    /// output.
     pub read_max_bytes: usize,
     /// Maximum message size to send, checked **after** compression (`0` = unlimited).
     pub send_max_bytes: usize,
@@ -177,7 +190,8 @@ pub struct SizeLimits {
 impl Default for SizeLimits {
     fn default() -> Self {
         Self {
-            read_max_bytes: 0,
+            // 4 MiB — gRPC's default max receive message size (see above).
+            read_max_bytes: 4 * 1024 * 1024,
             send_max_bytes: 0,
             compress_min_bytes: 0,
         }
@@ -185,6 +199,27 @@ impl Default for SizeLimits {
 }
 
 impl SizeLimits {
+    /// Set [`Self::read_max_bytes`] (`0` = unlimited).
+    #[must_use]
+    pub fn with_read_max_bytes(mut self, n: usize) -> Self {
+        self.read_max_bytes = n;
+        self
+    }
+
+    /// Set [`Self::send_max_bytes`] (`0` = unlimited).
+    #[must_use]
+    pub fn with_send_max_bytes(mut self, n: usize) -> Self {
+        self.send_max_bytes = n;
+        self
+    }
+
+    /// Set [`Self::compress_min_bytes`] (`0` = always compress).
+    #[must_use]
+    pub fn with_compress_min_bytes(mut self, n: usize) -> Self {
+        self.compress_min_bytes = n;
+        self
+    }
+
     /// Whether a message of `len` bytes should be compressed under these limits
     /// when compression is negotiated (Decision 06 H10).
     #[must_use]

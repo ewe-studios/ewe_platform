@@ -28,10 +28,15 @@ use foundation_netio::shared::http::{
 
 use crate::shared::compression::CompressionRegistry;
 use crate::shared::context::{CancelSignal, Spec, StreamType};
-use crate::shared::error::ConnectResult;
+use crate::shared::error::{ConnectError, ConnectResult};
+use foundation_errstacks::ErrorTrace;
 use crate::shared::transport::{
-    BoxFuture, ByteSink, ByteSource, ClientConn, HandlerConn, ProtocolKind, TransportStream,
+    fail_stream, race, BodyStream, BoxFuture, ByteSink, ByteSource, ClientConn, Frame,
+    HandlerConn, HeadStream, ProtocolKind, TransportStream,
 };
+use foundation_core::valtron::PipeSender;
+use foundation_netio::shared::http::Status;
+use std::sync::Mutex;
 
 /// A per-call reader/writer task — an async loop the framework spawns on valtron.
 pub type BoxedTask = BoxFuture<'static, ConnectResult<()>>;
@@ -69,6 +74,22 @@ pub struct ClientExchange {
     pub writer_task: BoxedTask,
 }
 
+/// What a protocol needs, beyond the request and the byte pipes, to build a
+/// server exchange ([`ProtocolHandler::new_conn`]).
+pub struct ExchangeConfig<'a> {
+    /// The compressors to negotiate the call's compression from.
+    pub compression: &'a CompressionRegistry,
+    /// The call's cancel signal (the handler's `Ctx` carries the same one).
+    /// The seam's parked receives and sends wake on it, so a cancelled call
+    /// stops a handler that is waiting on its request or response stream.
+    pub cancel: CancelSignal,
+    /// The largest request message accepted, after decompression (`0` =
+    /// unlimited; see [`SizeLimits::read_max_bytes`](crate::SizeLimits)). An
+    /// envelope whose length prefix claims more is rejected from its 5-byte
+    /// header, before its payload is buffered, and decompression stops at it.
+    pub read_max_bytes: usize,
+}
+
 /// Internal protocol abstraction — one impl per protocol handles its HTTP
 /// semantics (Decision 05).
 pub trait ProtocolHandler: Send + Sync {
@@ -90,6 +111,10 @@ pub trait ProtocolHandler: Send + Sync {
     /// Build the per-call exchange over the transport's byte pipes (consumes the
     /// negotiated compression to build the reader/writer tasks).
     ///
+    /// A reader task that fails (a malformed or oversized envelope, a failed
+    /// decompression) hands the error to the handler as the end of the request
+    /// stream: a failed read must never look like a request that ended cleanly.
+    ///
     /// # Errors
     /// A [`ConnectError`](crate::ConnectError)-carrying trace on negotiation
     /// failure.
@@ -99,8 +124,27 @@ pub trait ProtocolHandler: Send + Sync {
         spec: Spec,
         body: ByteSource,
         responder: ByteSink,
-        compression: &CompressionRegistry,
+        config: ExchangeConfig<'_>,
     ) -> ConnectResult<HandlerExchange>;
+
+    /// The bytes that end an already-started **streaming** response with
+    /// `error`, in band — for when the call fails after the response head and
+    /// some frames went out, so the status can no longer change (a deadline
+    /// passing, a handler that fails without closing its stream).
+    ///
+    /// `None` when the protocol carries the outcome outside the body (gRPC's
+    /// trailing HEADERS, which the transport writes).
+    ///
+    /// # Errors
+    /// A trace when the terminal frame cannot be encoded.
+    fn encode_stream_error(
+        &self,
+        request: &SimpleIncomingRequest,
+        error: &ErrorTrace<ConnectError>,
+    ) -> ConnectResult<Option<Bytes>> {
+        let _ = (request, error);
+        Ok(None)
+    }
 
     /// Decode a **unary** request body into codec-level message bytes — the
     /// protocol-specific de-framing + decompression a unary call needs
@@ -110,14 +154,20 @@ pub trait ProtocolHandler: Send + Sync {
     /// handler works on message bytes, and the wire framing differs from streaming
     /// (bare vs enveloped).
     ///
+    /// The decoded message is capped at `read_max_bytes` (`0` = unlimited):
+    /// decompression stops there with `resource_exhausted`, so a small
+    /// compressed body cannot inflate without bound.
+    ///
     /// # Errors
     /// A [`ConnectError`](crate::ConnectError)-carrying trace on a malformed frame,
-    /// decompression failure, or a missing decompressor for a compressed body.
+    /// decompression failure, a missing decompressor for a compressed body, or
+    /// a message over `read_max_bytes` (`resource_exhausted`).
     fn decode_unary_request(
         &self,
         request: &SimpleIncomingRequest,
         body: Bytes,
         compression: &CompressionRegistry,
+        read_max_bytes: usize,
     ) -> ConnectResult<Bytes>;
 
     /// The `Content-Type` for a **streaming** response head in this protocol
@@ -191,10 +241,10 @@ pub trait ProtocolClient: Send + Sync {
     fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes>;
     /// Build the per-call exchange over a live transport stream.
     ///
-    /// The `cancel` signal is linked into the conn's sender/receiver halves so
-    /// caller cancellation wakes parked pipe ops. The framework passes
-    /// `CancelSignal::linked(&caller_signal)` — tests and base contexts pass
-    /// `CancelSignal::new()`.
+    /// The reader task consumes the whole stream: the response head (its
+    /// headers are published for `ClientReceiver::response_headers`, and a
+    /// non-200 status ends the stream with the matching error, as for a unary
+    /// call), the body, and the trailers.
     ///
     /// # Errors
     /// A trace on setup failure.
@@ -203,8 +253,82 @@ pub trait ProtocolClient: Send + Sync {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        cancel: CancelSignal,
+        config: ClientExchangeConfig,
     ) -> ConnectResult<ClientExchange>;
+}
+
+/// What a protocol needs, beyond the stream, to build a client exchange
+/// ([`ProtocolClient::new_conn`]).
+pub struct ClientExchangeConfig {
+    /// Linked into the conn's sender/receiver halves so caller cancellation
+    /// wakes parked pipe ops. The framework passes
+    /// `CancelSignal::linked(&caller_signal)`; tests and base contexts pass
+    /// `CancelSignal::new()`.
+    pub cancel: CancelSignal,
+    /// The largest response message accepted (`0` = unlimited); an envelope
+    /// whose length prefix claims more fails the stream before its payload is
+    /// read. Also bounds how much of an error body is read.
+    pub read_max_bytes: usize,
+}
+
+/// Start reading a streaming response: take its head, publish the headers for
+/// the receiver, and return them. A failed or missing head, or a non-200
+/// status, ends the stream with the error instead (the status maps to a code
+/// as for a unary call, with up to `read_max_bytes` of the body as the
+/// message) and returns `None`.
+pub(crate) async fn open_response_stream(
+    head: &mut HeadStream,
+    body: &mut BodyStream,
+    tx: &PipeSender<Frame>,
+    response_headers: &Mutex<Option<SimpleHeaders>>,
+    cancel: &CancelSignal,
+    read_max_bytes: usize,
+) -> Option<SimpleHeaders> {
+    use futures::StreamExt;
+
+    let (status, headers) = match head.next().await {
+        Some(Ok(head)) => head,
+        Some(Err(e)) => {
+            fail_stream(tx, &ConnectError::from(e).into(), cancel).await;
+            return None;
+        }
+        None => {
+            let e = ConnectError::unavailable("transport closed without response head");
+            fail_stream(tx, &e.into(), cancel).await;
+            return None;
+        }
+    };
+    *response_headers
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(headers.clone());
+    if status == Status::OK {
+        return Some(headers);
+    }
+
+    // Only a bounded part of an error body is read, for the message.
+    let mut message = Vec::new();
+    while let Some(Ok(chunk)) = body.next().await {
+        message.extend_from_slice(&chunk);
+        if read_max_bytes != 0 && message.len() >= read_max_bytes {
+            message.truncate(read_max_bytes);
+            break;
+        }
+    }
+    let message = if message.is_empty() {
+        format!("HTTP {status}")
+    } else {
+        String::from_utf8_lossy(&message).to_string()
+    };
+    let error: ErrorTrace<ConnectError> =
+        ConnectError::new(crate::shared::client::code_from_http_status(&status), message).into();
+    let end = Frame::EndStream {
+        error: Some(error),
+        trailers: headers,
+    };
+    // Delivered, the consumer gone, or the call cancelled: the stream is over.
+    let _ = race(tx.send(end), cancel.cancelled()).await;
+    tx.close();
+    None
 }
 
 /// Canonicalize a `Content-Type` for matching (Decision 05 P6 / Decision 02 P1):

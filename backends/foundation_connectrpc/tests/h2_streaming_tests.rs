@@ -182,6 +182,51 @@ async fn server_stream_over_h2c() {
     shutdown.turn_on();
 }
 
+/// A streaming client sees the response head the way a unary one does: the
+/// headers through `response_headers()`. The Connect client used to drop the
+/// head, so they were always empty.
+#[valtron_test]
+async fn server_stream_client_sees_response_headers() {
+    let (addr, shutdown) = start_h2_server();
+
+    let client = client_for(&addr, SERVER_STREAM);
+    let mut stream = client
+        .server_stream(ctx(), Request::new(Msg::of("item")))
+        .await
+        .expect("open server stream");
+    let content_type = stream
+        .response_headers()
+        .get(&foundation_netio::shared::http::SimpleHeader::CONTENT_TYPE)
+        .and_then(|v| v.first())
+        .cloned();
+    assert_eq!(content_type.as_deref(), Some("application/connect+json"));
+    while stream.receive().await.expect("receive").is_some() {}
+    shutdown.turn_on();
+}
+
+/// ... and a non-200 status the way a unary call does: as the matching error,
+/// not a stream that ends cleanly with nothing in it.
+#[valtron_test]
+async fn server_stream_client_sees_the_http_status() {
+    let (addr, shutdown) = start_h2_server();
+
+    let client = client_for(&addr, "/t.Svc/Missing");
+    let outcome = match client
+        .server_stream(ctx(), Request::new(Msg::of("item")))
+        .await
+    {
+        Ok(mut stream) => stream.receive().await.map(|_| ()),
+        Err(e) => Err(e),
+    };
+    let err = outcome.expect_err("a 404 is an error");
+    assert_eq!(
+        err.current_context().code(),
+        foundation_connectrpc::Code::NotFound,
+        "{err}"
+    );
+    shutdown.turn_on();
+}
+
 /// The client sends three messages as separate h2 DATA frames before closing the
 /// request direction; the handler folds them into one response. This is the mode
 /// that the old pump could not express — it committed END_STREAM on HEADERS.
