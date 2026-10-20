@@ -47,11 +47,9 @@ workspace = true
 
 [dev-dependencies.foundation_netio]
 path = "../foundation_netio"
-version = "0.0.4"
 
 [dev-dependencies.foundation_testing]
 path = "../foundation_testing"
-version = "0.0.3"
 
 [features]
 default = ["hetzner"]

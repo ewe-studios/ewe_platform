@@ -81,8 +81,8 @@ windows-sys = { version = "0.59", features = [
 foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["multi"] }
 
 [dev-dependencies]
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.3" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
+foundation_arrow = { path = "../foundation_arrow" }
+foundation_macros = { path = "../foundation_macros" }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
 serial_test = "3.3"

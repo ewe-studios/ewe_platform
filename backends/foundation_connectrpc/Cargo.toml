@@ -34,13 +34,13 @@ brotli = { version = "8", optional = true }
 libc = "0.2"
 
 [dev-dependencies]
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.3" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
+foundation_wireguard = { path = "../foundation_wireguard" }
+foundation_errstacks = { path = "../foundation_errstacks", features = ["to_structured"] }
 serde_json = { workspace = true }
 serde = { workspace = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.3" }
+foundation_arrow = { path = "../foundation_arrow" }
 futures-lite = "2"
 
 [features]
