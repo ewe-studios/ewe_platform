@@ -13,7 +13,7 @@
 //! HOW: Trait is `#[async_trait]` and object-safe (`Arc<dyn HttpClient>`).
 //! Native sync methods call `SimpleHttpClient` directly.
 //! Native async methods use `ClientRequest::send_async()` and `into_future_stream()`.
-//! Wasm async methods use `fetch()`. Wasm sync wraps async via `run_future()`.
+//! Wasm async methods use `fetch()`. Wasm sync wraps async via `block_on_collect()`.
 
 use std::pin::Pin;
 

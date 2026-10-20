@@ -363,7 +363,7 @@ sync path not block", not "add an async seam":
    `into_pure_future_stream()` (`StreamAsFutureStream`, no `WakeableStream` bound).
 2. **Remove `run_future` from the wasm sync path.** wasm `send_sse` becomes a lazy
    `LazySseIterator` (spawns `do_fetch` via `spawn_local` on first poll, flattens a
-   `WasmSseIterator`), and `run_future` is renamed `block_on_future` + documented
+   `WasmSseIterator`), and `run_future` is renamed `block_on_collect` + documented
    wasm-unsafe (native-only). Fetch failures surface as `SseProgress::Failed(msg)`,
    mapped to `ModelState::Error` by the OpenAI/Workers-AI streams.
 
@@ -395,5 +395,33 @@ the isolate.
   after `into_ready_future()`, though the bridge returns the *remaining* iterator
   (which still holds the unconsumed item). Corrected to assert the remaining item
   then `None`. Now the whole foundation_core suite is green.
+
+## 06 T2 (2026-10-20) — `run_future` → `block_on_collect` + the single-threaded drop-on-`Pending` fix
+
+- The audit found **two** pre-existing blocking helpers, not one: `block_on_future`
+  (returns a single `F::Output`, drives to completion; used by the `#[valtron]`
+  macro, tests, `deployment_platform`, `keychain`) and `run_future` (returns
+  `GenericResult<Vec<F::Output>>`, the sync `collect()` wasm trap). The feature
+  doc's "rename `run_future` → `block_on_future`" would have collided with the
+  existing single-output `block_on_future`, so the collect helper was renamed
+  **`block_on_collect`** instead, keeping the two blocking helpers distinct
+  (`block_on_future` = single output, `block_on_collect` = all outputs).
+- `block_on_collect` (both `non_sendables.rs` and `sendables.rs`) is now
+  documented `# WASM-unsafe: native-only`: the `collect()` is inherent (a future
+  has no stream to return), so it never yields to the JS event loop and deadlocks
+  the single-threaded wasm isolate. Its three remaining call sites (netio
+  `send`/`send_sse`, ai `backend_utils::sleep`) are the traps T3/T4 remove.
+- **Fixed** the single-threaded `FutureIterator` (`future_task.rs`,
+  `not(multi)`) that rebuilt + dropped the future on every `next()`, so a future
+  that returned `Pending` once could never make progress. It now holds
+  `factory: Option<F>` (runs once) + `future: Option<Pin<Box<Fut>>>` and re-polls
+  the retained future on each `next()`, yielding `ThreadedValue::Waiting` on
+  `Pending` without dropping it.
+- Added `test_threaded_future_survives_pending` (a `PendingNTimes` future that is
+  `Pending` twice before resolving) asserting two `Waiting`s then the values flow —
+  the old code would have yielded `Waiting` then `None`, losing the values.
+- Gates green: `cargo check -p foundation_core` (default + `--features multi`) and
+  `cargo check -p foundation_core --target wasm32-unknown-unknown`; full
+  `cargo test -p foundation_core --profile uat` (742 passed, 0 failed).
 
 

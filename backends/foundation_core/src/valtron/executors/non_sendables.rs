@@ -402,10 +402,28 @@ where
     StreamTask::new(stream)
 }
 
-/// Execute a future using the unified executor (WASM — Send required for trait bounds,
-/// but no actual cross-thread movement occurs since wasm32 is single-threaded).
+/// Block the calling thread until `future` completes, collecting every `Ready`
+/// output it produced into a `Vec` (single-threaded / wasm executor variant).
+///
+/// # WASM-unsafe: native-only
+///
+/// This is a *blocking* helper — the `collect()` is inherent, because a future
+/// has no stream to return — so it never yields to the JS event loop. On wasm32
+/// (a single-threaded, cooperative runtime) it deadlocks the isolate: any future
+/// awaiting a `JsFuture`/promise can never resolve while the collector parks.
+/// Prefer [`run_future_iter`] (a lazy iterator that yields
+/// [`ThreadedValue::Waiting`] while pending) or the parking stream bridges
+/// (`into_future_stream` / `into_next_stream`). Keep this helper for native
+/// callers that genuinely need a run-to-completion block.
+///
+/// WHY: The unified executor's `DrivenRecvIterator` may yield several `Ready`
+/// values (a future can spawn sub-tasks), so "run to completion" here means
+/// "gather them all", not "return the first".
+///
+/// WHAT: Wraps `future` as a [`FutureTask`], executes it via [`execute_as_task`],
+/// and gathers every `Ready` output into a `Vec`.
 #[cfg(any(feature = "std", feature = "alloc"))]
-pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
+pub fn block_on_collect<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
     F: Future + 'static,
     F::Output: 'static,

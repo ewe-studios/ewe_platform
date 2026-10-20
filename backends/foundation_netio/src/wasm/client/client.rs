@@ -15,14 +15,14 @@
 //! SSE responses use `WasmSseIterator` from the `stream` module.
 //! Streaming request bodies are bridged to JS `ReadableStream` via
 //! valtron's `iterator_to_readable_stream`.
-//! Async methods are canonical; sync methods wrap via `valtron::run_future()`.
+//! Async methods are canonical; sync methods wrap via `valtron::block_on_collect()`.
 
 use std::sync::Arc;
 
 use foundation_compact::SendWrapper;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::js_stream;
-use foundation_core::valtron::run_future;
+use foundation_core::valtron::block_on_collect;
 use foundation_core::valtron::StreamIteratorExt;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
@@ -143,17 +143,17 @@ impl HttpClient for FetchHttpClient {
     }
 
     fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
-        // Build an owned future (no `&self` borrow) so it satisfies `run_future`'s
+        // Build an owned future (no `&self` borrow) so it satisfies `block_on_collect`'s
         // `'static` bound — the sync wrapper drives the canonical async path.
         let req = self.merge_default_headers(req);
         let max_redirects = self.config.max_redirects;
-        let results = run_future(SendWrapper::new(fetch_and_read(req, max_redirects)))
+        let results = block_on_collect(SendWrapper::new(fetch_and_read(req, max_redirects)))
             .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
         results
             .into_iter()
             .next()
             .unwrap_or(Err(HttpClientError::Reason(
-                "run_future returned no result".into(),
+                "block_on_collect returned no result".into(),
             )))
     }
 
@@ -177,13 +177,13 @@ impl HttpClient for FetchHttpClient {
             let iter = WasmSseIterator::new(body);
             Ok(Box::new(iter) as BoxedSseIterator)
         });
-        let results = run_future(fut)
+        let results = block_on_collect(fut)
             .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
         results
             .into_iter()
             .next()
             .unwrap_or(Err(HttpClientError::Reason(
-                "run_future returned no result".into(),
+                "block_on_collect returned no result".into(),
             )))
     }
 
@@ -204,8 +204,8 @@ impl HttpClient for FetchHttpClient {
 /// Perform one fetch and read the full response body into a `SimpleResponse`.
 ///
 /// WHY: Extracted as a free async fn over owned data so both `send_async` (async
-/// seam) and `send` (sync wrapper via `run_future`) drive the identical path
-/// without either future borrowing `&FetchHttpClient` — `run_future` requires a
+/// seam) and `send` (sync wrapper via `block_on_collect`) drive the identical path
+/// without either future borrowing `&FetchHttpClient` — `block_on_collect` requires a
 /// `'static` future.
 async fn fetch_and_read(
     req: PreparedRequest,

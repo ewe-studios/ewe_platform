@@ -11,7 +11,7 @@ use crate::types::{Tool, ToolArguments};
 /// On native the provider path already runs on a pool worker thread, so a
 /// plain `std::thread::sleep` is fine. On wasm `std::thread::sleep` is not
 /// implemented ("time not implemented"), so we drive valtron's cooperative
-/// `sleep_async` (setTimeout-backed) through `run_future` — the same sync→async
+/// `sleep_async` (setTimeout-backed) through `block_on_collect` — the same sync→async
 /// bridge the wasm `HttpClient::send` uses to run `fetch`.
 #[cfg(not(target_family = "wasm"))]
 pub(crate) fn sleep(duration: std::time::Duration) {
@@ -20,7 +20,7 @@ pub(crate) fn sleep(duration: std::time::Duration) {
 
 #[cfg(target_family = "wasm")]
 pub(crate) fn sleep(duration: std::time::Duration) {
-    let _ = foundation_core::valtron::run_future(foundation_compact::SendWrapper::new(
+    let _ = foundation_core::valtron::block_on_collect(foundation_compact::SendWrapper::new(
         foundation_core::valtron::sleep_async(duration),
     ));
 }
