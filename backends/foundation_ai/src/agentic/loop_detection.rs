@@ -78,7 +78,7 @@ impl Default for LoopDetectorConfig {
 /// that comparison O(1) after construction.
 ///
 /// WHAT: Stores the tool name, sorted argument key list, and a combined
-/// `ahash` digest of name + keys + values. Two signatures with the same
+/// deterministic digest of name + keys + values. Two signatures with the same
 /// `argument_hash` represent identical calls.
 ///
 /// HOW: `from_tool_call` sorts argument keys, hashes name + key/value pairs
@@ -100,7 +100,7 @@ impl ToolCallSignature {
             .unwrap_or_default();
         keys.sort();
 
-        let mut hasher = ahash::AHasher::default();
+        let mut hasher = foundation_compact::hash::Hasher::default();
         name.hash(&mut hasher);
         if let Some(map) = args {
             for k in &keys {
@@ -186,7 +186,7 @@ pub enum Escalation {
 fn simhash_text(text: &str) -> u64 {
     let mut counts = [0i32; 64];
     for token in text.split_whitespace() {
-        let mut hasher = ahash::AHasher::default();
+        let mut hasher = foundation_compact::hash::Hasher::default();
         token.hash(&mut hasher);
         let h = hasher.finish();
         for (bit, count) in counts.iter_mut().enumerate() {

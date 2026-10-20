@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::Utc;
-use rand::RngCore;
+use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 
 use super::super::config::IdpConfig;
@@ -213,7 +213,7 @@ impl TokenService {
 
 fn generate_refresh_token() -> String {
     let mut bytes = [0u8; 64];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    foundation_compact::rng::rng().fill_bytes(&mut bytes);
     URL_SAFE_NO_PAD.encode(bytes)
 }
 

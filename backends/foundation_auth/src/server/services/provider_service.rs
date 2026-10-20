@@ -21,7 +21,7 @@ use chacha20poly1305::{
     ChaCha20Poly1305, Key, Nonce,
 };
 use chrono::Utc;
-use rand::RngCore;
+use foundation_compact::rng::Rng;
 
 use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow, StorageItemStream};
 use foundation_core::valtron::Stream;
@@ -133,7 +133,7 @@ impl ProviderCrypto {
     fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>> {
         let cipher = ChaCha20Poly1305::new(&self.key);
         let mut nonce_bytes = [0u8; NONCE_LEN];
-        rand::thread_rng().fill_bytes(&mut nonce_bytes);
+        foundation_compact::rng::rng().fill_bytes(&mut nonce_bytes);
         let nonce = Nonce::from_slice(&nonce_bytes);
         let ciphertext = cipher
             .encrypt(nonce, plaintext)

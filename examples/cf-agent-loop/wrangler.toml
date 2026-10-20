@@ -1,0 +1,17 @@
+name = "cf-agent-loop"
+main = "build/index.js"
+compatibility_date = "2024-01-01"
+
+# Workers AI credentials are Worker secrets and must never be committed. Set them with:
+#   npx wrangler secret put WORKERS_AI_API_TOKEN
+#   npx wrangler secret put CLOUDFLARE_ACCOUNT_ID
+# or, for `wrangler dev` / miniflare, put them in an ignored `.dev.vars` file:
+#   WORKERS_AI_API_TOKEN=...
+#   CLOUDFLARE_ACCOUNT_ID=...
+#
+# WORKERS_AI_BASE_URL (optional) overrides the vendor base URL so the miniflare
+# smoke test can point the Worker at a local mocked Workers AI endpoint instead
+# of a live token: WORKERS_AI_BASE_URL=http://127.0.0.1:<port>
+
+[vars]
+MODEL = "@cf/meta/llama-3.1-8b-instruct"

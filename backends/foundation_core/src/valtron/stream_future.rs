@@ -278,6 +278,12 @@ where
 // ============================================================================
 
 /// Wraps a [`StreamIterator`] as a `futures_core::Stream`, yielding each `Stream<D, P>` item as-is.
+///
+/// This is the **pure/raw** lens (returned by `into_pure_future_stream()`): it never
+/// parks and forwards every item — including the in-band control states
+/// `Wait`/`Pending`/`Delayed`/`Init` — unchanged. An `await` consumer that wants the
+/// iterator to park on those states should use [`StreamParkingFutureStream`]
+/// (returned by `into_future_stream()`) instead.
 pub struct StreamAsFutureStream<SI: StreamIterator> {
     inner: Option<SI>,
 }
@@ -302,11 +308,100 @@ where
 }
 
 // ============================================================================
+// StreamParkingFutureStream
+// ============================================================================
+
+/// WHY: [`StreamAsFutureStream`] is a raw lens whose `poll_next` is always
+/// `Poll::Ready(iter.next())` — it forwards the in-band control states
+/// (`Wait`/`Pending`/`Delayed`/`Init`) as items and never parks, so an `await`
+/// consumer busy-polls while the iterator is not ready. This adapter fills that gap.
+///
+/// WHAT: A [`futures_core::Stream`] whose `Item` is the full `Stream<D, P>` enum —
+/// it yields `Next(v)` and `Spread(items)` as-is, drives past `Ignore`, and ends on
+/// iterator exhaustion, enabling `while let Some(item) = body.next().await` over
+/// the same item type as the raw lens.
+///
+/// HOW: On `Next(v)`/`Spread(items)` returns `Ready(Some(..))`; on
+/// `Wait`/`Pending`/`Delayed`/`Init` registers a wake through
+/// [`WakeableStream::wake`] and parks (falling back to a `wake_by_ref()` self-wake
+/// when the iterator reports `NotSupported`); on `Ignore` loops; on `None` returns
+/// `Ready(None)` permanently.
+pub struct StreamParkingFutureStream<SI: StreamIterator> {
+    inner: Option<SI>,
+}
+
+impl<SI: StreamIterator> StreamParkingFutureStream<SI> {
+    pub fn new(iter: SI) -> Self {
+        Self { inner: Some(iter) }
+    }
+}
+
+impl<SI> FuturesStream for StreamParkingFutureStream<SI>
+where
+    SI: WakeableStream + Unpin,
+{
+    type Item = Stream<SI::D, SI::P>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+
+        let iter = match this.inner.as_mut() {
+            Some(iter) => iter,
+            None => return Poll::Ready(None),
+        };
+
+        loop {
+            match iter.next() {
+                Some(Stream::Next(v)) => return Poll::Ready(Some(Stream::Next(v))),
+                Some(Stream::Spread(items)) => return Poll::Ready(Some(Stream::Spread(items))),
+                Some(Stream::Ignore) => {}
+                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
+                    let waker = cx.waker().clone();
+                    match iter.wake(Box::new(move || waker.wake_by_ref())) {
+                        WakeResult::Successful => {
+                            // Register-then-recheck: a `push` between our last
+                            // `next()` (empty) and `wake()` already fired the
+                            // still-empty registry and will not re-fire. Catch it
+                            // here; park only if still non-target.
+                            match iter.next() {
+                                Some(Stream::Next(v)) => return Poll::Ready(Some(Stream::Next(v))),
+                                Some(Stream::Spread(items)) => {
+                                    return Poll::Ready(Some(Stream::Spread(items)));
+                                }
+                                Some(Stream::Ignore) => {}
+                                Some(
+                                    Stream::Pending(_)
+                                    | Stream::Delayed(_)
+                                    | Stream::Init
+                                    | Stream::Wait,
+                                ) => return Poll::Pending,
+                                None => {
+                                    this.inner = None;
+                                    return Poll::Ready(None);
+                                }
+                            }
+                        }
+                        WakeResult::NotSupported => {
+                            cx.waker().wake_by_ref();
+                            return Poll::Pending;
+                        }
+                    }
+                }
+                None => {
+                    this.inner = None;
+                    return Poll::Ready(None);
+                }
+            }
+        }
+    }
+}
+
+// ============================================================================
 // StreamNextStream
 // ============================================================================
 
 /// WHY: `into_ready_future()` yields one value plus the remaining iterator, which
-/// is ceremonial for consuming a body chunk-by-chunk (re-wrap loop). `into_future_stream()`
+/// is ceremonial for consuming a body chunk-by-chunk (re-wrap loop). `into_pure_future_stream()`
 /// is a raw lens that yields `Stream<D, P>` items as-is (including `Wait`) and never
 /// returns `Poll::Pending`, so it cannot serve as an awaitable value stream. This
 /// adapter fills the gap (F45 Resolution 5).

@@ -1,0 +1,35 @@
+[package]
+name = "cf-agent-loop"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "foundation_ai agentic layer on Cloudflare Workers via dispatch_cf + shared Router, using Workers AI (spec 65 T5)"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# Opt out of the parent workspace: `examples/*` are excluded from the root
+# workspace, so this crate must be its own workspace root.
+[workspace]
+
+[dependencies]
+# Self-contained crate: no workspace inheritance (`examples/*` are excluded from
+# the workspace, so `edition.workspace` / `[lints] workspace = true` would fail).
+foundation_ai = { path = "../../backends/foundation_ai", default-features = false }
+foundation_core = { path = "../../backends/foundation_core", default-features = false, features = ["js-wasmbindgen", "std"] }
+foundation_netio = { path = "../../backends/foundation_netio", default-features = false, features = ["wasm-fetch"] }
+foundation_http = { path = "../../backends/foundation_http", default-features = false, features = ["wasm-bindgen-http"] }
+
+async-trait = "0.1"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["Request", "Response", "Headers", "ResponseInit"] }
+
+worker = { version = "0.8.3" }
+console_error_panic_hook = "0.1"
+console_log = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+log = "0.4"

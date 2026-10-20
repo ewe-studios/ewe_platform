@@ -1090,7 +1090,8 @@
 // | `StreamCollectFuture<SI>` | `Future<Output = Vec<D>>` | Collect all `Next` values — replacement for `collect_result()` |
 // | `StreamReadyFuture<SI>` | `Future<Output = Option<(D, SI)>>` | Get the first `Next` value + remaining iterator — replacement for `collect_one()` |
 // | `StreamPendingFuture<SI>` | `Future<Output = Option<(P, SI)>>` | Get the first `Pending` context — for progress-driven logic |
-// | `StreamAsFutureStream<SI>` | `impl futures_core::Stream<Item = Stream<D, P>>` | Pass-through as async stream — for streaming consumers |
+// | `StreamAsFutureStream<SI>` | `impl futures_core::Stream<Item = Stream<D, P>>` | Raw pass-through lens (`into_pure_future_stream()`) — never parks |
+// | `StreamParkingFutureStream<SI>` | `impl futures_core::Stream<Item = Stream<D, P>>` | Park-on-control-state lens (`into_future_stream()`) — for `await` consumers |
 // 
 // ### Pattern 1: Replace `collect_result()` in async code
 // 
@@ -1165,7 +1166,7 @@
 // }
 // ```
 // 
-// ### Pattern 5: Streaming consumption via `StreamAsFutureStream`
+// ### Pattern 5: Raw streaming consumption via `StreamAsFutureStream`
 // 
 // When you need to process items one at a time as an async stream:
 // 
@@ -1173,7 +1174,7 @@
 // use futures_core::Stream as FuturesStream;
 // use futures_lite::stream::StreamExt; // for .next()
 // 
-// let mut stream = data_stream.into_future_stream();
+// let mut stream = data_stream.into_pure_future_stream();
 // while let Some(item) = stream.next().await {
 //     match item {
 //         Stream::Next(Ok(value)) => process(value),
@@ -1201,9 +1202,11 @@
 //    `ConcurrentQueue`-backed split observer) falls back to `wake_by_ref()` and the
 //    legacy self-wake loop, preserving the old behavior for those iterators.
 //
-// `StreamAsFutureStream` is the exception: it is a raw lens that always returns
-// `Poll::Ready(iter.next())` and never parks, so it carries no `WakeableStream`
-// bound.
+// `StreamAsFutureStream` (from `into_pure_future_stream()`) is the raw lens: it
+// always returns `Poll::Ready(iter.next())` and never parks, so it carries no
+// `WakeableStream` bound. `StreamParkingFutureStream` (from `into_future_stream()`)
+// is its parking sibling: it keeps the full `Stream<D, P>` item type but parks on
+// `Wait`/`Pending`/`Delayed`/`Init` via [`WakeableStream::wake`].
 // 
 // ### `Unpin` Requirements
 // 
@@ -1242,7 +1245,7 @@
 //     │       ├─ Need all values? → .into_collect_future().await
 //     │       ├─ Need first value? → .into_ready_future().await
 //     │       ├─ Need pending context? → .into_pending_future().await
-//     │       └─ Need async stream? → .into_future_stream()
+//     │       └─ Need async stream? → .into_future_stream() (parks) / .into_pure_future_stream() (raw)
 // ```
 // 
 // ## Lessons from CF Workers wasm32 Deployment (2026-05-30)
@@ -1406,13 +1409,15 @@
 // let driven_iter = drive_stream(iter);
 // ```
 // 
-// ### `StreamAsFutureStream` Never Parks
+// ### `StreamAsFutureStream` Never Parks; `StreamParkingFutureStream` Does
 //
-// `StreamAsFutureStream` (from `into_future_stream()`) is a raw lens: `poll_next`
+// `StreamAsFutureStream` (from `into_pure_future_stream()`) is a raw lens: `poll_next`
 // always returns `Poll::Ready(iter.next())`, surfacing `Stream<D, P>` items as-is
 // (including `Wait`). It never returns `Poll::Pending` and never self-wakes, so it
-// carries no `WakeableStream` bound. To consume payloads as an awaitable stream that
-// parks over in-band control states, use `into_next_stream()` (`StreamNextStream`).
+// carries no `WakeableStream` bound. `StreamParkingFutureStream` (from
+// `into_future_stream()`) keeps the full `Stream<D, P>` item type but parks on
+// `Wait`/`Pending`/`Delayed`/`Init` via `WakeableStream::wake`. To consume only the
+// `Next` payloads as an awaitable stream, use `into_next_stream()` (`StreamNextStream`).
 // 
 // ## Error Handling: `foundation_errstacks` Required
 // 

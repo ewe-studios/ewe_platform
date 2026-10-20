@@ -294,8 +294,10 @@ mod smol_ext_tests {
                 .into_stream_iter()
                 .into_ready_future()
         ).unwrap();
-        tracing::info!("ready via ext: value={}, remaining exhausted={}", value, remaining.next().is_none());
+        tracing::info!("ready via ext: value={}", value);
         assert_eq!(value, 42);
+        // The remaining iterator still holds the unconsumed `Next(1)`.
+        assert_eq!(remaining.next(), Some(Stream::Next(1)));
         assert!(remaining.next().is_none());
     }
 
@@ -317,7 +319,7 @@ mod smol_ext_tests {
             Stream::<i32, &str>::Next(1),
             Stream::Pending("p"),
             Stream::Next(2),
-        ].into_iter().into_future_stream();
+        ].into_iter().into_pure_future_stream();
         let mut items = Vec::new();
         while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
             items.push(item);
@@ -356,8 +358,10 @@ async fn test_tokio_await_ready_future() {
         Stream::<i32, &str>::Next(42),
         Stream::Pending("wait"),
     ].into_iter().into_stream_iter().into_ready_future().await.unwrap();
-    tracing::info!("tokio ready: value={}, remaining exhausted={}", value, remaining.next().is_none());
+    tracing::info!("tokio ready: value={}", value);
     assert_eq!(value, 42);
+    // The remaining iterator still holds the unconsumed `Pending("wait")`.
+    assert_eq!(remaining.next(), Some(Stream::Pending("wait")));
     assert!(remaining.next().is_none());
 }
 
@@ -391,7 +395,7 @@ async fn test_tokio_await_future_stream() {
         Stream::<i32, &str>::Next(1),
         Stream::Pending("p"),
         Stream::Next(2),
-    ].into_iter().into_future_stream();
+    ].into_iter().into_pure_future_stream();
     let mut items = Vec::new();
     while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
         items.push(item);
@@ -438,7 +442,7 @@ fn test_smol_run_future_stream() {
         Stream::<i32, &str>::Next(1),
         Stream::Pending("p"),
         Stream::Next(2),
-    ].into_iter().into_future_stream();
+    ].into_iter().into_pure_future_stream();
     let mut items = Vec::new();
     while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
         items.push(item);
@@ -492,7 +496,7 @@ fn test_combinator_then_future_stream() {
         Stream::Next(2),
     ].into_iter()
         .map_done(|v| v * 2)
-        .into_future_stream();
+        .into_pure_future_stream();
     let mut items = Vec::new();
     while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
         items.push(item);

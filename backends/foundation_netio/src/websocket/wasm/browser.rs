@@ -33,7 +33,9 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
-use foundation_core::valtron::{Pipe, PipeReceiver, Stream, TaskSpread, TaskStatus, TryRecvError};
+use foundation_core::valtron::{
+    Ctx, Pipe, PipeReceiver, Stream, TaskIterator, TaskSpread, TaskStatus, TryRecvError,
+};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{BinaryType, CloseEvent, Event, MessageEvent, WebSocket};
@@ -246,8 +248,9 @@ impl Iterator for WasmWebSocketBridge {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Wraps a [`BoxedWebSocketStream`] (`Iterator<Item = Stream<R, P>>`) and
-/// yields `TaskStatus<R, P>` items, satisfying the
-/// `TaskIterator` trait via the blanket impl for `Iterator<Item = TaskStatus<...>>`.
+/// yields `TaskStatus<R, P>` items, satisfying [`TaskIterator`] via an explicit
+/// impl (valtron intentionally has no `Iterator → TaskIterator` blanket, so the
+/// bridge forwards `next()` to `next_status`, dropping the unused `Ctx`).
 ///
 /// The wasm bridge has no sub-tasks to spawn, so it never emits a `Spawn`
 /// variant — it exists only for type unification with the native path.
@@ -280,6 +283,15 @@ impl Iterator for StreamToTaskAdapter {
                 Some(TaskStatus::Spread(mapped))
             }
         }
+    }
+}
+
+impl TaskIterator for StreamToTaskAdapter {
+    type Ready = Result<WebSocketMessage, WebSocketError>;
+    type Pending = WsProgress;
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        self.next()
     }
 }
 
