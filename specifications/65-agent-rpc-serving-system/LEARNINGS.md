@@ -580,3 +580,17 @@ the isolate.
   `foundation_ai/llamacpp`. Adding the arm is tracked with the llama.cpp
   concurrency check in backlog §10.
 
+## 01 T4 (2026-10-20) — `InstanceRegistry`
+
+- An instance is `Arc<{name, ModelHandle, AgentSession, busy flag}>` in a
+  `RwLock<BTreeMap>`; `create` builds the session on the model's router outside
+  the write lock and never loads (ten instances, loader count 1).
+- **One turn per instance at a time:** an `AgentSession` shares its steering
+  queues across turns, so two concurrent turns would read each other's prompts.
+  `begin_turn()` returns a `TurnGuard` or `InstanceBusy` (→ `aborted`).
+- Names: 1..=63 of `[a-z0-9._-]`, starting alphanumeric (RFC 1123 label). Limits
+  (`max_instances` 1024 = nginx `worker_connections`, `max_name_len` 63) are
+  `RegistryConfig` fields.
+- `destroy` aborts a running turn and calls `AgentSession::end()` (flush); an
+  `end()` error is returned, not dropped, after the instance is removed.
+

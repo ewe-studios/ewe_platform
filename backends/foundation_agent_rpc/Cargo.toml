@@ -40,6 +40,11 @@ path = "tests/model_share_tests.rs"
 required-features = ["candle"]
 
 [[test]]
+name = "instance_tests"
+path = "tests/instance_tests.rs"
+required-features = ["candle"]
+
+[[test]]
 name = "model_handle_tests"
 path = "tests/model_handle_tests.rs"
 required-features = ["candle"]

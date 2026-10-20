@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 3
-  uncompleted: 7
+  completed: 4
+  uncompleted: 6
   total: 10
-  completion_percentage: 30
+  completion_percentage: 40
 ---
 
 # Agent RPC Model Server
@@ -316,7 +316,7 @@ service AgentService {
 - [x] **T3 — `ModelHandle`.** `Arc`-backed load-once handle with the
       `Send + Sync + 'static` bound; if the backend isn't `Sync`, apply the
       `Arc<Mutex<…>>` fallback and record it in LEARNINGS.
-- [ ] **T4 — `InstanceRegistry` + `InstanceHandle`.** Named create/get/list/destroy;
+- [x] **T4 — `InstanceRegistry` + `InstanceHandle`.** Named create/get/list/destroy;
       tests assert create is cheap and never reloads the model.
 - [ ] **T5 — Generated RPC service.** Define + generate the `AgentService` types
       (CreateInstance/Chat/ChatStream/ListInstances/DestroyInstance/Health);
