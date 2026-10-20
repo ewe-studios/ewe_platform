@@ -155,6 +155,22 @@ pub fn initialize_pool(
     single::PoolGuard
 }
 
+/// Make the calling thread able to drive valtron work set up by
+/// [`initialize_pool`] on another thread.
+///
+/// WHY: without `multi` the engine is thread-local, so a pool initialized on
+/// one thread does not exist on a thread spawned afterwards. Code that moves
+/// work onto a fresh thread (e.g. `#[valtron_test(timeout = ...)]`, which runs
+/// the body on a watchdog-supervised thread) must bring that thread's engine
+/// up before driving anything on it.
+///
+/// WHAT: initializes this thread's single-threaded engine with `seed_for_rng`.
+/// Idempotent: a thread that already has an engine keeps it. Under `multi` the
+/// same function is a no-op, because that pool is process-wide.
+pub fn initialize_current_thread(seed_for_rng: u64) {
+    single::initialize_pool(seed_for_rng);
+}
+
 /// Submit a blocking closure for execution on the appropriate background executor.
 ///
 /// WHY: Unified API for background work across all platforms/configurations
@@ -881,6 +897,24 @@ pub fn run_until_next_state() {
     });
 }
 
+/// Whether a driver loop should hand control back to its caller: the engine
+/// reported no progress and nothing in it can run, i.e. every remaining task is
+/// parked on a readiness signal (or there are none).
+///
+/// WHY: the `run_until_next_*` helpers are called by code that drives the
+/// engine between its own steps (`DrivenStreamIterator`, `DrivenTaskIterator`,
+/// `block_on_future`). A parked task is often waiting on exactly that caller,
+/// e.g. a producer parked on a full queue only the caller drains, or a task
+/// whose cancel flag the caller sets after seeing an item. Spinning here would
+/// keep it parked forever, so return and let the caller act. Timer sleepers
+/// (`SpinWait`) are still waited out, since they become runnable on their own.
+fn nothing_runnable(indicator: &ProgressIndicator) -> bool {
+    matches!(
+        indicator,
+        ProgressIndicator::NoWork | ProgressIndicator::Wait | ProgressIndicator::CanProgress(None)
+    ) && !single::has_runnable_work()
+}
+
 /// [`run_until_next_acceptable_state`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
 /// under multi=off or wasm execution, this will  executing the execution engine until the next valid
 /// state within the provided `checker` function is seen to indicate task has reported progress as [`State`].
@@ -892,6 +926,9 @@ where
 {
     #[cfg_attr(not(feature = "multi"), allow(unused_variables))]
     run_until(|indicator: ProgressIndicator| {
+        if nothing_runnable(&indicator) {
+            return true;
+        }
         if let ProgressIndicator::CanProgress(Some(state)) = indicator {
             if checker(&state) {
                 tracing::debug!("Valtron: checker returned true for state={state:?}");
@@ -912,6 +949,9 @@ where
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 pub fn run_until_next_state_within(target_states: &[State]) {
     run_until(|indicator: ProgressIndicator| {
+        if nothing_runnable(&indicator) {
+            return true;
+        }
         if let ProgressIndicator::CanProgress(Some(state)) = indicator {
             if target_states.contains(&state) {
                 tracing::debug!("Valtron: Seen new state value from state={state:?}");
@@ -933,6 +973,9 @@ pub fn run_until_next_state_within(target_states: &[State]) {
 #[tracing::instrument()]
 pub fn run_until_ready_state() {
     run_until(|indicator: ProgressIndicator| {
+        if nothing_runnable(&indicator) {
+            return true;
+        }
         if let ProgressIndicator::CanProgress(Some(State::ReadyValue(task_id))) = indicator {
             tracing::debug!("Valtron: Seen ready value from task id={task_id:?}");
             true

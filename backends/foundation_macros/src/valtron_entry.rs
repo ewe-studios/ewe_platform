@@ -348,11 +348,15 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // Before `initialize_pool` — workers pin the ambient dispatcher at
             // spawn time, so a later init leaves every worker thread silent.
             #tracing_init;
-            let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
+            let __valtron_seed: u64 = #seed;
+            let __valtron_guard = #fc::valtron::initialize_pool(__valtron_seed, #threads);
             let __timeout_start = std::time::Instant::now();
             type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
             let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
             std::thread::spawn(move || {
+                // The body runs on this thread. Without `multi` the engine is
+                // thread-local, so bring it up here too (a no-op under `multi`).
+                #fc::valtron::initialize_current_thread(__valtron_seed);
                 let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     #run_call
                 }));
