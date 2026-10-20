@@ -36,7 +36,7 @@ impl Read for Failing {
 // -- read_into_bytes --------------------------------------------------------
 
 #[test]
-/// WHY: read_into_bytes must stop at `max_len` even when more is available
+/// WHY: `read_into_bytes` must stop at `max_len` even when more is available
 /// WHAT: Only the first `max_len` bytes land in the buffer; the rest stay unread
 fn read_into_bytes_reads_at_most_max_len() {
     let mut cursor = Cursor::new(b"hello world".to_vec());
@@ -52,7 +52,7 @@ fn read_into_bytes_reads_at_most_max_len() {
 }
 
 #[test]
-/// WHY: read_into_bytes appends; it must not overwrite what is already buffered
+/// WHY: `read_into_bytes` appends; it must not overwrite what is already buffered
 /// WHAT: Two reads into the same buffer concatenate
 fn read_into_bytes_appends_to_existing_contents() {
     let mut cursor = Cursor::new(b"hello world".to_vec());
@@ -66,7 +66,7 @@ fn read_into_bytes_appends_to_existing_contents() {
 #[test]
 /// WHY: A buffer with no spare capacity used to return Ok(0) — the EOF signal —
 /// even though the reader had data, so callers would stop reading early
-/// WHAT: read_into_bytes grows the buffer and reads the data
+/// WHAT: `read_into_bytes` grows the buffer and reads the data
 fn read_into_bytes_grows_buffer_without_spare_capacity() {
     let mut cursor = Cursor::new(b"payload".to_vec());
 
@@ -109,7 +109,7 @@ fn read_into_bytes_returns_zero_at_eof() {
 
 #[test]
 /// WHY: Asking for zero bytes must not consume anything from the reader
-/// WHAT: max_len == 0 returns 0 and the reader still has all its data
+/// WHAT: `max_len == 0` returns 0 and the reader still has all its data
 fn read_into_bytes_zero_max_len_reads_nothing() {
     let mut cursor = Cursor::new(b"abc".to_vec());
     let mut buf = BytesMut::new();
@@ -133,7 +133,7 @@ fn read_into_bytes_error_leaves_buffer_unchanged() {
 // -- read_exact_into_bytes --------------------------------------------------
 
 #[test]
-/// WHY: read_exact_into_bytes is used for fixed-size frame headers
+/// WHY: `read_exact_into_bytes` is used for fixed-size frame headers
 /// WHAT: Exactly `len` bytes come back and the reader is positioned after them
 fn read_exact_into_bytes_reads_exactly_len() {
     let mut cursor = Cursor::new(b"hello world".to_vec());
@@ -158,7 +158,7 @@ fn read_exact_into_bytes_spans_short_reads() {
 
 #[test]
 /// WHY: A truncated stream must not be mistaken for a complete header
-/// WHAT: Fewer than `len` bytes is an UnexpectedEof error
+/// WHAT: Fewer than `len` bytes is an `UnexpectedEof` error
 fn read_exact_into_bytes_errors_on_truncated_input() {
     let mut cursor = Cursor::new(b"hi".to_vec());
 
@@ -180,7 +180,7 @@ fn read_exact_into_bytes_zero_len_is_empty() {
 // -- read_byte --------------------------------------------------------------
 
 #[test]
-/// WHY: read_byte returns one byte at a time and None at EOF
+/// WHY: `read_byte` returns one byte at a time and None at EOF
 /// WHAT: Walks the input byte by byte, then reports EOF repeatedly
 fn read_byte_yields_each_byte_then_none() {
     let mut cursor = Cursor::new(b"hey".to_vec());
@@ -203,8 +203,8 @@ fn read_byte_propagates_errors() {
 // -- read_pooled_buffer -----------------------------------------------------
 
 #[test]
-/// WHY: read_pooled_buffer must hand back only the bytes read
-/// WHAT: The pooled buffer's length equals the data read, capped at max_len
+/// WHY: `read_pooled_buffer` must hand back only the bytes read
+/// WHAT: The pooled buffer's length equals the data read, capped at `max_len`
 fn read_pooled_buffer_returns_data_up_to_max_len() {
     let pool = Arc::new(BytesPool::new(1024, 1));
     let mut cursor = Cursor::new(b"hello world".to_vec());
@@ -240,7 +240,7 @@ fn read_pooled_buffer_propagates_errors() {
 }
 
 #[test]
-/// WHY: The point of read_pooled_buffer is buffer reuse across reads
+/// WHY: The point of `read_pooled_buffer` is buffer reuse across reads
 /// WHAT: Dropping the returned buffer puts it back; the next read is a pool hit
 fn read_pooled_buffer_returns_buffer_to_pool_on_drop() {
     let pool = Arc::new(BytesPool::new(64, 1));

@@ -11,8 +11,8 @@ use std::time::{Duration, Instant};
 /// don't flake when the rest of the test binary is loading the machine.
 const JOB_DEADLINE: Duration = Duration::from_secs(10);
 
-/// WHY: split_thread_count must follow the specified allocation table
-/// WHAT: Verify (task_threads, bg_threads) for known input values
+/// WHY: `split_thread_count` must follow the specified allocation table
+/// WHAT: Verify `(task_threads, bg_threads)` for known input values
 #[test]
 fn test_split_thread_count() {
     // bg = total, task = max(2, total / 2)
@@ -38,7 +38,7 @@ fn test_split_thread_count_panics_below_3() {
     let _ = split_thread_count(2);
 }
 
-/// WHY: BackgroundJobRegistry must execute submitted jobs
+/// WHY: `BackgroundJobRegistry` must execute submitted jobs
 /// WHAT: Submit a job that signals a channel, verify it ran
 #[test]
 fn test_submit_and_execute_job() {
@@ -250,9 +250,7 @@ fn test_idle_worker_is_woken_by_submit() {
         registry
             .submit(move || done_tx.send(()).expect("test alive"))
             .expect("submit");
-        done_rx
-            .recv_timeout(JOB_DEADLINE)
-            .expect("job should run");
+        done_rx.recv_timeout(JOB_DEADLINE).expect("job should run");
     }
     let elapsed = start.elapsed();
     registry.shutdown();
