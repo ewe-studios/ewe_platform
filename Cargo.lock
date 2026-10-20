@@ -4994,8 +4994,6 @@ dependencies = [
  "futures-core",
  "futures-lite",
  "js-sys",
- "ntest",
- "reqwest 0.12.28",
  "serde",
  "serde_json",
  "serial_test",

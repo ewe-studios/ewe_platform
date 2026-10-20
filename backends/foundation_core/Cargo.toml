@@ -28,7 +28,10 @@ foundation_compact = { path = "../foundation_compact", version = "0.2.1", defaul
 foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 
 # -- Workspace dependencies
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.4" }
+# Only the `js-foundation-wasm` JS-yield backend (wasm targets) uses it, so it is
+# optional: native builds no longer compile foundation_wasm and its native-only
+# CLI tooling (clap, toml_edit, foundation_codegen, ...).
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.4", optional = true }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
 
 # -- Other dependencies
@@ -63,8 +66,6 @@ tracing-subscriber = "0.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 serial_test = { workspace = true }
-reqwest = { version = "0.12.15", features = ["blocking"] }
-ntest = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt"] }
 smol = "2"
 
@@ -85,7 +86,7 @@ multi = ["std", "alloc"]  # Multi-threaded executor requires std
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
 js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop"]
-js-foundation-wasm = ["foundation_wasm/web"]
+js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web"]
 
 # default flags
 default = ["standard", "std", "alloc"]
