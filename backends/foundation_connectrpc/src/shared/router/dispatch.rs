@@ -198,112 +198,10 @@ impl<'a> CallHooks<'a> {
     }
 }
 
-/// A [`DeadlineTimer`] on the valtron engine, for connection owners that run
-/// dispatch on valtron (HTTP/2, HTTP/3).
-///
-/// The deadline is a small task handed to the engine with `valtron::send`: it
-/// reports `Delayed` until the deadline, so the engine parks it on its timer,
-/// then wakes the waiting future. Nothing in the calling task drives or
-/// blocks on it (`execute` + a ready-future would drive the engine from inside
-/// the dispatch future and stall it until the deadline).
+/// The [`DeadlineTimer`] for connection owners that run dispatch on valtron
+/// (HTTP/2, HTTP/3).
 #[cfg(not(target_family = "wasm"))]
-pub(crate) struct ValtronTimer;
-
-#[cfg(not(target_family = "wasm"))]
-impl DeadlineTimer for ValtronTimer {
-    fn sleep_until(&self, deadline: Instant) -> BoxFuture<'_, ()> {
-        let alarm = Arc::new(Alarm::default());
-        let task = AlarmTask {
-            deadline,
-            alarm: alarm.clone(),
-        };
-        if let Err(e) = foundation_core::valtron::send(task) {
-            tracing::warn!(
-                error = %e,
-                "could not schedule the call deadline on valtron; it is not enforced"
-            );
-            return Box::pin(std::future::pending());
-        }
-        Box::pin(AlarmFuture { alarm })
-    }
-}
-
-/// Shared between an [`AlarmTask`] and the [`AlarmFuture`] waiting on it.
-#[cfg(not(target_family = "wasm"))]
-#[derive(Default)]
-struct Alarm {
-    fired: std::sync::atomic::AtomicBool,
-    waker: std::sync::Mutex<Option<std::task::Waker>>,
-}
-
-#[cfg(not(target_family = "wasm"))]
-struct AlarmTask {
-    deadline: Instant,
-    alarm: Arc<Alarm>,
-}
-
-#[cfg(not(target_family = "wasm"))]
-impl foundation_core::valtron::TaskIterator for AlarmTask {
-    type Ready = ();
-    type Pending = ();
-
-    fn next_status(
-        &mut self,
-        _ctx: foundation_core::valtron::Ctx,
-    ) -> Option<foundation_core::valtron::TaskStatus<(), ()>> {
-        // The waiting future is gone (the call ended first): nothing to wake.
-        if Arc::strong_count(&self.alarm) == 1 {
-            return None;
-        }
-        let now = Instant::now();
-        if now < self.deadline {
-            return Some(foundation_core::valtron::TaskStatus::Delayed(
-                self.deadline - now,
-            ));
-        }
-        self.alarm
-            .fired
-            .store(true, std::sync::atomic::Ordering::Release);
-        let waker = self
-            .alarm
-            .waker
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .take();
-        if let Some(waker) = waker {
-            waker.wake();
-        }
-        None
-    }
-}
-
-#[cfg(not(target_family = "wasm"))]
-struct AlarmFuture {
-    alarm: Arc<Alarm>,
-}
-
-#[cfg(not(target_family = "wasm"))]
-impl std::future::Future for AlarmFuture {
-    type Output = ();
-
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
-        use std::sync::atomic::Ordering;
-        if self.alarm.fired.load(Ordering::Acquire) {
-            return Poll::Ready(());
-        }
-        *self
-            .alarm
-            .waker
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(cx.waker().clone());
-        // Re-check: the alarm may have fired before the waker was stored.
-        if self.alarm.fired.load(Ordering::Acquire) {
-            Poll::Ready(())
-        } else {
-            Poll::Pending
-        }
-    }
-}
+pub(crate) use crate::native::deadline_timer::ThreadTimer;
 
 /// Resolves when the call's deadline passes; never when there is no deadline
 /// or no timer to enforce it with.
@@ -1671,7 +1569,7 @@ async fn dispatch_h2_stream(
                     .await,
                 )
             });
-            let expiry = std::pin::pin!(deadline_expiry(Some(&ValtronTimer), deadline));
+            let expiry = std::pin::pin!(deadline_expiry(Some(&ThreadTimer), deadline));
             let gone = std::pin::pin!(tx.closed());
             let cut_short = select(expiry, gone);
             match select(call, cut_short).await {
@@ -1817,7 +1715,7 @@ async fn run_streaming_h2(
     let rest = std::pin::pin!(exchange_until_aborted(
         request_side,
         response_side,
-        deadline_expiry(Some(&ValtronTimer), deadline),
+        deadline_expiry(Some(&ThreadTimer), deadline),
         tx.closed(),
     ));
     let (opened, end) = {

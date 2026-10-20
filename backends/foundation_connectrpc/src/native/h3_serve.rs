@@ -47,7 +47,7 @@ use crate::shared::router::dispatch::{
     self, allowed_methods, blank_response, build_ctx, capabilities_for, deadline_exceeded,
     exchange_until_aborted, extract_path, http_version_not_supported, method_not_allowed,
     request_from_header, run_unary, status_only, stream_error_frame, stream_failure,
-    unclosed_stream_error, unsupported_media_type, write_error, Abort, StreamEnd, ValtronTimer,
+    unclosed_stream_error, unsupported_media_type, write_error, Abort, StreamEnd, ThreadTimer,
 };
 use crate::shared::router::erased::ErasedStreamHandler;
 use crate::shared::router::{ConnectRpcHandler, HandlerKind};
@@ -205,7 +205,7 @@ pub async fn dispatch_h3(
                 compression,
                 ctx,
                 read_max_bytes,
-                Some(&ValtronTimer),
+                Some(&ThreadTimer),
             )
             .await;
             let sent = send_h3_response(&mut req, response).await;
@@ -356,7 +356,7 @@ async fn run_streaming_h3(
         let rest = std::pin::pin!(exchange_until_aborted(
             request_side,
             response_side,
-            dispatch::deadline_expiry(Some(&ValtronTimer), deadline),
+            dispatch::deadline_expiry(Some(&ThreadTimer), deadline),
             // A reset of our response half shows up as a failed send in the
             // pump; QUIC offers no separate signal to wait on.
             std::future::pending::<()>(),
