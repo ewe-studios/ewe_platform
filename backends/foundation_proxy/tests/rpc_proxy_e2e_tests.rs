@@ -22,19 +22,26 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use base64::Engine as _;
+use bytes::Bytes;
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::HttpServer;
 use foundation_http::native::serve::H2Serve;
 use foundation_http::shared::serve::Serve;
 use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::http::SimpleHeader;
+use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
+use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::shared::client::SystemDnsResolver;
+use foundation_netio::shared::http::{
+    SendSafeBody, SimpleHeader, SimpleMethod, Status,
+};
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
-    Client, ClientOptions, ConnectResult, ConnectRpcServe, ConnectRpcServeH2, Ctx, H1Transport,
-    H2Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router,
+    Client, ClientOptions, ConnectResult, ConnectRpcServe, ConnectRpcServeH2, Ctx, Envelope,
+    H1Transport, H2Transport, HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response,
+    Router,
 };
 
 use foundation_proxy::config::ServiceConfig;
@@ -458,5 +465,126 @@ async fn grpc_web_unary_via_grpc_backend() {
         resp.msg,
         Msg::of("echo:grpc-web-relay"),
         "gRPC-Web unary must be translated to native gRPC and back"
+    );
+}
+
+/// WHY: a server-stream through the D leg must be relayed frame-by-frame (not
+/// buffered whole into a single envelope), and the terminal `grpc-status` must
+/// survive the gRPC→gRPC-Web trailer-frame translation — a dropped status would
+/// surface as a silent `Ok(default)` on the client.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
+    let (backend_port, backend_shutdown) = start_backend_grpc_only();
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = grpc_web_client(&addr, SERVER_STREAM);
+    let mut stream = client
+        .server_stream(ctx(), Request::new(Msg::of("grpc-web-relay-stream")))
+        .await
+        .expect("grpc-web server stream through grpc backend");
+    let mut got = Vec::new();
+    while let Some(msg) = stream.receive().await.expect("receive") {
+        got.push(msg.text);
+    }
+    let trailers = stream
+        .response_trailers()
+        .await
+        .expect("grpc-web stream trailers");
+    let grpc_status = trailers
+        .get(&SimpleHeader::GRPC_STATUS)
+        .and_then(|v| v.first())
+        .map(|s| s.as_str());
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        got,
+        vec![
+            "grpc-web-relay-stream-0",
+            "grpc-web-relay-stream-1",
+            "grpc-web-relay-stream-2"
+        ],
+        "gRPC-Web server-stream through a grpc:// backend must deliver all frames in order"
+    );
+    assert_eq!(
+        grpc_status, Some("0"),
+        "grpc-status must be translated into the gRPC-Web trailer frame"
+    );
+}
+
+/// WHY: gRPC-Web **text** mode base64-encodes the whole body. The relay must
+/// preserve text mode end-to-end: de-frame a base64 request, re-envelope as
+/// native gRPC, and base64-encode the framed response back.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn grpc_web_text_unary_via_grpc_backend() {
+    let (backend_port, backend_shutdown) = start_backend_grpc_only();
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    // Build the request by hand: one `0x00` message envelope (JSON), then
+    // base64-encode the framed bytes as the gRPC-Web-text body.
+    let msg_json = serde_json::to_vec(&Msg::of("grpc-web-text-relay")).expect("encode msg");
+    let mut frame = Vec::new();
+    Envelope {
+        flags: 0,
+        data: Bytes::from(msg_json),
+    }
+    .encode_into(&mut frame);
+    let body = base64::engine::general_purpose::STANDARD.encode(&frame);
+
+    // Add the content-type as a *new* header, not via `.headers(..)` — that
+    // replaces the whole map and drops the `Host` header `ClientRequestBuilder::new`
+    // inserted, which the proxy router needs to match the service.
+    let client = NativeHttpClient::from_system();
+    let builder = ClientRequestBuilder::<SystemDnsResolver>::new(
+        SimpleMethod::POST,
+        &format!("http://{addr}{UNARY}"),
+    )
+    .expect("build text request")
+    .add_header(SimpleHeader::CONTENT_TYPE, "application/grpc-web-text+json")
+    .body(SendSafeBody::Bytes(body.into_bytes()));
+    let resp = client.request(builder).expect("request").send().expect("send");
+    let (status, resp_headers, resp_body, _pool, _conn) = resp.into_parts();
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(status, Status::OK, "gRPC-Web-text unary must answer 200");
+    assert_eq!(
+        resp_headers
+            .get(&SimpleHeader::CONTENT_TYPE)
+            .and_then(|v| v.first())
+            .map(|s| s.as_str()),
+        Some("application/grpc-web-text+json"),
+        "text mode must be echoed back in the response content-type"
+    );
+
+    // Decode the base64 body back into a message envelope + trailer envelope.
+    let raw = base64::engine::general_purpose::STANDARD
+        .decode(collect_bytes_from_send_safe(resp_body))
+        .expect("response body is valid base64");
+    let bytes = Bytes::from(raw);
+
+    let (msg_env, used) = Envelope::decode(&bytes).expect("message envelope");
+    assert_eq!(msg_env.flags, 0, "first frame is a plain message");
+    let msg: Msg = serde_json::from_slice(&msg_env.data).expect("message json");
+    assert_eq!(
+        msg,
+        Msg::of("echo:grpc-web-text-relay"),
+        "gRPC-Web-text unary must round-trip through native gRPC"
+    );
+
+    let (trailer_env, _) = Envelope::decode(&bytes.slice(used..)).expect("trailer envelope");
+    assert_eq!(
+        trailer_env.flags,
+        Envelope::FLAG_TRAILER,
+        "second frame is the 0x80 trailer"
+    );
+    let trailer_text = String::from_utf8_lossy(&trailer_env.data);
+    assert!(
+        trailer_text.contains("grpc-status: 0"),
+        "trailer must carry grpc-status 0, got: {trailer_text:?}"
     );
 }

@@ -22,24 +22,26 @@
 //! HOW: Four pump tasks (inbound/outbound reader/writer) plus two relay loops
 //! (request frames inbound→outbound, response frames outbound→inbound) run
 //! concurrently on the valtron pool, exactly as the server-side streaming
-//! dispatch does. The sync H1 relay thread drives them with
-//! [`block_on_future`](foundation_core::valtron::block_on_future) — the pool is
-//! guaranteed initialised (a `ProxyServer::start` requirement) — and then writes
-//! the framed gRPC-Web response back to the client connection. For the unary
-//! case the request body and response body are small and buffered whole; the
-//! streaming case (T9) feeds the body incrementally.
+//! dispatch does. The exchanges are built synchronously on the H1 relay thread
+//! (only `open`/`new_conn` — no await), the pump tasks are then spawned on the
+//! pool via [`send`](foundation_core::valtron::send), and the framed gRPC-Web
+//! response body is streamed back to the client chunk-by-chunk through a
+//! response pipe: the sync renderer blocks on [`block_on_future`] per chunk
+//! rather than buffering the whole (possibly long) server-stream. The unary
+//! request body is small and buffered whole before the relay starts.
 
 use std::sync::Arc;
 
 use bytes::Bytes;
+use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{block_on_future, Pipe};
+use foundation_core::valtron::{block_on_future, from_future, send, Pipe, PipeReceiver};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 use foundation_netio::shared::http::{
-    Proto, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
-    SimpleMethod, SimpleUrl, Status,
+    ChunkedData, Proto, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders,
+    SimpleIncomingRequest, SimpleMethod, SimpleUrl, Status,
 };
 
 use foundation_connectrpc::shared::protocol::grpc::content_type as grpc_content_type;
@@ -60,11 +62,11 @@ use crate::runtime::BackendRuntime;
 
 /// Relay a gRPC-Web request from the HTTP/1.1 front end to a native-gRPC
 /// backend, translating at the frame level. Runs on the caller's thread (the
-/// H1 relay thread); drives the async relay on the valtron pool via
-/// `block_on_future` and writes the framed gRPC-Web response back to `conn`.
+/// H1 relay thread); drives the async relay on the valtron pool and streams the
+/// framed gRPC-Web response back to `conn` without buffering the whole body.
 ///
 /// The unary request body is buffered whole (it is a single small envelope);
-/// the response body is collected whole too.
+/// the response body is streamed incrementally through a pipe.
 ///
 /// # Errors
 /// Returns `Err(String)` on a setup/relay failure; the caller answers `502` so
@@ -93,7 +95,7 @@ pub(crate) fn relay_grpc_web_to_grpc(
 
     // Buffer the request body: a unary gRPC-Web request is one small envelope,
     // and the relay needs it whole to feed the request pipe. `take()` leaves
-    // `req` intact so it can move into the relay future below.
+    // `req` intact so it can move into the setup below.
     let req_body = Bytes::from(collect_bytes_from_send_safe(
         req.body.take().unwrap_or(SendSafeBody::None),
     ));
@@ -109,46 +111,55 @@ pub(crate) fn relay_grpc_web_to_grpc(
 
     let url = upstream_url(backend.url(), &req.request_url.url);
 
-    let body = block_on_future(grpc_web_to_grpc_future(req, req_body, url, out_headers))
-        .map_err(|e| format!("grpc-web→grpc relay failed: {e}"))?;
+    // Build the inbound/outbound exchanges synchronously (no await), so a setup
+    // failure is reported to the caller *before* any response bytes are written.
+    let (driver, responder_rx) = setup_grpc_web_to_grpc(req, req_body, url, out_headers)
+        .map_err(|e| format!("grpc-web→grpc relay setup failed: {e}"))?;
 
+    // Drive the relay on the pool, non-blocking: it re-envelopes frames and
+    // pushes the framed gRPC-Web response body into the responder pipe.
+    send(from_future(driver))
+        .map_err(|e| format!("grpc-web→grpc relay spawn failed: {e}"))?;
+
+    // Stream the framed response body back, chunk by chunk, blocking only on
+    // the response pipe (never buffering the whole server-stream).
     let mut headers = SimpleHeaders::new();
     headers.insert(SimpleHeader::CONTENT_TYPE, vec![resp_content_type]);
-    write_response(
-        conn,
-        Status::OK,
-        &headers,
-        SendSafeBody::Bytes(body.to_vec()),
-        sticky_header,
-    )
+    let body = SendSafeBody::ChunkedStream(Some(Box::new(BlockingChunkReader {
+        receiver: responder_rx,
+        ended: false,
+    })));
+    write_response(conn, Status::OK, &headers, body, sticky_header)
 }
 
-/// The async relay body: build the inbound/outbound exchanges, then drive the
-/// four protocol pump tasks and two frame-relay loops concurrently, collecting
-/// the framed gRPC-Web response bytes.
+/// Build the inbound/outbound exchanges and the frame-relay driver, returning
+/// the boxed driver future (spawned on the pool by the caller) and the response
+/// pipe receiver (drained by the caller to stream the framed body back).
 ///
-/// Returns the complete gRPC-Web response body (message envelope(s) + `0x80`
-/// trailer frame), ready to be written verbatim as the H1 response body.
-async fn grpc_web_to_grpc_future(
+/// All work here is synchronous — pipe creation, the buffered request feed, and
+/// the `new_conn`/`open` calls return immediately; their I/O is the spawned
+/// pump tasks' job. A failure returns `Err` so the caller can answer `502`.
+fn setup_grpc_web_to_grpc(
     request: SimpleIncomingRequest,
     req_body: Bytes,
     url: String,
     out_headers: SimpleHeaders,
-) -> Result<Bytes, String> {
+) -> Result<(futures_util::future::BoxFuture<'static, ()>, PipeReceiver<Bytes>), String> {
     let (body_tx, body_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
     let (responder_tx, responder_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
 
     // Feed the buffered request body, then half-close the request direction so
-    // the inbound reader sees end-of-stream. Depth ≥ 1 means this never parks.
+    // the inbound reader sees end-of-stream. Depth ≥ 1 means `try_send` never
+    // blocks; the body is small and buffered whole.
     if !req_body.is_empty() {
-        let _ = body_tx.send(req_body).await;
+        let _ = body_tx.try_send(req_body);
     }
     body_tx.close();
 
     let cancel = CancelSignal::new();
 
     // Inbound: gRPC-Web handler de-frames the request, frames the response.
-    // Scope the registry so it is dropped before the first await.
+    // Scope the registry so it is dropped before the exchanges are split.
     let inbound = {
         let compression = CompressionRegistry::empty();
         GrpcWebHandler
@@ -254,32 +265,54 @@ async fn grpc_web_to_grpc_future(
         }
     };
 
-    // Collect the framed gRPC-Web response bytes the inbound writer emits.
-    let response_body = Arc::new(std::sync::Mutex::new(Vec::<u8>::new()));
-    let response_body_ref = Arc::clone(&response_body);
-    let collect = async move {
-        let rx = responder_rx;
-        while let Some(chunk) = rx.receive().await {
-            response_body_ref.lock().unwrap().extend_from_slice(&chunk);
-        }
-    };
-
     // The reader/writer tasks' own `ConnectResult` is only informational: their
     // failures already surface through the `Frame::EndStream` they push, which
-    // the pumps observe.
-    let tasks: Vec<futures_util::future::BoxFuture<'static, ()>> = vec![
-        in_reader.map(|_| ()).boxed(),
-        in_writer.map(|_| ()).boxed(),
-        out_reader.map(|_| ()).boxed(),
-        out_writer.map(|_| ()).boxed(),
-        request_pump.boxed(),
-        response_pump.boxed(),
-        collect.boxed(),
-    ];
-    futures_util::future::join_all(tasks).await;
+    // the pumps observe. The response bytes are drained by the caller through
+    // `responder_rx`, not collected here.
+    let driver: futures_util::future::BoxFuture<'static, ()> = futures_util::future::join_all(
+        vec![
+            in_reader.map(|_| ()).boxed(),
+            in_writer.map(|_| ()).boxed(),
+            out_reader.map(|_| ()).boxed(),
+            out_writer.map(|_| ()).boxed(),
+            request_pump.boxed(),
+            response_pump.boxed(),
+        ],
+    )
+    .map(|_| ())
+    .boxed();
 
-    let bytes = Bytes::from(std::mem::take(
-        &mut *response_body.lock().unwrap(),
-    ));
-    Ok(bytes)
+    Ok((driver, responder_rx))
+}
+
+/// Chunked response-body reader that drains a response pipe one chunk at a time,
+/// blocking (via [`block_on_future`]) until a chunk arrives or the pipe closes.
+///
+/// WHY: a `SendSafeBody::Stream` adapter surfaces an empty-but-open pipe as
+/// `Data::Retry`, which the *sync* H1 response renderer would busy-spin on. This
+/// reader blocks per chunk instead, so a long server-stream never buffered whole
+/// and never spins a relay thread.
+struct BlockingChunkReader {
+    receiver: PipeReceiver<Bytes>,
+    ended: bool,
+}
+
+impl Iterator for BlockingChunkReader {
+    type Item = Result<ChunkedData, BoxedError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.ended {
+            return None;
+        }
+        // `receive` borrows the receiver; clone the cheap `Arc` handle so the
+        // future owns it and can run `'static` on the pool.
+        let rx = self.receiver.clone();
+        match block_on_future(async move { rx.receive().await }) {
+            Some(bytes) => Some(Ok(ChunkedData::Data(bytes.to_vec(), None))),
+            None => {
+                self.ended = true;
+                Some(Ok(ChunkedData::DataEnded))
+            }
+        }
+    }
 }
