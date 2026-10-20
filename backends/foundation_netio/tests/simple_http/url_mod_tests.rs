@@ -7,10 +7,8 @@
 /// Note: Keep these tests small and deterministic so they run fast as unit tests.
 use foundation_netio::shared::http::SimpleUrl;
 use std::collections::BTreeMap;
-use tracing_test::traced_test;
 
 #[test]
-#[traced_test]
 fn test_parsed_url_without_any_special_elements() {
     let content = "/v1/service/endpoint";
     let resource_url = SimpleUrl::url_with_query(content);
@@ -25,7 +23,6 @@ fn test_parsed_url_without_any_special_elements() {
 }
 
 #[test]
-#[traced_test]
 fn test_parsed_url_with_multi_params_extracted() {
     let content = "/v1/service/endpoint/{user_id}/{message}";
 
@@ -51,7 +48,6 @@ fn test_parsed_url_with_multi_params_extracted() {
 }
 
 #[test]
-#[traced_test]
 fn test_parsed_url_with_query_parameters() {
     let content = "/search?q=test&limit=10";
     // Create a SimpleUrl that expects query strings (url_with_query)
@@ -70,7 +66,6 @@ fn test_parsed_url_with_query_parameters() {
 }
 
 #[test]
-#[traced_test]
 fn test_parsed_url_with_params_and_query_extraction() {
     let content = "/items/{category}/{id}";
     let resource_url = SimpleUrl::url_with_query(content);
@@ -89,7 +84,6 @@ fn test_parsed_url_with_params_and_query_extraction() {
 }
 
 #[test]
-#[traced_test]
 fn test_parsed_url_with_params_extracted() {
     let content = "/v1/service/endpoint/{user_id}/message";
 
@@ -114,7 +108,6 @@ fn test_parsed_url_with_params_extracted() {
 }
 
 #[test]
-#[traced_test]
 fn test_parsed_url_with_params() {
     let content = "/v1/service/endpoint/{user_id}/message";
 
@@ -132,7 +125,6 @@ fn test_parsed_url_with_params() {
 }
 
 #[test]
-#[traced_test]
 fn test_parsed_url_with_queries() {
     let content = "/v1/service/endpoint?userId=123&hello=abc";
     let mut queries: BTreeMap<String, String> = BTreeMap::new();
@@ -150,7 +142,6 @@ fn test_parsed_url_with_queries() {
 }
 
 #[test]
-#[traced_test]
 fn test_unparsed_url() {
     let content = "/v1/service/endpoint?userId=123&hello=abc";
     let resource_url = SimpleUrl::url_only(content);

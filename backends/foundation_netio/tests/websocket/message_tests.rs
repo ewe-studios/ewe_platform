@@ -1,11 +1,9 @@
 //! WebSocket message tests (RFC 6455).
 
 use foundation_netio::websocket::{Opcode, WebSocketFrame, WebSocketMessage};
-use tracing_test::traced_test;
 
 // Test 1: to_message - Text frame conversion
 #[test]
-#[traced_test]
 fn test_text_frame_to_message() {
     let text = "Hello, WebSocket!";
     let frame = WebSocketFrame {
@@ -24,7 +22,6 @@ fn test_text_frame_to_message() {
 
 // Test 2: to_message - Binary frame conversion
 #[test]
-#[traced_test]
 fn test_binary_frame_to_message() {
     let data = vec![0x01, 0x02, 0x03, 0xFF, 0xFE];
     let frame = WebSocketFrame {
@@ -43,7 +40,6 @@ fn test_binary_frame_to_message() {
 
 // Test 3: to_message - Ping frame conversion
 #[test]
-#[traced_test]
 fn test_ping_frame_to_message() {
     let ping_data = vec![0x01, 0x02, 0x03];
     let frame = WebSocketFrame {
@@ -62,7 +58,6 @@ fn test_ping_frame_to_message() {
 
 // Test 4: to_message - Pong frame conversion
 #[test]
-#[traced_test]
 fn test_pong_frame_to_message() {
     let pong_data = vec![0x04, 0x05, 0x06];
     let frame = WebSocketFrame {
@@ -81,7 +76,6 @@ fn test_pong_frame_to_message() {
 
 // Test 5: to_message - Close frame with code and reason
 #[test]
-#[traced_test]
 fn test_close_frame_to_message() {
     let code: u16 = 1000;
     let reason = "normal closure";
@@ -105,7 +99,6 @@ fn test_close_frame_to_message() {
 
 // Test 6: to_message - Close frame with empty payload
 #[test]
-#[traced_test]
 fn test_close_frame_empty_payload() {
     let frame = WebSocketFrame {
         fin: true,
@@ -124,7 +117,6 @@ fn test_close_frame_empty_payload() {
 
 // Test 7: to_message - Invalid UTF-8 in text frame
 #[test]
-#[traced_test]
 fn test_text_frame_invalid_utf8() {
     // Invalid UTF-8 sequence
     let invalid_utf8 = vec![0xFF, 0xFE, 0xFD];
@@ -141,7 +133,6 @@ fn test_text_frame_invalid_utf8() {
 
 // Test 8: to_message - Unexpected continuation frame
 #[test]
-#[traced_test]
 fn test_unexpected_continuation_frame() {
     let frame = WebSocketFrame {
         fin: true,
@@ -159,7 +150,6 @@ fn test_unexpected_continuation_frame() {
 
 // Test 9: WebSocketMessage variant_name
 #[test]
-#[traced_test]
 fn test_message_variant_name() {
     assert_eq!(
         WebSocketMessage::Text("test".to_string()).variant_name(),
@@ -183,7 +173,6 @@ fn test_message_variant_name() {
 
 // Test 10: WebSocketMessage clone
 #[test]
-#[traced_test]
 fn test_message_clone() {
     let original = WebSocketMessage::Text("test".to_string());
     let cloned = original.clone();
@@ -192,7 +181,6 @@ fn test_message_clone() {
 
 // Test 11: Text frame with various UTF-8 characters
 #[test]
-#[traced_test]
 fn test_text_frame_various_utf8() {
     let test_cases = vec![
         ("ASCII only", "Hello, world!"),

@@ -5499,7 +5499,6 @@ dependencies = [
  "toml_datetime 0.7.1",
  "tracing",
  "tracing-subscriber",
- "tracing-test",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
