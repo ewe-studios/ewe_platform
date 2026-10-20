@@ -28,6 +28,7 @@ use foundation_http::shared::app::{HttpApp, ServerApp};
 use foundation_http::shared::serve::Serve;
 
 use crate::auth::{tls_listeners, BootstrapToken, EnrollmentService, MtlsConfig};
+use crate::bootstrap::{BootstrapPayload, PAYLOAD_VERSION};
 use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::instance::{InstanceRegistry, RegistryConfig};
 use crate::model::ModelHandle;
@@ -35,6 +36,7 @@ use crate::proto::v1::agent_service::procedure as agent_procedure;
 use crate::proto::v1::bootstrap_service::{
     procedure as bootstrap_procedure, register_bootstrap_service,
 };
+use crate::proto::v1::Capabilities;
 use crate::service::{agent_router, AgentRpcService};
 
 /// Every `AgentService` procedure path the agent listener routes.
@@ -227,6 +229,12 @@ impl AgentRpcServer {
         let agent_addr = local_addr(&agent_listener, addr)?;
         let agent_app = agent_app(&self.service);
         let http = self.http.unwrap_or_else(ServerConfig::defaults);
+        let models = self
+            .service
+            .registry()
+            .models()
+            .map(|m| m.name().to_string())
+            .collect();
 
         match self.auth {
             Auth::InsecurePlaintext => {
@@ -234,6 +242,7 @@ impl AgentRpcServer {
                 tracing::info!(addr = %agent_addr, "agent-rpc listening (plaintext)");
                 Ok(RunningServer {
                     addr: agent_addr,
+                    models,
                     bootstrap_addr: None,
                     tls: None,
                     shutdown,
@@ -270,6 +279,7 @@ impl AgentRpcServer {
                 );
                 Ok(RunningServer {
                     addr: agent_addr,
+                    models,
                     bootstrap_addr: Some(bootstrap_addr),
                     tls: Some(TlsInfo {
                         fingerprint_sha256: tls.fingerprint_sha256,
@@ -292,6 +302,7 @@ struct TlsInfo {
 /// A listening server.
 pub struct RunningServer {
     addr: SocketAddr,
+    models: Vec<String>,
     bootstrap_addr: Option<SocketAddr>,
     tls: Option<TlsInfo>,
     shutdown: Arc<OnSignal>,
@@ -345,6 +356,38 @@ impl RunningServer {
     #[must_use]
     pub fn ca_cert_pem(&self) -> Option<&str> {
         self.tls.as_ref().map(|t| t.ca_cert_pem.as_str())
+    }
+
+    /// The payload a client needs to connect: addresses, the server
+    /// certificate fingerprint, `token`, and capabilities. Encode it with
+    /// [`crate::bootstrap::encode`] (or show [`crate::bootstrap::qr_text`]).
+    /// It contains the token: hand it to the operator only.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::Config`] for a plaintext server (nothing to bootstrap).
+    pub fn bootstrap_payload(&self, token: &BootstrapToken) -> AgentRpcResult<BootstrapPayload> {
+        let (Some(tls), Some(bootstrap_addr)) = (&self.tls, self.bootstrap_addr) else {
+            return Err(AgentRpcError::Config(
+                "a plaintext server has no bootstrap payload".into(),
+            )
+            .into());
+        };
+        Ok(BootstrapPayload {
+            version: PAYLOAD_VERSION,
+            addr: self.addr.to_string(),
+            bootstrap_addr: bootstrap_addr.to_string(),
+            tls_fingerprint_sha256: tls.fingerprint_sha256.clone(),
+            token: token.expose_secret().to_string(),
+            capabilities: Capabilities {
+                // One listener serves all three (h1: Connect, gRPC-Web; h2: gRPC).
+                protocols: vec!["connect".into(), "grpc".into(), "grpc-web".into()],
+                models: self.models.clone(),
+                auth_mode: "mtls".into(),
+                ..Default::default()
+            }
+            .into(),
+            ..Default::default()
+        })
     }
 
     /// Stop accepting, let in-flight requests drain (the HTTP config's

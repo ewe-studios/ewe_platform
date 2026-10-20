@@ -8,6 +8,7 @@
 //! | Module | Role |
 //! |---|---|
 //! | [`auth`] | bootstrap token, CA, mTLS config, `BootstrapService` (enrollment) |
+//! | [`bootstrap`] | the base64 / QR bootstrap payload |
 //! | [`client`] | enroll with a token, then a typed client over mutual TLS |
 //! | [`error`] | [`AgentRpcError`] — the single error type + wire status mapping |
 //! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle |
@@ -22,6 +23,7 @@
 //! `specifications/65-agent-rpc-serving-system/features/01-agent-rpc`).
 
 pub mod auth;
+pub mod bootstrap;
 pub mod client;
 pub mod error;
 pub mod instance;

@@ -20,7 +20,7 @@ otherwise (no agent-rpc / installer / registrar crates exist yet).
 | T6 — unary round-trip | ✅ | see git log (`spec 65 F1 T6`) |
 | T7 — streaming round-trip | ✅ | see git log (`spec 65 F1 T7`) |
 | T8 — client auth (token → mTLS) | ✅ | see git log (`spec 65 F1 T8`) |
-| T9 — bootstrap payload | ⏳ | |
+| T9 — bootstrap payload | ✅ | see git log (`spec 65 F1 T9`) |
 | T10 — all three protocols e2e | ⏳ | |
 
 Tests: `cargo test --profile uat -p foundation_agent_rpc` (LLVM profile: candle's

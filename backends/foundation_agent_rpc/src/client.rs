@@ -114,6 +114,31 @@ pub async fn enroll(
     })
 }
 
+/// Connect from an encoded bootstrap payload alone: decode it, enroll as
+/// `client_name` (pinned to the payload's fingerprint), and return a mutual-TLS
+/// client plus the identity (keep it to reconnect without the token).
+///
+/// # Errors
+/// `invalid_argument` for a malformed payload; enrollment errors as in
+/// [`enroll`]; `failed_precondition` for unusable certificate material.
+pub async fn connect_with_payload(
+    encoded_payload: &str,
+    client_name: &str,
+) -> foundation_connectrpc::ConnectResult<(AgentServiceClient, ClientIdentity)> {
+    let payload =
+        crate::bootstrap::decode(encoded_payload).map_err(|e| e.current_context().clone())?;
+    let identity = enroll(
+        &format!("https://{}", payload.bootstrap_addr),
+        &payload.tls_fingerprint_sha256,
+        &payload.token,
+        client_name,
+    )
+    .await?;
+    let client = connect_mtls(&format!("https://{}", payload.addr), &identity)
+        .map_err(|e| e.current_context().clone())?;
+    Ok((client, identity))
+}
+
 /// The generated `AgentServiceClient` over HTTP/1.1 mutual TLS (Connect).
 ///
 /// # Errors

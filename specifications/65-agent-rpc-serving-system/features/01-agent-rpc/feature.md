@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 8
-  uncompleted: 2
+  completed: 9
+  uncompleted: 1
   total: 10
-  completion_percentage: 80
+  completion_percentage: 90
 ---
 
 # Agent RPC Model Server
@@ -327,7 +327,7 @@ service AgentService {
       assert streaming (not buffered) with a slow producer.
 - [x] **T8 — Client auth.** `BootstrapToken` → mTLS provisioning; reject a call
       without a valid cert after bootstrap; never log the token.
-- [ ] **T9 — Bootstrap payload.** Emit base64 + QR `BootstrapPayload`; round-trip
+- [x] **T9 — Bootstrap payload.** Emit base64 + QR `BootstrapPayload`; round-trip
       decode asserts address/fingerprint/token/capabilities survive.
 - [ ] **T10 — End-to-end over all three protocols.** gRPC + gRPC-Web (unary +
       streaming) round-trip on real loopback TCP; note gRPC `grpc-status` assertion

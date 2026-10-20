@@ -707,3 +707,20 @@ the isolate.
   channel is out of this feature (the spec's proxy terminates TLS; end-to-end
   client certificates through it need passthrough — spec 65 F3).
 
+## 01 T9 (2026-10-20) — bootstrap payload
+
+- The payload is the generated `BootstrapPayload` message (version, agent
+  address, bootstrap address, server-cert SHA-256, token, capabilities),
+  protobuf-encoded then base64url without padding: ~200 bytes → a small QR code,
+  safe in URLs and shells. `decode` rejects bad base64, bad protobuf, an unknown
+  version, and missing addresses/fingerprint/token as `Codec` errors.
+- QR: `qrcode` 0.14 with only the `svg` feature (no image codecs); terminal
+  rendering uses Unicode half blocks (`Dense1x2`).
+- `RunningServer::bootstrap_payload(&token)` builds it (the server never stores
+  the token outside the enrollment service); `client::connect_with_payload`
+  decodes → enrolls (pinned) → returns an mTLS `AgentServiceClient` and the
+  identity, so a client needs nothing but the string.
+- The payload holds the token, so `EncodedPayload` redacts `Debug`/`Display`;
+  nothing here writes it to disk. Note the generated `BootstrapPayload`'s own
+  `Debug` prints every field — never log the message itself.
+
