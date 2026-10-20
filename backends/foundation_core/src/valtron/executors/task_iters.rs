@@ -256,30 +256,24 @@ where
                     State::Done
                 }
             },
-            // `Wait` is the task's "no data yet, queue still open" signal.
+            // `Wait` is the task's "no data yet, queue still open" signal: a
+            // yield, not a park (tasks waiting on I/O should park with
+            // `TaskStatus::Depends`).
             //
-            // On JS it must reach the executor as `State::Wait` (a yield signal
-            // that maps to a short setTimeout), NOT `State::Pending(None)` (which
-            // the executor re-polls immediately and so busy-loops). A task parked
-            // on external async work — e.g. the wasm lazy SSE fetch — would
-            // otherwise never let the JS event loop run, freezing the isolate.
+            // Single-threaded executor (native and wasm): it reaches the executor
+            // as `State::Wait`, so the stream driver hands control back to its
+            // caller (native) or yields to the JS event loop on a short timer
+            // (wasm) instead of re-polling the task in a tight loop.
             //
-            // On native, `State::Wait` parks for `no_work_yield` (seconds) with
-            // no sleeper to wake it, which stalls a CPU-bound producer (see the
-            // `bridge_park_executor` fast-producer test). Native keeps the
-            // immediate re-poll (`State::Pending(None)`), which is correct there
-            // because async work progresses on other threads.
+            // Thread pool (`multi`): `State::Wait` parks the worker for its idle
+            // back-off with no sleeper to wake it, which stalls a fast producer
+            // (`bridge_park_executor`); re-poll immediately instead — other
+            // threads make progress meanwhile.
             TaskStatus::Wait => match self.channel.push(Stream::Wait) {
-                Ok(()) => {
-                    #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
-                    {
-                        State::Wait
-                    }
-                    #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
-                    {
-                        State::Pending(None)
-                    }
-                }
+                #[cfg(not(feature = "multi"))]
+                Ok(()) => State::Wait,
+                #[cfg(feature = "multi")]
+                Ok(()) => State::Pending(None),
                 Err(PushError::Full(_)) => {
                     self.pending_msg = Some(Stream::Wait);
                     on_full()

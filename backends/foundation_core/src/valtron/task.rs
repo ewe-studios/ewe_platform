@@ -80,6 +80,49 @@ impl EventReadiness for BoolSignal {
     }
 }
 
+/// A readiness signal flipped by a [`WakeableStream`] wake callback.
+///
+/// WHY: a task that pulls from a [`WakeableStream`] and gets `Stream::Wait` should
+/// park (`TaskStatus::Depends`) rather than re-poll, and be woken exactly when the
+/// stream has data. This ties the two together.
+///
+/// HOW: [`WakeSignal::callback`] builds a one-shot [`WakeCallback`] that sets the
+/// flag and calls [`request_executor_resume`] (so a JS wasm executor that has
+/// handed control back to the event loop is run again). Register it with
+/// `stream.wake(signal.callback())`; if that returns `WakeResult::Successful`,
+/// return `TaskStatus::Depends(Arc::new(signal))`.
+///
+/// [`WakeableStream`]: crate::valtron::WakeableStream
+/// [`WakeCallback`]: crate::valtron::WakeCallback
+/// [`request_executor_resume`]: crate::valtron::request_executor_resume
+#[derive(Clone, Default)]
+pub struct WakeSignal(Arc<AtomicBool>);
+
+impl WakeSignal {
+    /// A new, not-yet-ready signal.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// The wake callback to register on the stream: marks the signal ready and
+    /// asks the executor host to run again.
+    #[must_use]
+    pub fn callback(&self) -> crate::valtron::WakeCallback {
+        let flag = Arc::clone(&self.0);
+        Box::new(move || {
+            flag.store(true, Ordering::SeqCst);
+            crate::valtron::request_executor_resume();
+        })
+    }
+}
+
+impl EventReadiness for WakeSignal {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.0.load(Ordering::SeqCst)
+    }
+}
+
 /// A readiness signal backed by a `ConcurrentQueue<T>`.
 ///
 /// The task considers itself ready when the queue is **non-empty** — i.e.,

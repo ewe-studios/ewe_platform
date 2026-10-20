@@ -1455,6 +1455,20 @@ export class TimerRegistry {
     this.timeouts.set(key, handle);
   }
 
+  /**
+   * Run the scheduled callback once as a microtask (`schedule_microtask`): right
+   * after the current task, before timers and I/O. Used by the guest to resume
+   * itself from an event-driven wake without the latency of a 0 ms timer.
+   */
+  scheduleMicrotask(callbackId) {
+    const queue = this.host.queueMicrotask
+      ? this.host.queueMicrotask.bind(this.host)
+      : (fn) => Promise.resolve().then(fn);
+    queue(() => {
+      this.bridge.exports.run_scheduled_callback(BigInt(callbackId));
+    });
+  }
+
   cancelTimeout(callbackId) {
     const key = String(callbackId);
     const handle = this.timeouts.get(key);
@@ -1940,6 +1954,9 @@ export class FoundationWasm {
       },
       unschedule_timeout(callbackId) {
         timers.cancelTimeout(callbackId);
+      },
+      schedule_microtask(callbackId) {
+        timers.scheduleMicrotask(callbackId);
       },
       schedule_interval(timing, callbackId) {
         timers.scheduleInterval(callbackId, Number(timing));

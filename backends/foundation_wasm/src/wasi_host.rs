@@ -55,6 +55,26 @@ where
     register_schedule_inner(timing_ms, internal_api::register_schedule(f))
 }
 
+/// Run `f` once on the next host tick — the WASI counterpart of the web
+/// `register_microtask` (the guest-driven tick loop has no microtask queue, so
+/// this is a 0 ms timeout that fires on the next `tick`).
+#[cfg(target_family = "wasm")]
+pub fn register_microtask<F>(f: F) -> InternalPointer
+where
+    F: Fn() + 'static,
+{
+    register_schedule(0.0, f)
+}
+
+/// Run `f` once on the next host tick (see the wasm variant).
+#[cfg(not(target_family = "wasm"))]
+pub fn register_microtask<F>(f: F) -> InternalPointer
+where
+    F: Fn() + Send + Sync + 'static,
+{
+    register_schedule(0.0, f)
+}
+
 #[cfg(target_family = "wasm")]
 pub fn register_schedule_callback<F>(timing_ms: f64, f: F) -> InternalPointer
 where

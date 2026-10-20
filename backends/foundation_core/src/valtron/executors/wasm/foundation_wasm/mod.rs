@@ -36,6 +36,29 @@ fn js_yield_and_continue() {
     crate::valtron::single::run_until(js_should_stop);
 }
 
+/// Set while a resume microtask is queued, so a burst of wakes queues a single
+/// executor run instead of one per wake.
+static RESUME_QUEUED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Ask the host event loop to run the valtron executor again — the event-driven
+/// counterpart to the timer yield (see the wasm-bindgen backend's
+/// `request_resume`).
+///
+/// HOW: queues a host microtask (`abi::web::register_microtask`, JS
+/// `queueMicrotask`), so the executor runs as soon as the current JS task
+/// finishes and never re-entrantly inside an executor tick. Repeated calls while
+/// one is queued are coalesced.
+pub fn request_resume() {
+    use std::sync::atomic::Ordering;
+    if RESUME_QUEUED.swap(true, Ordering::AcqRel) {
+        return;
+    }
+    foundation_wasm::abi::web::register_microtask(move || {
+        RESUME_QUEUED.store(false, Ordering::Release);
+        js_yield_and_continue();
+    });
+}
+
 fn foundation_wasm_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) {
     // Wrap FnOnce in Mutex<Option> so it can satisfy Fn bound
     let resume = Mutex::new(Some(resume));

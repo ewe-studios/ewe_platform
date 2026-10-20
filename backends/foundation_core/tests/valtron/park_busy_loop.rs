@@ -18,7 +18,8 @@ use std::sync::Arc;
 use std::task::{Context, Poll, Waker};
 
 use foundation_core::valtron::{
-    execute, valtron_test, BoolSignal, Ctx, StreamIteratorExt, TaskIterator, TaskStatus,
+    execute, valtron_test, BoolSignal, Ctx, EventReadiness, StreamIteratorExt, TaskIterator,
+    TaskStatus, WakeSignal,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -107,5 +108,70 @@ async fn forever_depends_parks_not_busy_loops() {
     match poll_once(&mut stream) {
         Poll::Pending => {}
         Poll::Ready(v) => panic!("parked task must yield Pending, got Ready({v:?})"),
+    }
+}
+
+/// Parks on a [`WakeSignal`] on its first poll, yields one value once woken,
+/// then ends.
+struct ParkOnWakeSignal {
+    signal: WakeSignal,
+    step: u8,
+}
+
+impl TaskIterator for ParkOnWakeSignal {
+    type Ready = u32;
+    type Pending = ();
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        let step = self.step;
+        self.step = self.step.saturating_add(1);
+        match step {
+            0 => Some(TaskStatus::Depends(Arc::new(self.signal.clone()))),
+            1 => {
+                assert!(
+                    self.signal.is_ready(None),
+                    "the executor must not re-poll a parked task before its signal fires"
+                );
+                Some(TaskStatus::Ready(7))
+            }
+            _ => None,
+        }
+    }
+}
+
+/// `WakeSignal` is not ready until its callback runs, and the callback flips it
+/// (the callback is what a `WakeableStream` fires on readiness).
+#[test]
+fn wake_signal_is_ready_only_after_its_callback_runs() {
+    let signal = WakeSignal::new();
+    let callback = signal.callback();
+    assert!(!signal.is_ready(None));
+    callback();
+    assert!(signal.is_ready(None));
+}
+
+/// A task parked on `Depends(WakeSignal)` yields `Pending` (parked, not
+/// spinning) and resumes with its value once the signal's callback fires.
+#[valtron_test(threads = 1, timeout = 10_000)]
+async fn depends_on_wake_signal_parks_then_resumes() {
+    let signal = WakeSignal::new();
+    let wake = signal.callback();
+    let mut stream = execute(
+        ParkOnWakeSignal { signal, step: 0 },
+        None,
+    )
+    .expect("execute")
+    .into_next_stream();
+
+    match poll_once(&mut stream) {
+        Poll::Pending => {}
+        Poll::Ready(v) => panic!("a task parked on an unfired signal must be Pending, got {v:?}"),
+    }
+
+    wake();
+
+    match poll_once(&mut stream) {
+        Poll::Ready(Some(7)) => {}
+        other => panic!("after the wake the task must resume with its value, got {other:?}"),
     }
 }

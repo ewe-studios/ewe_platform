@@ -1306,18 +1306,6 @@ impl ExecutorState {
             .unwrap_or_else(|| self.root.fork());
         let next_result = iter.next(top_entry, engine, ctx);
 
-        #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
-        {
-            use std::sync::atomic::{AtomicU32, Ordering};
-            static N: AtomicU32 = AtomicU32::new(0);
-            let n = N.fetch_add(1, Ordering::Relaxed);
-            if n < 40 {
-                web_sys::console::log_1(
-                    &format!("VALTRON-DBG do_work next_result[{n}]={next_result:?}").into(),
-                );
-            }
-        }
-
         // if result is none
         if next_result.is_none() {
             // remove task from queue
@@ -1605,8 +1593,6 @@ impl ExecutorState {
                 } else {
                     // push back to top
                     self.processing.borrow_mut().push_front(top_entry);
-                    #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
-                    web_sys::console::log_1(&"VALTRON-DBG State::Pending(None)".into());
                     ProgressIndicator::CanProgress(None)
                 };
 
@@ -1628,8 +1614,6 @@ impl ExecutorState {
                 // push entry back into processing queue
                 self.processing.borrow_mut().push_front(top_entry);
 
-                #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
-                web_sys::console::log_1(&"VALTRON-DBG State::Wait".into());
                 ProgressIndicator::Wait
             }
             State::Depends(signal) => {
@@ -1692,20 +1676,6 @@ impl ExecutorState {
                 // whole lifetime and eventually panics a healthy hot task.
                 self.depends_true_violations.borrow_mut().remove(&top_entry);
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
-
-                #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
-                web_sys::console::log_1(
-                    &format!(
-                        "VALTRON-DBG Depends park: inflight={} active={} global={} proc_len={} ready={}",
-                        self.has_inflight_task(),
-                        self.has_active_tasks(),
-                        self.has_incoming_global_tasks(),
-                        self.processing.borrow().len(),
-                        signal.is_ready(None)
-                    )
-                    .into(),
-                );
-
                 self.sleepers
                     .insert(top_entry, Sleepable::Readiness(signal, top_entry));
 
@@ -2630,6 +2600,22 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
+    /// Every remaining task is parked on a readiness signal and none on a timer:
+    /// nothing can run until the signal's owner flips it.
+    ///
+    /// On JS wasm the drivers return to the event loop in this state instead of
+    /// spinning (which would starve the async work being waited on) or polling on
+    /// a timer; the owner calls `request_executor_resume` when the signal flips.
+    #[cfg(all(
+        target_family = "wasm",
+        any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+    ))]
+    fn parked_on_readiness_only(&self) -> bool {
+        !self.state.has_runnable_work()
+            && self.state.number_of_sleepers() > 0
+            && self.state.time_until_next_wakeup().is_none()
+    }
+
     /// `run_until` provides a fine-grained of the executor which allows
     /// you to loop the executor until it reaches a giving [`ProgressIndicator`]
     /// state upon which you wish it to stop.
@@ -2652,15 +2638,21 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             let local_executor = self.state.local_engine();
 
             let response = self.state.schedule_and_do_work(Box::new(local_executor));
-            #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
-            {
-                use std::sync::atomic::{AtomicU32, Ordering};
-                static N: AtomicU32 = AtomicU32::new(0);
-                let n = N.fetch_add(1, Ordering::Relaxed);
-                if n < 60 {
-                    web_sys::console::log_1(&format!("VALTRON-DBG run_until[{n}] response={response:?}").into());
-                }
+
+            // JS: every remaining task is parked on a readiness signal and none on
+            // a timer. Nothing can make progress until JS-side async work (a fetch,
+            // a stream read) completes, so hand the thread back to the event loop.
+            // Neither spin here (that starves the very work we wait on and freezes
+            // the isolate) nor poll on a timer: whoever flips the signal asks for a
+            // run via `request_executor_resume` (`WakeSignal` does it for you).
+            #[cfg(all(
+                target_family = "wasm",
+                any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+            ))]
+            if self.parked_on_readiness_only() {
+                break;
             }
+
             if checker(response.clone()) {
                 break;
             }
@@ -2729,6 +2721,15 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 continue;
             }
 
+            // Native: a task's `Wait` is a yield ("re-poll me"), and the caller's
+            // checker has already had the chance to stop on it. Keep driving rather
+            // than sleeping out the idle back-off: the task is still runnable, and
+            // native async work progresses on other threads.
+            #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+            if matches!(response, ProgressIndicator::Wait) && self.state.has_runnable_work() {
+                continue;
+            }
+
             // Use sleeper-aware yielding: sleep until the next sleeper wakes up
             // or fall back to the default yield duration if no sleepers exist.
             // Cap at MAX_YIELD_DURATION to ensure threads periodically check for new work.
@@ -2757,7 +2758,21 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     pub fn block_until_finished(&self) {
         'main_loop: loop {
             for _ in 0..200 {
-                match self.run_once() {
+                let progress = self.run_once();
+
+                // JS: every remaining task is parked on a readiness signal (none
+                // on a timer). Return to the event loop; the signal's owner
+                // requests a resume (`request_executor_resume`) when it flips.
+                // Looping here would spin without ever letting JS run.
+                #[cfg(all(
+                    target_family = "wasm",
+                    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+                ))]
+                if self.parked_on_readiness_only() {
+                    break 'main_loop;
+                }
+
+                match progress {
                     ProgressIndicator::NoWork => {
                         #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
                         {

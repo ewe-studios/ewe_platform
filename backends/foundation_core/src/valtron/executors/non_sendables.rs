@@ -948,6 +948,15 @@ where
         if nothing_runnable(&indicator) {
             return true;
         }
+        // Native: a task yielded (`TaskStatus::Wait`) and pushed `Stream::Wait`
+        // for the caller. Hand control back so the caller sees it (a parking
+        // bridge then returns `Poll::Pending`) instead of re-polling a task that
+        // may wait forever. On JS the executor's own `Wait` arm yields to the
+        // event loop on a short timer and returns, so this is native-only.
+        #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+        if matches!(indicator, ProgressIndicator::Wait) {
+            return true;
+        }
         if let ProgressIndicator::CanProgress(Some(state)) = indicator {
             if checker(&state) {
                 tracing::debug!("Valtron: checker returned true for state={state:?}");
