@@ -10,7 +10,7 @@
 //! - [`LlamaModels`] - `Model` trait implementation with interior mutability
 //! - [`LlamaCppStream`] - `StreamIterator` implementation for token-by-token streaming
 
-use infrastructure_llama_cpp::context::params::LlamaModelContextParams;
+use infrastructure_llama_cpp::context::params::{LlamaModelContextParams, LlamaPoolingType};
 use infrastructure_llama_cpp::context::LlamaModelContext;
 use infrastructure_llama_cpp::llama_backend::LlamaBackend;
 use infrastructure_llama_cpp::llama_batch::LlamaBatch;
@@ -133,6 +133,10 @@ pub struct LlamaBackendConfig {
     pub split_mode: SplitMode,
     /// Main GPU index for multi-GPU systems.
     pub main_gpu: u32,
+    /// Pooling type used for embedding requests (Mean / Cls / Last). Embedding
+    /// pooling is model-dependent — Mean suits retrieval/sentence-embedding
+    /// models (the default); ignored for text generation.
+    pub pooling_type: LlamaPoolingType,
     /// Opt-in speculative decoding (MTP). `None` = standard single-token
     /// decoding (the default; zero behavior change unless set).
     pub speculative: Option<SpeculativeConfig>,
@@ -150,6 +154,7 @@ impl Default for LlamaBackendConfig {
             kv_cache_type: KVCacheType::F16,
             split_mode: SplitMode::Layer,
             main_gpu: 0,
+            pooling_type: LlamaPoolingType::Mean, // retrieval/sentence default
             speculative: None, // standard decoding by default
         }
     }
@@ -189,12 +194,12 @@ impl LlamaBackendConfig {
         params
     }
 
-    /// Convert this config into llama.cpp context parameters.
+    /// Convert this config into llama.cpp context parameters for text generation.
     ///
-    /// Note: embeddings are intentionally NOT force-enabled here — that would
-    /// switch the context into embedding mode and break text generation, since
-    /// generation and embeddings share one context. Embedding requests are
-    /// handled on their own path.
+    /// Note: embeddings are intentionally NOT enabled here — enabling them would
+    /// switch this context into embedding mode and break text generation. The
+    /// embedding branch builds its own context via
+    /// [`Self::to_embedding_context_params`] instead.
     #[must_use]
     #[allow(
         clippy::cast_possible_truncation,
@@ -207,6 +212,19 @@ impl LlamaBackendConfig {
         params = params.with_n_batch(self.batch_size as u32);
         params = params.with_n_threads(self.n_threads as i32);
         params
+    }
+
+    /// Convert this config into llama.cpp context params for the embedding path.
+    ///
+    /// Unlike [`Self::to_context_params`], this enables embeddings and sets the
+    /// configured [`Self::pooling_type`], so the embedding context's
+    /// `embeddings_seq_ith` does not short-circuit on `NotEnabled` and the
+    /// pooled result is non-null.
+    #[must_use]
+    pub fn to_embedding_context_params(&self) -> LlamaModelContextParams {
+        self.to_context_params()
+            .with_embeddings(true)
+            .with_pooling_type(self.pooling_type)
     }
 }
 
@@ -304,6 +322,13 @@ impl LlamaBackendConfigBuilder {
     #[must_use]
     pub fn main_gpu(mut self, gpu: u32) -> Self {
         self.config.main_gpu = gpu;
+        self
+    }
+
+    /// Set the embedding pooling type (Mean / Cls / Last).
+    #[must_use]
+    pub fn with_pooling_type(mut self, t: LlamaPoolingType) -> Self {
+        self.config.pooling_type = t;
         self
     }
 
@@ -510,6 +535,17 @@ impl Model for LlamaModels {
         let params = specs.unwrap_or_default();
         let is_embedding = is_embedding_request(&interaction.messages);
 
+        // Embedding requests embed the raw input text, not the chat-templated
+        // prompt. Detect them BEFORE applying the chat template and short-circuit
+        // with the raw text, so the encoder never sees chat-control tokens (R3).
+        if is_embedding {
+            let text = embedding_text(&interaction)?;
+            let mut ctx = model
+                .new_context(&backend, backend_config.to_embedding_context_params())
+                .map_err(Into::<GenerationError>::into)?;
+            return generate_embeddings(&model, &mut ctx, &text, &spec);
+        }
+
         // Apply chat template if messages are present. BOS handling is
         // delegated to `tokenize_prompt`, which ensures exactly one leading BOS
         // whether or not the template emitted one (Gemma-4's does not) — a
@@ -519,13 +555,6 @@ impl Model for LlamaModels {
         } else {
             (apply_chat_template(&model, &interaction)?, true)
         };
-
-        if is_embedding {
-            let mut ctx = model
-                .new_context(&backend, ctx_params)
-                .map_err(Into::<GenerationError>::into)?;
-            return generate_embeddings(&model, &mut ctx, &prompt, &spec);
-        }
 
         // Speculative (MTP) engaged path — spec-51. We only run the MTP engine
         // when the caller supplied a separate MTP head GGUF (`mtp_model:
@@ -1092,6 +1121,39 @@ fn is_embedding_request(messages: &[Messages]) -> bool {
     })
 }
 
+/// Extract the raw input text for an embedding request.
+///
+/// Embeddings are computed over the user's text, not over a chat-templated
+/// prompt (chat-control tokens add noise and no information). This returns the
+/// concatenated text of the `User`/`ToolResult` messages — skipping the
+/// `Assistant` embedding-marker message that `is_embedding_request` keys on, and
+/// any image content.
+fn embedding_text(interaction: &ModelInteraction) -> GenerationResult<String> {
+    let mut parts = Vec::new();
+    for msg in &interaction.messages {
+        let text = match msg {
+            Messages::User { content, .. } => match content {
+                UserModelContent::Text(TextContent { content, .. }) => content.clone(),
+                UserModelContent::Image(_) => String::new(),
+            },
+            Messages::ToolResult { content, .. } => match content {
+                UserModelContent::Text(TextContent { content, .. }) => content.clone(),
+                UserModelContent::Image(_) => String::new(),
+            },
+            Messages::Assistant { .. } => continue,
+        };
+        if !text.is_empty() {
+            parts.push(text);
+        }
+    }
+    if parts.is_empty() {
+        return Err(GenerationError::Generic(
+            "embedding request contained no text to embed".to_string(),
+        ));
+    }
+    Ok(parts.join("\n"))
+}
+
 /// Flatten a `ToolDeclarations` into a Vec<Tool> for formatting.
 fn flatten_tools(shed: &ToolDeclarations) -> Vec<crate::types::base_types::Tool> {
     shed.all_tools()
@@ -1275,9 +1337,11 @@ fn generate_embeddings(
     prompt: &str,
     _spec: &ModelSpec,
 ) -> GenerationResult<Vec<Messages>> {
-    // Tokenize the prompt
+    // Tokenize the raw text. BERT-style embedding models (nomic-embed-text, …)
+    // expect the plain text without an injected BOS/CLS token — unlike
+    // generation (`tokenize_prompt`), the encoder input should be the text alone.
     let tokens = model
-        .str_to_token(prompt, AddBos::Always)
+        .str_to_token(prompt, AddBos::Never)
         .map_err(Into::<GenerationError>::into)?;
 
     // Create batch and add sequence

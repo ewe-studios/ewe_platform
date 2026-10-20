@@ -76,3 +76,31 @@ cargo test -p foundation_ai --features integration_tests --test foundation_ai_te
 
 The test asserts non-empty values with `dimensions == 768` — proving *plumbing*
 (no `NotEnabled`, correct dims), not retrieval *quality*.
+
+## Implementation (2026-10-20)
+
+R1–R4 implemented in `backends/foundation_ai`:
+
+- **R1** — `LlamaBackendConfig.pooling_type: LlamaPoolingType` (default `Mean`),
+  builder `with_pooling_type`; import widened to `{LlamaModelContextParams, LlamaPoolingType}`.
+- **R2** — `to_embedding_context_params()` chains `to_context_params().with_embeddings(true)
+  .with_pooling_type(self.pooling_type)`; the `generate()` embedding branch now builds its context
+  from it (was the generation `ctx_params`). Stale "share one context" comment corrected.
+- **R3** — the embedding branch is detected **before** `apply_chat_template`; new
+  `embedding_text()` returns the raw `User`/`ToolResult` text (skips the `Assistant` marker +
+  images), and `generate_embeddings` tokenizes with `AddBos::Never` (was `Always`).
+- **R4** — `tests/harness/integrations/llamacpp_embeddings.rs`: a no-model `#[test]` asserting
+  `embeddings()`/`pooling_type()`, plus a `#[valtron_test]` e2e that skips when the GGUF is absent.
+
+### Two corrections to the original spec, found at implementation
+
+1. **Do not commit the model.** `*.gguf` and `artefacts/models/*` are gitignored — the repo never
+   commits real weights (only tiny random-weight fixtures under `artefacts/test-models/`, which are
+   for the *candle* suite). The nomic GGUF is fetched at run time into `artefacts/models/`
+   (`nomic-ai--nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q8_0.gguf`); the e2e test skips when
+   absent, matching `mtp_generate`.
+2. **Full test build is blocked on this machine** by a pre-existing `gemm-f16` failure
+   (`instruction requires: fullfp16` — the candle/Metal `gemm-f16` v0.19 inline asm needs
+   `+fullfp16` on aarch64). `cargo check -p foundation_ai --lib` and `--test foundation_ai_tests
+   --features live-model-tests` both pass; `cargo test` cannot link until the gemm-f16 issue is
+   resolved. Unrelated to this spec.
