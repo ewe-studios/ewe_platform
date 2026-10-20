@@ -46,16 +46,6 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
   aborted. A cancelled client call should send `RST_STREAM` (or half-close) so
   the server observes the abort. Surfaced by spec 63 T13 — its e2e test drives a
   raw `RST_STREAM` because the typed client cannot.
-- **`cancellation_tests`' h1 cases hang.** `h1_client_disconnect_cancels_the_call`
-  and `h1_deadline_cancels_and_answers_deadline_exceeded` (both `#[valtron_test]`)
-  never complete: `Slot::wait_entered` / `assert_cancelled_within` loop on
-  `std::thread::sleep`, blocking the valtron worker, while the h1 server's
-  per-request handler is dispatched onto that same pool (`foundation_http`
-  `protocol_detect.rs` `spawn_h1`), so the handler never runs and the loop
-  starves. The h2 cases pass — they run the handler on a spawned thread. Fix:
-  drive the h1 server on its own executor, or replace the blocking sleep loops
-  with async waits. Pre-existing (added in the cancellation work); observed
-  during spec 63 T13.
 
 ## 2. foundation_netio
 
