@@ -249,3 +249,49 @@ must target-gate that dep and drop `default-features` on wasm. `foundation_db`'s
 (wasm) features that nevertheless enable `foundation_netio/multi`, a pre-existing smell
 to revisit when the DB layer is ported.
 
+## WASM T3 resolution (2026-10-20) — the `wasm-check` job was already gone
+
+The spec-28 feature 07 `wasm-check` job that change #12 set out to "extend" **no
+longer exists**. The CI refactor to the per-package model (`.github/workflows/
+check.yaml` + `scripts/ci/ci.py` + `ci/packages.toml`) dropped it, so **no** crate
+was being wasm-checked on any branch — which is precisely how `foundation_auth`
+regressed on wasm (see the T1 note) without CI noticing.
+
+The fix re-introduces wasm checking in the current model rather than bolting a
+standalone job back on:
+
+- **New `wasm` step in `ci.py`.** `STEPS` gains `"wasm"`; `Settings` gains `wasm`
+  (mode) + `wasm_runs` (feature-flag specs, same syntax as `runs`). `commands()`
+  emits `cargo check --target wasm32-unknown-unknown -p <name> <flags>` per entry
+  — no `--all-targets`, no `--profile uat` (wasm has neither test binaries nor a
+  uat-tuned profile; a plain `check` is the gate). The `wasm32-unknown-unknown`
+  target is already installed in the CI image (`check.yaml`'s `rustup toolchain
+  install ... --target wasm32-unknown-unknown`).
+- **`ci/packages.toml` defaults `wasm = "off"`** (most crates aren't wasm targets);
+  ten foundation crates opt in with `wasm = "enforce"` + a `wasm-runs` entry.
+- **Both CI jobs** (`package` and `package-artifact`) run `--step wasm`, so a fork/
+  artifact-image path checks the same thing.
+
+The ten gates (all verified green locally, wasm-relevant feature sets):
+
+| crate | wasm-runs |
+|-------|-----------|
+| foundation_core | `--no-default-features --features std` |
+| foundation_auth | `--no-default-features --features wasm` |
+| foundation_http | `--no-default-features --features wasm` |
+| foundation_db | `--no-default-features --features wasm` |
+| foundation_netio | `--no-default-features --features wasm-fetch` |
+| foundation_vectors | `""` (defaults) |
+| foundation_compact | `""` (defaults) |
+| foundation_arrow | `""` (defaults) |
+| foundation_connectrpc | `--no-default-features --features rpc` |
+| foundation_ai | `--no-default-features` |
+
+The spec-28 commands are **stale** — `ssl-rustls-awsrc` moved to `foundation_netio`,
+`foundation_core`'s wasm surface is now just `std`/`alloc` (+ `js-wasmbindgen`/
+`js-foundation-wasm` event-loop backends), and the wasm-relevant features are the
+`wasm`/`wasm-fetch`/`rpc` flags above. `--no-default-features` on the `wasm-runs` is
+deliberate: several defaults (netio `multi`, auth `turso`, db `turso`/`d1`/`r2`) are
+native-only and would re-break the wasm build if enabled.
+
+

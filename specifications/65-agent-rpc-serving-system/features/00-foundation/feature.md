@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 2
-  uncompleted: 5
+  completed: 3
+  uncompleted: 4
   total: 7
-  completion_percentage: 29
+  completion_percentage: 43
 ---
 
 # WASM & Cloudflare Workers Readiness (Foundation)
@@ -168,7 +168,7 @@ provider-client status below differ from the original 2026-10-19 write-up.
 | 9 | `foundation_ai` | Replace `std::thread::sleep` retry backoff with async sleep (runtime) | **Compiles on wasm but panics at runtime** ("time not implemented"). Sites: `openai_provider.rs:316,613`, `openai_responses_provider.rs:467,822`, `anthropic_messages_provider.rs:661`, `agentic/tools/agent.rs:788`. Not a T1 blocker; required before T6/T7 | T6 |
 | 10 | `foundation_arrow` | Audit only — verify wasm32 `cargo check` | Passes clean (`cargo check --target wasm32-unknown-unknown -p foundation_arrow` exits 0). The `arrow-array` → `ahash/compile-time-rng` concern is build-time `const-random` (host-only) and never reaches the wasm runtime graph — no change needed. | T2 ✅ |
 | 11 | `foundation_vectors`, `foundation_compact`, `foundation_connectrpc` (+ `foundation_http`) | Verify wasm32 `cargo check` (fix only if a gate fails) | `vectors` and `compact` pass clean. `connectrpc` **failed**: `foundation_netio`/`foundation_http` were unconditional default-feature deps, leaking `multi` into netio's single-threaded `!Send` wasm code (`body_reader.rs:3370` — its wasm `ExchangeContinuation` drops `+ Send`, so `map_ready`'s `Send` bound under `multi` no longer type-checks). Fix: target-gate `foundation_netio`+`foundation_http` in **both** `foundation_connectrpc` and `foundation_http` (native = defaults, wasm = `wasm-fetch`/`wasm`), and pull `foundation_auth` with `default-features = false` (its default `turso` → `foundation_db/turso` → `foundation_db/multi` is a native-only backend that also leaked `multi` on wasm). | T2 ✅ |
-| 12 | `.github/workflows/*` (CI) | Extend `wasm-check` job to `foundation_ai` + `foundation_netio` + `foundation_vectors` + `foundation_compact` + `foundation_arrow` + `foundation_connectrpc` | spec 28 feature 07 only checks core/auth/http/db; the AI crates regress silently (and `foundation_auth` itself had regressed — see #1) | T3 |
+| 12 | `.github/workflows/check.yaml` + `scripts/ci/ci.py` + `ci/packages.toml` (CI) | Re-establish the wasm32 compile gate and extend it to `foundation_ai` + `foundation_netio` + `foundation_vectors` + `foundation_compact` + `foundation_arrow` + `foundation_connectrpc` | spec 28 feature 07's `wasm-check` job **no longer exists** — the CI refactor to the per-package model (`check.yaml` + `ci.py` + `packages.toml`) dropped it, so *no* crate was wasm-checked and the AI crates (and `foundation_auth` itself — see #1) regressed silently. Fix: add a `wasm` step to `ci.py` (`cargo check --target wasm32-unknown-unknown` per `wasm-runs` entry) + a `wasm = "off"` default in `packages.toml`, opt in the four original crates (core/auth/http/db) **and** the six AI crates with their wasm-relevant feature sets, and wire `--step wasm` into both CI jobs. | T3 ✅ |
 | 13 | `foundation_ai` | New Workers AI `RoutableProvider`/`ModelBackend` | no Workers AI provider exists yet | T4 |
 
 ### Component Structure
@@ -337,7 +337,10 @@ impl RoutableProvider for WorkersAiProvider {
   `std::thread::sleep` backoff with async sleep (change #9, runtime).
 - `backends/foundation_ai/src/backends/workers_ai.rs` — new provider (wasm).
 - `backends/foundation_arrow/Cargo.toml` (+ source as needed) — wasm gating.
-- `.github/workflows/check.yaml` — extend the `wasm-check` matrix.
+- `scripts/ci/ci.py` + `ci/packages.toml` + `.github/workflows/check.yaml` — add a
+  `wasm` step to the per-package CI model (`cargo check --target
+  wasm32-unknown-unknown` per `wasm-runs` entry) and opt in the wasm-relevant
+  crates (change #12). **Done.**
 - `examples/cf-agent-loop/` — new: agentic layer + Workers AI, served via
   `dispatch_cf` + shared `Router` (wasm-pack layout, mirroring cf-valtron-counter).
 - `examples/cf-cloud-provider/` — new: `foundation_ai` deployed on Cloudflare
@@ -372,8 +375,16 @@ impl RoutableProvider for WorkersAiProvider {
       so its native-only `turso` backend stops leaking `foundation_db/multi` into wasm —
       changes #10/#11). **Verified green**; native `foundation_http`/`foundation_connectrpc`
       unchanged.
-- [ ] **T3 — extend CI `wasm-check`.** Add the five AI crates to the job (change #12);
-      red test = CI fails to check a crate that regressed.
+- [x] **T3 — re-establish the wasm32 CI gate.** The spec-28 `wasm-check` job was
+      lost in the per-package CI refactor, so no crate was wasm-checked. Added a
+      `wasm` step to `scripts/ci/ci.py` (per-package `cargo check --target
+      wasm32-unknown-unknown` driven by a new `wasm-runs` setting), defaulted
+      `wasm = "off"` in `ci/packages.toml`, opted in the four original crates
+      (core/auth/http/db) **and** the six AI crates (ai/netio/vectors/compact/
+      arrow/connectrpc) with their wasm-relevant feature sets, and wired
+      `--step wasm` into both CI jobs in `.github/workflows/check.yaml` (change
+      #12). **Verified** all ten gates green; red test = CI fails when a crate
+      regresses on wasm.
 - [ ] **T4 — Workers AI provider.** `WorkersAiProvider` as a `RoutableProvider`,
       streaming; unit test against a mocked `fetch`; red test = first streamed
       token arrives.
