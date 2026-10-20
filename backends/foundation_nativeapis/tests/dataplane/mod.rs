@@ -236,6 +236,98 @@ fn netstack_poll_reports_idle_when_no_sockets() {
 }
 
 // ---------------------------------------------------------------------------
+// Listener accept backlog
+// ---------------------------------------------------------------------------
+
+/// Pump the wire until every stream can send, or give up after a bounded number of ticks.
+fn establish_all(streams: &[&OverlayStream], a: &mut NetStack, b: &mut NetStack) {
+    for _ in 0..300 {
+        exchange(a, b);
+        if streams.iter().all(|s| s.may_send()) {
+            return;
+        }
+    }
+}
+
+/// Accept everything currently queued on `listener`.
+fn accept_all(
+    listener: &mut foundation_nativeapis::dataplane::OverlayListener,
+) -> Vec<OverlayStream> {
+    let mut accepted = Vec::new();
+    while let Ok(stream) = listener.accept() {
+        accepted.push(stream);
+    }
+    accepted
+}
+
+/// WHY: a smoltcp listening socket takes a single connection; before the backlog, a
+/// second SYN arriving before the application called `accept` was answered with a RST
+/// (seen as a flaky empty echo in `foundation_wireguard`'s mesh test).
+#[test]
+#[traced_test]
+fn netstack_listener_queues_connections_made_before_accept() {
+    let mut server = stack(SERVER_IP);
+    let mut client = stack(CLIENT_IP);
+    let mut listener = server.tcp_listen(server_addr()).expect("listen");
+
+    // Both SYNs reach the server in the same batch, with no accept in between.
+    let first = client.tcp_connect(server_addr()).expect("connect 1");
+    let second = client.tcp_connect(server_addr()).expect("connect 2");
+    establish_all(&[&first, &second], &mut client, &mut server);
+    assert!(first.may_send(), "first connection established");
+    assert!(second.may_send(), "second connection established, not reset");
+
+    let accepted = accept_all(&mut listener);
+    assert_eq!(accepted.len(), 2, "both connections were queued for accept");
+    let mut ports: Vec<u16> = accepted.iter().map(|s| s.peer_addr().port()).collect();
+    ports.sort_unstable();
+    let mut expected = vec![first.local_addr().port(), second.local_addr().port()];
+    expected.sort_unstable();
+    assert_eq!(ports, expected, "accepted streams are the two client connections");
+
+    // Data flows on the second (queued) connection.
+    write_all(&second, b"queued", &mut client, &mut server);
+    let server_side = accepted
+        .iter()
+        .find(|s| s.peer_addr().port() == second.local_addr().port())
+        .expect("server side of second connection");
+    let got = read_exact(server_side, 6, &mut server, &mut client);
+    assert_eq!(&got, b"queued");
+}
+
+/// WHY: the backlog is a limit — once it is full further connections are refused until
+/// the application accepts, after which the listener takes connections again.
+#[test]
+#[traced_test]
+fn netstack_listener_backlog_limit_refuses_then_recovers() {
+    let mut server = NetStack::new(
+        NetStackConfig::new(SERVER_IP.parse().expect("ip"), 24).with_listen_backlog(1),
+    );
+    let mut client = stack(CLIENT_IP);
+    let mut listener = server.tcp_listen(server_addr()).expect("listen");
+
+    let first = client.tcp_connect(server_addr()).expect("connect 1");
+    establish_all(&[&first], &mut client, &mut server);
+    assert!(first.may_send(), "first connection established");
+
+    // The backlog of one is full: the next connection is refused.
+    let refused = client.tcp_connect(server_addr()).expect("connect 2");
+    for _ in 0..50 {
+        exchange(&mut client, &mut server);
+    }
+    assert!(!refused.may_send(), "connection beyond the backlog is not established");
+    assert!(!refused.is_active(), "connection beyond the backlog was reset");
+
+    // Accepting frees the slot and re-arms the listener.
+    let accepted = accept_all(&mut listener);
+    assert_eq!(accepted.len(), 1, "only the first connection was queued");
+    let third = client.tcp_connect(server_addr()).expect("connect 3");
+    establish_all(&[&third], &mut client, &mut server);
+    assert!(third.may_send(), "listener accepts again after accept frees the backlog");
+    assert_eq!(accept_all(&mut listener).len(), 1);
+}
+
+// ---------------------------------------------------------------------------
 // Kernel TUN (privileged; ignored without CAP_NET_ADMIN)
 // ---------------------------------------------------------------------------
 
