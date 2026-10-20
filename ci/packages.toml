@@ -143,7 +143,9 @@ runs = ["", "vms"]
 # (API version negotiation, error classification, every endpoint wrapper)
 # never ran. Test that configuration as well. The real-daemon tests stay
 # behind `integration-tests`.
-runs = ["", "docker"]
+# `docker buildkit` also builds the generated BuildKit client (buffa-build
+# codegen must match the buffa runtime; a 0.9/0.8 skew went unnoticed).
+runs = ["", "docker", "docker buildkit"]
 # ---------------------------------------------------------------------------
 # Packages that need more memory than the runner has to spare.
 

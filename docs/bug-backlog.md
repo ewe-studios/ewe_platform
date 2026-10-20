@@ -175,14 +175,6 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
 - **`send_json` has no body cap.** It reads a successful JSON body whole. Add `max_json_body` to `BodyLimits` **(rule 8)**.
 - **`LogFrameDecoder::decode` returns `None` for two cases:** "need more bytes" and "skipped an unknown frame type". Callers have to compare buffer lengths to tell them apart.
 
-- **BuildKit codegen version skew (suspected).** `foundation_deployment_docker`
-  generates its BuildKit messages with `buffa-build` 0.9.2 but links the `buffa`
-  0.8.1 runtime. In spec 65 F1/T5 the same pairing failed to compile
-  (`::buffa::saturate_size`, `::buffa::EncodeSink` missing from 0.8.1). Not
-  re-verified for the `buildkit` feature itself. Likely fix: pin
-  `buffa-build = "=0.8.1"` (what `foundation_agent_rpc` does) or move both
-  runtimes to 0.9.
-
 ## 7. foundation_deployment_platform
 
 - **`wait_for_stdout`:** re-reads the whole log on every poll, misses a message split across frames, and scans stderr too.
