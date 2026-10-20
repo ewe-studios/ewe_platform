@@ -16,7 +16,6 @@ members = [
 
 exclude = [
   "artefacts/*",
-  "templates/*",
   # infrastructure/docker is its own nested workspace root (like platform_android)
   "infrastructure/docker",
   # examples are self-contained crates — build individually as needed
