@@ -25,7 +25,7 @@ use foundation_netio::shared::http::{
 
 use foundation_connectrpc::{
     ConnectRpcHandler, Ctx, HandlerOptions, JsonCodec, ProcedureCodecs, Request,
-    RequestStream, Response, Router,
+    RequestStream, Response, Router, SizeLimits,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -206,4 +206,51 @@ fn oversized_envelope_prefix_is_rejected_from_its_header() {
     assert!(body.contains("resource_exhausted"), "body: {body}");
     assert!(body.contains("exceeds read_max_bytes"), "body: {body}");
     assert!(start.elapsed() < Duration::from_secs(1));
+}
+
+/// `read_max_bytes` has a 4 MiB default, and it applies to a plain unary body.
+#[test]
+fn the_default_read_limit_applies() {
+    assert_eq!(SizeLimits::default().read_max_bytes, 4 * 1024 * 1024);
+    assert_eq!(HandlerOptions::new().limits.read_max_bytes, 4 * 1024 * 1024);
+    assert_eq!(
+        foundation_connectrpc::shared::client::SizeLimits::default().read_max_bytes,
+        4 * 1024 * 1024
+    );
+
+    let handler = handler(HandlerOptions::new);
+    let mut json = b"{\"text\":\"".to_vec();
+    json.resize(5 * 1024 * 1024, b' ');
+    json.extend_from_slice(b"\"}");
+    let response = dispatch(
+        &handler,
+        request(UNARY, &[("content-type", "application/json")], json),
+    );
+    assert_eq!(response.status.clone().into_usize(), 413);
+
+    // It caps each streaming envelope as well.
+    let response = dispatch(
+        &handler,
+        request(
+            CLIENT_STREAM,
+            &[("content-type", "application/connect+json")],
+            vec![0, 0xFF, 0xFF, 0xFF, 0xFF],
+        ),
+    );
+    assert!(body_text(&response).contains("resource_exhausted"));
+
+    // `0` still opts out.
+    let handler = handler_unlimited();
+    let mut json = b"{\"text\":\"".to_vec();
+    json.resize(5 * 1024 * 1024, b' ');
+    json.extend_from_slice(b"\"}");
+    let response = dispatch(
+        &handler,
+        request(UNARY, &[("content-type", "application/json")], json),
+    );
+    assert_eq!(response.status.clone().into_usize(), 200);
+}
+
+fn handler_unlimited() -> ConnectRpcHandler {
+    handler(|| HandlerOptions::new().with_read_max_bytes(0))
 }
