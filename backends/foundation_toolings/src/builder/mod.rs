@@ -147,7 +147,7 @@ impl TaskIterator for ProjectBuilderTask {
     type Ready = BuildResult;
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         // 1. Drain watch events → dispatch to builders
         self.drain_watch_events();
 

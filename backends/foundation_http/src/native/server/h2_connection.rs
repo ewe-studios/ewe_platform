@@ -122,7 +122,7 @@ impl TaskIterator for H2ConnectionHandler {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         if self.shutdown.probe() {
             tracing::debug!("h2 server: shutdown signaled, closing connection");
             return None;

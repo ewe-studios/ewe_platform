@@ -4962,6 +4962,7 @@ dependencies = [
  "foundation_wireguard",
  "futures",
  "futures-lite",
+ "libc",
  "serde",
  "serde_json",
  "tracing",

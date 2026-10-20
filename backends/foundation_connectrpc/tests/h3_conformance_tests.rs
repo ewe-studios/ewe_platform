@@ -16,7 +16,7 @@ mod h3_conformance {
     use std::time::{Duration, Instant};
 
     use bytes::Bytes;
-    use foundation_core::valtron::{Ctx, Stream as VStream, TaskIterator};
+    use foundation_core::valtron::{Ctx as VCtx, Stream as VStream, TaskIterator};
     use foundation_http::shared::context::ContextBag;
     use foundation_netio::http3::connection::{H3Connection, H3Request};
     use foundation_netio::quic::{
@@ -42,8 +42,8 @@ mod h3_conformance {
     }
 
     fn pump(sq: &mut QuicDriver, cq: &mut QuicDriver) {
-        let _ = sq.next_status(Ctx::new());
-        let _ = cq.next_status(Ctx::new());
+        let _ = sq.next_status(VCtx::new());
+        let _ = cq.next_status(VCtx::new());
     }
 
     fn quic_pair() -> (QuicDriver, QuicDriver, QuinnConnection, QuinnConnection) {

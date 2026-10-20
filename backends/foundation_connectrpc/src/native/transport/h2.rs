@@ -350,7 +350,7 @@ impl TaskIterator for H2Pump {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         // Set non-blocking
         self.stream.set_nonblocking(true).ok();
 

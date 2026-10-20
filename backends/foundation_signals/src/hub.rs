@@ -409,7 +409,7 @@ mod valtron_impls {
         type Ready = T;
         type Pending = ();
 
-        fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<T, ()>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<T, ()>> {
             // Never blocks (project rule): empty queue is Pending.
             match self.rx.try_recv() {
                 Ok(value) => Some(TaskStatus::Ready(value)),
@@ -436,7 +436,7 @@ mod valtron_impls {
         type Ready = PumpReport;
         type Pending = ();
 
-        fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<PumpReport, ()>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<PumpReport, ()>> {
             let report = self.hub.pump();
             if report.commands_applied > 0 {
                 Some(TaskStatus::Ready(report))

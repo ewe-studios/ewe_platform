@@ -14,32 +14,40 @@
 //! HOW: unary runs sequentially (decode → handle → encode — it does **not** use
 //! the streaming seam, Decision 08); streaming builds the protocol exchange and
 //! drives its reader/writer tasks, the handler, a body feeder, and a response
-//! collector concurrently with [`futures::join!`] — cooperatively inside this one
-//! dispatch future (no `spawn`, so no executor-pool dependency). Response bytes
-//! are collected in memory here; a live streaming transport swaps that for true
-//! streaming in a later feature.
+//! pump concurrently (`join`/`select`) — cooperatively inside this one
+//! dispatch future (no `spawn`, so no executor-pool dependency). The request
+//! body is read as a [`RequestBody`] stream, chunk by chunk, and response
+//! frames go out through a [`ResponseSink`] as they are produced, so neither is
+//! held whole in memory.
+//! A server passes a sink that writes to its connection
+//! ([`ConnectRpcHandler::dispatch_to`]); [`ConnectRpcHandler::dispatch`]
+//! collects into a [`CollectingSink`] for tests and in-process callers.
 
-#[cfg(not(target_family = "wasm"))]
 use std::io;
+use std::pin::Pin;
 use std::sync::Arc;
+use std::task::{Context, Poll};
 use std::time::Instant;
 
 use bytes::Bytes;
-use foundation_core::extensions::result_ext::SendableBoxedError;
+use foundation_core::io::readers::Data;
 use foundation_core::valtron::Pipe;
+#[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::Stream;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_http::shared::context::ContextBag;
+use futures::StreamExt;
 // HTTP/2 dispatch is native-only (drives foundation_netio::http2). The h2 section
 // below is cfg-gated to match; on wasm the router serves H1 protocols only.
 #[cfg(not(target_family = "wasm"))]
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
+#[cfg(not(target_family = "wasm"))]
 use foundation_netio::shared::client::body_reader::{
     SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
 };
 use foundation_netio::shared::http::{
-    Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
-    SimpleOutgoingResponse, Status,
+    ChunkedData, HttpReaderError, Proto, SendSafeBody, SimpleHeader, SimpleHeaders,
+    SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, Status,
 };
 
 use crate::shared::context::{CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec};
@@ -73,16 +81,285 @@ impl ConnectRpcHandler {
         &self.router
     }
 
-    /// Dispatch one request, resolving to the response to write. Never `Err` —
-    /// every failure is rendered as a protocol-appropriate error response.
+    /// Dispatch one request and collect the whole response in memory.
+    ///
+    /// Every failure is rendered as a protocol-appropriate error response. A
+    /// streaming RPC is collected until it ends, so this is for tests and
+    /// in-process callers; a server writes to its connection as frames are
+    /// produced with [`Self::dispatch_to`].
+    ///
+    /// The request body is read from `request.body`. It must not need a
+    /// connection to wait on: a body that reports "not ready yet" fails the
+    /// read (see [`in_memory_body`]).
     #[must_use]
     pub fn dispatch(
         &self,
         bag: Arc<ContextBag>,
-        request: SimpleIncomingRequest,
+        mut request: SimpleIncomingRequest,
     ) -> BoxFuture<'static, SimpleOutgoingResponse> {
         let router = self.router.clone();
-        Box::pin(dispatch_request(router, bag, request))
+        Box::pin(async move {
+            let proto = request.proto.clone();
+            let body = in_memory_body(request.body.take());
+            let mut sink = CollectingSink::default();
+            match dispatch_request(router, bag, request, body, &mut sink).await {
+                Ok(()) => sink.into_response().unwrap_or_else(|| {
+                    tracing::error!("dispatch finished without producing a response");
+                    internal_error_response(proto)
+                }),
+                Err(e) => {
+                    // A `CollectingSink` never fails; this guards the contract.
+                    tracing::error!(error = %e, "collecting sink failed");
+                    internal_error_response(proto)
+                }
+            }
+        })
+    }
+
+    /// Dispatch one request, reading its body from `body` and writing the
+    /// response to `sink` as it is produced: a whole response for unary calls
+    /// and errors, or a head followed by each frame for a stream.
+    ///
+    /// `request.body` is ignored; the connection owner hands the body over as
+    /// `body` so that it can wait for the connection without blocking. Every
+    /// RPC failure is rendered as a response; `Err` is only a failure of
+    /// `sink` itself (e.g. the peer went away).
+    pub fn dispatch_to<'a>(
+        &self,
+        bag: Arc<ContextBag>,
+        request: SimpleIncomingRequest,
+        body: RequestBody<'a>,
+        sink: &'a mut dyn ResponseSink,
+    ) -> BoxFuture<'a, io::Result<()>> {
+        let router = self.router.clone();
+        Box::pin(dispatch_request(router, bag, request, body, sink))
+    }
+}
+
+/// An incoming request body, chunk by chunk, as the connection delivers it.
+///
+/// WHY: the HTTP/1.1 connection owner reads the body lazily from the same
+/// socket it writes the response to. Reading it as an async stream lets the
+/// owner wait for the socket instead of blocking or spinning, while the rest of
+/// the RPC keeps running.
+pub type RequestBody<'a> = Pin<Box<dyn futures::Stream<Item = io::Result<Bytes>> + Send + 'a>>;
+
+/// A [`RequestBody`] over a body that is already in memory (or whose reads
+/// never need to wait). A read that would block fails with
+/// [`io::ErrorKind::WouldBlock`], because there is no connection to wait on.
+pub fn in_memory_body(body: Option<SendSafeBody>) -> RequestBody<'static> {
+    Box::pin(InMemoryBody(BodyReader::new(body)))
+}
+
+struct InMemoryBody(BodyReader);
+
+impl futures::Stream for InMemoryBody {
+    type Item = io::Result<Bytes>;
+
+    fn poll_next(mut self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        Poll::Ready(match self.0.step() {
+            BodyStep::Chunk(bytes) => Some(Ok(bytes)),
+            BodyStep::End => None,
+            BodyStep::Failed(e) => Some(Err(e)),
+            BodyStep::WouldBlock => Some(Err(io::Error::new(
+                io::ErrorKind::WouldBlock,
+                "request body is not ready and there is no connection to wait on",
+            ))),
+        })
+    }
+}
+
+/// One non-blocking step of reading a request body.
+pub(crate) enum BodyStep {
+    /// The next piece of the body.
+    Chunk(Bytes),
+    /// No bytes are available yet; the connection must become readable first.
+    WouldBlock,
+    /// The body is complete.
+    End,
+    /// The body could not be read.
+    Failed(io::Error),
+}
+
+/// Reads a `SendSafeBody` one non-blocking step at a time.
+///
+/// WHY: `SendSafeBodyBytesIterator` reports "not ready yet" (a non-blocking
+/// socket's `WouldBlock`) as a stream error for chunked bodies and folds it
+/// into `Ignore` for sized ones, next to bookkeeping items like the last chunk.
+/// A reader that must wait for the socket has to tell those apart.
+pub(crate) struct BodyReader {
+    body: SendSafeBody,
+}
+
+impl BodyReader {
+    pub(crate) fn new(body: Option<SendSafeBody>) -> Self {
+        Self {
+            body: body.unwrap_or(SendSafeBody::None),
+        }
+    }
+
+    /// Advance the body by one step without blocking.
+    pub(crate) fn step(&mut self) -> BodyStep {
+        loop {
+            match &mut self.body {
+                SendSafeBody::None => return BodyStep::End,
+                SendSafeBody::Bytes(bytes) => {
+                    let bytes = std::mem::take(bytes);
+                    self.body = SendSafeBody::None;
+                    if !bytes.is_empty() {
+                        return BodyStep::Chunk(Bytes::from(bytes));
+                    }
+                }
+                SendSafeBody::Text(text) => {
+                    let text = std::mem::take(text);
+                    self.body = SendSafeBody::None;
+                    if !text.is_empty() {
+                        return BodyStep::Chunk(Bytes::from(text.into_bytes()));
+                    }
+                }
+                SendSafeBody::Stream(iter) => match iter.as_mut().and_then(Iterator::next) {
+                    None => self.body = SendSafeBody::None,
+                    Some(Ok(Data::Bytes(bytes))) => {
+                        if !bytes.is_empty() {
+                            return BodyStep::Chunk(Bytes::from(bytes));
+                        }
+                    }
+                    // The batch reader saw `WouldBlock`.
+                    Some(Ok(Data::Retry)) => return BodyStep::WouldBlock,
+                    Some(Err(e)) => return classify_body_error(&e),
+                },
+                SendSafeBody::ChunkedStream(iter) => {
+                    match iter.as_mut().and_then(Iterator::next) {
+                        None => self.body = SendSafeBody::None,
+                        Some(Ok(ChunkedData::Data(bytes, _))) => {
+                            if !bytes.is_empty() {
+                                return BodyStep::Chunk(Bytes::from(bytes));
+                            }
+                        }
+                        // The last chunk and the trailers carry no body bytes;
+                        // the iterator ends right after them.
+                        Some(Ok(ChunkedData::DataEnded | ChunkedData::Trailers(_))) => {}
+                        Some(Err(e)) => return classify_body_error(&e),
+                    }
+                }
+                // Line-feed and event-stream bodies come with
+                // `text/event-stream`, which no RPC protocol accepts: dispatch
+                // answers 415 before it reads such a body.
+                SendSafeBody::LineFeedStream(_) | SendSafeBody::SseStream(_) => {
+                    self.body = SendSafeBody::None;
+                    return BodyStep::Failed(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "line-feed and event-stream request bodies are not RPC bodies",
+                    ));
+                }
+            }
+        }
+    }
+}
+
+/// A body read error is either "not ready yet" on a non-blocking socket or a
+/// real failure.
+fn classify_body_error(e: &foundation_core::extensions::result_ext::BoxedError) -> BodyStep {
+    let would_block = e
+        .downcast_ref::<HttpReaderError>()
+        .is_some_and(HttpReaderError::is_would_block)
+        || e
+            .downcast_ref::<io::Error>()
+            .is_some_and(|e| e.kind() == io::ErrorKind::WouldBlock);
+    if would_block {
+        BodyStep::WouldBlock
+    } else {
+        // The error is not `Send`, so only its message can travel.
+        BodyStep::Failed(io::Error::other(e.to_string()))
+    }
+}
+
+/// Where a dispatched response goes.
+///
+/// WHY: a streaming RPC's frames must reach the peer as they are produced, not
+/// after the handler finishes. The router cannot own the connection, so the
+/// connection owner hands it a sink. Writes are async so that a sink can wait
+/// for a slow peer (backpressure) without blocking the rest of the RPC.
+///
+/// WHAT: either one [`Self::whole`] call, or [`Self::open`], any number of
+/// [`Self::chunk`] calls, then [`Self::finish`].
+pub trait ResponseSink: Send {
+    /// Write a complete response: unary results, errors, and streams that
+    /// produced no frames.
+    ///
+    /// # Errors
+    /// Returns the underlying write error.
+    fn whole(&mut self, response: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>>;
+
+    /// Start a streamed response. `head` carries the status and headers; its
+    /// body is empty and the frames follow through [`Self::chunk`].
+    ///
+    /// # Errors
+    /// Returns the underlying write error.
+    fn open(&mut self, head: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>>;
+
+    /// Write one frame of an opened stream and deliver it now.
+    ///
+    /// # Errors
+    /// Returns the underlying write error.
+    fn chunk(&mut self, bytes: Bytes) -> BoxFuture<'_, io::Result<()>>;
+
+    /// End an opened stream.
+    ///
+    /// # Errors
+    /// Returns the underlying write error.
+    fn finish(&mut self) -> BoxFuture<'_, io::Result<()>>;
+}
+
+/// A [`ResponseSink`] that assembles the response in memory, streamed frames
+/// included. Used by [`ConnectRpcHandler::dispatch`].
+#[derive(Default)]
+pub struct CollectingSink {
+    response: Option<SimpleOutgoingResponse>,
+    body: Vec<u8>,
+}
+
+impl CollectingSink {
+    /// The collected response, or `None` if nothing was written.
+    #[must_use]
+    pub fn into_response(self) -> Option<SimpleOutgoingResponse> {
+        let mut response = self.response?;
+        if response.body.is_none() {
+            response.body = Some(SendSafeBody::Bytes(self.body));
+        }
+        Some(response)
+    }
+}
+
+impl ResponseSink for CollectingSink {
+    fn whole(&mut self, response: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>> {
+        self.response = Some(response);
+        Box::pin(std::future::ready(Ok(())))
+    }
+
+    fn open(&mut self, mut head: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>> {
+        head.body = None;
+        self.response = Some(head);
+        Box::pin(std::future::ready(Ok(())))
+    }
+
+    fn chunk(&mut self, bytes: Bytes) -> BoxFuture<'_, io::Result<()>> {
+        self.body.extend_from_slice(&bytes);
+        Box::pin(std::future::ready(Ok(())))
+    }
+
+    fn finish(&mut self) -> BoxFuture<'_, io::Result<()>> {
+        Box::pin(std::future::ready(Ok(())))
+    }
+}
+
+fn internal_error_response(proto: Proto) -> SimpleOutgoingResponse {
+    SimpleOutgoingResponse {
+        proto,
+        status: Status::InternalServerError,
+        headers: SimpleHeaders::new(),
+        body: None,
+        trailers: SimpleHeaders::new(),
     }
 }
 
@@ -90,18 +367,20 @@ async fn dispatch_request(
     router: Arc<Router>,
     bag: Arc<ContextBag>,
     request: SimpleIncomingRequest,
-) -> SimpleOutgoingResponse {
+    body: RequestBody<'_>,
+    sink: &mut dyn ResponseSink,
+) -> io::Result<()> {
     let path = extract_path(&request.request_url.url);
 
     // 1. Path lookup → 404.
     let Some(entry) = router.lookup(&path) else {
-        return status_only(&request, Status::NotFound);
+        return sink.whole(status_only(&request, Status::NotFound)).await;
     };
 
     // 2. Method check → 405 (+Allow).
     let allowed = allowed_methods(entry);
     if !allowed.contains(&request.method) {
-        return method_not_allowed(&request, &allowed);
+        return sink.whole(method_not_allowed(&request, &allowed)).await;
     }
 
     // 3. Protocol match by Content-Type / GET query → 415 (+Accept-Post).
@@ -110,23 +389,23 @@ async fn dispatch_request(
         .iter()
         .find(|p| p.can_handle(&request))
     else {
-        return unsupported_media_type(&request, entry);
+        return sink.whole(unsupported_media_type(&request, entry)).await;
     };
     let protocol = protocol.as_ref();
 
     // 4. Codec name + membership → 415 (+Accept-Post).
     let Some(codec_name) = protocol.codec_name(&request) else {
-        return unsupported_media_type(&request, entry);
+        return sink.whole(unsupported_media_type(&request, entry)).await;
     };
     if !entry.codec_meta.has_codec(&codec_name) {
-        return unsupported_media_type(&request, entry);
+        return sink.whole(unsupported_media_type(&request, entry)).await;
     }
 
     // 5. Capability check → 505 (bidi over HTTP/1.1, gRPC over HTTP/1.1, …).
     let caps = capabilities_for(&request.proto);
     let reqs = requirements(protocol.kind(), entry.spec.stream_type);
     if check_compatible(&reqs, &caps).is_err() {
-        return http_version_not_supported(&request);
+        return sink.whole(http_version_not_supported(&request)).await;
     }
 
     // 5b. P7: enforce the Connect protocol-version marker when the procedure
@@ -135,7 +414,7 @@ async fn dispatch_request(
         if let Err(e) = require_connect_version(&request) {
             let mut response = blank_response(&request);
             write_error(&mut response, &request, &e);
-            return response;
+            return sink.whole(response).await;
         }
     }
 
@@ -154,16 +433,18 @@ async fn dispatch_request(
     // would poison `Send`, as `SimpleIncomingRequest` is not `Sync`).
     match &entry.handler {
         HandlerKind::Unary(handler) => {
-            run_unary(
+            let response = run_unary_body(
                 handler.clone(),
                 protocol,
                 request,
+                body,
                 codec_name,
                 compression,
                 ctx,
                 entry.options.limits.read_max_bytes,
             )
-            .await
+            .await;
+            sink.whole(response).await
         }
         HandlerKind::ServerStream(handler)
         | HandlerKind::ClientStream(handler)
@@ -172,19 +453,21 @@ async fn dispatch_request(
                 handler.clone(),
                 protocol,
                 request,
+                body,
                 spec,
                 codec_name,
                 compression,
                 ctx,
                 pipe_depth,
+                sink,
             )
             .await
         }
     }
 }
 
-/// Unary: decode the request body → invoke the erased handler → frame the
-/// response per protocol. Unary bypasses the streaming seam (Decision 08).
+/// Unary over a request whose body is already in `request.body` (h2, h3).
+/// See [`run_unary_body`].
 pub(crate) async fn run_unary(
     handler: Arc<dyn super::erased::ErasedUnaryHandler>,
     protocol: &dyn ProtocolHandler,
@@ -194,18 +477,54 @@ pub(crate) async fn run_unary(
     ctx: Ctx,
     read_max_bytes: usize,
 ) -> SimpleOutgoingResponse {
+    let body = in_memory_body(request.body.take());
+    run_unary_body(
+        handler,
+        protocol,
+        request,
+        body,
+        codec_name,
+        compression,
+        ctx,
+        read_max_bytes,
+    )
+    .await
+}
+
+/// Unary: read the request body (capped at `read_max_bytes`) → decode →
+/// invoke the erased handler → frame the response per protocol. Unary bypasses
+/// the streaming seam (Decision 08).
+#[allow(clippy::too_many_arguments)]
+async fn run_unary_body(
+    handler: Arc<dyn super::erased::ErasedUnaryHandler>,
+    protocol: &dyn ProtocolHandler,
+    request: SimpleIncomingRequest,
+    mut body: RequestBody<'_>,
+    codec_name: String,
+    compression: &crate::shared::compression::CompressionRegistry,
+    ctx: Ctx,
+    read_max_bytes: usize,
+) -> SimpleOutgoingResponse {
     let mut response = blank_response(&request);
 
-    let (tx, mut rx) = Pipe::<Bytes>::new();
-    if let Err(e) = pipe_body(&tx, &mut request) {
-        tracing::warn!(error = %e, "body pipe error; proceeding with partial body");
-    }
-    drop(tx);
-    let body = match drain_to_bytes(&mut rx, read_max_bytes) {
+    let body = match read_unary_body(&mut body, read_max_bytes).await {
         Ok(b) => b,
-        Err(e) => {
-            tracing::warn!(error = %e, "request body exceeded read_max_bytes; returning 413");
+        Err(UnaryBodyError::TooLarge(len)) => {
+            tracing::warn!(
+                len,
+                read_max_bytes,
+                "request body exceeded read_max_bytes; returning 413"
+            );
             response.status = Status::PayloadTooLarge;
+            return response;
+        }
+        Err(UnaryBodyError::Read(e)) => {
+            tracing::warn!(error = %e, "request body could not be read");
+            let error = ConnectError::new(
+                crate::shared::error::Code::InvalidArgument,
+                format!("request body could not be read: {e}"),
+            );
+            write_error(&mut response, &request, &error.into());
             return response;
         }
     };
@@ -240,20 +559,37 @@ pub(crate) async fn run_unary(
 }
 
 /// Streaming: build the protocol exchange over byte pipes, then drive its
-/// reader/writer tasks, the handler, a body feeder, and a response collector
-/// concurrently. Response bytes are collected in memory (see module docs).
+/// reader/writer tasks, the handler, a body feeder and a response pump
+/// concurrently.
+///
+/// The request body is fed into the protocol pipe chunk by chunk, with
+/// backpressure, as the reader task consumes it. Framed response bytes go to
+/// `sink` as the writer task produces them. The head is withheld until the
+/// first frame (as on h2), so a handler that fails before emitting anything is
+/// still reported with a real status through [`ResponseSink::whole`]. After the
+/// head has gone out, errors travel in-band, framed by the writer task.
+///
+/// The response decides when the RPC is over:
+/// - a sink failure (the peer went away) ends it at once, dropping the
+///   handler, so an endless stream is released;
+/// - once the response side (writer task + handler) is done, a request side
+///   still waiting on the peer is abandoned, as on h2. The connection owner
+///   sees that the body was not read to its end and must not reuse the
+///   connection.
 #[allow(clippy::too_many_arguments)]
 async fn run_streaming(
     handler: Arc<dyn super::erased::ErasedStreamHandler>,
     protocol: &dyn ProtocolHandler,
-    mut request: SimpleIncomingRequest,
+    request: SimpleIncomingRequest,
+    mut body: RequestBody<'_>,
     spec: Spec,
     codec_name: String,
     compression: &crate::shared::compression::CompressionRegistry,
     ctx: Ctx,
     pipe_depth: usize,
-) -> SimpleOutgoingResponse {
-    let mut response = blank_response(&request);
+    sink: &mut dyn ResponseSink,
+) -> io::Result<()> {
+    use futures::future::{select, Either};
 
     let (req_tx, req_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
     let (resp_tx, resp_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
@@ -261,8 +597,9 @@ async fn run_streaming(
     let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, compression) {
         Ok(exchange) => exchange,
         Err(e) => {
+            let mut response = blank_response(&request);
             write_error(&mut response, &request, &e);
-            return response;
+            return sink.whole(response).await;
         }
     };
     let crate::shared::protocol::HandlerExchange {
@@ -271,59 +608,103 @@ async fn run_streaming(
         writer_task,
     } = exchange;
 
-    // Feed request body chunks into the transport byte pipe, then close.
-    let (body_tx, body_rx) = Pipe::<Bytes>::new();
-    if let Err(e) = pipe_body(&body_tx, &mut request) {
-        tracing::warn!(error = %e, "body pipe error; request body will be empty");
-    }
-    drop(body_tx);
+    // Feed the request body into the protocol pipe as the reader consumes it.
+    // A body that fails part-way cancels the RPC: ending the pipe quietly would
+    // look to the handler like a stream that finished normally.
+    let cancel = ctx.cancel_signal().clone();
     let feeder = async move {
-        let rx = body_rx;
-        while let Ok(chunk) = rx.try_recv() {
-            if req_tx.send(chunk).await.is_err() {
-                break;
+        while let Some(chunk) = body.next().await {
+            match chunk {
+                Ok(bytes) => {
+                    // The reader task is gone: nobody wants the rest.
+                    if req_tx.send(bytes).await.is_err() {
+                        break;
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!(error = %e, "request body stream failed; cancelling the RPC");
+                    cancel.cancel();
+                    break;
+                }
             }
         }
         req_tx.close();
     };
-    // Collect the framed response bytes the writer task emits.
-    let collector = async move {
-        let mut out = Vec::new();
-        while let Some(chunk) = resp_rx.receive().await {
-            out.extend_from_slice(&chunk);
-        }
-        out
-    };
-    let handler_fut = handler.handle(ctx, &codec_name, conn);
-
-    let (_, reader_res, writer_res, handler_res, collected) =
-        futures::join!(feeder, reader_task, writer_task, handler_fut, collector);
 
     let content_type = protocol.streaming_response_content_type(&request, &codec_name);
     // The writer task compressed per this same negotiation — the peer only
     // accepts flagged envelopes when the encoding is advertised.
     let response_encoding = protocol.streaming_response_encoding(&request, compression);
-    if !collected.is_empty() {
-        // The stream framed itself (including any in-band terminal error).
-        response.status = Status::OK;
-        response
-            .headers
-            .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
-        if let Some((name, enc)) = response_encoding {
-            response.headers.insert(SimpleHeader::from(name), vec![enc]);
-        }
-        response.body = Some(SendSafeBody::Bytes(collected));
-    } else if let Some(e) = handler_res.err().or(writer_res.err()).or(reader_res.err()) {
-        write_error(&mut response, &request, &e);
-    } else {
-        // No frames and no error — an empty successful stream.
-        response.status = Status::OK;
-        response
-            .headers
-            .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
-        response.body = Some(SendSafeBody::Bytes(Vec::new()));
+    let mut head = blank_response(&request);
+    head.status = Status::OK;
+    head.headers
+        .insert(SimpleHeader::CONTENT_TYPE, vec![content_type.clone()]);
+    if let Some((name, enc)) = response_encoding.clone() {
+        head.headers.insert(SimpleHeader::from(name), vec![enc]);
     }
+
+    // Forward framed response bytes to the sink as they are produced. Returns
+    // whether the head went out. The pump owns `resp_rx`, so when it stops the
+    // writer task's sends fail instead of waiting on a full pipe forever.
+    let pump = async {
+        let resp_rx = resp_rx;
+        let mut head = Some(head);
+        while let Some(chunk) = resp_rx.receive().await {
+            if let Some(head) = head.take() {
+                sink.open(head).await?;
+            }
+            sink.chunk(chunk).await?;
+        }
+        Ok::<_, io::Error>(head.is_none())
+    };
+    let handler_fut = handler.handle(ctx, &codec_name, conn);
+
+    let request_side = std::pin::pin!(futures::future::join(feeder, reader_task));
+    let response_side = std::pin::pin!(futures::future::join(writer_task, handler_fut));
+    let rest = std::pin::pin!(async move {
+        match select(request_side, response_side).await {
+            Either::Left((((), reader_res), response_side)) => {
+                let (writer_res, handler_res) = response_side.await;
+                (reader_res, writer_res, handler_res)
+            }
+            // The response is complete; stop reading a body the peer has not
+            // finished sending.
+            Either::Right(((writer_res, handler_res), _request_side)) => {
+                (Ok(()), writer_res, handler_res)
+            }
+        }
+    });
+    // Scoped so the pump's borrow of `sink` ends before the closing write.
+    let (opened, (reader_res, writer_res, handler_res)) = {
+        let pump = std::pin::pin!(pump);
+        match select(pump, rest).await {
+            // The peer is gone: drop the handler and everything else now.
+            Either::Left((Err(e), _rest)) => return Err(e),
+            Either::Left((Ok(opened), rest)) => (opened, rest.await),
+            Either::Right((outcomes, pump)) => (pump.await?, outcomes),
+        }
+    };
+
+    if opened {
+        // The stream framed itself, including any in-band terminal error.
+        return sink.finish().await;
+    }
+    if let Some(e) = handler_res.err().or(writer_res.err()).or(reader_res.err()) {
+        let mut response = blank_response(&request);
+        write_error(&mut response, &request, &e);
+        return sink.whole(response).await;
+    }
+    // No frames and no error — an empty successful stream.
+    let mut response = blank_response(&request);
+    response.status = Status::OK;
     response
+        .headers
+        .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
+    if let Some((name, enc)) = response_encoding {
+        response.headers.insert(SimpleHeader::from(name), vec![enc]);
+    }
+    response.body = Some(SendSafeBody::Bytes(Vec::new()));
+    sink.whole(response).await
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -449,38 +830,27 @@ fn protocol_name(kind: ProtocolKind) -> &'static str {
     }
 }
 
-/// Pump request body chunks into `tx`. Caller creates the pipe and holds `rx`.
-/// No buffering — the caller drains chunks from `rx`.
-///
-/// # Errors
-/// Stream error from the body iterator, or pipe-full from `try_send`.
-fn pipe_body(tx: &PipeSender<Bytes>, request: &mut SimpleIncomingRequest) -> Result<(), SendableBoxedError> {
-    let Some(body) = request.body.take() else { return Ok(()) };
-    let mut iter = SendSafeBodyBytesIterator::new(body);
-    loop {
-        match iter.next() {
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
-                tx.try_send(bytes).map_err(|e| Box::new(std::io::Error::other(e.to_string())) as SendableBoxedError)?;
-            }
-            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
-                return Err(Box::new(std::io::Error::other(e.to_string())));
-            }
-            None => return Ok(()),
-            _ => {}
-        }
-    }
+/// Why a unary request body could not be read.
+enum UnaryBodyError {
+    /// The body passed `read_max_bytes`; carries the size read so far.
+    TooLarge(usize),
+    /// The body stream failed.
+    Read(io::Error),
 }
 
-/// Drain a closed pipe receiver into `Bytes`, enforcing `max_bytes`.
-/// `0` means unlimited. Returns `Err` if the body exceeds the cap.
-fn drain_to_bytes(rx: &mut PipeReceiver<Bytes>, max_bytes: usize) -> Result<Bytes, SendableBoxedError> {
+/// Read a unary request body, stopping as soon as it passes `max_bytes`
+/// (`0` means unlimited). The body is consumed chunk by chunk, so an oversized
+/// body is rejected without being held whole.
+async fn read_unary_body(
+    body: &mut RequestBody<'_>,
+    max_bytes: usize,
+) -> Result<Bytes, UnaryBodyError> {
     let mut buf = bytes::BytesMut::new();
-    while let Ok(chunk) = rx.try_recv() {
+    while let Some(chunk) = body.next().await {
+        let chunk = chunk.map_err(UnaryBodyError::Read)?;
         buf.extend_from_slice(&chunk);
         if max_bytes > 0 && buf.len() > max_bytes {
-            return Err(Box::new(std::io::Error::other(
-                format!("request body of {} bytes exceeds read_max_bytes of {max_bytes}", buf.len()),
-            )));
+            return Err(UnaryBodyError::TooLarge(buf.len()));
         }
     }
     Ok(buf.freeze())
@@ -555,7 +925,10 @@ pub(crate) fn write_error(
     request: &SimpleIncomingRequest,
     error: &foundation_errstacks::ErrorTrace<ConnectError>,
 ) {
-    let _ = ErrorWriter::new().write(response, request, error);
+    if let Err(e) = ErrorWriter::new().write(response, request, error) {
+        // The response keeps whatever status was set before the failure.
+        tracing::error!(error = ?e, "could not render the error response");
+    }
 }
 
 // ── HTTP/2 dispatch ───────────────────────────────────────────────────────────
@@ -677,19 +1050,36 @@ async fn send_whole_response(
     Ok(())
 }
 
-/// Drain the inbound h2 body pipe into a buffer (unary: exactly one message).
+/// What reading an h2 unary request body produced.
+#[cfg(not(target_family = "wasm"))]
+enum H2Body {
+    Collected(Vec<u8>),
+    /// The peer reset the stream.
+    Reset,
+    /// The body passed `read_max_bytes`; carries the size read so far.
+    TooLarge(usize),
+}
+
+/// Drain the inbound h2 body pipe into a buffer (unary: exactly one message),
+/// stopping as soon as it passes `max_bytes` (`0` means unlimited) so an
+/// oversized body is never held whole.
 ///
 /// A peer RST_STREAM ends collection early; the caller abandons the stream.
 #[cfg(not(target_family = "wasm"))]
-async fn collect_h2_body(body: &PipeReceiver<H2IncomingFrame>) -> Option<Vec<u8>> {
+async fn collect_h2_body(body: &PipeReceiver<H2IncomingFrame>, max_bytes: usize) -> H2Body {
     let mut out = Vec::new();
     while let Some(frame) = body.receive().await {
         match frame {
-            H2IncomingFrame::Data(chunk) => out.extend_from_slice(&chunk),
-            H2IncomingFrame::Reset(_) => return None,
+            H2IncomingFrame::Data(chunk) => {
+                out.extend_from_slice(&chunk);
+                if max_bytes > 0 && out.len() > max_bytes {
+                    return H2Body::TooLarge(out.len());
+                }
+            }
+            H2IncomingFrame::Reset(_) => return H2Body::Reset,
         }
     }
-    Some(out)
+    H2Body::Collected(out)
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -777,9 +1167,23 @@ async fn dispatch_h2_stream(
         HandlerKind::Unary(handler) => {
             // Unary carries exactly one message: collect it, then reuse the
             // sequential unary path.
-            let Some(collected) = collect_h2_body(&body).await else {
+            let read_max_bytes = entry.options.limits.read_max_bytes;
+            let collected = match collect_h2_body(&body, read_max_bytes).await {
+                H2Body::Collected(collected) => collected,
                 // Peer reset the stream — nothing to answer.
-                return Ok(());
+                H2Body::Reset => return Ok(()),
+                H2Body::TooLarge(len) => {
+                    tracing::warn!(
+                        len,
+                        read_max_bytes,
+                        "request body exceeded read_max_bytes; returning 413"
+                    );
+                    return send_whole_response(
+                        &tx,
+                        status_only(&request, Status::PayloadTooLarge),
+                    )
+                    .await;
+                }
             };
             let mut request = request;
             request.body = Some(SendSafeBody::Bytes(collected));

@@ -160,6 +160,7 @@ fn new_work_interrupts_sleep() {
 }
 
 #[test]
+#[serial_test::serial]
 fn test_get_num_threads_when_env_is_not_set() {
     env::remove_var("VALTRON_NUM_THREADS");
     let thread_num = get_num_threads();
@@ -168,6 +169,7 @@ fn test_get_num_threads_when_env_is_not_set() {
 }
 
 #[test]
+#[serial_test::serial]
 fn test_get_num_threads_when_env_is_set() {
     env::remove_var("VALTRON_NUM_THREADS");
     env::set_var("VALTRON_NUM_THREADS", "2");

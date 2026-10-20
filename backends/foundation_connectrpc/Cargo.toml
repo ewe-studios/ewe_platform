@@ -29,6 +29,10 @@ flate2 = "1.0"
 zstd = { version = "0.13", optional = true }
 brotli = { version = "8", optional = true }
 
+[target.'cfg(unix)'.dependencies]
+# `poll(2)` for the HTTP/1.1 server's connection driver (`native::conn_io`).
+libc = "0.2"
+
 [dev-dependencies]
 foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", features = ["to_structured"] }
@@ -67,6 +71,10 @@ required-features = ["rpc_multi", "h3"]
 
 [[test]]
 name = "h3_conformance_tests"
+required-features = ["rpc_multi", "h3"]
+
+[[test]]
+name = "h3_streaming_tests"
 required-features = ["rpc_multi", "h3"]
 
 [[test]]

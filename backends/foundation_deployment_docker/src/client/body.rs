@@ -17,6 +17,8 @@
 //!   that error, mapped by the endpoint ([`DockerError::PullFailed`],
 //!   [`DockerError::PushFailed`], [`DockerError::BuildFailed`]).
 //! - [`EventStream`] — `/events`, one [`EventMessage`] per event.
+//! - [`StatsStream`] — `/containers/{id}/stats`, one
+//!   [`ContainerStatsResponse`] per sample.
 //! - [`ByteBody`] — raw chunks (tar archives).
 //! - [`LogStream`] — demultiplexed stdout/stderr frames (logs, attach, exec).
 //!
@@ -39,6 +41,7 @@ use crate::error::DockerError;
 use crate::generated::create::CreateImageInfo;
 use crate::generated::events::EventMessage;
 use crate::generated::push::PushImageInfo;
+use crate::generated::stats::ContainerStatsResponse;
 use crate::generated::shared::{BuildInfo, ErrorDetail};
 use crate::streaming::decoder::{LogFrameDecoder, LogOutput};
 
@@ -237,6 +240,59 @@ impl FuturesStream for EventStream {
     }
 }
 
+// ── stats ───────────────────────────────────────────────────────────────
+
+/// `/containers/{id}/stats`, one [`ContainerStatsResponse`] per line.
+///
+/// With `stream=true` — what [`DockerClient::container_stats_stream`] asks
+/// for, and dockerd's default — the daemon writes a sample about once a second
+/// for as long as the container runs: the stream ends only when the caller
+/// drops it (which closes the connection) or the daemon closes the feed (the
+/// container is removed, or the daemon stops). With `stream=false` the body is
+/// a single line, which [`DockerClient::container_stats`] reads for you.
+///
+/// [`DockerClient::container_stats_stream`]: crate::client::DockerClient::container_stats_stream
+/// [`DockerClient::container_stats`]: crate::client::DockerClient::container_stats
+pub struct StatsStream {
+    lines: JsonLinesStream<ContainerStatsResponse>,
+}
+
+impl StatsStream {
+    /// Wrap a `/containers/{id}/stats` body.
+    #[must_use]
+    pub fn new(lines: JsonLinesStream<ContainerStatsResponse>) -> Self {
+        Self { lines }
+    }
+
+    /// The next sample, `None` once the daemon closes the feed.
+    ///
+    /// # Errors
+    ///
+    /// A malformed sample ([`DockerError::JsonParse`]) or a failed read
+    /// ([`DockerError::Transport`]); the stream ends after it.
+    pub async fn next(&mut self) -> Option<Result<ContainerStatsResponse, DockerError>> {
+        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+    }
+}
+
+impl core::fmt::Debug for StatsStream {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("StatsStream")
+            .field("lines", &self.lines)
+            .finish()
+    }
+}
+
+impl FuturesStream for StatsStream {
+    type Item = Result<ContainerStatsResponse, DockerError>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        Pin::new(&mut self.get_mut().lines)
+            .poll_next(cx)
+            .map(|item| item.map(|r| r.map_err(DockerError::from)))
+    }
+}
+
 // ── raw bytes ───────────────────────────────────────────────────────────
 
 /// A raw response body (an image or container tarball), chunk by chunk.
@@ -406,100 +462,5 @@ impl FuturesStream for LogStream {
                 }
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use foundation_netio::shared::http::SendSafeBody;
-
-    fn block_on<F: core::future::Future>(fut: F) -> F::Output {
-        let mut fut = core::pin::pin!(fut);
-        let mut cx = Context::from_waker(core::task::Waker::noop());
-        loop {
-            if let Poll::Ready(v) = fut.as_mut().poll(&mut cx) {
-                return v;
-            }
-        }
-    }
-
-    fn pull(text: &str) -> ProgressStream<CreateImageInfo> {
-        ProgressStream::new(
-            JsonLinesStream::new(SendSafeBody::Bytes(text.as_bytes().to_vec())),
-            DockerError::PullFailed,
-        )
-    }
-
-    #[test]
-    fn progress_items_are_typed() {
-        let mut s = pull("{\"status\":\"Pulling\",\"id\":\"latest\",\"progressDetail\":{\"current\":1,\"total\":4}}\n");
-        let item = block_on(s.next()).expect("item").expect("ok");
-        assert_eq!(item.status.as_deref(), Some("Pulling"));
-        assert_eq!(item.progress_detail.and_then(|p| p.total), Some(4));
-        assert!(block_on(s.next()).is_none());
-    }
-
-    #[test]
-    fn an_in_band_error_ends_the_stream_with_the_endpoints_error() {
-        let s = pull(
-            "{\"status\":\"a\"}\n{\"errorDetail\":{\"message\":\"denied\"},\"error\":\"denied\"}\n{\"status\":\"never\"}\n",
-        );
-        let err = block_on(s.finish()).expect_err("in-band error");
-        assert!(
-            matches!(&err, DockerError::PullFailed(m) if m == "denied"),
-            "{err:?}"
-        );
-    }
-
-    #[test]
-    fn a_build_reports_the_image_it_built() {
-        let s = ProgressStream::<BuildInfo>::new(
-            JsonLinesStream::new(SendSafeBody::Text(
-                "{\"stream\":\"Step 1/1 : FROM scratch\\n\"}\n{\"aux\":{\"ID\":\"sha256:abc\"}}\n"
-                    .into(),
-            )),
-            DockerError::BuildFailed,
-        );
-        assert_eq!(
-            block_on(s.image_id()).expect("built").as_deref(),
-            Some("sha256:abc")
-        );
-    }
-
-    #[test]
-    fn log_frames_are_demultiplexed_and_a_truncated_frame_is_an_error() {
-        let mut raw = vec![1, 0, 0, 0, 0, 0, 0, 3];
-        raw.extend_from_slice(b"out");
-        raw.extend_from_slice(&[2, 0, 0, 0, 0, 0, 0, 3]);
-        raw.extend_from_slice(b"err");
-        let (mut out, mut err) = (String::new(), String::new());
-        block_on(
-            LogStream::new(ByteStream::new(SendSafeBody::Bytes(raw.clone())))
-                .read_into(&mut out, &mut err),
-        )
-        .expect("frames");
-        assert_eq!((out.as_str(), err.as_str()), ("out", "err"));
-
-        raw.extend_from_slice(&[1, 0, 0, 0, 0, 0, 0, 9, b'x']);
-        let result = block_on(
-            LogStream::new(ByteStream::new(SendSafeBody::Bytes(raw))).read_into(&mut out, &mut err),
-        );
-        assert!(
-            matches!(result, Err(DockerError::JsonParse(_))),
-            "{result:?}"
-        );
-    }
-
-    #[test]
-    fn an_oversized_frame_header_is_an_error_not_a_huge_buffer() {
-        let mut raw = vec![1, 0, 0, 0, 0xff, 0xff, 0xff, 0xff];
-        raw.extend(std::iter::repeat_n(b'x', MAX_LOG_FRAME + 16));
-        let mut s = LogStream::new(ByteStream::new(SendSafeBody::Bytes(raw)));
-        let first = block_on(s.next()).expect("an error");
-        assert!(
-            matches!(first, Err(DockerError::JsonParse(ref m)) if m.contains("larger than")),
-            "{first:?}"
-        );
     }
 }

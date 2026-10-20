@@ -130,27 +130,17 @@ fn echo_serve() -> Arc<dyn Serve> {
 }
 
 /// Read an HTTP/1.1 response off `stream`: `(status_code, body_bytes)`. Reads the
-/// header block, then exactly `Content-Length` body bytes (no reliance on EOF).
+/// header block, then the body: exactly `Content-Length` bytes, or the decoded
+/// chunks of a `Transfer-Encoding: chunked` body (no reliance on EOF).
 fn read_response(stream: &mut TcpStream) -> (u16, Vec<u8>) {
-    let mut buf = Vec::new();
-    let mut tmp = [0u8; 1024];
-    // Read until the header terminator is present.
-    let header_end = loop {
-        if let Some(pos) = find_subsequence(&buf, b"\r\n\r\n") {
-            break pos + 4;
+    let (status, head, mut rest) = read_head(stream);
+    if is_chunked(&head) {
+        let mut body = Vec::new();
+        while let Some(chunk) = read_chunk(stream, &mut rest) {
+            body.extend_from_slice(&chunk);
         }
-        let n = stream.read(&mut tmp).expect("read headers");
-        assert!(n > 0, "connection closed before headers completed");
-        buf.extend_from_slice(&tmp[..n]);
-    };
-    let head = String::from_utf8_lossy(&buf[..header_end]).to_string();
-
-    let status = head
-        .lines()
-        .next()
-        .and_then(|l| l.split_whitespace().nth(1))
-        .and_then(|c| c.parse::<u16>().ok())
-        .expect("status line");
+        return (status, body);
+    }
     let content_length = head
         .lines()
         .find_map(|l| {
@@ -162,18 +152,75 @@ fn read_response(stream: &mut TcpStream) -> (u16, Vec<u8>) {
         .unwrap_or_else(|| {
             panic!(
                 "no content-length; raw head:\n{head}\n---body-so-far---\n{}",
-                String::from_utf8_lossy(&buf[header_end..])
+                String::from_utf8_lossy(&rest)
             )
         });
 
-    let mut body = buf[header_end..].to_vec();
-    while body.len() < content_length {
+    let mut tmp = [0u8; 1024];
+    while rest.len() < content_length {
         let n = stream.read(&mut tmp).expect("read body");
         assert!(n > 0, "connection closed before body completed");
-        body.extend_from_slice(&tmp[..n]);
+        rest.extend_from_slice(&tmp[..n]);
     }
-    body.truncate(content_length);
-    (status, body)
+    rest.truncate(content_length);
+    (status, rest)
+}
+
+/// Read the status line and headers: `(status, head_text, bytes_read_past_the_head)`.
+fn read_head(stream: &mut TcpStream) -> (u16, String, Vec<u8>) {
+    let mut buf = Vec::new();
+    let mut tmp = [0u8; 1024];
+    let header_end = loop {
+        if let Some(pos) = find_subsequence(&buf, b"\r\n\r\n") {
+            break pos + 4;
+        }
+        let n = stream.read(&mut tmp).expect("read headers");
+        assert!(n > 0, "connection closed before headers completed");
+        buf.extend_from_slice(&tmp[..n]);
+    };
+    let head = String::from_utf8_lossy(&buf[..header_end]).to_string();
+    let status = head
+        .lines()
+        .next()
+        .and_then(|l| l.split_whitespace().nth(1))
+        .and_then(|c| c.parse::<u16>().ok())
+        .expect("status line");
+    (status, head, buf[header_end..].to_vec())
+}
+
+fn is_chunked(head: &str) -> bool {
+    head.lines().any(|l| {
+        l.split_once(':').is_some_and(|(k, v)| {
+            k.trim().eq_ignore_ascii_case("transfer-encoding")
+                && v.to_ascii_lowercase().contains("chunked")
+        })
+    })
+}
+
+/// Read one HTTP/1.1 chunk, using `rest` as the read-ahead buffer. `None` at the
+/// terminating zero-length chunk.
+fn read_chunk(stream: &mut TcpStream, rest: &mut Vec<u8>) -> Option<Vec<u8>> {
+    let mut tmp = [0u8; 4096];
+    let line_end = loop {
+        if let Some(pos) = find_subsequence(rest, b"\r\n") {
+            break pos;
+        }
+        let n = stream.read(&mut tmp).expect("read chunk size");
+        assert!(n > 0, "connection closed inside a chunk size line");
+        rest.extend_from_slice(&tmp[..n]);
+    };
+    let size_text = String::from_utf8_lossy(&rest[..line_end]).to_string();
+    let size = usize::from_str_radix(size_text.split(';').next().unwrap().trim(), 16)
+        .expect("chunk size");
+    let needed = line_end + 2 + size + 2;
+    while rest.len() < needed {
+        let n = stream.read(&mut tmp).expect("read chunk data");
+        assert!(n > 0, "connection closed inside a chunk");
+        rest.extend_from_slice(&tmp[..n]);
+    }
+    let data = rest[line_end + 2..line_end + 2 + size].to_vec();
+    rest.drain(..needed);
+    (size > 0).then_some(data)
 }
 
 fn find_subsequence(haystack: &[u8], needle: &[u8]) -> Option<usize> {
@@ -627,6 +674,700 @@ async fn h1_client_server_stream_over_real_socket() {
         assert_eq!(item.id, 10 + i as i32, "item {i} id over H1 client");
         assert_eq!(item.name, format!("item-{i}"), "item {i} name over H1 client");
     }
+
+    shutdown.turn_on();
+}
+
+// ── Streaming responses and request bodies over a raw socket ─────────────────
+//
+// WHY: the HTTP/1.1 server used to collect a streaming RPC's whole response in
+// memory and write it only after the handler finished, and it pushed request
+// bodies through a 4-slot pipe with `try_send`, silently dropping every chunk
+// after the fourth. These tests pin down that frames reach the client as they
+// are produced, that a stream is held back by a slow client rather than
+// buffered, and that request bodies of any chunk count arrive whole.
+
+use std::future::Future;
+use std::pin::Pin;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::task::{Context, Poll};
+
+use foundation_connectrpc::{Code, ConnectError};
+
+/// Start an `HttpServer` serving `serve` at `route`; returns its address and the
+/// shutdown switch.
+fn start_server(route: &str, serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<OnSignal>) {
+    let mut app = HttpApp::new_serve();
+    app.router.add_route_any(route, &serve);
+    let shutdown = Arc::new(OnSignal::new());
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
+    let shutdown_thread = shutdown.clone();
+    std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
+    (addr, shutdown)
+}
+
+/// One Connect envelope: flags byte, 4-byte big-endian length, payload.
+fn envelope(flags: u8, payload: &[u8]) -> Vec<u8> {
+    let mut buf = Vec::with_capacity(5 + payload.len());
+    buf.push(flags);
+    buf.extend_from_slice(&(payload.len() as u32).to_be_bytes());
+    buf.extend_from_slice(payload);
+    buf
+}
+
+fn json_envelope(msg: &TestMsg) -> Vec<u8> {
+    envelope(0, &JsonCodec.marshal(msg).expect("marshal"))
+}
+
+/// Read the next whole envelope `(flags, payload)` from a chunked body, carrying
+/// partial envelopes across chunks in `carry`. `None` once the body ends.
+fn read_envelope(
+    stream: &mut TcpStream,
+    rest: &mut Vec<u8>,
+    carry: &mut Vec<u8>,
+) -> Option<(u8, Vec<u8>)> {
+    loop {
+        if carry.len() >= 5 {
+            let len = u32::from_be_bytes([carry[1], carry[2], carry[3], carry[4]]) as usize;
+            if carry.len() >= 5 + len {
+                let flags = carry[0];
+                let payload = carry[5..5 + len].to_vec();
+                carry.drain(..5 + len);
+                return Some((flags, payload));
+            }
+        }
+        let chunk = read_chunk(stream, rest)?;
+        carry.extend_from_slice(&chunk);
+    }
+}
+
+/// Send a Connect streaming POST whose body is `body`, as one chunk per entry.
+fn send_chunked_request(
+    stream: &mut TcpStream,
+    procedure: &str,
+    content_type: &str,
+    body: &[Vec<u8>],
+) {
+    let head = format!(
+        "POST {procedure} HTTP/1.1\r\nHost: t\r\nContent-Type: {content_type}\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n"
+    );
+    stream.write_all(head.as_bytes()).expect("write head");
+    for piece in body {
+        write!(stream, "{:x}\r\n", piece.len()).expect("chunk size");
+        stream.write_all(piece).expect("chunk data");
+        stream.write_all(b"\r\n").expect("chunk end");
+    }
+    stream.write_all(b"0\r\n\r\n").expect("last chunk");
+    stream.flush().expect("flush");
+}
+
+/// Pending until `flag` is set. Busy-wakes, which is fine for a test gate.
+struct WaitFor(Arc<AtomicBool>);
+
+impl Future for WaitFor {
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
+        if self.0.load(Ordering::SeqCst) {
+            Poll::Ready(())
+        } else {
+            cx.waker().wake_by_ref();
+            Poll::Pending
+        }
+    }
+}
+
+fn open_stream_request(addr: std::net::SocketAddr, procedure: &str) -> (TcpStream, Vec<u8>) {
+    let mut stream = connect_with_retry(addr);
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    let seed = TestMsg {
+        id: 1,
+        name: "seed".to_string(),
+    };
+    send_chunked_request(
+        &mut stream,
+        procedure,
+        "application/connect+json",
+        &[json_envelope(&seed)],
+    );
+    let (status, head, rest) = read_head(&mut stream);
+    assert_eq!(status, 200, "stream opens with 200; head:\n{head}");
+    assert!(is_chunked(&head), "a stream is sent chunked; head:\n{head}");
+    (stream, rest)
+}
+
+const GATED_PROCEDURE: &str = "/test.StreamService/Gated";
+
+/// The first frame must reach the client while the handler is still running:
+/// the handler emits one item, then waits until the client has received it.
+/// A server that collects the stream before writing never sends that item, and
+/// the client's read times out.
+#[test]
+fn first_frame_arrives_before_the_handler_finishes() {
+    let _guard = initialize_pool(46, Some(4));
+    let released = Arc::new(AtomicBool::new(false));
+
+    let gate = released.clone();
+    let mut router = Router::new();
+    router.server_stream(
+        GATED_PROCEDURE,
+        ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
+        move |_ctx, _req: Request<TestMsg>| {
+            let gate = gate.clone();
+            async move {
+                Ok(futures::stream::unfold(0u8, move |step| {
+                    let gate = gate.clone();
+                    async move {
+                        match step {
+                            0 => Some((
+                                Ok(TestMsg {
+                                    id: 0,
+                                    name: "first".into(),
+                                }),
+                                1,
+                            )),
+                            1 => {
+                                WaitFor(gate).await;
+                                Some((
+                                    Ok(TestMsg {
+                                        id: 1,
+                                        name: "second".into(),
+                                    }),
+                                    2,
+                                ))
+                            }
+                            _ => None,
+                        }
+                    }
+                }))
+            }
+        },
+        HandlerOptions::new(),
+    );
+    let (addr, shutdown) = start_server(
+        GATED_PROCEDURE,
+        Arc::new(ConnectRpcServe::new(router.into_handler())),
+    );
+
+    let (mut stream, mut rest) = open_stream_request(addr, GATED_PROCEDURE);
+    let mut carry = Vec::new();
+
+    let (flags, payload) = read_envelope(&mut stream, &mut rest, &mut carry)
+        .expect("first frame arrives while the handler waits");
+    assert_eq!(flags, 0);
+    let first: TestMsg = JsonCodec.unmarshal(Bytes::from(payload)).expect("decode");
+    assert_eq!(first.name, "first");
+    released.store(true, Ordering::SeqCst);
+
+    let (_, payload) = read_envelope(&mut stream, &mut rest, &mut carry).expect("second frame");
+    let second: TestMsg = JsonCodec.unmarshal(Bytes::from(payload)).expect("decode");
+    assert_eq!(second.name, "second");
+    let (flags, _) = read_envelope(&mut stream, &mut rest, &mut carry).expect("end of stream");
+    assert_eq!(flags & FLAG_END_STREAM, FLAG_END_STREAM);
+    assert!(
+        read_envelope(&mut stream, &mut rest, &mut carry).is_none(),
+        "body ends"
+    );
+
+    shutdown.turn_on();
+}
+
+const ENDLESS_PROCEDURE: &str = "/test.StreamService/Endless";
+
+/// Sets its flag when dropped: tells the test the handler's stream was released.
+struct DropFlag(Arc<AtomicBool>);
+
+impl Drop for DropFlag {
+    fn drop(&mut self) {
+        self.0.store(true, Ordering::SeqCst);
+    }
+}
+
+/// An endless stream is held back by a client that stops reading (no frames
+/// pile up in server memory), and is released once the client goes away.
+#[test]
+fn endless_stream_follows_the_client_and_stops_when_it_leaves() {
+    let _guard = initialize_pool(47, Some(4));
+    let produced = Arc::new(AtomicUsize::new(0));
+    let dropped = Arc::new(AtomicBool::new(false));
+    // Large frames fill the socket buffers after a few items, so backpressure
+    // shows up as the producer stalling.
+    let big = "x".repeat(64 * 1024);
+
+    let (count, drop_flag) = (produced.clone(), dropped.clone());
+    let mut router = Router::new();
+    router.server_stream(
+        ENDLESS_PROCEDURE,
+        ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
+        move |_ctx, _req: Request<TestMsg>| {
+            let (count, drop_flag, big) = (count.clone(), drop_flag.clone(), big.clone());
+            async move {
+                let guard = DropFlag(drop_flag);
+                Ok(futures::stream::unfold(guard, move |guard| {
+                    let n = count.fetch_add(1, Ordering::SeqCst);
+                    let big = big.clone();
+                    async move {
+                        Some((
+                            Ok(TestMsg {
+                                id: n as i32,
+                                name: big,
+                            }),
+                            guard,
+                        ))
+                    }
+                }))
+            }
+        },
+        HandlerOptions::new(),
+    );
+    let (addr, shutdown) = start_server(
+        ENDLESS_PROCEDURE,
+        Arc::new(ConnectRpcServe::new(router.into_handler())),
+    );
+
+    let (mut stream, mut rest) = open_stream_request(addr, ENDLESS_PROCEDURE);
+    let mut carry = Vec::new();
+    for i in 0..5 {
+        let (flags, payload) =
+            read_envelope(&mut stream, &mut rest, &mut carry).expect("frame from endless stream");
+        assert_eq!(flags, 0);
+        let msg: TestMsg = JsonCodec.unmarshal(Bytes::from(payload)).expect("decode");
+        assert_eq!(msg.id, i, "frames arrive in order");
+    }
+
+    // Stop reading: the producer must stall once the pipes and socket buffers
+    // are full instead of running ahead into memory. How long the buffers take
+    // to fill depends on the kernel's socket buffer sizes and the machine's
+    // load, so wait for the count to hold still for a whole window rather than
+    // sampling once after a fixed delay.
+    let window = Duration::from_millis(300);
+    let deadline = std::time::Instant::now() + Duration::from_secs(10);
+    let mut stalled_at = produced.load(Ordering::SeqCst);
+    loop {
+        std::thread::sleep(window);
+        let now = produced.load(Ordering::SeqCst);
+        if now == stalled_at {
+            break;
+        }
+        assert!(
+            std::time::Instant::now() < deadline,
+            "the producer is held back while the client is not reading; \
+             it was still producing ({stalled_at} -> {now}) after 10s"
+        );
+        stalled_at = now;
+    }
+    assert!(
+        stalled_at < 500,
+        "only a bounded number of frames is in flight, got {stalled_at}"
+    );
+
+    // Leave: the server's next write fails, which must release the handler.
+    drop(stream);
+    let deadline = std::time::Instant::now() + Duration::from_secs(10);
+    while !dropped.load(Ordering::SeqCst) {
+        assert!(
+            std::time::Instant::now() < deadline,
+            "the handler's stream was not released after the client left"
+        );
+        std::thread::sleep(Duration::from_millis(20));
+    }
+
+    shutdown.turn_on();
+}
+
+const FAILING_PROCEDURE: &str = "/test.StreamService/FailsAfterOne";
+
+/// An error after frames have gone out travels in-band in the end-of-stream
+/// frame, under the 200 already sent.
+#[test]
+fn error_after_frames_is_sent_in_band() {
+    let _guard = initialize_pool(48, Some(4));
+    let mut router = Router::new();
+    router.server_stream(
+        FAILING_PROCEDURE,
+        ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
+        |_ctx, _req: Request<TestMsg>| async move {
+            let items: Vec<ConnectResult<TestMsg>> = vec![
+                Ok(TestMsg {
+                    id: 1,
+                    name: "ok".into(),
+                }),
+                Err(ConnectError::new(Code::ResourceExhausted, "out of widgets").into()),
+            ];
+            Ok(futures::stream::iter(items))
+        },
+        HandlerOptions::new(),
+    );
+    let (addr, shutdown) = start_server(
+        FAILING_PROCEDURE,
+        Arc::new(ConnectRpcServe::new(router.into_handler())),
+    );
+
+    let (mut stream, mut rest) = open_stream_request(addr, FAILING_PROCEDURE);
+    let mut carry = Vec::new();
+    let (flags, _) = read_envelope(&mut stream, &mut rest, &mut carry).expect("data frame");
+    assert_eq!(flags, 0);
+    let (flags, payload) = read_envelope(&mut stream, &mut rest, &mut carry).expect("end frame");
+    assert_eq!(flags & FLAG_END_STREAM, FLAG_END_STREAM);
+    let end = String::from_utf8_lossy(&payload);
+    assert!(
+        end.contains("resource_exhausted"),
+        "end-stream carries the code: {end}"
+    );
+    assert!(
+        end.contains("out of widgets"),
+        "end-stream carries the message: {end}"
+    );
+
+    shutdown.turn_on();
+}
+
+const REFUSING_PROCEDURE: &str = "/test.StreamService/Refuses";
+
+/// A handler that fails before producing a stream still gets a well-formed
+/// response carrying its error code.
+#[test]
+fn error_before_any_frame_is_reported() {
+    let _guard = initialize_pool(49, Some(4));
+    let mut router = Router::new();
+    router.server_stream(
+        REFUSING_PROCEDURE,
+        ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
+        |_ctx, _req: Request<TestMsg>| async move {
+            Err::<futures::stream::Empty<ConnectResult<TestMsg>>, _>(
+                ConnectError::new(Code::PermissionDenied, "not yours").into(),
+            )
+        },
+        HandlerOptions::new(),
+    );
+    let (addr, shutdown) = start_server(
+        REFUSING_PROCEDURE,
+        Arc::new(ConnectRpcServe::new(router.into_handler())),
+    );
+
+    let mut stream = connect_with_retry(addr);
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    let seed = TestMsg::default();
+    send_chunked_request(
+        &mut stream,
+        REFUSING_PROCEDURE,
+        "application/connect+json",
+        &[json_envelope(&seed)],
+    );
+    let (status, body) = read_response(&mut stream);
+    let text = String::from_utf8_lossy(&body);
+    assert!(
+        text.contains("permission_denied") && text.contains("not yours"),
+        "status {status}, body: {text}"
+    );
+
+    shutdown.turn_on();
+}
+
+/// A unary request body sent as many chunks arrives whole. It used to be cut
+/// off after the fourth chunk.
+#[test]
+fn unary_request_body_in_many_chunks_arrives_whole() {
+    let _guard = initialize_pool(50, Some(4));
+    let (addr, shutdown) = start_server(PROCEDURE, echo_serve());
+
+    let msg = TestMsg {
+        id: 7,
+        name: "a name long enough to split into many small chunks".to_string(),
+    };
+    let json = JsonCodec.marshal(&msg).expect("marshal").to_vec();
+    let pieces: Vec<Vec<u8>> = json.chunks(3).map(<[u8]>::to_vec).collect();
+    assert!(pieces.len() > 10);
+
+    let mut stream = connect_with_retry(addr);
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    send_chunked_request(&mut stream, PROCEDURE, "application/json", &pieces);
+    let (status, body) = read_response(&mut stream);
+    assert_eq!(status, 200, "body: {}", String::from_utf8_lossy(&body));
+    let echoed: TestMsg = JsonCodec.unmarshal(Bytes::from(body)).expect("decode echo");
+    assert_eq!(echoed, msg);
+
+    shutdown.turn_on();
+}
+
+const COUNT_PROCEDURE: &str = "/test.StreamService/Count";
+
+/// Every message of a client stream sent as many chunks reaches the handler.
+#[test]
+fn client_stream_in_many_chunks_delivers_every_message() {
+    let _guard = initialize_pool(51, Some(4));
+    let mut router = Router::new();
+    router.client_stream(
+        COUNT_PROCEDURE,
+        ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
+        |_ctx, mut reqs: foundation_connectrpc::RequestStream<TestMsg>| async move {
+            let mut count = 0;
+            while let Some(msg) = reqs.next().await {
+                msg?;
+                count += 1;
+            }
+            Ok(Response::new(TestMsg {
+                id: count,
+                name: "counted".into(),
+            }))
+        },
+        HandlerOptions::new(),
+    );
+    let (addr, shutdown) = start_server(
+        COUNT_PROCEDURE,
+        Arc::new(ConnectRpcServe::new(router.into_handler())),
+    );
+
+    let pieces: Vec<Vec<u8>> = (0..12)
+        .map(|i| {
+            json_envelope(&TestMsg {
+                id: i,
+                name: format!("m{i}"),
+            })
+        })
+        .collect();
+
+    let mut stream = connect_with_retry(addr);
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    send_chunked_request(
+        &mut stream,
+        COUNT_PROCEDURE,
+        "application/connect+json",
+        &pieces,
+    );
+    let (status, body) = read_response(&mut stream);
+    assert_eq!(status, 200);
+    let (messages, saw_end) = parse_connect_envelope_stream(&body);
+    assert!(saw_end, "end-stream frame present");
+    assert_eq!(messages.len(), 1);
+    let reply: TestMsg = JsonCodec
+        .unmarshal(Bytes::from(messages[0].clone()))
+        .expect("decode");
+    assert_eq!(reply.id, 12, "every message reached the handler");
+
+    shutdown.turn_on();
+}
+
+/// Write `head`, then each body piece with a pause before it, so the server
+/// reads the body faster than it arrives and its non-blocking socket reports
+/// `WouldBlock` between pieces.
+fn send_slowly(stream: &mut TcpStream, head: &str, pieces: &[Vec<u8>], pause: Duration) {
+    stream.write_all(head.as_bytes()).expect("write head");
+    stream.flush().expect("flush head");
+    for piece in pieces {
+        std::thread::sleep(pause);
+        stream.write_all(piece).expect("write piece");
+        stream.flush().expect("flush piece");
+    }
+}
+
+/// A request body that arrives slowly is waited for, not failed: every
+/// message of a client stream whose chunks trickle in reaches the handler.
+#[test]
+fn client_stream_body_arriving_slowly_is_waited_for() {
+    let _guard = initialize_pool(52, Some(4));
+    let mut router = Router::new();
+    router.client_stream(
+        COUNT_PROCEDURE,
+        ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
+        |_ctx, mut reqs: foundation_connectrpc::RequestStream<TestMsg>| async move {
+            let mut count = 0;
+            while let Some(msg) = reqs.next().await {
+                msg?;
+                count += 1;
+            }
+            Ok(Response::new(TestMsg {
+                id: count,
+                name: "counted".into(),
+            }))
+        },
+        HandlerOptions::new(),
+    );
+    let (addr, shutdown) = start_server(
+        COUNT_PROCEDURE,
+        Arc::new(ConnectRpcServe::new(router.into_handler())),
+    );
+
+    let mut pieces: Vec<Vec<u8>> = (0..5)
+        .map(|i| {
+            let env = json_envelope(&TestMsg {
+                id: i,
+                name: format!("m{i}"),
+            });
+            let mut chunk = format!("{:x}\r\n", env.len()).into_bytes();
+            chunk.extend_from_slice(&env);
+            chunk.extend_from_slice(b"\r\n");
+            chunk
+        })
+        .collect();
+    pieces.push(b"0\r\n\r\n".to_vec());
+
+    let mut stream = connect_with_retry(addr);
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    let head = format!(
+        "POST {COUNT_PROCEDURE} HTTP/1.1\r\nHost: t\r\nContent-Type: application/connect+json\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n"
+    );
+    send_slowly(&mut stream, &head, &pieces, Duration::from_millis(50));
+    let (status, body) = read_response(&mut stream);
+    assert_eq!(status, 200, "body: {}", String::from_utf8_lossy(&body));
+    let (messages, saw_end) = parse_connect_envelope_stream(&body);
+    assert!(saw_end, "end-stream frame present");
+    assert_eq!(messages.len(), 1);
+    let reply: TestMsg = JsonCodec
+        .unmarshal(Bytes::from(messages[0].clone()))
+        .expect("decode");
+    assert_eq!(reply.id, 5, "every message reached the handler");
+
+    shutdown.turn_on();
+}
+
+/// A sized (`Content-Length`) unary body that arrives in slow pieces is
+/// waited for and arrives whole.
+#[test]
+fn unary_body_arriving_slowly_is_waited_for() {
+    let _guard = initialize_pool(53, Some(4));
+    let (addr, shutdown) = start_server(PROCEDURE, echo_serve());
+
+    let msg = TestMsg {
+        id: 9,
+        name: "sent a few bytes at a time".to_string(),
+    };
+    let json = JsonCodec.marshal(&msg).expect("marshal").to_vec();
+    let pieces: Vec<Vec<u8>> = json.chunks(8).map(<[u8]>::to_vec).collect();
+
+    let mut stream = connect_with_retry(addr);
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    let head = format!(
+        "POST {PROCEDURE} HTTP/1.1\r\nHost: t\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        json.len()
+    );
+    send_slowly(&mut stream, &head, &pieces, Duration::from_millis(50));
+    let (status, body) = read_response(&mut stream);
+    assert_eq!(status, 200, "body: {}", String::from_utf8_lossy(&body));
+    let echoed: TestMsg = JsonCodec.unmarshal(Bytes::from(body)).expect("decode echo");
+    assert_eq!(echoed, msg);
+
+    shutdown.turn_on();
+}
+
+/// Send a unary echo request on a kept-alive connection and check the reply.
+fn keep_alive_unary(stream: &mut TcpStream, id: i32) {
+    let msg = TestMsg {
+        id,
+        name: "again".to_string(),
+    };
+    let json = JsonCodec.marshal(&msg).expect("marshal").to_vec();
+    let head = format!(
+        "POST {PROCEDURE} HTTP/1.1\r\nHost: t\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n",
+        json.len()
+    );
+    stream.write_all(head.as_bytes()).expect("write head");
+    stream.write_all(&json).expect("write body");
+    let (status, body) = read_response(stream);
+    assert_eq!(status, 200, "body: {}", String::from_utf8_lossy(&body));
+    let echoed: TestMsg = JsonCodec.unmarshal(Bytes::from(body)).expect("decode echo");
+    assert_eq!(echoed, msg);
+}
+
+/// A kept-alive connection serves a unary call, then a streamed response,
+/// then another unary call: each response is framed so the next request is
+/// read from the right place.
+#[test]
+fn keep_alive_connection_serves_unary_and_streams_in_turn() {
+    let _guard = initialize_pool(54, Some(4));
+    let mut app = HttpApp::new_serve();
+    let echo = echo_serve();
+    let list = list_serve();
+    app.router.add_route_any(PROCEDURE, &echo);
+    app.router.add_route_any(LIST_PROCEDURE, &list);
+    let shutdown = Arc::new(OnSignal::new());
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
+    let shutdown_thread = shutdown.clone();
+    std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
+
+    let mut stream = connect_with_retry(addr);
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+
+    keep_alive_unary(&mut stream, 1);
+
+    let seed = json_envelope(&TestMsg {
+        id: 10,
+        name: "seed".to_string(),
+    });
+    let head = format!(
+        "POST {LIST_PROCEDURE} HTTP/1.1\r\nHost: t\r\nContent-Type: application/connect+json\r\nContent-Length: {}\r\n\r\n",
+        seed.len()
+    );
+    stream.write_all(head.as_bytes()).expect("write head");
+    stream.write_all(&seed).expect("write body");
+    let (status, body) = read_response(&mut stream);
+    assert_eq!(status, 200);
+    let (messages, saw_end) = parse_connect_envelope_stream(&body);
+    assert_eq!(messages.len(), 3);
+    assert!(saw_end);
+
+    keep_alive_unary(&mut stream, 2);
+
+    shutdown.turn_on();
+}
+
+/// A request rejected before its body is read leaves that body on the
+/// connection. The server must close the connection after answering instead
+/// of parsing those bytes as the next request.
+#[test]
+fn rejected_request_with_unread_body_closes_the_connection() {
+    let _guard = initialize_pool(55, Some(4));
+    let (addr, shutdown) = start_server(PROCEDURE, echo_serve());
+
+    let mut stream = connect_with_retry(addr);
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    // Not an RPC content type: answered with 415 without reading the body,
+    // and the body reads as a request to anyone who parses it as one.
+    let body = b"GET /smuggled HTTP/1.1\r\nHost: t\r\n\r\n";
+    let head = format!(
+        "POST {PROCEDURE} HTTP/1.1\r\nHost: t\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n",
+        body.len()
+    );
+    stream.write_all(head.as_bytes()).expect("write head");
+    stream.write_all(body).expect("write body");
+    let (status, _) = read_response(&mut stream);
+    assert_eq!(status, 415);
+
+    let mut rest = Vec::new();
+    let read = stream.read_to_end(&mut rest);
+    assert!(
+        read.is_ok() && rest.is_empty(),
+        "the connection closes after the response and nothing else is answered: {read:?}, {}",
+        String::from_utf8_lossy(&rest)
+    );
 
     shutdown.turn_on();
 }

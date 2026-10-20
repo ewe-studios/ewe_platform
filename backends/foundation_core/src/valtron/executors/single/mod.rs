@@ -87,7 +87,7 @@ thread_local! {
     static GLOBAL_LOCAL_EXECUTOR_ENGINE: OnceCell<LocalThreadExecutor<DefaultController>> = OnceCell::new();
 }
 
-/// Optional singleton guard. Module-level so we can reset in tests.
+/// Optional singleton guard backing [`SingleExecutorSingleton`].
 static VALTRON_SINGLETON: std::sync::Mutex<Option<PoolGuard>> = std::sync::Mutex::new(None);
 
 /// Optional convenience wrapper for initializing the single-threaded valtron executor.
@@ -127,12 +127,6 @@ impl SingleExecutorSingleton {
     /// Check if the singleton has been initialized.
     pub fn is_initialized() -> bool {
         VALTRON_SINGLETON.lock().unwrap().is_some()
-    }
-
-    /// Force-reset for testing. cfg-gated to `#[cfg(test)]`.
-    #[cfg(test)]
-    pub fn reset() {
-        *VALTRON_SINGLETON.lock().unwrap() = None;
     }
 }
 
@@ -334,185 +328,5 @@ pub fn run_background_job(job: impl FnOnce() + 'static) -> crate::valtron::Gener
             tracing::error!("Background job panicked (single-threaded): {panic_info:?}");
             Err("Background job panicked".into())
         }
-    }
-}
-
-#[cfg(all(test, not(target_family = "wasm")))]
-mod single_threaded_tests {
-    use std::{cell::RefCell, rc::Rc};
-
-    use foundation_compact::rng::Rng;
-    use tracing_test::traced_test;
-
-    use crate::valtron::{
-        single::{initialize_pool, run_until, run_until_complete, spawn},
-        Ctx, FnReady, Stream, TaskIterator, TaskStatus,
-    };
-
-    struct Counter(usize, Rc<RefCell<Vec<usize>>>);
-
-    impl Counter {
-        pub fn new(val: usize, list: Rc<RefCell<Vec<usize>>>) -> Self {
-            Self(val, list)
-        }
-    }
-
-    impl TaskIterator for Counter {
-        type Pending = ();
-
-        type Ready = usize;
-
-        fn next_status(
-            &mut self,
-            _ctx: Ctx,
-        ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending>> {
-            let item_size = self.1.borrow().len();
-
-            if item_size == self.0 {
-                return None;
-            }
-
-            self.1.borrow_mut().push(item_size);
-
-            Some(crate::valtron::TaskStatus::Ready(self.1.borrow().len()))
-        }
-    }
-
-    #[test]
-    #[traced_test]
-    fn can_queue_task_only() {
-        let seed = foundation_compact::rng::rng().next_u64();
-
-        let shared_list = Rc::new(RefCell::new(Vec::new()));
-        let counter = Counter::new(5, shared_list.clone());
-
-        initialize_pool(seed);
-
-        spawn()
-            .with_task(counter)
-            .with_resolver(Box::new(FnReady::new(|item, _| {
-                tracing::info!("Received next: {:?}", item)
-            })))
-            .as_scheduled()
-            .spawn()
-            .expect("should deliver task");
-
-        assert_eq!(shared_list.borrow().len(), 0);
-    }
-
-    #[test]
-    #[traced_test]
-    fn can_queue_and_complete_task_with_run_until() {
-        let seed = foundation_compact::rng::rng().next_u64();
-
-        let shared_list = Rc::new(RefCell::new(Vec::new()));
-        let counter = Counter::new(5, shared_list.clone());
-
-        initialize_pool(seed);
-
-        spawn()
-            .with_task(counter)
-            .with_resolver(Box::new(FnReady::new(|item, _| {
-                tracing::info!("Received next: {:?}", item);
-            })))
-            .as_scheduled()
-            .spawn()
-            .expect("should deliver task");
-
-        let handle = shared_list.clone();
-        run_until(|_| {
-            if handle.borrow_mut().len() >= 5 {
-                return true;
-            }
-            false
-        });
-
-        assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
-    }
-
-    #[test]
-    #[traced_test]
-    fn can_queue_and_complete_task() {
-        let seed = foundation_compact::rng::rng().next_u64();
-
-        let shared_list = Rc::new(RefCell::new(Vec::new()));
-        let counter = Counter::new(5, shared_list.clone());
-
-        initialize_pool(seed);
-
-        spawn()
-            .with_task(counter)
-            .with_resolver(Box::new(FnReady::new(|item, _| {
-                tracing::info!("Received next: {:?}", item)
-            })))
-            .as_scheduled()
-            .spawn()
-            .expect("should deliver task");
-
-        run_until_complete();
-
-        assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
-    }
-
-    #[test]
-    #[traced_test]
-    fn can_queue_and_complete_task_with_iterator() {
-        let seed = foundation_compact::rng::rng().next_u64();
-
-        let shared_list = Rc::new(RefCell::new(Vec::new()));
-        let counter = Counter::new(5, shared_list.clone());
-
-        initialize_pool(seed);
-
-        let iter = spawn()
-            .with_task(counter)
-            .as_scheduled()
-            .recv(std::time::Duration::from_nanos(50))
-            .expect("should deliver task");
-
-        run_until_complete();
-
-        let complete: Vec<usize> = iter
-            .filter_map(|item| match item {
-                crate::valtron::executors::local::NotificationItem::Ready(TaskStatus::Ready(
-                    value,
-                )) => Some(value),
-                _ => None,
-            })
-            .collect();
-
-        assert_eq!(complete, vec![1, 2, 3, 4, 5]);
-        assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
-    }
-
-    #[test]
-    #[traced_test]
-    fn can_queue_and_complete_stream_with_iterator() {
-        let seed = foundation_compact::rng::rng().next_u64();
-
-        let shared_list = Rc::new(RefCell::new(Vec::new()));
-        let counter = Counter::new(5, shared_list.clone());
-
-        initialize_pool(seed);
-
-        let iter = spawn()
-            .with_task(counter)
-            .as_scheduled()
-            .stream(std::time::Duration::from_nanos(50))
-            .expect("should deliver task");
-
-        run_until_complete();
-
-        let complete: Vec<usize> = iter
-            .map(|item| match item {
-                Stream::Next(value) => Some(value),
-                _ => None,
-            })
-            .take_while(|t| t.is_some())
-            .map(|t| t.unwrap())
-            .collect();
-
-        assert_eq!(complete, vec![1, 2, 3, 4, 5]);
-        assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
     }
 }

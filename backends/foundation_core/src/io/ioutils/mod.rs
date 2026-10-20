@@ -210,26 +210,6 @@ impl<T: Write + ?Sized> Write for BufferedReader<T> {
     }
 }
 
-#[cfg(test)]
-mod buffered_reader_tests {
-    use super::*;
-
-    #[test]
-    fn can_buffered_reader_peek() {
-        let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(&content[..]);
-
-        let mut content_to_read = vec![0; 5];
-        reader
-            .peek(&mut content_to_read)
-            .expect("should read data correctly");
-
-        assert_eq!(b"alexa", &content_to_read[..]);
-
-        assert_eq!(content, reader.buffer());
-    }
-}
-
 // -- Writer
 
 pub struct BufferedWriter<T: ?Sized + Write> {
@@ -1991,52 +1971,62 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(slice))
     }
 
-    /// [`Self::read_all`] reads the underlying size of the buffer provided data, consuming
-    /// all that is requested which moves both the peek cursor and the actual data cursor
-    /// which means that part of the internal buffer read from the underlying reader will
-    /// at some point be discarded as it should be.
+    /// [`Self::read_size`] copies up to `buf.len()` unconsumed bytes into `buf` and
+    /// consumes exactly the bytes it copied. This is what [`Read::read`] uses.
+    ///
+    /// Bytes are taken from the data cursor, the first byte not yet consumed. Bytes
+    /// you have only peeked at (through the `next*`/`forward*` methods) are not
+    /// consumed yet, so this returns them too. Afterwards the data cursor has moved
+    /// forward by the number of bytes returned. The peek cursor stays where it was,
+    /// unless it was behind the new data cursor; then it moves up to it. Nothing
+    /// past what was returned is discarded.
+    ///
+    /// The internal buffer is filled from the underlying reader until it holds
+    /// `buf.len()` unconsumed bytes, or the reader reports EOF or an error. A short
+    /// count therefore means EOF, or that the reader failed after some bytes were
+    /// already buffered. `Ok(0)` means EOF with nothing left, or an empty `buf`.
     ///
     /// # Errors
-    /// Returns an error if reading from the underlying reader fails.
+    /// Returns the underlying reader's error (including `WouldBlock`) if it fails
+    /// before any unconsumed byte is available. If some bytes are already
+    /// buffered, they are returned instead and the error is left for the next call.
     pub fn read_size(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let read = match self.nextby(buf.len()) {
-            Ok(state) => match state {
-                PeekState::Request(data) => {
-                    let ending = if buf.len() > data.len() {
-                        data.len()
-                    } else {
-                        buf.len()
-                    };
-
-                    for (index, elem) in data[0..ending].iter().enumerate() {
-                        buf[index] = *elem;
-                    }
-
-                    Ok(ending)
-                }
-                PeekState::LessThanRequested => {
-                    let ending = if buf.len() > self.buffer.len() {
-                        self.buffer.len()
-                    } else {
-                        buf.len()
-                    };
-                    for (index, elem) in self.buffer[0..ending].iter().enumerate() {
-                        buf[index] = *elem;
-                    }
-                    Ok(ending)
-                }
-                _ => return Ok(0),
-            },
-            Err(err) => Err(err),
-        };
-
-        match read {
-            Ok(val) => {
-                self.skip();
-                Ok(val)
-            }
-            Err(err) => Err(err),
+        if buf.is_empty() {
+            return Ok(0);
         }
+
+        let mut cached_error: Option<std::io::Error> = None;
+        while self.remaining() < buf.len() {
+            match self.fill_up() {
+                Ok(0) => break,
+                Ok(_) => {}
+                Err(err) => {
+                    cached_error = Some(err);
+                    break;
+                }
+            }
+        }
+
+        // `fill_up` may compact the buffer, which moves both cursors, so the
+        // data cursor is read only after filling.
+        let available = self.remaining();
+        if available == 0 {
+            return match cached_error {
+                Some(err) => Err(err),
+                None => Ok(0),
+            };
+        }
+
+        let copied = available.min(buf.len());
+        let from = self.pos;
+        buf[..copied].copy_from_slice(&self.buffer[from..from + copied]);
+
+        self.pos = from + copied;
+        if self.peek_pos < self.pos {
+            self.peek_pos = self.pos;
+        }
+
+        Ok(copied)
     }
 
     /// [`Self::nextby`] provides a more friendly API ontop [`Self::nextby`] returning
@@ -2326,9 +2316,11 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// [`Self::read_all`] pulls the whole data within the underlying stream into provided buffer
-    /// returning the total length of bytes read out after pulling all the data within the
-    /// stream until EOF.
+    /// [`Self::read_all`] pulls the rest of the underlying stream, up to EOF, and appends
+    /// every unconsumed byte to `buf`, consuming all of them.
+    ///
+    /// Like [`Self::read_size`], it starts at the data cursor, so bytes that were only
+    /// peeked at are included. Returns the number of bytes appended.
     ///
     /// # Errors
     /// Returns an error if reading from the underlying stream fails or if the read limit is exceeded.
@@ -2339,19 +2331,14 @@ impl<T: Read> ByteBufferPointer<T> {
     ) -> std::io::Result<usize> {
         self.fill_all(read_limit)?;
 
-        // get len of buffer
         let buffer_len = self.buffer.len();
-
-        // get current peek position
-        let original_peek = self.peek_pos;
-
-        let slice = &self.buffer[original_peek..buffer_len];
+        let slice = &self.buffer[self.pos..buffer_len];
         let slice_length = slice.len();
 
         buf.extend_from_slice(slice);
 
         self.peek_pos = buffer_len;
-        self.skip();
+        self.pos = buffer_len;
 
         Ok(slice_length)
     }
@@ -2374,24 +2361,29 @@ impl<T: Read> Read for ByteBufferPointer<T> {
 }
 
 impl<T: Read> PeekableReadStream for ByteBufferPointer<T> {
+    /// Copies upcoming bytes into `buf` without moving either cursor, as the
+    /// trait requires. It looks from the peek cursor (see [`ByteBufferPointer::peekby`]),
+    /// so when no `next*`/`forward*` peek is outstanding, a following
+    /// [`Read::read`] returns the same bytes.
+    ///
+    /// Returns `Ok(0)` once the stream is drained and at EOF.
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
-        match self.nextby(buf.len()) {
-            Ok(state) => match state {
-                PeekState::Request(data) => {
-                    let ending = if buf.len() > data.len() {
-                        data.len()
-                    } else {
-                        buf.len()
-                    };
-
-                    for (index, elem) in data[0..ending].iter().enumerate() {
-                        buf[index] = *elem;
-                    }
-                    Ok(data.len())
-                }
-                PeekState::ZeroLengthInput => Err(PeekError::ZeroLengthNotAllowed),
-                _ => unreachable!("We should never hit this state"),
-            },
+        match self.peekby(buf.len()) {
+            Ok(PeekState::Request(data) | PeekState::Stalled(data)) => {
+                let copied = data.len().min(buf.len());
+                buf[..copied].copy_from_slice(&data[..copied]);
+                Ok(copied)
+            }
+            Ok(PeekState::ZeroLengthInput) => Err(PeekError::ZeroLengthNotAllowed),
+            // `peekby` returns `NoNext` when nothing is buffered and the reader
+            // is at EOF; the remaining states carry no bytes either.
+            Ok(
+                PeekState::NoNext
+                | PeekState::LessThanRequested
+                | PeekState::EndOfBuffered
+                | PeekState::EndOfFile
+                | PeekState::Continue,
+            ) => Ok(0),
             Err(err) => Err(PeekError::IOError(err)),
         }
     }
@@ -2404,527 +2396,6 @@ impl<T: Read> BufferCapacity for ByteBufferPointer<T> {
 
     fn read_capacity(&self) -> usize {
         self.pull_amount
-    }
-}
-
-#[cfg(test)]
-mod byte_buffered_buffer_pointer {
-    use std::io::Cursor;
-    use std::sync::Arc;
-    use std::sync::Mutex;
-
-    use super::*;
-
-    #[test]
-    fn fails_read_all_the_data_when_limit_is_reached() {
-        let content = b"alexander_wonderbat";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(5, reader));
-
-        let mut binding = buffer.lock().unwrap();
-
-        let mut read_data = Vec::new();
-
-        let read_length = binding.read_all(&mut read_data, Some(2));
-        assert!(read_length.is_err())
-    }
-
-    #[test]
-    fn can_read_all_the_data() {
-        let content = b"alexander_wonderbat";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(5, reader));
-
-        let mut binding = buffer.lock().unwrap();
-
-        let mut read_data = Vec::new();
-
-        let read_length = binding
-            .read_all(&mut read_data, None)
-            .expect("read data successfully");
-        assert_eq!(read_length, content.len());
-
-        let data_4_str = str::from_utf8(&read_data[0..read_length]).expect("convert into string");
-        assert_eq!(data_4_str, "alexander_wonderbat");
-    }
-
-    #[test]
-    fn can_read_bytes_until_found() {
-        const NO_BAR: &[u8] = b"_";
-        let content = b"alexander_wonderbat\n";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
-
-        let mut binding = buffer.lock().unwrap();
-
-        let mut new_line = Vec::new();
-        let read = binding.read_bytes_until(NO_BAR, &mut new_line);
-
-        assert_eq!(10, read.unwrap());
-        let data4 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(new_line, data4);
-    }
-
-    #[test]
-    fn can_read_bytes_until_not_found() {
-        const NO_BAR: &[u8] = b"-";
-        let content = b"alexander_wonderbat\n";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
-
-        let mut binding = buffer.lock().unwrap();
-
-        let mut new_line = Vec::new();
-        let read = binding.read_bytes_until(NO_BAR, &mut new_line);
-
-        assert_eq!(content.len(), read.unwrap());
-        let data4 = vec![
-            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
-            116, 10,
-        ];
-        assert_eq!(new_line, data4);
-    }
-
-    #[test]
-    fn can_peek_line() {
-        let content = b"alexander_wonderbat\n";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
-
-        let mut binding = buffer.lock().unwrap();
-
-        let mut new_line = String::new();
-        let read = binding.next_line(&mut new_line);
-
-        assert_eq!(content.len(), read.unwrap());
-        assert_eq!(new_line, "alexander_wonderbat\n");
-
-        let data4 = vec![
-            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
-            116, 10,
-        ];
-        assert_eq!(binding.scan(), &data4);
-    }
-
-    #[test]
-    fn can_read_line() {
-        let content = b"alexander_wonderbat\n";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
-
-        let mut binding = buffer.lock().unwrap();
-
-        let mut new_line = String::new();
-        let read = binding.read_line(&mut new_line);
-
-        assert_eq!(content.len(), read.unwrap());
-        assert_eq!(new_line, "alexander_wonderbat\n");
-    }
-
-    #[test]
-    fn can_peek_until_a_signal_and_consume() {
-        const SIGNAL: &[u8] = b"_";
-
-        let content = b"alexander_wonderbat";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
-
-        let mut binding = buffer.lock().unwrap();
-        assert!(matches!(
-            binding.next_until(SIGNAL).expect("should peek"),
-            PeekState::Request(_)
-        ));
-
-        let result = binding.consume();
-        let content = result.unwrap();
-
-        let data4 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(content, data4);
-
-        let data_4_str = str::from_utf8(&data4).expect("convert into string");
-        assert_eq!(data_4_str, "alexander_");
-    }
-
-    #[test]
-    fn can_peek_until_a_signal() {
-        const SIGNAL: &[u8] = b"_";
-
-        let content = b"alexander_wonderbat";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
-
-        let mut binding = buffer.lock().unwrap();
-        let result = binding.next_until(SIGNAL);
-        assert!(matches!(result, Ok(PeekState::Request(_))));
-
-        let PeekState::Request(content) = result.unwrap() else {
-            panic!("Failed expectation")
-        };
-
-        let data4 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(content, &data4);
-
-        let data_4_str = str::from_utf8(&data4).expect("convert into string");
-        assert_eq!(data_4_str, "alexander_");
-    }
-
-    #[test]
-    fn can_peek_until_a_signal_but_not_found() {
-        const SIGNAL: &[u8] = b"-";
-
-        let content = b"alexander_wonderbat";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
-
-        let mut binding = buffer.lock().unwrap();
-        let result = binding.next_until(SIGNAL);
-        assert!(matches!(result, Ok(PeekState::EndOfFile)));
-    }
-
-    #[test]
-    fn can_take_peeked_data_with_multi_mutex() {
-        let content = b"alexander_wonderbat";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let buffer = Mutex::new(ByteBufferPointer::new(10, reader));
-
-        assert_eq!(
-            buffer.lock().unwrap().peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.lock().unwrap().fill_up().expect("should fill up");
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.lock().unwrap().peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
-
-        assert_eq!(
-            buffer.lock().unwrap().forward_by(9).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        assert_eq!(buffer.lock().unwrap().scan(), &data3[0..9]);
-        assert_eq!(buffer.lock().unwrap().full_scan(), &data3[0..10]);
-
-        assert_eq!(
-            buffer.lock().unwrap().forward_by(10).expect("capture 4"),
-            PeekState::EndOfBuffered
-        );
-
-        let amt = buffer.lock().unwrap().fill_up().expect("should fill up");
-
-        assert_eq!(
-            buffer.lock().unwrap().forward_by(amt).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        let data4 = vec![
-            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
-            116,
-        ];
-        assert_eq!(buffer.lock().unwrap().scan(), &data4);
-    }
-
-    #[test]
-    fn can_read_data_via_byte_buffer_pointer() {
-        let content = b"alexander_wonderbat";
-        let mut source = Cursor::new(content.to_vec());
-        let reader = OwnedReader::atomic(&mut source);
-        let mut buffer = ByteBufferPointer::new(128, reader);
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let data = vec![97];
-
-        assert_eq!(
-            buffer.peek().expect("capture 1"),
-            PeekState::Request(data.as_ref())
-        );
-
-        let data2 = vec![97, 108];
-        assert_eq!(
-            buffer.peek_by(2).expect("capture 2"),
-            PeekState::Request(data2.as_ref())
-        );
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
-    }
-
-    #[test]
-    fn can_take_peeked_data() {
-        let content = b"alexander_wonderbat";
-        let mut source = Cursor::new(content.to_vec());
-        let reader = OwnedReader::atomic(&mut source);
-        let mut buffer = ByteBufferPointer::new(128, reader);
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
-    }
-
-    #[test]
-    fn can_take_unmove_data() {
-        let content = b"alexander_wonderbat";
-        let mut source = Cursor::new(content.to_vec());
-        let reader = OwnedReader::atomic(&mut source);
-        let mut buffer = ByteBufferPointer::new(128, reader);
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
-
-        assert_eq!(
-            buffer.forward_by(10).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        assert_eq!(buffer.scan(), &data3[0..10]);
-
-        assert_eq!(
-            buffer.unforward_by(5).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        assert_eq!(buffer.scan(), &data3[0..5]);
-    }
-
-    #[test]
-    fn can_skip_data() {
-        let content = b"alexander_wonderbat";
-        let mut source = Cursor::new(content.to_vec());
-        let reader = OwnedReader::atomic(&mut source);
-        let mut buffer = ByteBufferPointer::new(128, reader);
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
-
-        assert_eq!(
-            buffer.forward_by(10).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        assert_eq!(buffer.scan(), &data3[0..10]);
-
-        assert_eq!(
-            buffer.unforward_by(5).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        buffer.skip();
-
-        let data4: Vec<u8> = vec![];
-        assert_eq!(buffer.scan(), &data4);
-
-        let data5: Vec<u8> = vec![110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.peek_by(5).expect("capture 3"),
-            PeekState::Request(data5.as_ref())
-        );
-    }
-
-    #[test]
-    fn can_use_buffered_reader_move_next_data() {
-        let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-        let mut buffer = ByteBufferPointer::new(128, OwnedReader::atomic(&mut reader));
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(0, buffer.data_cursor());
-        assert_eq!(0, buffer.peek_cursor());
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
-        assert_eq!(
-            buffer.forward_by(10).expect("capture 3"),
-            PeekState::Continue
-        );
-        assert_eq!(buffer.scan(), &data3[0..10]);
-        assert!(!buffer.greater_than_40_percent());
-        assert_eq!(buffer.consume().expect("capture 3"), data3.clone());
-        assert!(buffer.greater_than_40_percent());
-    }
-
-    #[test]
-    fn can_move_next_data() {
-        let content = b"alexander_wonderbat";
-        let mut source = Cursor::new(content.to_vec());
-        let reader = OwnedReader::atomic(&mut source);
-        let mut buffer = ByteBufferPointer::new(128, reader);
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(0, buffer.data_cursor());
-        assert_eq!(0, buffer.peek_cursor());
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
-        assert_eq!(
-            buffer.forward_by(10).expect("capture 3"),
-            PeekState::Continue
-        );
-        assert_eq!(buffer.scan(), &data3[0..10]);
-        assert!(!buffer.greater_than_40_percent());
-        assert_eq!(buffer.consume().expect("capture 3"), data3.clone());
-        assert!(buffer.greater_than_40_percent());
-    }
-
-    #[test]
-    fn can_pull_more_data() {
-        let content = b"alexander_wonderbat";
-
-        let mut source = Cursor::new(content.to_vec());
-        let reader = OwnedReader::atomic(&mut source);
-        let mut buffer = ByteBufferPointer::new(10, reader);
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
-
-        assert_eq!(
-            buffer.forward_by(9).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        assert_eq!(buffer.scan(), &data3[0..9]);
-        assert_eq!(buffer.full_scan(), &data3[0..10]);
-
-        assert_eq!(
-            buffer.forward_by(10).expect("capture 4"),
-            PeekState::EndOfBuffered
-        );
-
-        let amt = buffer.fill_up().expect("should fill up");
-
-        assert_eq!(
-            buffer.forward_by(amt).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        let data4 = vec![
-            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
-            116,
-        ];
-        assert_eq!(buffer.scan(), &data4);
-    }
-
-    #[test]
-    fn can_pull_more_data_with_mutex() {
-        let content = b"alexander_wonderbat";
-
-        let reader = OwnedReader::Sync(Arc::new(Mutex::new(Cursor::new(content.to_vec()))));
-        let mut buffer = ByteBufferPointer::new(10, reader);
-
-        assert_eq!(
-            buffer.peek().expect("less than requested"),
-            PeekState::LessThanRequested
-        );
-
-        buffer.fill_up().expect("should fill up");
-
-        let data3 = vec![97, 108, 101, 120, 97, 110, 100, 101, 114, 95];
-        assert_eq!(
-            buffer.peek_by(10).expect("capture 3"),
-            PeekState::Request(data3.as_ref())
-        );
-
-        assert_eq!(
-            buffer.forward_by(9).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        assert_eq!(buffer.scan(), &data3[0..9]);
-        assert_eq!(buffer.full_scan(), &data3[0..10]);
-
-        assert_eq!(
-            buffer.forward_by(10).expect("capture 4"),
-            PeekState::EndOfBuffered
-        );
-
-        let amt = buffer.fill_up().expect("should fill up");
-
-        assert_eq!(
-            buffer.forward_by(amt).expect("capture 3"),
-            PeekState::Continue
-        );
-
-        let data4 = vec![
-            97, 108, 101, 120, 97, 110, 100, 101, 114, 95, 119, 111, 110, 100, 101, 114, 98, 97,
-            116,
-        ];
-        assert_eq!(buffer.scan(), &data4);
     }
 }
 
@@ -3218,6 +2689,14 @@ impl SharedBuffer {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
+
+    /// Get a clone of the underlying Arc, e.g. to build a
+    /// [`SharedBufferWriter`] or [`SharedBufferReader`] over a buffer made with
+    /// [`Self::with_initial`].
+    #[must_use]
+    pub fn clone_arc(&self) -> Arc<Mutex<Vec<u8>>> {
+        Arc::clone(&self.inner)
+    }
 }
 
 impl Default for SharedBuffer {
@@ -3329,386 +2808,3 @@ impl<T: Read + Write> Write for SharedWriteReader<T> {
 
 unsafe impl<T: Read + Write + Send> Send for SharedWriteReader<T> {}
 unsafe impl<T: Read + Write + Send + Sync> Sync for SharedWriteReader<T> {}
-
-// ============================================================================
-// Tests
-// ============================================================================
-
-#[cfg(test)]
-mod shared_write_reader_tests {
-    use super::*;
-    use std::io::Cursor;
-
-    #[test]
-    fn test_shared_write_reader_write_and_read_position() {
-        let cursor = Cursor::new(Vec::new());
-        let shared = SharedWriteReader::new(cursor);
-
-        let mut writer = shared.clone();
-        writer
-            .write_all(b"hello world")
-            .expect("write should succeed");
-
-        let inner = shared.inner.lock().expect("lock should not be poisoned");
-        assert_eq!(inner.get_ref(), b"hello world");
-    }
-
-    #[test]
-    fn test_shared_write_reader_multiple_writers() {
-        let cursor = Cursor::new(Vec::new());
-        let shared = SharedWriteReader::new(cursor);
-
-        let mut w1 = shared.clone();
-        let mut w2 = shared.clone();
-
-        w1.write_all(b"hello ").expect("write should succeed");
-        w2.write_all(b"world").expect("write should succeed");
-
-        let inner = shared.inner.lock().expect("lock should not be poisoned");
-        let data = inner.get_ref();
-        assert_eq!(data, b"hello world");
-    }
-
-    #[test]
-    fn test_shared_write_reader_from_arc() {
-        let arc = Arc::new(Mutex::new(Cursor::new(Vec::new())));
-        let shared = SharedWriteReader::from_arc(arc.clone());
-
-        let mut writer = shared.clone();
-        writer
-            .write_all(b"test data")
-            .expect("write should succeed");
-
-        let guard = arc.lock().expect("lock should not be poisoned");
-        let data = guard.get_ref();
-        assert_eq!(data, b"test data");
-    }
-}
-
-#[cfg(test)]
-mod shared_byte_buffer_stream_tests {
-    use super::*;
-
-    #[test]
-    fn test_shared_write_reader_with_cursor() {
-        let cursor = Cursor::new(Vec::new());
-        let shared = SharedWriteReader::new(cursor);
-
-        let mut w1 = shared.clone();
-        w1.write_all(b"hello").expect("write should succeed");
-
-        let r1 = shared.clone();
-        let inner = r1.inner.lock().expect("lock not poisoned");
-        assert_eq!(inner.get_ref(), b"hello");
-    }
-
-    #[test]
-    fn test_shared_write_reader_threaded() {
-        let cursor = Cursor::new(Vec::new());
-        let shared = SharedWriteReader::new(cursor);
-
-        let mut handles = vec![];
-        for i in 0..3 {
-            let s = shared.clone();
-            let handle = std::thread::spawn(move || {
-                let mut writer = s.clone();
-                let msg = format!("thread_{}", i);
-                writer
-                    .write_all(msg.as_bytes())
-                    .expect("write should succeed");
-            });
-            handles.push(handle);
-        }
-
-        for handle in handles {
-            handle.join().expect("thread should join");
-        }
-
-        let inner = shared.inner.lock().expect("lock not poisoned");
-        let data = inner.get_ref();
-        assert!(data.starts_with(b"thread_"));
-    }
-}
-
-// ============================================================================
-// SharedBuffer Tests
-// ============================================================================
-
-#[cfg(test)]
-mod shared_buffer_tests {
-    use super::*;
-
-    #[test]
-    fn test_shared_buffer_write_and_read() {
-        let (mut writer, mut reader) = SharedBuffer::split();
-
-        writer.write_all(b"hello").unwrap();
-
-        let mut buf = [0u8; 5];
-        reader.read_exact(&mut buf).unwrap();
-
-        assert_eq!(&buf, b"hello");
-    }
-
-    #[test]
-    fn test_shared_buffer_empty_read() {
-        let (_, mut reader) = SharedBuffer::split();
-
-        let mut buf = [0u8; 5];
-        let bytes_read = reader.read(&mut buf).unwrap();
-
-        assert_eq!(bytes_read, 0);
-    }
-
-    #[test]
-    fn test_shared_buffer_multiple_writes() {
-        let (mut writer, mut reader) = SharedBuffer::split();
-
-        writer.write_all(b"hello").unwrap();
-        writer.write_all(b" ").unwrap();
-        writer.write_all(b"world").unwrap();
-
-        let mut buf = [0u8; 11];
-        reader.read_exact(&mut buf).unwrap();
-
-        assert_eq!(&buf, b"hello world");
-    }
-
-    #[test]
-    fn test_shared_buffer_partial_read() {
-        let (mut writer, mut reader) = SharedBuffer::split();
-
-        writer.write_all(b"hello world").unwrap();
-
-        let mut buf = [0u8; 5];
-        reader.read_exact(&mut buf).unwrap();
-        assert_eq!(&buf, b"hello");
-
-        reader.read_exact(&mut buf).unwrap();
-        assert_eq!(&buf, b" worl");
-    }
-
-    #[test]
-    fn test_shared_buffer_clone_writer() {
-        let (mut writer, mut reader) = SharedBuffer::split();
-        let mut writer2 = writer.clone();
-
-        writer.write_all(b"hello").unwrap();
-        writer2.write_all(b" ").unwrap();
-        writer.write_all(b"world").unwrap();
-
-        let mut buf = [0u8; 11];
-        reader.read_exact(&mut buf).unwrap();
-
-        assert_eq!(&buf, b"hello world");
-    }
-
-    #[test]
-    fn test_shared_buffer_clone_reader() {
-        let (mut writer, mut reader) = SharedBuffer::split();
-        let mut reader2 = reader.clone();
-
-        writer.write_all(b"hello").unwrap();
-
-        let mut buf1 = [0u8; 5];
-        let mut buf2 = [0u8; 5];
-
-        reader.read_exact(&mut buf1).unwrap();
-        reader2.read_exact(&mut buf2).unwrap();
-
-        assert_eq!(&buf1, b"hello");
-        assert_eq!(&buf2, b"hello");
-    }
-
-    #[test]
-    fn test_shared_buffer_with_initial() {
-        let buffer = SharedBuffer::with_initial(b"initial data");
-        let (_, mut reader) = (
-            SharedBufferWriter::new(buffer.inner.clone()),
-            SharedBufferReader::new(buffer.inner),
-        );
-
-        let mut buf = [0u8; 12];
-        reader.read_exact(&mut buf).unwrap();
-
-        assert_eq!(&buf, b"initial data");
-    }
-
-    #[test]
-    fn test_shared_buffer_len() {
-        let buffer = SharedBuffer::with_initial(b"hello");
-        assert_eq!(buffer.len(), 5);
-
-        let (mut writer, _) = SharedBuffer::split();
-        assert_eq!(writer.inner.lock().unwrap().len(), 0);
-
-        writer.write_all(b"test").unwrap();
-        assert_eq!(writer.inner.lock().unwrap().len(), 4);
-    }
-
-    #[test]
-    fn test_shared_buffer_threaded() {
-        use std::thread;
-
-        let (mut writer, mut reader) = SharedBuffer::split();
-
-        let handle = thread::spawn(move || {
-            writer.write_all(b"from thread").unwrap();
-        });
-
-        thread::sleep(std::time::Duration::from_millis(10));
-
-        let mut buf = [0u8; 11];
-        reader.read_exact(&mut buf).unwrap();
-
-        handle.join().unwrap();
-
-        assert_eq!(&buf, b"from thread");
-    }
-
-    // ========================================================================
-    // Tests for into_buffered_stream() - SharedByteBufferStream integration
-    // ========================================================================
-
-    #[test]
-    fn test_into_buffered_stream_read() {
-        let (mut writer, reader) = SharedBuffer::split();
-        writer.write_all(b"hello world").unwrap();
-
-        let mut stream = reader.into_buffered_stream();
-
-        let mut buf = [0u8; 11];
-        let bytes_read = stream.read(&mut buf).unwrap();
-
-        assert_eq!(bytes_read, 11);
-        assert_eq!(&buf, b"hello world");
-    }
-
-    #[test]
-    fn test_into_buffered_stream_read_line() {
-        let (mut writer, reader) = SharedBuffer::split();
-        writer.write_all(b"line 1\nline 2\nline 3\n").unwrap();
-
-        let mut stream = reader.into_buffered_stream();
-
-        let mut line = String::new();
-        let bytes_read = stream.read_line(&mut line).unwrap();
-        assert_eq!(bytes_read, 7); // "line 1\n"
-        assert_eq!(line, "line 1\n");
-
-        line.clear();
-        let bytes_read = stream.read_line(&mut line).unwrap();
-        assert_eq!(bytes_read, 7); // "line 2\n"
-        assert_eq!(line, "line 2\n");
-
-        line.clear();
-        let bytes_read = stream.read_line(&mut line).unwrap();
-        assert_eq!(bytes_read, 7); // "line 3\n"
-        assert_eq!(line, "line 3\n");
-    }
-
-    #[test]
-    fn test_into_buffered_stream_sse_format() {
-        // Simulate SSE format: "data: hello\n\n"
-        let (mut writer, reader) = SharedBuffer::split();
-        writer.write_all(b"data: hello\n\n").unwrap();
-
-        let mut stream = reader.into_buffered_stream();
-
-        // Read all data
-        let mut buf = Vec::new();
-        stream.read_to_end(&mut buf).unwrap();
-
-        assert_eq!(buf, b"data: hello\n\n");
-    }
-
-    #[test]
-    fn test_into_buffered_stream_multiple_lines() {
-        let (mut writer, reader) = SharedBuffer::split();
-        writer.write_all(b"event: test\ndata: payload\n\n").unwrap();
-
-        let mut stream = reader.into_buffered_stream();
-
-        // Read line by line
-        let mut line = String::new();
-
-        stream.read_line(&mut line).unwrap();
-        assert_eq!(line, "event: test\n");
-
-        line.clear();
-        stream.read_line(&mut line).unwrap();
-        assert_eq!(line, "data: payload\n");
-
-        line.clear();
-        stream.read_line(&mut line).unwrap();
-        assert_eq!(line, "\n");
-    }
-
-    #[test]
-    fn test_into_buffered_stream_empty_buffer() {
-        let (_, reader) = SharedBuffer::split();
-        let mut stream = reader.into_buffered_stream();
-
-        let mut buf = [0u8; 5];
-        let bytes_read = stream.read(&mut buf).unwrap();
-
-        assert_eq!(bytes_read, 0);
-    }
-
-    #[test]
-    fn test_into_buffered_stream_partial_reads() {
-        let (mut writer, reader) = SharedBuffer::split();
-        writer.write_all(b"hello world").unwrap();
-
-        let mut stream = reader.into_buffered_stream();
-
-        // Read in chunks
-        let mut buf = [0u8; 5];
-        let bytes_read = stream.read(&mut buf).unwrap();
-        assert_eq!(bytes_read, 5);
-        assert_eq!(&buf, b"hello");
-
-        let bytes_read = stream.read(&mut buf).unwrap();
-        assert_eq!(bytes_read, 5);
-        assert_eq!(&buf, b" worl");
-
-        let bytes_read = stream.read(&mut buf).unwrap();
-        assert_eq!(bytes_read, 1);
-        assert_eq!(&buf[0..1], b"d");
-    }
-
-    #[test]
-    fn test_into_buffered_stream_read_exact() {
-        let (mut writer, reader) = SharedBuffer::split();
-        writer.write_all(b"exact data").unwrap();
-
-        let mut stream = reader.into_buffered_stream();
-
-        let mut buf = [0u8; 10];
-        stream.read_exact(&mut buf).unwrap();
-
-        assert_eq!(&buf, b"exact data");
-    }
-}
-
-#[cfg(test)]
-mod buffered_writer_tests {
-    use std::io::Cursor;
-
-    use super::*;
-
-    #[test]
-    fn can_buffered_writer_peek() {
-        let content = b"alexander_wonderbat";
-        let mut reader = BufferedReader::new(BufferedWriter::new(Cursor::new(content.to_vec())));
-
-        let mut content_to_read = vec![0; 5];
-        reader
-            .peek(&mut content_to_read)
-            .expect("should read data correctly");
-
-        assert_eq!(b"alexa", &content_to_read[..]);
-
-        assert_eq!(content, reader.buffer());
-    }
-}

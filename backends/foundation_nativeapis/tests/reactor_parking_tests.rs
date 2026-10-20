@@ -57,7 +57,7 @@ impl TaskIterator for ParkUntilReady {
     type Ready = &'static str;
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.done {
             return None;
         }
@@ -87,7 +87,7 @@ impl TaskIterator for ReadOnReady {
     type Ready = Vec<u8>;
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.done {
             return None;
         }

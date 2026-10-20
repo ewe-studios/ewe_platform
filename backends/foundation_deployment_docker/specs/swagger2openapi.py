@@ -28,8 +28,10 @@ no schema whose operation produces a binary stream (`/containers/{id}/export`,
 One addition of ours, `STREAM_ITEMS`: the spec defines the objects that
 `/images/create`, `/images/{name}/push`, `/build` and `/images/load` stream
 (`CreateImageInfo`, `PushImageInfo`, `BuildInfo`) but no response references
-them, so a generator never sees them. Each of those operations' `200` is
-declared here as `application/jsonl` of its item type -- what dockerd sends.
+them, so a generator never sees them; `/containers/{id}/stats` references
+`ContainerStatsResponse` but declares it a single JSON document, though by
+default dockerd streams it. Each of those operations' `200` is declared here
+as `application/jsonl` of its item type -- what dockerd sends.
 
 Run from the repo root:
     python3 backends/foundation_deployment_docker/specs/swagger2openapi.py
@@ -57,6 +59,11 @@ STREAM_ITEMS = {
     "ImagePush": "PushImageInfo",
     "ImageBuild": "BuildInfo",
     "ImageLoad": "BuildInfo",
+    # With `stream=true` (dockerd's default) stats is an endless feed of one
+    # `ContainerStatsResponse` per line; with `stream=false` it is a single
+    # line. Upstream declares it `application/json`, which a generator reads
+    # as one document and would wait on forever for a live feed.
+    "ContainerStats": "ContainerStatsResponse",
 }
 
 # The media type a JSON-lines stream is declared under.

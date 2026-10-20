@@ -36,7 +36,7 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::valtron::{Ctx, 
     self, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator,
-    TaskStatus, TryRecvError,
+    TaskStatus, TryRecvError, TrySendError,
 };
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
 use foundation_netio::http3::H3Error;
@@ -146,6 +146,7 @@ impl Transport for H3Transport {
             req_headers,
             request_ended: false,
             head_delivered: false,
+            pending_head: None,
             pending_body: VecDeque::new(),
             response_ended: false,
         };
@@ -200,8 +201,10 @@ struct H3Pump {
 
     /// `send_rx` closed and the FIN has gone out.
     request_ended: bool,
-    /// The response head has been pushed to `head_tx`.
+    /// The response head has been pushed to `head_tx` (or nobody reads it).
     head_delivered: bool,
+    /// A response head read off the wire that `head_tx` was too full to take.
+    pending_head: Option<(Status, SimpleHeaders)>,
     /// Response chunks the body pipe was too full to accept. They must be
     /// delivered in order: dropping a `Full` chunk silently truncates the body.
     pending_body: VecDeque<Bytes>,
@@ -289,19 +292,26 @@ impl H3Pump {
         let req = self.req.as_mut().expect("request open");
 
         if !self.head_delivered {
-            match req.poll_headers() {
-                VStream::Next(Ok(fields)) => {
-                    let (status, headers) = split_response_fields(&fields);
-                    // A full head pipe would mean nobody is reading the response;
-                    // there is exactly one head, so a blocking send is wrong here —
-                    // retry next poll instead.
-                    if self.head_tx.try_send((status, headers)).is_ok() {
-                        self.head_delivered = true;
-                    }
+            // The HEADERS frame is consumed off the wire exactly once. A head the
+            // pipe cannot take yet is kept and retried — polling `poll_headers`
+            // again would read the first DATA frame as the head and fail the
+            // exchange with H3_FRAME_UNEXPECTED.
+            let head = match self.pending_head.take() {
+                Some(head) => head,
+                None => match req.poll_headers() {
+                    VStream::Next(Ok(fields)) => split_response_fields(&fields),
+                    VStream::Next(Err(e)) => return Err(e),
+                    _ => return Ok(()),
+                },
+            };
+            match self.head_tx.try_send(head) {
+                // `Closed`: nobody will read the head — the streaming client
+                // protocols take only the body — but the body still has to flow.
+                Ok(()) | Err(TrySendError::Closed(_)) => self.head_delivered = true,
+                Err(TrySendError::Full(head)) => {
+                    self.pending_head = Some(head);
                     return Ok(());
                 }
-                VStream::Next(Err(e)) => return Err(e),
-                _ => return Ok(()),
             }
         }
 
