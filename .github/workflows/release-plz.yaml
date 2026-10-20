@@ -1,13 +1,18 @@
-name: Release crates
+name: Publish crates to crates.io
+
+# The title each run gets in the Actions list: what triggered it.
+run-name: >-
+  Publish crates to crates.io —
+  ${{ github.event_name == 'workflow_dispatch' && 'manual run' || github.event.workflow_run.display_title }}
 
 # Versions and publishes the workspace's crates with release-plz (config:
 # release-plz.toml). It runs only after the Checks workflow has passed on a
 # push to master, so nothing is released from a red master.
 #
-#   release-pr  opens or updates the "chore: release" PR: version bumps for the
+#   release-pr  ("Open or update the release PR") opens or updates the "chore: release" PR: version bumps for the
 #               crates that changed since their last crates.io release, the
 #               version requirements of their dependents, and CHANGELOG entries.
-#   release     publishes every crate whose version is not on crates.io yet and
+#   publish     ("Publish to crates.io") publishes every crate whose version is not on crates.io yet and
 #               tags it `<crate>-v<version>`. Ordinary merges change no
 #               versions, so this is a no-op until a release PR is merged.
 #
@@ -47,7 +52,7 @@ env:
 
 jobs:
   gate:
-    name: Gate
+    name: Gate (Checks passed on master?)
     # A green Checks run for a push to master, or a manual run.
     if: >-
       github.event_name == 'workflow_dispatch' ||
@@ -65,7 +70,7 @@ jobs:
         run: echo "sha=${RUN_SHA:-$DISPATCH_SHA}" >> "$GITHUB_OUTPUT"
 
   image:
-    name: CI image
+    name: CI image (for building the crates)
     needs: gate
     uses: ./.github/workflows/platform-images.yaml
     with:
@@ -73,8 +78,8 @@ jobs:
     secrets:
       registry-password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
 
-  release:
-    name: Publish and open the release PR
+  publish:
+    name: Publish to crates.io
     needs: [gate, image]
     runs-on: ubuntu-latest
     # Publishing builds every crate from its packaged tarball, llama.cpp
@@ -87,7 +92,6 @@ jobs:
     timeout-minutes: 240
     permissions:
       contents: write
-      pull-requests: write
     steps:
       - name: Mint a release token from the GitHub App
         id: app
@@ -159,8 +163,85 @@ jobs:
           fi
           release-plz release --git-token "$GITHUB_TOKEN"
 
-      # After publishing, so the next bumps are computed against what
-      # crates.io now has.
+  release-pr:
+    name: Open or update the release PR
+    # After publishing, so the next bumps are computed against what
+    # crates.io now has. Runs even when publishing failed, so the PR still
+    # reflects master; it skips only when the gate did.
+    needs: [gate, image, publish]
+    if: ${{ !cancelled() && needs.gate.result == 'success' && needs.image.result == 'success' }}
+    runs-on: ubuntu-latest
+    # Publishing builds every crate from its packaged tarball, llama.cpp
+    # included, so it runs in the CI image with the baked submodules.
+    container:
+      image: ${{ needs.image.outputs.image-ref }}
+      credentials:
+        username: ${{ needs.image.outputs.registry-username }}
+        password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Mint a release token from the GitHub App
+        id: app
+        # Optional: without it the job still publishes, using GITHUB_TOKEN.
+        continue-on-error: true
+        uses: actions/create-github-app-token@v3.2.0
+        with:
+          client-id: ${{ secrets.EWE_RUNNER_REGISTRA_CLIENT_ID }}
+          private-key: ${{ secrets.EWE_RUNNER_REGISTRA_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Pick the token
+        env:
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          if [ -z "$APP_TOKEN" ]; then
+            echo "::warning::Could not mint a GitHub App token (are Contents and Pull requests write granted to the app?). Using GITHUB_TOKEN: the release PR will get no CI and tags will not trigger release.yaml."
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          ref: ${{ needs.gate.outputs.sha }}
+          fetch-depth: 0 # release-plz reads tags and history
+          submodules: false
+          token: ${{ steps.app.outputs.token || github.token }}
+
+      - name: Check out the baked submodules
+        # Real submodule checkouts (not symlinks): cargo publish refuses a
+        # dirty tree.
+        uses: ./ci/platform-images/actions/link-submodules
+        with:
+          mode: submodule
+
+      - name: Use the pinned toolchain
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache release-plz
+        uses: actions/cache@v4
+        with:
+          path: /tmp/release-plz
+          key: release-plz-${{ env.RELEASE_PLZ_VERSION }}-${{ runner.os }}
+
+      - name: Install release-plz
+        run: |
+          if [ ! -x /tmp/release-plz/bin/release-plz ]; then
+            cargo install release-plz --version "$RELEASE_PLZ_VERSION" --locked --root /tmp/release-plz
+          fi
+          echo /tmp/release-plz/bin >> "$GITHUB_PATH"
+
+      - name: Git identity
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global user.name "ewe-platform release bot"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Open or update the release PR
         env:
           GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
