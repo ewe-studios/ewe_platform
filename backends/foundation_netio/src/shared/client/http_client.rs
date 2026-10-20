@@ -17,7 +17,7 @@
 
 use std::pin::Pin;
 
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Stream, WakeableStream};
 
 use super::request::PreparedRequest;
 use super::request_task::HttpExchangeClientTask;
@@ -39,7 +39,16 @@ pub enum SseProgress {
 }
 
 /// Boxed sync iterator yielding SSE events — for sync callers.
-pub type BoxedSseIterator = Box<dyn Iterator<Item = Stream<ParseResult, SseProgress>> + Send>;
+///
+/// It is a [`WakeableStream`] so a consumer that sees `Stream::Wait` (no event
+/// yet, e.g. the wasm fetch still in flight) can register a readiness callback
+/// and park — a valtron task returns `TaskStatus::Depends` on it — instead of
+/// re-polling. Streams that cannot signal readiness keep the default `wake`
+/// (`WakeResult::NotSupported`) and the consumer falls back to re-polling.
+pub type BoxedSseIterator = Box<
+    dyn WakeableStream<D = ParseResult, P = SseProgress, Item = Stream<ParseResult, SseProgress>>
+        + Send,
+>;
 
 /// Boxed async stream yielding SSE events — for async callers.
 pub type BoxedSseFutureStream =

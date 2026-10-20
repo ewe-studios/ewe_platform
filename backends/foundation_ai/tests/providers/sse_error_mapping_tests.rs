@@ -16,7 +16,7 @@ use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelProvider, ModelState,
     ModelStreamBox, TextContent, ToolDeclarations, UserModelContent,
 };
-use foundation_core::valtron::{valtron_test, Stream};
+use foundation_core::valtron::{valtron_test, Stream, StreamIter};
 use foundation_netio::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
@@ -49,9 +49,9 @@ impl HttpClient for FailedSseClient {
     }
 
     fn send_sse(&self, _req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
-        Ok(Box::new(std::iter::once(Stream::Pending(
+        Ok(Box::new(StreamIter(std::iter::once(Stream::Pending(
             SseProgress::Failed("boom".to_string()),
-        ))))
+        )))))
     }
 
     fn open_exchange(&self, _req: PreparedRequest) -> HttpExchangeClientTask {

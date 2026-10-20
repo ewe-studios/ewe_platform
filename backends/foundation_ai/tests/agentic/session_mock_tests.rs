@@ -134,6 +134,57 @@ fn fails_after_partial_output() -> MockModelProvider {
     mock
 }
 
+/// The chunks an HTTP backend streams for one answer: each re-sends the text so
+/// far (a snapshot), and the closing chunk repeats the whole answer.
+fn snapshot_chunks() -> Vec<Messages> {
+    [
+        "The",
+        "The capital",
+        "The capital of",
+        "The capital of France",
+        "The capital of France is",
+        "The capital of France is Paris",
+        "The capital of France is Paris.",
+        "The capital of France is Paris.",
+    ]
+    .into_iter()
+    .map(mock_text)
+    .collect()
+}
+
+/// Regression (spec 65 feature 06 T5 smoke test): the loop detector ran on the
+/// raw chunks, so consecutive snapshots looked like a repeating answer. A
+/// one-line reply took four model calls and ended in `LoopDetected`, and
+/// `Turn::text` concatenated every snapshot. One generation, one answer.
+#[valtron_test]
+fn snapshot_stream_is_one_answer_not_a_loop() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(snapshot_chunks());
+    let session = session_with(mock);
+
+    let turn = session
+        .run_turn("What is the capital of France?")
+        .expect("turn runs");
+
+    assert!(turn.failure().is_none(), "{:?}", turn.failure());
+    assert_eq!(turn.text(), "The capital of France is Paris.");
+}
+
+/// The same snapshot stream through the text-only `Answer` path.
+#[valtron_test]
+fn snapshot_stream_answer_is_the_last_snapshot() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(snapshot_chunks());
+    let session = session_with(mock);
+
+    let answer = session
+        .ask("What is the capital of France?")
+        .expect("turn runs");
+
+    assert!(answer.is_complete(), "{answer:?}");
+    assert_eq!(answer.text(), "The capital of France is Paris.");
+}
+
 #[valtron_test]
 fn run_turn_keeps_the_partial_output_before_a_failure() {
     let session = session_with(fails_after_partial_output());

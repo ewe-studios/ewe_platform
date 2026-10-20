@@ -507,6 +507,17 @@ struct WorkersAiStream {
     done: bool,
 }
 
+/// Readiness comes from the underlying SSE stream: a consumer parked on this
+/// stream's `Wait` is woken when the next SSE event (or end of stream) arrives.
+impl foundation_core::valtron::WakeableStream for WorkersAiStream {
+    fn wake(
+        &mut self,
+        cb: foundation_core::valtron::WakeCallback,
+    ) -> foundation_core::valtron::WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
 impl Iterator for WorkersAiStream {
     type Item = Stream<Messages, ModelState>;
 

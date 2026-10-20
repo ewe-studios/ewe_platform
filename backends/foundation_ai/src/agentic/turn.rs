@@ -133,10 +133,27 @@ impl Turn {
         }
     }
 
-    /// Concatenated `ModelOutput::Text` of the assistant messages.
+    /// The assistant text of the turn.
+    ///
+    /// Each run of consecutive streamed text records is joined the way the
+    /// agent loop joins them: snapshot chunks (each re-sends the text so far, as
+    /// the HTTP backends do) collapse to the last one, delta chunks concatenate.
     #[must_use]
     pub fn text(&self) -> String {
-        self.records.iter().map(Self::text_of).collect()
+        Self::text_of_records(&self.records)
+    }
+
+    /// The assistant text of a turn's records, joined like [`Turn::text`].
+    ///
+    /// For callers that drive the record stream themselves (e.g. a Worker that
+    /// awaits `into_collect_future`) and so have the records but no `Turn`.
+    #[must_use]
+    pub fn text_of_records<'a>(records: impl IntoIterator<Item = &'a SessionRecord>) -> String {
+        let mut text = TurnText::default();
+        for record in records {
+            text.push(record);
+        }
+        text.finish()
     }
 
     /// The assistant text in one record (`""` for anything else); `text()`
@@ -271,13 +288,59 @@ pub enum Answer {
     },
 }
 
+/// Builds a turn's assistant text from its streamed records.
+///
+/// Consecutive assistant text records form one run (one generation's chunks);
+/// any other record ends the run. Each run is joined with the agent loop's
+/// rule ([`join_text_chunks`]): snapshots collapse to the last, deltas
+/// concatenate.
+///
+/// [`join_text_chunks`]: crate::agentic::agent_loop::join_text_chunks
+#[derive(Default)]
+struct TurnText {
+    done: String,
+    run: Vec<String>,
+}
+
+impl TurnText {
+    fn push(&mut self, record: &SessionRecord) {
+        match record {
+            SessionRecord::Conversation {
+                message:
+                    Messages::Assistant {
+                        content: ModelOutput::Text(t),
+                        ..
+                    },
+            } => self.run.push(t.content.clone()),
+            _ => self.flush(),
+        }
+    }
+
+    fn flush(&mut self) {
+        let pieces: Vec<&str> = self.run.iter().map(String::as_str).collect();
+        self.done
+            .push_str(&crate::agentic::agent_loop::join_text_chunks(&pieces));
+        self.run.clear();
+    }
+
+    fn clear(&mut self) {
+        self.done.clear();
+        self.run.clear();
+    }
+
+    fn finish(mut self) -> String {
+        self.flush();
+        self.done
+    }
+}
+
 impl Answer {
     /// Collect the assistant text of a turn from the raw stream.
     pub(crate) fn collect<I>(stream: I) -> Self
     where
         I: Iterator<Item = Stream<SessionRecord, AgentProgress>>,
     {
-        let mut text = String::new();
+        let mut text = TurnText::default();
         for item in stream {
             for flat in flatten(item) {
                 let TurnItem::Record(record) = flat else {
@@ -286,18 +349,18 @@ impl Answer {
                 match *record {
                     SessionRecord::FailedAction { error, trace } => {
                         return Answer::Failed {
-                            partial_text: text,
+                            partial_text: text.finish(),
                             error,
                             trace,
                         };
                     }
                     // Withdrawn output: the retry replaces it.
                     SessionRecord::Retracted { .. } => text.clear(),
-                    record => text.push_str(&Turn::text_of(&record)),
+                    record => text.push(&record),
                 }
             }
         }
-        Answer::Complete(text)
+        Answer::Complete(text.finish())
     }
 
     /// The text either way: complete, or what was produced before the failure.

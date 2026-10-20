@@ -15,7 +15,9 @@
 //! SSE responses use `WasmSseIterator` from the `stream` module.
 //! Streaming request bodies are bridged to JS `ReadableStream` via
 //! valtron's `iterator_to_readable_stream`.
-//! Async methods are canonical; sync methods wrap via `valtron::block_on_collect()`.
+//! Async methods are canonical. The sync `send_sse` returns a lazy stream that
+//! spawns the fetch on first poll; the sync `send` is unsupported (it would block
+//! the isolate) and returns an error pointing at `send_async`.
 
 use std::sync::Arc;
 
@@ -23,8 +25,9 @@ use concurrent_queue::ConcurrentQueue;
 use foundation_compact::SendWrapper;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::js_stream;
-use foundation_core::valtron::block_on_collect;
-use foundation_core::valtron::{Stream, StreamIteratorExt, WakeCallback, WakeResult, WakeRegistry, WakeableStream};
+use foundation_core::valtron::{
+    Stream, StreamIteratorExt, WakeCallback, WakeRegistry, WakeResult, WakeableStream,
+};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
@@ -136,19 +139,21 @@ impl HttpClient for FetchHttpClient {
         .await
     }
 
+    /// Synchronous one-shot requests are not supported on wasm.
+    ///
+    /// WHY: a sync `send` has to wait for the `fetch` promise before returning,
+    /// and the single-threaded wasm isolate cannot wait: the only way to "block"
+    /// is to spin the valtron executor inline (the old `block_on_collect` call),
+    /// which never yields to the JS event loop, so the promise never resolves and
+    /// the whole isolate freezes. Failing fast keeps the isolate alive and tells
+    /// the caller to use [`HttpClient::send_async`] (or the lazy `send_sse`).
     fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
-        // Build an owned future (no `&self` borrow) so it satisfies `block_on_collect`'s
-        // `'static` bound — the sync wrapper drives the canonical async path.
-        let req = self.merge_default_headers(req);
-        let max_redirects = self.config.max_redirects;
-        let results = block_on_collect(SendWrapper::new(fetch_and_read(req, max_redirects)))
-            .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
-        results
-            .into_iter()
-            .next()
-            .unwrap_or(Err(HttpClientError::Reason(
-                "block_on_collect returned no result".into(),
-            )))
+        Err(HttpClientError::Reason(format!(
+            "synchronous HttpClient::send is unsupported on wasm (it would block the JS event \
+             loop); use send_async or send_sse instead (request: {} {})",
+            method_str(&req.method),
+            req.url
+        )))
     }
 
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
@@ -294,6 +299,11 @@ impl WakeableStream for LazySseIterator {
             inner.wake(cb)
         } else {
             self.wake.register(cb);
+            // Register-then-check: a fetch that already resolved will not fire
+            // the registry again, so fire it now.
+            if !self.outcome.is_empty() {
+                self.wake.fire();
+            }
             WakeResult::Successful
         }
     }
@@ -309,10 +319,8 @@ impl WakeableStream for LazySseIterator {
 ///   JS `ReadableStream` via valtron's `iterator_to_readable_stream`
 /// Perform one fetch and read the full response body into a `SimpleResponse`.
 ///
-/// WHY: Extracted as a free async fn over owned data so both `send_async` (async
-/// seam) and `send` (sync wrapper via `block_on_collect`) drive the identical path
-/// without either future borrowing `&FetchHttpClient` — `block_on_collect` requires a
-/// `'static` future.
+/// WHY: Extracted as a free async fn over owned data so the `send_async` future
+/// does not borrow `&FetchHttpClient`.
 async fn fetch_and_read(
     req: PreparedRequest,
     max_redirects: u8,

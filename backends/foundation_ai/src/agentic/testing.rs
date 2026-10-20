@@ -288,6 +288,10 @@ impl MockStreamIterator {
     }
 }
 
+/// No readiness signal: this stream never yields `Wait` while waiting on
+/// external I/O, so the default `wake` (`NotSupported`) is correct.
+impl foundation_core::valtron::WakeableStream for MockStreamIterator {}
+
 impl Iterator for MockStreamIterator {
     type Item = Stream<Messages, ModelState>;
 

@@ -18,7 +18,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{
     CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, Stream, TaskIterator,
-    TaskStatus,
+    TaskStatus, WakeResult, WakeSignal,
 };
 use foundation_db::traits::DocumentStore;
 
@@ -36,9 +36,8 @@ use crate::agentic::steering::SteeringQueues;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::agentic::tool_impl::{ToolCallManager, ToolCallRequest, ToolCallResult, ToolError};
 use crate::types::{
-    MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelState,
-    SessionId, SessionRecord, StopReason, TextBasedFormatter, TextContent, ToolFormatter,
-    UserModelContent,
+    MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ModelParams, SessionId,
+    SessionRecord, StopReason, TextBasedFormatter, TextContent, ToolFormatter, UserModelContent,
 };
 
 // ---------------------------------------------------------------------------
@@ -179,7 +178,7 @@ pub enum AgentLoopState {
     InnerAssemble,
     /// Model generation in progress — pump the stream step-wise.
     InnerGenerate {
-        stream: Box<dyn Iterator<Item = Stream<Messages, ModelState>> + Send>,
+        stream: crate::types::ModelStreamBox,
         collected: Vec<Messages>,
     },
     /// Tool calls extracted from the model's output.
@@ -310,7 +309,7 @@ fn assembled_answer(collected: &[Messages]) -> String {
 /// snapshot). Snapshots are recognisable — every chunk extends the previous
 /// one — so in that case the last chunk is the answer; otherwise the chunks
 /// are concatenated.
-fn join_text_chunks(chunks: &[&str]) -> String {
+pub(crate) fn join_text_chunks(chunks: &[&str]) -> String {
     let is_snapshots =
         chunks.len() > 1 && chunks.windows(2).all(|pair| pair[1].starts_with(pair[0]));
     if is_snapshots {
@@ -798,7 +797,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         match model.stream(interaction, Some(params)) {
             Ok(stream) => {
                 self.state = AgentLoopState::InnerGenerate {
-                    stream: Box::new(stream),
+                    stream,
                     collected: Vec::new(),
                 };
                 TaskStatus::Pending(AgentProgress::Generating {
@@ -869,11 +868,22 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                 TaskStatus::Ignore
             }
             Stream::Wait => {
-                // The model's lazy wasm SSE fetch is still in flight. `Wait`
-                // (not `Ignore`) tells the executor to yield to the JS event
-                // loop and re-poll, rather than busy-looping the isolate.
+                // No token yet: the model stream is waiting on I/O (e.g. the lazy
+                // wasm SSE fetch, or the next SSE chunk). Park on the stream's
+                // readiness instead of asking to be re-polled: `Wait` keeps the
+                // task active, so the executor re-polls it in a loop (a timer
+                // loop on wasm that never lets the isolate idle). The wake
+                // callback flips the signal and asks the executor host to run
+                // again once data arrives.
+                let signal = WakeSignal::new();
+                let parked = matches!(stream.wake(signal.callback()), WakeResult::Successful);
                 self.state = AgentLoopState::InnerGenerate { stream, collected };
-                TaskStatus::Wait
+                if parked {
+                    TaskStatus::Depends(Arc::new(signal))
+                } else {
+                    // The stream cannot signal readiness: fall back to a re-poll.
+                    TaskStatus::Wait
+                }
             }
             Stream::Delayed(d) => {
                 self.state = AgentLoopState::InnerGenerate { stream, collected };
@@ -906,7 +916,10 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         collected: &[Messages],
     ) -> TaskStatus<SessionRecord, AgentProgress> {
         // Run loop detection (F17) synchronously on the model outputs.
-        for msg in collected {
+        // Check the coalesced turn, not the raw chunks: HTTP backends stream
+        // snapshots (each chunk re-sends the text so far), and consecutive
+        // snapshots look like a repeating answer to the loop detector.
+        for msg in &coalesce_turn(collected) {
             if let Messages::Assistant { ref content, .. } = msg {
                 let detection = self.detector.check(content);
                 if detection != LoopDetection::NoLoop {

@@ -180,6 +180,11 @@ unsafe impl Send for WasmSseIterator {}
 impl WakeableStream for WasmSseIterator {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.wake.register(cb);
+        // Register-then-check: if a chunk (or end of stream) is already waiting,
+        // no future push will fire the registry, so fire it now.
+        if !self.queue.is_empty() || self.done.load(Ordering::Acquire) {
+            self.wake.fire();
+        }
         WakeResult::Successful
     }
 }

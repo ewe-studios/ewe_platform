@@ -37,7 +37,10 @@ use crate::types::base_types::{
 };
 
 /// `OpenRouter`'s OpenAI-compatible API base URL.
-pub const OPENROUTER_BASE_URL: &str = "https://openrouter.ai/api/v1";
+///
+/// Without the version segment: [`OpenAIConfig::build_url`] appends
+/// `api_version` (`v1`), giving `https://openrouter.ai/api/v1/chat/completions`.
+pub const OPENROUTER_BASE_URL: &str = "https://openrouter.ai/api";
 
 // ============================================================================
 // OpenAI Configuration
@@ -354,6 +357,50 @@ impl OpenAIProvider {
     }
 }
 
+impl OpenAIProvider {
+    /// Placeholder metadata used when `models/{name}` cannot be (or is not)
+    /// fetched. The lookup is best-effort: nothing downstream needs more than
+    /// the model id, so a failed lookup has always fallen back to this.
+    fn fallback_model_info(model_name: &str) -> OpenAIModelInfo {
+        OpenAIModelInfo {
+            id: model_name.to_string(),
+            object: String::from("model"),
+            owned_by: String::new(),
+            created: 0,
+        }
+    }
+
+    /// Best-effort `GET models/{name}` metadata lookup (native).
+    #[cfg(not(target_family = "wasm"))]
+    fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
+        let url = self.build_url(&format!("models/{model_name}"));
+        let result: Result<OpenAIModelResponse, _> = self.execute_request(&url, "");
+        match result {
+            Ok(resp) => OpenAIModelInfo {
+                id: resp.id,
+                object: resp.object,
+                owned_by: resp.owned_by.unwrap_or_default(),
+                created: resp.created.unwrap_or(0),
+            },
+            Err(_) => Self::fallback_model_info(model_name),
+        }
+    }
+
+    /// Wasm: no metadata lookup.
+    ///
+    /// WHY: `get_model` is synchronous and runs inside the agent task, so a
+    /// lookup has to go through the sync `HttpClient::send`, which on wasm is
+    /// `block_on_collect` — a nested executor loop that never yields to the JS
+    /// event loop, so the `fetch` never resolves and the isolate freezes on the
+    /// first turn (spec 65 feature 06 T5). The metadata is optional (a failed
+    /// lookup already falls back to [`Self::fallback_model_info`]), so wasm
+    /// uses the fallback directly.
+    #[cfg(target_family = "wasm")]
+    fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
+        Self::fallback_model_info(model_name)
+    }
+}
+
 impl ModelProvider for OpenAIProvider {
     type Config = OpenAIConfig;
     type Model = OpenAIModel;
@@ -432,23 +479,7 @@ impl ModelProvider for OpenAIProvider {
         }
         drop(cache);
 
-        let url = self.build_url(&format!("models/{model_name}"));
-        let result: Result<OpenAIModelResponse, _> = self.execute_request(&url, "");
-
-        let info = match result {
-            Ok(resp) => OpenAIModelInfo {
-                id: resp.id,
-                object: resp.object,
-                owned_by: resp.owned_by.unwrap_or_default(),
-                created: resp.created.unwrap_or(0),
-            },
-            Err(_) => OpenAIModelInfo {
-                id: model_name.clone(),
-                object: String::from("model"),
-                owned_by: String::new(),
-                created: 0,
-            },
-        };
+        let info = self.lookup_model_info(&model_name);
 
         let mut cache = self.models_cache.lock().expect("model cache poisoned");
         cache.insert(model_name.clone(), info.clone());
@@ -1011,6 +1042,17 @@ pub struct AccumulatedToolCall {
     pub id: String,
     pub name: String,
     pub arguments: String,
+}
+
+/// Readiness comes from the underlying SSE stream: a consumer parked on this
+/// stream's `Wait` is woken when the next SSE event (or end of stream) arrives.
+impl foundation_core::valtron::WakeableStream for OpenAIStream {
+    fn wake(
+        &mut self,
+        cb: foundation_core::valtron::WakeCallback,
+    ) -> foundation_core::valtron::WakeResult {
+        self.inner.wake(cb)
+    }
 }
 
 impl Iterator for OpenAIStream {
