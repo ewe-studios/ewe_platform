@@ -37,7 +37,7 @@ use crate::shared::message::{Request, Response};
 use crate::shared::protocol::connect::constants as connect_consts;
 use crate::shared::protocol::grpc_web::constants as grpc_web_consts;
 use crate::shared::protocol::grpc::parse_grpc_error_trailer;
-use crate::shared::protocol::{ClientExchange, ProtocolClient};
+use crate::shared::protocol::{ClientExchange, ClientExchangeConfig, ProtocolClient};
 use crate::ConnectClient;
 use crate::GrpcClient;
 use crate::GrpcWebClient;
@@ -798,7 +798,15 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         stream: TransportStream,
         ctx: &Ctx,
     ) -> ConnectResult<ClientExchange> {
-        self.protocol.new_conn(spec, headers, stream, CancelSignal::linked(ctx.cancel_signal()))
+        self.protocol.new_conn(
+            spec,
+            headers,
+            stream,
+            ClientExchangeConfig {
+                cancel: CancelSignal::linked(ctx.cancel_signal()),
+                read_max_bytes: self.config.limits.read_max_bytes,
+            },
+        )
     }
 
     // ── POST unary ─────────────────────────────────────────────────────────

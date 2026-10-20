@@ -226,7 +226,8 @@ fn h2_dropped_stream_after_request_end_cancels_the_call() {
 
     drop(stream.response);
     assert_cancelled_within(&ctx, Duration::from_secs(5));
-    stream
+    // Ok, or the failed write to the gone stream: either way it ends.
+    let _ended = stream
         .done
         .recv_timeout(Duration::from_secs(5))
         .expect("dispatch ends once the stream is dropped");

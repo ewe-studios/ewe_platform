@@ -30,17 +30,17 @@ use foundation_netio::shared::http::{
 };
 
 use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
-use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
+use crate::shared::context::{Peer, Spec, StreamType};
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::transport::{
-    body_stream_from_pipe, fail_stream, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
+    body_stream_from_pipe, fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
     PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
-    BoxedTask, ClientExchange, ExchangeConfig, HandlerExchange, ProtocolClient, ProtocolHandler,
-    UnaryOutcome,
+    open_response_stream, BoxedTask, ClientExchange, ClientExchangeConfig, ExchangeConfig,
+    HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
 };
 
 /// gRPC (and gRPC-Web) constants (Decision 05).
@@ -383,8 +383,10 @@ pub fn parse_content_type(content_type: &str) -> Option<(String, bool)> {
 
 // ── reader/writer tasks ───────────────────────────────────────────────────────
 
-/// Read enveloped frames into `tx`. A clean end (body EOF, or the trailer
-/// frame) closes `tx`; a failure returns the error with `tx` still open, so the
+/// Read enveloped frames into `tx`; returns whether the trailer frame ended
+/// the stream. The trailer frame closes `tx`, and so does body EOF on the
+/// server; a client's body EOF leaves `tx` open for the caller to end with the
+/// HTTP trailers. A failure returns the error with `tx` still open, so the
 /// caller can end the stream with it ([`fail_stream`]) rather than leave a
 /// closed pipe that reads like a clean end.
 async fn read_frames(
@@ -394,7 +396,7 @@ async fn read_frames(
     read_max: usize,
     text: bool,
     client: bool,
-) -> ConnectResult<()> {
+) -> ConnectResult<bool> {
     let mut buf = BytesMut::new();
     let mut b64 = Base64StreamDecoder::default();
     loop {
@@ -422,11 +424,11 @@ async fn read_frames(
                 };
                 let _ = tx.send(Frame::EndStream { error, trailers }).await;
                 tx.close();
-                return Ok(());
+                return Ok(true);
             }
             let data = decompress_if(flags, payload, &decompressor, read_max)?;
             if tx.send(Frame::Message(data)).await.is_err() {
-                return Ok(());
+                return Ok(false);
             }
         }
         match body.next().await {
@@ -440,8 +442,10 @@ async fn read_frames(
             // A mid-body transport failure rides the payload as `Err` (F45 Part D).
             Some(Err(err)) => return Err(err.into()),
             None => {
-                tx.close();
-                return Ok(());
+                if !client {
+                    tx.close();
+                }
+                return Ok(false);
             }
         }
     }
@@ -499,6 +503,83 @@ async fn write_frames(
                 sink.close();
                 return Ok(());
             }
+        }
+    }
+}
+
+/// Client/reader: the response head, then the envelopes, then the status —
+/// from the trailer frame, or from HTTP trailers when the body ends without
+/// one. A Trailers-Only response (`grpc-status` in the head) ends at once. A
+/// stream that fails, or ends with no status at all, ends with an error rather
+/// than reading like a clean end.
+async fn read_grpc_web_response(
+    mut stream: TransportStream,
+    tx: PipeSender<Frame>,
+    response_headers: Arc<std::sync::Mutex<Option<SimpleHeaders>>>,
+    config: ClientExchangeConfig,
+    text: bool,
+) -> ConnectResult<()> {
+    let cancel = config.cancel;
+    let Some(headers) = open_response_stream(
+        &mut stream.head,
+        &mut stream.recv_body,
+        &tx,
+        &response_headers,
+        &cancel,
+        config.read_max_bytes,
+    )
+    .await
+    else {
+        return Ok(());
+    };
+    if headers
+        .get(&SimpleHeader::from(constants::TRAILER_STATUS.to_string()))
+        .is_some()
+    {
+        let error = parse_status_trailers(&headers);
+        let _ = race(
+            tx.send(Frame::EndStream {
+                error,
+                trailers: headers,
+            }),
+            cancel.cancelled(),
+        )
+        .await;
+        tx.close();
+        return Ok(());
+    }
+    match read_frames(
+        stream.recv_body,
+        &tx,
+        None,
+        config.read_max_bytes,
+        text,
+        true,
+    )
+    .await
+    {
+        Ok(true) => Ok(()),
+        Ok(false) if tx.is_closed() => Ok(()), // consumer gone
+        Ok(false) => match stream.trailers.receive().await {
+            Some(trailers) => {
+                let error = parse_status_trailers(&trailers);
+                let _ = race(tx.send(Frame::EndStream { error, trailers }), cancel.cancelled())
+                    .await;
+                tx.close();
+                Ok(())
+            }
+            None => {
+                let e = ConnectError::internal(
+                    "the gRPC-Web response ended without a status trailer",
+                )
+                .into();
+                fail_stream(&tx, &e, &cancel).await;
+                Err(e)
+            }
+        },
+        Err(e) => {
+            fail_stream(&tx, &e, &cancel).await;
+            Err(e)
         }
     }
 }
@@ -621,7 +702,7 @@ impl ProtocolHandler for GrpcWebHandler {
             if let Err(e) = &result {
                 fail_stream(&request_tx, e, &cancel).await;
             }
-            result
+            result.map(|_| ())
         });
         // Dispatch advertises this negotiation via `streaming_response_encoding`
         // (`grpc-encoding` response header) — a compressed envelope flag
@@ -876,10 +957,14 @@ impl ProtocolClient for GrpcWebClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        cancel: CancelSignal,
+        config: ClientExchangeConfig,
     ) -> ConnectResult<ClientExchange> {
-        let (conn, ends) =
-            PipeClientConn::new(spec.clone(), headers, cancel, DEFAULT_PIPE_DEPTH);
+        let (conn, ends) = PipeClientConn::new(
+            spec.clone(),
+            headers,
+            config.cancel.clone(),
+            DEFAULT_PIPE_DEPTH,
+        );
 
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
@@ -888,11 +973,13 @@ impl ProtocolClient for GrpcWebClient {
             self.text,
             false,
         ));
-        let response_tx = ends.response_tx;
-        let text = self.text;
-        let reader: BoxedTask = Box::pin(async move {
-            read_frames(stream.recv_body, &response_tx, None, 0, text, true).await
-        });
+        let reader: BoxedTask = Box::pin(read_grpc_web_response(
+            stream,
+            ends.response_tx,
+            ends.response_headers,
+            config,
+            self.text,
+        ));
 
         Ok(ClientExchange {
             conn: Box::new(conn),

@@ -56,8 +56,8 @@ pub use native::server::{ConnectRpcServe, ServeTimeouts};
 pub use native::h2_serve::ConnectRpcServeH2;
 
 pub use shared::protocol::{
-    canonicalize_content_type, parse_connect_content_type, ClientExchange, ExchangeConfig,
-    HandlerExchange, ProtocolClient, ProtocolHandler,
+    canonicalize_content_type, parse_connect_content_type, ClientExchange, ClientExchangeConfig,
+    ExchangeConfig, HandlerExchange, ProtocolClient, ProtocolHandler,
 };
 pub use shared::protocol::connect::{ConnectClient, ConnectHandler};
 pub use shared::protocol::grpc::{GrpcClient, GrpcHandler};

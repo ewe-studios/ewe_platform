@@ -33,14 +33,15 @@ use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::shared::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::transport::{
-    fail_stream, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn, PipeHandlerConn,
-    SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, HeadStream, PipeClientConn,
+    PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
-    BoxedTask, ClientExchange, ExchangeConfig, HandlerExchange, ProtocolClient, ProtocolHandler,
-    UnaryOutcome,
+    open_response_stream, BoxedTask, ClientExchange, ClientExchangeConfig, ExchangeConfig,
+    HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
 };
+use std::sync::Mutex;
 
 /// Connect protocol constants (Decision 05).
 pub mod constants {
@@ -269,14 +270,62 @@ async fn write_response_frames(
     }
 }
 
-/// Client/reader: de-envelope response bytes; a `0x02` end-stream frame parses to
-/// [`Frame::EndStream`] (Decision 11 normalization), everything else is a message.
-async fn read_response_frames(
+/// Client/reader: the response head, then the envelopes, then the
+/// `EndStreamResponse` that carries the outcome and trailers. A stream that
+/// fails, or ends without its `EndStreamResponse`, ends with an error rather
+/// than reading like a clean end.
+async fn read_connect_response(
+    mut head: HeadStream,
     mut body: BodyStream,
     resp_tx: PipeSender<Frame>,
-    decompressor: Option<Arc<dyn Compressor>>,
+    response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    cancel: CancelSignal,
     read_max: usize,
 ) -> ConnectResult<()> {
+    if open_response_stream(
+        &mut head,
+        &mut body,
+        &resp_tx,
+        &response_headers,
+        &cancel,
+        read_max,
+    )
+    .await
+    .is_none()
+    {
+        return Ok(());
+    }
+    match read_response_frames(&mut body, &resp_tx, None, read_max).await {
+        Ok(Some(end)) => {
+            // Delivered, the consumer gone, or the call cancelled.
+            let _ = race(resp_tx.send(end), cancel.cancelled()).await;
+            resp_tx.close();
+            Ok(())
+        }
+        Ok(None) => {
+            let e = ConnectError::internal(
+                "the response stream ended without an EndStreamResponse",
+            )
+            .into();
+            fail_stream(&resp_tx, &e, &cancel).await;
+            Err(e)
+        }
+        Err(e) => {
+            fail_stream(&resp_tx, &e, &cancel).await;
+            Err(e)
+        }
+    }
+}
+
+/// De-envelope response bytes into `resp_tx` until the `0x02` end-stream
+/// frame, which is returned (parsed to [`Frame::EndStream`], Decision 11
+/// normalization); `None` when the body ends first or the consumer is gone.
+async fn read_response_frames(
+    body: &mut BodyStream,
+    resp_tx: &PipeSender<Frame>,
+    decompressor: Option<Arc<dyn Compressor>>,
+    read_max: usize,
+) -> ConnectResult<Option<Frame>> {
     let mut buf = BytesMut::new();
     loop {
         while buf.len() >= ENVELOPE_HEADER_LEN {
@@ -294,30 +343,19 @@ async fn read_response_frames(
             let frame = buf.split_to(ENVELOPE_HEADER_LEN + len).freeze();
             let payload = frame.slice(ENVELOPE_HEADER_LEN..);
             let data = decompress_if(flags, payload, &decompressor, read_max)?;
-            let out = if flags & Envelope::FLAG_END_STREAM != 0 {
-                decode_end_stream(&data)
-            } else {
-                Frame::Message(data)
-            };
-            let is_end = matches!(out, Frame::EndStream { .. });
-            let _ = resp_tx.send(out).await;
-            if is_end {
-                resp_tx.close();
-                return Ok(());
+            if flags & Envelope::FLAG_END_STREAM != 0 {
+                return Ok(Some(decode_end_stream(&data)));
+            }
+            if resp_tx.send(Frame::Message(data)).await.is_err() {
+                return Ok(None); // consumer gone
             }
         }
         match body.next().await {
             Some(Ok(chunk)) => buf.extend_from_slice(&chunk),
-            // A mid-body transport failure now rides the payload as `Err` (F45
-            // Part D) — surface it instead of silently closing the stream.
-            Some(Err(err)) => {
-                resp_tx.close();
-                return Err(err.into());
-            }
-            None => {
-                resp_tx.close();
-                return Ok(());
-            }
+            // A mid-body transport failure rides the payload as `Err` (F45
+            // Part D); the caller ends the stream with it.
+            Some(Err(err)) => return Err(err.into()),
+            None => return Ok(None),
         }
     }
 }
@@ -715,18 +753,28 @@ impl ProtocolClient for ConnectClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        cancel: CancelSignal,
+        config: ClientExchangeConfig,
     ) -> ConnectResult<ClientExchange> {
-        let (conn, ends) =
-            PipeClientConn::new(spec.clone(), headers, cancel, DEFAULT_PIPE_DEPTH);
+        let (conn, ends) = PipeClientConn::new(
+            spec.clone(),
+            headers,
+            config.cancel.clone(),
+            DEFAULT_PIPE_DEPTH,
+        );
 
         // No compression on the client tasks here (negotiation resolves from the
         // response head in the client core, F24); identity by default.
         let writer_impl = EnvelopeWriter::new(None, 0, 0);
         let writer: BoxedTask =
             Box::pin(write_request_frames(ends.request_rx, Arc::clone(&stream.send_body), writer_impl));
-        let reader: BoxedTask =
-            Box::pin(read_response_frames(stream.recv_body, ends.response_tx, None, 0));
+        let reader: BoxedTask = Box::pin(read_connect_response(
+            stream.head,
+            stream.recv_body,
+            ends.response_tx,
+            ends.response_headers,
+            config.cancel,
+            config.read_max_bytes,
+        ));
 
         Ok(ClientExchange {
             conn: Box::new(conn),

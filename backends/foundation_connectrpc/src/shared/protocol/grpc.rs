@@ -31,7 +31,7 @@ use futures::StreamExt;
 
 use crate::shared::client::code_from_http_status;
 use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
-use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
+use crate::shared::context::{Peer, Spec, StreamType};
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::transport::{
@@ -42,8 +42,8 @@ use crate::shared::transport::{
 use super::grpc_web::build_status_trailers;
 
 use super::{
-    BoxedTask, ClientExchange, ExchangeConfig, HandlerExchange, ProtocolClient, ProtocolHandler,
-    UnaryOutcome,
+    BoxedTask, ClientExchange, ClientExchangeConfig, ExchangeConfig, HandlerExchange,
+    ProtocolClient, ProtocolHandler, UnaryOutcome,
 };
 
 // ── gRPC constants ──────────────────────────────────────────────────────────
@@ -493,10 +493,10 @@ impl ProtocolClient for GrpcClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        cancel: CancelSignal,
+        config: ClientExchangeConfig,
     ) -> ConnectResult<ClientExchange> {
         let (conn, ends) =
-            PipeClientConn::new(spec.clone(), headers, cancel, DEFAULT_PIPE_DEPTH);
+            PipeClientConn::new(spec.clone(), headers, config.cancel, DEFAULT_PIPE_DEPTH);
 
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
@@ -509,6 +509,7 @@ impl ProtocolClient for GrpcClient {
             stream.trailers,
             ends.response_tx,
             ends.response_headers,
+            config.read_max_bytes,
         ));
 
         Ok(ClientExchange {
@@ -537,6 +538,7 @@ async fn read_grpc_response(
     trailers: PipeReceiver<SimpleHeaders>,
     tx: PipeSender<Frame>,
     response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    read_max: usize,
 ) -> ConnectResult<()> {
     // 1. Response head. Publish the headers so `response_headers()` works.
     // Errors are delivered through the pipe (that's what the caller observes);
@@ -586,7 +588,7 @@ async fn read_grpc_response(
     // 3. Message envelopes until body EOF. A mid-stream failure (truncated
     //    envelope, body error, oversized frame) must reach the receiver as a
     //    terminal error, not vanish into a clean-looking EOF.
-    if let Err(e) = read_frames(body, &tx, None, 0).await {
+    if let Err(e) = read_frames(body, &tx, None, read_max).await {
         let _ = tx
             .send(Frame::EndStream { error: Some(e), trailers: SimpleHeaders::new() })
             .await;
