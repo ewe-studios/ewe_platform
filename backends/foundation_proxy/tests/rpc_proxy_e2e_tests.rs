@@ -158,6 +158,23 @@ fn start_backend() -> (u16, Arc<OnSignal>) {
     (port, shutdown)
 }
 
+/// A router whose unary handler stamps every response with `tag`, so a test can
+/// observe which of several backend instances answered a call.
+fn build_tagged_router(tag: &str) -> Router {
+    let tag = tag.to_string();
+    let mut router = Router::new();
+    router.unary(
+        UNARY,
+        codecs(),
+        move |_ctx: Ctx, req: Request<Msg>| {
+            let tag = tag.clone();
+            async move { Ok(Response::new(Msg::of(format!("{tag}:{}", req.msg.text)))) }
+        },
+        HandlerOptions::new(),
+    );
+    router
+}
+
 /// Start a backend serving **only native gRPC** (HTTP/2 `ConnectRpcServeH2`),
 /// with no HTTP/1.1 / gRPC-Web dispatch at all. Used by the D-leg tests to prove
 /// the proxy translates an inbound gRPC-Web request rather than forwarding it.
@@ -168,6 +185,28 @@ fn start_backend_grpc_only() -> (u16, Arc<OnSignal>) {
     h2_app.route_any_h2(SERVER_STREAM, h2.clone());
     h2_app.route_any_h2(CLIENT_STREAM, h2.clone());
     h2_app.route_any_h2(BIDI_STREAM, h2);
+
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind backend");
+    let port = listener.local_addr().expect("backend addr").port();
+    let addr = format!("127.0.0.1:{port}");
+
+    let shutdown = Arc::new(OnSignal::new());
+    let server_shutdown = Arc::clone(&shutdown);
+    let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
+    std::thread::spawn(move || {
+        server.serve_with_listener(&listener, &server_shutdown);
+    });
+
+    (port, shutdown)
+}
+
+/// A native-gRPC-only backend (H2) whose unary responses carry `tag`, so a test
+/// can observe which of several backend instances answered.
+fn start_backend_grpc_only_tagged(tag: &str) -> (u16, Arc<OnSignal>) {
+    let h2: Arc<dyn H2Serve> =
+        Arc::new(ConnectRpcServeH2::new(build_tagged_router(tag).into_handler()));
+    let mut h2_app = HttpApp::new_h2_serve();
+    h2_app.route_any_h2(UNARY, h2);
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind backend");
     let port = listener.local_addr().expect("backend addr").port();
@@ -201,6 +240,18 @@ fn proxy_config(backend_port: u16) -> ProxyConfig {
 fn proxy_config_grpc(backend_port: u16) -> ProxyConfig {
     let svc = ServiceConfig::new("rpc", "127.0.0.1")
         .backend(&format!("grpc://127.0.0.1:{backend_port}"));
+    ProxyConfig::new("127.0.0.1", "127.0.0.1")
+        .bind("127.0.0.1:0")
+        .service(svc)
+}
+
+/// A proxy whose service routes to several `grpc://` backends (equal weight),
+/// for stream-level load-balancing tests.
+fn proxy_config_grpc_multi(ports: &[u16]) -> ProxyConfig {
+    let mut svc = ServiceConfig::new("rpc", "127.0.0.1");
+    for port in ports {
+        svc = svc.backend(&format!("grpc://127.0.0.1:{port}"));
+    }
     ProxyConfig::new("127.0.0.1", "127.0.0.1")
         .bind("127.0.0.1:0")
         .service(svc)
@@ -764,4 +815,47 @@ async fn connect_unary_via_grpc_backend_h2() {
         Msg::of("echo:connect-h2-relay"),
         "Connect unary over H2 must be translated to native gRPC and back"
     );
+}
+
+// ── D leg: stream-level load balancing ──────────────────────────────────────
+
+/// WHY: with more than one `grpc://` backend, each relayed RPC must pick a
+/// backend at open time — not pin to the first healthy one — so concurrent
+/// streams spread across the pool.
+/// WHAT: two tagged backends behind one proxy; many concurrent Connect unary
+/// calls over the H2 front end; both tags must be observed (neither backend sits
+/// idle while the other serves everything).
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn connect_streams_spread_across_grpc_backends() {
+    let (port_a, shutdown_a) = start_backend_grpc_only_tagged("A");
+    let (port_b, shutdown_b) = start_backend_grpc_only_tagged("B");
+    let proxy =
+        ProxyServer::start(proxy_config_grpc_multi(&[port_a, port_b])).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    // Each call dials the proxy with a fresh H2 connection (H2Transport is
+    // one-connection-per-call), so the proxy performs a fresh backend pick per
+    // RPC — the smooth weighted round-robin must alternate across the two.
+    let futs = (0..12).map(|i| {
+        let addr = addr.clone();
+        async move {
+            let client = connect_h2_client(&addr, UNARY);
+            client
+                .unary(ctx(), Request::new(Msg::of(format!("lb-{i}"))))
+                .await
+                .expect("connect unary")
+                .msg
+                .text
+        }
+    });
+    let tags: Vec<String> = futures_util::future::join_all(futs).await;
+
+    proxy.shutdown();
+    shutdown_a.turn_on();
+    shutdown_b.turn_on();
+
+    let seen_a = tags.iter().any(|t| t.starts_with("A:"));
+    let seen_b = tags.iter().any(|t| t.starts_with("B:"));
+    assert!(seen_a, "backend A must observe traffic, got: {tags:?}");
+    assert!(seen_b, "backend B must observe traffic, got: {tags:?}");
 }
