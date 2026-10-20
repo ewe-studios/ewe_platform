@@ -8,6 +8,24 @@ been started. An earlier version of
 this file said "Features 00–05 complete"; the feature docs and the code say
 otherwise (no agent-rpc / installer / registrar crates exist yet).
 
+## Feature 01 — Agent RPC Model Server (branch `65-f01-agent-rpc`)
+
+| Task | Status | Commit |
+|------|--------|--------|
+| T1 — shareability spike (candle: shared weights, per-generation KV) | ✅ | see git log (`spec 65 F1 T1`) |
+| T2 — crate scaffold | ⏳ | |
+| T3 — `ModelHandle` | ⏳ | |
+| T4 — `InstanceRegistry` | ⏳ | |
+| T5 — generated RPC service | ⏳ | |
+| T6 — unary round-trip | ⏳ | |
+| T7 — streaming round-trip | ⏳ | |
+| T8 — client auth (token → mTLS) | ⏳ | |
+| T9 — bootstrap payload | ⏳ | |
+| T10 — all three protocols e2e | ⏳ | |
+
+Tests: `cargo test --profile uat -p foundation_agent_rpc` (LLVM profile: candle's
+`pulp` does not link under cranelift).
+
 ## Feature 06 — WASM Lazy Streaming
 
 | Task | Status | Commit |
@@ -84,7 +102,7 @@ errors are swallowed; interval callbacks run under the registry lock.
 - **00-foundation** — 🔧 6/7: T1–T6 done (T6:
   `foundation_toolings/tests/cf_examples.rs`, both examples green under
   miniflare with mocked vendors); T7 (deploy to Cloudflare, live key) open.
-- **01-agent-rpc** — ⏳ not started (0/10)
+- **01-agent-rpc** — 🔄 in progress (see table above)
 - **02-manifest-installer** — ⏳ not started (0/9)
 - **03-proxy-registration** — ⏳ not started (0/8)
 - **04-registrar-sidecar** — ⏳ not started (0/7)

@@ -1,18 +1,18 @@
 ---
 feature: "Agent RPC Model Server"
 description: "A long-lived per-machine RPC server (foundation_agent_rpc) that loads a model once, runs threaded inference, and exposes named agent instances over Connect/gRPC/gRPC-Web with its own client-facing secret-token → mTLS auth."
-status: "pending"
+status: "in-progress"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
 created: 2026-10-19
-last_updated: 2026-10-19
+last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 1
+  uncompleted: 9
   total: 10
-  completion_percentage: 0
+  completion_percentage: 10
 ---
 
 # Agent RPC Model Server
@@ -307,7 +307,7 @@ service AgentService {
 
 ## Tasks
 
-- [ ] **T1 — Shareability spike (gate).** Prove `foundation_ai`'s loaded backend
+- [x] **T1 — Shareability spike (gate).** Prove `foundation_ai`'s loaded backend
       (llamacpp GGUF and/or Candle) is `Send + Sync` and that one loaded model
       serves two+ `AgentSession`s concurrently. Red test: two sessions on one
       model complete interleaved chats without per-session reload.

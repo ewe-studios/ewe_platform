@@ -4499,6 +4499,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_agent_rpc"
+version = "0.0.1"
+dependencies = [
+ "foundation_ai",
+ "foundation_compact",
+ "foundation_core",
+ "foundation_db",
+ "foundation_errstacks",
+ "tracing",
+ "tracing-test",
+]
+
+[[package]]
 name = "foundation_ai"
 version = "0.0.2"
 dependencies = [

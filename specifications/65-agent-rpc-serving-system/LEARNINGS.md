@@ -529,3 +529,34 @@ the isolate.
 - **`cargo test -p foundation_ai` skips the agentic suite**: `agentic_tests`
   needs `--features testing`. Run it explicitly.
 
+## 01 T1 (2026-10-20) — shareability spike: shared weights, per-generation KV
+
+- **The assumption was false for Candle, and the test proved it.** `CandleModels`
+  was `Arc<Mutex<state>>` with the KV cache *inside* the shared state, and the
+  stream took the lock per token. So it was `Send + Sync`, but two generations on
+  one loaded model reset and overwrote each other's KV cache between tokens.
+  `interleaved_streams_on_one_gemma2_model_do_not_cross_talk` (two greedy streams
+  polled A, B, A, B) was red: their tokens differed from the same streams run
+  alone. Greedy decoding makes "same as alone" an exact cross-talk check.
+- **Fix (in `foundation_ai/src/backends/candle.rs`), not the `Arc<Mutex>`
+  fallback:** split the model into read-only `CandleWeights` (in an `Arc`,
+  shared by every clone) and per-generation `CandleGeneration` (its KV cache).
+  Llama's cache is external, so a generation is just a fresh `Cache`; Gemma2's is
+  internal, so a generation clones the model (candle tensors are refcounted, so
+  no weights are copied) and clears the cache. No lock is held across a forward
+  pass, so sessions on one model now run in parallel, not serialized.
+- **Found on the way: Llama ran with the KV cache off** (`Cache::new(false, ..)`)
+  while the stream fed one token per step, so every token after the first
+  attended only to itself. Now `true`.
+- **Stream errors were swallowed**: a failed forward/sampling ended the stream as
+  `Finished`. It now yields `Pending(ModelState::Error(..))` (the loop maps it to
+  a `FailedAction`).
+- **`CandleModels::shares_weights_with`** (`Arc::ptr_eq`) is the observable proof
+  that two handles are one load; agent-rpc's `ModelHandle` builds on it.
+- **llama.cpp (`LlamaModels`) is unverified**: building it needs the
+  `tools/llama.cpp` sources, which this environment does not have. Backlog §10.
+- **Build notes:** candle's `pulp` does not link under the default cranelift dev
+  backend; build and test with `--profile uat` (LLVM). `foundation_ai`'s own test
+  targets cannot build without llama.cpp (unconditional dev-dependency), so the
+  spike's tests live in `foundation_agent_rpc/tests/model_share_tests.rs`.
+

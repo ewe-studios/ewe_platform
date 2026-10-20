@@ -205,6 +205,22 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   work. Likely fix: an async `generate` seam (e.g. `generate_async`) over
   `send_async`, or route wasm `generate` through the lazy `send_sse`/`stream`
   machinery and collect its result async.
+- **Candle usage accounting never accumulates.** `backends/candle.rs`:
+  `CandleUsage::cumulative_cost` and `tokens_generated` are never updated, and
+  `stream()` never records `last_usage`, so `Model::costing()` always reports 0.
+  Likely fix: add each generation's usage in `generate` and at stream end.
+- **The test targets need llama.cpp even for candle-only runs.** The native
+  `[dev-dependencies]` pull `infrastructure_llama_cpp` unconditionally, so
+  `cargo test -p foundation_ai --no-default-features --features candle` fails
+  without the `tools/llama.cpp` sources (`llama.h` not found). Likely fix: move
+  the llama.cpp error-conversion tests behind `required-features = ["llamacpp"]`
+  and take the type from the normal (optional) dependency instead.
+- **llama.cpp backend concurrency not verified.** Spec 65 F1/T1 proved one
+  loaded *candle* model serves concurrent sessions without cross-talk; the
+  `LlamaModels` path was not exercised (no llama.cpp build in that run). Run the
+  same interleaving check (`foundation_agent_rpc/tests/model_share_tests.rs`)
+  against the GGUF fixture under the `gguf` feature.
+
 ## Paused
 
 - Windows/macOS VM images (#69).
