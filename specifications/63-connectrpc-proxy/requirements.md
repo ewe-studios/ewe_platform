@@ -94,14 +94,6 @@ backend: `http`/`https` → B (transparent), `connect`/`grpc`/`grpc-web` → D
   raw-socket-timing issues, not T6 regressions. Scheduled for a fix. See
   LEARNINGS.md.
 
-- **`foundation_netio` websocket tests are flaky under full-suite concurrency
-  (2026-10-20).** `websocket::native::server_task::tests::{close_frame_drains_task,
-  unmasked_frame_triggers_close_and_drain,
-  masked_text_message_delivers_via_incremental_decoder}` failed once in a full
-  `cargo test -p foundation_netio` run but pass consistently in isolation (with
-  and without the T6 `impls.rs` change), so they are raw-socket/thread timing
-  flakes, not T6 regressions. Scheduled for a fix.
-
 # Language Stack
 
 **IMPORTANT:** Agents MUST identify the language stack below and read the
