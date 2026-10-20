@@ -16,6 +16,7 @@ use std::collections::VecDeque;
 use std::panic::AssertUnwindSafe;
 use std::sync::{Arc, Condvar, Mutex, MutexGuard, PoisonError};
 use std::thread::{self, JoinHandle};
+use std::time::{Duration, Instant};
 
 use crate::synca::WaitGroup;
 use crate::valtron::GenericResult;
@@ -104,6 +105,74 @@ fn run_job(job: BackgroundJob, runner: &str) {
     }
 }
 
+/// How a [`BackgroundJobRegistry`] is sized and shut down.
+///
+/// WHY: Limits are configuration, not constants (CLAUDE.md rule 8): the
+/// shutdown deadline in particular must be tunable, because no single value
+/// fits every embedder.
+///
+/// WHAT: The worker count and the longest `shutdown()` may wait for accepted
+/// jobs before giving up on them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BackgroundJobConfig {
+    num_threads: usize,
+    shutdown_timeout: Duration,
+}
+
+impl BackgroundJobConfig {
+    /// Default for [`Self::shutdown_timeout`]: 30 seconds, Kubernetes' default
+    /// `terminationGracePeriodSeconds` — the time an orchestrator gives a
+    /// process to finish in-flight work before killing it. (systemd's
+    /// `DefaultTimeoutStopSec` is a laxer 90 s.)
+    pub const DEFAULT_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(30);
+
+    /// A config for `num_threads` workers with the default shutdown timeout.
+    #[must_use]
+    pub fn new(num_threads: usize) -> Self {
+        Self {
+            num_threads,
+            shutdown_timeout: Self::DEFAULT_SHUTDOWN_TIMEOUT,
+        }
+    }
+
+    /// The longest `shutdown()` waits for accepted jobs to finish. Past it,
+    /// jobs that have not started are dropped and workers still inside a job
+    /// are detached, so shutdown never blocks forever.
+    #[must_use]
+    pub fn with_shutdown_timeout(mut self, timeout: Duration) -> Self {
+        self.shutdown_timeout = timeout;
+        self
+    }
+
+    /// Number of worker threads.
+    #[must_use]
+    pub fn num_threads(&self) -> usize {
+        self.num_threads
+    }
+
+    /// The configured shutdown deadline.
+    #[must_use]
+    pub fn shutdown_timeout(&self) -> Duration {
+        self.shutdown_timeout
+    }
+}
+
+/// What [`BackgroundJobRegistry::shutdown`] managed to do before returning.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[must_use]
+pub enum ShutdownOutcome {
+    /// Every accepted job ran and every worker was joined.
+    Completed,
+    /// The shutdown deadline passed first.
+    TimedOut {
+        /// Accepted jobs that had not started and were dropped without running.
+        abandoned_jobs: usize,
+        /// Workers still inside a job; they were detached, not joined, and
+        /// exit on their own once that job returns.
+        busy_workers: usize,
+    },
+}
+
 /// Fixed-size thread pool for executing blocking, fire-and-forget closures.
 ///
 /// WHY: Replaces unbounded `std::thread::spawn` patterns with a managed pool
@@ -118,11 +187,15 @@ fn run_job(job: BackgroundJob, runner: &str) {
 ///
 /// # Shutdown semantics
 ///
-/// Every job whose `submit()` returned `Ok` runs exactly once, including jobs
-/// still queued when `shutdown()` is called: shutdown stops *intake*, not
-/// execution. `shutdown()` therefore returns only after all accepted jobs have
-/// finished, so a job that never returns blocks it. Jobs submitted after the
-/// close (including from inside a draining job) are rejected with an error.
+/// Shutdown stops *intake*, not execution: every job whose `submit()` returned
+/// `Ok` — including jobs still queued when `shutdown()` is called — runs exactly
+/// once, provided they all finish within the configured shutdown timeout
+/// ([`BackgroundJobConfig::with_shutdown_timeout`], default
+/// [`BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT`]). If the deadline passes
+/// first, `shutdown()` does not block forever: jobs that have not started are
+/// dropped, workers stuck inside a job are detached, and the result is
+/// [`ShutdownOutcome::TimedOut`]. Jobs submitted after the close (including
+/// from inside a draining job) are rejected with an error.
 ///
 /// # Panics
 ///
@@ -133,6 +206,7 @@ pub struct BackgroundJobRegistry {
     waitgroup: WaitGroup,
     thread_handles: Mutex<Vec<JoinHandle<()>>>,
     num_threads: usize,
+    shutdown_timeout: Duration,
 }
 
 impl BackgroundJobRegistry {
@@ -156,6 +230,18 @@ impl BackgroundJobRegistry {
     /// thread.
     #[must_use]
     pub fn new(num_threads: usize) -> Arc<Self> {
+        Self::with_config(BackgroundJobConfig::new(num_threads))
+    }
+
+    /// Create a registry from a [`BackgroundJobConfig`] and spawn its workers.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `config.num_threads()` is 0, or if the OS refuses to spawn a
+    /// worker thread.
+    #[must_use]
+    pub fn with_config(config: BackgroundJobConfig) -> Arc<Self> {
+        let num_threads = config.num_threads;
         assert!(
             num_threads >= 1,
             "BackgroundJobRegistry requires at least 1 thread"
@@ -166,6 +252,7 @@ impl BackgroundJobRegistry {
             waitgroup: WaitGroup::new(),
             thread_handles: Mutex::new(Vec::with_capacity(num_threads)),
             num_threads,
+            shutdown_timeout: config.shutdown_timeout,
         });
 
         let mut handles = Vec::with_capacity(num_threads);
@@ -221,21 +308,28 @@ impl BackgroundJobRegistry {
             .map_err(|_| "BackgroundJobRegistry: queue closed, cannot submit job".into())
     }
 
-    /// Shut down the registry: stop intake, run every queued job, join workers.
+    /// Shut down the registry: stop intake, run the queued jobs, join workers —
+    /// all within the configured shutdown timeout.
     ///
-    /// WHY: Clean shutdown that neither abandons accepted work nor leaks threads
-    /// WHAT: Closes the queue, waits for the workers to drain it and exit, then
-    /// joins them. See the type-level "Shutdown semantics".
-    /// HOW: close + notify_all -> waitgroup.wait() -> join handles. If jobs are
-    /// somehow still queued afterwards (every worker died outside a job), they
-    /// are run on the calling thread so the guarantee still holds.
+    /// WHY: Clean shutdown that neither abandons accepted work nor leaks
+    /// threads, and that can never hang on a job that does not return.
+    /// WHAT: Closes the queue and waits, up to the shutdown timeout, for the
+    /// workers to drain it and exit. See the type-level "Shutdown semantics".
+    /// HOW: close + notify_all -> `waitgroup.wait_timeout(deadline)`.
+    /// - In time: join every worker. Jobs still queued (only possible if every
+    ///   worker died outside a job) run on the calling thread while the
+    ///   deadline allows; the rest are dropped.
+    /// - Too late: drop the jobs that never started, join the workers that
+    ///   already exited, and detach the ones still inside a job (they exit by
+    ///   themselves when it returns, since the queue is closed and empty).
     ///
-    /// Idempotent; concurrent callers all return once the workers are gone.
-    /// Must not be called from inside a background job (it would wait for
-    /// itself).
-    pub fn shutdown(&self) {
+    /// Idempotent; concurrent callers each wait at most the timeout. Must not
+    /// be called from inside a background job (it would wait for itself until
+    /// the timeout).
+    pub fn shutdown(&self) -> ShutdownOutcome {
+        let deadline = Instant::now() + self.shutdown_timeout;
         self.queue.close();
-        self.waitgroup.wait();
+        let drained_in_time = self.waitgroup.wait_timeout(self.shutdown_timeout);
 
         let handles: Vec<JoinHandle<()>> = self
             .thread_handles
@@ -243,22 +337,45 @@ impl BackgroundJobRegistry {
             .unwrap_or_else(PoisonError::into_inner)
             .drain(..)
             .collect();
+        let mut busy_workers = 0;
         for handle in handles {
+            if !drained_in_time && !handle.is_finished() {
+                // Still inside a job: dropping the handle detaches the thread.
+                busy_workers += 1;
+                continue;
+            }
             let name = handle.thread().name().unwrap_or("bg-worker").to_string();
             if let Err(panic_info) = handle.join() {
                 tracing::error!("Background worker {name} panicked outside a job: {panic_info:?}");
             }
         }
 
+        let mut abandoned_jobs = 0;
         let leftover = self.queue.drain();
-        if !leftover.is_empty() {
+        if !leftover.is_empty() && drained_in_time {
             tracing::warn!(
                 "BackgroundJobRegistry::shutdown: {} queued job(s) outlived the workers; running them on the shutdown caller",
                 leftover.len()
             );
-            for job in leftover {
+        }
+        for job in leftover {
+            if drained_in_time && Instant::now() < deadline {
                 run_job(job, "the shutdown caller");
+            } else {
+                abandoned_jobs += 1;
             }
+        }
+
+        if busy_workers == 0 && abandoned_jobs == 0 {
+            return ShutdownOutcome::Completed;
+        }
+        tracing::error!(
+            "BackgroundJobRegistry::shutdown: timed out after {:?}; dropped {abandoned_jobs} unstarted job(s), detached {busy_workers} worker(s) still inside a job",
+            self.shutdown_timeout
+        );
+        ShutdownOutcome::TimedOut {
+            abandoned_jobs,
+            busy_workers,
         }
     }
 

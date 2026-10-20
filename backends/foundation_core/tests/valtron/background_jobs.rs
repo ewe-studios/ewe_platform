@@ -1,6 +1,8 @@
 //! Tests for `BackgroundJobRegistry` and `split_thread_count`.
 
-use foundation_core::valtron::{split_thread_count, BackgroundJobRegistry};
+use foundation_core::valtron::{
+    split_thread_count, BackgroundJobConfig, BackgroundJobRegistry, ShutdownOutcome,
+};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{mpsc, Arc};
 use std::thread;
@@ -56,7 +58,7 @@ fn test_submit_and_execute_job() {
         "job should have executed"
     );
 
-    registry.shutdown();
+    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
 }
 
 /// WHY: Workers must survive panicking jobs
@@ -89,7 +91,7 @@ fn test_panic_recovery() {
         "worker should recover from panic and execute next job"
     );
 
-    registry.shutdown();
+    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
 }
 
 /// WHY: shutdown must run every accepted job, then let workers exit cleanly
@@ -109,7 +111,7 @@ fn test_shutdown() {
             .expect("submit should succeed");
     }
 
-    registry.shutdown();
+    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
 
     assert_eq!(
         counter.load(Ordering::SeqCst),
@@ -124,7 +126,7 @@ fn test_shutdown() {
 fn test_submit_after_shutdown_fails() {
     let registry = BackgroundJobRegistry::new(1);
 
-    registry.shutdown();
+    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
 
     let result = registry.submit(|| {});
     assert!(result.is_err(), "submit after shutdown should fail");
@@ -136,7 +138,15 @@ fn test_submit_after_shutdown_fails() {
 fn registry_with_blocked_worker(
     on_release: impl FnOnce() + Send + 'static,
 ) -> (Arc<BackgroundJobRegistry>, mpsc::Sender<()>) {
-    let registry = BackgroundJobRegistry::new(1);
+    registry_with_blocked_worker_config(BackgroundJobConfig::new(1), on_release)
+}
+
+/// [`registry_with_blocked_worker`] with an explicit config.
+fn registry_with_blocked_worker_config(
+    config: BackgroundJobConfig,
+    on_release: impl FnOnce() + Send + 'static,
+) -> (Arc<BackgroundJobRegistry>, mpsc::Sender<()>) {
+    let registry = BackgroundJobRegistry::with_config(config);
     let (started_tx, started_rx) = mpsc::channel();
     let (release_tx, release_rx) = mpsc::channel::<()>();
     registry
@@ -155,7 +165,7 @@ fn registry_with_blocked_worker(
 
 /// Start `shutdown()` on another thread and return once it has closed the
 /// queue (observed by `submit` being rejected).
-fn begin_shutdown(registry: &Arc<BackgroundJobRegistry>) -> thread::JoinHandle<()> {
+fn begin_shutdown(registry: &Arc<BackgroundJobRegistry>) -> thread::JoinHandle<ShutdownOutcome> {
     let shutdown = {
         let registry = registry.clone();
         thread::spawn(move || registry.shutdown())
@@ -190,7 +200,10 @@ fn test_shutdown_runs_jobs_still_queued() {
 
     let shutdown = begin_shutdown(&registry);
     release.send(()).expect("blocker alive");
-    shutdown.join().expect("shutdown thread");
+    assert_eq!(
+        shutdown.join().expect("shutdown thread"),
+        ShutdownOutcome::Completed
+    );
 
     assert_eq!(
         ran.load(Ordering::SeqCst),
@@ -225,7 +238,10 @@ fn test_submit_from_draining_job_is_rejected() {
 
     let shutdown = begin_shutdown(&registry);
     release.send(()).expect("blocker alive");
-    shutdown.join().expect("shutdown thread");
+    assert_eq!(
+        shutdown.join().expect("shutdown thread"),
+        ShutdownOutcome::Completed
+    );
 
     assert!(
         result_rx.recv_timeout(JOB_DEADLINE).expect("job reported"),
@@ -253,7 +269,7 @@ fn test_idle_worker_is_woken_by_submit() {
         done_rx.recv_timeout(JOB_DEADLINE).expect("job should run");
     }
     let elapsed = start.elapsed();
-    registry.shutdown();
+    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
 
     assert!(
         elapsed < Duration::from_millis(500),
@@ -267,10 +283,104 @@ fn test_idle_worker_is_woken_by_submit() {
 fn test_idle_shutdown_is_prompt() {
     let registry = BackgroundJobRegistry::new(4);
     let start = Instant::now();
-    registry.shutdown();
+    assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
     let elapsed = start.elapsed();
     assert!(
         elapsed < Duration::from_millis(500),
         "idle shutdown took {elapsed:?}"
+    );
+}
+
+/// WHY: shutdown waits for accepted jobs, so a job that never returns used to
+/// block it forever. It must give up at the configured deadline instead.
+/// WHAT: The only worker is stuck in a job; 3 jobs are queued behind it; the
+/// shutdown timeout is 200 ms. Shutdown must return well before the stuck job
+/// ends, report the stuck worker and the 3 dropped jobs, and never run them.
+#[test]
+fn test_shutdown_gives_up_at_the_timeout() {
+    let (registry, release) = registry_with_blocked_worker_config(
+        BackgroundJobConfig::new(1).with_shutdown_timeout(Duration::from_millis(200)),
+        || {},
+    );
+
+    let ran = Arc::new(AtomicUsize::new(0));
+    for _ in 0..3 {
+        let ran = ran.clone();
+        registry
+            .submit(move || {
+                ran.fetch_add(1, Ordering::SeqCst);
+            })
+            .expect("submit before shutdown");
+    }
+
+    let (outcome_tx, outcome_rx) = mpsc::channel();
+    let shutdown_registry = registry.clone();
+    thread::spawn(move || {
+        let start = Instant::now();
+        let outcome = shutdown_registry.shutdown();
+        outcome_tx
+            .send((outcome, start.elapsed()))
+            .expect("test alive");
+    });
+    let (outcome, took) = outcome_rx
+        .recv_timeout(JOB_DEADLINE)
+        .expect("shutdown must not block on a job that never returns");
+
+    assert_eq!(
+        outcome,
+        ShutdownOutcome::TimedOut {
+            abandoned_jobs: 3,
+            busy_workers: 1,
+        }
+    );
+    assert!(
+        took >= Duration::from_millis(200),
+        "returned before the timeout: {took:?}"
+    );
+
+    // The stuck job ends after shutdown gave up: the dropped jobs stay dropped.
+    release.send(()).expect("blocker alive");
+    thread::sleep(Duration::from_millis(50));
+    assert_eq!(ran.load(Ordering::SeqCst), 0, "dropped jobs must not run");
+}
+
+/// WHY: the timeout bounds shutdown; it must not cut short jobs that finish
+/// within it
+/// WHAT: A worker busy for ~50 ms with 2 jobs queued, 5 s timeout: shutdown
+/// completes and every job runs.
+#[test]
+fn test_shutdown_within_timeout_completes() {
+    let (registry, release) = registry_with_blocked_worker_config(
+        BackgroundJobConfig::new(1).with_shutdown_timeout(Duration::from_secs(5)),
+        || thread::sleep(Duration::from_millis(50)),
+    );
+    let ran = Arc::new(AtomicUsize::new(0));
+    for _ in 0..2 {
+        let ran = ran.clone();
+        registry
+            .submit(move || {
+                ran.fetch_add(1, Ordering::SeqCst);
+            })
+            .expect("submit before shutdown");
+    }
+
+    let shutdown = begin_shutdown(&registry);
+    release.send(()).expect("blocker alive");
+    assert_eq!(
+        shutdown.join().expect("shutdown thread"),
+        ShutdownOutcome::Completed
+    );
+    assert_eq!(ran.load(Ordering::SeqCst), 2);
+}
+
+/// WHY: the default deadline is documented; keep the code and docs in step
+#[test]
+fn test_default_shutdown_timeout() {
+    let config = BackgroundJobConfig::new(2);
+    assert_eq!(config.num_threads(), 2);
+    assert_eq!(config.shutdown_timeout(), Duration::from_secs(30));
+    assert_eq!(
+        config.shutdown_timeout(),
+        BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT
     );
 }
