@@ -26,6 +26,7 @@ derive_more = { version = "2.1", features = ["display", "error"] }
 buffa = { version = "0.8.1", features = ["json"] }
 # The generated service code names `futures::Stream`.
 futures = "0.3"
+bytes = "1"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
@@ -70,6 +71,10 @@ path = "tests/service_tests.rs"
 [[test]]
 name = "connect_unary_tests"
 path = "tests/connect_unary_tests.rs"
+
+[[test]]
+name = "connect_stream_tests"
+path = "tests/connect_stream_tests.rs"
 
 [[test]]
 name = "model_handle_tests"

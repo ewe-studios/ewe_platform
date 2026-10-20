@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 6
-  uncompleted: 4
+  completed: 7
+  uncompleted: 3
   total: 10
-  completion_percentage: 60
+  completion_percentage: 70
 ---
 
 # Agent RPC Model Server
@@ -323,7 +323,7 @@ service AgentService {
       wire into a connectrpc `Router`.
 - [x] **T6 — Unary round-trip.** `CreateInstance` + `Chat` (unary) round-trip
       over Connect on loopback; error → status mapping asserted.
-- [ ] **T7 — Streaming round-trip.** `ChatStream` server-streaming over Connect;
+- [x] **T7 — Streaming round-trip.** `ChatStream` server-streaming over Connect;
       assert streaming (not buffered) with a slow producer.
 - [ ] **T8 — Client auth.** `BootstrapToken` → mTLS provisioning; reject a call
       without a valid cert after bootstrap; never log the token.

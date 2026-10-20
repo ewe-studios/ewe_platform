@@ -4542,6 +4542,7 @@ version = "0.0.1"
 dependencies = [
  "buffa 0.8.1",
  "buffa-build 0.8.1",
+ "bytes",
  "derive_more",
  "foundation_ai",
  "foundation_compact",

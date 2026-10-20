@@ -132,6 +132,18 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   spinning.
 - **Release coupling.** `foundation_macros` calls `foundation_core::valtron::initialize_current_thread`, so the two crates need a coordinated version bump when published.
 
+- **A task that blocks its worker strands the tasks parked on that worker.**
+  Readiness-parked tasks (`Depends(QueueReadiness)`, e.g. every
+  `from_future` task waiting on a waker) are re-polled only by the worker that
+  parked them (every `READINESS_POLL_QUANTUM`); other workers never steal them.
+  So when that worker then runs something that blocks — connectrpc's HTTP/1.1
+  `ConnIo::block_on` sleeping in `poll(2)` for a whole call, or a model stream
+  that blocks — the parked tasks wait until it unblocks. Seen in spec 65 F1/T7:
+  a same-process connectrpc client's reader task stalled until the server call
+  hit its deadline (20–30 s) even though the server had sent the frame in 8 ms.
+  Likely fix: let idle workers steal readiness sleepers (or move them to a
+  shared sleeper set), and stop blocking workers in the h1 serve path (§1).
+
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
 - **`SpinWaiter`** (foundation_nostd, still used on wasm) rounds sub-millisecond waits down to zero, and its spin calibration is arbitrary.

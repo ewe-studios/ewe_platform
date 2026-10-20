@@ -646,3 +646,27 @@ the isolate.
   message first. connectrpc's connect/error/conformance/grpc-web/client/grpc
   suites still pass.
 
+## 01 T7 (2026-10-20) — `ChatStream`, proven unbuffered
+
+- **Proof design:** a gated model emits token `k+1` only once the *client* has
+  received token `k`; any buffering between model and client keeps the gate shut
+  and the turn fails. The gate yields `Stream::Delayed(2ms)` instead of blocking
+  (the agent loop turns that into `TaskStatus::Delayed`). An in-process variant
+  drives `AgentService::chat_stream` directly.
+- **The first red was not buffering.** The first gated model blocked on a
+  condvar, and the stream "buffered" over both h1 and h2c. Bisecting: a raw
+  socket got head + frame 0 from a bare connectrpc server in 8 ms; `H1Transport`
+  alone delivered head (63 ms) and frame 0 (103 ms); but the connectrpc client's
+  `server_stream` only returned after the call's deadline. Cause: valtron
+  re-polls readiness-parked tasks only on the worker that parked them, so the
+  client's reader task (a `from_future` task parked on a waker) is stranded
+  when that worker blocks — on my condvar, or in the h1 server's
+  `ConnIo::block_on` `poll(2)`. Backlog §4 (valtron) and §1 (h1 serve).
+- **Consequence for tests:** the unbuffered proof runs Connect over **h2c**
+  (`H2Transport`; the server's h2 path never blocks a worker). Connect over
+  HTTP/1.1 streaming is round-tripped with an ungated producer; it passes but can
+  stall ~30 s when the client's reader lands on the server call's worker. This
+  only affects a client in the *same process* as the server (tests); a remote
+  client is unaffected, though server-side tasks parked on a worker that then
+  blocks in an h1 call are affected the same way.
+
