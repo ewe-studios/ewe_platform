@@ -60,15 +60,31 @@ by the platform, not by taste:
   backends are already `not(target_family = "wasm")`-gated
   (`src/backends/mod.rs`) and are infeasible anyway (C FFI, threads, mmap, ~128 MB,
   no raw TCP). Do not attempt to port them.
-- **The agentic layer + cloud providers are nearly wasm-clean.** The only hard
-  `cargo check --target wasm32-unknown-unknown` error is `getrandom` pulled by
-  `ahash`'s default `runtime-rng` feature (`foundation_ai/Cargo.toml:43` → `ahash
-  = "0.8"`). Secondary (verified) fixes: the three cloud providers call the
-  native-only `foundation_netio::http::default_http_client()`
-  (`openai_provider.rs:392`, `anthropic_messages_provider.rs:484`,
-  `openai_responses_provider.rs:537`) instead of the root
-  `foundation_netio::default_http_client()` (wasm-aware re-export), and
-  `foundation_ai` never enables `foundation_netio/wasm-fetch`.
+- **The agentic layer + cloud providers are nearly wasm-clean, but the blocker
+  is `getrandom 0.3.4`, pulled by two chains — not just `ahash`.** Re-verified
+  2026-10-20: the red gate fires on `getrandom 0.3.4`, reached via (a)
+  `foundation_ai`'s direct `ahash = "0.8"` (`runtime-rng` feature) and (b)
+  `foundation_auth`'s non-optional `rand 0.9` (`os_rng` → `rand_core 0.9`).
+  `foundation_auth` itself fails the wasm check today (regression since spec 28):
+  its `wasm` feature only enables `getrandom 0.2/js`, but getrandom 0.3+ moved
+  wasm support to a `wasm_js` *feature* that neither `rand_core 0.9` nor `ahash
+  0.8` forwards. (getrandom 0.4.3 via `jwt-simple`/`ed25519-compact` is already
+  fine — `ed25519-compact` forwards `wasm_js`.) Fix: enable `getrandom 0.3`'s
+  `wasm_js` in `foundation_auth` (target-gated alias dep) + `ahash`
+  `default-features = false` in `foundation_ai` (its 3 `AHasher::default()` sites
+  are deterministic content-hashing). Note: getrandom 0.3.4's `compile_error!`
+  misleadingly names a `wasm_js` *configuration flag* (`--cfg
+  getrandom_backend="wasm_js"`), but its README says that cfg "is no longer
+  required and does nothing" — the `wasm_js` **feature flag** is what's needed.
+- **The providers already hold `Arc<dyn HttpClient>`.** The three cloud providers
+  already declare `http_client: Option<Arc<dyn HttpClient>>` + a
+  `with_http_client(Arc<dyn HttpClient>)` builder, and the native
+  `foundation_netio::http::default_http_client()` default is already
+  `#[cfg(not(target_family = "wasm"))]`-gated (`openai_provider.rs:198,390`,
+  `openai_responses_provider.rs:354,536`, `anthropic_messages_provider.rs:483`).
+  Remaining runtime-readiness (not compile blockers): `foundation_ai` never
+  enables `foundation_netio/wasm-fetch`, and `std::thread::sleep` backoff compiles
+  on wasm but panics at runtime.
 - **The repo already has the hard parts.** `foundation_netio::wasm::client::
   FetchHttpClient` (behind `wasm-fetch`), `foundation_http::wasm::{serve_cf,
   dispatch_cf}`, and `foundation_connectrpc::shared::Router` (wasm-compatible
@@ -113,7 +129,82 @@ Two substrate homes already exist — reuse them, do not invent new types:
 - **Non-I/O substrate — `foundation_compact`.** The central home for
   cross-platform primitives: `time` (JS `Performance.now`/`Date.now` on wasm),
   `entropy` (vendored, all targets), `rng` (ChaCha CSPRNG, no external
-  rand/getrandom), `ids` (scru128), `crypto`, `send_wrapper`. The `ahash`/
-  `getrandom` wasm blocker is fixed by routing `foundation_ai`'s hashing/RNG
-  through `foundation_compact::rng`/`entropy` — not by an ad-hoc
-  `default-features = false`.
+  rand/getrandom), `ids` (scru128), `crypto`, `send_wrapper`. See
+  `00-foundation/feature.md` §Changes for the current getrandom/ahash resolution.
+
+## WASM T1 resolution (2026-10-20) — getrandom/ahash removed, not patched
+
+The original plan (above) was to *patch* getrandom 0.3's `wasm_js` feature and
+`ahash`'s `runtime-rng`. The actual fix is **stronger**: it removes `getrandom 0.3`
+from the wasm graph entirely, by routing both call sites through `foundation_compact`.
+
+- **`foundation_auth` drops `rand = "0.9"`** (the `getrandom 0.3` source) and now
+  uses `foundation_compact::rng::rng()` / `Rng` (ChaCha CSPRNG, no getrandom).
+  8 files: `server/models/code.rs`, `server/services/{client,provider,pow,token}_service.rs`,
+  `shared/{oauth,session,two_factor}.rs`. `user_service.rs` keeps
+  `password_hash::rand_core::OsRng` (argon2 → `getrandom 0.2`, already handled).
+- **`foundation_ai` drops `ahash = "0.8"`** (the other `getrandom 0.3` edge) and
+  routes its 3 `AHasher::default()` content-hash sites through a new
+  `foundation_compact::hash::Hasher` — a deterministic newtype over
+  **foldhash `quality`** (`foldhash 0.2`, `default-features = false`, `no_std`,
+  no getrandom/rand, no AES — fast on wasm). Sites: `agentic/embedding.rs:274`,
+  `agentic/loop_detection.rs:103,189`. `quality` over `fast` because SimHash
+  relies on per-token hash statistics (foldhash's own docs steer that way).
+- **Result:** `getrandom 0.3.4` is gone from the wasm graph (verified via
+  `cargo tree -i getrandom@0.3.4`). This is better than the old plan: no
+  target-gated `getrandom` alias dep, no `wasm_js` feature plumbing, and the
+  hasher is deterministic-by-default.
+
+**But `getrandom 0.3` was only the *first* of six stacked, pre-existing wasm
+breakages** in `foundation_ai`'s wasm build — each fix unmasks the next:
+
+1. **`foundation_netio` pulled `multi` into wasm.** `foundation_ai` declared
+   `foundation_netio` in its *unconditional* `[dependencies]` with default
+   features (→ `multi` → `foundation_core/multi`), so valtron's `TaskIteratorExt`
+   and `send` resolved to their `+ Send` variants — but the wasm websocket/
+   body-reader code is deliberately non-`Send` (single-threaded). Also valtron
+   removed the `Iterator → TaskIterator` blanket impl (`task.rs:619`), which
+   `websocket/wasm/browser.rs`'s `StreamToTaskAdapter` relied on. **Fix (done):**
+   target-gate `foundation_netio` in `foundation_ai` (native = defaults, wasm =
+   `default-features = false, features = ["wasm-fetch"]`, mirroring
+   `foundation_auth`), and add an explicit `impl TaskIterator for
+   StreamToTaskAdapter` (forwards `next()` → `next_status`, drops the unused `Ctx`).
+2. **`foundation_auth` `password_hash.rs` wasm code gated by target, not
+   feature.** Its WebCrypto PBKDF2 paths were `#[cfg(target_family = "wasm")]`
+   but use `js_sys`/`web_sys`/`wasm_bindgen`/`wasm_bindgen_futures`, which only
+   exist under `wasm-pbkdf2`/`wasm-bindgen-oauth`. **Fix (done):** gate them by
+   `#[cfg(all(target_family = "wasm", feature = "wasm-pbkdf2"))]`, matching the
+   `wasm-bindgen-oauth` gating in `lib.rs`.
+3. **`foundation_ai`'s file/search tools reference `foundation_nativeapis`
+   (native-only) on wasm — fixed with a 3-line change, not a relocation.**
+   `agentic/tools/files.rs` + `agentic/tools/search.rs` + `harness/tools.rs`
+   import the VFS traits/searcher from `foundation_nativeapis`, declared
+   `[target.'cfg(not(target_family = "wasm"))'.dependencies]`. The `shared/vfs`
+   module was **already wasm-safe** (native searchers are already
+   `cfg(not(target_family = "wasm"))`-gated in its `lib.rs`, and `vfs`+`vfs-search`
+   only pull `async-trait`+`regex`). **Fix (done):** declare it on the wasm target
+   with `default-features = false, features = ["vfs", "vfs-search"]` (no
+   `vfs-search-fff`). Verified `foundation_nativeapis` itself checks clean on
+   wasm with that feature set. The "relocate VFS to `foundation_vectors`" plan was
+   unnecessary — no public API moved.
+4. **`foundation_ai` used `std::time::SystemTime` where
+   `foundation_compact::SystemTime` is required — fixed.** On wasm the latter is
+   a polyfill, so `std::time::SystemTime::now()` no longer matches the struct
+   fields. Sites: `agentic/tools/memory.rs` (import + 2 calls) and
+   `agentic/agent_loop.rs:1028` (inconsistent with `:473`/`:1254`, which already
+   used the compact type).
+5. **`foundation_ai`'s agentic tool loop is `!Send` on single-threaded wasm —
+   fixed with `SendWrapper`.** `ToolImpl: Send + Sync` (`tool_impl.rs:349`) +
+   `async_trait`'s `+ Send` future require `AgentTool<D, M>` →
+   `Arc<Mutex<HashMap<String, AgentRun<D, M>>>>` → `TurnStream` →
+   `DrivenStreamIterator<AgentLoop<D, M>>` to be `Send`, but `AgentLoop`'s valtron
+   handles are `!Send` without `multi`. **Fix (done):** wrap `TurnStream`'s
+   iterator in `foundation_compact::SendWrapper` (asserts `Send`+`Sync` on
+   single-threaded wasm, transparent on native), and add `Deref`/`DerefMut` to
+   `SendWrapper` so `TurnStream`'s forwarding methods keep working
+   (`foundation_compact/src/send_wrapper.rs`, `agentic/turn.rs`).
+
+Native `foundation_ai`/`foundation_auth`/`foundation_compact` still compile after
+these changes (verified `cargo check`), and the wasm gate is now **green**:
+`cargo check --target wasm32-unknown-unknown -p foundation_ai --no-default-features`
+exits 0 (only pre-existing dead-code warnings remain). T1 is complete.

@@ -14,9 +14,9 @@
 //! monomorphized at registration before boxing into `Arc<dyn ToolImpl>`.
 
 use std::sync::Arc;
-use std::time::SystemTime;
 
 use async_trait::async_trait;
+use foundation_compact::SystemTime;
 use foundation_db::traits::DocumentStore;
 
 use crate::agentic::memory::MemoryHierarchy;

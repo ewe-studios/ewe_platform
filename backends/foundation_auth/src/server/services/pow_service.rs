@@ -9,7 +9,7 @@ use std::sync::Arc;
 use chrono::Utc;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_db::{AsyncKeyValueStore, KeyValueStore, StorageError};
-use rand::RngCore;
+use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -73,7 +73,7 @@ impl<KV: KeyValueStore> PowService<KV> {
     ///
     /// Returns [`StorageError`] if the cache write fails.
     pub fn generate_challenge(&self) -> Result<PowChallenge, StorageError> {
-        let mut rng = rand::thread_rng();
+        let mut rng = foundation_compact::rng::rng();
         let mut bytes = [0u8; 16];
         rng.fill_bytes(&mut bytes);
         let challenge = URL_SAFE_NO_PAD.encode(bytes);
@@ -163,7 +163,7 @@ impl<AKV: AsyncKeyValueStore> AsyncPowService<AKV> {
 
     /// Generate a new PoW challenge and persist it in the shared cache.
     pub async fn generate_challenge(&self) -> Result<PowChallenge, StorageError> {
-        let mut rng = rand::thread_rng();
+        let mut rng = foundation_compact::rng::rng();
         let mut bytes = [0u8; 16];
         rng.fill_bytes(&mut bytes);
         let challenge = URL_SAFE_NO_PAD.encode(bytes);

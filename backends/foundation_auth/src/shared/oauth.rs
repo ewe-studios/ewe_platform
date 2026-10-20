@@ -2,7 +2,7 @@
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_core::url::Query;
-use rand::RngCore;
+use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -182,7 +182,7 @@ impl PkceChallenge {
     pub fn generate() -> Self {
         // Generate a random code verifier (43-128 characters)
         let mut bytes = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut bytes);
+        foundation_compact::rng::rng().fill_bytes(&mut bytes);
         let code_verifier = URL_SAFE_NO_PAD.encode(bytes);
 
         // Generate code challenge (SHA256 hash of verifier)
@@ -225,7 +225,7 @@ impl OAuthManager {
     #[must_use]
     pub fn generate_state() -> String {
         let mut bytes = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut bytes);
+        foundation_compact::rng::rng().fill_bytes(&mut bytes);
         URL_SAFE_NO_PAD.encode(bytes)
     }
 
@@ -234,7 +234,7 @@ impl OAuthManager {
     #[must_use]
     pub fn generate_nonce() -> String {
         let mut bytes = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut bytes);
+        foundation_compact::rng::rng().fill_bytes(&mut bytes);
         URL_SAFE_NO_PAD.encode(bytes)
     }
 

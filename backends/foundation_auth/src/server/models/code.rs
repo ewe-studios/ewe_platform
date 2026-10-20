@@ -2,7 +2,7 @@
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::Utc;
-use rand::RngCore;
+use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::time::Duration;
@@ -103,13 +103,13 @@ impl DeviceCode {
 
 fn generate_random_code(bytes: usize) -> String {
     let mut buf = vec![0u8; bytes];
-    rand::thread_rng().fill_bytes(&mut buf);
+    foundation_compact::rng::rng().fill_bytes(&mut buf);
     URL_SAFE_NO_PAD.encode(&buf)
 }
 
 fn generate_user_code() -> String {
     const CHARS: &[u8] = b"ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let mut rng = rand::thread_rng();
+    let mut rng = foundation_compact::rng::rng();
     let mut code = String::with_capacity(9);
     for i in 0..8 {
         if i == 4 {
