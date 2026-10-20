@@ -3,7 +3,7 @@ workspace_name: "ewe_platform"
 spec_directory: "specifications/67-llamacpp-embeddings"
 this_file: "specifications/67-llamacpp-embeddings/VERIFICATION.md"
 created: 2026-10-20
-verification_status: BLOCKED
+verification_status: PASSED
 language: rust
 ---
 
@@ -12,16 +12,15 @@ language: rust
 ## Read By
 
 1. **Main Agent** — decide next steps.
-2. **Verification Agent** — re-run when the `gemm-f16` build issue is resolved.
+2. **Verification Agent** — confirm the recorded result if re-run.
 
-## Status: BLOCKED ⚠️
+## Status: PASSED ✅
 
 Date: 2026-10-20
 Language: Rust
 
-The spec's own work (R1–R4) is complete and type-checks. Full `cargo test` cannot link on this
-machine due to a **pre-existing, unrelated** `gemm-f16` failure (candle/Metal inline asm needs
-`+fullfp16` on aarch64). The e2e test is written and correct but has not run green.
+The spec's work (R1–R4) is complete, type-checks, and **both tests run green end-to-end** against the
+real `nomic-embed-text-v1.5` GGUF (`test result: ok. 2 passed; 0 failed; … finished in 6.41s`).
 
 ---
 
@@ -45,13 +44,19 @@ Grepped the changed files (`llamacpp.rs`, `llamacpp_embeddings.rs`) — nothing 
 - `cargo check -p foundation_ai --lib` — passes (documented in LEARNINGS, implementation session).
 - `cargo check -p foundation_ai --test foundation_ai_tests --features live-model-tests` — passes (same).
 
-### 5. Tests: BLOCKED ❌
-- Command: `cargo test -p foundation_ai --features integration_tests --test foundation_ai_tests -- --nocapture harness::integrations::llamacpp_embeddings`
-- Result: cannot link — pre-existing `gemm-f16` aarch64 failure, unrelated to this spec.
-- Both tests (unit + `#[valtron_test]` e2e) are written; the e2e skips when the GGUF is absent.
+### 5. Tests: PASS ✅
+- Command:
+  `cargo test --profile uat -p foundation_ai --features integration_tests --test foundation_ai_tests -- --nocapture harness::integrations::llamacpp_embeddings`
+- Result: `ok. 2 passed; 0 failed`.
+  - `test_embedding_context_params_enable_embeddings_and_pooling` — unit, passes (generation context
+    leaves embeddings off; embedding context reports `embeddings() == true` + configured pooling).
+  - `test_llamacpp_embeddings_nomic_end_to_end` — e2e, passes; loaded the GGUF and produced a
+    non-empty **768-dim** Mean-pooled embedding.
+- The e2e skips when the GGUF is absent (matching `mtp_generate`); the GGUF was present for this run.
 
-### 6. Build: BLOCKED ❌
-- Same `gemm-f16` link failure.
+### 6. Build: PASS ✅
+- Links under the `uat` profile (LLVM backend). See "Blocker Detail" for why the default `dev`
+  profile fails.
 
 ### 7. Standards Compliance: PASS ✅
 - Single-file architecture respected (all details in `requirements.md`).
@@ -60,25 +65,23 @@ Grepped the changed files (`llamacpp.rs`, `llamacpp_embeddings.rs`) — nothing 
 
 ---
 
-## Blocker Detail
+## Blocker Detail (resolved)
 
-The blocker is **not introduced by this spec**: candle/Metal `gemm-f16` v0.19 inline asm requires
-`+fullfp16` on aarch64, and fails before any of this spec's code links. `cargo check` (type-level)
-passes for both the lib and the test target, so this spec's code is type-correct; only the final link
-is blocked.
+The earlier `cargo test` failure was **not introduced by this spec** and **not a target-feature
+problem**. The workspace `[profile.dev]` uses `codegen-backend = "cranelift"` (`Cargo.toml:102`),
+and cranelift cannot assemble candle's `gemm-f16`/`gemm-common` 0.19 FP16 SIMD inline asm
+(`fmul`/`fadd`/`fmla .8h`), failing with `error: instruction requires: fullfp16` at
+`gemm-common/src/simd.rs`. Running with `--profile uat` (`codegen-backend = "llvm"`, `Cargo.toml:106`)
+assembles it. The aarch64 `apple-m1` default CPU already enables FP16, so no `+fp16`/`+fullfp16`
+`-C target-feature` flag is needed.
 
 ## Actions Required
 
-None for this spec's code. To close verification:
-
-1. Resolve the `gemm-f16`/`fullfp16` issue, or build on x86/CI.
-2. Fetch `nomic-embed-text-v1.5.Q8_0.gguf` into `artefacts/models/`.
-3. Run the e2e test; it should produce a non-empty 768-dim embedding.
+None. Verification is closed.
 
 ## Next Steps
 
-1. Merge the spec docs (requirements.md finalized, REPORT.md, VERIFICATION.md).
-2. Run the e2e test on a linking environment to fully close verification.
+None — the spec is complete and verified.
 
 ---
 

@@ -71,8 +71,13 @@ the integration test skips if the file is absent, matching `mtp_generate`.
 ## Verification command
 
 ```
-cargo test -p foundation_ai --features integration_tests --test foundation_ai_tests -- --nocapture harness::integrations::llamacpp_embeddings
+cargo test --profile uat -p foundation_ai --features integration_tests --test foundation_ai_tests -- --nocapture harness::integrations::llamacpp_embeddings
 ```
+
+**The `--profile uat` flag is mandatory** (see "cranelift vs llvm" below): the workspace
+`[profile.dev]` uses `codegen-backend = "cranelift"` (`Cargo.toml:102`), and cranelift cannot
+assemble candle's `gemm-f16` FP16 SIMD inline asm. `[profile.uat]` (`Cargo.toml:106`) switches to
+`llvm`, which assembles it.
 
 The test asserts non-empty values with `dimensions == 768` — proving *plumbing*
 (no `NotEnabled`, correct dims), not retrieval *quality*.
@@ -99,8 +104,32 @@ R1–R4 implemented in `backends/foundation_ai`:
    for the *candle* suite). The nomic GGUF is fetched at run time into `artefacts/models/`
    (`nomic-ai--nomic-embed-text-v1.5-GGUF/nomic-embed-text-v1.5.Q8_0.gguf`); the e2e test skips when
    absent, matching `mtp_generate`.
-2. **Full test build is blocked on this machine** by a pre-existing `gemm-f16` failure
-   (`instruction requires: fullfp16` — the candle/Metal `gemm-f16` v0.19 inline asm needs
-   `+fullfp16` on aarch64). `cargo check -p foundation_ai --lib` and `--test foundation_ai_tests
-   --features live-model-tests` both pass; `cargo test` cannot link until the gemm-f16 issue is
-   resolved. Unrelated to this spec.
+2. **The full test build must use the LLVM codegen backend, not cranelift.** The workspace
+   `[profile.dev]` sets `codegen-backend = "cranelift"` (`Cargo.toml:102`); `[profile.uat]`
+   (`Cargo.toml:106`) sets `"llvm"`. candle's `gemm-f16`/`gemm-common` 0.19 (`candle-core 0.11`)
+   emits `fmul`/`fadd`/`fmla .8h` FP16 SIMD inline asm that cranelift cannot assemble — it fails
+   with `error: instruction requires: fullfp16` at `gemm-common/src/simd.rs` (`vmulq_f16`,
+   `vaddq_f16`, `vfmaq_f16`, `vfmaq_laneq_f16`). This is **not** a target-feature problem: the
+   aarch64 `apple-m1` default CPU already enables FP16, and a standalone `gemm = "0.19"` build with
+   the default (LLVM) backend compiles with no extra flags. The fix is simply to run with
+   `--profile uat`. (`cargo check -p foundation_ai --lib` passed all along because type-checking
+   does not reach the assembler.)
+
+## End-to-end verification (2026-10-20)
+
+Ran green with the LLVM backend and the real GGUF present:
+
+```
+cargo test --profile uat -p foundation_ai --features integration_tests --test foundation_ai_tests -- --nocapture harness::integrations::llamacpp_embeddings
+```
+
+- `test_embedding_context_params_enable_embeddings_and_pooling ... ok` (unit: generation context
+  leaves embeddings off; the embedding context reports `embeddings() == true` + the configured
+  pooling type).
+- `test_llamacpp_embeddings_nomic_end_to_end ... ok` — loaded
+  `nomic-embed-text-v1.5.Q8_0.gguf`, embedded raw user text, and produced a non-empty
+  **768-dimensional** vector via Mean pooling.
+- `test result: ok. 2 passed; 0 failed; … finished in 6.41s`.
+
+This closes the spec: the local llama.cpp embedding path now works end-to-end (no `NotEnabled`),
+embedding the *raw* input text with the configured pooling type.

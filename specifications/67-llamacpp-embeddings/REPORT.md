@@ -2,21 +2,22 @@
 
 ## Status
 
-The implementation (R1–R4) is **complete and committed**. The spec's
-end-to-end verification is **blocked** by a pre-existing, unrelated build issue
-(`gemm-f16` on aarch64) — the e2e test is written and correct but has not run
-green. See VERIFICATION.md and LEARNINGS.md.
+The implementation (R1–R4) is **complete, committed, and verified**. Both tests run green
+end-to-end against the real `nomic-embed-text-v1.5` GGUF (`test result: ok. 2 passed; 0 failed`).
+The e2e must run under the LLVM codegen backend (`--profile uat`), because the workspace
+`[profile.dev]` uses cranelift, which cannot assemble candle's `gemm-f16` FP16 SIMD inline asm.
+See VERIFICATION.md and LEARNINGS.md.
 
 ## Work Completed (4/4 tasks)
 
-**Status**: ✅ R1–R4 implemented, type-checked, committed
-**Completion**: 100% (implementation); e2e verification pending environment
+**Status**: ✅ R1–R4 implemented, type-checked, committed, and verified end-to-end
+**Completion**: 100%
 
 ### Task Breakdown
 
 - Implementation: 4/4 (R1 pooling config, R2 embedding context, R3 raw-text path, R4 test)
-- Testing: unit test passes (type-checked); e2e written but blocked from linking
-- Documentation: requirements.md finalized, LEARNINGS.md updated
+- Testing: unit + e2e both pass (`--profile uat`); e2e produced a non-empty 768-dim embedding
+- Documentation: requirements.md finalized, LEARNINGS.md + VERIFICATION.md updated with the result
 
 ## Detailed Accomplishments
 
@@ -49,19 +50,20 @@ green. See VERIFICATION.md and LEARNINGS.md.
 
 ## Remaining Work
 
-- Run the e2e test green on a machine/CI that links (unblocked from the `gemm-f16` issue), with
-  `nomic-embed-text-v1.5.Q8_0.gguf` fetched into `artefacts/models/`.
+None — the spec is complete and verified.
 
 ## Statistics
 
 - Implementation commit: 4 files changed, +297 / −15
 - Spec finalization commit: 1 file changed, +32 / −18
+- Verification: 2 tests pass under `--profile uat` (LLVM backend)
 
 ## Verification Results
 
 - ✅ Incomplete-implementation check — no TODO/FIXME/stub markers.
 - ✅ Type check — `cargo check` lib + test target (`live-model-tests`) pass.
-- ⚠️ Full `cargo test` — blocked (pre-existing `gemm-f16`, unrelated to this spec).
+- ✅ Full `cargo test` (under `--profile uat`) — `2 passed; 0 failed`; e2e produced a non-empty
+  768-dim embedding.
 
 ## Impact
 
@@ -79,9 +81,10 @@ the chat template), and is covered by a unit + e2e test.
 
 ## Recommendation
 
-⚠️ **Conditional** — the code is complete and type-correct and the docs are accurate; merge them. Mark
-the feature fully verified only after the e2e test runs green on a linking environment.
+✅ **Ship** — the code is complete, type-correct, and verified end-to-end (2/2 tests pass, including
+the real GGUF e2e). The only caveat is operational: the test suite must run with `--profile uat`
+(LLVM), not the default `dev` (cranelift), because of candle's `gemm-f16` FP16 SIMD asm.
 
 ---
 
-_Final Report Created: 2026-10-20_
+_Final Report Created: 2026-10-20; updated 2026-10-20 after e2e verification_

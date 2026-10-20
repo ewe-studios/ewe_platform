@@ -153,12 +153,17 @@ sequenceDiagram
 - **Implemented (2026-10-20):** R1-R4 are in `backends/foundation_ai`; `cargo check -p foundation_ai
   --lib` and `cargo check -p foundation_ai --test foundation_ai_tests --features live-model-tests` both
   pass.
-- **Full e2e is blocked on this machine** by a pre-existing, unrelated `gemm-f16` failure
-  (`instruction requires: fullfp16` — the candle/Metal `gemm-f16` v0.19 inline asm needs `+fullfp16` on
-  aarch64). `cargo test` cannot link until that is resolved; the e2e test is correct and will run once
-  the GGUF is present and the build links. Recorded in LEARNINGS.md.
-- **Intended e2e run** (once unblocked):
-  `cargo test -p foundation_ai --features integration_tests --test foundation_ai_tests -- --nocapture harness::integrations::llamacpp_embeddings`
+- **End-to-end passed (2026-10-20):** both tests ran green against the real
+  `nomic-embed-text-v1.5.Q8_0.gguf` (`test result: ok. 2 passed; 0 failed; … finished in 6.41s`):
+  the unit test asserts the embedding context enables embeddings + the configured pooling type, and
+  the e2e produced a non-empty **768-dim** embedding. Recorded in LEARNINGS.md.
+- **The test must run with `--profile uat`** (LLVM codegen backend). The workspace `[profile.dev]`
+  uses `codegen-backend = "cranelift"` (`Cargo.toml:102`), which cannot assemble candle's
+  `gemm-f16` FP16 SIMD inline asm and fails with `instruction requires: fullfp16`; `[profile.uat]`
+  (`Cargo.toml:106`) uses `"llvm"` and assembles it. This is a codegen-backend issue, **not** a
+  target-feature one (`apple-m1` already enables FP16; no `+fp16`/`+fullfp16` flag is needed).
+- **Verification command:**
+  `cargo test --profile uat -p foundation_ai --features integration_tests --test foundation_ai_tests -- --nocapture harness::integrations::llamacpp_embeddings`
 - Code quality: `cargo clippy`/`fmt` clean per `.agents/skills/rust-clean-code`.
 
 # Out of scope
