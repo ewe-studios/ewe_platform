@@ -456,5 +456,28 @@ the isolate.
   backlog). `cargo check -p foundation_ai` (native + wasm) also green after the
   `SseProgress` change.
 
+## 06 T4 (2026-10-20) — model-layer error mapping + the last `block_on_collect` backoff is retired
+
+- `OpenAIStream::next` and `WorkersAiStream::next` now split the `SseProgress::Failed`
+  arm out of their `Stream::Pending(_)`/`StreamSpread::Pending(_)` matches and map it
+  to `ModelState::Error(msg)`; every other `Pending` still maps to
+  `GeneratingTokens(None)`. This is the in-band path a lazy `send_sse` uses to reach a
+  sync `Model::stream` consumer with a deferred fetch failure.
+- Wasm `backend_utils::sleep` was the third and last wasm `block_on_collect` caller.
+  It became a documented **no-op**: there is no synchronous sleep on wasm
+  (`std::thread::sleep` panics "time not implemented", and `block_on_collect` deadlocks
+  the isolate), and the retry backoff that calls it is unreachable on wasm anyway —
+  the non-streaming `generate` path deadlocks earlier at `HttpClient::send`, which
+  still wraps `fetch` in `block_on_collect`. Making backoff genuinely yield needs an
+  async `generate` seam (a `Model` API change) that feature 06 deliberately avoids;
+  the non-streaming wasm path is tracked in `docs/bug-backlog.md` under a new
+  `foundation_ai` section.
+- Two new tests (`tests/providers/sse_error_mapping_tests.rs`) drive the public
+  `Model::stream` path through a mock `HttpClient` whose `send_sse` yields a single
+  `Pending(Failed("boom"))`, asserting `OpenAIStream` and `WorkersAiStream` both map
+  it to `ModelState::Error("boom")` and then terminate. Gates green: `cargo test -p
+  foundation_ai --profile uat` (all suites pass, provider_tests 243→245) and wasm
+  `cargo check --target wasm32-unknown-unknown -p foundation_ai --no-default-features`.
+
 
 

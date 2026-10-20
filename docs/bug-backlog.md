@@ -108,16 +108,15 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
 - **`block_on_collect` (was `run_future`) is wasm-unsafe.**
   - `executors/non_sendables.rs` `block_on_collect` collects a `DrivenRecvIterator`
     synchronously (`filter_map(ReadyValue::inner).collect()`) with no JS yield, so
-    it deadlocks on the single-threaded wasm executor. It is still used by the
-    two remaining wasm call sites (netio `send`, ai `backend_utils::sleep`) until
-    feature 06 T4 replaces them with lazy/async equivalents (`send_sse` was removed
-    in T3).
+    it deadlocks on the single-threaded wasm executor. It is still used by one
+    wasm call site (netio `send`) — `send_sse` was made lazy in T3 and the ai
+    `backend_utils::sleep` backoff became a no-op in T4.
   - The wasm-native bridge is `spawn_local` + `ConcurrentQueue` + `Stream::Wait`,
     consumed by the parking `into_next_stream`/`into_future_stream`. Fix in spec 65
     feature `06-wasm-async-streaming`: make wasm `send_sse` lazy (no
-    `block_on_collect`) — done in T3 — fix the wasm `sleep` backoff, and add a
-    parking test to guarantee `into_future_stream`/`into_next_stream` park on
-    `Wait`/`Pending`.
+    `block_on_collect`) — done in T3 — fix the wasm `sleep` backoff — done in T4 —
+    and add a parking test to guarantee `into_future_stream`/`into_next_stream`
+    park on `Wait`/`Pending`.
   - (Fixed in T2) the single-threaded `ThreadedIterFuture`/`FutureIterator` path
     dropped the future after one `Pending`; it now retains the pinned future and
     re-polls it on each `next()` (`test_threaded_future_survives_pending`).
@@ -166,6 +165,19 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
 - **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
   - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
 - **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
+
+## 10. foundation_ai
+
+- **Non-streaming wasm `generate` is blocking/unsupported.** The providers' sync
+  `generate` path (non-streaming) deadlocks the wasm isolate: it calls
+  `HttpClient::send`, which still wraps `fetch` in `block_on_collect` (see the
+  foundation_netio entry), and its retry backoff `backend_utils::sleep` is a
+  no-op on wasm (feature 06 T4) because there is no synchronous sleep primitive.
+  The streaming path (`Model::stream`) was fixed to be lazy, but the one-shot
+  `generate` remains fundamentally synchronous. Likely fix: an async `generate`
+  seam (e.g. `generate_async`) so the fetch and backoff can yield to the JS event
+  loop, or route wasm `generate` through the lazy `send_sse`/`stream` machinery and
+  collect its result async.
 
 ## Paused
 

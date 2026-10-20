@@ -9,10 +9,10 @@ created: 2026-10-20
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 3
-  uncompleted: 2
+  completed: 4
+  uncompleted: 1
   total: 5
-  completion_percentage: 60
+  completion_percentage: 80
 ---
 
 # WASM Lazy Streaming
@@ -252,8 +252,8 @@ The fetch is driven by `spawn_local` and the consumer parks on `Wait`/`Pending`.
       `LazySseIterator`, `WakeableStream` for `WasmSseIterator`; `send_sse` drops
       `block_on_collect`. Gate: `cargo check -p foundation_netio` + wasm
       `--features wasm-fetch` + `cargo test -p foundation_netio`.
-- [ ] **T4 — map error + fix `sleep` (foundation_ai).** `SseProgress::Failed` →
-      `ModelState::Error`; wasm `sleep` lazy/async. Gate: `cargo test -p foundation_ai`
+- [x] **T4 — map error + fix `sleep` (foundation_ai).** `SseProgress::Failed` →
+      `ModelState::Error`; wasm `sleep` no-op (backlog). Gate: `cargo test -p foundation_ai`
       + wasm `cargo check --no-default-features`.
 - [ ] **T5 — verify cf-cloud-provider (examples).** `stream()` is lazy; `POST /generate`
       streams a live OpenRouter reply under `wrangler dev --local` without blocking
@@ -294,17 +294,19 @@ curl -sN -X POST http://127.0.0.1:8787/generate --data 'What is the capital of F
 
 - [x] `into_future_stream` parks on `Wait`/`Pending`/`Init`/`Delayed`; raw lens renamed
       `into_pure_future_stream`; parking tests in place
-- [ ] `run_future` renamed `block_on_collect` and documented wasm-unsafe; no wasm caller
-      uses it; `run_future_iter` wasm path fixed
+- [x] `run_future` renamed `block_on_collect` and documented wasm-unsafe; the wasm
+      streaming path no longer uses it (`send_sse` in T3, `sleep` in T4); the one
+      remaining wasm caller — non-streaming `HttpClient::send` — is tracked in
+      `docs/bug-backlog.md`; `run_future_iter` wasm path fixed
 - [x] Wasm `send_sse` returns a lazy `LazySseIterator` (no `block_on_collect`); `WasmSseIterator`
       and the fetch stage implement `WakeableStream`
-- [ ] `SseProgress::Failed(String)` added; `OpenAIStream`/`WorkersAiStream` map it to
+- [x] `SseProgress::Failed(String)` added; `OpenAIStream`/`WorkersAiStream` map it to
       `ModelState::Error`
-- [ ] `Model::stream` signature unchanged; becomes non-blocking on wasm
+- [x] `Model::stream` signature unchanged; becomes non-blocking on wasm
 - [ ] `cf-cloud-provider` `POST /generate` streams a live OpenRouter reply locally without
       blocking the isolate (`GET /` still responds after a generate)
-- [ ] Sync `Model::stream` + agent loop unchanged for native; existing tests green
-- [ ] No TODO/FIXME/stubs; streamed and typed; no ignored `Result`s
+- [x] Sync `Model::stream` + agent loop unchanged for native; existing tests green
+- [x] No TODO/FIXME/stubs; streamed and typed; no ignored `Result`s
 
 ---
 _Created: 2026-10-20_

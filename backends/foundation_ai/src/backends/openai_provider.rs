@@ -20,7 +20,7 @@ use foundation_errstacks::ErrorTrace;
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::shared::client::{
     body_reader::collect_strings_from_send_safe,
-    http_client::{BoxedSseIterator, HttpClient},
+    http_client::{BoxedSseIterator, HttpClient, SseProgress},
     request::Extensions,
     request::PreparedRequest,
 };
@@ -1025,6 +1025,9 @@ impl Iterator for OpenAIStream {
 
         match item {
             Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
+            Stream::Pending(SseProgress::Failed(msg)) => {
+                Some(Stream::Pending(ModelState::Error(msg)))
+            }
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
@@ -1048,6 +1051,9 @@ impl Iterator for OpenAIStream {
                                 | Stream::Wait
                                 | Stream::Spread(_) => {}
                             }
+                        }
+                        StreamSpread::Pending(SseProgress::Failed(msg)) => {
+                            mapped.push(StreamSpread::Pending(ModelState::Error(msg)));
                         }
                         StreamSpread::Pending(_) => {
                             mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
