@@ -178,6 +178,7 @@ fn roundtrip(text: bool) {
             foundation_connectrpc::ExchangeConfig {
                 compression: &registry,
                 cancel: CancelSignal::new(),
+                read_max_bytes: 0,
             },
         )
         .expect("server exchange");

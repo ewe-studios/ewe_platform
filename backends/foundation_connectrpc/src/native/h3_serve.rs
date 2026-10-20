@@ -227,6 +227,7 @@ pub async fn dispatch_h3(
                 compression,
                 ctx,
                 entry.options.pipe_depth,
+                entry.options.limits.read_max_bytes,
                 req,
             )
             .await
@@ -257,6 +258,7 @@ async fn run_streaming_h3(
     compression: &CompressionRegistry,
     ctx: Ctx,
     pipe_depth: usize,
+    read_max_bytes: usize,
     mut req: Req,
 ) -> io::Result<()> {
     let (req_tx, req_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
@@ -267,6 +269,7 @@ async fn run_streaming_h3(
     let config = ExchangeConfig {
         compression,
         cancel: cancel.clone(),
+        read_max_bytes,
     };
     let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, config) {
         Ok(exchange) => exchange,

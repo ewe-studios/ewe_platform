@@ -605,6 +605,7 @@ impl ProtocolHandler for GrpcWebHandler {
         let request_tx = ends.request_tx;
         let decompressor = negotiated.request_decompressor;
         let cancel = config.cancel;
+        let read_max_bytes = config.read_max_bytes;
         let reader: BoxedTask = Box::pin(async move {
             let result = read_frames(
                 // Server request body is pipe-fed; bridge it to the unified
@@ -612,7 +613,7 @@ impl ProtocolHandler for GrpcWebHandler {
                 body_stream_from_pipe(body),
                 &request_tx,
                 decompressor,
-                0,
+                read_max_bytes,
                 text,
                 false,
             )
@@ -693,6 +694,7 @@ impl ProtocolHandler for GrpcWebHandler {
         request: &SimpleIncomingRequest,
         body: Bytes,
         compression: &CompressionRegistry,
+        read_max_bytes: usize,
     ) -> ConnectResult<Bytes> {
         // Text mode base64-encodes the whole body; decode it back to binary first.
         let raw = if is_text(request) {
@@ -705,19 +707,14 @@ impl ProtocolHandler for GrpcWebHandler {
         if raw.is_empty() {
             return Ok(Bytes::new());
         }
-        if raw.len() < ENVELOPE_HEADER_LEN {
-            return Err(ConnectError::invalid_argument("truncated gRPC-Web frame").into());
-        }
-        let flags = raw[0];
-        let len = u32::from_be_bytes([raw[1], raw[2], raw[3], raw[4]]) as usize;
-        let end = (ENVELOPE_HEADER_LEN + len).min(raw.len());
-        let payload = raw.slice(ENVELOPE_HEADER_LEN..end);
+        let (flags, payload) =
+            super::grpc::unary_envelope_payload(&raw, read_max_bytes, "gRPC-Web")?;
         if flags & Envelope::FLAG_COMPRESSED != 0 {
             let name = header(&request.headers, constants::HEADER_ENCODING).unwrap_or_default();
             let c = compression.get(&name).ok_or_else(|| {
                 ConnectError::unimplemented(format!("unsupported grpc-encoding {name:?}"))
             })?;
-            Ok(Bytes::from(c.decompress(&payload, 0)?))
+            Ok(Bytes::from(c.decompress(&payload, read_max_bytes)?))
         } else {
             Ok(payload)
         }

@@ -481,7 +481,7 @@ impl ProtocolHandler for ConnectHandler {
             body,
             ends.request_tx,
             negotiated.request_decompressor,
-            0,
+            config.read_max_bytes,
             config.cancel,
         ));
         let writer_impl = EnvelopeWriter::new(negotiated.response_compressor, 0, 0);
@@ -540,10 +540,11 @@ impl ProtocolHandler for ConnectHandler {
         request: &SimpleIncomingRequest,
         body: Bytes,
         compression: &CompressionRegistry,
+        read_max_bytes: usize,
     ) -> ConnectResult<Bytes> {
         // Connect unary GET carries the message in the query (Decision 05 §Unary GET).
         if request.method == SimpleMethod::GET {
-            return decode_get_message(request, compression);
+            return decode_get_message(request, compression, read_max_bytes);
         }
         // Connect unary POST is a bare body, optionally compressed via Content-Encoding.
         match header(&request.headers, "content-encoding") {
@@ -551,7 +552,7 @@ impl ProtocolHandler for ConnectHandler {
                 let c = compression.get(&name).ok_or_else(|| {
                     ConnectError::unimplemented(format!("unsupported content-encoding {name:?}"))
                 })?;
-                Ok(Bytes::from(c.decompress(&body, 0)?))
+                Ok(Bytes::from(c.decompress(&body, read_max_bytes)?))
             }
             _ => Ok(body),
         }
@@ -610,6 +611,7 @@ fn header(headers: &SimpleHeaders, name: &str) -> Option<String> {
 fn decode_get_message(
     request: &SimpleIncomingRequest,
     compression: &CompressionRegistry,
+    read_max_bytes: usize,
 ) -> ConnectResult<Bytes> {
     let query = |key: &str| {
         request
@@ -633,7 +635,7 @@ fn decode_get_message(
             let c = compression.get(&name).ok_or_else(|| {
                 ConnectError::unimplemented(format!("unsupported compression {name:?}"))
             })?;
-            Ok(Bytes::from(c.decompress(&bytes, 0)?))
+            Ok(Bytes::from(c.decompress(&bytes, read_max_bytes)?))
         }
         _ => Ok(Bytes::from(bytes)),
     }

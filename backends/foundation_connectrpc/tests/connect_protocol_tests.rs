@@ -193,6 +193,7 @@ fn streaming_roundtrip_normalizes_endstream() {
             foundation_connectrpc::ExchangeConfig {
                 compression: &registry,
                 cancel: CancelSignal::new(),
+                read_max_bytes: 0,
             },
         )
         .expect("server exchange");

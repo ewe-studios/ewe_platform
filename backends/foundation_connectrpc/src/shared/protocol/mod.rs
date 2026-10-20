@@ -79,6 +79,11 @@ pub struct ExchangeConfig<'a> {
     /// The seam's parked receives and sends wake on it, so a cancelled call
     /// stops a handler that is waiting on its request or response stream.
     pub cancel: CancelSignal,
+    /// The largest request message accepted, after decompression (`0` =
+    /// unlimited; see [`SizeLimits::read_max_bytes`](crate::SizeLimits)). An
+    /// envelope whose length prefix claims more is rejected from its 5-byte
+    /// header, before its payload is buffered, and decompression stops at it.
+    pub read_max_bytes: usize,
 }
 
 /// Internal protocol abstraction — one impl per protocol handles its HTTP
@@ -145,14 +150,20 @@ pub trait ProtocolHandler: Send + Sync {
     /// handler works on message bytes, and the wire framing differs from streaming
     /// (bare vs enveloped).
     ///
+    /// The decoded message is capped at `read_max_bytes` (`0` = unlimited):
+    /// decompression stops there with `resource_exhausted`, so a small
+    /// compressed body cannot inflate without bound.
+    ///
     /// # Errors
     /// A [`ConnectError`](crate::ConnectError)-carrying trace on a malformed frame,
-    /// decompression failure, or a missing decompressor for a compressed body.
+    /// decompression failure, a missing decompressor for a compressed body, or
+    /// a message over `read_max_bytes` (`resource_exhausted`).
     fn decode_unary_request(
         &self,
         request: &SimpleIncomingRequest,
         body: Bytes,
         compression: &CompressionRegistry,
+        read_max_bytes: usize,
     ) -> ConnectResult<Bytes>;
 
     /// The `Content-Type` for a **streaming** response head in this protocol

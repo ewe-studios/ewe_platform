@@ -168,6 +168,39 @@ fn decompress_if(
     }
 }
 
+
+/// The payload of a unary request's single envelope (gRPC, gRPC-Web).
+///
+/// The length prefix must match the bytes that follow — a short frame is
+/// malformed, not a shorter message — and may not claim more than
+/// `read_max_bytes` (`0` = unlimited).
+pub(crate) fn unary_envelope_payload(
+    body: &Bytes,
+    read_max_bytes: usize,
+    protocol: &str,
+) -> ConnectResult<(u8, Bytes)> {
+    if body.len() < ENVELOPE_HEADER_LEN {
+        return Err(ConnectError::invalid_argument(format!("truncated {protocol} frame")).into());
+    }
+    let flags = body[0];
+    let len = u32::from_be_bytes([body[1], body[2], body[3], body[4]]) as usize;
+    if read_max_bytes != 0 && len > read_max_bytes {
+        return Err(ConnectError::resource_exhausted(format!(
+            "envelope length {len} exceeds read_max_bytes {read_max_bytes}"
+        ))
+        .into());
+    }
+    let end = ENVELOPE_HEADER_LEN + len;
+    if body.len() < end {
+        return Err(ConnectError::invalid_argument(format!(
+            "truncated {protocol} frame: header claims {len} bytes, {} follow",
+            body.len() - ENVELOPE_HEADER_LEN
+        ))
+        .into());
+    }
+    Ok((flags, body.slice(ENVELOPE_HEADER_LEN..end)))
+}
+
 // ── handler ─────────────────────────────────────────────────────────────────
 
 /// The gRPC protocol handler (server).
@@ -246,9 +279,15 @@ impl ProtocolHandler for GrpcHandler {
         let request_tx = ends.request_tx;
         let decompressor = negotiated.request_decompressor;
         let cancel = config.cancel;
+        let read_max_bytes = config.read_max_bytes;
         let reader: BoxedTask = Box::pin(async move {
-            let result =
-                read_frames(body_stream_from_pipe(body), &request_tx, decompressor, 0).await;
+            let result = read_frames(
+                body_stream_from_pipe(body),
+                &request_tx,
+                decompressor,
+                read_max_bytes,
+            )
+            .await;
             // `read_frames` leaves the pipe open (the client appends its
             // trailers); on the server the request stream ends here — with the
             // error when the read failed, so it cannot pass for a clean end.
@@ -308,24 +347,19 @@ impl ProtocolHandler for GrpcHandler {
         request: &SimpleIncomingRequest,
         body: Bytes,
         compression: &CompressionRegistry,
+        read_max_bytes: usize,
     ) -> ConnectResult<Bytes> {
         // gRPC unary: body is a single envelope frame.
         if body.is_empty() {
             return Ok(Bytes::new());
         }
-        if body.len() < ENVELOPE_HEADER_LEN {
-            return Err(ConnectError::invalid_argument("truncated gRPC frame").into());
-        }
-        let flags = body[0];
-        let len = u32::from_be_bytes([body[1], body[2], body[3], body[4]]) as usize;
-        let end = (ENVELOPE_HEADER_LEN + len).min(body.len());
-        let payload = body.slice(ENVELOPE_HEADER_LEN..end);
+        let (flags, payload) = unary_envelope_payload(&body, read_max_bytes, "gRPC")?;
         if flags & Envelope::FLAG_COMPRESSED != 0 {
             let name = header(&request.headers, constants::HEADER_ENCODING).unwrap_or_default();
             let c = compression.get(&name).ok_or_else(|| {
                 ConnectError::unimplemented(format!("unsupported grpc-encoding {name:?}"))
             })?;
-            Ok(Bytes::from(c.decompress(&payload, 0)?))
+            Ok(Bytes::from(c.decompress(&payload, read_max_bytes)?))
         } else {
             Ok(payload)
         }

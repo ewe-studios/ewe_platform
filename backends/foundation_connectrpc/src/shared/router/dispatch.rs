@@ -556,6 +556,7 @@ async fn dispatch_request(
                 compression,
                 ctx,
                 pipe_depth,
+                entry.options.limits.read_max_bytes,
                 sink,
                 timer,
             )
@@ -679,7 +680,7 @@ async fn run_unary_body(
             return response;
         }
     };
-    let decoded = protocol.decode_unary_request(&request, body, compression);
+    let decoded = protocol.decode_unary_request(&request, body, compression, read_max_bytes);
     let outcome: ConnectResult<UnaryOutcome> = match decoded {
         Ok(msg) => match handler.handle(ctx, &codec_name, msg).await {
             Ok((frame, headers, trailers)) => Ok(UnaryOutcome {
@@ -740,6 +741,7 @@ async fn run_streaming(
     compression: &crate::shared::compression::CompressionRegistry,
     ctx: Ctx,
     pipe_depth: usize,
+    read_max_bytes: usize,
     sink: &mut dyn ResponseSink,
     timer: Option<&dyn DeadlineTimer>,
 ) -> io::Result<()> {
@@ -751,6 +753,7 @@ async fn run_streaming(
     let config = ExchangeConfig {
         compression,
         cancel: cancel.clone(),
+        read_max_bytes,
     };
     let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, config) {
         Ok(exchange) => exchange,
@@ -1600,6 +1603,7 @@ async fn dispatch_h2_stream(
                 compression,
                 ctx,
                 pipe_depth,
+                entry.options.limits.read_max_bytes,
                 body,
                 &tx,
             )
@@ -1627,6 +1631,7 @@ async fn run_streaming_h2(
     compression: &crate::shared::compression::CompressionRegistry,
     ctx: Ctx,
     pipe_depth: usize,
+    read_max_bytes: usize,
     body: PipeReceiver<H2IncomingFrame>,
     tx: &PipeSender<H2Frame>,
 ) -> io::Result<()> {
@@ -1638,6 +1643,7 @@ async fn run_streaming_h2(
     let config = ExchangeConfig {
         compression,
         cancel: cancel.clone(),
+        read_max_bytes,
     };
     let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, config) {
         Ok(exchange) => exchange,
