@@ -14,10 +14,13 @@ name: Release crates
 # Secrets:
 #   CARGO_REGISTRY_TOKEN  crates.io API token with publish rights (required to
 #                         publish).
-#   RELEASE_PLZ_TOKEN     a fine-grained PAT or GitHub App token with contents
-#                         and pull-requests write. Optional, but without it the
-#                         release PR is opened with GITHUB_TOKEN, and GitHub
-#                         runs no workflows for events that token creates: the
+#   EWE_RUNNER_REGISTRA_CLIENT_ID / _PRIVATE_KEY
+#                         the repo's GitHub App (also used to register VM
+#                         runners). The job mints a short-lived token from it
+#                         with Contents and Pull requests write, so the app
+#                         must be granted those permissions. If minting fails
+#                         the job falls back to GITHUB_TOKEN, and GitHub runs
+#                         no workflows for events that token creates: the
 #                         release PR would get no CI, and the ewe_platform tag
 #                         would not trigger release.yaml.
 
@@ -85,16 +88,33 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    env:
-      GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN || github.token }}
     steps:
+      - name: Mint a release token from the GitHub App
+        id: app
+        # Optional: without it the job still publishes, using GITHUB_TOKEN.
+        continue-on-error: true
+        uses: actions/create-github-app-token@v3.2.0
+        with:
+          client-id: ${{ secrets.EWE_RUNNER_REGISTRA_CLIENT_ID }}
+          private-key: ${{ secrets.EWE_RUNNER_REGISTRA_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Pick the token
+        env:
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          if [ -z "$APP_TOKEN" ]; then
+            echo "::warning::Could not mint a GitHub App token (are Contents and Pull requests write granted to the app?). Using GITHUB_TOKEN: the release PR will get no CI and tags will not trigger release.yaml."
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4.4.0
         with:
           ref: ${{ needs.gate.outputs.sha }}
           fetch-depth: 0 # release-plz reads tags and history
           submodules: false
-          token: ${{ secrets.RELEASE_PLZ_TOKEN || github.token }}
+          token: ${{ steps.app.outputs.token || github.token }}
 
       - name: Check out the baked submodules
         # Real submodule checkouts (not symlinks): cargo publish refuses a
@@ -131,6 +151,7 @@ jobs:
       - name: Publish what is not on crates.io yet
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
         run: |
           if [ -z "$CARGO_REGISTRY_TOKEN" ]; then
             echo "::error::CARGO_REGISTRY_TOKEN is not set; cannot publish to crates.io"
@@ -141,4 +162,6 @@ jobs:
       # After publishing, so the next bumps are computed against what
       # crates.io now has.
       - name: Open or update the release PR
+        env:
+          GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
         run: release-plz release-pr --git-token "$GITHUB_TOKEN"

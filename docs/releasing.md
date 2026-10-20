@@ -30,11 +30,14 @@ binaries and attaches them to that GitHub release.
 
 - `CARGO_REGISTRY_TOKEN`: crates.io API token with publish rights for every
   crate in the workspace. Required.
-- `RELEASE_PLZ_TOKEN`: a fine-grained personal access token (or GitHub App
-  token) with *Contents* and *Pull requests* write access. Without it the
-  workflow falls back to `GITHUB_TOKEN`, and GitHub then runs no workflows
-  for what that token creates: the release PR would get no CI, and the
-  `ewe_platform-v*` tag would not start `release.yaml`.
+- The GitHub App behind `EWE_RUNNER_REGISTRA_CLIENT_ID` and
+  `EWE_RUNNER_REGISTRA_PRIVATE_KEY` (the one that registers VM runners). The
+  release job mints a short-lived token from it, so the app needs
+  **Contents: Read and write** and **Pull requests: Read and write** on this
+  repository, besides the Administration permission the runner jobs use.
+  If minting fails, the job warns and falls back to `GITHUB_TOKEN`, and GitHub
+  then runs no workflows for what that token creates: the release PR would
+  get no CI, and the `ewe_platform-v*` tag would not start `release.yaml`.
 
 ## Notes
 
