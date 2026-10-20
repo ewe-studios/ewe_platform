@@ -1,6 +1,7 @@
 #[cfg(not(target_family = "wasm"))]
 mod bridge_park;
 mod bridge_park_executor;
+mod park_busy_loop;
 mod local_executor;
 mod wake_registry;
 #[cfg(not(target_family = "wasm"))]

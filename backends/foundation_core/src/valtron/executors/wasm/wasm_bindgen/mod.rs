@@ -19,13 +19,17 @@ pub const JS_WAIT_CHECK_INTERVAL: time::Duration = time::Duration::from_millis(4
 /// Module-level checker used by both the executor's `run_until` and the
 /// setTimeout callback's re-invocation. Returns true when the executor
 /// should stop and yield back to JS.
+///
+/// NOTE: `Wait` and `SpinWait` are deliberately NOT stop states. They are
+/// "yield" states: `run_until` handles them in its own arms (scheduling a
+/// fresh `setTimeout` before returning). If the checker stopped on them, the
+/// setTimeout re-invocation would break on the very first `Wait` without
+/// rescheduling, and a task parked on in-flight async work (e.g. the wasm lazy
+/// SSE fetch) would never be re-polled — freezing the isolate.
 fn js_should_stop(signal: ProgressIndicator) -> bool {
     matches!(
         signal,
-        ProgressIndicator::NoWork
-            | ProgressIndicator::SpinWait(_)
-            | ProgressIndicator::Wait
-            | ProgressIndicator::CanProgress(Some(State::Reschedule))
+        ProgressIndicator::NoWork | ProgressIndicator::CanProgress(Some(State::Reschedule))
     )
 }
 
@@ -33,6 +37,7 @@ fn js_should_stop(signal: ProgressIndicator) -> bool {
 /// After the timer fires and the resumed flag is set, this re-invokes
 /// the valtron executor to continue processing.
 fn js_yield_and_continue() {
+    web_sys::console::log_1(&"VALTRON-DBG js_yield_and_continue".into());
     crate::valtron::single::run_until(js_should_stop);
 }
 

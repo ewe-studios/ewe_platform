@@ -1306,6 +1306,18 @@ impl ExecutorState {
             .unwrap_or_else(|| self.root.fork());
         let next_result = iter.next(top_entry, engine, ctx);
 
+        #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+        {
+            use std::sync::atomic::{AtomicU32, Ordering};
+            static N: AtomicU32 = AtomicU32::new(0);
+            let n = N.fetch_add(1, Ordering::Relaxed);
+            if n < 40 {
+                web_sys::console::log_1(
+                    &format!("VALTRON-DBG do_work next_result[{n}]={next_result:?}").into(),
+                );
+            }
+        }
+
         // if result is none
         if next_result.is_none() {
             // remove task from queue
@@ -1593,6 +1605,8 @@ impl ExecutorState {
                 } else {
                     // push back to top
                     self.processing.borrow_mut().push_front(top_entry);
+                    #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+                    web_sys::console::log_1(&"VALTRON-DBG State::Pending(None)".into());
                     ProgressIndicator::CanProgress(None)
                 };
 
@@ -1614,6 +1628,8 @@ impl ExecutorState {
                 // push entry back into processing queue
                 self.processing.borrow_mut().push_front(top_entry);
 
+                #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+                web_sys::console::log_1(&"VALTRON-DBG State::Wait".into());
                 ProgressIndicator::Wait
             }
             State::Depends(signal) => {
@@ -1676,6 +1692,20 @@ impl ExecutorState {
                 // whole lifetime and eventually panics a healthy hot task.
                 self.depends_true_violations.borrow_mut().remove(&top_entry);
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
+
+                #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+                web_sys::console::log_1(
+                    &format!(
+                        "VALTRON-DBG Depends park: inflight={} active={} global={} proc_len={} ready={}",
+                        self.has_inflight_task(),
+                        self.has_active_tasks(),
+                        self.has_incoming_global_tasks(),
+                        self.processing.borrow().len(),
+                        signal.is_ready(None)
+                    )
+                    .into(),
+                );
+
                 self.sleepers
                     .insert(top_entry, Sleepable::Readiness(signal, top_entry));
 
@@ -2622,6 +2652,15 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             let local_executor = self.state.local_engine();
 
             let response = self.state.schedule_and_do_work(Box::new(local_executor));
+            #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+            {
+                use std::sync::atomic::{AtomicU32, Ordering};
+                static N: AtomicU32 = AtomicU32::new(0);
+                let n = N.fetch_add(1, Ordering::Relaxed);
+                if n < 60 {
+                    web_sys::console::log_1(&format!("VALTRON-DBG run_until[{n}] response={response:?}").into());
+                }
+            }
             if checker(response.clone()) {
                 break;
             }

@@ -14,15 +14,18 @@ use std::time;
 pub const JS_WAIT_CHECK_INTERVAL: time::Duration = time::Duration::from_millis(4);
 
 /// Module-level checker used by both the executor's `run_until` and the
-/// setTimeout callback's re-invocation. Returns true when the executor
+/// timer callback's re-invocation. Returns true when the executor
 /// should stop and yield back to JS.
+///
+/// NOTE: `Wait` and `SpinWait` are deliberately NOT stop states. They are
+/// "yield" states: `run_until` handles them in its own arms (scheduling a
+/// fresh timer before returning). If the checker stopped on them, the timer
+/// re-invocation would break on the very first `Wait` without rescheduling,
+/// and a task parked on in-flight async work would never be re-polled.
 fn js_should_stop(signal: ProgressIndicator) -> bool {
     matches!(
         signal,
-        ProgressIndicator::NoWork
-            | ProgressIndicator::SpinWait(_)
-            | ProgressIndicator::Wait
-            | ProgressIndicator::CanProgress(Some(State::Reschedule))
+        ProgressIndicator::NoWork | ProgressIndicator::CanProgress(Some(State::Reschedule))
     )
 }
 

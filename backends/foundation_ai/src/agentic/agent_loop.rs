@@ -864,9 +864,16 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                 self.state = AgentLoopState::InnerGenerate { stream, collected };
                 TaskStatus::Pending(progress)
             }
-            Stream::Init | Stream::Ignore | Stream::Wait => {
+            Stream::Init | Stream::Ignore => {
                 self.state = AgentLoopState::InnerGenerate { stream, collected };
                 TaskStatus::Ignore
+            }
+            Stream::Wait => {
+                // The model's lazy wasm SSE fetch is still in flight. `Wait`
+                // (not `Ignore`) tells the executor to yield to the JS event
+                // loop and re-poll, rather than busy-looping the isolate.
+                self.state = AgentLoopState::InnerGenerate { stream, collected };
+                TaskStatus::Wait
             }
             Stream::Delayed(d) => {
                 self.state = AgentLoopState::InnerGenerate { stream, collected };

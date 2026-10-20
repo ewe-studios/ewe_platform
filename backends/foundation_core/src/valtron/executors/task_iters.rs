@@ -256,8 +256,30 @@ where
                     State::Done
                 }
             },
+            // `Wait` is the task's "no data yet, queue still open" signal.
+            //
+            // On JS it must reach the executor as `State::Wait` (a yield signal
+            // that maps to a short setTimeout), NOT `State::Pending(None)` (which
+            // the executor re-polls immediately and so busy-loops). A task parked
+            // on external async work — e.g. the wasm lazy SSE fetch — would
+            // otherwise never let the JS event loop run, freezing the isolate.
+            //
+            // On native, `State::Wait` parks for `no_work_yield` (seconds) with
+            // no sleeper to wake it, which stalls a CPU-bound producer (see the
+            // `bridge_park_executor` fast-producer test). Native keeps the
+            // immediate re-poll (`State::Pending(None)`), which is correct there
+            // because async work progresses on other threads.
             TaskStatus::Wait => match self.channel.push(Stream::Wait) {
-                Ok(()) => State::Pending(None),
+                Ok(()) => {
+                    #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+                    {
+                        State::Wait
+                    }
+                    #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+                    {
+                        State::Pending(None)
+                    }
+                }
                 Err(PushError::Full(_)) => {
                     self.pending_msg = Some(Stream::Wait);
                     on_full()
