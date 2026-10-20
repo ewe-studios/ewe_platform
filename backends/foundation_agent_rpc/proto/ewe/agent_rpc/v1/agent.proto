@@ -1,0 +1,162 @@
+// agent-rpc wire contract (spec 65 feature 01).
+//
+// AgentService is the client <-> agent-rpc API (served on the mTLS listener).
+// BootstrapService is the token -> client-certificate exchange (served on the
+// bootstrap listener). BootstrapPayload is what an operator hands a client
+// (base64 / QR) so it can connect without manual configuration.
+syntax = "proto3";
+
+package ewe.agent_rpc.v1;
+
+service AgentService {
+  // Liveness plus what the server hosts.
+  rpc Health(HealthRequest) returns (HealthResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Create a named instance on a hosted model (no model load).
+  rpc CreateInstance(CreateInstanceRequest) returns (InstanceInfo);
+  rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc DestroyInstance(DestroyInstanceRequest) returns (DestroyInstanceResponse);
+  // Run one turn and return its text.
+  rpc Chat(ChatRequest) returns (ChatResponse);
+  // Run one turn and stream its events as they happen.
+  rpc ChatStream(ChatRequest) returns (stream TurnEvent);
+}
+
+service BootstrapService {
+  // Present the bootstrap token and a CSR; receive a client certificate.
+  rpc Enroll(EnrollRequest) returns (EnrollResponse);
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  repeated ModelInfo models = 2;
+  uint32 instances = 3;
+}
+
+message ModelInfo {
+  string name = 1;
+}
+
+message CreateInstanceRequest {
+  string name = 1;
+  // Empty selects the server's only model.
+  string model = 2;
+  optional string system_prompt = 3;
+  optional uint32 max_tokens = 4;
+  optional float temperature = 5;
+}
+
+message InstanceInfo {
+  string name = 1;
+  string model = 2;
+  uint64 created_unix_ms = 3;
+  uint64 turns = 4;
+}
+
+message ListInstancesRequest {}
+
+message ListInstancesResponse {
+  repeated InstanceInfo instances = 1;
+}
+
+message DestroyInstanceRequest {
+  string name = 1;
+}
+
+message DestroyInstanceResponse {}
+
+message ChatRequest {
+  string instance = 1;
+  string prompt = 2;
+}
+
+message ChatResponse {
+  string text = 1;
+  Usage usage = 2;
+  uint64 message_count = 3;
+}
+
+// Cumulative session token usage.
+message Usage {
+  uint64 input_tokens = 1;
+  uint64 output_tokens = 2;
+  uint64 total_tokens = 3;
+}
+
+message TurnEvent {
+  oneof event {
+    // Assistant text (a delta for streaming backends).
+    string text = 1;
+    string thinking = 2;
+    ToolCall tool_call = 3;
+    ToolResult tool_result = 4;
+    // Drop the text shown so far for this turn; a retry follows.
+    Retract retract = 5;
+    // Terminal: the turn failed after the events before it.
+    TurnFailed failed = 6;
+    // Terminal: the turn completed.
+    TurnDone done = 7;
+  }
+}
+
+message ToolCall {
+  string id = 1;
+  string name = 2;
+  string arguments_json = 3;
+}
+
+message ToolResult {
+  string tool_call_id = 1;
+  string name = 2;
+  string content = 3;
+}
+
+message Retract {
+  string reason = 1;
+}
+
+message TurnFailed {
+  string message = 1;
+}
+
+message TurnDone {
+  uint64 message_count = 1;
+  Usage usage = 2;
+}
+
+message EnrollRequest {
+  string token = 1;
+  // Recorded as the certificate's common name.
+  string client_name = 2;
+  // PKCS#10 certificate signing request; the private key stays on the client.
+  string csr_pem = 3;
+}
+
+message EnrollResponse {
+  string client_cert_pem = 1;
+  // The CA that signs client and server certificates.
+  string ca_cert_pem = 2;
+}
+
+message BootstrapPayload {
+  uint32 version = 1;
+  // host:port of the mTLS AgentService listener.
+  string addr = 2;
+  // host:port of the BootstrapService listener.
+  string bootstrap_addr = 3;
+  // Lowercase hex SHA-256 of the server certificate (DER).
+  string tls_fingerprint_sha256 = 4;
+  string token = 5;
+  Capabilities capabilities = 6;
+}
+
+message Capabilities {
+  repeated string protocols = 1;
+  repeated string models = 2;
+  string auth_mode = 3;
+}

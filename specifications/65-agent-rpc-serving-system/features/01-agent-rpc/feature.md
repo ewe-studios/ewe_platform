@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 4
-  uncompleted: 6
+  completed: 5
+  uncompleted: 5
   total: 10
-  completion_percentage: 40
+  completion_percentage: 50
 ---
 
 # Agent RPC Model Server
@@ -318,7 +318,7 @@ service AgentService {
       `Arc<Mutex<…>>` fallback and record it in LEARNINGS.
 - [x] **T4 — `InstanceRegistry` + `InstanceHandle`.** Named create/get/list/destroy;
       tests assert create is cheap and never reloads the model.
-- [ ] **T5 — Generated RPC service.** Define + generate the `AgentService` types
+- [x] **T5 — Generated RPC service.** Define + generate the `AgentService` types
       (CreateInstance/Chat/ChatStream/ListInstances/DestroyInstance/Health);
       wire into a connectrpc `Router`.
 - [ ] **T6 — Unary round-trip.** `CreateInstance` + `Chat` (unary) round-trip

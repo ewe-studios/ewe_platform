@@ -9,6 +9,8 @@
 //! |---|---|
 //! | [`error`] | [`AgentRpcError`] — the single error type + wire status mapping |
 //! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle |
+//! | [`proto`] | generated wire types + service stubs (`proto/`) |
+//! | [`service`] | [`AgentRpcService`] — the generated `AgentService` over the registry |
 //! | [`instance`] | [`InstanceRegistry`] — named instances over the shared models |
 //!
 //! HOW: the RPC edge is async (`foundation_connectrpc` handlers); inference runs
@@ -19,9 +21,12 @@
 pub mod error;
 pub mod instance;
 pub mod model;
+pub mod proto;
+pub mod service;
 
 pub use error::{AgentRpcError, AgentRpcResult};
 pub use instance::{
     InstanceConfig, InstanceHandle, InstanceMeta, InstanceRegistry, RegistryConfig, TurnGuard,
 };
 pub use model::{ModelHandle, ModelSource};
+pub use service::{agent_router, AgentRpcService, TurnEventStream};

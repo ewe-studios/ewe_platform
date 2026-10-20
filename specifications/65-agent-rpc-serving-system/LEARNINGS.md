@@ -594,3 +594,30 @@ the isolate.
 - `destroy` aborts a running turn and calls `AgentSession::end()` (flush); an
   `end()` error is returned, not dropped, after the instance is removed.
 
+## 01 T5 (2026-10-20) — generated `AgentService`
+
+- **Contract:** `proto/ewe/agent_rpc/v1/agent.proto` — `AgentService` (Health,
+  Create/List/DestroyInstance, Chat, ChatStream) + `BootstrapService` (Enroll)
+  + `BootstrapPayload`. `build.rs` = the docker BuildKit pattern: `buffa-build`
+  for messages, `foundation_connectrpc_codegen::generate_services` once per
+  service (each service's `pub mod procedure` needs its own module). Needs
+  `protoc` (`PROTOC`; installed under mise at `~/.local/share/mise/installs/protoc`).
+- **`buffa-build` must match the `buffa` runtime.** 0.9.2 codegen calls 0.9-only
+  APIs (`saturate_size`, `EncodeSink`) and does not compile against connectrpc's
+  0.8.1 runtime; pinned `=0.8.1`. The docker crate pairs 0.9.2 with 0.8.1 too
+  (backlog §6). Views are off (`generate_views(false)`), unused here.
+- **Generator fixes (not local `allow`s):** default trait bodies named their
+  unused params `ctx`/`request` (unused-variable warnings in every consumer), and
+  the client mocking trait used `async fn` in a public trait without allowing
+  `async_fn_in_trait`. Both fixed in `foundation_connectrpc_codegen`.
+- **Async turn consumption:** `TurnStream` did not implement `WakeableStream`,
+  so it could not use `into_future_stream()`; it now forwards `wake` to its
+  `DrivenStreamIterator`. And `TurnEvent::from_stream_item` (public) is the
+  record→event mapping `TurnEvents` uses, so an async handler can map raw items
+  without the blocking `TurnEvents` iterator.
+- **Boundary note:** `DrivenStreamIterator::next` waits up to its park duration
+  on the result queue before yielding `Wait`, so a poll of the bridged stream can
+  hold a worker briefly. That is valtron's existing boundary behaviour, not new.
+- `ChatStream` holds the instance's `TurnGuard` until the stream ends; dropping
+  it mid-turn (client gone) or a cancelled `Ctx` aborts the session's turn.
+

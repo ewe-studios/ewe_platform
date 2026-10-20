@@ -268,7 +268,7 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
         match ty {
             MethodKind::Unary => {
                 out.push_str(&format!(
-                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
+                    "    fn {method_name}(&self, _ctx: foundation_connectrpc::Ctx, _request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
                     "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send\n"
@@ -281,7 +281,7 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
             }
             MethodKind::ServerStream => {
                 out.push_str(&format!(
-                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
+                    "    fn {method_name}(&self, _ctx: foundation_connectrpc::Ctx, _request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
                     "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send\n"
@@ -294,7 +294,7 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
             }
             MethodKind::ClientStream => {
                 out.push_str(&format!(
-                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)\n"
+                    "    fn {method_name}(&self, _ctx: foundation_connectrpc::Ctx, _requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)\n"
                 ));
                 out.push_str(&format!(
                     "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>> + Send\n"
@@ -307,7 +307,7 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
             }
             MethodKind::BidiStream => {
                 out.push_str(&format!(
-                    "    fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)\n"
+                    "    fn {method_name}(&self, _ctx: foundation_connectrpc::Ctx, _requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>> + Send + 'static)\n"
                 ));
                 out.push_str(&format!(
                     "        -> impl ::core::future::Future<Output = foundation_connectrpc::ConnectResult<::core::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>>>> + Send\n"
@@ -543,7 +543,7 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
         "/// Trait for {svc_name} client behaviour (supports mocking/testing).\n"
     ));
     out.push_str(&format!(
-        "pub trait {client_trait_name}: Send + Sync + 'static {{\n"
+        "#[allow(async_fn_in_trait)] // a mocking seam; implementors choose their Send bounds\npub trait {client_trait_name}: Send + Sync + 'static {{\n"
     ));
 
     for m in methods {

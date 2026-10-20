@@ -18,7 +18,9 @@
 
 use std::collections::VecDeque;
 
-use foundation_core::valtron::{DrivenStreamIterator, Stream, StreamSpread};
+use foundation_core::valtron::{
+    DrivenStreamIterator, Stream, StreamSpread, WakeCallback, WakeResult, WakeableStream,
+};
 use foundation_db::traits::DocumentStore;
 use foundation_errstacks::{ErrorTrace, StructuredErrorTrace};
 
@@ -486,6 +488,23 @@ impl TurnEvent {
         }
     }
 
+    /// The events one raw [`TurnStream`] item carries, in order — the same
+    /// mapping [`TurnStream::events`] applies.
+    ///
+    /// For callers that drive the raw stream themselves, e.g. as an async
+    /// stream via `into_future_stream()` (an RPC handler must not block on the
+    /// synchronous [`TurnEvents`] iterator).
+    #[must_use]
+    pub fn from_stream_item(item: Stream<SessionRecord, AgentProgress>) -> Vec<TurnEvent> {
+        flatten(item)
+            .into_iter()
+            .filter_map(|flat| match flat {
+                TurnItem::Record(record) => TurnEvent::from_record(*record),
+                TurnItem::Progress(progress) => Some(TurnEvent::Progress(progress)),
+            })
+            .collect()
+    }
+
     /// True for `Failed` and `Done`.
     #[must_use]
     pub fn is_terminal(&self) -> bool {
@@ -585,6 +604,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnStre
     }
 }
 
+/// Readiness forwards to the driven iterator, so an async consumer
+/// (`into_future_stream`, `into_next_stream`) parks between items instead of
+/// busy-polling the turn.
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> WakeableStream for TurnStream<D, M> {
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.0.wake(cb)
+    }
+}
+
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<D, M>>
     for DrivenStreamIterator<AgentLoop<D, M>>
 {
@@ -621,13 +649,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnEven
                 return Some(event);
             }
             let item = self.stream.next()?;
-            for flat in flatten(item) {
-                let event = match flat {
-                    TurnItem::Record(record) => TurnEvent::from_record(*record),
-                    TurnItem::Progress(progress) => Some(TurnEvent::Progress(progress)),
-                };
-                self.pending.extend(event);
-            }
+            self.pending.extend(TurnEvent::from_stream_item(item));
         }
     }
 }

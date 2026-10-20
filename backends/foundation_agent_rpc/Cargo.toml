@@ -19,7 +19,23 @@ foundation_db = { path = "../foundation_db", version = "0.0.4", default-features
 # RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.3" }
 derive_more = { version = "2.1", features = ["display", "error"] }
+# Runtime for the buffa-generated message types (same version connectrpc uses).
+buffa = { version = "0.8.1", features = ["json"] }
+# The generated service code names `futures::Stream`.
+futures = "0.3"
+serde = { workspace = true }
+serde_json = { workspace = true }
 tracing = { workspace = true }
+
+[build-dependencies]
+# Message types from proto/ (buffa-build, needs `protoc`) + ConnectRPC service
+# stubs (foundation_connectrpc_codegen) — the foundation_deployment_docker
+# BuildKit pattern.
+# Must match the `buffa` runtime (0.8.x): 0.9 codegen calls 0.9-only APIs.
+buffa-build = "=0.8.1"
+foundation_connectrpc_codegen = { path = "../foundation_connectrpc_codegen", version = "0.0.2" }
+prost = "0.12"
+prost-types = "0.12"
 
 [dev-dependencies]
 # `testing`: MockModelProvider + message builders for deterministic server tests.
@@ -43,6 +59,10 @@ required-features = ["candle"]
 name = "instance_tests"
 path = "tests/instance_tests.rs"
 required-features = ["candle"]
+
+[[test]]
+name = "service_tests"
+path = "tests/service_tests.rs"
 
 [[test]]
 name = "model_handle_tests"
