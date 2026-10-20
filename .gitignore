@@ -32,7 +32,6 @@ tools/depot_tools/
 
 /target
 **/*.rs.bk
-Cargo.lock
 pkg/
 wasm-pack.log
 
