@@ -94,6 +94,10 @@ fn test_store_and_retry_pattern() {
 
 /// Test that `NotifyQueue` with bounded capacity properly coordinates
 /// producer and consumer through backpressure.
+///
+/// Multi-only: it shares the `NotifyQueue` across threads, and `NotifyQueue` is
+/// only `Send` under `multi`.
+#[cfg(feature = "multi")]
 #[test]
 // producer/produced/consumer/consumed are the domain vocabulary here — renaming
 // them to satisfy similar_names would make the test harder to follow.

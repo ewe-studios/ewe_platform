@@ -63,7 +63,6 @@ tracing-subscriber = "0.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 serial_test = { workspace = true }
-foundation_testing = { path = "../foundation_testing" }
 reqwest = { version = "0.12.15", features = ["blocking"] }
 ntest = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt"] }

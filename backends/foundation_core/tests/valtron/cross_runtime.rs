@@ -229,6 +229,9 @@ fn tokio_drives_sync_state_task() {
     assert_eq!(drive_under_tokio(count_down::new(3)), vec![1]);
 }
 
+// Multi-only: async state tasks are `Send` only under `multi` (see
+// `AsyncTransition`), and the runtimes here need a `Send` task.
+#[cfg(feature = "multi")]
 #[valtron_test(seed = 42)]
 fn tokio_drives_async_state_task() {
     assert_eq!(drive_under_tokio(async_count_down::new(3)), vec![1]);
@@ -253,6 +256,7 @@ fn smol_drives_sync_state_task() {
     assert_eq!(drive_under_smol(count_down::new(3)), vec![1]);
 }
 
+#[cfg(feature = "multi")]
 #[valtron_test(seed = 42)]
 fn smol_drives_async_state_task() {
     assert_eq!(drive_under_smol(async_count_down::new(3)), vec![1]);

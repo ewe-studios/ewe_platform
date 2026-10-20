@@ -1,25 +1,31 @@
 //! `LocalThreadExecutor` tests, moved out of `src/valtron/executors/local.rs`
 //! (tests live in `tests/`, never inline).
+//!
+//! Tests marked `#[cfg(feature = "multi")]` push tasks whose resolvers capture
+//! `TaskStatus` values onto the shared (cross-thread) queue, or build them with
+//! the `send_*_task` helpers. `TaskStatus` is only `Send` under `multi` (its
+//! `Spawn` variant boxes an `ExecutionAction` that is `Send` only there), so
+//! those tests are multi-only by construction.
 #![cfg(not(target_family = "wasm"))]
 
 use std::time;
 
 use concurrent_queue::ConcurrentQueue;
+#[cfg(feature = "multi")]
 use foundation_core::compati::Mutex;
-use std::{
-    sync::atomic::{AtomicUsize, Ordering},
-    thread,
-    time::Duration,
-};
+use std::sync::atomic::{AtomicUsize, Ordering};
+#[cfg(feature = "multi")]
+use std::{thread, time::Duration};
 
+#[cfg(feature = "multi")]
+use foundation_core::valtron::IntoBoxedSendExecutionAction;
 use foundation_core::{
     panic_if_failed,
     retries::ExponentialBackoffDecider,
     synca::SleepyMan,
     valtron::{
-        BoolSignal, EventReadiness, ExecutionAction, InlineAction,
-        InlineActionBehaviour, IntoBoxedSendExecutionAction, OnNext, ProcessController,
-        TaskIterator, TaskStatus, WrapTask,
+        BoolSignal, EventReadiness, ExecutionAction, InlineAction, InlineActionBehaviour,
+        OnNext, ProcessController, TaskIterator, TaskStatus, WrapTask,
     },
 };
 
@@ -37,8 +43,10 @@ impl ProcessController for NoYielder {
     fn yield_for(&self, _: time::Duration) {}
 }
 
+#[cfg(feature = "multi")]
 struct Counter(&'static str, usize, usize, usize);
 
+#[cfg(feature = "multi")]
 impl TaskIterator for Counter {
     type Ready = usize;
     type Pending = time::Duration;
@@ -67,14 +75,17 @@ impl TaskIterator for Counter {
     }
 }
 
+#[cfg(feature = "multi")]
 enum ListItemInner {
     List(Option<Vec<usize>>),
     Response(NotifyRecvIterator<TaskStatus<usize, ()>>),
     Done,
 }
 
+#[cfg(feature = "multi")]
 struct ListItems(InlineActionBehaviour, Option<ListItemInner>);
 
+#[cfg(feature = "multi")]
 impl TaskIterator for ListItems {
     type Ready = usize;
     type Pending = ();
@@ -190,6 +201,7 @@ fn test_task_line_action_directly() {
     );
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn test_task_line_send_action() {
     let seed = foundation_compact::rng::rng().next_u64();
@@ -240,6 +252,7 @@ fn test_task_line_send_action() {
     );
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn test_task_line_send_action_for_parent_lifted() {
     let seed = foundation_compact::rng::rng().next_u64();
@@ -290,6 +303,7 @@ fn test_task_line_send_action_for_parent_lifted() {
     );
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn test_task_line_send_action_for_sequenced() {
     let seed = foundation_compact::rng::rng().next_u64();
@@ -344,6 +358,7 @@ fn test_task_line_send_action_for_sequenced() {
 // PHASE 1: Local Executor tests
 // ============================================================================
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_0_can_kill_local_executor_via_kill_signal() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -397,6 +412,7 @@ fn scenario_0_can_kill_local_executor_via_kill_signal() {
     thread_handle.join().expect("should end correctly");
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_one_task_a_runs_to_completion() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -447,6 +463,7 @@ fn scenario_one_task_a_runs_to_completion() {
     );
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_one_can_use_local_executor_builder_to_queue_task() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -497,6 +514,7 @@ fn scenario_one_can_use_local_executor_builder_to_queue_task() {
     );
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -566,6 +584,7 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
     );
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -719,6 +738,7 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
     );
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -891,6 +911,7 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
     );
 }
 
+#[cfg(feature = "multi")]
 #[derive(Clone, Default)]
 enum DaemonSpawner {
     #[default]
@@ -900,6 +921,7 @@ enum DaemonSpawner {
     OutofThread,
 }
 
+#[cfg(feature = "multi")]
 impl ExecutionAction for DaemonSpawner {
     fn apply(
         &mut self,
@@ -946,7 +968,9 @@ impl ExecutionAction for DaemonSpawner {
     }
 }
 
+#[cfg(feature = "multi")]
 struct DaemonCounter(Arc<AtomicUsize>);
+#[cfg(feature = "multi")]
 impl TaskIterator for DaemonCounter {
     type Ready = ();
     type Pending = ();
@@ -982,8 +1006,10 @@ impl TaskIterator for DaemonCounter {
     }
 }
 
+#[cfg(feature = "multi")]
 struct SimpleCounter(&'static str, usize, usize);
 
+#[cfg(feature = "multi")]
 impl TaskIterator for SimpleCounter {
     type Ready = usize;
     type Pending = ();
@@ -1017,6 +1043,7 @@ impl TaskIterator for SimpleCounter {
     }
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_5_task_can_spawn_task_via_actions() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -1117,6 +1144,7 @@ fn scenario_5_task_can_spawn_task_via_actions() {
     assert_eq!(executor.number_of_local_tasks(), 5);
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_its_readiness() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -1215,6 +1243,7 @@ fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_it
     );
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_hits() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -1283,6 +1312,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
     assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condition_doesnt_hits() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -1353,6 +1383,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
     assert_eq!(executor.run_once(), ProgressIndicator::NoWork);
 }
 
+#[cfg(feature = "multi")]
 #[test]
 fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
