@@ -70,7 +70,7 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"
 serial_test = { workspace = true }
 ntest = { workspace = true }
-foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["std", "multi"] }
+foundation_core = { path = "../foundation_core", features = ["std", "multi"] }
 
 [features]
 default = ["turso", "d1", "r2"]
