@@ -1,6 +1,6 @@
 ---
 description: "Make foundation_proxy route Connect/gRPC/gRPC-Web (foundation_connectrpc) traffic effectively — establish whether a proxy must understand RPC, then implement the chosen tier (B + D, per-endpoint protocol selection)."
-status: "in-progress"
+status: "complete"
 priority: "high"
 created: 2026-10-18
 author: "Main Agent"
@@ -25,10 +25,10 @@ related_specs:
   - "specifications/completed/41-connectrpc"
   - "specifications/completed/53-docker-container-testbed"
 features:
-  completed: 0
-  uncompleted: 1
+  completed: 1
+  uncompleted: 0
   total: 1
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Overview
@@ -116,7 +116,7 @@ corresponding skills BEFORE implementation.
 
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
-| 0  | [ConnectRPC Proxy](./features/00-connectrpc-proxy/feature.md) | Research + options + implementation for routing Connect/gRPC/gRPC-Web through `foundation_proxy` | None | 🔄 In Progress (6/6 — B leg done; D leg pending) |
+| 0  | [ConnectRPC Proxy](./features/00-connectrpc-proxy/feature.md) | Research + options + implementation for routing Connect/gRPC/gRPC-Web through `foundation_proxy` | None | ✅ Complete (13/13 — B + D legs) |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 

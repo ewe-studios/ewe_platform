@@ -1,7 +1,7 @@
 ---
 feature: "ConnectRPC Proxy"
 description: "Research whether foundation_proxy must understand Connect/gRPC/gRPC-Web to route them effectively, then lay out the option space and implement the chosen tier (B + D, per-endpoint protocol selection)."
-status: "in-progress"
+status: "complete"
 priority: "high"
 depends_on: []
 estimated_effort: "medium"
@@ -9,9 +9,9 @@ created: 2026-10-18
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 6
+  completed: 13
   uncompleted: 0
-  total: 6
+  total: 13
   completion_percentage: 100
 ---
 
@@ -131,16 +131,17 @@ Ground truth from `backends/foundation_proxy/src/`.
 | 2 | ~~Hop-by-hop strip list includes `te`, `trailer`, `trailers`~~ → **fixed (T2)**: `strip_hop_by_hop_request` preserves them on requests | `forward.rs` | **No longer strips** gRPC's required `te: trailers` |
 | 3 | ~~Response trailers are never forwarded~~ → **fixed (T4)**: trailing HEADERS relayed as `H2Frame::Trailers` | `h2_proxy.rs` `forward_upstream_h2` | `grpc-status` now survives |
 | 4 | ~~Sets `Connection: close` on every upstream request~~ → **fixed (T5)**: `is_streaming_request` gates it so RPC streaming responses keep the connection open | `forward.rs` `forward_request_headers` | No longer tears down long-lived streams |
-| 5 | Load balancing is per-**backend** (connection/lease), not per-**stream** | `runtime.rs` / `router.rs` | With H2 multiplexing, RPCs pin to one backend |
-| 6 | Health checks are HTTP path probes (`/`, `GET`) | `health.rs` / `config.rs` `HealthCheckConfig` | Does not use the gRPC health protocol (`grpc.health.v1.Health/Check`) |
-| 7 | Routing is `Host` + `path_prefix` only | `router.rs` | Fine for Connect/gRPC (they use path), but no method-level policy |
+| 5 | ~~Load balancing is per-backend (connection/lease), not per-stream~~ → **fixed for the RPC leg (T11)**: each relayed RPC picks a backend at `open()` time | `rpc_relay.rs` / `runtime.rs` | The `http`/`https` (B) leg keeps per-connection LB; the RPC (D) leg balances per stream |
+| 6 | ~~Health checks are HTTP path probes (`/`, `GET`)~~ → **fixed for the RPC leg (T12)**: `grpc://` backends are gated on `grpc.health.v1.Health/Check` | `health.rs` | RPC backends use the gRPC health protocol; plain-HTTP keeps path probes |
+| 7 | Routing is `Host` + `path_prefix` only | `router.rs` | Fine for Connect/gRPC (they use path); method-level *policy* (retries, per-method metrics) remains out of scope |
 
-**Net:** items 1–4 are now fixed (T2–T5) and verified end-to-end (T6): Connect
-unary/server-streaming, gRPC unary/server-streaming (`grpc-status` intact), and
-gRPC-Web all round-trip through the transparent `http`/`https` (B) leg to real
-`foundation_connectrpc` backends. Connect bidi/client-streaming over H2 is the
-one mode not yet exercised end-to-end — it rides the H2 relay but lacks a test,
-and is covered by the D leg's task list (Workstream 2).
+**Net:** all seven items are now addressed. Items 1–4 are fixed by Workstream 1
+(T2–T5) and verified end-to-end (T6); items 5–6 by Workstream 2 (T11/T12); item 7
+is fine for Connect/gRPC by design (the D leg routes by method path, but
+method-level *policy* stays out of scope). Both legs now round-trip all four
+Connect/gRPC/gRPC-Web stream kinds to real `foundation_connectrpc` backends —
+with stream-level LB, the gRPC health gate, deadline pass-through, and
+cancellation propagation.
 
 ---
 
@@ -363,7 +364,7 @@ Fixes the concrete gaps in §3, items 1–4. No RPC coupling.
 
 ---
 
-## 8. Task list — Workstream 1 (TDD, one red test per item)
+## 8. Task list (TDD, one red test per item)
 
 Tasks run in order; each is independently shippable and gated on a named test
 going green (not on "it compiles"). T1 is a `foundation_connectrpc`
@@ -434,13 +435,79 @@ prerequisite — its gap is documented in that crate's own `grpc_tests.rs`.
     framing — detailed in LEARNINGS.md.
   - *Gate:* `cargo test -p foundation_proxy --test rpc_proxy_e2e_tests`
 
-Workstream 1 (B leg) is complete — T1–T6 are all green. Workstream 2 (D leg +
-per-endpoint protocol selection) is a separate task list, added when that
-workstream is started.
+Workstream 1 (B leg) is complete — T1–T6 are all green.
+
+### Workstream 2 (D leg) — RPC engine + per-endpoint protocol selection
+
+The D leg is a **codec-agnostic frame relay**, not a typed `Client<Req,Res>`:
+the proxy has no upstream protobuf types, so it de-frames the inbound protocol
+into opaque message frames (`ConnectHandler` / `GrpcHandler` / `GrpcWebHandler`)
+and re-encodes them in the backend's protocol (`ConnectClient` / `GrpcClient` /
+`GrpcWebClient` over `H2Transport`). Message bytes stay opaque; the relay only
+re-envelopes them. Method identity is the URL path.
+
+- [x] **T7 — `BackendProtocol` gains `Connect` / `Grpc` / `GrpcWeb`**
+  - *Red test:* `foundation_proxy/tests/backend_target_tests.rs` — assert the
+    three new schemes (`connect://`, `grpc://`, `grpc-web://`) map to the new
+    variants and `Display` round-trips.
+  - *Green:* add the variants + `Display` strings; extend
+    `BackendTarget::protocol()` to infer them from the scheme.
+  - *Gate:* `cargo test -p foundation_proxy --test backend_target_tests`
+
+- [x] **T8 — gRPC-Web → gRPC translation, unary (keystone)**
+  - *Red test:* `rpc_proxy_e2e_tests.rs` — a gRPC-Web client dials the proxy
+    whose backend is declared `grpc://` and serves **only** native gRPC; the
+    unary round-trips.
+  - *Green:* `relay()` selects the D-leg seam by `lease.backend().protocol()`;
+    inbound `GrpcWebHandler` de-frames (0x00/0x80), outbound `GrpcClient`
+    re-envelopes over `H2Transport`.
+  - *Gate:* `cargo test -p foundation_proxy --test rpc_proxy_e2e_tests`
+
+- [x] **T9 — gRPC-Web ↔ gRPC streaming + status fidelity**
+  - *Red test:* e2e server-stream + `grpc-web-text` base64 round-trip; assert
+    `grpc-status` arrives (no silent `Ok(default)` from a dropped trailer).
+  - *Green:* relay the `0x80` end-of-stream trailer frame and the text base64 path.
+  - *Gate:* `cargo test -p foundation_proxy --test rpc_proxy_e2e_tests`
+
+- [x] **T10 — Connect ↔ gRPC translation (closes the T6 bidi gap)**
+  - *Red test:* e2e — a Connect client against a `grpc://` backend, all four
+    stream types (unary, server-, client-, and bidi-streaming).
+  - *Green:* `ConnectHandler` ↔ `GrpcClient` frame relay over `H2Transport`.
+  - *Gate:* `cargo test -p foundation_proxy --test rpc_proxy_e2e_tests`
+
+- [x] **T11 — stream-level LB under concurrency**
+  - *Red test:* two `grpc://` backends, N concurrent streams; assert both
+    backends observe traffic (not pinned to one).
+  - *Green:* each relayed RPC picks a backend at `open()` time via the weighted
+    round-robin balancer (`H2Transport` is one connection per call).
+  - *Gate:* `cargo test -p foundation_proxy --test rpc_proxy_e2e_tests`
+
+- [x] **T12 — gRPC health gate**
+  - *Red test:* a backend flipping `Health/Check` NOT_SERVING is excluded from
+    rotation; SERVING restores it.
+  - *Green:* minimal `grpc.health.v1.Health/Check` client (the two well-known
+    messages, hand-encoded) wired into `probe_once()` for `Grpc` backends.
+  - *Gate:* `cargo test -p foundation_proxy --test rpc_health_tests`
+
+- [x] **T13 — deadline pass-through + cancellation**
+  - *Red test:* `rpc_deadline_tests.rs` — the client's deadline is observed at
+    the backend; a cancelled server-stream tears down both sides.
+  - *Green:* `translate_connect_deadline_to_grpc` re-encodes
+    `connect-timeout-ms` → `grpc-timeout`; the streaming relay races against a
+    shared `CancelSignal` fired on client reset; the outbound H2 pump aborts the
+    backend stream (`RST_STREAM`) when the response consumer goes away.
+  - *Gate:* `cargo test -p foundation_proxy --test rpc_deadline_tests`
+
+Workstream 2 (D leg) is complete — T7–T13 are all green. Both workstreams are
+done and the feature is folded back into the spec.
 
 ---
 
 ## 9. Success Criteria
+
+All six criteria below are now met and asserted by the Layer-3 tests
+(`rpc_proxy_e2e_tests`, `rpc_health_tests`, `rpc_deadline_tests`, and the
+existing B-leg suites).
 
 - Connect (unary + server-streaming) round-trips through the `http`/`https`
   (B) leg, and all four Connect kinds round-trip through the RPC (D) leg, to
