@@ -45,6 +45,16 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
   - non-blocking connect and TLS handshake (task #23);
   - a pushed request body should wait on pipe readiness (task #24);
   - the remaining transports (task #25).
+- **Unix-socket sends fail on macOS.** The request-intro / send path calls
+  `set_read_timeout_as`, which sets `SO_RCVTIMEO`; macOS rejects `SO_RCVTIMEO`
+  on a Unix domain socket with `EINVAL`, so `unix_socket_builder_send_reaches_server`
+  fails with `Invalid argument (os error 22)`. Skip the read timeout for unix
+  sockets, or treat `EINVAL` as "timeout unsupported" rather than failing the intro.
+- **`HttpClientConnection::connect` no longer fails eagerly.** The non-blocking H1
+  work made `connect` park on readiness, so it returns `Ok` before the TCP
+  handshake. `test_connection_with_mock_resolver` asserts an eager
+  `ConnectionFailed`/`ConnectionTimeout` and is now stale. Restore eager connect,
+  or update the test to the lazy contract.
 - **Ignored tests.**
   - 14 network-dependent tests are ignored: `http_external_validation`, `tls_integration`, `http_server_integration`. Make them hermetic (task #31).
   - 33 doctests are ignored (task #33).
