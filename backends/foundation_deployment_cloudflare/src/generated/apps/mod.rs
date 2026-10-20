@@ -273,12 +273,12 @@ pub struct RequestReviewArgs {
 
 /// GET /accounts/{accountId}/resource-library/applications.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -290,7 +290,7 @@ pub struct RequestReviewArgs {
 /// })).await?;
 /// ```
 pub async fn get_applications_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetApplicationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -316,7 +316,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -325,12 +325,12 @@ where
 
 /// POST /accounts/{accountId}/resource-library/applications.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -342,7 +342,7 @@ where
 /// })).await?;
 /// ```
 pub async fn create_application_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CreateApplicationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -367,7 +367,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -376,12 +376,12 @@ where
 
 /// GET /accounts/{accountId}/resource-library/applications/{id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -393,7 +393,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_application_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetApplicationByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -414,7 +414,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -423,12 +423,12 @@ where
 
 /// PATCH /accounts/{accountId}/resource-library/applications/{id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -440,7 +440,7 @@ where
 /// })).await?;
 /// ```
 pub async fn update_application_version_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UpdateApplicationVersionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -465,7 +465,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -474,12 +474,12 @@ where
 
 /// POST /accounts/{account_id}/abuse-reports/{report_id}/mitigations/appeal.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -491,7 +491,7 @@ where
 /// })).await?;
 /// ```
 pub async fn request_review_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &RequestReviewArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -516,5 +516,5 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }

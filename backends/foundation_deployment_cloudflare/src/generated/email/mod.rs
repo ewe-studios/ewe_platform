@@ -1998,12 +1998,12 @@ pub struct RadarGetEmailSecurityTimeseriesGroupArgs {
 
 /// GET /accounts/{account_id}/dlp/email/account_mapping.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2015,7 +2015,7 @@ pub struct RadarGetEmailSecurityTimeseriesGroupArgs {
 /// })).await?;
 /// ```
 pub async fn dlp_email_scanner_get_account_mapping_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpEmailScannerGetAccountMappingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2033,7 +2033,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2042,12 +2042,12 @@ where
 
 /// POST /accounts/{account_id}/dlp/email/account_mapping.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2059,7 +2059,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dlp_email_scanner_create_account_mapping_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpEmailScannerCreateAccountMappingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2081,7 +2081,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2090,12 +2090,12 @@ where
 
 /// GET /accounts/{account_id}/dlp/email/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2107,7 +2107,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dlp_email_scanner_list_all_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpEmailScannerListAllRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2125,7 +2125,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2134,12 +2134,12 @@ where
 
 /// POST /accounts/{account_id}/dlp/email/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2151,7 +2151,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dlp_email_scanner_create_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpEmailScannerCreateRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2173,7 +2173,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2182,12 +2182,12 @@ where
 
 /// PATCH /accounts/{account_id}/dlp/email/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2199,7 +2199,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dlp_email_scanner_update_rule_priorities_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpEmailScannerUpdateRulePrioritiesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2221,7 +2221,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2230,12 +2230,12 @@ where
 
 /// GET /accounts/{account_id}/dlp/email/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2247,7 +2247,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dlp_email_scanner_get_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpEmailScannerGetRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2268,7 +2268,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2277,12 +2277,12 @@ where
 
 /// PUT /accounts/{account_id}/dlp/email/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2294,7 +2294,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dlp_email_scanner_update_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpEmailScannerUpdateRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2319,7 +2319,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2328,12 +2328,12 @@ where
 
 /// DELETE /accounts/{account_id}/dlp/email/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2345,7 +2345,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dlp_email_scanner_delete_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpEmailScannerDeleteRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2366,7 +2366,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2375,12 +2375,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/investigate.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2392,7 +2392,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_investigate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityInvestigateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2430,7 +2430,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2439,12 +2439,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/investigate/move.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2456,7 +2456,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_post_bulk_message_move_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityPostBulkMessageMoveArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2481,7 +2481,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2490,12 +2490,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/investigate/preview.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2507,7 +2507,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_post_preview_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityPostPreviewArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2532,7 +2532,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2541,12 +2541,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/investigate/release.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2558,7 +2558,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_post_release_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityPostReleaseArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2579,7 +2579,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2588,12 +2588,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/investigate/{postfix_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2605,7 +2605,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_get_message_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityGetMessageArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2626,7 +2626,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2635,12 +2635,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/investigate/{postfix_id}/detections.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2652,7 +2652,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_get_message_detections_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityGetMessageDetectionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2673,7 +2673,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2682,12 +2682,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/investigate/{postfix_id}/move.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2699,7 +2699,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_post_message_move_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityPostMessageMoveArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2724,7 +2724,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2733,12 +2733,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/investigate/{postfix_id}/preview.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2750,7 +2750,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_get_message_preview_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityGetMessagePreviewArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2771,7 +2771,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2780,12 +2780,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/investigate/{postfix_id}/raw.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2797,7 +2797,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_get_message_raw_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityGetMessageRawArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2818,7 +2818,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2827,12 +2827,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/investigate/{postfix_id}/reclassify.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2844,7 +2844,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_post_reclassify_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityPostReclassifyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2869,7 +2869,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2878,12 +2878,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/investigate/{postfix_id}/trace.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2895,7 +2895,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_get_message_trace_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityGetMessageTraceArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2916,7 +2916,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2925,12 +2925,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/phishguard/reports.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2942,7 +2942,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_get_phishguard_reports_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityGetPhishguardReportsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2968,7 +2968,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2977,12 +2977,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/settings/allow_policies.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2994,7 +2994,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_list_allow_policies_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityListAllowPoliciesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3030,7 +3030,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3039,12 +3039,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/settings/allow_policies.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3056,7 +3056,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_create_allow_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityCreateAllowPolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3081,7 +3081,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3090,12 +3090,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/settings/allow_policies/batch.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3107,7 +3107,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_batch_allow_policies_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityBatchAllowPoliciesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3132,7 +3132,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3141,12 +3141,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/settings/allow_policies/{policy_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3158,7 +3158,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_get_allow_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityGetAllowPolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3179,7 +3179,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3188,12 +3188,12 @@ where
 
 /// PATCH /accounts/{account_id}/email-security/settings/allow_policies/{policy_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3205,7 +3205,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_update_allow_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityUpdateAllowPolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3230,7 +3230,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3239,12 +3239,12 @@ where
 
 /// DELETE /accounts/{account_id}/email-security/settings/allow_policies/{policy_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3256,7 +3256,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_delete_allow_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityDeleteAllowPolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3277,7 +3277,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3286,12 +3286,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/settings/block_senders.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3303,7 +3303,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_list_blocked_senders_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityListBlockedSendersArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3332,7 +3332,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3341,12 +3341,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/settings/block_senders.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3358,7 +3358,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_create_blocked_sender_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityCreateBlockedSenderArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3383,7 +3383,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3392,12 +3392,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/settings/block_senders/batch.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3409,7 +3409,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_batch_blocked_senders_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityBatchBlockedSendersArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3434,7 +3434,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3443,12 +3443,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/settings/block_senders/{pattern_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3460,7 +3460,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_get_blocked_sender_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityGetBlockedSenderArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3481,7 +3481,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3490,12 +3490,12 @@ where
 
 /// PATCH /accounts/{account_id}/email-security/settings/block_senders/{pattern_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3507,7 +3507,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_update_blocked_sender_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityUpdateBlockedSenderArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3532,7 +3532,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3541,12 +3541,12 @@ where
 
 /// DELETE /accounts/{account_id}/email-security/settings/block_senders/{pattern_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3558,7 +3558,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_delete_blocked_sender_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityDeleteBlockedSenderArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3579,7 +3579,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3588,12 +3588,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/settings/impersonation_registry.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3605,7 +3605,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_list_display_names_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityListDisplayNamesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3633,7 +3633,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3642,12 +3642,12 @@ where
 
 /// POST /accounts/{account_id}/email-security/settings/impersonation_registry.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3659,7 +3659,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_create_display_name_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityCreateDisplayNameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3684,7 +3684,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3693,12 +3693,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/settings/impersonation_registry/{display_name_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3710,7 +3710,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_get_display_name_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityGetDisplayNameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3731,7 +3731,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3740,12 +3740,12 @@ where
 
 /// PATCH /accounts/{account_id}/email-security/settings/impersonation_registry/{display_name_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3757,7 +3757,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_update_display_name_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityUpdateDisplayNameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3782,7 +3782,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3791,12 +3791,12 @@ where
 
 /// DELETE /accounts/{account_id}/email-security/settings/impersonation_registry/{display_name_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3808,7 +3808,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_delete_display_name_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecurityDeleteDisplayNameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3829,7 +3829,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3838,12 +3838,12 @@ where
 
 /// GET /accounts/{account_id}/email-security/submissions.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3855,7 +3855,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_security_submissions_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSecuritySubmissionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3889,7 +3889,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3898,12 +3898,12 @@ where
 
 /// GET /accounts/{account_id}/email/routing/addresses.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3915,7 +3915,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_destination_addresses_list_destination_addresses_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingDestinationAddressesListDestinationAddressesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3938,7 +3938,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3947,12 +3947,12 @@ where
 
 /// POST /accounts/{account_id}/email/routing/addresses.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -3964,7 +3964,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_destination_addresses_create_a_destination_address_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingDestinationAddressesCreateADestinationAddressArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -3986,7 +3986,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -3995,12 +3995,12 @@ where
 
 /// GET /accounts/{account_id}/email/routing/addresses/{destination_address_identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -4012,7 +4012,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_destination_addresses_get_a_destination_address_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingDestinationAddressesGetADestinationAddressArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -4033,7 +4033,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4042,12 +4042,12 @@ where
 
 /// DELETE /accounts/{account_id}/email/routing/addresses/{destination_address_identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -4059,7 +4059,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_destination_addresses_delete_destination_address_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingDestinationAddressesDeleteDestinationAddressArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -4080,7 +4080,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4089,12 +4089,12 @@ where
 
 /// POST /accounts/{account_id}/email/sending/send.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -4106,7 +4106,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_sending_account_send_builder_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSendingAccountSendBuilderArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -4128,7 +4128,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4137,12 +4137,12 @@ where
 
 /// POST /accounts/{account_id}/email/sending/send_raw.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -4154,7 +4154,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_sending_account_send_raw_message_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSendingAccountSendRawMessageArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -4176,7 +4176,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4185,12 +4185,12 @@ where
 
 /// GET /radar/email/routing/summary/{dimension}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -4202,7 +4202,7 @@ where
 /// })).await?;
 /// ```
 pub async fn radar_get_email_routing_summary_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &RadarGetEmailRoutingSummaryArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -4253,7 +4253,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4262,12 +4262,12 @@ where
 
 /// GET /radar/email/routing/timeseries_groups/{dimension}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -4279,7 +4279,7 @@ where
 /// })).await?;
 /// ```
 pub async fn radar_get_email_routing_timeseries_group_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &RadarGetEmailRoutingTimeseriesGroupArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -4331,7 +4331,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4340,12 +4340,12 @@ where
 
 /// GET /radar/email/security/summary/{dimension}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -4357,7 +4357,7 @@ where
 /// })).await?;
 /// ```
 pub async fn radar_get_email_security_summary_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &RadarGetEmailSecuritySummaryArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -4405,7 +4405,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -4414,12 +4414,12 @@ where
 
 /// GET /radar/email/security/timeseries_groups/{dimension}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -4431,7 +4431,7 @@ where
 /// })).await?;
 /// ```
 pub async fn radar_get_email_security_timeseries_group_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &RadarGetEmailSecurityTimeseriesGroupArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -4480,5 +4480,5 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }

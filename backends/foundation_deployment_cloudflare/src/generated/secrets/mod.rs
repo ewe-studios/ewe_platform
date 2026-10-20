@@ -332,12 +332,12 @@ pub type SecretsStoreSystemDuplicateByIdArgs = super::shared::AccountTagStoreIdS
 
 /// GET /accounts/{account_id}/secrets_store/quota.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -349,7 +349,7 @@ pub type SecretsStoreSystemDuplicateByIdArgs = super::shared::AccountTagStoreIdS
 /// })).await?;
 /// ```
 pub async fn secrets_store_quota_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreQuotaArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -367,7 +367,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -376,12 +376,12 @@ where
 
 /// GET /accounts/{account_id}/secrets_store/stores.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -393,7 +393,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -416,7 +416,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -425,12 +425,12 @@ where
 
 /// POST /accounts/{account_id}/secrets_store/stores.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -442,7 +442,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -460,7 +460,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -469,12 +469,12 @@ where
 
 /// GET /accounts/{account_id}/secrets_store/stores/{store_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -486,7 +486,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_get_store_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreGetStoreByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -507,7 +507,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -516,12 +516,12 @@ where
 
 /// DELETE /accounts/{account_id}/secrets_store/stores/{store_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -533,7 +533,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_delete_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreDeleteByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -554,7 +554,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -563,12 +563,12 @@ where
 
 /// GET /accounts/{account_id}/secrets_store/stores/{store_id}/secrets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -580,7 +580,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_secrets_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSecretsListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -610,7 +610,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -619,12 +619,12 @@ where
 
 /// POST /accounts/{account_id}/secrets_store/stores/{store_id}/secrets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -636,7 +636,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_secret_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSecretCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -657,7 +657,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -666,12 +666,12 @@ where
 
 /// DELETE /accounts/{account_id}/secrets_store/stores/{store_id}/secrets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -683,7 +683,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_delete_bulk_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreDeleteBulkArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -704,7 +704,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -713,12 +713,12 @@ where
 
 /// GET /accounts/{account_id}/secrets_store/stores/{store_id}/secrets/{secret_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -730,7 +730,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_get_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreGetByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -751,7 +751,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -760,12 +760,12 @@ where
 
 /// PATCH /accounts/{account_id}/secrets_store/stores/{store_id}/secrets/{secret_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -777,7 +777,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_patch_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStorePatchByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -798,7 +798,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -807,12 +807,12 @@ where
 
 /// DELETE /accounts/{account_id}/secrets_store/stores/{store_id}/secrets/{secret_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -824,7 +824,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_secret_delete_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSecretDeleteByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -845,7 +845,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -854,12 +854,12 @@ where
 
 /// POST /accounts/{account_id}/secrets_store/stores/{store_id}/secrets/{secret_id}/duplicate.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -871,7 +871,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_duplicate_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreDuplicateByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -892,7 +892,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -901,12 +901,12 @@ where
 
 /// GET /system/accounts/{account_tag}/stores.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -918,7 +918,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -941,7 +941,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -950,12 +950,12 @@ where
 
 /// POST /system/accounts/{account_tag}/stores.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -967,7 +967,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -985,7 +985,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -994,12 +994,12 @@ where
 
 /// GET /system/accounts/{account_tag}/stores/{store_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1011,7 +1011,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_get_store_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemGetStoreByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1032,7 +1032,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1041,12 +1041,12 @@ where
 
 /// DELETE /system/accounts/{account_tag}/stores/{store_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1058,7 +1058,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_delete_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemDeleteByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1079,7 +1079,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1088,12 +1088,12 @@ where
 
 /// GET /system/accounts/{account_tag}/stores/{store_id}/secrets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1105,7 +1105,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_secrets_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemSecretsListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1135,7 +1135,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1144,12 +1144,12 @@ where
 
 /// POST /system/accounts/{account_tag}/stores/{store_id}/secrets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1161,7 +1161,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_secret_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemSecretCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1182,7 +1182,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1191,12 +1191,12 @@ where
 
 /// DELETE /system/accounts/{account_tag}/stores/{store_id}/secrets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1208,7 +1208,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_delete_bulk_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemDeleteBulkArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1229,7 +1229,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1238,12 +1238,12 @@ where
 
 /// GET /system/accounts/{account_tag}/stores/{store_id}/secrets/{secret_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1255,7 +1255,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_get_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemGetByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1276,7 +1276,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1285,12 +1285,12 @@ where
 
 /// PATCH /system/accounts/{account_tag}/stores/{store_id}/secrets/{secret_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1302,7 +1302,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_patch_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemPatchByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1323,7 +1323,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1332,12 +1332,12 @@ where
 
 /// DELETE /system/accounts/{account_tag}/stores/{store_id}/secrets/{secret_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1349,7 +1349,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_secret_delete_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemSecretDeleteByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1370,7 +1370,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1379,12 +1379,12 @@ where
 
 /// POST /system/accounts/{account_tag}/stores/{store_id}/secrets/{secret_id}/duplicate.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1396,7 +1396,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secrets_store_system_duplicate_by_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretsStoreSystemDuplicateByIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1417,5 +1417,5 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }

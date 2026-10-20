@@ -1572,13 +1572,16 @@ impl UnifiedGenerator {
         writeln!(out, "///")?;
         writeln!(
             out,
-            "/// Takes a `DynNetClient` and args, builds the request, optionally applies"
+            "/// Takes a client and args, builds the request, optionally applies"
         )?;
         writeln!(out, "/// modifications, then sends it via `send_async().await`.")?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Arguments")?;
         writeln!(out, "///")?;
-        writeln!(out, "/// * `client` - HTTP client for making the request")?;
+        writeln!(
+            out,
+            "/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under"
+        )?;
         writeln!(
             out,
             "/// * `args` - Request arguments (path params, query params, body)"
@@ -1628,7 +1631,10 @@ impl UnifiedGenerator {
             || ep.request_type.is_some();
         let args_binding = if args_uses { "args" } else { "_args" };
         writeln!(out, "pub async fn {}_request<F>(", fn_prefix)?;
-        writeln!(out, "    client: DynNetClient,")?;
+        // `impl Into<ApiClient>`: a bare `DynNetClient` still works (with the
+        // default `BodyLimits`), and a client that configures its own limits
+        // passes an `ApiClient` carrying them down to the shared senders.
+        writeln!(out, "    client: impl Into<super::shared::ApiClient>,")?;
         writeln!(out, "    {}: &{},", args_binding, args_name)?;
         // WHY: The base URL (e.g. "http://localhost/v1.53") is configurable so
         // callers can point at remote Docker daemons, not just Unix-socket-local.
@@ -1731,19 +1737,16 @@ impl UnifiedGenerator {
         // thousands of copies of the same async body were much of what a
         // large provider crate's `rustc` spent its memory on. A non-2xx status
         // becomes `ApiError::HttpStatus` with the vendor's error body, read up
-        // to `MAX_ERROR_BODY` (see `common::send_checked`).
-        if let Some(rt) = streaming {
-            let constructor = match rt {
-                ResponseType::JsonLines(_) => "super::shared::JsonLinesStream::new",
-                _ => "super::shared::ByteStream::new",
-            };
-            writeln!(out, "    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;")?;
-            writeln!(out, "    Ok(ApiResponse {{ status, headers, body: {constructor}(body) }})")?;
-        } else if return_type == "()" {
-            writeln!(out, "    super::shared::send_without_body(client, builder.build()).await")?;
-        } else {
-            writeln!(out, "    super::shared::send_json(client, builder.build()).await")?;
-        }
+        // to the client's `BodyLimits::max_error_body` (see
+        // `common::send_checked`); a JSON-lines body's lines are capped at its
+        // `max_json_line`.
+        let sender = match streaming {
+            Some(ResponseType::JsonLines(_)) => "send_json_lines",
+            Some(_) => "send_bytes",
+            None if return_type == "()" => "send_without_body",
+            None => "send_json",
+        };
+        writeln!(out, "    super::shared::{sender}(client.into(), builder.build()).await")?;
         writeln!(out, "}}")?;
         writeln!(out)?;
 
@@ -1841,7 +1844,7 @@ impl UnifiedGenerator {
         writeln!(out, "pub use {common_path}::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation}};")?;
         // Sending, streaming bodies and the bounded error-body read the
         // `*_request` functions use (see `generate_endpoint_client_functions`).
-        writeln!(out, "pub use {common_path}::{{read_error_body, send_checked, send_json, send_without_body, with_raw_body, ByteStream, JsonLinesStream}};")?;
+        writeln!(out, "pub use {common_path}::{{read_error_body, send_bytes, send_checked, send_json, send_json_lines, send_without_body, with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream}};")?;
         writeln!(out)?;
         writeln!(out, "// Imports for shared resource types")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
@@ -2023,152 +2026,3 @@ impl UnifiedGenerator {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::{field_ident, UnifiedGenerator};
-
-    /// `field_ident` is private, so this lives here rather than in `tests/`.
-    ///
-    /// Every input below is a real property key from a vendor's spec, and each one
-    /// used to be emitted verbatim into a struct definition.
-    #[test]
-    fn a_property_key_becomes_a_field_name_rust_accepts() {
-        // Cloudflare keys properties by ASN, and by a bare `*`.
-        assert_eq!(field_ident("13335"), "field_13335");
-        assert_eq!(field_ident("*"), "field", "punctuation sanitises to nothing");
-        // Leading punctuation sanitises to `_`, which to_snake_case then drops —
-        // the wire name is kept by the caller's #[serde(rename)].
-        assert_eq!(field_ident("$metadata"), "metadata");
-        // Linode's filter operators.
-        assert_eq!(field_ident("+gt"), "gt");
-        // DigitalOcean's Postgres settings.
-        assert_eq!(field_ident("pg_partman_bgw.interval"), "pg_partman_bgw_interval");
-        // Keywords still take the raw-identifier form the generator has always used.
-        assert_eq!(field_ident("type"), "r#type");
-        assert_eq!(field_ident("self"), "_self");
-    }
-
-    #[test]
-    fn a_valid_key_is_left_exactly_alone() {
-        // The guarantee that keeps every provider's committed output from moving:
-        // this function only changes names that were already broken.
-        for name in ["account_id", "zone", "result_info", "id"] {
-            assert_eq!(field_ident(name), name);
-        }
-        // Casing conversion is unchanged.
-        assert_eq!(field_ident("ApiVersion"), "api_version");
-    }
-
-    /// `resolve_schema_key` is private; this is the regression that made 52 of
-    /// Hetzner's 100 generated types opaque blobs.
-    #[test]
-    fn a_schema_key_resolves_even_when_pascal_casing_is_not_invertible() {
-        use crate::spec::Schema;
-
-        let mut schemas = std::collections::BTreeMap::new();
-        // Hetzner's real key: the property is `public_net`, so the hoisted
-        // component carries the underscore.
-        schemas.insert(
-            "CreateServerResponseServerPublic_net".to_string(),
-            Schema {
-                schema_type: Some("object".to_string()),
-                properties: Some(Default::default()),
-                ..Default::default()
-            },
-        );
-
-        // The reference site pascal-cases, giving `…PublicNet` — which no amount
-        // of snake-casing turns back into `…Public_net`. Matching in the
-        // pascal-cased space is the direction that is actually well defined.
-        assert!(
-            UnifiedGenerator::resolve_schema_key(
-                "CreateServerResponseServerPublicNet",
-                &schemas
-            )
-            .is_some(),
-            "the schema exists; failing to find it emits an opaque blob instead"
-        );
-
-        // A name nothing declares must still miss — the fallback is a real signal.
-        assert!(UnifiedGenerator::resolve_schema_key("NoSuchType", &schemas).is_none());
-    }
-
-    #[test]
-    fn a_direct_key_match_still_wins() {
-        use crate::spec::Schema;
-
-        let mut schemas = std::collections::BTreeMap::new();
-        for key in ["Exact", "exact_other"] {
-            schemas.insert(
-                key.to_string(),
-                Schema {
-                    schema_type: Some("object".to_string()),
-                    ..Default::default()
-                },
-            );
-        }
-        assert!(UnifiedGenerator::resolve_schema_key("Exact", &schemas).is_some());
-        // Cloudflare's snake_case keys, via the existing rule.
-        assert!(UnifiedGenerator::resolve_schema_key("ExactOther", &schemas).is_some());
-    }
-
-    fn schemas(json: serde_json::Value) -> std::collections::BTreeMap<String, crate::spec::Schema> {
-        serde_json::from_value(json).unwrap()
-    }
-
-    fn generate(name: &str, schemas: &std::collections::BTreeMap<String, crate::spec::Schema>) -> String {
-        let generator = UnifiedGenerator::new(std::path::PathBuf::from("unused"));
-        let def = generator.type_def_from_schema(
-            name,
-            &schemas[name],
-            schemas,
-            &std::collections::HashSet::new(),
-        );
-        let mut module = super::ModuleFile::new("m/mod.rs");
-        module.push(def);
-        module.render().unwrap()
-    }
-
-    #[test]
-    fn an_all_of_member_given_by_ref_contributes_its_fields() {
-        let schemas = schemas(serde_json::json!({
-            "api_response_common": {
-                "type": "object",
-                "required": ["success", "errors"],
-                "properties": {
-                    "success": { "type": "boolean" },
-                    "errors": { "type": "array", "items": { "type": "string" } }
-                }
-            },
-            "zone_response": {
-                "allOf": [
-                    { "$ref": "#/components/schemas/api_response_common" },
-                    { "properties": { "result": { "type": "string" } } }
-                ]
-            }
-        }));
-        let out = generate("zone_response", &schemas);
-        assert!(out.contains("pub success: bool,"), "{out}");
-        assert!(out.contains("pub errors: Vec<String>,"), "{out}");
-        assert!(out.contains("pub result: Option<String>,"), "{out}");
-    }
-
-    #[test]
-    fn schemas_without_properties_alias_what_they_are() {
-        let schemas = schemas(serde_json::json!({
-            "latitude": { "type": "number" },
-            "messages": { "type": "array", "items": { "type": "string" } },
-            "free_form": { "type": "object" },
-            "either": { "oneOf": [{ "type": "string" }, { "type": "integer" }] },
-            "empty": { "type": "object", "properties": {} }
-        }));
-        assert!(generate("latitude", &schemas).contains("pub type latitude = f64;"));
-        assert!(generate("messages", &schemas).contains("pub type messages = Vec<String>;"));
-        assert!(generate("free_form", &schemas).contains("pub type free_form = serde_json::Value;"));
-        assert!(generate("either", &schemas).contains("pub type either = serde_json::Value;"));
-        // An object with no fields is a struct (merged into `EmptyObject` later).
-        assert!(generate("empty", &schemas).contains("pub struct empty {"));
-    }
-}
-

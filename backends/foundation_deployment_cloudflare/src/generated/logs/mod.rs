@@ -1181,12 +1181,12 @@ pub struct SlurperGetJobLogsArgs {
 
 /// GET /accounts/{account_id}/audit_logs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1198,7 +1198,7 @@ pub struct SlurperGetJobLogsArgs {
 /// })).await?;
 /// ```
 pub async fn audit_logs_get_account_audit_logs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &AuditLogsGetAccountAuditLogsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1229,7 +1229,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1238,12 +1238,12 @@ where
 
 /// GET /accounts/{account_id}/dlp/payload_log.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1255,7 +1255,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dlp_payload_log_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpPayloadLogGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1273,7 +1273,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1282,12 +1282,12 @@ where
 
 /// PUT /accounts/{account_id}/dlp/payload_log.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1299,7 +1299,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dlp_payload_log_put_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlpPayloadLogPutArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1321,7 +1321,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1330,12 +1330,12 @@ where
 
 /// GET /accounts/{account_id}/logpush/datasets/{dataset_id}/fields.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1347,7 +1347,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_accounts_account_id_logpush_datasets_dataset_id_fields_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetAccountsAccountIdLogpushDatasetsDatasetIdFieldsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1368,7 +1368,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1377,12 +1377,12 @@ where
 
 /// GET /accounts/{account_id}/logpush/datasets/{dataset_id}/jobs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1394,7 +1394,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_accounts_account_id_logpush_datasets_dataset_id_jobs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetAccountsAccountIdLogpushDatasetsDatasetIdJobsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1415,7 +1415,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1424,12 +1424,12 @@ where
 
 /// GET /accounts/{account_id}/logpush/jobs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1441,7 +1441,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_accounts_account_id_logpush_jobs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetAccountsAccountIdLogpushJobsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1459,7 +1459,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1468,12 +1468,12 @@ where
 
 /// POST /accounts/{account_id}/logpush/jobs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1485,7 +1485,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_accounts_account_id_logpush_jobs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostAccountsAccountIdLogpushJobsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1507,7 +1507,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1516,12 +1516,12 @@ where
 
 /// GET /accounts/{account_id}/logpush/jobs/{job_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1533,7 +1533,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_accounts_account_id_logpush_jobs_job_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetAccountsAccountIdLogpushJobsJobIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1551,7 +1551,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1560,12 +1560,12 @@ where
 
 /// PUT /accounts/{account_id}/logpush/jobs/{job_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1577,7 +1577,7 @@ where
 /// })).await?;
 /// ```
 pub async fn put_accounts_account_id_logpush_jobs_job_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PutAccountsAccountIdLogpushJobsJobIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1599,7 +1599,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1608,12 +1608,12 @@ where
 
 /// DELETE /accounts/{account_id}/logpush/jobs/{job_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1625,7 +1625,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_accounts_account_id_logpush_jobs_job_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteAccountsAccountIdLogpushJobsJobIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1643,7 +1643,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1652,12 +1652,12 @@ where
 
 /// POST /accounts/{account_id}/logpush/ownership.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1669,7 +1669,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_accounts_account_id_logpush_ownership_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostAccountsAccountIdLogpushOwnershipArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1691,7 +1691,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1700,12 +1700,12 @@ where
 
 /// POST /accounts/{account_id}/logpush/ownership/validate.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1717,7 +1717,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_accounts_account_id_logpush_ownership_validate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostAccountsAccountIdLogpushOwnershipValidateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1739,7 +1739,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1748,12 +1748,12 @@ where
 
 /// POST /accounts/{account_id}/logpush/validate/destination.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1765,7 +1765,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_accounts_account_id_logpush_validate_destination_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteAccountsAccountIdLogpushValidateDestinationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1787,7 +1787,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1796,12 +1796,12 @@ where
 
 /// POST /accounts/{account_id}/logpush/validate/destination/exists.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1813,7 +1813,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_accounts_account_id_logpush_validate_destination_exists_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteAccountsAccountIdLogpushValidateDestinationExistsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1838,7 +1838,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1847,12 +1847,12 @@ where
 
 /// POST /accounts/{account_id}/logpush/validate/origin.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1864,7 +1864,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_accounts_account_id_logpush_validate_origin_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostAccountsAccountIdLogpushValidateOriginArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1886,7 +1886,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1895,12 +1895,12 @@ where
 
 /// GET /accounts/{account_id}/logs/audit.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1912,7 +1912,7 @@ where
 /// })).await?;
 /// ```
 pub async fn audit_logs_v2_get_account_audit_logs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &AuditLogsV2GetAccountAuditLogsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2068,7 +2068,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2077,12 +2077,12 @@ where
 
 /// GET /accounts/{account_id}/logs/control/cmb/config.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2094,7 +2094,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_accounts_account_id_logs_control_cmb_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetAccountsAccountIdLogsControlCmbConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2112,7 +2112,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2121,12 +2121,12 @@ where
 
 /// POST /accounts/{account_id}/logs/control/cmb/config.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2138,7 +2138,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_accounts_account_id_logs_control_cmb_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostAccountsAccountIdLogsControlCmbConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2160,7 +2160,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2169,12 +2169,12 @@ where
 
 /// DELETE /accounts/{account_id}/logs/control/cmb/config.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2186,7 +2186,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_accounts_account_id_logs_control_cmb_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteAccountsAccountIdLogsControlCmbConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2204,7 +2204,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2213,12 +2213,12 @@ where
 
 /// GET /accounts/{account_id}/magic/cloud/catalog-syncs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2230,7 +2230,7 @@ where
 /// })).await?;
 /// ```
 pub async fn catalog_syncs_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CatalogSyncsListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2248,7 +2248,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2257,12 +2257,12 @@ where
 
 /// POST /accounts/{account_id}/magic/cloud/catalog-syncs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2274,7 +2274,7 @@ where
 /// })).await?;
 /// ```
 pub async fn catalog_syncs_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CatalogSyncsCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2296,7 +2296,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2305,12 +2305,12 @@ where
 
 /// GET /accounts/{account_id}/magic/cloud/catalog-syncs/prebuilt-policies.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2322,7 +2322,7 @@ where
 /// })).await?;
 /// ```
 pub async fn catalog_syncs_prebuilt_policies_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CatalogSyncsPrebuiltPoliciesListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2345,7 +2345,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2354,12 +2354,12 @@ where
 
 /// GET /accounts/{account_id}/magic/cloud/catalog-syncs/{sync_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2371,7 +2371,7 @@ where
 /// })).await?;
 /// ```
 pub async fn catalog_syncs_read_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CatalogSyncsReadArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2392,7 +2392,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2401,12 +2401,12 @@ where
 
 /// PUT /accounts/{account_id}/magic/cloud/catalog-syncs/{sync_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2418,7 +2418,7 @@ where
 /// })).await?;
 /// ```
 pub async fn catalog_syncs_update_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CatalogSyncsUpdateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2443,7 +2443,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2452,12 +2452,12 @@ where
 
 /// PATCH /accounts/{account_id}/magic/cloud/catalog-syncs/{sync_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2469,7 +2469,7 @@ where
 /// })).await?;
 /// ```
 pub async fn catalog_syncs_patch_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CatalogSyncsPatchArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2494,7 +2494,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2503,12 +2503,12 @@ where
 
 /// DELETE /accounts/{account_id}/magic/cloud/catalog-syncs/{sync_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2520,7 +2520,7 @@ where
 /// })).await?;
 /// ```
 pub async fn catalog_syncs_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CatalogSyncsDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2543,7 +2543,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2552,12 +2552,12 @@ where
 
 /// POST /accounts/{account_id}/magic/cloud/catalog-syncs/{sync_id}/refresh.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2569,7 +2569,7 @@ where
 /// })).await?;
 /// ```
 pub async fn catalog_syncs_refresh_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CatalogSyncsRefreshArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2590,7 +2590,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2599,12 +2599,12 @@ where
 
 /// GET /accounts/{account_id}/magic/cloud/resources.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2616,7 +2616,7 @@ where
 /// })).await?;
 /// ```
 pub async fn resources_catalog_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ResourcesCatalogListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2654,7 +2654,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2663,12 +2663,12 @@ where
 
 /// GET /accounts/{account_id}/magic/cloud/resources/export.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2685,7 +2685,7 @@ where
 /// })).await?;
 /// ```
 pub async fn resources_catalog_export_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ResourcesCatalogExportArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2719,12 +2719,7 @@ where
         f(&mut builder);
     }
 
-    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
-    Ok(ApiResponse {
-        status,
-        headers,
-        body: super::shared::ByteStream::new(body),
-    })
+    super::shared::send_bytes(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2733,12 +2728,12 @@ where
 
 /// POST /accounts/{account_id}/magic/cloud/resources/policy-preview.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2750,7 +2745,7 @@ where
 /// })).await?;
 /// ```
 pub async fn resources_catalog_policy_preview_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ResourcesCatalogPolicyPreviewArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2775,7 +2770,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2784,12 +2779,12 @@ where
 
 /// GET /accounts/{account_id}/magic/cloud/resources/{resource_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2801,7 +2796,7 @@ where
 /// })).await?;
 /// ```
 pub async fn resources_catalog_read_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ResourcesCatalogReadArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2824,7 +2819,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -2833,12 +2828,12 @@ where
 
 /// GET /accounts/{account_id}/slurper/jobs/{job_id}/logs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -2850,7 +2845,7 @@ where
 /// })).await?;
 /// ```
 pub async fn slurper_get_job_logs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SlurperGetJobLogsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -2874,5 +2869,5 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
