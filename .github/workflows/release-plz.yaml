@@ -6,7 +6,7 @@ run-name: >-
   ${{ github.event_name == 'workflow_dispatch' && 'manual run' || github.event.workflow_run.display_title }}
 
 # Versions and publishes the workspace's crates with release-plz (config:
-# release-plz.toml). It runs only after the Checks workflow has passed on a
+# release-plz.toml). It runs only after the "Audit: Checks & Tests" workflow (check.yaml) has passed on a
 # push to master, so nothing is released from a red master.
 #
 #   release-pr  ("Open or update the release PR") opens or updates the "chore: release" PR: version bumps for the
@@ -31,7 +31,9 @@ run-name: >-
 
 on:
   workflow_run:
-    workflows: [Checks]
+    # Must match check.yaml's `name:` exactly; renaming that workflow
+    # silently stops releases.
+    workflows: ["Audit: Checks & Tests"]
     types: [completed]
     branches: [master]
   workflow_dispatch:
@@ -52,8 +54,8 @@ env:
 
 jobs:
   gate:
-    name: Gate (Checks passed on master?)
-    # A green Checks run for a push to master, or a manual run.
+    name: "Gate (Audit: Checks & Tests passed on master?)"
+    # A green check.yaml run for a push to master, or a manual run.
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
