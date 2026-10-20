@@ -4,10 +4,10 @@ pub mod js_runtimes {
     use super::EmbedDirectoryAs;
 
     #[derive(EmbedDirectoryAs, Default)]
-    #[source = "$CRATE/../../sdk/web/reloader"]
+    #[source = "$CRATE/assets/reloader"]
     pub struct AssetReloader;
 
     #[derive(EmbedDirectoryAs, Default)]
-    #[source = "$CRATE/../../sdk/web/jsruntime"]
+    #[source = "$CRATE/assets/jsruntime"]
     pub struct AssetHostRuntimes;
 }
