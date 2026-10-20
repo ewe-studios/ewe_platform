@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 3
-  uncompleted: 4
+  completed: 4
+  uncompleted: 3
   total: 7
-  completion_percentage: 43
+  completion_percentage: 57
 ---
 
 # WASM & Cloudflare Workers Readiness (Foundation)
@@ -110,8 +110,12 @@ there.** Everything below is grounded in that prior work plus the existing
 4. **CI keeps it clean.** Extend the `wasm-check` job (spec 28 feature 07, which
    covered only core/auth/http/db) to `foundation_ai` + its AI deps.
 
-5. **Workers AI provider.** A `RoutableProvider`/`ModelBackend` impl for
-   Cloudflare Workers AI (`env.ai.run()` + streaming), wasm-safe, no local model.
+5. **Workers AI provider.** A `WorkersAiProvider` (`ModelProvider`) +
+   `WorkersAiModel` (`Model`) pair for Cloudflare Workers AI, calling its REST API
+   (`POST /client/v4/accounts/{account_id}/ai/run/{model}`) over the existing
+   `HttpClient` seam — not the `env.ai.run()` Worker binding. Target-agnostic
+   (compiles native + wasm, like OpenAI/Anthropic), streaming via
+   `Model::stream()` → `ModelStreamBox`.
 
 6. **Verification examples, each testing a different thing, verified with
    miniflare locally and on Cloudflare** (the point of this feature: prove it
@@ -169,7 +173,7 @@ provider-client status below differ from the original 2026-10-19 write-up.
 | 10 | `foundation_arrow` | Audit only — verify wasm32 `cargo check` | Passes clean (`cargo check --target wasm32-unknown-unknown -p foundation_arrow` exits 0). The `arrow-array` → `ahash/compile-time-rng` concern is build-time `const-random` (host-only) and never reaches the wasm runtime graph — no change needed. | T2 ✅ |
 | 11 | `foundation_vectors`, `foundation_compact`, `foundation_connectrpc` (+ `foundation_http`) | Verify wasm32 `cargo check` (fix only if a gate fails) | `vectors` and `compact` pass clean. `connectrpc` **failed**: `foundation_netio`/`foundation_http` were unconditional default-feature deps, leaking `multi` into netio's single-threaded `!Send` wasm code (`body_reader.rs:3370` — its wasm `ExchangeContinuation` drops `+ Send`, so `map_ready`'s `Send` bound under `multi` no longer type-checks). Fix: target-gate `foundation_netio`+`foundation_http` in **both** `foundation_connectrpc` and `foundation_http` (native = defaults, wasm = `wasm-fetch`/`wasm`), and pull `foundation_auth` with `default-features = false` (its default `turso` → `foundation_db/turso` → `foundation_db/multi` is a native-only backend that also leaked `multi` on wasm). | T2 ✅ |
 | 12 | `.github/workflows/check.yaml` + `scripts/ci/ci.py` + `ci/packages.toml` (CI) | Re-establish the wasm32 compile gate and extend it to `foundation_ai` + `foundation_netio` + `foundation_vectors` + `foundation_compact` + `foundation_arrow` + `foundation_connectrpc` | spec 28 feature 07's `wasm-check` job **no longer exists** — the CI refactor to the per-package model (`check.yaml` + `ci.py` + `packages.toml`) dropped it, so *no* crate was wasm-checked and the AI crates (and `foundation_auth` itself — see #1) regressed silently. Fix: add a `wasm` step to `ci.py` (`cargo check --target wasm32-unknown-unknown` per `wasm-runs` entry) + a `wasm = "off"` default in `packages.toml`, opt in the four original crates (core/auth/http/db) **and** the six AI crates with their wasm-relevant feature sets, and wire `--step wasm` into both CI jobs. | T3 ✅ |
-| 13 | `foundation_ai` | New Workers AI `RoutableProvider`/`ModelBackend` | no Workers AI provider exists yet | T4 |
+| 13 | `foundation_ai` | New Workers AI provider: `WorkersAiProvider` (`ModelProvider`) + `WorkersAiModel` (`Model`), REST via the `HttpClient` seam (`send_sse` streaming) | no Workers AI provider exists yet | T4 |
 
 ### Component Structure
 
@@ -214,10 +218,10 @@ sequenceDiagram
     participant F as FetchHttpClient
     C->>W: Connect/gRPC-Web request
     W->>A: dispatch to agentic layer
-    A->>P: chat stream request
-    P->>F: send_sse_async / send_async
-    F-->>P: token stream
-    P-->>A: Stream&lt;TurnEvent&gt;
+    A->>P: generate() / stream()
+    P->>F: send_sse / send (REST ai/run)
+    F-->>P: SSE token stream
+    P-->>A: ModelStreamBox (Messages)
     A-->>W: streamed response
     W-->>C: streamed response
 ```
@@ -237,7 +241,7 @@ sequenceDiagram
     F->>V: fetch() to vendor endpoint (env-secret auth)
     V-->>F: token stream
     F-->>P: SimpleResponse stream
-    P-->>W: Stream&lt;TurnEvent&gt;
+    P-->>W: ModelStreamBox (Messages)
     W-->>C: streamed response
 ```
 
@@ -255,22 +259,26 @@ pub type DynNetClient = Arc<dyn NetClient>;       // combined HTTP + WebSocket
 // HttpClientBuilder::build() -> DynNetClient       // native -> NativeHttpClient, wasm -> FetchHttpClient
 ```
 
-**New (wasm-only provider):**
+**New (Workers AI provider — mirrors the OpenAI provider pair):**
 ```rust
-// foundation_ai — Workers AI provider
-#[cfg(target_family = "wasm")]
-pub struct WorkersAiProvider { /* env binding, model id */ }
-#[cfg(target_family = "wasm")]
-impl RoutableProvider for WorkersAiProvider {
-    async fn stream(&self, req: ChatRequest)
-        -> Result<impl Stream<Item = TurnEvent>, ProviderError>;
+// foundation_ai — Workers AI provider, REST over the HttpClient seam
+pub struct WorkersAiConfig { account_id, base_url, auth: Option<AuthCredential>, timeout, ... }
+pub struct WorkersAiProvider { config, http_client: Arc<dyn HttpClient>, ... }
+
+impl ModelProvider for WorkersAiProvider { /* create/describe/get_model/get_all */ }
+
+pub struct WorkersAiModel { config, model_id, http_client, ... }
+impl Model for WorkersAiModel {
+    fn generate(&self, interaction, params) -> GenerationResult<Vec<Messages>>;
+    fn stream(&self, interaction, params) -> GenerationResult<ModelStreamBox>;
 }
 ```
 
 ### Error Handling Strategy
 
-- `ProviderError` for Workers AI (auth, model-not-found, stream-aborted), mapped
-  to Connect status; never a bare string.
+- Workers AI surfaces the existing `GenerationError`/`ModelProviderErrors`
+  (`NotFound`, `FailedFetching`, `Backend`) for auth, model-not-found and
+  stream-aborted, mapped to Connect status — never a bare string.
 - Worker errors surface as `dispatch_cf` HTTP/Connect responses, never panics
   (a Worker panic is a 500 with no detail — always convert to a typed error).
 - The wasm compile gate is a red→green test: red = the `getrandom`/native-dep
@@ -278,8 +286,9 @@ impl RoutableProvider for WorkersAiProvider {
 
 ### Security Considerations
 
-- Workers AI auth uses the Worker's bound `env` binding/secret, never a hardcoded
-  token in the bundle.
+- Workers AI auth is a Bearer API token via `AuthCredential::SecretOnly`
+  (`CLOUDFLARE_API_TOKEN`), injected through the provider config — never hardcoded
+  in the bundle.
 - The `HttpClient` swap does not change how credentials are sent; it changes only
   the transport behind the trait.
 
@@ -317,8 +326,9 @@ impl RoutableProvider for WorkersAiProvider {
   target-gate `foundation_netio` (native = defaults, wasm =
   `default-features = false, features = ["wasm-fetch"]`) (change #4); add
   `foundation_nativeapis` to the wasm target (`default-features = false,
-  features = ["vfs", "vfs-search"]`) (change #6); `workers-ai` feature.
-  **Done (netio + nativeapis gating) / pending (`workers-ai`).**
+  features = ["vfs", "vfs-search"]`) (change #6).
+  **Done (netio + nativeapis gating).** No `workers-ai` feature: the provider is
+  always-compiled (target-agnostic), like OpenAI/Anthropic.
 - `backends/foundation_ai/src/agentic/{embedding,loop_detection}.rs` — 3
   `AHasher::default()` → `foundation_compact::hash::Hasher` (change #2). **Done.**
 - `backends/foundation_netio/src/websocket/wasm/browser.rs` — explicit
@@ -335,7 +345,9 @@ impl RoutableProvider for WorkersAiProvider {
 - `backends/foundation_ai/src/backends/{openai_provider,anthropic_messages_provider,openai_responses_provider}.rs`
   — already hold `Arc<dyn HttpClient>` (change #3, verified); replace
   `std::thread::sleep` backoff with async sleep (change #9, runtime).
-- `backends/foundation_ai/src/backends/workers_ai.rs` — new provider (wasm).
+- `backends/foundation_ai/src/backends/workers_ai.rs` — new `WorkersAiProvider`
+  (`ModelProvider`) + `WorkersAiModel` (`Model`) + `WorkersAiStream` (SSE parser),
+  REST via the `HttpClient` seam (change #13).
 - `backends/foundation_arrow/Cargo.toml` (+ source as needed) — wasm gating.
 - `scripts/ci/ci.py` + `ci/packages.toml` + `.github/workflows/check.yaml` — add a
   `wasm` step to the per-package CI model (`cargo check --target
@@ -385,9 +397,17 @@ impl RoutableProvider for WorkersAiProvider {
       `--step wasm` into both CI jobs in `.github/workflows/check.yaml` (change
       #12). **Verified** all ten gates green; red test = CI fails when a crate
       regresses on wasm.
-- [ ] **T4 — Workers AI provider.** `WorkersAiProvider` as a `RoutableProvider`,
-      streaming; unit test against a mocked `fetch`; red test = first streamed
-      token arrives.
+- [x] **T4 — Workers AI provider.** `WorkersAiProvider` (`ModelProvider`) +
+      `WorkersAiModel` (`Model`), streaming via `Model::stream()` over the
+      `HttpClient` seam (REST `ai/run`); integration test against a mocked HTTP
+      server (SSE); red test = first streamed token arrives. **Verified green:**
+      `test_workers_ai_generate` (non-stream `{"result":{"response":…}}`) and
+      `test_workers_ai_stream` (SSE `{"response":…}` chunks) both pass against a
+      real local HTTP server; the streaming test uses `SseTestServer` +
+      `clean_close()` because Workers AI streams have no `[DONE]` sentinel (the
+      stream ends on EOF, not a sentinel — see LEARNINGS.md "WASM T4 resolution").
+      wasm `cargo check --no-default-features` stays green (provider holds
+      `Arc<dyn HttpClient>`, no native client, no `thread::sleep`).
 - [ ] **T5 — examples.** `cf-agent-loop` (agentic + Workers AI via `dispatch_cf`)
       and `cf-cloud-provider` (`foundation_ai` deployed on Cloudflare calling
       OpenRouter via `FetchHttpClient`, using the existing `OpenAIConfig::openrouter`);
@@ -412,7 +432,8 @@ impl RoutableProvider for WorkersAiProvider {
    holding `Arc<dyn HttpClient>`; on native they still hit `NativeHttpClient`.
 3. **Dependency audit** — all five AI crates pass their wasm32 `cargo check` with
    the system's feature set.
-4. **Workers AI provider streams** — a mocked `fetch` body streams unbuffered.
+4. **Workers AI provider streams** — a mocked SSE HTTP body streams unbuffered:
+   the first `Messages::Assistant` token arrives before the stream closes.
 5. **Miniflare smoke (OpenRouter)** — `cf-cloud-provider` calls OpenRouter through
    `FetchHttpClient` (existing `OpenAIConfig::openrouter`) under `wrangler dev
    --local` with a mocked vendor `fetch`; tokens stream unbuffered.
@@ -426,7 +447,7 @@ impl RoutableProvider for WorkersAiProvider {
 rustup target add wasm32-unknown-unknown   # one-time
 cargo check --target wasm32-unknown-unknown -p foundation_ai --no-default-features
 cargo check --target wasm32-unknown-unknown -p foundation_arrow
-cargo test -p foundation_ai --features workers-ai
+cargo test -p foundation_ai --test provider_tests workers_ai   # mocked SSE server
 cargo test -p foundation_toolings --test miniflare_smoke   # harness-driven
 ```
 

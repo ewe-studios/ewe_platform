@@ -294,4 +294,30 @@ The spec-28 commands are **stale** — `ssl-rustls-awsrc` moved to `foundation_n
 deliberate: several defaults (netio `multi`, auth `turso`, db `turso`/`d1`/`r2`) are
 native-only and would re-break the wasm build if enabled.
 
+## WASM T4 resolution (2026-10-20) — Workers AI SSE has no `[DONE]` sentinel
+
+T4 added `WorkersAiProvider`/`WorkersAiModel` (`backends/workers_ai.rs`, always
+compiled — no feature flag), a REST provider over the singular `HttpClient` seam:
+`POST /client/v4/accounts/{account_id}/ai/run/{model}` with a Bearer token,
+non-stream `{"result":{"response":"…"}}` via `send`, and SSE `data:
+{"response":"<cumulative text>"}` via `send_sse` (`WorkersAiStream`). Two findings
+worth recording:
+
+- **Workers AI SSE streams carry no `[DONE]` sentinel** (unlike OpenAI/Anthropic).
+  Each `response` field is the *cumulative* text so far, and the stream ends only
+  when the server closes the connection (EOF). `WorkersAiStream` therefore
+  terminates by the inner SSE iterator returning `None` on EOF, not by a sentinel;
+  it still tolerates a `[DONE]` if one ever appears.
+- **The streaming test must use `SseTestServer`, not `TestHttpServer::with_response`.**
+  The first test version used `TestHttpServer::with_response` with a fixed
+  `Content-Length` body and *hung forever* (~1.5 h before it was caught): the SSE
+  body reader reads until EOF, not until `Content-Length`, so after consuming the
+  whole body it blocks on the next read because `TestHttpServer` keeps the
+  connection open. OpenAI/Anthropic's `[DONE]` sentinel masks this in their tests —
+  their `*Stream::next()` stops iterating at `[DONE]` and never asks the event
+  source for another byte. Workers AI has no such sentinel, so the test server must
+  actually close the connection. `SseTestServer` (`SseConnectionResult::clean_close()`
+  → `shutdown(Write)` → EOF) is the purpose-built harness for exactly this; switching
+  the test to it fixed the hang (`test_workers_ai_stream` passes in ~0.1 s).
+
 
