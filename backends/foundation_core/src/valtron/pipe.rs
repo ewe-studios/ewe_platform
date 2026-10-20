@@ -30,6 +30,7 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, Waker};
 
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use concurrent_queue::{ConcurrentQueue, PopError, PushError};
@@ -43,6 +44,10 @@ pub(crate) struct PipeInner<T> {
     /// Bounded queue. Held behind its own `Arc` so the readiness accessors can
     /// hand out `QueueReadiness`/`QueueVacancyReadiness` over the same queue.
     pub(crate) queue: Arc<ConcurrentQueue<T>>,
+    /// Number of live sender handles sharing this pipe. The send direction
+    /// closes only when the last one drops, so a `PipeSender` clone handing a
+    /// second producer the pipe can drop without EOF-ing the stream.
+    sender_count: AtomicUsize,
     /// Waker of a consumer parked on an empty pipe; fired by a producer `push`.
     pub(crate) consumer_waker: Mutex<Option<Waker>>,
     /// Waker of a producer parked on a full pipe; fired by a consumer `pop`.
@@ -114,6 +119,7 @@ impl<T> Pipe<T> {
     pub fn with_depth(depth: usize) -> (PipeSender<T>, PipeReceiver<T>) {
         let inner = Arc::new(PipeInner {
             queue: Arc::new(ConcurrentQueue::bounded(depth.max(1))),
+            sender_count: AtomicUsize::new(1),
             consumer_waker: Mutex::new(None),
             producer_waker: Mutex::new(None),
             close_wakers: Mutex::new(Vec::new()),
@@ -131,14 +137,16 @@ impl<T> Pipe<T> {
 // Sender half
 // ============================================================================
 
-/// The producer half of a [`Pipe<T>`]. Not `Clone` — the seam model gives each
-/// pipe exactly one sender and one receiver.
+/// The producer half of a [`Pipe<T>`]. `Clone` hands a second producer the same
+/// pipe; the send direction closes only when the **last** sender drops (see
+/// [`Drop`](PipeSender#impl-Drop-for-PipeSender%3CT%3E)).
 pub struct PipeSender<T> {
     pub(crate) inner: Arc<PipeInner<T>>,
 }
 
 impl<T> Clone for PipeSender<T> {
     fn clone(&self) -> Self {
+        self.inner.sender_count.fetch_add(1, Ordering::Relaxed);
         Self { inner: self.inner.clone() }
     }
 }
@@ -255,10 +263,17 @@ impl<T> PipeSender<T> {
 
 impl<T> Drop for PipeSender<T> {
     fn drop(&mut self) {
-        // Closing on sender drop is the pipe's EOF: a parked consumer wakes and
-        // its next `pop` drains any backlog then reports end-of-stream.
-        self.inner.close_queue();
-        self.inner.wake_consumer();
+        // Closing on the last sender's drop is the pipe's EOF: a parked consumer
+        // wakes and its next `pop` drains any backlog then reports end-of-stream.
+        // A sender may be `Clone`d to give several producers the same pipe (e.g.
+        // the gRPC client reader clones `tx` to read message frames, then appends
+        // a terminal `EndStream`), so only the *last* sender's drop closes — a
+        // clone's drop must not EOF the stream while other senders still produce.
+        // `close_queue` also wakes `PipeSender::closed()` waiters.
+        if self.inner.sender_count.fetch_sub(1, Ordering::AcqRel) == 1 {
+            self.inner.close_queue();
+            self.inner.wake_consumer();
+        }
     }
 }
 

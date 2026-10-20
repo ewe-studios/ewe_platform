@@ -3056,12 +3056,25 @@ impl Iterator for Http11ResponseIterator {
                 if let Some(mut actual_iterator) = response.take() {
                     if let Some(collected) = actual_iterator.next() {
                         match collected {
-                            Ok(mut chunked) => {
-                                self.0 = Some(Http11ResState::ChunkedBodyStreaming(Some(
-                                    actual_iterator,
-                                )));
-                                Some(Ok(chunked.into_bytes()))
-                            }
+                            Ok(inner) => match inner {
+                                ChunkedData::Data(bytes, ext) => {
+                                    self.0 = Some(Http11ResState::ChunkedBodyStreaming(Some(
+                                        actual_iterator,
+                                    )));
+                                    let exts = ext.unwrap_or_default();
+                                    Some(Ok(Http11Chunk::ChunkedExt(bytes, exts).render()))
+                                }
+                                ChunkedData::Trailers(_) => {
+                                    self.0 = Some(Http11ResState::ChunkedBodyStreaming(Some(
+                                        actual_iterator,
+                                    )));
+                                    Some(Ok(b"".to_vec()))
+                                }
+                                ChunkedData::DataEnded => {
+                                    self.0 = Some(Http11ResState::End);
+                                    Some(Ok(b"0\r\n\r\n".to_vec()))
+                                }
+                            },
                             Err(err) => {
                                 // tell the iterator we want it to end
                                 self.0 = Some(Http11ResState::End);
@@ -3069,9 +3082,10 @@ impl Iterator for Http11ResponseIterator {
                             }
                         }
                     } else {
-                        // tell the iterator we want it to end
+                        // Inner exhausted — emit the chunked terminator so the client
+                        // sees a well-formed body, matching the request renderer.
                         self.0 = Some(Http11ResState::End);
-                        Some(Ok(b"".to_vec()))
+                        Some(Ok(b"0\r\n\r\n".to_vec()))
                     }
                 } else {
                     // tell the iterator we want it to end

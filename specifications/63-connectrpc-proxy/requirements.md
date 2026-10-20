@@ -6,7 +6,7 @@ created: 2026-10-18
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-10-18
+  last_updated: 2026-10-20
   estimated_effort: "medium"
   tags:
     - proxy
@@ -71,8 +71,36 @@ backend: `http`/`https` → B (transparent), `connect`/`grpc`/`grpc-web` → D
 
 # Known Issues
 
-None yet — this is a green-field capability. The relevant *latent* gaps in
-`foundation_proxy` are enumerated in the feature.
+- **H2 upstream query string is dropped (latent, 2026-10-20).** The B leg's H2
+  forward reuses `foundation_connectrpc::H2Transport`, whose `open()` builds the
+  upstream `:path` from `request_uri.path()`, which omits the query string. gRPC
+  POSTs carry no query, so this is invisible on the RPC path, but any future H2
+  forward of a query-bearing request would silently drop it. Fix in
+  `H2Transport` (or widen the seam) when the H2 leg is extended beyond gRPC. See
+  LEARNINGS.md.
+
+- **`ChunkedData::into_bytes()` emits malformed chunked framing (latent,
+  2026-10-20).** `foundation_netio`'s `ChunkedData::into_bytes` renders a `Data`
+  frame as `{len}{bytes}` (missing the `\r\n` delimiters) and `DataEnded` as a
+  bare `0\r\n` (missing the blank line). The response renderer was fixed to use
+  `Http11Chunk::ChunkedExt(..).render()` instead, leaving `into_bytes` dead code
+  in the crate — but it is `pub` and remains a footgun for any external/future
+  caller. Fix: correct or remove the method. See LEARNINGS.md.
+
+- **`proxy_features_tests` has two pre-existing failures (2026-10-20).**
+  `sticky_cookie_pins_requests_to_one_backend` and
+  `websocket_upgrade_relays_and_tunnels_bytes` fail identically at clean `HEAD`
+  (verified via a tagged `git stash` round-trip), so they are environment /
+  raw-socket-timing issues, not T6 regressions. Scheduled for a fix. See
+  LEARNINGS.md.
+
+- **`foundation_netio` websocket tests are flaky under full-suite concurrency
+  (2026-10-20).** `websocket::native::server_task::tests::{close_frame_drains_task,
+  unmasked_frame_triggers_close_and_drain,
+  masked_text_message_delivers_via_incremental_decoder}` failed once in a full
+  `cargo test -p foundation_netio` run but pass consistently in isolation (with
+  and without the T6 `impls.rs` change), so they are raw-socket/thread timing
+  flakes, not T6 regressions. Scheduled for a fix.
 
 # Language Stack
 
@@ -96,7 +124,7 @@ corresponding skills BEFORE implementation.
 
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
-| 0  | [ConnectRPC Proxy](./features/00-connectrpc-proxy/feature.md) | Research + options + implementation for routing Connect/gRPC/gRPC-Web through `foundation_proxy` | None | ⬜ Pending |
+| 0  | [ConnectRPC Proxy](./features/00-connectrpc-proxy/feature.md) | Research + options + implementation for routing Connect/gRPC/gRPC-Web through `foundation_proxy` | None | 🔄 In Progress (6/6 — B leg done; D leg pending) |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
@@ -217,5 +245,5 @@ Defined by the B + D decision (2026-10-18):
 ---
 
 _Created: 2026-10-18_
-_Last Updated: 2026-10-18_
+_Last Updated: 2026-10-20_
 _Structure: Feature-based (has_features: true)_
