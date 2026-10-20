@@ -100,6 +100,11 @@ name = "bootstrap_tests"
 path = "tests/bootstrap_tests.rs"
 
 [[test]]
+name = "rpc_e2e_tests"
+path = "tests/rpc_e2e_tests.rs"
+required-features = ["candle"]
+
+[[test]]
 name = "model_handle_tests"
 path = "tests/model_handle_tests.rs"
 required-features = ["candle"]

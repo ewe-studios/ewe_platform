@@ -724,3 +724,30 @@ the isolate.
   nothing here writes it to disk. Note the generated `BootstrapPayload`'s own
   `Debug` prints every field — never log the message itself.
 
+## 01 T10 (2026-10-20) — gRPC and gRPC-Web end to end; feature complete
+
+- **The inherited gap is closed:** spec 63 T1 landed, so `grpc-status` is
+  observable; the gRPC test asserts the `grpc-status: 0` trailer on a unary
+  success and `not_found` + server message on an error, over h2c.
+- **Two more connectrpc client bugs, fixed:**
+  - gRPC trailer errors were built with `ConnectError::new` (not marked as
+    server-sent) and mapped the status with an `unsafe transmute`; now
+    `ConnectError::wire` + `Code::from_u32`, like the Connect and gRPC-Web
+    decoders.
+  - A gRPC-Web unary *error* (body = only the `0x80` trailer frame) was decoded
+    as the response message ("proto codec: invalid wire type 7"): the unary path
+    never read in-body trailers. The client now splits the body into the message
+    envelope and the trailer frame and checks `grpc-status` from it.
+  connectrpc's connect/error/conformance/grpc-web/client/grpc/h2-streaming/
+  transport/router suites pass after both.
+- **Real model, concurrent instances:** `two_instances_chat_concurrently_on_
+  one_loaded_model` loads the tiny candle Llama once (`load_with` counter = 1),
+  creates two instances, and runs two gRPC `Chat`s concurrently
+  (`futures::join!`) — both complete.
+- **Protocol coverage on loopback:** Connect (h1 unary + stream, h2c stream,
+  h1 mTLS), gRPC (h2c unary + stream), gRPC-Web (h1 unary + stream). Not
+  covered: gRPC over TLS (no h2-over-TLS client; backlog §1).
+- **Running the suite:** `cargo test --profile uat -p foundation_agent_rpc`
+  (needs `protoc`, e.g. `PROTOC=~/.local/share/mise/installs/protoc/36.2/bin/protoc`).
+  56 tests, ~20 s, dominated by the candle spike.
+

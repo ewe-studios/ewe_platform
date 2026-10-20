@@ -1,7 +1,7 @@
 ---
 feature: "Agent RPC Model Server"
 description: "A long-lived per-machine RPC server (foundation_agent_rpc) that loads a model once, runs threaded inference, and exposes named agent instances over Connect/gRPC/gRPC-Web with its own client-facing secret-token → mTLS auth."
-status: "in-progress"
+status: "completed"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 9
-  uncompleted: 1
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 90
+  completion_percentage: 100
 ---
 
 # Agent RPC Model Server
@@ -329,9 +329,9 @@ service AgentService {
       without a valid cert after bootstrap; never log the token.
 - [x] **T9 — Bootstrap payload.** Emit base64 + QR `BootstrapPayload`; round-trip
       decode asserts address/fingerprint/token/capabilities survive.
-- [ ] **T10 — End-to-end over all three protocols.** gRPC + gRPC-Web (unary +
+- [x] **T10 — End-to-end over all three protocols.** gRPC + gRPC-Web (unary +
       streaming) round-trip on real loopback TCP; note gRPC `grpc-status` assertion
-      is gated on spec 63 T1 (see LEARNINGS).
+      is gated on spec 63 T1 (see LEARNINGS) — landed; asserted.
 
 ## Testing
 
@@ -367,11 +367,11 @@ cargo test -p foundation_agent_rpc --test rpc_e2e_tests
 
 ## Success Criteria
 
-- [ ] All 10 tasks completed with one red→green test each
-- [ ] One loaded model serves ≥2 concurrent instances (proven by T1)
-- [ ] Connect + gRPC + gRPC-Web round-trip unary and streaming
-- [ ] Client token→mTLS enforced; token never logged
-- [ ] No TODO/FIXME/stubs; no buffered bodies; no ignored `Result`s
+- [x] All 10 tasks completed with one red→green test each
+- [x] One loaded model serves ≥2 concurrent instances (proven by T1)
+- [x] Connect + gRPC + gRPC-Web round-trip unary and streaming
+- [x] Client token→mTLS enforced; token never logged
+- [x] No TODO/FIXME/stubs; no buffered bodies; no ignored `Result`s
 
 ---
 

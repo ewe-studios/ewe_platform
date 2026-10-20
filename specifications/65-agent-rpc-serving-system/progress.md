@@ -2,9 +2,9 @@
 
 ## Status: In Progress
 
-Feature 06 (WASM Lazy Streaming) is complete. Feature 00 (foundation) is 6/7:
-only T7 (deploy to Cloudflare with a live key) is open. Features 01–05 have not
-been started. An earlier version of
+Features 06 (WASM Lazy Streaming) and 01 (Agent RPC Model Server) are complete.
+Feature 00 (foundation) is 6/7: only T7 (deploy to Cloudflare with a live key)
+is open. Features 02–05 have not been started. An earlier version of
 this file said "Features 00–05 complete"; the feature docs and the code say
 otherwise (no agent-rpc / installer / registrar crates exist yet).
 
@@ -12,16 +12,16 @@ otherwise (no agent-rpc / installer / registrar crates exist yet).
 
 | Task | Status | Commit |
 |------|--------|--------|
-| T1 — shareability spike (candle: shared weights, per-generation KV) | ✅ | see git log (`spec 65 F1 T1`) |
-| T2 — crate scaffold | ✅ | see git log (`spec 65 F1 T2`) |
-| T3 — `ModelHandle` | ✅ | see git log (`spec 65 F1 T3`) |
-| T4 — `InstanceRegistry` | ✅ | see git log (`spec 65 F1 T4`) |
-| T5 — generated RPC service | ✅ | see git log (`spec 65 F1 T5`) |
-| T6 — unary round-trip | ✅ | see git log (`spec 65 F1 T6`) |
-| T7 — streaming round-trip | ✅ | see git log (`spec 65 F1 T7`) |
-| T8 — client auth (token → mTLS) | ✅ | see git log (`spec 65 F1 T8`) |
-| T9 — bootstrap payload | ✅ | see git log (`spec 65 F1 T9`) |
-| T10 — all three protocols e2e | ⏳ | |
+| T1 — shareability spike (candle: shared weights, per-generation KV) | ✅ | `5ab440281` |
+| T2 — crate scaffold | ✅ | `82141d432` |
+| T3 — `ModelHandle` | ✅ | `9f126086c` |
+| T4 — `InstanceRegistry` | ✅ | `5d53b2788` |
+| T5 — generated RPC service | ✅ | `319b71153` |
+| T6 — unary round-trip | ✅ | `563a146da` |
+| T7 — streaming round-trip | ✅ | `c46ee3e4b` |
+| T8 — client auth (token → mTLS) | ✅ | `ca7b4d923` |
+| T9 — bootstrap payload | ✅ | `db79cfcdd` |
+| T10 — all three protocols e2e | ✅ | `spec 65 F1 T10` (last commit on the branch) |
 
 Tests: `cargo test --profile uat -p foundation_agent_rpc` (LLVM profile: candle's
 `pulp` does not link under cranelift).
@@ -102,7 +102,7 @@ errors are swallowed; interval callbacks run under the registry lock.
 - **00-foundation** — 🔧 6/7: T1–T6 done (T6:
   `foundation_toolings/tests/cf_examples.rs`, both examples green under
   miniflare with mocked vendors); T7 (deploy to Cloudflare, live key) open.
-- **01-agent-rpc** — 🔄 in progress (see table above)
+- **01-agent-rpc** — ✅ complete (10/10, branch `65-f01-agent-rpc`)
 - **02-manifest-installer** — ⏳ not started (0/9)
 - **03-proxy-registration** — ⏳ not started (0/8)
 - **04-registrar-sidecar** — ⏳ not started (0/7)
@@ -111,7 +111,7 @@ errors are swallowed; interval callbacks run under the registry lock.
 
 ## Next steps
 
-1. Feature 01 (agent-rpc server), then 02 → 05 in order.
+1. Features 02 → 05 in order (01 is done).
 2. Feature 00 T7: deploy + live OpenRouter run (needs a Cloudflare account and
    `OPENROUTER_API_KEY`; not available in this sandbox).
 3. Spec 68 leftovers: the owned (`js-foundation-wasm`) path is blocked on

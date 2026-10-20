@@ -891,7 +891,20 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         // Apply interceptor chain.
         let chain = InterceptorChain::new(self.config.interceptors.clone());
         let wrapped = chain.wrap_unary(inner);
-        let reply = wrapped(ctx.clone(), call).await?;
+        let mut reply = wrapped(ctx.clone(), call).await?;
+
+        // gRPC-Web carries its trailers (grpc-status/grpc-message) in an
+        // in-body `0x80` trailer frame after the message, or alone for an
+        // error. Lift them into `reply.trailers` so the status check below
+        // sees them, and keep only the message envelope as the frame —
+        // otherwise an error's trailer frame is decoded as the message.
+        if matches!(self.config.protocol, ProtocolSelection::GrpcWeb) {
+            let (message, trailers) = split_grpc_web_unary(&reply.frame)?;
+            for (name, values) in trailers {
+                reply.trailers.insert(name, values);
+            }
+            reply.frame = message;
+        }
 
         // Check gRPC error metadata before decoding. Errors ride grpc-status in
         // the trailing HEADERS — or, for Trailers-Only responses (errors raised
@@ -1411,6 +1424,41 @@ async fn do_unary_round_trip(
         };
         Err(ConnectError::new(code_from_http_status(&status), error_body).into())
     }
+}
+
+/// Split a gRPC-Web unary body into its message envelope (header kept, as
+/// `decode_unary_response` expects) and the headers of its `0x80` trailer
+/// frame.
+fn split_grpc_web_unary(body: &Bytes) -> ConnectResult<(Bytes, SimpleHeaders)> {
+    const HEADER: usize = 5;
+    let mut message = Bytes::new();
+    let mut trailers = SimpleHeaders::new();
+    let mut offset = 0;
+    while offset < body.len() {
+        if body.len() - offset < HEADER {
+            return Err(ConnectError::invalid_argument("truncated gRPC-Web frame header").into());
+        }
+        let flags = body[offset];
+        let len = u32::from_be_bytes([
+            body[offset + 1],
+            body[offset + 2],
+            body[offset + 3],
+            body[offset + 4],
+        ]) as usize;
+        let end = offset + HEADER + len;
+        if end > body.len() {
+            return Err(ConnectError::invalid_argument("truncated gRPC-Web frame").into());
+        }
+        if flags & grpc_web_consts::TRAILER_FLAG != 0 {
+            trailers = crate::shared::protocol::grpc_web::parse_trailer_frame_body(
+                &body[offset + HEADER..end],
+            );
+        } else if message.is_empty() {
+            message = body.slice(offset..end);
+        }
+        offset = end;
+    }
+    Ok((message, trailers))
 }
 
 /// Spawn the reader and writer tasks on the valtron pool.
