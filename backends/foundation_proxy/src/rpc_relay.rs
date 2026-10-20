@@ -36,6 +36,7 @@
 //! streaming seam.
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::extensions::result_ext::BoxedError;
@@ -49,9 +50,11 @@ use foundation_netio::shared::http::{
     SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, SimpleUrl, Status,
 };
 
+use foundation_connectrpc::shared::protocol::connect::constants as connect_consts;
 use foundation_connectrpc::shared::protocol::connect::{
     streaming_content_type as connect_streaming_content_type,
 };
+use foundation_connectrpc::shared::protocol::grpc::constants as grpc_consts;
 use foundation_connectrpc::shared::protocol::grpc::content_type as grpc_content_type;
 use foundation_connectrpc::shared::protocol::grpc_web::{
     content_type as grpc_web_content_type, parse_content_type as parse_grpc_web_content_type,
@@ -59,15 +62,45 @@ use foundation_connectrpc::shared::protocol::grpc_web::{
 use foundation_connectrpc::shared::protocol::UnaryOutcome;
 use foundation_connectrpc::shared::transport::DEFAULT_PIPE_DEPTH;
 use foundation_connectrpc::{
-    parse_connect_content_type, CancelSignal, ClientExchange, ClientExchangeConfig,
-    CompressionRegistry, ConnectHandler, ExchangeConfig, GrpcClient, GrpcWebHandler,
-    H2Transport, HandlerExchange, ProtocolClient, ProtocolHandler, Spec, Transport,
+    encode_grpc_timeout, parse_connect_content_type, CancelSignal, ClientExchange,
+    ClientExchangeConfig, CompressionRegistry, ConnectHandler, ExchangeConfig, GrpcClient,
+    GrpcWebHandler, H2Transport, HandlerExchange, ProtocolClient, ProtocolHandler, Spec, Transport,
 };
 
 use futures_util::FutureExt;
 
 use crate::forward::{forward_request_headers, upstream_url, write_response};
 use crate::runtime::BackendRuntime;
+
+/// Translate a forwarded Connect deadline into the `grpc-timeout` header a
+/// native-gRPC backend expects (spec 63 T13).
+///
+/// Connect carries the call deadline as `connect-timeout-ms` (an integer number
+/// of milliseconds); gRPC carries `grpc-timeout` as `<value><unit>` (see
+/// [`encode_grpc_timeout`]). The relay re-types the request to gRPC, so the
+/// deadline must be re-encoded too — the backend's `GrpcHandler` reads only
+/// `grpc-timeout`. The Connect header is removed so the backend never sees a
+/// foreign deadline field, and a malformed value is dropped rather than
+/// mis-relayed. `out_headers` is the hop-by-hop-stripped request-header map
+/// produced by [`forward_request_headers`].
+pub(crate) fn translate_connect_deadline_to_grpc(out_headers: &mut SimpleHeaders) {
+    let connect_timeout = SimpleHeader::from(connect_consts::HEADER_TIMEOUT.to_string());
+    let Some(ms) = out_headers
+        .get(&connect_timeout)
+        .and_then(|v| v.first())
+        .cloned()
+    else {
+        return;
+    };
+    out_headers.remove(&connect_timeout);
+    if let Ok(ms) = ms.trim().parse::<u64>() {
+        out_headers.insert(
+            SimpleHeader::from(grpc_consts::HEADER_TIMEOUT.to_string()),
+            vec![encode_grpc_timeout(Duration::from_millis(ms))],
+        );
+    }
+}
+
 
 /// Relay a gRPC-Web request from the HTTP/1.1 front end to a native-gRPC
 /// backend, translating at the frame level. Runs on the caller's thread (the
@@ -191,6 +224,7 @@ pub(crate) fn relay_connect_to_grpc(
         SimpleHeader::from("te".to_string()),
         vec!["trailers".to_string()],
     );
+    translate_connect_deadline_to_grpc(&mut out_headers);
 
     let url = upstream_url(backend.url(), &req.request_url.url);
 
@@ -373,6 +407,10 @@ pub(crate) async fn connect_unary_roundtrip(
 /// This function only builds the exchanges and the pump/reader/writer tasks; its
 /// I/O is the spawned tasks' job. A failure returns `Err` so the caller can
 /// answer `502`.
+///
+/// Returns the driver **and** the shared [`CancelSignal`] wired into both
+/// exchanges: firing it tears the inbound and outbound sides down together
+/// (spec 63 T13). The caller fires it when the client resets the stream.
 pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
     handler: H,
     request: SimpleIncomingRequest,
@@ -380,7 +418,7 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
     responder_tx: PipeSender<Bytes>,
     url: String,
     out_headers: SimpleHeaders,
-) -> Result<futures_util::future::BoxFuture<'static, ()>, String> {
+) -> Result<(futures_util::future::BoxFuture<'static, ()>, CancelSignal), String> {
     let cancel = CancelSignal::new();
 
     // Inbound: the handler de-frames the request, frames the response.
@@ -494,20 +532,30 @@ pub(crate) fn build_streaming_relay_to_grpc<H: ProtocolHandler>(
     // failures already surface through the `Frame::EndStream` they push, which
     // the pumps observe. The response bytes are drained by the caller through
     // the response pipe, not collected here.
-    let driver: futures_util::future::BoxFuture<'static, ()> = futures_util::future::join_all(
-        vec![
-            in_reader.map(|_| ()).boxed(),
-            in_writer.map(|_| ()).boxed(),
-            out_reader.map(|_| ()).boxed(),
-            out_writer.map(|_| ()).boxed(),
-            request_pump.boxed(),
-            response_pump.boxed(),
-        ],
-    )
-    .map(|_| ())
+    let work = futures_util::future::join_all(vec![
+        in_reader.map(|_| ()).boxed(),
+        in_writer.map(|_| ()).boxed(),
+        out_reader.map(|_| ()).boxed(),
+        out_writer.map(|_| ()).boxed(),
+        request_pump.boxed(),
+        response_pump.boxed(),
+    ]);
+
+    // Race the whole relay against the shared cancel. Firing it drops every task
+    // — in particular the outbound reader/writer, whose transport halves keep the
+    // upstream H2 socket open — so a cancelled call tears the backend side down
+    // instead of leaving it streaming into a dead client (spec 63 T13).
+    let cancel_for_driver = cancel.clone();
+    let driver: futures_util::future::BoxFuture<'static, ()> = async move {
+        let cancelled = Box::pin(cancel_for_driver.cancelled());
+        match futures_util::future::select(work, cancelled).await {
+            futures_util::future::Either::Left(_) => {}
+            futures_util::future::Either::Right(_) => {}
+        }
+    }
     .boxed();
 
-    Ok(driver)
+    Ok((driver, cancel))
 }
 
 /// H1-leg wrapper around [`build_streaming_relay_to_grpc`]: buffer the request
@@ -537,7 +585,7 @@ fn setup_streaming_relay_to_grpc<H: ProtocolHandler>(
     }
     body_tx.close();
 
-    let driver =
+    let (driver, _cancel) =
         build_streaming_relay_to_grpc(handler, request, body_rx, responder_tx, url, out_headers)?;
     Ok((driver, responder_rx))
 }

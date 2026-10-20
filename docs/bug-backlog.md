@@ -32,6 +32,30 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
 - **Transports with no pollable fd fail.** `native/conn_io.rs` readiness waits return `Unsupported` for WireGuard overlay, io_uring completion sockets and openssl/native-tls.
   - With rustls, the fd is polled in the application's direction, so a TLS session that needs the opposite direction mid-stream waits until the timeout.
 - **Conformance coverage.** Add an 8-thread variant of the conformance suite (task #27).
+- **A streaming handler can't await its own cancellation.** `exchange_until_aborted`
+  (`shared/router/dispatch.rs`) drops `response_side` — which holds the handler
+  stream — before `run_streaming_h2` fires `cancel.cancel()` on
+  `Abort::PeerGone`/`Abort::BodyFailed`, so a handler's `ctx.cancelled().await`
+  never completes on a peer disconnect. Only `ctx.is_canceled()` (read from a
+  parked `Ctx`) is observable. Fire the cancel before dropping the handler, e.g.
+  cancel from a `Drop` guard on the handler future or restructure the select so
+  the handler is polled once more. Surfaced by spec 63 T13.
+- **The client's `cancel()` does not emit a wire-level reset.** `CancelSignal::cancel`
+  stops the local signal but keeps the H2 socket open, so the server keeps
+  streaming into a peer that has "cancelled" locally and never learns it was
+  aborted. A cancelled client call should send `RST_STREAM` (or half-close) so
+  the server observes the abort. Surfaced by spec 63 T13 — its e2e test drives a
+  raw `RST_STREAM` because the typed client cannot.
+- **`cancellation_tests`' h1 cases hang.** `h1_client_disconnect_cancels_the_call`
+  and `h1_deadline_cancels_and_answers_deadline_exceeded` (both `#[valtron_test]`)
+  never complete: `Slot::wait_entered` / `assert_cancelled_within` loop on
+  `std::thread::sleep`, blocking the valtron worker, while the h1 server's
+  per-request handler is dispatched onto that same pool (`foundation_http`
+  `protocol_detect.rs` `spawn_h1`), so the handler never runs and the loop
+  starves. The h2 cases pass — they run the handler on a spawned thread. Fix:
+  drive the h1 server on its own executor, or replace the blocking sleep loops
+  with async waits. Pre-existing (added in the cancellation work); observed
+  during spec 63 T13.
 
 ## 2. foundation_netio
 
@@ -122,6 +146,14 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
     guarantee `into_future_stream`/`into_next_stream` park on `Wait`/`Pending`.
 - **Release coupling.** `foundation_macros` calls `foundation_core::valtron::initialize_current_thread`, so the two crates need a coordinated version bump when published.
 - **`sleep_async` as a `select` timeout under `block_on_future` can fail to fire.** When the pool is contended (e.g. during shutdown), the `SleepingTask` timer may never resolve, hanging the future raced against it. Surfaced by the proxy's gRPC health probe (§9), which works around it with an outer `recv_timeout`.
+- **`SharedByteBufferStream::peek` conflates EOF with `WouldBlock`.** The
+  `PeekableReadStream` impl (`io/ioutils/mod.rs`) maps `PeekState::EndOfFile`
+  (and `NoNext` / `EndOfBuffered`) to `Ok(0)` — the same result as "no bytes
+  yet" — so a peeker cannot tell a peer that closed the socket from one that is
+  just slow. `foundation_http`'s h2 server therefore parks forever on a
+  half-closed peer instead of detecting the disconnect. Spec 63 T13 works around
+  it by having the connectrpc client pump send an explicit `RST_STREAM(CANCEL)`;
+  the peeker itself should return a distinct EOF signal.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
