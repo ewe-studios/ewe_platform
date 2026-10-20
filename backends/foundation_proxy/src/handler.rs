@@ -174,13 +174,36 @@ fn relay(
             let _ = respond::text(&mut conn, 502, "UDP backend not reachable via HTTP");
             let _ = conn.flush();
         }
-        // `connect` / `grpc` / `grpc-web` are HTTP-family; the RPC engine (spec
-        // 63 D leg) is wired in a later task — for now they ride the same
-        // transparent HTTP forward as `http`/`https`.
+        // D leg (spec 63): a `grpc://` backend speaks native gRPC over H2. An
+        // inbound gRPC-Web request (H1) is translated at the frame level by the
+        // relay; any other inbound protocol (plain HTTP, an upgrade) still rides
+        // the transparent HTTP forward below.
+        BackendProtocol::Grpc => {
+            if is_grpc_web_request(&req) {
+                if let Err(e) = crate::rpc_relay::relay_grpc_web_to_grpc(
+                    &mut conn, &backend, req, client_ip, scheme, sticky_header,
+                ) {
+                    tracing::warn!(url = %backend.url(), "grpc-web relay failed, sending 502: {e}");
+                    let _ = respond::text(&mut conn, 502, "Bad Gateway");
+                    let _ = conn.flush();
+                }
+            } else if is_upgrade_request(&req) {
+                // The upgrade splice consumes the connection; log on failure.
+                if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme, io_mode) {
+                    tracing::warn!(url = %backend.url(), "upgrade relay failed: {e}");
+                }
+            } else if let Err(e) = forward_http_with_headers(&mut conn, &backend, req, client_ip, scheme, client, sticky_header) {
+                tracing::warn!(url = %backend.url(), "forward failed, sending 502: {e}");
+                let _ = respond::text(&mut conn, 502, "Bad Gateway");
+                let _ = conn.flush();
+            }
+        }
+        // `connect` / `grpc-web` are HTTP-family; their D-leg translation is
+        // wired in later tasks — for now they ride the same transparent HTTP
+        // forward as `http`/`https`.
         BackendProtocol::Http
         | BackendProtocol::Https
         | BackendProtocol::Connect
-        | BackendProtocol::Grpc
         | BackendProtocol::GrpcWeb => {
             if is_upgrade_request(&req) {
                 // The upgrade splice consumes the connection; log on failure.
@@ -218,6 +241,13 @@ fn tunnel_tcp(
 /// First value of a header, if present.
 fn header_first(req: &SimpleIncomingRequest, name: &SimpleHeader) -> Option<String> {
     req.headers.get(name).and_then(|v| v.first()).cloned()
+}
+
+/// Whether the request's `Content-Type` marks a gRPC-Web exchange (`application/grpc-web[-text]+…`),
+/// which the D-leg relay translates to native gRPC for a `grpc://` backend.
+fn is_grpc_web_request(req: &SimpleIncomingRequest) -> bool {
+    header_first(req, &SimpleHeader::CONTENT_TYPE)
+        .is_some_and(|ct| ct.starts_with("application/grpc-web"))
 }
 
 /// Extract the `__proxy_sticky` cookie value from the request's Cookie header.
