@@ -282,7 +282,11 @@ pub fn forward_http_with_headers(
 
 /// Render a proxied response onto the client connection. Injects any
 /// `extra_headers` (e.g. sticky cookie) after stripping hop-by-hop.
-fn write_response(
+///
+/// Shared with the D-leg RPC relay ([`crate::rpc_relay`]) so a translated
+/// response is written back to the H1 client connection exactly like a
+/// transparently-forwarded one.
+pub(crate) fn write_response(
     conn: &mut SharedByteBufferStream<RawStream>,
     status: Status,
     headers: &SimpleHeaders,

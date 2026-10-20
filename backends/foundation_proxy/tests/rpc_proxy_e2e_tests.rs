@@ -120,6 +120,29 @@ fn start_backend() -> (u16, Arc<OnSignal>) {
     (port, shutdown)
 }
 
+/// Start a backend serving **only native gRPC** (HTTP/2 `ConnectRpcServeH2`),
+/// with no HTTP/1.1 / gRPC-Web dispatch at all. Used by the D-leg tests to prove
+/// the proxy translates an inbound gRPC-Web request rather than forwarding it.
+fn start_backend_grpc_only() -> (u16, Arc<OnSignal>) {
+    let h2: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
+    let mut h2_app = HttpApp::new_h2_serve();
+    h2_app.route_any_h2(UNARY, h2.clone());
+    h2_app.route_any_h2(SERVER_STREAM, h2);
+
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind backend");
+    let port = listener.local_addr().expect("backend addr").port();
+    let addr = format!("127.0.0.1:{port}");
+
+    let shutdown = Arc::new(OnSignal::new());
+    let server_shutdown = Arc::clone(&shutdown);
+    let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
+    std::thread::spawn(move || {
+        server.serve_with_listener(&listener, &server_shutdown);
+    });
+
+    (port, shutdown)
+}
+
 // ── Proxy + client helpers ──────────────────────────────────────────────────
 
 /// Build a proxy config whose service routes host `127.0.0.1` to the backend.
@@ -128,6 +151,16 @@ fn start_backend() -> (u16, Arc<OnSignal>) {
 fn proxy_config(backend_port: u16) -> ProxyConfig {
     let svc = ServiceConfig::new("rpc", "127.0.0.1")
         .backend(&format!("http://127.0.0.1:{backend_port}"));
+    ProxyConfig::new("127.0.0.1", "127.0.0.1")
+        .bind("127.0.0.1:0")
+        .service(svc)
+}
+
+/// A proxy whose backend is declared `grpc://` (native gRPC), selecting the
+/// D-leg relay instead of the transparent HTTP forward.
+fn proxy_config_grpc(backend_port: u16) -> ProxyConfig {
+    let svc = ServiceConfig::new("rpc", "127.0.0.1")
+        .backend(&format!("grpc://127.0.0.1:{backend_port}"));
     ProxyConfig::new("127.0.0.1", "127.0.0.1")
         .bind("127.0.0.1:0")
         .service(svc)
@@ -397,5 +430,33 @@ async fn grpc_web_server_stream_via_proxy() {
         got,
         vec!["grpc-web-stream-0", "grpc-web-stream-1", "grpc-web-stream-2"],
         "gRPC-Web server-stream must deliver all frames in order"
+    );
+}
+
+// ── D leg: gRPC-Web → native gRPC translation ───────────────────────────────
+
+/// WHY: a `grpc://` backend serves only native gRPC over HTTP/2 — it has no
+/// gRPC-Web dispatch at all. An inbound gRPC-Web unary call (HTTP/1.1) must be
+/// translated at the frame level: de-framed by `GrpcWebHandler` and re-enveloped
+/// as native gRPC by `GrpcClient` over `H2Transport`, then translated back.
+#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+async fn grpc_web_unary_via_grpc_backend() {
+    let (backend_port, backend_shutdown) = start_backend_grpc_only();
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
+    let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
+
+    let client = grpc_web_client(&addr, UNARY);
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("grpc-web-relay")))
+        .await
+        .expect("grpc-web unary through grpc backend");
+
+    proxy.shutdown();
+    backend_shutdown.turn_on();
+
+    assert_eq!(
+        resp.msg,
+        Msg::of("echo:grpc-web-relay"),
+        "gRPC-Web unary must be translated to native gRPC and back"
     );
 }

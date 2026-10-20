@@ -32,6 +32,7 @@ pub mod handler;
 pub mod health;
 pub mod passthrough;
 pub mod persistence;
+pub mod rpc_relay;
 pub mod router;
 pub mod runtime;
 pub mod server;
