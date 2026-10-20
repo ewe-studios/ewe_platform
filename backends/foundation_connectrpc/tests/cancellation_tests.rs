@@ -57,7 +57,10 @@ impl Slot {
             if let Some(ctx) = self.0.lock().unwrap().clone() {
                 return ctx;
             }
-            assert!(start.elapsed() < Duration::from_secs(10), "the handler never ran");
+            assert!(
+                start.elapsed() < Duration::from_secs(10),
+                "the handler never ran"
+            );
             std::thread::sleep(Duration::from_millis(5));
         }
     }
@@ -156,7 +159,10 @@ fn open_h2(handler: Arc<ConnectRpcHandler>, path: &str, extra: &[(&str, &str)]) 
         (Bytes::from_static(b":path"), Bytes::from(path.to_string())),
     ];
     for (name, value) in extra {
-        pairs.push((Bytes::from(name.to_string()), Bytes::from(value.to_string())));
+        pairs.push((
+            Bytes::from(name.to_string()),
+            Bytes::from(value.to_string()),
+        ));
     }
     let header = header_from_hpack(&pairs, Arc::new(ConnectionContext::default())).unwrap();
     let (body_tx, body_rx) = Pipe::<H2IncomingFrame>::with_depth(8);
@@ -200,7 +206,10 @@ fn h2_reset_cancels_the_handlers_ctx() {
         .done
         .recv_timeout(Duration::from_secs(5))
         .expect("dispatch ends once the stream is reset");
-    assert!(outcome.is_ok(), "a reset stream has nothing to answer: {outcome:?}");
+    assert!(
+        outcome.is_ok(),
+        "a reset stream has nothing to answer: {outcome:?}"
+    );
     assert!(
         stream.response.try_recv().is_err(),
         "nothing is sent on a reset stream"
@@ -243,7 +252,9 @@ fn h2_dropped_unary_stream_cancels_the_call() {
 
     stream
         .body
-        .try_send(H2IncomingFrame::Data(Bytes::from_static(b"{\"text\":\"a\"}")))
+        .try_send(H2IncomingFrame::Data(Bytes::from_static(
+            b"{\"text\":\"a\"}",
+        )))
         .unwrap();
     stream.body.close();
     let ctx = slot.wait_entered();
@@ -261,11 +272,16 @@ fn h2_deadline_cancels_and_answers_deadline_exceeded() {
     let stream = open_h2(
         handler,
         UNARY,
-        &[("content-type", "application/json"), ("connect-timeout-ms", "200")],
+        &[
+            ("content-type", "application/json"),
+            ("connect-timeout-ms", "200"),
+        ],
     );
     stream
         .body
-        .try_send(H2IncomingFrame::Data(Bytes::from_static(b"{\"text\":\"a\"}")))
+        .try_send(H2IncomingFrame::Data(Bytes::from_static(
+            b"{\"text\":\"a\"}",
+        )))
         .unwrap();
     stream.body.close();
 
@@ -354,7 +370,11 @@ fn h1_deadline_cancels_and_answers_deadline_exceeded() {
     let mut buf = [0u8; 1024];
     while !String::from_utf8_lossy(&response).contains("deadline_exceeded") {
         let n = stream.read(&mut buf).expect("read the timeout response");
-        assert!(n > 0, "connection closed: {}", String::from_utf8_lossy(&response));
+        assert!(
+            n > 0,
+            "connection closed: {}",
+            String::from_utf8_lossy(&response)
+        );
         response.extend_from_slice(&buf[..n]);
     }
     let text = String::from_utf8_lossy(&response);

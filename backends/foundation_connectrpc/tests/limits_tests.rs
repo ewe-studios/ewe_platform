@@ -19,13 +19,12 @@ use futures::StreamExt;
 
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::shared::http::{
-    Proto, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
-    SimpleOutgoingResponse,
+    Proto, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
 };
 
 use foundation_connectrpc::{
-    ConnectRpcHandler, Ctx, HandlerOptions, JsonCodec, ProcedureCodecs, Request,
-    RequestStream, Response, Router, SizeLimits,
+    ConnectRpcHandler, Ctx, HandlerOptions, JsonCodec, ProcedureCodecs, Request, RequestStream,
+    Response, Router, SizeLimits,
 };
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -119,13 +118,19 @@ fn limited() -> HandlerOptions {
 fn compressed_unary_body_over_the_limit_is_resource_exhausted() {
     let handler = handler(limited);
     let bomb = gzip_bomb(8 * 1024 * 1024);
-    assert!(bomb.len() < LIMIT, "the compressed body itself is under the limit");
+    assert!(
+        bomb.len() < LIMIT,
+        "the compressed body itself is under the limit"
+    );
 
     let response = dispatch(
         &handler,
         request(
             UNARY,
-            &[("content-type", "application/json"), ("content-encoding", "gzip")],
+            &[
+                ("content-type", "application/json"),
+                ("content-encoding", "gzip"),
+            ],
             bomb,
         ),
     );
@@ -142,11 +147,19 @@ fn compressed_unary_body_within_the_limit_decodes() {
         &handler,
         request(
             UNARY,
-            &[("content-type", "application/json"), ("content-encoding", "gzip")],
+            &[
+                ("content-type", "application/json"),
+                ("content-encoding", "gzip"),
+            ],
             gzip_bomb(1024),
         ),
     );
-    assert_eq!(response.status.clone().into_usize(), 200, "body: {}", body_text(&response));
+    assert_eq!(
+        response.status.clone().into_usize(),
+        200,
+        "body: {}",
+        body_text(&response)
+    );
 }
 
 /// A compressed gRPC-Web unary envelope is capped the same way.
