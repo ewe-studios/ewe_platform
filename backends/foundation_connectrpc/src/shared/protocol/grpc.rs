@@ -35,14 +35,15 @@ use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::transport::{
-    body_stream_from_pipe, BodyStream, ByteSink, ByteSource, Frame, HeadStream, PipeClientConn,
-    PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    body_stream_from_pipe, fail_stream, BodyStream, ByteSink, ByteSource, Frame, HeadStream,
+    PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::grpc_web::build_status_trailers;
 
 use super::{
-    BoxedTask, ClientExchange, HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
+    BoxedTask, ClientExchange, ExchangeConfig, HandlerExchange, ProtocolClient, ProtocolHandler,
+    UnaryOutcome,
 };
 
 // ── gRPC constants ──────────────────────────────────────────────────────────
@@ -85,7 +86,7 @@ pub fn parse_content_type(content_type: &str) -> Option<String> {
 
 async fn read_frames(
     mut body: BodyStream,
-    tx: PipeSender<Frame>,
+    tx: &PipeSender<Frame>,
     decompressor: Option<Arc<dyn Compressor>>,
     read_max: usize,
 ) -> ConnectResult<()> {
@@ -112,11 +113,11 @@ async fn read_frames(
         }
         match body.next().await {
             Some(Ok(chunk)) => buf.extend_from_slice(&chunk),
-            // Return WITHOUT closing `tx` in either terminal case: the gRPC
-            // client reader holds a clone and appends a terminal
-            // `Frame::EndStream` (trailers / error) after this returns —
-            // closing here would swallow it. Callers that moved `tx` in close
-            // the pipe implicitly when their task ends and drops it.
+            // Return WITHOUT closing `tx` in either terminal case: the caller
+            // appends the terminal `Frame::EndStream` (trailers / error) after
+            // this returns, so `tx` is only borrowed here — dropping any
+            // `PipeSender` clone closes the pipe, which used to swallow the
+            // client's trailing `EndStream`.
             Some(Err(err)) => return Err(err.into()),
             None => return Ok(()),
         }
@@ -216,10 +217,10 @@ impl ProtocolHandler for GrpcHandler {
         spec: Spec,
         body: ByteSource,
         responder: ByteSink,
-        compression: &CompressionRegistry,
+        config: ExchangeConfig<'_>,
     ) -> ConnectResult<HandlerExchange> {
         let negotiated = negotiate_compression(
-            compression,
+            config.compression,
             header(&request.headers, constants::HEADER_ENCODING).as_deref(),
             header(&request.headers, constants::HEADER_ACCEPT_ENCODING).as_deref(),
         )?;
@@ -238,16 +239,27 @@ impl ProtocolHandler for GrpcHandler {
             spec,
             peer,
             request.headers.clone(),
-            CancelSignal::new(),
+            config.cancel.clone(),
             DEFAULT_PIPE_DEPTH,
         );
 
-        let reader: BoxedTask = Box::pin(read_frames(
-            body_stream_from_pipe(body),
-            ends.request_tx,
-            negotiated.request_decompressor,
-            0,
-        ));
+        let request_tx = ends.request_tx;
+        let decompressor = negotiated.request_decompressor;
+        let cancel = config.cancel;
+        let reader: BoxedTask = Box::pin(async move {
+            let result =
+                read_frames(body_stream_from_pipe(body), &request_tx, decompressor, 0).await;
+            // `read_frames` leaves the pipe open (the client appends its
+            // trailers); on the server the request stream ends here — with the
+            // error when the read failed, so it cannot pass for a clean end.
+            match &result {
+                Ok(()) => {
+                    request_tx.close();
+                }
+                Err(e) => fail_stream(&request_tx, e, &cancel).await,
+            }
+            result
+        });
         // The compressed envelope flag is only valid when the response HEADERS
         // advertise the encoding — dispatch fetches it via
         // `streaming_response_encoding` (same negotiation as here) and sends
@@ -540,7 +552,7 @@ async fn read_grpc_response(
     // 3. Message envelopes until body EOF. A mid-stream failure (truncated
     //    envelope, body error, oversized frame) must reach the receiver as a
     //    terminal error, not vanish into a clean-looking EOF.
-    if let Err(e) = read_frames(body, tx.clone(), None, 0).await {
+    if let Err(e) = read_frames(body, &tx, None, 0).await {
         let _ = tx
             .send(Frame::EndStream { error: Some(e), trailers: SimpleHeaders::new() })
             .await;

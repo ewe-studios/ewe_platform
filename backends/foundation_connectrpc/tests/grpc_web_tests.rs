@@ -175,7 +175,10 @@ fn roundtrip(text: bool) {
             },
             req_rx,
             resp_tx,
-            &registry,
+            foundation_connectrpc::ExchangeConfig {
+                compression: &registry,
+                cancel: CancelSignal::new(),
+            },
         )
         .expect("server exchange");
     // Head pipe for the mock client transport: this streaming test drives I/O

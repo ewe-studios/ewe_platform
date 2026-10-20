@@ -47,6 +47,10 @@ pub(crate) struct PipeInner<T> {
     pub(crate) consumer_waker: Mutex<Option<Waker>>,
     /// Waker of a producer parked on a full pipe; fired by a consumer `pop`.
     pub(crate) producer_waker: Mutex<Option<Waker>>,
+    /// Wakers of [`PipeSender::closed`] futures; fired once the pipe closes.
+    /// Kept apart from `producer_waker` so a sender can wait for the close and
+    /// send at the same time without the two stealing each other's wake.
+    pub(crate) close_wakers: Mutex<Vec<Waker>>,
 }
 
 impl<T> PipeInner<T> {
@@ -62,6 +66,16 @@ impl<T> PipeInner<T> {
         if let Some(waker) = self.producer_waker.lock().unwrap().take() {
             waker.wake();
         }
+    }
+
+    /// Close the queue and wake everything that waits on the close.
+    pub(crate) fn close_queue(&self) -> bool {
+        let closed = self.queue.close();
+        let wakers = core::mem::take(&mut *self.close_wakers.lock().unwrap());
+        for waker in wakers {
+            waker.wake();
+        }
+        closed
     }
 }
 
@@ -102,6 +116,7 @@ impl<T> Pipe<T> {
             queue: Arc::new(ConcurrentQueue::bounded(depth.max(1))),
             consumer_waker: Mutex::new(None),
             producer_waker: Mutex::new(None),
+            close_wakers: Mutex::new(Vec::new()),
         });
         (
             PipeSender {
@@ -220,9 +235,21 @@ impl<T> PipeSender<T> {
     /// Explicitly close the send direction (also done on drop). Wakes a parked
     /// consumer so it observes end-of-stream. Returns `true` if this call closed it.
     pub fn close(&self) -> bool {
-        let closed = self.inner.queue.close();
+        let closed = self.inner.close_queue();
         self.inner.wake_consumer();
         closed
+    }
+
+    /// Resolves once the pipe is closed — by the receiver going away or calling
+    /// [`PipeReceiver::close`], or by any sender closing it.
+    ///
+    /// WHY: a producer that is not currently sending (say, waiting for its own
+    /// input) still needs to learn that nobody will read what it would send —
+    /// e.g. an HTTP/2 stream handler whose stream the peer reset. Awaiting this
+    /// alongside the work lets it stop at once instead of at its next `send`.
+    #[must_use = "futures do nothing unless awaited"]
+    pub fn closed(&self) -> ClosedFuture<'_, T> {
+        ClosedFuture { inner: &self.inner }
     }
 }
 
@@ -230,8 +257,36 @@ impl<T> Drop for PipeSender<T> {
     fn drop(&mut self) {
         // Closing on sender drop is the pipe's EOF: a parked consumer wakes and
         // its next `pop` drains any backlog then reports end-of-stream.
-        self.inner.queue.close();
+        self.inner.close_queue();
         self.inner.wake_consumer();
+    }
+}
+
+/// Future returned by [`PipeSender::closed`]; resolves once the pipe is closed.
+pub struct ClosedFuture<'a, T> {
+    inner: &'a Arc<PipeInner<T>>,
+}
+
+impl<T> Future for ClosedFuture<'_, T> {
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
+        if self.inner.queue.is_closed() {
+            return Poll::Ready(());
+        }
+        {
+            let mut wakers = self.inner.close_wakers.lock().unwrap();
+            if !wakers.iter().any(|w| w.will_wake(cx.waker())) {
+                wakers.push(cx.waker().clone());
+            }
+        }
+        // Re-check: a close between the first check and the registration
+        // would otherwise be a lost wakeup.
+        if self.inner.queue.is_closed() {
+            Poll::Ready(())
+        } else {
+            Poll::Pending
+        }
     }
 }
 
@@ -358,7 +413,7 @@ impl<T> PipeReceiver<T> {
     /// Explicitly close the receive direction (also done on drop). Wakes a parked
     /// producer so it observes the close. Returns `true` if this call closed it.
     pub fn close(&self) -> bool {
-        let closed = self.inner.queue.close();
+        let closed = self.inner.close_queue();
         self.inner.wake_producer();
         closed
     }
@@ -368,7 +423,7 @@ impl<T> Drop for PipeReceiver<T> {
     fn drop(&mut self) {
         // A dropped receiver closes the pipe so a producer parked on a full pipe
         // wakes and observes `Closed` on its next send rather than hanging.
-        self.inner.queue.close();
+        self.inner.close_queue();
         self.inner.wake_producer();
     }
 }

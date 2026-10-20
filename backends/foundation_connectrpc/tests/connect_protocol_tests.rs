@@ -190,7 +190,10 @@ fn streaming_roundtrip_normalizes_endstream() {
             },
             req_rx,
             resp_tx,
-            &registry,
+            foundation_connectrpc::ExchangeConfig {
+                compression: &registry,
+                cancel: CancelSignal::new(),
+            },
         )
         .expect("server exchange");
     // new_conn ignores the response head here; provide an open (empty) head

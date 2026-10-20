@@ -33,12 +33,13 @@ use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::shared::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::transport::{
-    BodyStream, ByteSink, ByteSource, Frame, PipeClientConn, PipeHandlerConn,
+    fail_stream, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn, PipeHandlerConn,
     SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
-    BoxedTask, ClientExchange, HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
+    BoxedTask, ClientExchange, ExchangeConfig, HandlerExchange, ProtocolClient, ProtocolHandler,
+    UnaryOutcome,
 };
 
 /// Connect protocol constants (Decision 05).
@@ -186,9 +187,24 @@ fn percent_encode(bytes: &[u8]) -> String {
 
 /// Server/reader: de-envelope + decompress request bytes into request frames.
 /// Connect request streams end when the body closes (no request end-stream frame).
+/// A failure ends the request stream with the error (see [`fail_stream`]).
 async fn read_request_frames(
     body: ByteSource,
     req_tx: PipeSender<Frame>,
+    decompressor: Option<Arc<dyn Compressor>>,
+    read_max: usize,
+    cancel: CancelSignal,
+) -> ConnectResult<()> {
+    let result = read_request_envelopes(body, &req_tx, decompressor, read_max).await;
+    if let Err(e) = &result {
+        fail_stream(&req_tx, e, &cancel).await;
+    }
+    result
+}
+
+async fn read_request_envelopes(
+    body: ByteSource,
+    req_tx: &PipeSender<Frame>,
     decompressor: Option<Arc<dyn Compressor>>,
     read_max: usize,
 ) -> ConnectResult<()> {
@@ -442,11 +458,11 @@ impl ProtocolHandler for ConnectHandler {
         spec: Spec,
         body: ByteSource,
         responder: ByteSink,
-        compression: &CompressionRegistry,
+        config: ExchangeConfig<'_>,
     ) -> ConnectResult<HandlerExchange> {
         let (content_encoding, accept_encoding) = streaming_encodings(&request.headers);
         let negotiated = negotiate_compression(
-            compression,
+            config.compression,
             content_encoding.as_deref(),
             accept_encoding.as_deref(),
         )?;
@@ -457,7 +473,7 @@ impl ProtocolHandler for ConnectHandler {
             spec,
             peer,
             request.headers.clone(),
-            CancelSignal::new(),
+            config.cancel.clone(),
             DEFAULT_PIPE_DEPTH,
         );
 
@@ -466,6 +482,7 @@ impl ProtocolHandler for ConnectHandler {
             ends.request_tx,
             negotiated.request_decompressor,
             0,
+            config.cancel,
         ));
         let writer_impl = EnvelopeWriter::new(negotiated.response_compressor, 0, 0);
         let writer: BoxedTask =
@@ -484,6 +501,18 @@ impl ProtocolHandler for ConnectHandler {
         codec_name: &str,
     ) -> String {
         streaming_content_type(codec_name)
+    }
+
+    fn encode_stream_error(
+        &self,
+        _request: &SimpleIncomingRequest,
+        error: &ErrorTrace<ConnectError>,
+    ) -> ConnectResult<Option<Bytes>> {
+        // An uncompressed `EndStreamResponse`: valid whatever the stream
+        // negotiated, as each envelope carries its own compressed flag.
+        let frame = EnvelopeWriter::new(None, 0, 0)
+            .write_end_stream(Some(error), &SimpleHeaders::new())?;
+        Ok(Some(Bytes::from(frame)))
     }
 
     fn streaming_response_encoding(

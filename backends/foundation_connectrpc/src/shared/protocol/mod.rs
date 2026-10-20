@@ -28,7 +28,8 @@ use foundation_netio::shared::http::{
 
 use crate::shared::compression::CompressionRegistry;
 use crate::shared::context::{CancelSignal, Spec, StreamType};
-use crate::shared::error::ConnectResult;
+use crate::shared::error::{ConnectError, ConnectResult};
+use foundation_errstacks::ErrorTrace;
 use crate::shared::transport::{
     BoxFuture, ByteSink, ByteSource, ClientConn, HandlerConn, ProtocolKind, TransportStream,
 };
@@ -69,6 +70,17 @@ pub struct ClientExchange {
     pub writer_task: BoxedTask,
 }
 
+/// What a protocol needs, beyond the request and the byte pipes, to build a
+/// server exchange ([`ProtocolHandler::new_conn`]).
+pub struct ExchangeConfig<'a> {
+    /// The compressors to negotiate the call's compression from.
+    pub compression: &'a CompressionRegistry,
+    /// The call's cancel signal (the handler's `Ctx` carries the same one).
+    /// The seam's parked receives and sends wake on it, so a cancelled call
+    /// stops a handler that is waiting on its request or response stream.
+    pub cancel: CancelSignal,
+}
+
 /// Internal protocol abstraction — one impl per protocol handles its HTTP
 /// semantics (Decision 05).
 pub trait ProtocolHandler: Send + Sync {
@@ -90,6 +102,10 @@ pub trait ProtocolHandler: Send + Sync {
     /// Build the per-call exchange over the transport's byte pipes (consumes the
     /// negotiated compression to build the reader/writer tasks).
     ///
+    /// A reader task that fails (a malformed or oversized envelope, a failed
+    /// decompression) hands the error to the handler as the end of the request
+    /// stream: a failed read must never look like a request that ended cleanly.
+    ///
     /// # Errors
     /// A [`ConnectError`](crate::ConnectError)-carrying trace on negotiation
     /// failure.
@@ -99,8 +115,27 @@ pub trait ProtocolHandler: Send + Sync {
         spec: Spec,
         body: ByteSource,
         responder: ByteSink,
-        compression: &CompressionRegistry,
+        config: ExchangeConfig<'_>,
     ) -> ConnectResult<HandlerExchange>;
+
+    /// The bytes that end an already-started **streaming** response with
+    /// `error`, in band — for when the call fails after the response head and
+    /// some frames went out, so the status can no longer change (a deadline
+    /// passing, a handler that fails without closing its stream).
+    ///
+    /// `None` when the protocol carries the outcome outside the body (gRPC's
+    /// trailing HEADERS, which the transport writes).
+    ///
+    /// # Errors
+    /// A trace when the terminal frame cannot be encoded.
+    fn encode_stream_error(
+        &self,
+        request: &SimpleIncomingRequest,
+        error: &ErrorTrace<ConnectError>,
+    ) -> ConnectResult<Option<Bytes>> {
+        let _ = (request, error);
+        Ok(None)
+    }
 
     /// Decode a **unary** request body into codec-level message bytes — the
     /// protocol-specific de-framing + decompression a unary call needs

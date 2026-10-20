@@ -212,9 +212,15 @@ impl ConnReceiver for PipeConnReceiver {
         Box::pin(async move {
             match next_frame(&self.rx, &self.cancel).await? {
                 Some(Frame::Message(bytes)) => Ok(Some(bytes)),
-                Some(Frame::EndStream { trailers, .. }) => {
+                // A request stream that failed (a malformed or oversized
+                // envelope, a body read error) ends with its error: the
+                // handler must not mistake it for a request that ended cleanly.
+                Some(Frame::EndStream { error, trailers }) => {
                     self.trailers = trailers;
-                    Ok(None)
+                    match error {
+                        Some(e) => Err(e),
+                        None => Ok(None),
+                    }
                 }
                 None => Ok(None),
             }
