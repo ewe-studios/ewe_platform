@@ -7,6 +7,7 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 keywords.workspace = true
+description = "Tauri-based cross-platform coordination layer: session backbone, route policies, capabilities, caching, transport lanes and WebView stack management"
 
 [dependencies]
 # Host platform (generic R: Runtime — works on Wry, Android, iOS)
