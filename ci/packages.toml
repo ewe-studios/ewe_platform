@@ -103,6 +103,8 @@ wasm-runs = ["--no-default-features"]
 # anyway through a dev-dependency (foundation_testing -> foundation_netio's
 # default `multi`), which meant the single-threaded executor was never tested.
 runs = ["", "multi"]
+wasm = "enforce"
+wasm-runs = ["--no-default-features --features std"]
 
 [packages.foundation_jsonschema]
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
@@ -161,9 +163,8 @@ env = { CARGO_BUILD_JOBS = "1" }
 # are deliberate: several defaults (netio's `multi`, auth's `turso`, db's
 # `turso`/`d1`/`r2`) are native-only and would break the wasm build.
 
-[packages.foundation_core]
-wasm = "enforce"
-wasm-runs = ["--no-default-features --features std"]
+# foundation_core's wasm gate lives in its table above (TOML allows one
+# [packages.foundation_core]).
 
 [packages.foundation_auth]
 wasm = "enforce"
