@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.78"
 description = "Wasmtime shell — run WASM modules in-process alongside the Tauri shell (Surface 3)"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
 
 [dependencies]
 wasmtime = { version = "26", default-features = false, features = ["cranelift", "runtime"] }
