@@ -12,7 +12,7 @@ use foundation_compact::Instant;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn, NoThreadController},
-    FnReady, ProcessController, TaskIterator, TaskStatus,
+    Ctx, FnReady, ProcessController, TaskIterator, TaskStatus,
 };
 
 /// Task that returns Ready a limited number of times then completes
@@ -73,7 +73,8 @@ fn single_threaded_can_spawn_and_run_tasks() {
                 results_clone.borrow_mut().push(val);
             }
         })))
-        .schedule()
+        .as_scheduled()
+        .spawn()
         .expect("should schedule");
 
     run_until_complete();
@@ -102,7 +103,8 @@ fn single_threaded_spawns_multiple_tasks() {
                     results_clone.borrow_mut().push(val);
                 }
             })))
-            .schedule()
+            .as_scheduled()
+            .spawn()
             .expect("should schedule");
     }
 
@@ -130,7 +132,8 @@ fn single_threaded_runs_counter_to_completion() {
                 results_clone.borrow_mut().push(val);
             }
         })))
-        .schedule()
+        .as_scheduled()
+        .spawn()
         .expect("should schedule");
 
     run_until_complete();

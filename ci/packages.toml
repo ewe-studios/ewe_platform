@@ -82,6 +82,14 @@ fmt = "enforce"
 runs = ["testing", "--no-default-features --features testing"]
 timeout-minutes = 90
 
+[packages.foundation_core]
+# valtron has two executors chosen at compile time: the single-threaded one
+# (default features) and the thread pool (`multi`). Many tests are gated on
+# `multi` or `not(multi)`, so test both. The default run used to get `multi`
+# anyway through a dev-dependency (foundation_testing -> foundation_netio's
+# default `multi`), which meant the single-threaded executor was never tested.
+runs = ["", "multi"]
+
 [packages.foundation_jsonschema]
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
 # test it as well so std-only items cannot creep back into that path

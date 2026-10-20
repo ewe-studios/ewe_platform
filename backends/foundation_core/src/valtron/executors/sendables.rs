@@ -143,6 +143,15 @@ pub fn initialize_pool(
     multi::initialize_pool(seed_for_rng, user_thread_num)
 }
 
+/// Make the calling thread able to drive valtron work set up by
+/// [`initialize_pool`] on another thread.
+///
+/// Under `multi` the pool is process-wide, so every thread can already reach
+/// it and this is a no-op. Without `multi` the engine is thread-local and the
+/// same function initializes it for the calling thread; callers use it so
+/// their code is correct in both configurations.
+pub fn initialize_current_thread(_seed_for_rng: u64) {}
+
 /// Submit a blocking closure for execution on the appropriate background executor.
 ///
 /// WHY: Unified API for background work across all platforms/configurations

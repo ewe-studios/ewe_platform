@@ -1,18 +1,18 @@
 //! Tests for `BackgroundJobRegistry` and `split_thread_count`.
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::{split_thread_count, BackgroundJobRegistry};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{mpsc, Arc};
-use std::time::Duration;
+use std::thread;
+use std::time::{Duration, Instant};
 
 /// Generous upper bound for a background job to run. The tests wait on a
 /// signal rather than sleeping a fixed time, so they stay fast when idle and
 /// don't flake when the rest of the test binary is loading the machine.
 const JOB_DEADLINE: Duration = Duration::from_secs(10);
 
-/// WHY: split_thread_count must follow the specified allocation table
-/// WHAT: Verify (task_threads, bg_threads) for known input values
+/// WHY: `split_thread_count` must follow the specified allocation table
+/// WHAT: Verify `(task_threads, bg_threads)` for known input values
 #[test]
 fn test_split_thread_count() {
     // bg = total, task = max(2, total / 2)
@@ -38,12 +38,11 @@ fn test_split_thread_count_panics_below_3() {
     let _ = split_thread_count(2);
 }
 
-/// WHY: BackgroundJobRegistry must execute submitted jobs
+/// WHY: `BackgroundJobRegistry` must execute submitted jobs
 /// WHAT: Submit a job that signals a channel, verify it ran
 #[test]
 fn test_submit_and_execute_job() {
-    let kill_signal = Arc::new(OnSignal::new());
-    let registry = BackgroundJobRegistry::new(2, kill_signal.clone(), Duration::from_millis(10));
+    let registry = BackgroundJobRegistry::new(2);
 
     let (done_tx, done_rx) = mpsc::channel();
     registry
@@ -68,10 +67,9 @@ fn test_submit_and_execute_job() {
     ignore = "cranelift does not support panic unwinding"
 )]
 fn test_panic_recovery() {
-    let kill_signal = Arc::new(OnSignal::new());
     // One worker: the job after the panic can only run if that same worker
     // survived the panic.
-    let registry = BackgroundJobRegistry::new(1, kill_signal.clone(), Duration::from_millis(10));
+    let registry = BackgroundJobRegistry::new(1);
 
     registry
         .submit(|| {
@@ -94,33 +92,21 @@ fn test_panic_recovery() {
     registry.shutdown();
 }
 
-/// WHY: shutdown must cause workers to exit and join cleanly
-/// WHAT: Create registry, run work, shutdown, verify no hanging threads
+/// WHY: shutdown must run every accepted job, then let workers exit cleanly
+/// WHAT: Submit 10 jobs and shut down straight away; all 10 have run once
+/// shutdown returns
 #[test]
 fn test_shutdown() {
-    let kill_signal = Arc::new(OnSignal::new());
-    let registry = BackgroundJobRegistry::new(2, kill_signal.clone(), Duration::from_millis(10));
+    let registry = BackgroundJobRegistry::new(2);
 
     let counter = Arc::new(AtomicUsize::new(0));
-    let (done_tx, done_rx) = mpsc::channel();
     for _ in 0..10 {
         let c = counter.clone();
-        let done_tx = done_tx.clone();
         registry
             .submit(move || {
                 c.fetch_add(1, Ordering::SeqCst);
-                done_tx.send(()).expect("test receiver alive");
             })
             .expect("submit should succeed");
-    }
-
-    // shutdown() closes the queue without draining it, so wait for every job
-    // to have run before shutting down.
-    for _ in 0..10 {
-        assert!(
-            done_rx.recv_timeout(JOB_DEADLINE).is_ok(),
-            "all 10 jobs should have executed"
-        );
     }
 
     registry.shutdown();
@@ -136,11 +122,155 @@ fn test_shutdown() {
 /// WHAT: Shut down registry, try to submit — should return Err
 #[test]
 fn test_submit_after_shutdown_fails() {
-    let kill_signal = Arc::new(OnSignal::new());
-    let registry = BackgroundJobRegistry::new(1, kill_signal.clone(), Duration::from_millis(10));
+    let registry = BackgroundJobRegistry::new(1);
 
     registry.shutdown();
 
     let result = registry.submit(|| {});
     assert!(result.is_err(), "submit after shutdown should fail");
+}
+
+/// A registry with one worker that is busy in a job which blocks until the
+/// returned sender is used (or dropped). `on_release` runs inside that job
+/// right after it is released, still on the worker.
+fn registry_with_blocked_worker(
+    on_release: impl FnOnce() + Send + 'static,
+) -> (Arc<BackgroundJobRegistry>, mpsc::Sender<()>) {
+    let registry = BackgroundJobRegistry::new(1);
+    let (started_tx, started_rx) = mpsc::channel();
+    let (release_tx, release_rx) = mpsc::channel::<()>();
+    registry
+        .submit(move || {
+            started_tx.send(()).expect("test alive");
+            // Err means the test dropped the sender: release either way.
+            let _released = release_rx.recv();
+            on_release();
+        })
+        .expect("submit blocker");
+    started_rx
+        .recv_timeout(JOB_DEADLINE)
+        .expect("blocker job should start");
+    (registry, release_tx)
+}
+
+/// Start `shutdown()` on another thread and return once it has closed the
+/// queue (observed by `submit` being rejected).
+fn begin_shutdown(registry: &Arc<BackgroundJobRegistry>) -> thread::JoinHandle<()> {
+    let shutdown = {
+        let registry = registry.clone();
+        thread::spawn(move || registry.shutdown())
+    };
+    let deadline = Instant::now() + JOB_DEADLINE;
+    while registry.submit(|| {}).is_ok() {
+        assert!(Instant::now() < deadline, "shutdown never closed the queue");
+        thread::yield_now();
+    }
+    shutdown
+}
+
+/// WHY: shutdown used to drop jobs that were still queued: workers exited as
+/// soon as the kill signal was set, so an accepted job could silently never
+/// run. Accepted jobs must run even when shutdown starts before they do.
+/// WHAT: The only worker is busy; 5 jobs wait behind it; shutdown starts and
+/// closes the queue; then the worker is released. All 5 must have run by the
+/// time shutdown returns.
+#[test]
+fn test_shutdown_runs_jobs_still_queued() {
+    let (registry, release) = registry_with_blocked_worker(|| {});
+
+    let ran = Arc::new(AtomicUsize::new(0));
+    for _ in 0..5 {
+        let ran = ran.clone();
+        registry
+            .submit(move || {
+                ran.fetch_add(1, Ordering::SeqCst);
+            })
+            .expect("submit before shutdown");
+    }
+
+    let shutdown = begin_shutdown(&registry);
+    release.send(()).expect("blocker alive");
+    shutdown.join().expect("shutdown thread");
+
+    assert_eq!(
+        ran.load(Ordering::SeqCst),
+        5,
+        "every job accepted before shutdown must run"
+    );
+}
+
+/// WHY: shutdown closes intake for everyone, including jobs that are still
+/// draining — the documented semantics
+/// WHAT: A job running while shutdown is in progress tries to submit a
+/// follow-up; it is rejected and the follow-up never runs.
+#[test]
+fn test_submit_from_draining_job_is_rejected() {
+    let (result_tx, result_rx) = mpsc::channel();
+    let follow_up_ran = Arc::new(AtomicUsize::new(0));
+    let registry_slot: Arc<std::sync::OnceLock<Arc<BackgroundJobRegistry>>> =
+        Arc::new(std::sync::OnceLock::new());
+
+    let (registry, release) = {
+        let slot = registry_slot.clone();
+        let follow_up_ran = follow_up_ran.clone();
+        registry_with_blocked_worker(move || {
+            let registry = slot.get().expect("registry set before release");
+            let result = registry.submit(move || {
+                follow_up_ran.fetch_add(1, Ordering::SeqCst);
+            });
+            result_tx.send(result.is_err()).expect("test alive");
+        })
+    };
+    assert!(registry_slot.set(registry.clone()).is_ok());
+
+    let shutdown = begin_shutdown(&registry);
+    release.send(()).expect("blocker alive");
+    shutdown.join().expect("shutdown thread");
+
+    assert!(
+        result_rx.recv_timeout(JOB_DEADLINE).expect("job reported"),
+        "submit from a draining job must be rejected"
+    );
+    assert_eq!(follow_up_ran.load(Ordering::SeqCst), 0);
+}
+
+/// WHY: idle workers used to sleep-poll (`thread::sleep` of 50 ms in the
+/// pool), so every job submitted to an idle pool waited for the next poll.
+/// Workers must instead block and be woken by `submit`.
+/// WHAT: 20 sequential submit-and-wait round trips to a single idle worker.
+/// With a 50 ms poll that takes ~1 s; woken workers take a few ms. 500 ms
+/// leaves a wide margin for a loaded machine.
+#[test]
+fn test_idle_worker_is_woken_by_submit() {
+    let registry = BackgroundJobRegistry::new(1);
+
+    let start = Instant::now();
+    for _ in 0..20 {
+        let (done_tx, done_rx) = mpsc::channel();
+        registry
+            .submit(move || done_tx.send(()).expect("test alive"))
+            .expect("submit");
+        done_rx.recv_timeout(JOB_DEADLINE).expect("job should run");
+    }
+    let elapsed = start.elapsed();
+    registry.shutdown();
+
+    assert!(
+        elapsed < Duration::from_millis(500),
+        "20 round trips to an idle worker took {elapsed:?}"
+    );
+}
+
+/// WHY: shutting down an idle pool must not wait out a poll interval either
+/// WHAT: Shutdown of a pool whose workers are all idle returns promptly
+#[test]
+fn test_idle_shutdown_is_prompt() {
+    let registry = BackgroundJobRegistry::new(4);
+    let start = Instant::now();
+    registry.shutdown();
+    let elapsed = start.elapsed();
+    assert!(
+        elapsed < Duration::from_millis(500),
+        "idle shutdown took {elapsed:?}"
+    );
 }

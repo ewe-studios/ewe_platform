@@ -375,11 +375,14 @@ fn async_transition_owns_ctx_across_await() {
 fn assert_send<T: Send>() {}
 
 /// The generated structs are `Send` when their `T, R, P` are — pinning the
-/// "generated struct is `Send`" success criterion (`--test mod` always has
-/// `multi`, so this exercises the `Send`-bound path).
+/// "generated struct is `Send`" success criterion. A sync state task is `Send`
+/// in every configuration; an async one only under `multi`, because without it
+/// `AsyncTransition` is deliberately `!Send` so `!Send` futures (e.g. a
+/// `JsFuture` body) still work.
 #[test]
 fn generated_structs_are_send() {
     assert_send::<count_down>();
+    #[cfg(feature = "multi")]
     assert_send::<async_count_down>();
 }
 

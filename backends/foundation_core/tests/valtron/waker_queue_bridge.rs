@@ -19,8 +19,10 @@ use core::pin::Pin;
 use core::task::{Context, Poll, Waker};
 
 use concurrent_queue::ConcurrentQueue;
+#[cfg(feature = "multi")]
+use foundation_core::valtron::from_future;
 use foundation_core::valtron::{
-    from_future, queue_waker, Ctx, FutureTask, TaskIterator, TaskStatus, WakeToken,
+    queue_waker, Ctx, FutureTask, TaskIterator, TaskStatus, WakeToken,
 };
 
 // ============================================================================
