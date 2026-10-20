@@ -85,8 +85,9 @@ std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std", "de
 multi = ["std", "alloc"]  # Multi-threaded executor requires std
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop"]
-js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web"]
+# Each also picks foundation_compact's matching wasm32 time/entropy backend.
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop", "foundation_compact/wasm-bindgen"]
+js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web", "foundation_compact/host-abi"]
 
 # default flags
 default = ["standard", "std", "alloc"]

@@ -12,6 +12,9 @@ edition = "2021"
 foundation_core = { path = "../..", features = ["js-foundation-wasm"] }
 foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
 foundation_macros = { path = "../../../foundation_macros" }
+# Direct, for the host-ABI clock/entropy cases (core already selects the
+# `host-abi` backend through `js-foundation-wasm`).
+foundation_compact = { path = "../../../foundation_compact", default-features = false, features = ["std", "host-abi"] }
 
 [lib]
 crate-type = ["cdylib"]

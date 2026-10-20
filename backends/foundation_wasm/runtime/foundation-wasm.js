@@ -1983,6 +1983,49 @@ export class FoundationWasm {
         this.testReports.push(Number(status), message);
       },
 
+      // Clock + entropy for foundation_compact's `host-abi` backend (the owned
+      // path's `Instant`, `SystemTime` and RNG seeding, no wasm-bindgen glue).
+      // Monotonic ms since the time origin; Date.now() where there is no
+      // `performance` (e.g. some worklets), like the rAF fallback above.
+      host_monotonic_now_ms() {
+        return globalThis.performance?.now?.() ?? Date.now();
+      },
+      // The time origin in ms since the Unix epoch (threaded builds only).
+      host_time_origin_ms() {
+        return globalThis.performance?.timeOrigin ?? 0;
+      },
+      // Wall-clock ms since the Unix epoch.
+      host_wall_clock_ms() {
+        return Date.now();
+      },
+      // Fill `len` bytes at `ptr` from crypto.getRandomValues: 0 = ok, 1 = no
+      // secure source. Web Crypto takes at most 65536 bytes per call, and
+      // refuses views over shared memory, which go through a scratch buffer.
+      host_fill_random: (ptr, len) => {
+        const crypto = globalThis.crypto;
+        if (typeof crypto?.getRandomValues !== "function") return 1;
+        const MAX_PER_CALL = 65536; // Web Crypto's per-call limit (spec).
+        const start = Number(ptr);
+        const total = Number(len);
+        try {
+          for (let done = 0; done < total; done += MAX_PER_CALL) {
+            const n = Math.min(MAX_PER_CALL, total - done);
+            const buffer = this.bridge.memory.buffer;
+            const dest = new Uint8Array(buffer, start + done, n);
+            if (typeof SharedArrayBuffer !== "undefined" && buffer instanceof SharedArrayBuffer) {
+              const scratch = new Uint8Array(n);
+              crypto.getRandomValues(scratch);
+              dest.set(scratch);
+            } else {
+              crypto.getRandomValues(dest);
+            }
+          }
+        } catch (_) {
+          return 1;
+        }
+        return 0;
+      },
+
       // Function registry: register a JS fn (source string) → handle; invoke it.
       host_register_function(start, len, utf) {
         return functions.register(start, len, utf);

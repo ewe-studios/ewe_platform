@@ -125,16 +125,6 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
-- **The owned wasm path imports wasm-bindgen glue.** `foundation_compact`
-  (`Cargo.toml`: `wasm-bindgen`/`js-sys` unconditionally on
-  `wasm32-unknown-unknown`; `src/wasm/{instant,system_time}.rs`,
-  `src/entropy/backends/wasm_js.rs`) makes every foundation_core wasm build import
-  `__wbindgen_placeholder__`, so a `js-foundation-wasm` module (the zero
-  wasm-bindgen path) cannot be instantiated by `foundation-wasm.js`: all of
-  `foundation_core/integration/wasm_tests` fails at load (spec 68). Give
-  compact a feature-selected backend that reads time/entropy through host ABI
-  imports implemented by `foundation-wasm.js`, and use it under `js-foundation-wasm`.
-
 - **`SpinWaiter`** (foundation_nostd, still used on wasm) rounds sub-millisecond waits down to zero, and its spin calibration is arbitrary.
 - **Unused import** at `foundation_wasm/src/capability.rs:24` on wasm32.
 - **Interval callbacks run under the registry lock.** `host_runtime.rs`

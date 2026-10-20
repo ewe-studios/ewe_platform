@@ -1,5 +1,5 @@
 // Vendored from getrandom 0.4.2 (MIT OR Apache-2.0).
-// Adaptation: removed `feature = "wasm_js"` gate — always provide wasm_js backend on wasm targets.
+// Adaptation: removed `feature = "wasm_js"` gate — OS-less wasm always gets a backend (`wasm_js` or `host_abi`).
 
 cfg_if::cfg_if! {
     if #[cfg(getrandom_backend = "custom")] {
@@ -148,10 +148,18 @@ cfg_if::cfg_if! {
         pub use rdrand::*;
     } else if #[cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))] {
         // KEY ADAPTATION: upstream gates this on `feature = "wasm_js"` and emits compile_error!
-        // when the feature is absent. We always provide the wasm_js backend — this is the
-        // whole reason for vendoring: no feature flag ceremony on wasm targets.
-        mod wasm_js;
-        pub use wasm_js::*;
+        // when the feature is absent. We always provide a backend instead: `wasm_js`
+        // (wasm-bindgen glue) under the `wasm-bindgen` feature, otherwise `host_abi`
+        // (an `abi` host import, no wasm-bindgen). `host-abi` wins when both are on.
+        cfg_if::cfg_if! {
+            if #[cfg(all(feature = "wasm-bindgen", not(feature = "host-abi")))] {
+                mod wasm_js;
+                pub use wasm_js::*;
+            } else {
+                mod host_abi;
+                pub use host_abi::*;
+            }
+        }
     } else {
         compile_error!(
             "target is not supported by foundation_compact entropy. \

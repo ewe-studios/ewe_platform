@@ -146,8 +146,9 @@ alloc = ["futures-core/alloc"]
 multi = ["std", "foundation_core/multi"]  # Multi-threaded executor requires foundation_core multi
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-js-event-loop = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
-js-foundation-wasm = []
+# Each also picks foundation_compact's matching wasm32 time/entropy backend.
+js-event-loop = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "foundation_compact/wasm-bindgen"]
+js-foundation-wasm = ["foundation_compact/host-abi"]
 
 # wasm fetch HTTP client — outbound fetch() for browser + CF Workers.
 # Enables foundation_core/js-wasmbindgen for valtron's JS ReadableStream bridge.
