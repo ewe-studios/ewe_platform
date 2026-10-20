@@ -1,6 +1,7 @@
-//! `foundation_platform` — Tauri-based cross-platform coordination layer.
+//! `foundation_platform` — cross-platform application layer for native,
+//! desktop, mobile and web apps.
 //!
-//! Wraps `tauri::Builder` with a session backbone, route policy engine,
+//! On Tauri hosts it wraps `tauri::Builder` with a session backbone, route policy engine,
 //! capability registry, cache manager, transport lanes, and `WebView` stack
 //! manager. The platform extends Tauri's lifecycle — it doesn't replace it.
 
