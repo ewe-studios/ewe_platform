@@ -244,6 +244,13 @@ jobs:
           git config --global user.name "ewe-platform release bot"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Put the gated commit on a branch
+        # release-pr refuses a detached HEAD. Name a local branch after the
+        # base branch, pointing at the commit the gate approved.
+        env:
+          BASE_BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+        run: git checkout -B "$BASE_BRANCH"
+
       - name: Open or update the release PR
         env:
           GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
