@@ -316,9 +316,12 @@ impl ServiceConfig {
 /// Which wire protocol a backend speaks, inferred from its URL scheme.
 ///
 /// WHY: Decision 14 §"Protocol inference" — the scheme selects the protocol, so
-/// there is no separate `proto` config field. `http`/`https` mean an HTTP
-/// reverse proxy (headers, WebSocket upgrade, health checks); `tcp` means raw
-/// byte-level passthrough (RDP, VNC, noVNC — no HTTP semantics).
+/// there is no separate `proto` config field. `http`/`https` mean a transparent
+/// HTTP reverse proxy (headers, WebSocket upgrade, health checks); `tcp`/`udp`
+/// mean raw byte-level passthrough (RDP, VNC, noVNC — no HTTP semantics);
+/// `connect`/`grpc`/`grpc-web` select the embedded `foundation_connectrpc` RPC
+/// engine (spec 63, Workstream 2 — the "D" leg): protocol translation, per-stream
+/// load balancing, and `grpc.health.v1.Health/Check` health gating.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Display)]
 pub enum BackendProtocol {
     #[display("http")]
@@ -329,6 +332,12 @@ pub enum BackendProtocol {
     Tcp,
     #[display("udp")]
     Udp,
+    #[display("connect")]
+    Connect,
+    #[display("grpc")]
+    Grpc,
+    #[display("grpc-web")]
+    GrpcWeb,
 }
 
 /// Backend target — where traffic is routed.
@@ -368,7 +377,10 @@ impl BackendTarget {
     /// Infer the wire protocol from the URL scheme.
     ///
     /// WHAT: `http://` → `Http`, `https://` → `Https`, `tcp://` → `Tcp`,
-    /// `udp://` → `Udp`. Anything with no recognised scheme defaults to `Http`.
+    /// `udp://` → `Udp`, `connect://` → `Connect`, `grpc://` → `Grpc`,
+    /// `grpc-web://` → `GrpcWeb`. Anything with no recognised scheme defaults to
+    /// `Http`. `grpc-web://` is tested before `grpc://` for clarity, though the
+    /// two prefixes cannot actually collide.
     #[must_use]
     pub fn protocol(&self) -> BackendProtocol {
         let lower = self.url.to_ascii_lowercase();
@@ -378,6 +390,12 @@ impl BackendTarget {
             BackendProtocol::Tcp
         } else if lower.starts_with("https://") {
             BackendProtocol::Https
+        } else if lower.starts_with("grpc-web://") {
+            BackendProtocol::GrpcWeb
+        } else if lower.starts_with("grpc://") {
+            BackendProtocol::Grpc
+        } else if lower.starts_with("connect://") {
+            BackendProtocol::Connect
         } else {
             BackendProtocol::Http
         }

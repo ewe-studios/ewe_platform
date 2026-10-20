@@ -174,7 +174,14 @@ fn probe_once(
     match backend.protocol() {
         BackendProtocol::Tcp => probe_tcp(&backend.target().authority(), config.timeout),
         BackendProtocol::Udp => probe_udp(&backend.target().authority(), config.timeout),
-        BackendProtocol::Http | BackendProtocol::Https => {
+        // `connect` / `grpc` / `grpc-web` are HTTP-family; probe them with the
+        // HTTP path probe until the gRPC health protocol (`grpc.health.v1`) is
+        // wired in for the D leg (spec 63).
+        BackendProtocol::Http
+        | BackendProtocol::Https
+        | BackendProtocol::Connect
+        | BackendProtocol::Grpc
+        | BackendProtocol::GrpcWeb => {
             probe_http(backend.url(), &config.path, config.timeout, client)
         }
     }

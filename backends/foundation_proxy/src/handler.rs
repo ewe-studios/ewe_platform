@@ -174,7 +174,14 @@ fn relay(
             let _ = respond::text(&mut conn, 502, "UDP backend not reachable via HTTP");
             let _ = conn.flush();
         }
-        BackendProtocol::Http | BackendProtocol::Https => {
+        // `connect` / `grpc` / `grpc-web` are HTTP-family; the RPC engine (spec
+        // 63 D leg) is wired in a later task — for now they ride the same
+        // transparent HTTP forward as `http`/`https`.
+        BackendProtocol::Http
+        | BackendProtocol::Https
+        | BackendProtocol::Connect
+        | BackendProtocol::Grpc
+        | BackendProtocol::GrpcWeb => {
             if is_upgrade_request(&req) {
                 // The upgrade splice consumes the connection; log on failure.
                 if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme, io_mode) {

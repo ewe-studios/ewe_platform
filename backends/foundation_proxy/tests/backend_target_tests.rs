@@ -88,10 +88,35 @@ fn test_protocol_inference_from_scheme() {
         "udp:// scheme maps to Udp"
     );
     assert_eq!(
+        BackendTarget::new("connect://x:1").protocol(),
+        BackendProtocol::Connect,
+        "connect:// scheme maps to Connect"
+    );
+    assert_eq!(
+        BackendTarget::new("grpc://x:1").protocol(),
+        BackendProtocol::Grpc,
+        "grpc:// scheme maps to Grpc"
+    );
+    assert_eq!(
+        BackendTarget::new("grpc-web://x:1").protocol(),
+        BackendProtocol::GrpcWeb,
+        "grpc-web:// scheme maps to GrpcWeb"
+    );
+    assert_eq!(
         BackendTarget::new("x:1").protocol(),
         BackendProtocol::Http,
         "scheme-less URL defaults to HTTP"
     );
+}
+
+/// WHY: The scheme and its `Display` string must agree — the protocol is
+/// surfaced to operators as text, and the RPC leg keys on these names.
+/// WHAT: `Connect` → `"connect"`, `Grpc` → `"grpc"`, `GrpcWeb` → `"grpc-web"`.
+#[test]
+fn test_backend_protocol_display() {
+    assert_eq!(BackendProtocol::Connect.to_string(), "connect");
+    assert_eq!(BackendProtocol::Grpc.to_string(), "grpc");
+    assert_eq!(BackendProtocol::GrpcWeb.to_string(), "grpc-web");
 }
 
 /// WHY: UDP passthrough needs the same authority stripping as TCP.
