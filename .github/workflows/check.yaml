@@ -291,9 +291,12 @@ jobs:
         run: git submodule update --init --depth 1 tools/llama.cpp
 
       - name: Install the pinned toolchain
+        # `--profile minimal` leaves out rustfmt, but the generated provider
+        # crates' build scripts (hetzner, cloudflare, ...) run it to check
+        # their committed `src/generated/` against the spec.
         run: |
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
-          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
       - name: Cache

@@ -6,9 +6,6 @@ ARTEFACTS_TEMPLATES_DIR = { value = "artefacts/temples/templates", relative=true
 BACKENDS_DIR = { value = "backends", relative=true, force = true }
 INFRASTRUCTURE_DIR = { value = "infrastructure", relative=true, force = true }
 
-# templates
-TEMPLATES_DIR = { value = "templates", relative = true, force = true }
-
 # build environment variables for infrastructure
 TOOLS_DIR = { value = "tools", relative=true, force = true }
 LLAMA_BINDINGS_DIR = { value = "infrastructure/llama-bindings", relative=true, force = true }
