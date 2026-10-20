@@ -16,7 +16,7 @@ use core::task::{Context, Poll};
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
     queue_waker, AnyReadiness, BoolSignal, EventReadiness, EventReadinessPtr, Pipe, TryRecvError,
-    WakeToken,
+    TrySendError, WakeToken,
 };
 
 /// Build a `Context` whose waker pushes an observable `WakeToken` onto `obs`.
@@ -176,6 +176,41 @@ fn sender_closed_wakes_when_receiver_goes_away() {
     rx2.close();
     let mut closed2 = Box::pin(tx2.closed());
     assert!(matches!(closed2.as_mut().poll(&mut cx), Poll::Ready(())));
+}
+
+/// WHY: `PipeReceiver` is `Clone` (to move a cheap `Arc` handle into a `'static`
+///      future, e.g. a per-chunk blocking body reader), so dropping a clone must
+///      not EOF the pipe under its owner — only the last receiver's drop closes,
+///      mirroring `PipeSender`'s refcounted drop.
+/// WHAT: After a clone is dropped, the sender can still push and the original
+///      receiver still drains; the pipe closes only when the last receiver drops.
+#[test]
+fn receiver_clone_drop_does_not_close_pipe() {
+    let (tx, rx) = Pipe::<u32>::with_depth(4);
+
+    // A clone moved into a `'static` future drops while its owner still holds `rx`.
+    let clone = rx.clone();
+    drop(clone);
+
+    // The pipe must still be open: the sender can push…
+    tx.try_send(1).expect("pipe still open after clone drop");
+    // …and the original receiver can drain it.
+    assert_eq!(rx.try_recv(), Ok(1));
+
+    // A second clone dropped mid-stream must likewise not close the pipe, and
+    // backlog already buffered must survive the clone's drop.
+    let clone2 = rx.clone();
+    tx.try_send(2).expect("send before clone2 drop");
+    drop(clone2);
+    assert_eq!(rx.try_recv(), Ok(2), "backlog survives a dropped clone");
+
+    // The last receiver's drop closes the pipe (read side) and wakes the sender.
+    drop(rx);
+    assert!(tx.is_closed(), "last receiver drop closes the pipe");
+    assert!(
+        matches!(tx.try_send(3), Err(TrySendError::Closed(3))),
+        "a closed pipe refuses further sends with the item returned"
+    );
 }
 
 // ============================================================================
