@@ -6,7 +6,8 @@
 //! WHAT: `BackgroundJobRegistry` owns N worker threads that take jobs from a
 //! shared FIFO queue and run them to completion with panic protection.
 //!
-//! HOW: The queue is a `Mutex<VecDeque>` paired with a `Condvar`. Idle workers
+//! HOW: The queue is a `Mutex<VecDeque>` paired with a `CondVar` from
+//! `foundation_nostd::comp::condvar_comp` (std types under std). Idle workers
 //! block on the condvar and `submit()` wakes one of them, so an idle pool costs
 //! nothing and a submitted job starts immediately (no sleep-polling).
 //! `shutdown()` closes the queue: workers finish every job that was accepted
@@ -14,7 +15,9 @@
 
 use std::collections::VecDeque;
 use std::panic::AssertUnwindSafe;
-use std::sync::{Arc, Condvar, Mutex, MutexGuard, PoisonError};
+use std::sync::Arc;
+
+use foundation_nostd::comp::condvar_comp::{CondVar, Mutex, MutexGuard};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
@@ -31,7 +34,7 @@ pub type BackgroundJob = Box<dyn FnOnce() + Send + 'static>;
 struct JobQueue {
     state: Mutex<QueueState>,
     /// Signalled when a job is pushed (one waiter) or the queue closes (all).
-    available: Condvar,
+    available: CondVar,
 }
 
 struct QueueState {
@@ -46,7 +49,7 @@ impl JobQueue {
                 jobs: VecDeque::new(),
                 closed: false,
             }),
-            available: Condvar::new(),
+            available: CondVar::new(),
         }
     }
 
@@ -55,7 +58,7 @@ impl JobQueue {
     /// this module's own bookkeeping; the state is still consistent, so keep
     /// going rather than cascading the panic into every worker.
     fn lock(&self) -> MutexGuard<'_, QueueState> {
-        self.state.lock().unwrap_or_else(PoisonError::into_inner)
+        self.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
     fn push(&self, job: BackgroundJob) -> Result<(), BackgroundJob> {
@@ -84,7 +87,7 @@ impl JobQueue {
             state = self
                 .available
                 .wait(state)
-                .unwrap_or_else(PoisonError::into_inner);
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
         }
     }
 
@@ -275,7 +278,7 @@ impl BackgroundJobRegistry {
         *registry
             .thread_handles
             .lock()
-            .unwrap_or_else(PoisonError::into_inner) = handles;
+            .unwrap_or_else(|poisoned| poisoned.into_inner()) = handles;
 
         registry
     }
@@ -334,7 +337,7 @@ impl BackgroundJobRegistry {
         let handles: Vec<JoinHandle<()>> = self
             .thread_handles
             .lock()
-            .unwrap_or_else(PoisonError::into_inner)
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
             .drain(..)
             .collect();
         let mut busy_workers = 0;
