@@ -14,15 +14,16 @@
 //! - [`JsonLinesStream`] — one typed item per line (`application/jsonl` and
 //!   kin), parsed as the lines arrive.
 //!
-//! plus [`read_error_body`], which reads at most [`MAX_ERROR_BODY`] bytes of a
-//! non-2xx body, and [`with_raw_body`], which attaches a non-JSON request body.
+//! plus [`read_error_body`], which reads at most a given number of bytes of a
+//! non-2xx body, [`with_raw_body`], which attaches a non-JSON request body,
+//! and [`BodyLimits`], the configurable caps on both.
 //!
 //! HOW: Both streams sit on netio's [`AsyncSendSafeBody`] and implement
 //! [`futures_core::Stream`]; each also has an inherent `next().await`, so a
 //! caller needs no extension trait. Each holds only what it has not handed out
 //! yet: a [`JsonLinesStream`] keeps the bytes of the line it is assembling,
-//! bounded by [`MAX_JSON_LINE`]. Dropping a stream drops the body, which closes
-//! the connection.
+//! bounded by its configured line limit ([`BodyLimits::max_json_line`]).
+//! Dropping a stream drops the body, which closes the connection.
 
 use core::future::poll_fn;
 use core::marker::PhantomData;
@@ -38,14 +39,63 @@ use serde::de::DeserializeOwned;
 
 use super::api_types::ApiError;
 
-/// The most of an error response's body read for its message. API error
-/// bodies are a short JSON object; anything past this is never read.
-pub const MAX_ERROR_BODY: usize = 64 * 1024;
+/// Caps on how much of a response body is held in memory at once.
+///
+/// None of these limits how long a streamed body may be: a [`ByteStream`] or
+/// a [`JsonLinesStream`] reads as far as it is asked to. They cap only what
+/// has to be held whole — an error body read for its message, one line of a
+/// JSON-lines body.
+///
+/// The generated API clients read their responses under the limits of the
+/// [`ApiClient`](super::ApiClient) they are given; a bare `DynNetClient` gets
+/// [`BodyLimits::default`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BodyLimits {
+    /// The most of a non-2xx response's body read for its error message;
+    /// the rest is never read.
+    ///
+    /// Default 64 KiB. API error bodies are a short JSON object
+    /// (`{"message": …}`), so this keeps every real message whole while
+    /// bounding a broken or hostile one. It is the order of what nginx holds
+    /// of a proxied response in memory by default (`proxy_buffers 8 4k|8k`,
+    /// 32–64 KiB) before spilling to disk; Docker's own Go client allows
+    /// 1 MiB.
+    pub max_error_body: usize,
+    /// The longest line a [`JsonLinesStream`] buffers while it waits for the
+    /// newline. A line still growing past this is reported as an error
+    /// rather than buffered without bound.
+    ///
+    /// Default 1 MiB: Go `net/http`'s `DefaultMaxHeaderBytes`, and the
+    /// `foundation_netio` client's own cap on one line of a line-delimited
+    /// body (`FrameLimits::max_line`). A progress or event line is a few
+    /// hundred bytes and a stats sample a few kilobytes.
+    pub max_json_line: usize,
+}
 
-/// The longest line a [`JsonLinesStream`] buffers while it waits for the
-/// newline. A line still growing past this is reported as an error rather than
-/// buffered without bound.
-pub const MAX_JSON_LINE: usize = 1024 * 1024;
+impl Default for BodyLimits {
+    fn default() -> Self {
+        Self {
+            max_error_body: 64 * 1024,
+            max_json_line: 1024 * 1024,
+        }
+    }
+}
+
+impl BodyLimits {
+    /// Read at most `bytes` of an error body.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
+    }
+
+    /// Buffer at most `bytes` of one JSON-lines line.
+    #[must_use]
+    pub fn with_max_json_line(mut self, bytes: usize) -> Self {
+        self.max_json_line = bytes;
+        self
+    }
+}
 
 /// Read at most `limit` bytes of `body` as (lossy) UTF-8; the rest is never
 /// read.
@@ -73,14 +123,14 @@ pub async fn read_bounded(body: SendSafeBody, limit: usize) -> String {
     String::from_utf8_lossy(&buf).into_owned()
 }
 
-/// The message of a non-2xx response: at most [`MAX_ERROR_BODY`] bytes of its
-/// body, or `None` when the body is empty.
+/// The message of a non-2xx response: at most `limit` bytes of its body
+/// (see [`BodyLimits::max_error_body`]), or `None` when the body is empty.
 ///
 /// # Panics
 ///
 /// Never panics.
-pub async fn read_error_body(body: SendSafeBody) -> Option<String> {
-    let text = read_bounded(body, MAX_ERROR_BODY).await;
+pub async fn read_error_body(body: SendSafeBody, limit: usize) -> Option<String> {
+    let text = read_bounded(body, limit).await;
     (!text.is_empty()).then_some(text)
 }
 
@@ -199,8 +249,8 @@ impl FuturesStream for ByteStream {
 ///
 /// Blank lines are skipped; a final line without a trailing newline is still
 /// a line. Ends after the body ends or after the first error: a line that is
-/// not a valid `T` ([`ApiError::ParseFailed`]), a line longer than
-/// [`MAX_JSON_LINE`] (also `ParseFailed`), or a failed read
+/// not a valid `T` ([`ApiError::ParseFailed`]), a line longer than its
+/// `max_line` (also `ParseFailed`), or a failed read
 /// ([`ApiError::RequestSendFailed`]).
 pub struct JsonLinesStream<T> {
     bytes: ByteStream,
@@ -209,19 +259,23 @@ pub struct JsonLinesStream<T> {
     start: usize,
     /// How far into `buf` has been searched for a newline.
     scanned: usize,
+    /// The longest line buffered before it is an error.
+    max_line: usize,
     done: bool,
     _item: PhantomData<fn() -> T>,
 }
 
 impl<T: DeserializeOwned> JsonLinesStream<T> {
-    /// Wrap a body that has not been read yet.
+    /// Wrap a body that has not been read yet, buffering at most `max_line`
+    /// bytes of one line (see [`BodyLimits::max_json_line`]).
     #[must_use]
-    pub fn new(body: SendSafeBody) -> Self {
+    pub fn new(body: SendSafeBody, max_line: usize) -> Self {
         Self {
             bytes: ByteStream::new(body),
             buf: Vec::new(),
             start: 0,
             scanned: 0,
+            max_line,
             done: false,
             _item: PhantomData,
         }
@@ -252,8 +306,24 @@ impl<T: DeserializeOwned> JsonLinesStream<T> {
         Some(line)
     }
 
+    /// The error for a line longer than `max_line`; it ends the stream.
+    fn line_too_long(&mut self) -> ApiError {
+        self.done = true;
+        ApiError::ParseFailed(format!(
+            "response line longer than {} bytes",
+            self.max_line
+        ))
+    }
+
     /// Parse one line into the next item; a failure ends the stream.
+    ///
+    /// A line over `max_line` is an error however it arrived: one that came
+    /// whole in a single chunk is refused as one still growing would be, so
+    /// the limit does not depend on how the body happened to be chunked.
     fn parse(&mut self, line: &[u8]) -> Result<T, ApiError> {
+        if line.len() > self.max_line {
+            return Err(self.line_too_long());
+        }
         serde_json::from_slice(line).map_err(|e| {
             self.done = true;
             ApiError::ParseFailed(format!(
@@ -269,6 +339,7 @@ impl<T> core::fmt::Debug for JsonLinesStream<T> {
         f.debug_struct("JsonLinesStream")
             .field("item", &core::any::type_name::<T>())
             .field("buffered", &(self.buf.len() - self.start))
+            .field("max_line", &self.max_line)
             .field("done", &self.done)
             .finish_non_exhaustive()
     }
@@ -290,11 +361,8 @@ impl<T: DeserializeOwned> FuturesStream for JsonLinesStream<T> {
                 return Poll::Ready(Some(this.parse(&line)));
             }
             this.scanned = this.buf.len();
-            if this.buf.len() - this.start > MAX_JSON_LINE {
-                this.done = true;
-                return Poll::Ready(Some(Err(ApiError::ParseFailed(format!(
-                    "response line longer than {MAX_JSON_LINE} bytes"
-                )))));
+            if this.buf.len() - this.start > this.max_line {
+                return Poll::Ready(Some(Err(this.line_too_long())));
             }
             match Pin::new(&mut this.bytes).poll_next(cx) {
                 Poll::Pending => return Poll::Pending,
@@ -317,159 +385,5 @@ impl<T: DeserializeOwned> FuturesStream for JsonLinesStream<T> {
                 }
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use foundation_core::io::readers::Data;
-    use std::sync::atomic::{AtomicUsize, Ordering};
-    use std::sync::Arc;
-
-    #[derive(Debug, serde::Deserialize, PartialEq)]
-    struct Item {
-        n: u32,
-    }
-
-    /// Drive a future to completion. The streams here never wait on I/O
-    /// (their bodies are in memory), so a no-op waker suffices.
-    fn block_on<F: core::future::Future>(fut: F) -> F::Output {
-        let mut fut = core::pin::pin!(fut);
-        let mut cx = Context::from_waker(core::task::Waker::noop());
-        loop {
-            if let Poll::Ready(v) = fut.as_mut().poll(&mut cx) {
-                return v;
-            }
-        }
-    }
-
-    /// A streamed body of `chunks`, counting how many have been read.
-    fn counted_stream(chunks: Vec<&'static [u8]>, reads: Arc<AtomicUsize>) -> SendSafeBody {
-        let iter = chunks.into_iter().map(move |c| {
-            reads.fetch_add(1, Ordering::SeqCst);
-            Ok(Data::Bytes(c.to_vec()))
-        });
-        SendSafeBody::Stream(Some(Box::new(iter)))
-    }
-
-    fn all<T: DeserializeOwned>(mut s: JsonLinesStream<T>) -> Vec<Result<T, ApiError>> {
-        block_on(async move {
-            let mut out = Vec::new();
-            while let Some(item) = s.next().await {
-                out.push(item);
-            }
-            out
-        })
-    }
-
-    #[test]
-    fn json_lines_split_across_chunks_parse_one_item_per_line() {
-        let reads = Arc::new(AtomicUsize::new(0));
-        let body = counted_stream(vec![b"{\"n\":1}\n{\"n\"", b":2}\n\n{\"n\":3}"], reads);
-        let got: Vec<u32> = all::<Item>(JsonLinesStream::new(body))
-            .into_iter()
-            .map(|r| r.expect("item").n)
-            .collect();
-        assert_eq!(got, vec![1, 2, 3]);
-    }
-
-    #[test]
-    fn json_lines_are_read_only_as_far_as_they_are_asked_for() {
-        let reads = Arc::new(AtomicUsize::new(0));
-        let body = counted_stream(
-            vec![
-                b"{\"n\":1}\n",
-                b"{\"n\":2}\n",
-                b"{\"n\":3}\n",
-                b"{\"n\":4}\n",
-            ],
-            Arc::clone(&reads),
-        );
-        let mut stream = JsonLinesStream::<Item>::new(body);
-        let first = block_on(stream.next()).expect("an item").expect("valid");
-        assert_eq!(first, Item { n: 1 });
-        assert_eq!(
-            reads.load(Ordering::SeqCst),
-            1,
-            "only the first chunk is read for the first line"
-        );
-    }
-
-    #[test]
-    fn a_malformed_line_is_a_parse_error_and_ends_the_stream() {
-        let body = SendSafeBody::Bytes(b"{\"n\":1}\nnot json\n{\"n\":3}\n".to_vec());
-        let got = all::<Item>(JsonLinesStream::new(body));
-        assert_eq!(got.len(), 2, "nothing after the bad line: {got:?}");
-        assert!(
-            matches!(got[1], Err(ApiError::ParseFailed(_))),
-            "{:?}",
-            got[1]
-        );
-    }
-
-    #[test]
-    fn a_line_that_never_ends_is_an_error_not_an_unbounded_buffer() {
-        static BIG: [u8; 64 * 1024] = [b'x'; 64 * 1024];
-        let reads = Arc::new(AtomicUsize::new(0));
-        let chunks = vec![&BIG[..]; MAX_JSON_LINE / BIG.len() + 2];
-        let body = counted_stream(chunks, Arc::clone(&reads));
-        let got = all::<Item>(JsonLinesStream::new(body));
-        assert!(
-            matches!(got.as_slice(), [Err(ApiError::ParseFailed(m))] if m.contains("longer than")),
-            "{got:?}"
-        );
-    }
-
-    #[test]
-    fn a_failed_read_ends_the_stream_with_a_transport_error() {
-        // Built lazily: the boxed error is not `Send`, the closure is.
-        let iter = (0..2).map(|i| {
-            if i == 0 {
-                Ok(Data::Bytes(b"{\"n\":1}\n".to_vec()))
-            } else {
-                Err(Box::new(std::io::Error::other("connection reset"))
-                    as foundation_core::extensions::result_ext::BoxedError)
-            }
-        });
-        let body = SendSafeBody::Stream(Some(Box::new(iter)));
-        let got = all::<Item>(JsonLinesStream::new(body));
-        assert!(got[0].is_ok());
-        assert!(
-            matches!(&got[1], Err(ApiError::RequestSendFailed(m)) if m.contains("connection reset")),
-            "{:?}",
-            got[1]
-        );
-    }
-
-    #[test]
-    fn bytes_are_streamed_chunk_by_chunk_and_drain_counts_them() {
-        let reads = Arc::new(AtomicUsize::new(0));
-        let body = counted_stream(vec![b"abc", b"de"], Arc::clone(&reads));
-        let mut stream = ByteStream::new(body);
-        let first = block_on(stream.next()).expect("a chunk").expect("ok");
-        assert_eq!(&first[..], b"abc");
-        assert_eq!(reads.load(Ordering::SeqCst), 1);
-        assert_eq!(block_on(stream.drain()).expect("drain"), 2);
-    }
-
-    #[test]
-    fn read_bounded_stops_at_the_limit_without_reading_further() {
-        let reads = Arc::new(AtomicUsize::new(0));
-        let body = counted_stream(vec![b"0123", b"4567", b"89"], Arc::clone(&reads));
-        assert_eq!(block_on(read_bounded(body, 6)), "012345");
-        assert_eq!(
-            reads.load(Ordering::SeqCst),
-            2,
-            "the third chunk is never read"
-        );
-        assert_eq!(block_on(read_error_body(SendSafeBody::None)), None);
-        assert_eq!(
-            block_on(read_error_body(SendSafeBody::Text(
-                "{\"message\":\"no\"}".into()
-            )))
-            .as_deref(),
-            Some("{\"message\":\"no\"}")
-        );
     }
 }

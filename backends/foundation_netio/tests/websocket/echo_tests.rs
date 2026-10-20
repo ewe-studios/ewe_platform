@@ -7,13 +7,11 @@ use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
 use serial_test::serial;
-use tracing_test::traced_test;
 
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 /// Test basic text message echo.
 #[test]
-#[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_text_message_echo() {
@@ -50,7 +48,6 @@ fn test_text_message_echo() {
 
 /// Test binary message echo.
 #[test]
-#[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_binary_message_echo() {
@@ -88,7 +85,6 @@ fn test_binary_message_echo() {
 
 /// Test multiple messages in sequence.
 #[test]
-#[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_multiple_messages_sequence() {
@@ -138,7 +134,6 @@ fn test_multiple_messages_sequence() {
 
 /// Test ping/pong exchange.
 #[test]
-#[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_ping_pong_exchange() {
@@ -176,7 +171,6 @@ fn test_ping_pong_exchange() {
 
 /// Test client-initiated close handshake.
 #[test]
-#[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_client_initiated_close() {
@@ -212,7 +206,6 @@ fn test_client_initiated_close() {
 
 /// Test large message handling.
 #[test]
-#[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_large_message_echo() {
@@ -251,7 +244,6 @@ fn test_large_message_echo() {
 
 /// Test very large message (4-byte extended length).
 #[test]
-#[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_very_large_message_echo() {
@@ -290,7 +282,6 @@ fn test_very_large_message_echo() {
 
 /// Test UTF-8 validation.
 #[test]
-#[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_utf8_text_messages() {
@@ -335,7 +326,6 @@ fn test_utf8_text_messages() {
 
 /// Test message iterator.
 #[test]
-#[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(valtron_pool)]
 fn test_message_iterator() {

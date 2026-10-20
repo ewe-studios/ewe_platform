@@ -56,9 +56,9 @@ use crate::valtron::{
 use crate::compati::{CondVarMutex, Condvar, Mutex, RwLock};
 use foundation_nostd::comp::condvar_comp::{CondVar, CondVarMutex as CvMutex};
 
-use crate::valtron::{split_thread_count, BackgroundJobRegistry, GenericResult};
-
-use crate::valtron::executors::background::DEFAULT_BG_YIELD_DURATION;
+use crate::valtron::{
+    split_thread_count, BackgroundJobConfig, BackgroundJobRegistry, GenericResult, ShutdownOutcome,
+};
 
 /// Global registry - stores the `ThreadRegistry` Arc.
 /// Uses Mutex<Option> to allow resetting between tests.
@@ -265,6 +265,43 @@ where
 ///
 /// The caller is responsible for signal handling via the `PoolGuard`.
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
+    initialize_pool_with_config(seed_for_rng, user_thread_num, PoolConfig::default())
+}
+
+/// Tunables for the multi-threaded pool beyond its seed and thread count.
+///
+/// WHY: Limits are configuration, not constants (CLAUDE.md rule 8).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PoolConfig {
+    /// The longest `PoolGuard::shutdown` waits for queued background jobs
+    /// before dropping the unstarted ones and detaching stuck workers. Default
+    /// [`BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT`].
+    pub background_shutdown_timeout: std::time::Duration,
+}
+
+impl Default for PoolConfig {
+    fn default() -> Self {
+        Self {
+            background_shutdown_timeout: BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT,
+        }
+    }
+}
+
+impl PoolConfig {
+    /// Set [`Self::background_shutdown_timeout`].
+    #[must_use]
+    pub fn with_background_shutdown_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.background_shutdown_timeout = timeout;
+        self
+    }
+}
+
+/// [`initialize_pool`] with explicit [`PoolConfig`] tunables.
+pub fn initialize_pool_with_config(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    config: PoolConfig,
+) -> PoolGuard {
     // Acquire the process-wide lifecycle gate FIRST — blocks (in FIFO order)
     // until any previous pool's PoolGuard has dropped. This serializes all pool
     // users (across test files, regardless of #[serial]) since the global
@@ -304,11 +341,11 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
             .expect("Failed to spawn worker thread");
     }
 
-    // Create background job registry sharing the kill signal
-    let bg_registry = BackgroundJobRegistry::new(
-        bg_threads,
-        registry.kill_signal(),
-        DEFAULT_BG_YIELD_DURATION,
+    // The background registry has its own lifecycle: `PoolGuard::shutdown`
+    // shuts it down (running every job it accepted) before the task workers.
+    let bg_registry = BackgroundJobRegistry::with_config(
+        BackgroundJobConfig::new(bg_threads)
+            .with_shutdown_timeout(config.background_shutdown_timeout),
     );
 
     let mut reg_guard = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
@@ -393,9 +430,11 @@ where
 /// Returned by `initialize_pool`. Provides deterministic cleanup.
 ///
 /// On drop (or explicit `shutdown()` call):
-/// 1. `OnSignal::turn_on()` — broadcast kill to all threads
-/// 2. `LockSignal::signal_all()` — wake any blocked/parked threads
-/// 3. `BackgroundJobRegistry::shutdown()` — wait for background workers
+/// 1. `BackgroundJobRegistry::shutdown()` — stop accepting background jobs,
+///    run the ones already queued, and join the background workers (first,
+///    while task workers are alive, since queued jobs may depend on them)
+/// 2. `OnSignal::turn_on()` — broadcast kill to all task threads
+/// 3. `LockSignal::signal_all()` — wake any blocked/parked threads
 /// 4. `WaitGroup::wait()` — block until all task threads report death
 /// 5. Join all `JoinHandle`s
 /// 6. Clear global registries ONLY if generation still matches
@@ -462,10 +501,23 @@ impl PoolGuard {
             .is_ok()
         {
             tracing::debug!("PoolGuard::shutdown() - signaling kill to all threads");
-            // Shut down background workers first (they share the kill signal)
+            // Shut down background workers first, while the task workers are
+            // still alive: queued background jobs may depend on them.
             if let Some(ref bg) = self.bg_registry {
                 tracing::debug!("PoolGuard::shutdown() - shutting down background workers");
-                bg.shutdown();
+                if let ShutdownOutcome::TimedOut {
+                    abandoned_jobs,
+                    busy_workers,
+                } = bg.shutdown()
+                {
+                    // Already logged by the registry; the pool carries on tearing
+                    // down the task workers rather than hanging on stuck jobs.
+                    tracing::warn!(
+                        abandoned_jobs,
+                        busy_workers,
+                        "PoolGuard::shutdown() - background shutdown timed out"
+                    );
+                }
             }
 
             self.registry.shutdown();

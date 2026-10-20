@@ -22,6 +22,15 @@
 //! A server passes a sink that writes to its connection
 //! ([`ConnectRpcHandler::dispatch_to`]); [`ConnectRpcHandler::dispatch`]
 //! collects into a [`CollectingSink`] for tests and in-process callers.
+//!
+//! Cancellation: every call's [`Ctx`] carries a [`CancelSignal`] that dispatch
+//! fires when the call ends early — the peer reset the stream or went away
+//! (the connection owner reports that through [`CallHooks`]), the request
+//! body failed, the response could not be written, or the call's deadline
+//! (`connect-timeout-ms` / `grpc-timeout`) passed. The handler's pending pipe
+//! operations wake on it, and so does anything awaiting `ctx.cancelled()`.
+//! A deadline is enforced with the [`DeadlineTimer`] the connection owner
+//! supplies and answered with `deadline_exceeded`.
 
 use std::io;
 use std::pin::Pin;
@@ -35,7 +44,9 @@ use foundation_core::valtron::Pipe;
 #[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::Stream;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
+use foundation_errstacks::ErrorTrace;
 use foundation_http::shared::context::ContextBag;
+use futures::future::{select, Either};
 use futures::StreamExt;
 // HTTP/2 dispatch is native-only (drives foundation_netio::http2). The h2 section
 // below is cfg-gated to match; on wasm the router serves H1 protocols only.
@@ -53,7 +64,7 @@ use foundation_netio::shared::http::{
 use crate::shared::context::{CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec};
 use crate::shared::error::{ConnectError, ConnectResult};
 use crate::shared::error_writer::ErrorWriter;
-use crate::shared::protocol::{ProtocolHandler, UnaryOutcome};
+use crate::shared::protocol::{ExchangeConfig, ProtocolHandler, UnaryOutcome};
 use crate::shared::transport::{
     check_compatible, requirements, BoxFuture, ProtocolKind, TransportCapabilities,
 };
@@ -91,6 +102,9 @@ impl ConnectRpcHandler {
     /// The request body is read from `request.body`. It must not need a
     /// connection to wait on: a body that reports "not ready yet" fails the
     /// read (see [`in_memory_body`]).
+    ///
+    /// No timer is attached, so a call deadline is not enforced here; use
+    /// [`Self::dispatch_to`] with [`CallHooks::with_timer`] for that.
     #[must_use]
     pub fn dispatch(
         &self,
@@ -102,7 +116,9 @@ impl ConnectRpcHandler {
             let proto = request.proto.clone();
             let body = in_memory_body(request.body.take());
             let mut sink = CollectingSink::default();
-            match dispatch_request(router, bag, request, body, &mut sink).await {
+            match dispatch_request(router, bag, request, body, &mut sink, CallHooks::default())
+                .await
+            {
                 Ok(()) => sink.into_response().unwrap_or_else(|| {
                     tracing::error!("dispatch finished without producing a response");
                     internal_error_response(proto)
@@ -123,17 +139,89 @@ impl ConnectRpcHandler {
     /// `request.body` is ignored; the connection owner hands the body over as
     /// `body` so that it can wait for the connection without blocking. Every
     /// RPC failure is rendered as a response; `Err` is only a failure of
-    /// `sink` itself (e.g. the peer went away).
+    /// `sink` itself (e.g. the peer went away), and it cancels the call.
+    ///
+    /// `hooks` carries the cancel signal the connection owner fires when the
+    /// peer goes away, and the timer that enforces the call's deadline.
     pub fn dispatch_to<'a>(
         &self,
         bag: Arc<ContextBag>,
         request: SimpleIncomingRequest,
         body: RequestBody<'a>,
         sink: &'a mut dyn ResponseSink,
+        hooks: CallHooks<'a>,
     ) -> BoxFuture<'a, io::Result<()>> {
         let router = self.router.clone();
-        Box::pin(dispatch_request(router, bag, request, body, sink))
+        Box::pin(dispatch_request(router, bag, request, body, sink, hooks))
     }
+}
+
+/// Waits until an instant: how dispatch enforces a call's deadline.
+///
+/// WHY: dispatch runs inside whatever drives the connection — a thread
+/// sleeping in `poll(2)` for HTTP/1.1, the valtron pool for HTTP/2 and
+/// HTTP/3 — and only that driver can wake it at a given time without a thread
+/// sleeping or spinning. Each connection owner supplies the timer that fits.
+pub trait DeadlineTimer: Send + Sync {
+    /// Resolve once `deadline` has passed.
+    fn sleep_until(&self, deadline: Instant) -> BoxFuture<'_, ()>;
+}
+
+/// What the connection owner gives dispatch besides the request: the call's
+/// cancel signal, which the owner fires when the peer goes away, and the timer
+/// that enforces the call's deadline.
+///
+/// The default has a fresh signal nobody else fires and no timer, so a
+/// deadline is not enforced.
+#[derive(Default)]
+pub struct CallHooks<'a> {
+    cancel: CancelSignal,
+    timer: Option<&'a dyn DeadlineTimer>,
+}
+
+impl<'a> CallHooks<'a> {
+    /// Hooks around `cancel`: the call's [`Ctx`] carries this signal, so
+    /// firing it cancels the call.
+    #[must_use]
+    pub fn new(cancel: CancelSignal) -> Self {
+        Self {
+            cancel,
+            timer: None,
+        }
+    }
+
+    /// Enforce the call's deadline with `timer`.
+    #[must_use]
+    pub fn with_timer(mut self, timer: &'a dyn DeadlineTimer) -> Self {
+        self.timer = Some(timer);
+        self
+    }
+}
+
+/// The [`DeadlineTimer`] for connection owners that run dispatch on valtron
+/// (HTTP/2, HTTP/3).
+#[cfg(not(target_family = "wasm"))]
+pub(crate) use crate::native::deadline_timer::ThreadTimer;
+
+/// Resolves when the call's deadline passes; never when there is no deadline
+/// or no timer to enforce it with.
+pub(crate) async fn deadline_expiry(timer: Option<&dyn DeadlineTimer>, deadline: Option<Instant>) {
+    match (timer, deadline) {
+        (Some(timer), Some(deadline)) => timer.sleep_until(deadline).await,
+        _ => std::future::pending().await,
+    }
+}
+
+pub(crate) fn deadline_exceeded() -> ErrorTrace<ConnectError> {
+    ConnectError::deadline_exceeded("the call's deadline passed").into()
+}
+
+/// The error response a call gets when its deadline passes before it answers.
+/// Built up front because the request is moved into the call.
+fn deadline_response(request: &SimpleIncomingRequest) -> SimpleOutgoingResponse {
+    let mut response = blank_response(request);
+    write_error(&mut response, request, &deadline_exceeded());
+    response
 }
 
 /// An incoming request body, chunk by chunk, as the connection delivers it.
@@ -369,6 +457,7 @@ async fn dispatch_request(
     request: SimpleIncomingRequest,
     body: RequestBody<'_>,
     sink: &mut dyn ResponseSink,
+    hooks: CallHooks<'_>,
 ) -> io::Result<()> {
     let path = extract_path(&request.request_url.url);
 
@@ -424,16 +513,18 @@ async fn dispatch_request(
         .compression
         .as_ref()
         .unwrap_or_else(|| router.global_compression());
-    let ctx = build_ctx(bag, &request, entry.spec.clone(), protocol);
+    let ctx = build_ctx(bag, &request, entry.spec.clone(), protocol, hooks.cancel);
     let spec = entry.spec.clone();
     let pipe_depth = entry.options.pipe_depth;
+    let timer = hooks.timer;
 
     // Move `request` (a `Send` value) into the run functions — the decision phase
     // above is fully synchronous, so no `&request` is held across an await (which
     // would poison `Send`, as `SimpleIncomingRequest` is not `Sync`).
     match &entry.handler {
         HandlerKind::Unary(handler) => {
-            let response = run_unary_body(
+            let cancel = ctx.cancel_signal().clone();
+            let response = run_unary_until_deadline(
                 handler.clone(),
                 protocol,
                 request,
@@ -442,9 +533,15 @@ async fn dispatch_request(
                 compression,
                 ctx,
                 entry.options.limits.read_max_bytes,
+                timer,
             )
             .await;
-            sink.whole(response).await
+            let written = sink.whole(response).await;
+            if written.is_err() {
+                // The peer is gone; anything the handler left running stops.
+                cancel.cancel();
+            }
+            written
         }
         HandlerKind::ServerStream(handler)
         | HandlerKind::ClientStream(handler)
@@ -459,26 +556,46 @@ async fn dispatch_request(
                 compression,
                 ctx,
                 pipe_depth,
+                entry.options.limits.read_max_bytes,
                 sink,
+                timer,
             )
             .await
         }
     }
 }
 
-/// Unary over a request whose body is already in `request.body` (h2, h3).
-/// See [`run_unary_body`].
-pub(crate) async fn run_unary(
+/// [`run_unary_body`] bounded by the call's deadline: when it passes first the
+/// call is cancelled, dropped, and answered with `deadline_exceeded`.
+#[allow(clippy::too_many_arguments)]
+pub(crate) async fn run_unary_until_deadline(
     handler: Arc<dyn super::erased::ErasedUnaryHandler>,
     protocol: &dyn ProtocolHandler,
-    mut request: SimpleIncomingRequest,
+    request: SimpleIncomingRequest,
+    body: RequestBody<'_>,
     codec_name: String,
     compression: &crate::shared::compression::CompressionRegistry,
     ctx: Ctx,
     read_max_bytes: usize,
+    timer: Option<&dyn DeadlineTimer>,
 ) -> SimpleOutgoingResponse {
-    let body = in_memory_body(request.body.take());
-    run_unary_body(
+    let deadline = ctx.request.deadline;
+    let (Some(timer), Some(deadline)) = (timer, deadline) else {
+        return run_unary_body(
+            handler,
+            protocol,
+            request,
+            body,
+            codec_name,
+            compression,
+            ctx,
+            read_max_bytes,
+        )
+        .await;
+    };
+    let cancel = ctx.cancel_signal().clone();
+    let timed_out = deadline_response(&request);
+    let call = std::pin::pin!(run_unary_body(
         handler,
         protocol,
         request,
@@ -487,6 +604,41 @@ pub(crate) async fn run_unary(
         compression,
         ctx,
         read_max_bytes,
+    ));
+    match select(call, timer.sleep_until(deadline)).await {
+        Either::Left((response, _)) => response,
+        Either::Right(((), _call)) => {
+            cancel.cancel();
+            timed_out
+        }
+    }
+}
+
+/// Unary over a request whose body is already in `request.body` (h2, h3),
+/// bounded by the call's deadline when `timer` is given. See
+/// [`run_unary_until_deadline`].
+#[allow(clippy::too_many_arguments)]
+pub(crate) async fn run_unary(
+    handler: Arc<dyn super::erased::ErasedUnaryHandler>,
+    protocol: &dyn ProtocolHandler,
+    mut request: SimpleIncomingRequest,
+    codec_name: String,
+    compression: &crate::shared::compression::CompressionRegistry,
+    ctx: Ctx,
+    read_max_bytes: usize,
+    timer: Option<&dyn DeadlineTimer>,
+) -> SimpleOutgoingResponse {
+    let body = in_memory_body(request.body.take());
+    run_unary_until_deadline(
+        handler,
+        protocol,
+        request,
+        body,
+        codec_name,
+        compression,
+        ctx,
+        read_max_bytes,
+        timer,
     )
     .await
 }
@@ -528,7 +680,7 @@ async fn run_unary_body(
             return response;
         }
     };
-    let decoded = protocol.decode_unary_request(&request, body, compression);
+    let decoded = protocol.decode_unary_request(&request, body, compression, read_max_bytes);
     let outcome: ConnectResult<UnaryOutcome> = match decoded {
         Ok(msg) => match handler.handle(ctx, &codec_name, msg).await {
             Ok((frame, headers, trailers)) => Ok(UnaryOutcome {
@@ -570,8 +722,10 @@ async fn run_unary_body(
 /// head has gone out, errors travel in-band, framed by the writer task.
 ///
 /// The response decides when the RPC is over:
-/// - a sink failure (the peer went away) ends it at once, dropping the
-///   handler, so an endless stream is released;
+/// - a sink failure (the peer went away) ends it at once, cancelling the call
+///   and dropping the handler, so an endless stream is released;
+/// - the call's deadline passing does the same, and the call is answered with
+///   `deadline_exceeded` (in band if the stream already started);
 /// - once the response side (writer task + handler) is done, a request side
 ///   still waiting on the peer is abandoned, as on h2. The connection owner
 ///   sees that the body was not read to its end and must not reuse the
@@ -587,14 +741,21 @@ async fn run_streaming(
     compression: &crate::shared::compression::CompressionRegistry,
     ctx: Ctx,
     pipe_depth: usize,
+    read_max_bytes: usize,
     sink: &mut dyn ResponseSink,
+    timer: Option<&dyn DeadlineTimer>,
 ) -> io::Result<()> {
-    use futures::future::{select, Either};
-
     let (req_tx, req_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
     let (resp_tx, resp_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
 
-    let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, compression) {
+    let cancel = ctx.cancel_signal().clone();
+    let deadline = ctx.request.deadline;
+    let config = ExchangeConfig {
+        compression,
+        cancel: cancel.clone(),
+        read_max_bytes,
+    };
+    let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, config) {
         Ok(exchange) => exchange,
         Err(e) => {
             let mut response = blank_response(&request);
@@ -609,26 +770,17 @@ async fn run_streaming(
     } = exchange;
 
     // Feed the request body into the protocol pipe as the reader consumes it.
-    // A body that fails part-way cancels the RPC: ending the pipe quietly would
+    // A body that fails part-way aborts the call: ending the pipe quietly would
     // look to the handler like a stream that finished normally.
-    let cancel = ctx.cancel_signal().clone();
     let feeder = async move {
         while let Some(chunk) = body.next().await {
-            match chunk {
-                Ok(bytes) => {
-                    // The reader task is gone: nobody wants the rest.
-                    if req_tx.send(bytes).await.is_err() {
-                        break;
-                    }
-                }
-                Err(e) => {
-                    tracing::warn!(error = %e, "request body stream failed; cancelling the RPC");
-                    cancel.cancel();
-                    break;
-                }
+            // The reader task is gone: nobody wants the rest.
+            if req_tx.send(chunk?).await.is_err() {
+                break;
             }
         }
         req_tx.close();
+        Ok::<(), io::Error>(())
     };
 
     let content_type = protocol.streaming_response_content_type(&request, &codec_name);
@@ -659,52 +811,221 @@ async fn run_streaming(
     };
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
-    let request_side = std::pin::pin!(futures::future::join(feeder, reader_task));
-    let response_side = std::pin::pin!(futures::future::join(writer_task, handler_fut));
-    let rest = std::pin::pin!(async move {
-        match select(request_side, response_side).await {
-            Either::Left((((), reader_res), response_side)) => {
-                let (writer_res, handler_res) = response_side.await;
-                (reader_res, writer_res, handler_res)
-            }
-            // The response is complete; stop reading a body the peer has not
-            // finished sending.
-            Either::Right(((writer_res, handler_res), _request_side)) => {
-                (Ok(()), writer_res, handler_res)
-            }
-        }
+    let request_side = futures::future::try_join(feeder, async {
+        Ok::<_, io::Error>(reader_task.await)
     });
+    let response_side = futures::future::join(writer_task, handler_fut);
+    let rest = std::pin::pin!(exchange_until_aborted(
+        request_side,
+        response_side,
+        deadline_expiry(timer, deadline),
+        std::future::pending::<()>(),
+    ));
     // Scoped so the pump's borrow of `sink` ends before the closing write.
-    let (opened, (reader_res, writer_res, handler_res)) = {
+    let (opened, end) = {
         let pump = std::pin::pin!(pump);
         match select(pump, rest).await {
-            // The peer is gone: drop the handler and everything else now.
-            Either::Left((Err(e), _rest)) => return Err(e),
+            // The peer is gone: cancel the call and drop everything now.
+            Either::Left((Err(e), _rest)) => {
+                cancel.cancel();
+                return Err(e);
+            }
             Either::Left((Ok(opened), rest)) => (opened, rest.await),
-            Either::Right((outcomes, pump)) => (pump.await?, outcomes),
+            // The writer has finished or been dropped, which ends the pump.
+            Either::Right((end, pump)) => match pump.await {
+                Ok(opened) => (opened, end),
+                Err(e) => {
+                    cancel.cancel();
+                    return Err(e);
+                }
+            },
         }
     };
 
-    if opened {
-        // The stream framed itself, including any in-band terminal error.
-        return sink.finish().await;
+    let failure = match end {
+        StreamEnd::Done {
+            reader,
+            writer,
+            handler,
+        } => {
+            if opened {
+                // The stream framed itself, unless the call failed without
+                // closing it: then end it in band with the error.
+                if let Some(e) = unclosed_stream_error(writer, handler) {
+                    if let Some(frame) = stream_error_frame(protocol, &request, &e) {
+                        sink.chunk(frame).await?;
+                    }
+                }
+                return sink.finish().await;
+            }
+            stream_failure(reader, writer, handler)
+        }
+        StreamEnd::Aborted(abort) => {
+            cancel.cancel();
+            match abort {
+                Abort::Deadline => Some(deadline_exceeded()),
+                Abort::BodyFailed(e) => Some(body_read_error(&e)),
+                // Not reachable here (nothing reports the peer gone), but a
+                // gone peer has nothing left to answer.
+                Abort::PeerGone => return Ok(()),
+            }
+        }
+    };
+
+    match failure {
+        Some(e) if opened => {
+            if let Some(frame) = stream_error_frame(protocol, &request, &e) {
+                sink.chunk(frame).await?;
+            }
+            sink.finish().await
+        }
+        Some(e) => {
+            let mut response = blank_response(&request);
+            write_error(&mut response, &request, &e);
+            sink.whole(response).await
+        }
+        None if opened => sink.finish().await,
+        None => {
+            // No frames and no error — an empty successful stream.
+            let mut response = blank_response(&request);
+            response.status = Status::OK;
+            response
+                .headers
+                .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
+            if let Some((name, enc)) = response_encoding {
+                response.headers.insert(SimpleHeader::from(name), vec![enc]);
+            }
+            response.body = Some(SendSafeBody::Bytes(Vec::new()));
+            sink.whole(response).await
+        }
     }
-    if let Some(e) = handler_res.err().or(writer_res.err()).or(reader_res.err()) {
-        let mut response = blank_response(&request);
-        write_error(&mut response, &request, &e);
-        return sink.whole(response).await;
+}
+
+/// How a streaming exchange ended.
+pub(crate) enum StreamEnd {
+    /// The response side finished; the outcome of each part. The reader's is
+    /// `Ok` when the request side was abandoned unfinished.
+    Done {
+        reader: ConnectResult<()>,
+        writer: ConnectResult<()>,
+        handler: ConnectResult<()>,
+    },
+    /// The call was cut short; its parts have been dropped.
+    Aborted(Abort),
+}
+
+/// Why a streaming exchange was cut short.
+pub(crate) enum Abort {
+    /// The call's deadline passed.
+    Deadline,
+    /// The request body could not be read.
+    BodyFailed(io::Error),
+    /// The peer reset the stream or went away; nothing can be sent.
+    PeerGone,
+}
+
+/// Run a streaming exchange — the request side (body feeder + protocol reader)
+/// and the response side (protocol writer + handler) — until the response side
+/// finishes, or the call is cut short by the request side failing, the
+/// deadline (`expiry`), or the peer going away (`gone`).
+///
+/// The response side alone decides a normal end: a peer may hold its request
+/// stream open until it sees the response end (a gRPC bidi peer like
+/// buildkitd's fsutil does), so once the response is complete the request
+/// side is abandoned (RFC 9113 lets a server end a stream whose request is
+/// still open).
+pub(crate) async fn exchange_until_aborted<Req, Resp, Expiry, Gone>(
+    request_side: Req,
+    response_side: Resp,
+    expiry: Expiry,
+    gone: Gone,
+) -> StreamEnd
+where
+    Req: std::future::Future<Output = Result<((), ConnectResult<()>), io::Error>>,
+    Resp: std::future::Future<Output = (ConnectResult<()>, ConnectResult<()>)>,
+    Expiry: std::future::Future<Output = ()>,
+    Gone: std::future::Future<Output = ()>,
+{
+    let request_side = std::pin::pin!(request_side);
+    let response_side = std::pin::pin!(response_side);
+    let exchange = std::pin::pin!(async move {
+        match select(request_side, response_side).await {
+            Either::Left((Ok(((), reader)), response_side)) => {
+                let (writer, handler) = response_side.await;
+                StreamEnd::Done {
+                    reader,
+                    writer,
+                    handler,
+                }
+            }
+            Either::Left((Err(e), _response_side)) => StreamEnd::Aborted(Abort::BodyFailed(e)),
+            Either::Right(((writer, handler), _request_side)) => StreamEnd::Done {
+                reader: Ok(()),
+                writer,
+                handler,
+            },
+        }
+    });
+    let expiry = std::pin::pin!(expiry);
+    let gone = std::pin::pin!(gone);
+    let cut_short = select(expiry, gone);
+    match select(exchange, cut_short).await {
+        Either::Left((end, _)) => end,
+        Either::Right((Either::Left(_), _exchange)) => StreamEnd::Aborted(Abort::Deadline),
+        Either::Right((Either::Right(_), _exchange)) => StreamEnd::Aborted(Abort::PeerGone),
     }
-    // No frames and no error — an empty successful stream.
-    let mut response = blank_response(&request);
-    response.status = Status::OK;
-    response
-        .headers
-        .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
-    if let Some((name, enc)) = response_encoding {
-        response.headers.insert(SimpleHeader::from(name), vec![enc]);
+}
+
+/// The error to end an already-started stream with when the call failed
+/// without closing it (a closing handler returns `Ok`). A writer failure is the
+/// cause of the handler's (its sends fail once the writer is gone), so it wins.
+pub(crate) fn unclosed_stream_error(
+    writer: ConnectResult<()>,
+    handler: ConnectResult<()>,
+) -> Option<ErrorTrace<ConnectError>> {
+    match (writer, handler) {
+        (Err(writer), Err(_)) => Some(writer),
+        (Ok(()), Err(handler)) => Some(handler),
+        (_, Ok(())) => None,
     }
-    response.body = Some(SendSafeBody::Bytes(Vec::new()));
-    sink.whole(response).await
+}
+
+/// The error a stream that produced nothing failed with, if any.
+pub(crate) fn stream_failure(
+    reader: ConnectResult<()>,
+    writer: ConnectResult<()>,
+    handler: ConnectResult<()>,
+) -> Option<ErrorTrace<ConnectError>> {
+    handler.err().or(writer.err()).or(reader.err())
+}
+
+/// The RPC error for a request body that could not be read.
+pub(crate) fn body_read_error(error: &io::Error) -> ErrorTrace<ConnectError> {
+    tracing::warn!(error = %error, "request body stream failed; cancelling the RPC");
+    let code = if error.kind() == io::ErrorKind::TimedOut {
+        crate::shared::error::Code::DeadlineExceeded
+    } else {
+        crate::shared::error::Code::Canceled
+    };
+    ConnectError::new(code, format!("request body could not be read: {error}")).into()
+}
+
+/// The bytes that end an already-started stream with `error`, in band, if the
+/// protocol frames its outcome in the body. Built before any write so no
+/// borrow of the request is held across an await.
+pub(crate) fn stream_error_frame(
+    protocol: &dyn ProtocolHandler,
+    request: &SimpleIncomingRequest,
+    error: &ErrorTrace<ConnectError>,
+) -> Option<Bytes> {
+    match protocol.encode_stream_error(request, error) {
+        Ok(frame) => frame,
+        Err(e) => {
+            // The stream still ends; the peer sees it end without a status.
+            tracing::error!(error = ?e, "could not encode the stream's terminal error");
+            None
+        }
+    }
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -757,12 +1078,14 @@ pub(crate) fn capabilities_for(proto: &Proto) -> TransportCapabilities {
     }
 }
 
-/// Build the per-call [`Ctx`] the dispatcher hands the handler.
+/// Build the per-call [`Ctx`] the dispatcher hands the handler, around the
+/// call's `cancel` signal.
 pub(crate) fn build_ctx(
     bag: Arc<ContextBag>,
     request: &SimpleIncomingRequest,
     spec: Spec,
     protocol: &dyn ProtocolHandler,
+    cancel: CancelSignal,
 ) -> Ctx {
     let deadline = protocol
         .parse_timeout(&request.headers)
@@ -783,7 +1106,7 @@ pub(crate) fn build_ctx(
         deadline,
         foundation_netio::shared::http::Extensions::new(),
         request.connection.clone(),
-        CancelSignal::new(),
+        cancel,
     );
     Ctx {
         bag,
@@ -1054,32 +1377,66 @@ async fn send_whole_response(
 #[cfg(not(target_family = "wasm"))]
 enum H2Body {
     Collected(Vec<u8>),
-    /// The peer reset the stream.
+    /// The peer reset the stream, or the connection dropped it.
     Reset,
     /// The body passed `read_max_bytes`; carries the size read so far.
     TooLarge(usize),
+}
+
+/// The next request DATA chunk of an h2 stream: `Ok(None)` once the peer set
+/// `END_STREAM`, and an error when the peer reset the stream or the
+/// connection dropped it — never a clean end.
+///
+/// The connection closes the stream's response pipe (`tx`) before its body
+/// pipe when it drops a stream, so a body pipe that closes under a closed
+/// response pipe is a cancelled stream, not `END_STREAM`.
+#[cfg(not(target_family = "wasm"))]
+async fn next_h2_chunk(
+    body: &PipeReceiver<H2IncomingFrame>,
+    tx: &PipeSender<H2Frame>,
+) -> io::Result<Option<Bytes>> {
+    match body.receive().await {
+        Some(H2IncomingFrame::Data(chunk)) => Ok(Some(chunk)),
+        Some(H2IncomingFrame::Reset(code)) => Err(io::Error::new(
+            io::ErrorKind::ConnectionReset,
+            format!("the peer reset the h2 stream ({code:?})"),
+        )),
+        None if tx.is_closed() => Err(io::Error::new(
+            io::ErrorKind::ConnectionReset,
+            "the h2 stream was dropped before its request ended",
+        )),
+        None => Ok(None),
+    }
 }
 
 /// Drain the inbound h2 body pipe into a buffer (unary: exactly one message),
 /// stopping as soon as it passes `max_bytes` (`0` means unlimited) so an
 /// oversized body is never held whole.
 ///
-/// A peer RST_STREAM ends collection early; the caller abandons the stream.
+/// A peer RST_STREAM (or a dropped stream) ends collection early; the caller
+/// abandons the stream.
 #[cfg(not(target_family = "wasm"))]
-async fn collect_h2_body(body: &PipeReceiver<H2IncomingFrame>, max_bytes: usize) -> H2Body {
+async fn collect_h2_body(
+    body: &PipeReceiver<H2IncomingFrame>,
+    tx: &PipeSender<H2Frame>,
+    max_bytes: usize,
+) -> H2Body {
     let mut out = Vec::new();
-    while let Some(frame) = body.receive().await {
-        match frame {
-            H2IncomingFrame::Data(chunk) => {
+    loop {
+        match next_h2_chunk(body, tx).await {
+            Ok(Some(chunk)) => {
                 out.extend_from_slice(&chunk);
                 if max_bytes > 0 && out.len() > max_bytes {
                     return H2Body::TooLarge(out.len());
                 }
             }
-            H2IncomingFrame::Reset(_) => return H2Body::Reset,
+            Ok(None) => return H2Body::Collected(out),
+            Err(e) => {
+                tracing::debug!(error = %e, "h2 unary request abandoned");
+                return H2Body::Reset;
+            }
         }
     }
-    H2Body::Collected(out)
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -1090,6 +1447,10 @@ impl ConnectRpcHandler {
     /// `SimpleOutgoingResponse` for streaming procedures — response frames are
     /// pushed into `tx` as the handler produces them, and request DATA frames
     /// are forwarded into the protocol's byte pipe as they arrive.
+    ///
+    /// The call is cancelled — its `Ctx` fires and the handler is dropped — when
+    /// the peer resets the stream, the connection drops it (`tx` closes), or
+    /// the call's deadline passes (answered with `deadline_exceeded`).
     pub fn dispatch_h2(
         &self,
         bag: Arc<ContextBag>,
@@ -1159,7 +1520,13 @@ async fn dispatch_h2_stream(
         .compression
         .as_ref()
         .unwrap_or_else(|| router.global_compression());
-    let ctx = build_ctx(bag, &request, entry.spec.clone(), protocol);
+    let ctx = build_ctx(
+        bag,
+        &request,
+        entry.spec.clone(),
+        protocol,
+        CancelSignal::new(),
+    );
     let spec = entry.spec.clone();
     let pipe_depth = entry.options.pipe_depth;
 
@@ -1168,37 +1535,61 @@ async fn dispatch_h2_stream(
             // Unary carries exactly one message: collect it, then reuse the
             // sequential unary path.
             let read_max_bytes = entry.options.limits.read_max_bytes;
-            let collected = match collect_h2_body(&body, read_max_bytes).await {
-                H2Body::Collected(collected) => collected,
-                // Peer reset the stream — nothing to answer.
-                H2Body::Reset => return Ok(()),
-                H2Body::TooLarge(len) => {
-                    tracing::warn!(
-                        len,
+            let cancel = ctx.cancel_signal().clone();
+            let deadline = ctx.request.deadline;
+            let timed_out = deadline.map(|_| deadline_response(&request));
+            let too_large = status_only(&request, Status::PayloadTooLarge);
+            let handler = handler.clone();
+            let (body, tx_ref) = (&body, &tx);
+            let call = std::pin::pin!(async move {
+                let collected = match collect_h2_body(body, tx_ref, read_max_bytes).await {
+                    H2Body::Collected(collected) => collected,
+                    // The peer reset the stream — nothing to answer.
+                    H2Body::Reset => return None,
+                    H2Body::TooLarge(len) => {
+                        tracing::warn!(
+                            len,
+                            read_max_bytes,
+                            "request body exceeded read_max_bytes; returning 413"
+                        );
+                        return Some(too_large);
+                    }
+                };
+                let mut request = request;
+                request.body = Some(SendSafeBody::Bytes(collected));
+                Some(
+                    run_unary(
+                        handler,
+                        protocol,
+                        request,
+                        codec_name,
+                        compression,
+                        ctx,
                         read_max_bytes,
-                        "request body exceeded read_max_bytes; returning 413"
-                    );
-                    return send_whole_response(
-                        &tx,
-                        status_only(&request, Status::PayloadTooLarge),
+                        // The deadline is enforced below, over the body read too.
+                        None,
                     )
-                    .await;
+                    .await,
+                )
+            });
+            let expiry = std::pin::pin!(deadline_expiry(Some(&ThreadTimer), deadline));
+            let gone = std::pin::pin!(tx.closed());
+            let cut_short = select(expiry, gone);
+            match select(call, cut_short).await {
+                Either::Left((Some(response), _)) => send_whole_response(&tx, response).await,
+                Either::Left((None, _)) | Either::Right((Either::Right(_), _)) => {
+                    // Reset by the peer, or dropped by the connection.
+                    cancel.cancel();
+                    Ok(())
                 }
-            };
-            let mut request = request;
-            request.body = Some(SendSafeBody::Bytes(collected));
-
-            let response = run_unary(
-                handler.clone(),
-                protocol,
-                request,
-                codec_name,
-                compression,
-                ctx,
-                entry.options.limits.read_max_bytes,
-            )
-            .await;
-            send_whole_response(&tx, response).await
+                Either::Right((Either::Left(_), _call)) => {
+                    cancel.cancel();
+                    match timed_out {
+                        Some(response) => send_whole_response(&tx, response).await,
+                        None => Ok(()),
+                    }
+                }
+            }
         }
         HandlerKind::ServerStream(handler)
         | HandlerKind::ClientStream(handler)
@@ -1212,6 +1603,7 @@ async fn dispatch_h2_stream(
                 compression,
                 ctx,
                 pipe_depth,
+                entry.options.limits.read_max_bytes,
                 body,
                 &tx,
             )
@@ -1223,6 +1615,11 @@ async fn dispatch_h2_stream(
 /// Streaming over h2: request DATA frames feed the protocol's byte pipe while
 /// the protocol's output pipe drains into response DATA frames — concurrently,
 /// so a bidi handler can read and write at the same time.
+///
+/// A peer reset, the connection dropping the stream, or a failed write cancels
+/// the call and drops the handler; nothing more is sent. The call's deadline
+/// passing does the same, but the call is still answered with
+/// `deadline_exceeded`.
 #[allow(clippy::too_many_arguments)]
 #[cfg(not(target_family = "wasm"))]
 async fn run_streaming_h2(
@@ -1234,13 +1631,21 @@ async fn run_streaming_h2(
     compression: &crate::shared::compression::CompressionRegistry,
     ctx: Ctx,
     pipe_depth: usize,
+    read_max_bytes: usize,
     body: PipeReceiver<H2IncomingFrame>,
     tx: &PipeSender<H2Frame>,
 ) -> io::Result<()> {
     let (req_tx, req_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
     let (resp_tx, resp_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
 
-    let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, compression) {
+    let cancel = ctx.cancel_signal().clone();
+    let deadline = ctx.request.deadline;
+    let config = ExchangeConfig {
+        compression,
+        cancel: cancel.clone(),
+        read_max_bytes,
+    };
+    let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, config) {
         Ok(exchange) => exchange,
         Err(e) => {
             let mut response = blank_response(&request);
@@ -1254,30 +1659,30 @@ async fn run_streaming_h2(
         writer_task,
     } = exchange;
 
-    // Forward inbound DATA frames as they arrive — no buffering of the body.
+    // Forward inbound DATA frames as they arrive — no buffering of the body. A
+    // reset is not an end of the body: it aborts the call.
     let feeder = async {
-        while let Some(frame) = body.receive().await {
-            match frame {
-                H2IncomingFrame::Data(chunk) => {
-                    if req_tx.send(chunk).await.is_err() {
-                        break;
-                    }
-                }
-                H2IncomingFrame::Reset(_) => break,
+        while let Some(chunk) = next_h2_chunk(&body, tx).await? {
+            if req_tx.send(chunk).await.is_err() {
+                break;
             }
         }
         req_tx.close();
+        Ok::<(), io::Error>(())
     };
 
     // Forward framed response bytes out as DATA frames. HEADERS are withheld
     // until the first chunk so that a handler which fails before emitting
-    // anything can still be reported with a real status.
+    // anything can still be reported with a real status. The pump owns
+    // `resp_rx`, so when it stops the writer task's sends fail instead of
+    // waiting on a full pipe forever.
     let content_type = protocol.streaming_response_content_type(&request, &codec_name);
     // The writer task compressed per this same negotiation — a flagged envelope
     // is only valid when the encoding header goes out with the response HEADERS.
     let response_encoding = protocol.streaming_response_encoding(&request, compression);
     let pump_content_type = content_type.clone();
     let pump = async {
+        let resp_rx = resp_rx;
         let mut opened = false;
         while let Some(chunk) = resp_rx.receive().await {
             if !opened {
@@ -1309,39 +1714,88 @@ async fn run_streaming_h2(
 
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
-    // The request side (feeder + reader) lives as long as the CLIENT keeps its
-    // request stream open — a gRPC bidi peer like buildkitd's fsutil holds it
-    // open until it sees OUR trailers. Joining on it before closing the
-    // response therefore deadlocks (both sides waiting on the other). The
-    // response side alone decides the RPC outcome: race the two, and if the
-    // response finishes first, abandon the request side (the stream is over;
-    // RFC 9113 lets the server end a stream with a half-open request).
-    let request_side = std::pin::pin!(async { futures::join!(feeder, reader_task) });
-    let response_side = std::pin::pin!(async { futures::join!(writer_task, handler_fut, pump) });
-    let (reader_res, writer_res, handler_res, pumped) =
-        match futures::future::select(request_side, response_side).await {
-            futures::future::Either::Left(((_, reader_res), response_side)) => {
-                let (writer_res, handler_res, pumped) = response_side.await;
-                (reader_res, writer_res, handler_res, pumped)
+    let request_side = futures::future::try_join(feeder, async {
+        Ok::<_, io::Error>(reader_task.await)
+    });
+    let response_side = futures::future::join(writer_task, handler_fut);
+    let rest = std::pin::pin!(exchange_until_aborted(
+        request_side,
+        response_side,
+        deadline_expiry(Some(&ThreadTimer), deadline),
+        tx.closed(),
+    ));
+    let (opened, end) = {
+        let pump = std::pin::pin!(pump);
+        match select(pump, rest).await {
+            // The stream is gone: cancel the call and drop everything now.
+            Either::Left((Err(e), _rest)) => {
+                cancel.cancel();
+                return Err(e);
             }
-            futures::future::Either::Right(((writer_res, handler_res, pumped), _)) => {
-                (Ok(()), writer_res, handler_res, pumped)
-            }
-        };
+            Either::Left((Ok(opened), rest)) => (opened, rest.await),
+            // The writer has finished or been dropped, which ends the pump.
+            Either::Right((end, pump)) => match pump.await {
+                Ok(opened) => (opened, end),
+                Err(e) => {
+                    cancel.cancel();
+                    return Err(e);
+                }
+            },
+        }
+    };
 
-    let outcome_err = handler_res.err().or(writer_res.err()).or(reader_res.err());
+    let is_grpc = protocol.kind() == ProtocolKind::Grpc;
+    let failure = match end {
+        StreamEnd::Aborted(Abort::PeerGone | Abort::BodyFailed(_)) => {
+            // Reset by the peer or dropped by the connection: nothing more can
+            // be sent on this stream.
+            cancel.cancel();
+            return Ok(());
+        }
+        StreamEnd::Aborted(Abort::Deadline) => {
+            cancel.cancel();
+            Some(deadline_exceeded())
+        }
+        // An opened Connect / gRPC-Web stream framed its own outcome unless the
+        // call failed without closing it.
+        StreamEnd::Done {
+            writer, handler, ..
+        } if opened && !is_grpc => unclosed_stream_error(writer, handler),
+        StreamEnd::Done {
+            reader,
+            writer,
+            handler,
+        } => stream_failure(reader, writer, handler),
+    };
 
-    if pumped? {
+    if opened {
         // The response HEADERS are out. Close the stream per the protocol:
         // gRPC's outcome rides trailing HEADERS (`grpc-status`), and grpc-go
         // hangs/errors on a stream that ends without them. Connect and
         // gRPC-Web carry their terminal frame in-band (EndStreamResponse /
-        // 0x80 trailer frame — already written by the protocol writer task),
-        // so a bare END_STREAM DATA closes those.
-        let closing = if protocol.kind() == ProtocolKind::Grpc {
-            H2Frame::Trailers { headers: grpc_status_trailers(outcome_err.as_ref()) }
+        // 0x80 trailer frame — written by the protocol writer task, or here
+        // when the call failed without closing its stream), so a bare
+        // END_STREAM DATA closes those.
+        let closing = if is_grpc {
+            H2Frame::Trailers {
+                headers: grpc_status_trailers(failure.as_ref()),
+            }
         } else {
-            H2Frame::Data { payload: Bytes::new(), end_stream: true }
+            if let Some(frame) = failure
+                .as_ref()
+                .and_then(|e| stream_error_frame(protocol, &request, e))
+            {
+                tx.send(H2Frame::Data {
+                    payload: frame,
+                    end_stream: false,
+                })
+                .await
+                .map_err(stream_gone)?;
+            }
+            H2Frame::Data {
+                payload: Bytes::new(),
+                end_stream: true,
+            }
         };
         tx.send(closing).await.map_err(stream_gone)?;
         return Ok(());
@@ -1349,14 +1803,14 @@ async fn run_streaming_h2(
 
     // Nothing was emitted: report the failure, or an empty successful stream.
     let mut response = blank_response(&request);
-    if let Some(e) = outcome_err {
+    if let Some(e) = failure {
         write_error(&mut response, &request, &e);
     } else {
         response.status = Status::OK;
         response
             .headers
             .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
-        if protocol.kind() == ProtocolKind::Grpc {
+        if is_grpc {
             // A gRPC stream with zero messages is still a gRPC response — it
             // MUST end in `grpc-status` trailers or the client reports
             // `Unknown` with an empty message (bit BuildKit's FileSend sink,

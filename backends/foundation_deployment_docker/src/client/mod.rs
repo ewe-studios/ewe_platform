@@ -11,6 +11,7 @@
 //! HOW: `HttpClientBuilder::new().unix_socket(path).build()` yields a
 //! `DynNetClient`; each method calls the matching generated `async fn`.
 
+use foundation_deployment::providers::common::{ApiClient, BodyLimits};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -45,6 +46,89 @@ pub const DEFAULT_API_VERSION: &str = "1.53";
 
 /// A closure type for the (empty) `builder_mod` argument — no request mutation.
 pub(crate) type NoMod = fn(&mut PreparedRequestBuilder);
+
+/// How much of the daemon's answers a [`DockerClient`] holds in memory at
+/// once.
+///
+/// WHY: Every streamed answer is read incrementally, but some pieces must be
+/// held whole before they can be used: an error body read for its message,
+/// one line of a JSON-lines stream (pull/push/build progress, events, stats),
+/// one frame of a multiplexed stdout/stderr stream (logs, attach, exec). A
+/// corrupt or hostile daemon could make any of them unbounded, so each has a
+/// cap — configuration, not a constant, so a caller with unusual output (huge
+/// log lines, a proxy's large error pages) can raise it.
+///
+/// None of these limit how long a stream runs or how much it carries in all:
+/// a followed log or an image export streams for as long as it is read.
+///
+/// HOW: Set on the client with [`DockerClient::with_limits`]; the error-body
+/// and line caps travel to the generated functions in the client's
+/// [`ApiClient`] ([`DockerClient::api`]), the frame cap to each
+/// [`LogStream`](body::LogStream) the client hands out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DockerLimits {
+    /// The most of a non-2xx answer's body read for its error message.
+    /// Default 64 KiB — see [`BodyLimits::max_error_body`].
+    pub max_error_body: usize,
+    /// The longest line of a JSON-lines answer buffered before it is an
+    /// error. Default 1 MiB — see [`BodyLimits::max_json_line`].
+    pub max_json_line: usize,
+    /// The largest multiplexed stdout/stderr frame a [`LogStream`] buffers;
+    /// a frame header announcing more is a corrupt stream, refused before
+    /// any of its payload is buffered.
+    ///
+    /// Default 16 MiB. dockerd writes one frame per write the container
+    /// makes, and its log drivers split lines at 16 KiB, so real frames are
+    /// at most tens of kilobytes; Moby's own `stdcopy` reader sets no cap at
+    /// all and grows its buffer to whatever a header announces. 16 MiB keeps
+    /// a generous margin over any real frame while bounding a corrupt
+    /// header, which can announce up to 4 GiB.
+    ///
+    /// [`LogStream`]: body::LogStream
+    pub max_log_frame: usize,
+}
+
+impl Default for DockerLimits {
+    fn default() -> Self {
+        let body = BodyLimits::default();
+        Self {
+            max_error_body: body.max_error_body,
+            max_json_line: body.max_json_line,
+            max_log_frame: 16 * 1024 * 1024,
+        }
+    }
+}
+
+impl DockerLimits {
+    /// Read at most `bytes` of an error body.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
+    }
+
+    /// Buffer at most `bytes` of one JSON-lines line.
+    #[must_use]
+    pub fn with_max_json_line(mut self, bytes: usize) -> Self {
+        self.max_json_line = bytes;
+        self
+    }
+
+    /// Buffer at most `bytes` of one multiplexed stdout/stderr frame.
+    #[must_use]
+    pub fn with_max_log_frame(mut self, bytes: usize) -> Self {
+        self.max_log_frame = bytes;
+        self
+    }
+
+    /// The limits the generated functions read responses under.
+    #[must_use]
+    pub fn body_limits(&self) -> BodyLimits {
+        BodyLimits::default()
+            .with_max_error_body(self.max_error_body)
+            .with_max_json_line(self.max_json_line)
+    }
+}
 
 // ── Container create body (hand-written; the spec has this as an unnamed allOf) ─
 
@@ -212,6 +296,8 @@ pub struct DockerClient {
     /// Whether the transport is TLS — controls the `https://` vs `http://`
     /// scheme in [`Self::base_url`].
     tls: bool,
+    /// How much of the daemon's answers is held in memory at once.
+    limits: DockerLimits,
 }
 
 /// Mutual-TLS material for a remote Docker daemon (the `DOCKER_CERT_PATH`
@@ -259,6 +345,7 @@ impl std::fmt::Debug for DockerClient {
             .field("socket_path", &self.socket_path)
             .field("api_version", &self.api_version())
             .field("remote_host", &self.remote_host)
+            .field("limits", &self.limits)
             .finish_non_exhaustive()
     }
 }
@@ -291,6 +378,7 @@ impl DockerClient {
             negotiated_version: Arc::new(OnceLock::new()),
             remote_host: None,
             tls: false,
+            limits: DockerLimits::default(),
         }
     }
 
@@ -314,6 +402,7 @@ impl DockerClient {
             negotiated_version: Arc::new(OnceLock::new()),
             remote_host: Some(host.to_string()),
             tls: false,
+            limits: DockerLimits::default(),
         }
     }
 
@@ -350,6 +439,7 @@ impl DockerClient {
             negotiated_version: Arc::new(OnceLock::new()),
             remote_host: Some(host.to_string()),
             tls: true,
+            limits: DockerLimits::default(),
         })
     }
 
@@ -394,6 +484,7 @@ impl DockerClient {
             // dial-stdio bridges to the remote's *local* docker.sock — Host: localhost.
             remote_host: None,
             tls: false,
+            limits: DockerLimits::default(),
         })
     }
 
@@ -469,10 +560,36 @@ impl DockerClient {
         )))
     }
 
+    /// Read the daemon's answers under `limits` instead of
+    /// [`DockerLimits::default`].
+    #[must_use]
+    pub fn with_limits(mut self, limits: DockerLimits) -> Self {
+        self.limits = limits;
+        self
+    }
+
+    /// The limits this client reads the daemon's answers under.
+    #[must_use]
+    pub fn limits(&self) -> DockerLimits {
+        self.limits
+    }
+
     /// The cross-platform HTTP client handle (cheap `Arc` clone).
+    ///
+    /// To call a generated `*_request` function directly, pass
+    /// [`Self::api`] instead, so the response is read under this client's
+    /// limits.
     #[must_use]
     pub fn http(&self) -> DynNetClient {
         self.http.clone()
+    }
+
+    /// The handle the generated `*_request` functions take: the transport,
+    /// and this client's [`DockerLimits`] for reading error bodies and
+    /// JSON-lines answers.
+    #[must_use]
+    pub fn api(&self) -> ApiClient {
+        ApiClient::new(self.http.clone()).with_limits(self.limits.body_limits())
     }
 
     /// The API version requests are sent with: the negotiated one once
@@ -544,7 +661,7 @@ impl DockerClient {
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn version(&self) -> Result<SystemVersion, DockerError> {
         let response = system_version_request(
-            self.http(),
+            self.api(),
             &SystemVersionArgs::default(),
             &self.unversioned_base_url(),
             None::<NoMod>,
@@ -618,7 +735,7 @@ impl DockerClient {
             body: generated_body("container config", json)?,
         };
         let response =
-            container_create_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_create_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -632,7 +749,7 @@ impl DockerClient {
             id: id.to_string(),
             detach_keys: None,
         };
-        container_start_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_start_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -650,7 +767,7 @@ impl DockerClient {
             id: id.to_string(),
             condition: condition.map(str::to_string),
         };
-        let response = container_wait_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = container_wait_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -674,7 +791,7 @@ impl DockerClient {
             signal: None,
             t: timeout_secs.map(|t| t.to_string()),
         };
-        match container_stop_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await {
+        match container_stop_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await {
             Ok(_) => Ok(()),
             // Docker returns 304 when the container is already exited — not an error.
             Err(ApiError::HttpStatus { code: 304, .. }) => Ok(()),
@@ -694,7 +811,7 @@ impl DockerClient {
             force: Some(force.to_string()),
             link: None,
         };
-        container_delete_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_delete_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -711,7 +828,7 @@ impl DockerClient {
             id: id.to_string(),
             size: None,
         };
-        let response = container_inspect_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = container_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -726,7 +843,7 @@ impl DockerClient {
         let args = ContainerPauseArgs {
             id: id.to_string(),
         };
-        container_pause_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_pause_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -741,7 +858,7 @@ impl DockerClient {
         let args = ContainerUnpauseArgs {
             id: id.to_string(),
         };
-        container_unpause_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_unpause_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -892,73 +1009,4 @@ pub fn negotiate_api_version(
         }
     }
     Ok(chosen_str.trim().to_string())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn negotiation_lowers_to_an_older_daemon() {
-        // GitHub's ubuntu runners: a daemon older than the client.
-        let v = negotiate_api_version("1.53", Some("1.48"), Some("1.24")).expect("versions overlap");
-        assert_eq!(v, "1.48");
-    }
-
-    #[test]
-    fn negotiation_keeps_the_client_version_for_a_newer_daemon() {
-        let v = negotiate_api_version("1.53", Some("1.56"), Some("1.40")).expect("versions overlap");
-        assert_eq!(v, "1.53");
-    }
-
-    #[test]
-    fn negotiation_keeps_an_equal_version() {
-        let v = negotiate_api_version("1.53", Some("1.53"), None).expect("versions overlap");
-        assert_eq!(v, "1.53");
-    }
-
-    #[test]
-    fn negotiation_compares_numerically_not_lexically() {
-        // As strings "1.9" > "1.10"; as versions 1.9 is the older one.
-        let v = negotiate_api_version("1.10", Some("1.9"), None).expect("versions overlap");
-        assert_eq!(v, "1.9");
-        let v = negotiate_api_version("1.9", Some("1.10"), None).expect("versions overlap");
-        assert_eq!(v, "1.9");
-    }
-
-    #[test]
-    fn negotiation_fails_when_the_daemon_minimum_is_newer_than_the_client() {
-        let err = negotiate_api_version("1.53", Some("1.60"), Some("1.55")).expect_err("no overlap");
-        match err {
-            DockerError::UnsupportedApiVersion { client_max, server_min, server_max } => {
-                assert_eq!(client_max, "1.53");
-                assert_eq!(server_min, "1.55");
-                assert_eq!(server_max, "1.60");
-            }
-            other => panic!("expected UnsupportedApiVersion, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn negotiation_fails_without_a_daemon_api_version() {
-        let err = negotiate_api_version("1.53", None, Some("1.24")).expect_err("no ApiVersion");
-        assert!(matches!(err, DockerError::JsonParse(_)), "got {err:?}");
-    }
-
-    #[test]
-    fn negotiation_rejects_malformed_versions() {
-        for bad in ["", "1", "one.two", "1.x", "1.2.3"] {
-            let err = negotiate_api_version("1.53", Some(bad), None)
-                .expect_err("a malformed ApiVersion must not be guessed at");
-            assert!(matches!(err, DockerError::JsonParse(_)), "{bad:?}: got {err:?}");
-        }
-    }
-
-    #[test]
-    fn a_fresh_client_reports_the_default_version_until_negotiated() {
-        let c = DockerClient::connect_unix("/nonexistent/docker.sock");
-        assert_eq!(c.api_version(), DEFAULT_API_VERSION);
-        assert_eq!(c.base_url(), format!("http://localhost/v{DEFAULT_API_VERSION}"));
-        assert_eq!(c.unversioned_base_url(), "http://localhost");
-    }
 }

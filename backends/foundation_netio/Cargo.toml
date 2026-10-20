@@ -91,7 +91,6 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
 foundation_testing = { path = "../foundation_testing" }
 
 serial_test = { workspace = true }
-tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
 reqwest = { version = "0.12.15", features = ["blocking"] }
 futures-lite = "2"

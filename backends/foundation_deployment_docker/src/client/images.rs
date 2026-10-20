@@ -49,6 +49,28 @@ pub struct ImageBuildOptions {
     pub force_rm: bool,
 }
 
+/// What [`DockerClient::image_commit`] commits, and as what (`POST /commit`
+/// query parameters). Every field is optional; the default commits nothing
+/// in particular and the daemon rejects it — set at least `container`.
+#[derive(Debug, Clone, Default)]
+pub struct ImageCommitOptions {
+    /// The container to commit, by id or name (`container`).
+    pub container: Option<String>,
+    /// Repository name for the new image (`repo`).
+    pub repo: Option<String>,
+    /// Tag for the new image (`tag`).
+    pub tag: Option<String>,
+    /// Commit message (`comment`).
+    pub comment: Option<String>,
+    /// Author of the image, e.g. `Name <email>` (`author`).
+    pub author: Option<String>,
+    /// Pause the container while committing (`pause`); `None` keeps the
+    /// daemon's default, which pauses.
+    pub pause: Option<bool>,
+    /// Dockerfile instructions to apply while committing (`changes`).
+    pub changes: Option<String>,
+}
+
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 use foundation_netio::PreparedRequestBuilder;
 
@@ -91,7 +113,7 @@ impl DockerClient {
             manifests: None,
         };
         let response =
-            image_list_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+            image_list_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -107,7 +129,7 @@ impl DockerClient {
             platform: None,
         };
         let response =
-            image_inspect_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+            image_inspect_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -122,7 +144,7 @@ impl DockerClient {
             platform: None,
         };
         let response =
-            image_history_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+            image_history_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -144,7 +166,7 @@ impl DockerClient {
             repo: repo.map(str::to_string),
             tag: tag.map(str::to_string),
         };
-        image_tag_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        image_tag_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(())
     }
 
@@ -168,7 +190,7 @@ impl DockerClient {
             platforms: Vec::new(),
         };
         let response =
-            image_delete_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+            image_delete_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -191,7 +213,7 @@ impl DockerClient {
             filters: filters.map(str::to_string),
         };
         let response =
-            image_search_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+            image_search_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -216,7 +238,7 @@ impl DockerClient {
             platform: Vec::new(),
         };
         let response = image_load_request(
-            self.http(),
+            self.api(),
             &args,
             &self.api_url().await?,
             Some(tarball),
@@ -231,28 +253,19 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn image_commit(
-        &self,
-        container: Option<&str>,
-        repo: Option<&str>,
-        tag: Option<&str>,
-        comment: Option<&str>,
-        author: Option<&str>,
-        pause: Option<bool>,
-        changes: Option<&str>,
-    ) -> Result<IDResponse, DockerError> {
+    pub async fn image_commit(&self, opts: &ImageCommitOptions) -> Result<IDResponse, DockerError> {
         let args = ImageCommitArgs {
-            container: container.map(str::to_string),
-            repo: repo.map(str::to_string),
-            tag: tag.map(str::to_string),
-            comment: comment.map(str::to_string),
-            author: author.map(str::to_string),
-            pause: pause.map(|v| v.to_string()),
-            changes: changes.map(str::to_string),
+            container: opts.container.clone(),
+            repo: opts.repo.clone(),
+            tag: opts.tag.clone(),
+            comment: opts.comment.clone(),
+            author: opts.author.clone(),
+            pause: opts.pause.map(|v| v.to_string()),
+            changes: opts.changes.clone(),
             body: ContainerConfig::default(),
         };
         let response =
-            image_commit_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+            image_commit_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -265,7 +278,7 @@ impl DockerClient {
         let args = ImagePruneArgs {
             filters: filters.map(str::to_string),
         };
-        image_prune_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        image_prune_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(())
     }
 
@@ -318,7 +331,7 @@ impl DockerClient {
             ..ImageBuildArgs::default()
         };
         let response = image_build_request(
-            self.http(),
+            self.api(),
             &args,
             &self.api_url().await?,
             Some(SendSafeBody::Bytes(context.as_bytes().to_vec())),
@@ -357,7 +370,7 @@ impl DockerClient {
         };
         let auth = x_registry_auth.map(str::to_string);
         let response = image_push_request(
-            self.http(),
+            self.api(),
             &args,
             &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
@@ -401,7 +414,7 @@ impl DockerClient {
             platform: platform.map(str::to_string),
         };
         let response = image_create_request(
-            self.http(),
+            self.api(),
             &args,
             &self.api_url().await?,
             // No body: this pulls. (An import from `fromSrc=-` would upload one.)
@@ -428,7 +441,7 @@ impl DockerClient {
             platform: Vec::new(),
         };
         let response =
-            image_get_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+            image_get_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -446,7 +459,7 @@ impl DockerClient {
         let args = DistributionInspectArgs {
             name: name.to_string(),
         };
-        let response = distribution_inspect_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = distribution_inspect_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(response.body)
     }
 
@@ -471,7 +484,7 @@ impl DockerClient {
             all: all.map(|v| v.to_string()),
             filters: filters.map(str::to_string),
         };
-        build_prune_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        build_prune_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(())
     }
 
@@ -494,7 +507,7 @@ impl DockerClient {
             platform: Vec::new(),
         };
         let response =
-            image_get_all_request(self.http(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+            image_get_all_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
         Ok(ByteBody::new(response.body))
     }
 }

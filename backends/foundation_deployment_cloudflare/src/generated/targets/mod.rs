@@ -234,12 +234,12 @@ pub type InfraTargetsDeleteArgs = super::shared::AccountIdTargetIdArgs;
 
 /// GET /accounts/{account_id}/infrastructure/targets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -251,7 +251,7 @@ pub type InfraTargetsDeleteArgs = super::shared::AccountIdTargetIdArgs;
 /// })).await?;
 /// ```
 pub async fn infra_targets_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &InfraTargetsListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -294,7 +294,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -303,12 +303,12 @@ where
 
 /// POST /accounts/{account_id}/infrastructure/targets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -320,7 +320,7 @@ where
 /// })).await?;
 /// ```
 pub async fn infra_targets_post_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &InfraTargetsPostArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -342,7 +342,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -351,12 +351,12 @@ where
 
 /// PUT /accounts/{account_id}/infrastructure/targets/batch.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -368,7 +368,7 @@ where
 /// })).await?;
 /// ```
 pub async fn infra_targets_put_batch_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &InfraTargetsPutBatchArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -390,7 +390,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -399,12 +399,12 @@ where
 
 /// POST /accounts/{account_id}/infrastructure/targets/batch_delete.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -416,7 +416,7 @@ where
 /// })).await?;
 /// ```
 pub async fn infra_targets_delete_batch_post_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &InfraTargetsDeleteBatchPostArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -441,7 +441,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -450,12 +450,12 @@ where
 
 /// GET /accounts/{account_id}/infrastructure/targets/{target_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -467,7 +467,7 @@ where
 /// })).await?;
 /// ```
 pub async fn infra_targets_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &InfraTargetsGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -488,7 +488,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -497,12 +497,12 @@ where
 
 /// PUT /accounts/{account_id}/infrastructure/targets/{target_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -514,7 +514,7 @@ where
 /// })).await?;
 /// ```
 pub async fn infra_targets_put_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &InfraTargetsPutArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -539,7 +539,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -548,12 +548,12 @@ where
 
 /// DELETE /accounts/{account_id}/infrastructure/targets/{target_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -565,7 +565,7 @@ where
 /// })).await?;
 /// ```
 pub async fn infra_targets_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &InfraTargetsDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -586,5 +586,5 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }

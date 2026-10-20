@@ -930,12 +930,12 @@ pub struct VolumeCreateArgs {
 
 /// POST /configs/create.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -947,7 +947,7 @@ pub struct VolumeCreateArgs {
 /// })).await?;
 /// ```
 pub async fn config_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ConfigCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -969,7 +969,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -978,12 +978,12 @@ where
 
 /// POST /containers/create.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -995,7 +995,7 @@ where
 /// })).await?;
 /// ```
 pub async fn container_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ContainerCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1020,7 +1020,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1029,12 +1029,12 @@ where
 
 /// POST /images/create.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `body` - Request body, sent as-is as `text/plain` (`None` sends none)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
@@ -1052,7 +1052,7 @@ where
 /// })).await?;
 /// ```
 pub async fn image_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ImageCreateArgs,
     base_url: &str,
     body: Option<foundation_netio::shared::http::SendSafeBody>,
@@ -1085,12 +1085,7 @@ where
         f(&mut builder);
     }
 
-    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
-    Ok(ApiResponse {
-        status,
-        headers,
-        body: super::shared::JsonLinesStream::new(body),
-    })
+    super::shared::send_json_lines(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1099,12 +1094,12 @@ where
 
 /// POST /networks/create.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1116,7 +1111,7 @@ where
 /// })).await?;
 /// ```
 pub async fn network_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &NetworkCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1138,7 +1133,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1147,12 +1142,12 @@ where
 
 /// POST /plugins/create.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `body` - Request body, sent as-is as `application/x-tar` (`None` sends none)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
@@ -1165,7 +1160,7 @@ where
 /// })).await?;
 /// ```
 pub async fn plugin_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PluginCreateArgs,
     base_url: &str,
     body: Option<foundation_netio::shared::http::SendSafeBody>,
@@ -1190,7 +1185,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1199,12 +1194,12 @@ where
 
 /// POST /secrets/create.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1216,7 +1211,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secret_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecretCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1238,7 +1233,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1247,12 +1242,12 @@ where
 
 /// POST /services/create.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1264,7 +1259,7 @@ where
 /// })).await?;
 /// ```
 pub async fn service_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ServiceCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1286,7 +1281,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -1295,12 +1290,12 @@ where
 
 /// POST /volumes/create.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -1312,7 +1307,7 @@ where
 /// })).await?;
 /// ```
 pub async fn volume_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &VolumeCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -1334,5 +1329,5 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }

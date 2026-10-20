@@ -45,6 +45,89 @@ use crate::generated::top::{container_top_request, ContainerTopArgs, ContainerTo
 use super::DockerClient;
 use super::NoMod;
 
+/// What [`DockerClient::container_logs`] asks for (`GET
+/// /containers/{id}/logs` query parameters).
+///
+/// The default reads everything the container has written so far, stdout
+/// and stderr, without following — the daemon rejects a request that asks for
+/// neither stream.
+#[derive(Debug, Clone)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "one field per boolean query parameter of the endpoint"
+)]
+pub struct ContainerLogsOptions {
+    /// Keep the stream open and send new output as the container writes it
+    /// (`follow`). The stream then ends only when the container stops or the
+    /// caller drops it.
+    pub follow: bool,
+    /// Include stdout (`stdout`).
+    pub stdout: bool,
+    /// Include stderr (`stderr`).
+    pub stderr: bool,
+    /// Only output written at or after this UNIX timestamp (`since`).
+    pub since: Option<String>,
+    /// Only output written before this UNIX timestamp (`until`).
+    pub until: Option<String>,
+    /// Prefix every line with its timestamp (`timestamps`).
+    pub timestamps: bool,
+    /// Only this many lines from the end (`tail`); `None` is all of them.
+    pub tail: Option<String>,
+}
+
+impl Default for ContainerLogsOptions {
+    fn default() -> Self {
+        Self {
+            follow: false,
+            stdout: true,
+            stderr: true,
+            since: None,
+            until: None,
+            timestamps: false,
+            tail: None,
+        }
+    }
+}
+
+/// What [`DockerClient::container_attach`] asks for (`POST
+/// /containers/{id}/attach` query parameters).
+///
+/// The default attaches to the live stdout and stderr, as `docker attach
+/// --no-stdin` does: no earlier output, no stdin.
+#[derive(Debug, Clone)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "one field per boolean query parameter of the endpoint"
+)]
+pub struct ContainerAttachOptions {
+    /// The key sequence that detaches from the container (`detachKeys`);
+    /// `None` keeps the daemon's default.
+    pub detach_keys: Option<String>,
+    /// Replay the output written before attaching (`logs`).
+    pub logs: bool,
+    /// Stream output as the container writes it (`stream`).
+    pub stream: bool,
+    /// Attach stdin (`stdin`).
+    pub stdin: bool,
+    /// Attach stdout (`stdout`).
+    pub stdout: bool,
+    /// Attach stderr (`stderr`).
+    pub stderr: bool,
+}
+
+impl Default for ContainerAttachOptions {
+    fn default() -> Self {
+        Self {
+            detach_keys: None,
+            logs: false,
+            stream: true,
+            stdin: false,
+            stdout: true,
+            stderr: true,
+        }
+    }
+}
+
 impl DockerClient {
     // ── restart_container ───────────────────────────────────────────────
 
@@ -64,7 +147,7 @@ impl DockerClient {
             signal: signal.map(str::to_string),
             t: t.map(|v| v.to_string()),
         };
-        container_restart_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_restart_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -87,7 +170,7 @@ impl DockerClient {
             id: id.to_string(),
             signal: signal.map(str::to_string),
         };
-        container_kill_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_kill_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -103,7 +186,7 @@ impl DockerClient {
             id: id.to_string(),
             name: Some(name.to_string()),
         };
-        container_rename_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_rename_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -125,7 +208,7 @@ impl DockerClient {
             h: h.map(|v| v.to_string()),
             w: w.map(|v| v.to_string()),
         };
-        container_resize_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_resize_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -145,7 +228,7 @@ impl DockerClient {
             id: id.to_string(),
             ps_args: ps_args.map(str::to_string),
         };
-        let response = container_top_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = container_top_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -163,7 +246,7 @@ impl DockerClient {
         let args = ContainerChangesArgs {
             id: id.to_string(),
         };
-        let response = container_changes_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = container_changes_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -177,6 +260,9 @@ impl DockerClient {
     /// WHAT: Returns the log unread, as a [`LogStream`] of demultiplexed
     /// stdout/stderr frames (for a container without a TTY).
     ///
+    /// [`ContainerLogsOptions::default`] reads stdout and stderr written so
+    /// far, without following.
+    ///
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status (checked
@@ -184,27 +270,21 @@ impl DockerClient {
     pub async fn container_logs(
         &self,
         id: &str,
-        follow: bool,
-        stdout: bool,
-        stderr: bool,
-        since: Option<&str>,
-        until: Option<&str>,
-        timestamps: bool,
-        tail: Option<&str>,
+        opts: &ContainerLogsOptions,
     ) -> Result<LogStream, DockerError> {
         let args = ContainerLogsArgs {
             id: id.to_string(),
-            follow: Some(follow.to_string()),
-            stdout: Some(stdout.to_string()),
-            stderr: Some(stderr.to_string()),
-            since: since.map(str::to_string),
-            until: until.map(str::to_string),
-            timestamps: Some(timestamps.to_string()),
-            tail: tail.map(str::to_string),
+            follow: Some(opts.follow.to_string()),
+            stdout: Some(opts.stdout.to_string()),
+            stderr: Some(opts.stderr.to_string()),
+            since: opts.since.clone(),
+            until: opts.until.clone(),
+            timestamps: Some(opts.timestamps.to_string()),
+            tail: opts.tail.clone(),
         };
         let response =
-            container_logs_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
-        Ok(LogStream::new(response.body))
+            container_logs_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        Ok(LogStream::new(response.body, self.limits().max_log_frame))
     }
 
     // ── container_stats ─────────────────────────────────────────────────
@@ -273,7 +353,7 @@ impl DockerClient {
             one_shot: Some(one_shot.to_string()),
         };
         let response =
-            container_stats_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_stats_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(StatsStream::new(response.body))
     }
 
@@ -292,7 +372,7 @@ impl DockerClient {
     pub async fn container_export(&self, id: &str) -> Result<ByteBody, DockerError> {
         let args = ContainerExportArgs { id: id.to_string() };
         let response =
-            container_export_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_export_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -313,7 +393,7 @@ impl DockerClient {
             path: Some(path.to_string()),
         };
         let response =
-            container_archive_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_archive_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -328,6 +408,9 @@ impl DockerClient {
     /// WHAT: Returns the output unread, as a [`LogStream`] of demultiplexed
     /// frames (for a container without a TTY).
     ///
+    /// [`ContainerAttachOptions::default`] attaches to the live stdout and
+    /// stderr.
+    ///
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status (checked
@@ -335,25 +418,20 @@ impl DockerClient {
     pub async fn container_attach(
         &self,
         id: &str,
-        detach_keys: Option<&str>,
-        logs: bool,
-        stream: bool,
-        stdin: bool,
-        stdout: bool,
-        stderr: bool,
+        opts: &ContainerAttachOptions,
     ) -> Result<LogStream, DockerError> {
         let args = ContainerAttachArgs {
             id: id.to_string(),
-            detach_keys: detach_keys.map(str::to_string),
-            logs: Some(logs.to_string()),
-            stream: Some(stream.to_string()),
-            stdin: Some(stdin.to_string()),
-            stdout: Some(stdout.to_string()),
-            stderr: Some(stderr.to_string()),
+            detach_keys: opts.detach_keys.clone(),
+            logs: Some(opts.logs.to_string()),
+            stream: Some(opts.stream.to_string()),
+            stdin: Some(opts.stdin.to_string()),
+            stdout: Some(opts.stdout.to_string()),
+            stderr: Some(opts.stderr.to_string()),
         };
         let response =
-            container_attach_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
-        Ok(LogStream::new(response.body))
+            container_attach_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        Ok(LogStream::new(response.body, self.limits().max_log_frame))
     }
 
     // ── container_list ──────────────────────────────────────────────────
@@ -376,7 +454,7 @@ impl DockerClient {
             size: Some(size.to_string()),
             filters: filters.map(str::to_string),
         };
-        let response = container_list_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = container_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -398,7 +476,7 @@ impl DockerClient {
         let args = ContainerPruneArgs {
             filters: filters.map(str::to_string),
         };
-        container_prune_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_prune_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -431,7 +509,7 @@ impl DockerClient {
             body: super::generated_body("container update", config)?,
         };
         let response =
-            container_update_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_update_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 

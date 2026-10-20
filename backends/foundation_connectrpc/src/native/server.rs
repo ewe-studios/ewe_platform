@@ -23,6 +23,11 @@
 //! Whole responses (unary, errors) carry a `Content-Length`; a stream sends its
 //! head once the first frame exists, then each frame as an HTTP/1.1 chunk as
 //! soon as it is produced, then the terminating chunk.
+//!
+//! The driver also watches the socket for the client going away and enforces
+//! the call's deadline: either cancels the call's `Ctx`. A client that closes
+//! (or half-closes) the connection mid-call gets the call cancelled and
+//! dropped and the connection closed, as nginx and Go's `net/http` do.
 
 use std::future::Future;
 use std::io::{self, Write};
@@ -44,9 +49,11 @@ use foundation_netio::shared::http::{
 };
 
 use super::conn_io::{ConnIo, IoReady};
+use crate::shared::context::CancelSignal;
 use crate::shared::router::dispatch::{BodyReader, BodyStep};
-use crate::shared::router::{ConnectRpcHandler, RequestBody, ResponseSink};
+use crate::shared::router::{CallHooks, ConnectRpcHandler, RequestBody, ResponseSink};
 use crate::shared::transport::BoxFuture;
+use futures::future::{select, Either};
 
 /// How long [`ConnectRpcServe`] waits on a stalled peer before giving up on the
 /// request and closing the connection. Each timeout bounds one wait (the time
@@ -146,7 +153,32 @@ impl Serve for ConnectRpcServe {
             io: &io,
             timeout: self.timeouts.write,
         };
-        match io.block_on(self.handler.dispatch_to(bag, req, body, &mut sink)) {
+        let cancel = CancelSignal::new();
+        let hooks = CallHooks::new(cancel.clone()).with_timer(&io);
+        let dispatch = std::pin::pin!(self.handler.dispatch_to(bag, req, body, &mut sink, hooks));
+        // Watch for the client going away while the call runs: nothing else
+        // reads the socket once the body is in, so without this a handler
+        // waiting on something other than the peer never learns of it.
+        let hangup = std::pin::pin!(async {
+            match io.hangup().await {
+                Ok(()) => {}
+                Err(e) => {
+                    // This transport cannot report it; the call still ends
+                    // when a read or write on the connection fails.
+                    tracing::debug!(error = %e, "cannot watch the connection for a hangup");
+                    std::future::pending::<()>().await;
+                }
+            }
+        });
+        let outcome = match io.block_on(select(dispatch, hangup)) {
+            Either::Left((outcome, _)) => outcome,
+            Either::Right(((), _dispatch)) => {
+                tracing::debug!("the client closed the connection; cancelling the call");
+                cancel.cancel();
+                return ConnectionResult::Close(None);
+            }
+        };
+        match outcome {
             // The next request starts where this body ends, so the connection
             // can only be reused once the body was read to its end.
             Ok(()) if drained.load(Ordering::Acquire) => ConnectionResult::Keep,

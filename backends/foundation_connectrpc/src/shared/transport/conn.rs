@@ -212,9 +212,15 @@ impl ConnReceiver for PipeConnReceiver {
         Box::pin(async move {
             match next_frame(&self.rx, &self.cancel).await? {
                 Some(Frame::Message(bytes)) => Ok(Some(bytes)),
-                Some(Frame::EndStream { trailers, .. }) => {
+                // A request stream that failed (a malformed or oversized
+                // envelope, a body read error) ends with its error: the
+                // handler must not mistake it for a request that ended cleanly.
+                Some(Frame::EndStream { error, trailers }) => {
                     self.trailers = trailers;
-                    Ok(None)
+                    match error {
+                        Some(e) => Err(e),
+                        None => Ok(None),
+                    }
                 }
                 None => Ok(None),
             }
@@ -374,6 +380,7 @@ impl ClientConn for PipeClientConn {
             rx: self.res_rx,
             response_headers: self.response_headers,
             headers_cache: None,
+            peeked: None,
             trailers: SimpleHeaders::new(),
             cancel: self.cancel,
         };
@@ -414,6 +421,9 @@ struct PipeClientReceiver {
     rx: PipeReceiver<Frame>,
     response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
     headers_cache: Option<SimpleHeaders>,
+    /// The first frame (or the end of the stream), taken off the pipe while
+    /// waiting for the response head; `receive` hands it out first.
+    peeked: Option<Option<Frame>>,
     trailers: SimpleHeaders,
     cancel: CancelSignal,
 }
@@ -421,7 +431,11 @@ struct PipeClientReceiver {
 impl ClientReceiver for PipeClientReceiver {
     fn receive(&mut self) -> BoxFuture<'_, ConnectResult<Option<Bytes>>> {
         Box::pin(async move {
-            match next_frame(&self.rx, &self.cancel).await? {
+            let frame = match self.peeked.take() {
+                Some(frame) => frame,
+                None => next_frame(&self.rx, &self.cancel).await?,
+            };
+            match frame {
                 Some(Frame::Message(bytes)) => Ok(Some(bytes)),
                 Some(Frame::EndStream { error, trailers }) => {
                     self.trailers = trailers;
@@ -434,11 +448,32 @@ impl ClientReceiver for PipeClientReceiver {
             }
         })
     }
+    /// Waits for the response head: the reader publishes its headers before it
+    /// sends the first frame or ends the stream, so once a frame (kept for
+    /// `receive`) or the end is in, the headers are known. A stream that ends
+    /// without a head (a failed request) has none.
     fn response_headers(&mut self) -> BoxFuture<'_, ConnectResult<&SimpleHeaders>> {
         Box::pin(async move {
             if self.headers_cache.is_none() {
-                let guard = self.response_headers.lock().unwrap_or_else(|e| e.into_inner());
-                self.headers_cache = Some(guard.clone().unwrap_or_default());
+                let published = self
+                    .response_headers
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .clone();
+                let headers = match published {
+                    Some(headers) => headers,
+                    None => {
+                        if self.peeked.is_none() {
+                            self.peeked = Some(next_frame(&self.rx, &self.cancel).await?);
+                        }
+                        self.response_headers
+                            .lock()
+                            .unwrap_or_else(|e| e.into_inner())
+                            .clone()
+                            .unwrap_or_default()
+                    }
+                };
+                self.headers_cache = Some(headers);
             }
             Ok(self.headers_cache.as_ref().expect("cached above"))
         })

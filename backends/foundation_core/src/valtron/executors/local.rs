@@ -2546,6 +2546,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.number_of_sleepers()
     }
 
+    /// See [`ExecutorState::has_runnable_work`].
+    #[inline]
+    #[must_use]
+    pub fn has_runnable_work(&self) -> bool {
+        self.state.has_runnable_work()
+    }
+
     /// See [`ExecutorState::number_of_depends_true_violations`].
     #[inline]
     #[must_use]
@@ -2619,6 +2626,19 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 break;
             }
 
+            // Nothing left to run: with zero tasks, an idle back-off
+            // (`SpinWait` from the idler) or `NoWork` only means the caller
+            // has not scheduled anything else yet. Waiting out the back-off
+            // (up to a second) would stall a caller that drives the engine
+            // between its own steps, so hand control back instead.
+            if matches!(
+                response,
+                ProgressIndicator::NoWork | ProgressIndicator::SpinWait(_)
+            ) && self.state.total_tasks() == 0
+            {
+                break;
+            }
+
             // JS: intercept NoWork → stop and return to JS
             #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
             if matches!(&response, ProgressIndicator::NoWork) {
@@ -2659,12 +2679,17 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 }
             }
 
-            // break as well if no work remains and there are zero tasks.
-            if let ProgressIndicator::NoWork = response {
-                if self.state.total_tasks() == 0 {
-                    break;
-                }
+            // The step made progress and there is still work to run: go
+            // straight to the next step. Yielding here (as this loop used to
+            // after every step) stalled each step by up to
+            // MAX_YIELD_DURATION. `CanProgress(None)` is also what the engine
+            // reports when only parked tasks remain, hence the runnable check.
+            if matches!(response, ProgressIndicator::CanProgress(_))
+                && self.state.has_runnable_work()
+            {
+                continue;
             }
+
             // Use sleeper-aware yielding: sleep until the next sleeper wakes up
             // or fall back to the default yield duration if no sleepers exist.
             // Cap at MAX_YIELD_DURATION to ensure threads periodically check for new work.
@@ -2824,40 +2849,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 }
 
 // --- Access Methods run once
-
-/// `typed_task` allows you to create a task builder but requiring specific
-/// definitions for your `Task` and `Resolver` types.
-#[must_use]
-pub fn typed_task<Task, Resolver>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
-where
-    Task::Ready: Send,
-    Task::Pending: Send,
-    Task: TaskIterator + Send + 'static,
-    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + 'static,
-{
-    TaskSpawnConfig::new(engine)
-}
-
-/// `any_task` allows you to create a task builder with less restrictive type
-/// requirements for the builder, specifically resolvers are Boxed.
-#[must_use]
-pub fn any_task<Task>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
-where
-    Task::Ready: Send,
-    Task::Pending: Send,
-    Task: TaskIterator + Send + 'static,
-{
-    TaskSpawnConfig::new(engine)
-}
 
 /// `send_any_task` will unlike [`any_task`] deliver the provided
 /// task to the global queue instead of the local queue via the provided

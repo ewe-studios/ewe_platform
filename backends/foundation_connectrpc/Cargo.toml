@@ -109,5 +109,9 @@ required-features = ["rpc_multi"]
 name = "grpc_tests"
 required-features = ["rpc_multi"]
 
+[[test]]
+name = "cancellation_tests"
+required-features = ["rpc_multi"]
+
 [lints]
 workspace = true

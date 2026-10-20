@@ -12,16 +12,17 @@
 
 #![cfg(all(unix, feature = "docker"))]
 
-use std::io::{Read, Write};
-use std::os::unix::net::{UnixListener, UnixStream};
+mod mock_socket;
+
+use std::io::Write;
+use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment::providers::common::MAX_ERROR_BODY;
-use foundation_deployment_docker::{DockerClient, DockerError};
+use foundation_deployment_docker::{DockerClient, DockerError, DockerLimits};
 
 fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
@@ -101,39 +102,21 @@ fn mock_images_daemon_gated(
     stop: Arc<AtomicBool>,
     gate: Option<mpsc::Receiver<()>>,
 ) {
-    let listener = UnixListener::bind(&socket_path).expect("bind mock docker socket");
-    listener
-        .set_nonblocking(true)
-        .expect("set nonblocking");
     let gate = Arc::new(Mutex::new(gate));
-    std::thread::spawn(move || {
-        while !stop.load(Ordering::Relaxed) {
-            match listener.accept() {
-                Ok((stream, _)) => {
-                    let gate = Arc::clone(&gate);
-                    // One thread per connection: a streaming answer must not
-                    // hold up the next request.
-                    std::thread::spawn(move || serve(stream, &gate));
-                }
-                Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                    std::thread::yield_now();
-                }
-                Err(_) => break,
-            }
-        }
+    mock_socket::serve(&socket_path, stop, move |stream| {
+        let gate = Arc::clone(&gate);
+        // One thread per connection: a streaming answer must not
+        // hold up the next request.
+        std::thread::spawn(move || serve(stream, &gate));
     });
 }
 
 /// Answer one request on `stream`.
 fn serve(mut stream: UnixStream, gate: &Mutex<Option<mpsc::Receiver<()>>>) {
-    stream.set_nonblocking(false).expect("blocking connection");
-    let mut buf = [0u8; 8192];
-    let n = stream.read(&mut buf).unwrap_or(0);
-    let req = String::from_utf8_lossy(&buf[..n]);
-    let first = req.lines().next().unwrap_or("");
-    let mut parts = first.split_whitespace();
-    let method = parts.next().unwrap_or("");
-    let path = parts.next().unwrap_or("");
+    let Some(req) = mock_socket::read_request(&mut stream) else {
+        return;
+    };
+    let (method, path) = (req.method.as_str(), req.target.as_str());
 
     if method == "POST" && path.contains("images/create?") && path.contains("fromImage=gated") {
         // A chunked progress stream that stalls after its first line until the
@@ -232,8 +215,7 @@ async fn image_pull_streams_typed_progress_items() {
         ]
     );
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 /// A failed pull is a `200` whose stream carries `errorDetail`: reading the
@@ -254,8 +236,7 @@ async fn image_pull_reports_an_error_in_the_stream() {
         other => panic!("expected PullFailed, got {other:?}"),
     }
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 /// The status is checked before the body: a non-2xx answer is an error read
@@ -276,9 +257,10 @@ async fn image_pull_checks_the_status_before_the_body() {
         DockerError::Api { status, message } => {
             assert_eq!(status, 500);
             assert!(
-                message.len() <= MAX_ERROR_BODY,
-                "read {} bytes of the error body; at most {MAX_ERROR_BODY} should be",
-                message.len()
+                message.len() <= DockerLimits::default().max_error_body,
+                "read {} bytes of the error body; at most {} should be",
+                message.len(),
+                DockerLimits::default().max_error_body
             );
             assert!(message.starts_with("eeee"), "{}", &message[..message.len().min(64)]);
         }
@@ -289,8 +271,7 @@ async fn image_pull_checks_the_status_before_the_body() {
         "the {HUGE_ERROR_BODY}-byte error body was read rather than abandoned"
     );
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 /// The progress stream is not buffered: the first item is handed out while the
@@ -326,8 +307,7 @@ async fn image_pull_hands_out_items_before_the_body_has_ended() {
         ]
     );
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -349,8 +329,7 @@ async fn image_list_returns_json_array() {
     assert_eq!(arr[0]["Id"], "sha256:abc");
     assert_eq!(arr[0]["RepoTags"][0], "alpine:latest");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -370,8 +349,7 @@ async fn image_inspect_returns_image_details() {
     assert_eq!(result.id.as_deref(), Some("sha256:abc"));
     assert_eq!(result.size, Some(7000000));
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -389,8 +367,7 @@ async fn image_tag_returns_created() {
         .await
         .expect("image_tag should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -412,6 +389,29 @@ async fn image_delete_returns_deleted_layers() {
     assert_eq!(arr[0]["Untagged"], "alpine:latest");
     assert_eq!(arr[1]["Deleted"], "sha256:abc");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
+}
+
+/// A client configured with a smaller error-body cap reads no more than that.
+#[valtron_test]
+async fn a_configured_error_body_cap_is_the_one_enforced() {
+    let socket = temp_socket_path("image_pull_500_cap");
+    let stop = Arc::new(AtomicBool::new(false));
+    mock_images_daemon(socket.clone(), stop.clone());
+
+    let client = DockerClient::connect_unix(&socket)
+        .with_limits(DockerLimits::default().with_max_error_body(100));
+    let err = client
+        .image_pull(Some("huge-error"), None, None, Some("latest"), None, None)
+        .await
+        .expect_err("a 500 is an error");
+    match err {
+        DockerError::Api { status, message } => {
+            assert_eq!(status, 500);
+            assert_eq!(message, "e".repeat(100), "exactly the configured cap is read");
+        }
+        other => panic!("expected Api, got {other:?}"),
+    }
+
+    mock_socket::stop(&socket, &stop);
 }

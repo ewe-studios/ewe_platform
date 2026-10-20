@@ -49,7 +49,7 @@ pub async fn exec_create(
         },
     };
     let response =
-        container_exec_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
+        container_exec_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(response.body)
 }
 
@@ -79,8 +79,8 @@ pub async fn exec_start(
         },
     };
     let response =
-        exec_start_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
-    Ok(LogStream::new(response.body))
+        exec_start_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
+    Ok(LogStream::new(response.body, client.limits().max_log_frame))
 }
 
 /// Inspect an exec instance (`GET /exec/{id}/json`).
@@ -147,6 +147,6 @@ pub async fn exec_resize(
         h: Some(h.to_string()),
         w: Some(w.to_string()),
     };
-    exec_resize_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
+    exec_resize_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(())
 }

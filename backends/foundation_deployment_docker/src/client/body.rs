@@ -45,11 +45,6 @@ use crate::generated::stats::ContainerStatsResponse;
 use crate::generated::shared::{BuildInfo, ErrorDetail};
 use crate::streaming::decoder::{LogFrameDecoder, LogOutput};
 
-/// The largest multiplexed frame a [`LogStream`] buffers. dockerd writes
-/// frames of at most a few tens of kilobytes; a header announcing more than
-/// this is treated as a corrupt stream rather than buffered.
-pub const MAX_LOG_FRAME: usize = 16 * 1024 * 1024;
-
 // ── progress ────────────────────────────────────────────────────────────
 
 /// A progress item that can report a failure in-band.
@@ -349,22 +344,28 @@ impl FuturesStream for ByteBody {
 /// A multiplexed stdout/stderr body (logs, attach, exec), one frame at a time.
 ///
 /// Ends after the body ends or after the first error: a body that stops
-/// inside a frame, or a frame larger than [`MAX_LOG_FRAME`], is
-/// [`DockerError::JsonParse`] (a malformed answer); a failed read is
-/// [`DockerError::Transport`].
+/// inside a frame, or a frame whose header announces more than its
+/// `max_frame` bytes, is [`DockerError::JsonParse`] (a malformed answer); a
+/// failed read is [`DockerError::Transport`].
 pub struct LogStream {
     bytes: ByteStream,
     decoder: LogFrameDecoder,
+    /// The largest frame payload buffered before it is an error.
+    max_frame: usize,
     done: bool,
 }
 
 impl LogStream {
-    /// Wrap a multiplexed body.
+    /// Wrap a multiplexed body, buffering at most `max_frame` bytes of one
+    /// frame (see [`DockerLimits::max_log_frame`]).
+    ///
+    /// [`DockerLimits::max_log_frame`]: crate::client::DockerLimits::max_log_frame
     #[must_use]
-    pub fn new(bytes: ByteStream) -> Self {
+    pub fn new(bytes: ByteStream, max_frame: usize) -> Self {
         Self {
             bytes,
             decoder: LogFrameDecoder::new(),
+            max_frame,
             done: false,
         }
     }
@@ -396,10 +397,10 @@ impl LogStream {
         while let Some(frame) = self.next().await {
             match frame? {
                 LogOutput::StdOut { message } => {
-                    stdout.push_str(&String::from_utf8_lossy(&message))
+                    stdout.push_str(&String::from_utf8_lossy(&message));
                 }
                 LogOutput::StdErr { message } => {
-                    stderr.push_str(&String::from_utf8_lossy(&message))
+                    stderr.push_str(&String::from_utf8_lossy(&message));
                 }
                 LogOutput::StdIn { .. } | LogOutput::Console { .. } => {}
             }
@@ -412,6 +413,7 @@ impl core::fmt::Debug for LogStream {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("LogStream")
             .field("buffered", &self.decoder.buffered_len())
+            .field("max_frame", &self.max_frame)
             .field("done", &self.done)
             .finish_non_exhaustive()
     }
@@ -426,6 +428,18 @@ impl FuturesStream for LogStream {
             if this.done {
                 return Poll::Ready(None);
             }
+            // Refuse an oversized frame from its header, before buffering
+            // (or, had it arrived whole, decoding) its payload: the cap must
+            // not depend on how the body happened to be chunked.
+            if let Some(len) = this.decoder.next_frame_len() {
+                if len > this.max_frame {
+                    this.done = true;
+                    return Poll::Ready(Some(Err(DockerError::JsonParse(format!(
+                        "multiplexed stream frame of {len} bytes is larger than {} bytes",
+                        this.max_frame
+                    )))));
+                }
+            }
             let before = this.decoder.buffered_len();
             if let Some(frame) = this.decoder.decode() {
                 this.decoder.compact();
@@ -436,12 +450,6 @@ impl FuturesStream for LogStream {
             if this.decoder.buffered_len() < before {
                 this.decoder.compact();
                 continue;
-            }
-            if this.decoder.buffered_len() > MAX_LOG_FRAME + 8 {
-                this.done = true;
-                return Poll::Ready(Some(Err(DockerError::JsonParse(format!(
-                    "multiplexed stream frame larger than {MAX_LOG_FRAME} bytes"
-                )))));
             }
             match Pin::new(&mut this.bytes).poll_next(cx) {
                 Poll::Pending => return Poll::Pending,

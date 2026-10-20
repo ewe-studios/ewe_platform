@@ -13,10 +13,11 @@
 
 #![cfg(all(unix, feature = "docker"))]
 
-use std::io::{Read, Write};
-use std::os::unix::net::UnixListener;
+mod mock_socket;
+
+use std::io::Write;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 use foundation_core::valtron::valtron_test;
@@ -112,55 +113,38 @@ fn route(method: &str, path: &str) -> (u16, String) {
 
 /// Start a mock Docker daemon on `socket_path`. Serves until `stop` is set.
 ///
-/// WHY: The same nonblocking Unix-listener pattern used by the lifecycle tests,
+/// WHY: The same Unix-listener pattern used by the lifecycle tests,
 /// extended with network- and volume-specific routes.
 ///
 /// WHAT: Accepts connections, reads the HTTP request line, routes to a canned
 /// response, writes it back, then closes the connection.
 ///
-/// HOW: Spawns a `std::thread` with a nonblocking `UnixListener` loop.
+/// HOW: [`mock_socket::serve`] — a blocking accept loop on its own thread.
 fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
-    let listener = UnixListener::bind(&socket_path).expect("bind mock docker socket");
-    listener
-        .set_nonblocking(true)
-        .expect("set nonblocking");
-    std::thread::spawn(move || {
-        while !stop.load(Ordering::Relaxed) {
-            match listener.accept() {
-                Ok((mut stream, _)) => {
-                    let mut buf = [0u8; 8192];
-                    let n = stream.read(&mut buf).unwrap_or(0);
-                    let req = String::from_utf8_lossy(&buf[..n]);
-                    let first = req.lines().next().unwrap_or("");
-                    let mut parts = first.split_whitespace();
-                    let method = parts.next().unwrap_or("");
-                    let path = parts.next().unwrap_or("");
-                    let (status, body) = route(method, path);
-                    let reason = if status == 204 {
-                        "No Content"
-                    } else {
-                        "OK"
-                    };
-                    let response = if body.is_empty() {
-                        format!(
-                            "HTTP/1.1 {status} {reason}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
-                        )
-                    } else {
-                        format!(
-                            "HTTP/1.1 {status} {reason}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
-                            body.len(),
-                            body
-                        )
-                    };
-                    let _ = stream.write_all(response.as_bytes());
-                    let _ = stream.flush();
-                }
-                Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                    std::thread::yield_now();
-                }
-                Err(_) => break,
-            }
-        }
+    mock_socket::serve(&socket_path, stop, move |mut stream| {
+        let Some(req) = mock_socket::read_request(&mut stream) else {
+            return;
+        };
+        let (method, path) = (req.method.as_str(), req.target.as_str());
+        let (status, body) = route(method, path);
+        let reason = if status == 204 {
+            "No Content"
+        } else {
+            "OK"
+        };
+        let response = if body.is_empty() {
+            format!(
+                "HTTP/1.1 {status} {reason}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+            )
+        } else {
+            format!(
+                "HTTP/1.1 {status} {reason}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                body.len(),
+                body
+            )
+        };
+        let _ = stream.write_all(response.as_bytes());
+        let _ = stream.flush();
     });
 }
 
@@ -181,8 +165,7 @@ async fn network_list_returns_json_array() {
     assert_eq!(arr[0]["Name"], "bridge");
     assert_eq!(arr[0]["Id"], "abc");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -199,8 +182,7 @@ async fn network_inspect_returns_network() {
         .await
         .expect("network_inspect should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -217,12 +199,10 @@ async fn network_delete_204_no_content() {
         .await
         .expect("network_delete should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
-#[ignore = "POST-body mock daemon test known-fragile (async body write race)"]
 async fn network_create_returns_id() {
     // WHY: Proves `network_create` sends a JSON body and deserializes the
     // daemon's `NetworkCreateResponse` (Id + Warning).
@@ -239,8 +219,7 @@ async fn network_create_returns_id() {
     assert_eq!(resp.id, "abc123");
     assert_eq!(resp.warning, "");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 // ── Volume tests ────────────────────────────────────────────────────────────
@@ -260,8 +239,7 @@ async fn volume_list_returns_volumes_array() {
     assert_eq!(volumes[0].name, "test");
     assert_eq!(volumes[0].driver, "local");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -285,8 +263,7 @@ async fn volume_inspect_returns_volume() {
     );
     assert_eq!(vol.scope, "local");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -303,12 +280,10 @@ async fn volume_delete_204_no_content() {
         .await
         .expect("volume_delete should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
-#[ignore = "POST-body mock daemon test known-fragile (async body write race)"]
 async fn volume_create_returns_volume() {
     // WHY: Proves `volume_create` sends a JSON body and deserializes the
     // daemon's `Volume` response.
@@ -325,8 +300,7 @@ async fn volume_create_returns_volume() {
     assert_eq!(vol.name, "test");
     assert_eq!(vol.driver, "local");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -343,8 +317,7 @@ async fn network_prune_returns_ok() {
         .await
         .expect("network_prune should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -360,6 +333,5 @@ async fn volume_prune_returns_ok() {
         .await
         .expect("volume_prune should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }

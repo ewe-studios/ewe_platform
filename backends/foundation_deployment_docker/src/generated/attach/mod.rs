@@ -44,12 +44,12 @@ pub type ContainerAttachArgs = super::shared::ContainerAttachArgsShape;
 
 /// POST /containers/{id}/attach.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -66,7 +66,7 @@ pub type ContainerAttachArgs = super::shared::ContainerAttachArgsShape;
 /// })).await?;
 /// ```
 pub async fn container_attach_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ContainerAttachArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -91,10 +91,5 @@ where
         f(&mut builder);
     }
 
-    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
-    Ok(ApiResponse {
-        status,
-        headers,
-        body: super::shared::ByteStream::new(body),
-    })
+    super::shared::send_bytes(client.into(), builder.build()).await
 }

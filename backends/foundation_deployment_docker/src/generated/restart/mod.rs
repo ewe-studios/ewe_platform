@@ -44,12 +44,12 @@ pub type ContainerRestartArgs = super::shared::IdSignalTArgs;
 
 /// POST /containers/{id}/restart.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -61,7 +61,7 @@ pub type ContainerRestartArgs = super::shared::IdSignalTArgs;
 /// })).await?;
 /// ```
 pub async fn container_restart_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ContainerRestartArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -82,5 +82,5 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }

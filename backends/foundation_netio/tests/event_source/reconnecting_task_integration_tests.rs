@@ -14,7 +14,6 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleMethod};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
-use tracing_test::traced_test;
 
 /// Parse the SocketAddr from a TestHttpServer's base_url.
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
@@ -432,7 +431,6 @@ fn test_reconnecting_task_respects_server_retry() {
 /// WHY: `with_body` on ReconnectingEventSourceTask should use POST.
 /// WHAT: Verify the server receives a POST request with the body on first connection.
 #[test]
-#[traced_test]
 fn test_reconnecting_task_with_body_uses_post() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
 

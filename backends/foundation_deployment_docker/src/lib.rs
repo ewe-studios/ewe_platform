@@ -7,7 +7,7 @@
 //!
 //! WHAT: Auto-generated API client functions live in `generated/` (run
 //! `cargo run --bin genapi -- generate docker` to regenerate). Hand-written
-//! Docker-specific glue (`DockerClient`, streaming endpoints, `Deployable`
+//! Docker-specific glue (`DockerClient`, typed body streams, `Deployable`
 //! impls, `LogFrameDecoder`) lives alongside.
 //!
 //! HOW: The generator emits `async fn` per endpoint that call
@@ -33,7 +33,9 @@ pub mod deployable;
 pub mod buildkit;
 
 #[cfg(feature = "docker")]
-pub use client::{DockerClient, DockerTls, DEFAULT_API_VERSION, DEFAULT_DOCKER_SOCKET};
+pub use client::{
+    DockerClient, DockerLimits, DockerTls, DEFAULT_API_VERSION, DEFAULT_DOCKER_SOCKET,
+};
 #[cfg(feature = "docker")]
 pub use deployable::{ContainerDeployment, ContainerDeployOutput};
 #[cfg(feature = "docker")]

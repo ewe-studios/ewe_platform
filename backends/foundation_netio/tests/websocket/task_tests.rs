@@ -3,11 +3,9 @@
 use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{WebSocketProgress, WebSocketTask};
-use tracing_test::traced_test;
 
 // Test 1: connect creates task with valid URL
 #[test]
-#[traced_test]
 fn test_connect_creates_task() {
     let resolver = SystemDnsResolver;
     let result = WebSocketTask::connect(resolver, "ws://localhost:8080/chat");
@@ -19,7 +17,6 @@ fn test_connect_creates_task() {
 
 // Test 2: connect rejects invalid URL
 #[test]
-#[traced_test]
 fn test_connect_invalid_url() {
     let resolver = SystemDnsResolver;
     let result = WebSocketTask::connect(resolver, "not-a-url");
@@ -32,7 +29,6 @@ fn test_connect_invalid_url() {
 
 // Test 3: connect rejects non-ws/wss scheme
 #[test]
-#[traced_test]
 fn test_connect_wrong_scheme() {
     let resolver = SystemDnsResolver;
     let result = WebSocketTask::connect(resolver, "http://localhost:8080/chat");
@@ -45,7 +41,6 @@ fn test_connect_wrong_scheme() {
 
 // Test 4: connect_with_pool creates task
 #[test]
-#[traced_test]
 fn test_connect_with_pool() {
     use foundation_netio::http::{ConnectionPool, HttpConnectionPool};
     use std::sync::Arc;
@@ -63,7 +58,6 @@ fn test_connect_with_pool() {
 
 // Test 5: WebSocketProgress variants
 #[test]
-#[traced_test]
 fn test_websocket_progress_variants() {
     // Just verifying the enum exists and variants are accessible
     let connecting = WebSocketProgress::Connecting;
@@ -81,7 +75,6 @@ fn test_websocket_progress_variants() {
 
 // Test 6: TaskIterator implementation - Invalid URL returns error
 #[test]
-#[traced_test]
 fn test_task_invalid_url_returns_error() {
     let resolver = SystemDnsResolver;
     let result = WebSocketTask::connect(resolver, "invalid-url");
@@ -95,7 +88,6 @@ fn test_task_invalid_url_returns_error() {
 
 // Test 7: next() on fresh task returns Pending(Connecting)
 #[test]
-#[traced_test]
 fn test_fresh_task_pending_connecting() {
     let _ = foundation_core::valtron::initialize_pool(42, None);
 
@@ -117,7 +109,6 @@ fn test_fresh_task_pending_connecting() {
 
 // Test 8: Multiple next() calls on failing connection
 #[test]
-#[traced_test]
 fn test_failing_connection_eventual_closed() {
     let _ = foundation_core::valtron::initialize_pool(42, None);
 
@@ -146,7 +137,6 @@ fn test_failing_connection_eventual_closed() {
 
 // Test 9: Task is Send where required
 #[test]
-#[traced_test]
 fn test_task_is_send() {
     // This compiles only if WebSocketTask is Send
     fn assert_send<T: Send>() {}
@@ -158,7 +148,6 @@ fn test_task_is_send() {
 
 // Test 10: WebSocketProgress PartialEq
 #[test]
-#[traced_test]
 fn test_websocket_progress_eq() {
     assert_eq!(WebSocketProgress::Connecting, WebSocketProgress::Connecting);
     assert_eq!(

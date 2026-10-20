@@ -42,7 +42,10 @@ use erased::{
     ErasedStreamHandler, ErasedUnaryHandler, StreamHandlerImpl, UnaryHandlerImpl,
 };
 
-pub use dispatch::{in_memory_body, CollectingSink, ConnectRpcHandler, RequestBody, ResponseSink};
+pub use dispatch::{
+    in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer, RequestBody,
+    ResponseSink,
+};
 pub use erased::RequestStream;
 pub(crate) use erased::ProcedureMeta;
 
@@ -54,7 +57,8 @@ pub struct HandlerOptions {
     pub interceptors: Vec<Arc<dyn Interceptor>>,
     /// Per-procedure compression registry (overrides the router's global one).
     pub compression: Option<CompressionRegistry>,
-    /// Read/send/compress size policy.
+    /// Read/send/compress size policy (reads default to 4 MiB per message; see
+    /// [`SizeLimits`]).
     pub limits: SizeLimits,
     /// Replay safety (drives GET eligibility).
     pub idempotency: IdempotencyLevel,
@@ -91,7 +95,8 @@ impl HandlerOptions {
         self
     }
 
-    /// Set the max decompressed request size (`0` = unlimited).
+    /// Set the max decompressed request message size (`0` = unlimited;
+    /// default 4 MiB, see [`SizeLimits`]).
     #[must_use]
     pub fn with_read_max_bytes(mut self, n: usize) -> Self {
         self.limits.read_max_bytes = n;
