@@ -33,7 +33,9 @@ pub mod deployable;
 pub mod buildkit;
 
 #[cfg(feature = "docker")]
-pub use client::{DockerClient, DockerTls, DEFAULT_API_VERSION, DEFAULT_DOCKER_SOCKET};
+pub use client::{
+    DockerClient, DockerLimits, DockerTls, DEFAULT_API_VERSION, DEFAULT_DOCKER_SOCKET,
+};
 #[cfg(feature = "docker")]
 pub use deployable::{ContainerDeployment, ContainerDeployOutput};
 #[cfg(feature = "docker")]

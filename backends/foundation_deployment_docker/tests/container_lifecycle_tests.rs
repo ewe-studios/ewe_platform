@@ -22,7 +22,8 @@ use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment_docker::DockerClient;
+use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
+use foundation_deployment_docker::{DockerClient, DockerError, DockerLimits};
 use foundation_deployment_docker::generated::top::ContainerTopResponse;
 
 fn temp_socket_path(tag: &str) -> PathBuf {
@@ -58,6 +59,11 @@ fn route(method: &str, path: &str) -> (u16, String) {
         // POST /containers/{id}/rename?name=X → 204 No Content
         ("POST", p) if p.starts_with("containers/") && p.contains("/rename") => {
             (204, String::new())
+        }
+
+        // GET /containers/{id}/logs → one multiplexed stdout frame, "hello"
+        ("GET", p) if p.starts_with("containers/") && p.ends_with("/logs") => {
+            (200, "\u{1}\0\0\0\0\0\0\u{5}hello".to_string())
         }
 
         // GET /containers/{id}/top → canned JSON
@@ -249,4 +255,46 @@ fn container_top_response_deserializes_pascalcase_json() {
     let procs = resp.processes.expect("should have Processes");
     assert_eq!(procs.len(), 1);
     assert_eq!(procs[0][0], "root");
+}
+// ── logs tests ────────────────────────────────────────────────────────
+
+#[valtron_test]
+async fn docker_container_logs_demultiplexes_frames() {
+    let socket = temp_socket_path("logs");
+    let stop = Arc::new(AtomicBool::new(false));
+    mock_daemon(socket.clone(), stop.clone());
+    let client = DockerClient::connect_unix(&socket);
+
+    let (mut out, mut err) = (String::new(), String::new());
+    client
+        .container_logs("abc123", &ContainerLogsOptions::default())
+        .await
+        .expect("container_logs should succeed")
+        .read_into(&mut out, &mut err)
+        .await
+        .expect("frames");
+    assert_eq!((out.as_str(), err.as_str()), ("hello", ""));
+
+    mock_socket::stop(&socket, &stop);
+}
+
+/// The client's configured frame cap reaches the log stream it hands out.
+#[valtron_test]
+async fn docker_container_logs_use_the_clients_frame_cap() {
+    let socket = temp_socket_path("logs_cap");
+    let stop = Arc::new(AtomicBool::new(false));
+    mock_daemon(socket.clone(), stop.clone());
+    let client = DockerClient::connect_unix(&socket)
+        .with_limits(DockerLimits::default().with_max_log_frame(4));
+
+    let mut frames = client
+        .container_logs("abc123", &ContainerLogsOptions::default())
+        .await
+        .expect("the status is fine; the frame is not");
+    match frames.next().await {
+        Some(Err(DockerError::JsonParse(m))) => assert!(m.contains("larger than 4 bytes"), "{m}"),
+        other => panic!("expected JsonParse, got {other:?}"),
+    }
+
+    mock_socket::stop(&socket, &stop);
 }

@@ -44,7 +44,7 @@ impl DockerClient {
         let args = VolumeListArgs {
             filters: filters.map(str::to_string),
         };
-        let response = volume_list_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = volume_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -64,7 +64,7 @@ impl DockerClient {
         let args = VolumeInspectArgs {
             name: name.to_string(),
         };
-        let response = volume_inspect_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = volume_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -87,7 +87,7 @@ impl DockerClient {
             body: Default::default(),
         };
         let response = volume_create_request(
-            self.http(),
+            self.api(),
             &args,
             &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
@@ -122,7 +122,7 @@ impl DockerClient {
             name: name.to_string(),
             force: force.map(|f| f.to_string()),
         };
-        volume_delete_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        volume_delete_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -151,7 +151,7 @@ impl DockerClient {
             version: version.map(|v| v.to_string()),
             body: super::generated_body("volume update", config)?,
         };
-        volume_update_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        volume_update_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -170,7 +170,7 @@ impl DockerClient {
         let args = VolumePruneArgs {
             filters: filters.map(str::to_string),
         };
-        volume_prune_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        volume_prune_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 }

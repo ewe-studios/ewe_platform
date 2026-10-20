@@ -147,6 +147,17 @@ impl LogFrameDecoder {
     pub fn buffered_len(&self) -> usize {
         self.buffer.len() - self.cursor
     }
+
+    /// The payload length the next frame's header announces, once its
+    /// 8-byte header has been buffered; `None` before that.
+    ///
+    /// WHY: lets a reader refuse a frame larger than it is willing to hold
+    /// from its header alone, before buffering any of its payload.
+    #[must_use]
+    pub fn next_frame_len(&self) -> Option<usize> {
+        let header = self.buffer.get(self.cursor..self.cursor + 8)?;
+        Some(u32::from_be_bytes([header[4], header[5], header[6], header[7]]) as usize)
+    }
 }
 
 impl Default for LogFrameDecoder {

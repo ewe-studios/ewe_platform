@@ -147,7 +147,7 @@ impl DockerClient {
             signal: signal.map(str::to_string),
             t: t.map(|v| v.to_string()),
         };
-        container_restart_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_restart_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -170,7 +170,7 @@ impl DockerClient {
             id: id.to_string(),
             signal: signal.map(str::to_string),
         };
-        container_kill_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_kill_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -186,7 +186,7 @@ impl DockerClient {
             id: id.to_string(),
             name: Some(name.to_string()),
         };
-        container_rename_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_rename_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -208,7 +208,7 @@ impl DockerClient {
             h: h.map(|v| v.to_string()),
             w: w.map(|v| v.to_string()),
         };
-        container_resize_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_resize_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -228,7 +228,7 @@ impl DockerClient {
             id: id.to_string(),
             ps_args: ps_args.map(str::to_string),
         };
-        let response = container_top_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = container_top_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -246,7 +246,7 @@ impl DockerClient {
         let args = ContainerChangesArgs {
             id: id.to_string(),
         };
-        let response = container_changes_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = container_changes_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -283,8 +283,8 @@ impl DockerClient {
             tail: opts.tail.clone(),
         };
         let response =
-            container_logs_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
-        Ok(LogStream::new(response.body))
+            container_logs_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        Ok(LogStream::new(response.body, self.limits().max_log_frame))
     }
 
     // ── container_stats ─────────────────────────────────────────────────
@@ -353,7 +353,7 @@ impl DockerClient {
             one_shot: Some(one_shot.to_string()),
         };
         let response =
-            container_stats_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_stats_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(StatsStream::new(response.body))
     }
 
@@ -372,7 +372,7 @@ impl DockerClient {
     pub async fn container_export(&self, id: &str) -> Result<ByteBody, DockerError> {
         let args = ContainerExportArgs { id: id.to_string() };
         let response =
-            container_export_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_export_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -393,7 +393,7 @@ impl DockerClient {
             path: Some(path.to_string()),
         };
         let response =
-            container_archive_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_archive_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -430,8 +430,8 @@ impl DockerClient {
             stderr: Some(opts.stderr.to_string()),
         };
         let response =
-            container_attach_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
-        Ok(LogStream::new(response.body))
+            container_attach_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        Ok(LogStream::new(response.body, self.limits().max_log_frame))
     }
 
     // ── container_list ──────────────────────────────────────────────────
@@ -454,7 +454,7 @@ impl DockerClient {
             size: Some(size.to_string()),
             filters: filters.map(str::to_string),
         };
-        let response = container_list_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = container_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -476,7 +476,7 @@ impl DockerClient {
         let args = ContainerPruneArgs {
             filters: filters.map(str::to_string),
         };
-        container_prune_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        container_prune_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -509,7 +509,7 @@ impl DockerClient {
             body: super::generated_body("container update", config)?,
         };
         let response =
-            container_update_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_update_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 

@@ -22,8 +22,7 @@ use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment::providers::common::MAX_ERROR_BODY;
-use foundation_deployment_docker::{DockerClient, DockerError};
+use foundation_deployment_docker::{DockerClient, DockerError, DockerLimits};
 
 fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
@@ -258,9 +257,10 @@ async fn image_pull_checks_the_status_before_the_body() {
         DockerError::Api { status, message } => {
             assert_eq!(status, 500);
             assert!(
-                message.len() <= MAX_ERROR_BODY,
-                "read {} bytes of the error body; at most {MAX_ERROR_BODY} should be",
-                message.len()
+                message.len() <= DockerLimits::default().max_error_body,
+                "read {} bytes of the error body; at most {} should be",
+                message.len(),
+                DockerLimits::default().max_error_body
             );
             assert!(message.starts_with("eeee"), "{}", &message[..message.len().min(64)]);
         }
@@ -388,6 +388,30 @@ async fn image_delete_returns_deleted_layers() {
     assert_eq!(arr.len(), 2);
     assert_eq!(arr[0]["Untagged"], "alpine:latest");
     assert_eq!(arr[1]["Deleted"], "sha256:abc");
+
+    mock_socket::stop(&socket, &stop);
+}
+
+/// A client configured with a smaller error-body cap reads no more than that.
+#[valtron_test]
+async fn a_configured_error_body_cap_is_the_one_enforced() {
+    let socket = temp_socket_path("image_pull_500_cap");
+    let stop = Arc::new(AtomicBool::new(false));
+    mock_images_daemon(socket.clone(), stop.clone());
+
+    let client = DockerClient::connect_unix(&socket)
+        .with_limits(DockerLimits::default().with_max_error_body(100));
+    let err = client
+        .image_pull(Some("huge-error"), None, None, Some("latest"), None, None)
+        .await
+        .expect_err("a 500 is an error");
+    match err {
+        DockerError::Api { status, message } => {
+            assert_eq!(status, 500);
+            assert_eq!(message, "e".repeat(100), "exactly the configured cap is read");
+        }
+        other => panic!("expected Api, got {other:?}"),
+    }
 
     mock_socket::stop(&socket, &stop);
 }
