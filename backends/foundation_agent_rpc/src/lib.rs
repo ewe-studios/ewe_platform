@@ -8,6 +8,7 @@
 //! | Module | Role |
 //! |---|---|
 //! | [`error`] | [`AgentRpcError`] — the single error type + wire status mapping |
+//! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle |
 //!
 //! HOW: the RPC edge is async (`foundation_connectrpc` handlers); inference runs
 //! on valtron behind `Send + 'static` boundaries; the model is shared through an
@@ -15,5 +16,7 @@
 //! `specifications/65-agent-rpc-serving-system/features/01-agent-rpc`).
 
 pub mod error;
+pub mod model;
 
 pub use error::{AgentRpcError, AgentRpcResult};
+pub use model::{ModelHandle, ModelSource};

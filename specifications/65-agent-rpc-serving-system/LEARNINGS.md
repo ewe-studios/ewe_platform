@@ -560,3 +560,23 @@ the isolate.
   targets cannot build without llama.cpp (unconditional dev-dependency), so the
   spike's tests live in `foundation_agent_rpc/tests/model_share_tests.rs`.
 
+## 01 T2–T3 (2026-10-20) — scaffold and `ModelHandle`
+
+- **Scaffold:** one `AgentRpcError` enum (derive_more, not thiserror — the
+  rust-clean-code rule) with `code()` as the only Connect/gRPC status table;
+  modules are added when their task lands rather than as empty files.
+- **No `Arc<Mutex<…>>` fallback was needed** (T1 made candle concurrent), so
+  `ModelHandle` is `Arc<{name, ModelId, ProviderRouter}>`. A local model is
+  wrapped in `PreloadedProvider`, whose `get_model` hands every session a clone
+  of the same `CandleModels`. The handle holds no loader, so nothing downstream
+  can reload; `load_with(name, loader)` runs the loader exactly once.
+- **`from_router(name, model_id, router)`** serves any router (cloud providers,
+  `MockModelProvider` in tests). `MockModel` is not `Clone`, so it cannot go
+  through `PreloadedProvider`.
+- **GGUF:** there is no `ModelSource::Gguf` arm: the llama.cpp backend cannot be
+  compiled in this environment, and writing an arm that was never built would be
+  an untested stub. A GGUF `LlamaModels` (a cheap `Arc` clone) is served with
+  `ModelHandle::load_with`/`from_model`; the `gguf` feature enables
+  `foundation_ai/llamacpp`. Adding the arm is tracked with the llama.cpp
+  concurrency check in backlog §10.
+

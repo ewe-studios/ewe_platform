@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 2
-  uncompleted: 8
+  completed: 3
+  uncompleted: 7
   total: 10
-  completion_percentage: 20
+  completion_percentage: 30
 ---
 
 # Agent RPC Model Server
@@ -313,7 +313,7 @@ service AgentService {
       model complete interleaved chats without per-session reload.
 - [x] **T2 — Crate scaffold.** `foundation_agent_rpc` crate + workspace wiring;
       `lib.rs` module map; compile-clean with zero deps beyond the allowed set.
-- [ ] **T3 — `ModelHandle`.** `Arc`-backed load-once handle with the
+- [x] **T3 — `ModelHandle`.** `Arc`-backed load-once handle with the
       `Send + Sync + 'static` bound; if the backend isn't `Sync`, apply the
       `Arc<Mutex<…>>` fallback and record it in LEARNINGS.
 - [ ] **T4 — `InstanceRegistry` + `InstanceHandle`.** Named create/get/list/destroy;

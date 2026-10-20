@@ -22,6 +22,8 @@ derive_more = { version = "2.1", features = ["display", "error"] }
 tracing = { workspace = true }
 
 [dev-dependencies]
+# `testing`: MockModelProvider + message builders for deterministic server tests.
+foundation_ai = { path = "../foundation_ai", version = "0.0.2", default-features = false, features = ["multi", "testing"] }
 foundation_compact = { path = "../foundation_compact", version = "0.2.2" }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 
@@ -35,6 +37,11 @@ gguf = ["foundation_ai/llamacpp"]
 [[test]]
 name = "model_share_tests"
 path = "tests/model_share_tests.rs"
+required-features = ["candle"]
+
+[[test]]
+name = "model_handle_tests"
+path = "tests/model_handle_tests.rs"
 required-features = ["candle"]
 
 [lints]

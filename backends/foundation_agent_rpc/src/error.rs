@@ -85,6 +85,12 @@ impl From<AgentRpcError> for ConnectError {
     }
 }
 
+impl From<AgentRpcError> for ErrorTrace<AgentRpcError> {
+    fn from(err: AgentRpcError) -> Self {
+        ErrorTrace::new(err)
+    }
+}
+
 impl From<AgentRpcError> for ErrorTrace<ConnectError> {
     fn from(err: AgentRpcError) -> Self {
         ErrorTrace::new(ConnectError::from(err))
