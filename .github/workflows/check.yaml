@@ -1,4 +1,4 @@
-name: Checks
+name: "Audit: Checks & Tests"
 
 # Per-package CI. A `plan` job works out which workspace packages a change
 # affects (the packages whose files changed, plus everything that depends on
