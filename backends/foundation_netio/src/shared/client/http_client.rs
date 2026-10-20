@@ -25,11 +25,17 @@ use crate::event_source::ParseResult;
 use crate::shared::http::{HttpClientError, SendSafeBody, SimpleResponse};
 
 /// Progress indicator for SSE streams.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SseProgress {
     Connecting,
     Reading,
     Reconnecting,
+    /// A deferred transport failure surfaced in-band: wasm `send_sse` is lazy and
+    /// can no longer carry the error on its `Result`, so a fetch failure is emitted
+    /// as `Stream::Pending(Failed(msg))` before the iterator ends. Carries the error
+    /// message; the model layer maps it to `ModelState::Error`. Dropping the `Copy`
+    /// derive is inherent — `String` is not `Copy`.
+    Failed(String),
 }
 
 /// Boxed sync iterator yielding SSE events — for sync callers.

@@ -424,4 +424,37 @@ the isolate.
   `cargo check -p foundation_core --target wasm32-unknown-unknown`; full
   `cargo test -p foundation_core --profile uat` (742 passed, 0 failed).
 
+## 06 T3 (2026-10-20) — wasm `send_sse` goes lazy; the deferred-error channel lands
+
+- `SseProgress` gained `Failed(String)` (so `Clone, Debug, Eq, PartialEq`, but the
+  `Copy` derive is gone — `String` isn't `Copy`). This was safe because no code
+  matches `SseProgress` exhaustively: the native `map_progress` only *constructs*
+  it, and the model layer maps `Stream::Pending(_)` / `Stream::Pending(p)` by
+  wildcard/bind, never by enumerating variants.
+- Wasm `send_sse` no longer wraps `fetch` in `block_on_collect`. It returns a
+  `LazySseIterator` immediately; the first `next()` spawns the fetch via
+  `spawn_local` and yields `Pending(Connecting)`, then `Wait` until the fetch
+  resolves, then flattens the body `WasmSseIterator`. A fetch failure surfaces as
+  `Pending(Failed(msg))` then `None` (the `failed: Option<String>` terminal guard),
+  because a lazy iterator can no longer carry the error on its `Result`.
+- The fetch work is a free `async fn fetch_sse(req, max_redirects) -> Result<WasmSseIterator, _>`,
+  shared by the async `send_sse_async` seam and the lazy `spawn_local` path. It holds
+  `web_sys::Request`/`Response` across `.await`s, so it is `!Send`; `send_sse_async`
+  wraps it in `SendWrapper`, `spawn_local` needs no `Send`.
+- `impl WakeableStream for WasmSseIterator` registers on a `WakeRegistry` that the
+  `spawn_local` reader fires on every queue push and on done/close. `impl
+  WakeableStream for LazySseIterator` delegates to the body iterator once the fetch
+  resolved, else registers on its own fetch-stage registry. Both types carry
+  `unsafe impl Send` (wasm is single-threaded; the `!Send` registry/callbacks are
+  only touched on that thread).
+- `send_sse_async` switched from `into_pure_future_stream()` (raw lens, forwards
+  `Wait`/`Pending` and busy-polls) to `into_future_stream()` (parks via
+  `WakeableStream`), which is what makes the async seam genuinely await-friendly.
+- Gates green: `cargo check -p foundation_netio` (native), wasm `--no-default-features
+  --features wasm-fetch`, and `cargo test -p foundation_netio --profile uat`
+  (979 passed, 1 pre-existing macOS unix-socket failure `EINVAL`, already in the
+  backlog). `cargo check -p foundation_ai` (native + wasm) also green after the
+  `SseProgress` change.
+
+
 

@@ -58,15 +58,14 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
 - **Ignored tests.**
   - 14 network-dependent tests are ignored: `http_external_validation`, `tls_integration`, `http_server_integration`. Make them hermetic (task #31).
   - 33 doctests are ignored (task #33).
-- **Wasm `fetch` blocks the isolate via `block_on_collect`.** `wasm/client/client.rs`
-  `send` and `send_sse` wrap `do_fetch` in `block_on_collect` (was `run_future`),
-  which does a synchronous
-  `ReadyValues::new(iter).collect()` that never yields to the JS event loop, so the
-  `fetch` promise never resolves and the whole isolate blocks (spec 65 T6 hang).
-  Fix in spec 65 feature `06-wasm-async-streaming`: make wasm `send_sse` lazy —
-  spawn `do_fetch` via `spawn_local` on first poll and flatten a `WasmSseIterator`,
-  instead of wrapping the fetch in `block_on_collect`; and make `send` yield or drop it
-  from the wasm path.
+- **Wasm `send` blocks the isolate via `block_on_collect`.** `wasm/client/client.rs`
+  `send` wraps `fetch_and_read` in `block_on_collect` (was `run_future`), which does a
+  synchronous `ReadyValues::new(iter).collect()` that never yields to the JS event
+  loop, so the `fetch` promise never resolves and the whole isolate blocks. `send_sse`
+  was made lazy in spec 65 feature `06-wasm-async-streaming` T3 — it now spawns
+  `do_fetch` via `spawn_local` on first poll and flattens a `WasmSseIterator` (a
+  `LazySseIterator`) instead of wrapping the fetch in `block_on_collect`. `send` still
+  blocks: make it yield, or drop it from the wasm path.
 - **Wasm `send_sse_async` returns a non-parking stream.** It boxes via
   `into_future_stream()` (`StreamAsFutureStream`, a raw lens whose `poll_next` is
   `Poll::Ready(iter.next())`), so `Wait`/`Pending` are forwarded as items and the
@@ -76,7 +75,7 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
   (with `impl WakeableStream for WasmSseIterator` — a `WakeRegistry` fired by its
   `spawn_local` reader on each queue push). `send_sse_async` keeps the full-enum
   item type, so it stays on `into_future_stream()` (now parking) rather than
-  switching to `into_next_stream()`.
+  switching to `into_next_stream()`. *(Fixed in spec 65 feature 06 T3.)*
 
 ## 3. foundation_http
 
@@ -110,13 +109,15 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
   - `executors/non_sendables.rs` `block_on_collect` collects a `DrivenRecvIterator`
     synchronously (`filter_map(ReadyValue::inner).collect()`) with no JS yield, so
     it deadlocks on the single-threaded wasm executor. It is still used by the
-    three wasm call sites (netio `send`/`send_sse`, ai `backend_utils::sleep`)
-    until feature 06 T3/T4 replace them with lazy/async equivalents.
+    two remaining wasm call sites (netio `send`, ai `backend_utils::sleep`) until
+    feature 06 T4 replaces them with lazy/async equivalents (`send_sse` was removed
+    in T3).
   - The wasm-native bridge is `spawn_local` + `ConcurrentQueue` + `Stream::Wait`,
     consumed by the parking `into_next_stream`/`into_future_stream`. Fix in spec 65
     feature `06-wasm-async-streaming`: make wasm `send_sse` lazy (no
-    `block_on_collect`), fix the wasm `sleep` backoff, and add a parking test to
-    guarantee `into_future_stream`/`into_next_stream` park on `Wait`/`Pending`.
+    `block_on_collect`) — done in T3 — fix the wasm `sleep` backoff, and add a
+    parking test to guarantee `into_future_stream`/`into_next_stream` park on
+    `Wait`/`Pending`.
   - (Fixed in T2) the single-threaded `ThreadedIterFuture`/`FutureIterator` path
     dropped the future after one `Pending`; it now retains the pinned future and
     re-polls it on each `next()` (`test_threaded_future_survives_pending`).

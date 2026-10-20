@@ -9,10 +9,10 @@ created: 2026-10-20
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 2
-  uncompleted: 3
+  completed: 3
+  uncompleted: 2
   total: 5
-  completion_percentage: 40
+  completion_percentage: 60
 ---
 
 # WASM Lazy Streaming
@@ -248,7 +248,7 @@ The fetch is driven by `spawn_local` and the consumer parks on `Wait`/`Pending`.
 - [x] **T2 — `run_future` audit (foundation_core).** Rename → `block_on_collect`,
       document wasm-unsafe; fix `run_future_iter` wasm path.
       Gate: `cargo test -p foundation_core` + wasm `cargo check`.
-- [ ] **T3 — lazy `send_sse` + error channel (foundation_netio).** `SseProgress::Failed`,
+- [x] **T3 — lazy `send_sse` + error channel (foundation_netio).** `SseProgress::Failed`,
       `LazySseIterator`, `WakeableStream` for `WasmSseIterator`; `send_sse` drops
       `block_on_collect`. Gate: `cargo check -p foundation_netio` + wasm
       `--features wasm-fetch` + `cargo test -p foundation_netio`.
@@ -296,7 +296,7 @@ curl -sN -X POST http://127.0.0.1:8787/generate --data 'What is the capital of F
       `into_pure_future_stream`; parking tests in place
 - [ ] `run_future` renamed `block_on_collect` and documented wasm-unsafe; no wasm caller
       uses it; `run_future_iter` wasm path fixed
-- [ ] Wasm `send_sse` returns a lazy `LazySseIterator` (no `block_on_collect`); `WasmSseIterator`
+- [x] Wasm `send_sse` returns a lazy `LazySseIterator` (no `block_on_collect`); `WasmSseIterator`
       and the fetch stage implement `WakeableStream`
 - [ ] `SseProgress::Failed(String)` added; `OpenAIStream`/`WorkersAiStream` map it to
       `ModelState::Error`
