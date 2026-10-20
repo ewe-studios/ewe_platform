@@ -121,6 +121,7 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
     path; make wasm `send_sse` lazy (no `run_future`); and add a parking test to
     guarantee `into_future_stream`/`into_next_stream` park on `Wait`/`Pending`.
 - **Release coupling.** `foundation_macros` calls `foundation_core::valtron::initialize_current_thread`, so the two crates need a coordinated version bump when published.
+- **`sleep_async` as a `select` timeout under `block_on_future` can fail to fire.** When the pool is contended (e.g. during shutdown), the `SleepingTask` timer may never resolve, hanging the future raced against it. Surfaced by the proxy's gRPC health probe (§9), which works around it with an outer `recv_timeout`.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
@@ -160,7 +161,14 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
   - Its post-step `cargo fix` always runs in the dev profile, ignoring `--profile`.
   - A plain `generate hetzner` ignores the crate's declared operation selection and generates the full API.
 
-## 9. Workspace / process
+## 9. foundation_proxy
+
+- **gRPC health probe leaks a thread + H2 connection when its inner timeout hangs.**
+  - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer can fail to fire (see §4) and `H2Transport`'s pump parks on the socket read with no read timeout.
+  - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
+  - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
+
+## 10. Workspace / process
 
 - **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
   - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.

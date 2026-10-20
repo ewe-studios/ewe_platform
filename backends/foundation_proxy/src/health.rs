@@ -12,16 +12,31 @@
 //! per backend until a shutdown signal fires.
 //!
 //! HOW: HTTP/HTTPS backends are probed with a real `GET` to the configured
-//! path via the shared client; `tcp://` backends are probed with a TCP connect.
-//! A 2xx/3xx response (or a successful connect) is a success; anything else is a
-//! failure.
+//! path via the shared client; `tcp://` backends are probed with a TCP connect;
+//! `grpc://` backends are probed with a native `grpc.health.v1.Health/Check`
+//! over H2 (the standard gRPC health protocol — a `SERVING` verdict is healthy).
+//! A 2xx/3xx response (or a successful connect / `SERVING` verdict) is a
+//! success; anything else is a failure.
 
 use std::net::TcpStream;
 use std::sync::Arc;
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
+use bytes::Bytes;
 use foundation_core::synca::OnSignal;
+use foundation_core::url::Uri;
+use foundation_core::valtron::{block_on_future, sleep_async};
+use foundation_netio::shared::http::{
+    Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl,
+};
+
+use foundation_connectrpc::{
+    CancelSignal, ClientExchange, ClientExchangeConfig, GrpcClient, H2Transport, ProtocolClient,
+    Spec, Transport,
+};
+use futures_util::future::{select, Either};
+use futures_util::FutureExt;
 
 use crate::config::{BackendProtocol, HealthCheckConfig};
 use crate::forward::SharedHttpClient;
@@ -174,13 +189,14 @@ fn probe_once(
     match backend.protocol() {
         BackendProtocol::Tcp => probe_tcp(&backend.target().authority(), config.timeout),
         BackendProtocol::Udp => probe_udp(&backend.target().authority(), config.timeout),
-        // `connect` / `grpc` / `grpc-web` are HTTP-family; probe them with the
-        // HTTP path probe until the gRPC health protocol (`grpc.health.v1`) is
-        // wired in for the D leg (spec 63).
+        // `grpc://` backends answer the standard gRPC health protocol over H2,
+        // not an HTTP GET path.
+        BackendProtocol::Grpc => probe_grpc_health(backend.url(), config.timeout),
+        // `connect` / `grpc-web` are HTTP-family; probe them with the HTTP path
+        // probe (a Connect backend has no gRPC health endpoint).
         BackendProtocol::Http
         | BackendProtocol::Https
         | BackendProtocol::Connect
-        | BackendProtocol::Grpc
         | BackendProtocol::GrpcWeb => {
             probe_http(backend.url(), &config.path, config.timeout, client)
         }
@@ -234,6 +250,186 @@ fn probe_http(base_url: &str, path: &str, timeout: Duration, client: &SharedHttp
             false
         }
     }
+}
+
+// ── gRPC health (grpc.health.v1.Health/Check) ──────────────────────────────
+
+/// `ServingStatus.SERVING` — the only value that counts as healthy.
+const SERVING: u64 = 0;
+
+/// Decode `HealthCheckResponse.status` (field 1, varint) from its protobuf.
+/// `SERVING` (0) is the proto3 default, so an omitted field means the same as an
+/// empty message. Unknown trailing fields are skipped; a malformed message
+/// degrades to `SERVING` so the verdict comes from `grpc-status` instead.
+fn decode_health_status(msg: &[u8]) -> u64 {
+    let mut i = 0;
+    while i < msg.len() {
+        let tag = varint(msg, &mut i);
+        match tag & 0x07 {
+            0 => {
+                let value = varint(msg, &mut i);
+                if tag >> 3 == 1 {
+                    return value;
+                }
+            }
+            2 => {
+                let len = varint(msg, &mut i) as usize;
+                i = i.saturating_add(len);
+            }
+            5 => i = i.saturating_add(4), // 32-bit
+            1 => i = i.saturating_add(8), // 64-bit
+            _ => return SERVING,
+        }
+    }
+    SERVING
+}
+
+/// Decode one base-128 varint from `buf` starting at `*i`, advancing `*i`.
+fn varint(buf: &[u8], i: &mut usize) -> u64 {
+    let mut result = 0u64;
+    let mut shift = 0u32;
+    loop {
+        let Some(&byte) = buf.get(*i) else {
+            break;
+        };
+        *i += 1;
+        result |= u64::from(byte & 0x7f) << shift;
+        if byte & 0x80 == 0 {
+            break;
+        }
+        shift += 7;
+        if shift >= 64 {
+            break;
+        }
+    }
+    result
+}
+
+/// Drive one `grpc.health.v1.Health/Check` round trip over H2. The empty service
+/// string (`HealthCheckRequest { service: "" }`) probes overall health; the
+/// single response message is decoded to its `ServingStatus`, cross-checked
+/// against the trailing `grpc-status`. `timeout` bounds the whole exchange: the
+/// pump tasks are raced against a timer, and a win by the timer yields `Err`.
+async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, String> {
+    let uri = Uri::parse(&url).map_err(|e| format!("parse health uri {url}: {e}"))?;
+    let mut headers = SimpleHeaders::new();
+    headers.insert(
+        SimpleHeader::CONTENT_TYPE,
+        vec!["application/grpc".to_string()],
+    );
+    headers.insert(
+        SimpleHeader::from("te".to_string()),
+        vec!["trailers".to_string()],
+    );
+
+    let out_request = RequestDescriptor {
+        proto: Proto::HTTP20,
+        request_url: SimpleUrl::url_only(&url),
+        request_uri: uri,
+        headers,
+        method: SimpleMethod::POST,
+    };
+    let stream = H2Transport::new()
+        .open(out_request)
+        .map_err(|e| format!("open h2 health upstream {url}: {e}"))?;
+    let outbound = GrpcClient
+        .new_conn(
+            &Spec::empty(true),
+            SimpleHeaders::new(),
+            stream,
+            ClientExchangeConfig {
+                cancel: CancelSignal::new(),
+                read_max_bytes: 0,
+            },
+        )
+        .map_err(|e| format!("build grpc health exchange: {e}"))?;
+    let ClientExchange {
+        conn,
+        reader_task,
+        writer_task,
+    } = outbound;
+    let (mut out_send, mut out_recv) = conn.split();
+
+    // The receiver stashes its outcome in a shared slot so the timeout race can
+    // still surface it after the pump `join_all` completes.
+    let result: Arc<std::sync::Mutex<Option<Result<bool, String>>>> =
+        Arc::new(std::sync::Mutex::new(None));
+
+    let sender = async move {
+        // `HealthCheckRequest { service: "" }` serializes to zero bytes.
+        let _ = out_send.send(Bytes::new()).await;
+        let _ = out_send.close_send().await;
+    };
+
+    let result_ref = Arc::clone(&result);
+    let receiver = async move {
+        let outcome = async {
+            let mut msg: Option<Bytes> = None;
+            loop {
+                match out_recv.receive().await {
+                    Ok(Some(bytes)) => msg = Some(bytes),
+                    Ok(None) => break,
+                    Err(e) => return Err(format!("health receive failed: {e}")),
+                }
+            }
+            let trailers = out_recv
+                .response_trailers()
+                .await
+                .map(|t| t.clone())
+                .unwrap_or_default();
+            let grpc_status = trailers
+                .get(&SimpleHeader::GRPC_STATUS)
+                .and_then(|v| v.first())
+                .map(|s| s.as_str());
+            if grpc_status != Some("0") {
+                return Err(format!("health check grpc-status {grpc_status:?}"));
+            }
+            Ok(decode_health_status(msg.as_deref().unwrap_or(b"")) == SERVING)
+        }
+        .await;
+        *result_ref.lock().unwrap() = Some(outcome);
+    };
+
+    let work = futures_util::future::join_all(vec![
+        sender.boxed(),
+        receiver.boxed(),
+        reader_task.map(|_| ()).boxed(),
+        writer_task.map(|_| ()).boxed(),
+    ])
+    .boxed();
+    let timer = async move { sleep_async(timeout).await }.boxed();
+
+    match select(work, timer).await {
+        Either::Left(_) => result
+            .lock()
+            .unwrap()
+            .take()
+            .unwrap_or_else(|| Err("gRPC health check produced no result".to_string())),
+        Either::Right(_) => Err("gRPC health check timed out".to_string()),
+    }
+}
+
+/// gRPC health probe: `true` = the backend reported `SERVING`.
+///
+/// The check is driven on a dedicated thread and bounded by a hard
+/// [`std::sync::mpsc::Receiver::recv_timeout`]. `grpc_health_check` already races
+/// its pump against an internal timer, but a stuck timer (or an in-flight probe
+/// racing proxy shutdown) must not be allowed to hang this probe thread — a hung
+/// probe would block [`HealthMonitor::join`] and stall `ProxyServer::shutdown`.
+/// The inner future still owns the normal path (and, on timeout, drops the H2
+/// pump so the connection is closed); the outer deadline is a backstop only.
+fn probe_grpc_health(base_url: &str, timeout: Duration) -> bool {
+    let url = join_url(base_url, "/grpc.health.v1.Health/Check");
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let _ = tx.send(block_on_future(grpc_health_check(url, timeout)));
+    });
+    // A margin over `timeout` so the inner timer + H2 open settle before the
+    // outer deadline fires; the outer deadline only trips on a stuck inner timer.
+    rx.recv_timeout(timeout + Duration::from_millis(250))
+        .ok()
+        .and_then(std::result::Result::ok)
+        .unwrap_or(false)
 }
 
 /// Join a base URL and a health path, avoiding a doubled slash.
