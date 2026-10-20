@@ -46,6 +46,22 @@ fn read_api_key(env: &worker::Env) -> String {
         .unwrap_or_default()
 }
 
+/// Optional vendor base-URL override (for the miniflare smoke test's mocked
+/// vendor `fetch`). When unset, `OpenAIConfig::openrouter` keeps its real
+/// `https://openrouter.ai/api/v1` base URL.
+fn read_base_url(env: &worker::Env) -> Option<String> {
+    let url = env
+        .secret("OPENROUTER_BASE_URL")
+        .map(|s| s.to_string())
+        .or_else(|_| env.var("OPENROUTER_BASE_URL").map(|v| v.to_string()))
+        .unwrap_or_default();
+    if url.is_empty() {
+        None
+    } else {
+        Some(url)
+    }
+}
+
 /// Build (or reuse) the OpenRouter-backed session for this isolate.
 ///
 /// `AgentSession` is an `Arc` clone, so returning an owned clone is cheap and
@@ -56,8 +72,12 @@ fn get_or_build_session(env: &worker::Env) -> AgentSession {
             return s.clone();
         }
         let key = read_api_key(env);
+        let mut config = OpenAIConfig::openrouter(key);
+        if let Some(base_url) = read_base_url(env) {
+            config = config.with_base_url(base_url);
+        }
         let provider = OpenAIProvider::with_http_client(Arc::new(FetchHttpClient::new()))
-            .create(Some(OpenAIConfig::openrouter(key)))
+            .create(Some(config))
             .expect("failed to build OpenRouter provider");
         let session = AgentSession::builder(provider)
             .with_model(ModelId::from(DEFAULT_MODEL))

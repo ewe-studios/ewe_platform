@@ -41,6 +41,7 @@ struct WorkersAiCreds {
     api_token: String,
     account_id: String,
     model: String,
+    base_url: Option<String>,
 }
 
 thread_local! {
@@ -59,6 +60,7 @@ fn secret_or_var(env: &worker::Env, name: &str) -> String {
 /// Cache the Workers AI credentials from the CF env.
 fn store_creds(env: &JsValue) {
     let env = env.unchecked_ref::<worker::Env>();
+    let base_url = secret_or_var(env, "WORKERS_AI_BASE_URL");
     let creds = WorkersAiCreds {
         api_token: secret_or_var(env, "WORKERS_AI_API_TOKEN"),
         account_id: secret_or_var(env, "CLOUDFLARE_ACCOUNT_ID"),
@@ -66,6 +68,11 @@ fn store_creds(env: &JsValue) {
             .var("MODEL")
             .map(|v| v.to_string())
             .unwrap_or_else(|_| DEFAULT_MODEL.to_string()),
+        base_url: if base_url.is_empty() {
+            None
+        } else {
+            Some(base_url)
+        },
     };
     CREDS.with(|c| *c.borrow_mut() = Some(creds));
 }
@@ -79,10 +86,12 @@ fn get_or_build_session() -> Result<AgentSession, String> {
         let creds = CREDS
             .with(|c| c.borrow().clone())
             .ok_or_else(|| "no credentials stored".to_string())?;
+        let mut config = WorkersAiConfig::api_token(creds.api_token).with_account_id(creds.account_id);
+        if let Some(base_url) = creds.base_url {
+            config = config.with_base_url(base_url);
+        }
         let provider = WorkersAiProvider::with_http_client(Arc::new(FetchHttpClient::new()))
-            .create(Some(
-                WorkersAiConfig::api_token(creds.api_token).with_account_id(creds.account_id),
-            ))
+            .create(Some(config))
             .map_err(|e| e.to_string())?;
         let session = AgentSession::builder(provider)
             .with_model(ModelId::from(creds.model.as_str()))
