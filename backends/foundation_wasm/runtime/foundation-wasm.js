@@ -1444,12 +1444,17 @@ export class TimerRegistry {
     this.host = host;
     this.timeouts = new Map();
     this.intervals = new Map();
+    // Set by cancelAll(): nothing scheduled for this instance may call into it
+    // afterwards (queued microtasks cannot be cancelled, so they check this).
+    this.disposed = false;
   }
 
   scheduleTimeout(callbackId, delayMs) {
+    if (this.disposed) return;
     const key = String(callbackId);
     const handle = this.host.setTimeout(() => {
       this.timeouts.delete(key);
+      if (this.disposed) return;
       this.bridge.exports.run_scheduled_callback(BigInt(callbackId));
     }, delayMs);
     this.timeouts.set(key, handle);
@@ -1461,10 +1466,12 @@ export class TimerRegistry {
    * itself from an event-driven wake without the latency of a 0 ms timer.
    */
   scheduleMicrotask(callbackId) {
+    if (this.disposed) return;
     const queue = this.host.queueMicrotask
       ? this.host.queueMicrotask.bind(this.host)
       : (fn) => Promise.resolve().then(fn);
     queue(() => {
+      if (this.disposed) return;
       this.bridge.exports.run_scheduled_callback(BigInt(callbackId));
     });
   }
@@ -1479,6 +1486,7 @@ export class TimerRegistry {
   }
 
   scheduleInterval(callbackId, intervalMs) {
+    if (this.disposed) return;
     const key = String(callbackId);
     const handle = this.host.setInterval(() => {
       // run_interval_callback returns 0 (STOP) when the callback asked to stop.
@@ -1496,6 +1504,20 @@ export class TimerRegistry {
       this.host.clearInterval(handle);
       this.intervals.delete(key);
     }
+  }
+
+  /**
+   * Cancel every pending timeout and interval and refuse new ones: the instance
+   * these callbacks would run in is being discarded. Without this, a timer the
+   * guest scheduled keeps the old instance alive and calls into it later — after
+   * its owner has moved on (e.g. the `#[wasm_test]` runner's next case).
+   */
+  cancelAll() {
+    this.disposed = true;
+    for (const handle of this.timeouts.values()) this.host.clearTimeout(handle);
+    for (const handle of this.intervals.values()) this.host.clearInterval(handle);
+    this.timeouts.clear();
+    this.intervals.clear();
   }
 }
 
@@ -2187,6 +2209,16 @@ export class FoundationWasm {
     this.bridge.exports = instance.exports;
     this.bridge.memory = instance.exports.memory;
     return this;
+  }
+
+  /**
+   * Tear down this runtime's host-side scheduling before discarding the
+   * instance: pending timeouts, intervals, queued microtasks and the animation
+   * loop are cancelled, so no guest code runs after this call.
+   */
+  dispose() {
+    this.timers.cancelAll();
+    this.animation.stop();
   }
 
   /** Register a protocol handler `{ apply(memoryId, payload) }` for a protocol byte. */
