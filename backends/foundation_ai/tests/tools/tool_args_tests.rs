@@ -160,8 +160,8 @@ fn tool_call_result_text() {
 
 /// `edit` reads `replace_all` the same way from every backend: a JSON boolean
 /// (`OpenAI` / Anthropic) or the text `"true"` (some local models).
-#[valtron_test]
-async fn edit_accepts_replace_all_in_either_spelling() {
+#[test]
+fn edit_accepts_replace_all_in_either_spelling() {
     futures_lite::future::block_on(async {
         for flag in [
             serde_json::json!(true),

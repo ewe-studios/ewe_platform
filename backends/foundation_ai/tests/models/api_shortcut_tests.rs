@@ -111,8 +111,8 @@ fn anthropic_name() -> String {
         .to_string()
 }
 
-#[valtron_test]
-async fn router_builder_takes_providers_directly() {
+#[test]
+fn router_builder_takes_providers_directly() {
     use foundation_ai::types::{ProviderRouter, RoutingRule};
 
     let router = ProviderRouter::builder()
