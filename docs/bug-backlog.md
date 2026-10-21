@@ -32,6 +32,20 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
 - **Transports with no pollable fd fail.** `native/conn_io.rs` readiness waits return `Unsupported` for WireGuard overlay, io_uring completion sockets and openssl/native-tls.
   - With rustls, the fd is polled in the application's direction, so a TLS session that needs the opposite direction mid-stream waits until the timeout.
 - **Conformance coverage.** Add an 8-thread variant of the conformance suite (task #27).
+- **A streaming handler can't await its own cancellation.** `exchange_until_aborted`
+  (`shared/router/dispatch.rs`) drops `response_side` — which holds the handler
+  stream — before `run_streaming_h2` fires `cancel.cancel()` on
+  `Abort::PeerGone`/`Abort::BodyFailed`, so a handler's `ctx.cancelled().await`
+  never completes on a peer disconnect. Only `ctx.is_canceled()` (read from a
+  parked `Ctx`) is observable. Fire the cancel before dropping the handler, e.g.
+  cancel from a `Drop` guard on the handler future or restructure the select so
+  the handler is polled once more. Surfaced by spec 63 T13.
+- **The client's `cancel()` does not emit a wire-level reset.** `CancelSignal::cancel`
+  stops the local signal but keeps the H2 socket open, so the server keeps
+  streaming into a peer that has "cancelled" locally and never learns it was
+  aborted. A cancelled client call should send `RST_STREAM` (or half-close) so
+  the server observes the abort. Surfaced by spec 63 T13 — its e2e test drives a
+  raw `RST_STREAM` because the typed client cannot.
 
 ## 2. foundation_netio
 
@@ -122,6 +136,15 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   `not(target_family = "wasm")`, and make the nested-run case return instead of
   spinning.
 - **Release coupling.** `foundation_macros` calls `foundation_core::valtron::initialize_current_thread`, so the two crates need a coordinated version bump when published.
+- **`sleep_async` as a `select` timeout under `block_on_future` can fail to fire.** When the pool is contended (e.g. during shutdown), the `SleepingTask` timer may never resolve, hanging the future raced against it. Surfaced by the proxy's gRPC health probe (§9), which works around it with an outer `recv_timeout`.
+- **`SharedByteBufferStream::peek` conflates EOF with `WouldBlock`.** The
+  `PeekableReadStream` impl (`io/ioutils/mod.rs`) maps `PeekState::EndOfFile`
+  (and `NoNext` / `EndOfBuffered`) to `Ok(0)` — the same result as "no bytes
+  yet" — so a peeker cannot tell a peer that closed the socket from one that is
+  just slow. `foundation_http`'s h2 server therefore parks forever on a
+  half-closed peer instead of detecting the disconnect. Spec 63 T13 works around
+  it by having the connectrpc client pump send an explicit `RST_STREAM(CANCEL)`;
+  the peeker itself should return a distinct EOF signal.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
@@ -168,7 +191,14 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   - Its post-step `cargo fix` always runs in the dev profile, ignoring `--profile`.
   - A plain `generate hetzner` ignores the crate's declared operation selection and generates the full API.
 
-## 9. Workspace / process
+## 9. foundation_proxy
+
+- **gRPC health probe leaks a thread + H2 connection when its inner timeout hangs.**
+  - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer can fail to fire (see §4) and `H2Transport`'s pump parks on the socket read with no read timeout.
+  - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
+  - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
+
+## 10. Workspace / process
 
 - **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
   - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.

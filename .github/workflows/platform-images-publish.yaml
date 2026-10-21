@@ -43,6 +43,10 @@ on:
       - tools/**
       - .github/workflows/platform-images.yaml
       - .github/workflows/platform-images-publish.yaml
+      # The smoke tests build llama.cpp through these crates (the CUDA image
+      # links ggml-cuda), so a change to them must be proven here before merge.
+      - infrastructure/llama-bindings/**
+      - infrastructure/llama-cpp/**
   schedule:
     - cron: "23 4 * * 1" # Mondays: rebuild with fresh packages
   workflow_dispatch:

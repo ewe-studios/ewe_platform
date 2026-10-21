@@ -212,3 +212,64 @@ Issues.
 (verified via a tagged `git stash` round-trip), so they are environment /
 raw-socket-timing issues, not T6 regressions. Tracked in requirements.md Known
 Issues.
+
+## Milestone — Workstream 2, T7–T13 (2026-10-20)
+
+- **T7 (done):** `BackendProtocol` gained `Connect`/`Grpc`/`GrpcWeb` with
+  `Display` strings, inferred from `connect://` / `grpc://` / `grpc-web://`.
+  Gate: `backend_target_tests`.
+- **T8/T9/T10 (done):** the codec-agnostic frame relay. Inbound
+  `GrpcWebHandler` / `ConnectHandler` de-frame opaque message frames; outbound
+  `GrpcClient` re-envelopes them over `H2Transport`. T8 is the unary keystone,
+  T9 the server-stream + `grpc-web-text` base64 + status fidelity, T10 all four
+  Connect↔gRPC stream types (closing the T6 bidi gap). Gate:
+  `rpc_proxy_e2e_tests` (17/17).
+- **T11 (done):** stream-level LB — each relayed RPC picks a backend at `open()`
+  time (one `H2Transport` connection per call), so concurrent streams spread.
+  Gate: `rpc_proxy_e2e_tests`.
+- **T12 (done):** minimal `grpc.health.v1.Health/Check` client (hand-encoded
+  messages) wired into `probe_once()` for `Grpc` backends. Gate:
+  `rpc_health_tests`.
+- **T13 (done):** deadline pass-through + cancellation. `translate_connect_deadline_to_grpc`
+  re-encodes `connect-timeout-ms` → `grpc-timeout`; the streaming relay races a
+  shared `CancelSignal` (fired on client reset) against its pump/reader/writer
+  tasks; the outbound H2 pump aborts the backend stream with `RST_STREAM` when
+  the response consumer goes away. Gate: `rpc_deadline_tests` (2/2).
+
+**Decision — the D leg relays frames, not typed `Client<Req,Res>`.** The proxy
+has no upstream protobuf types, so it cannot build connectrpc's generic
+`Client<Req,Res>` per method. It forwards at the **frame level**: decode the
+inbound protocol into opaque message frames, re-encode them in the backend's
+protocol (re-enveloping only — for gRPC-Web-text, base64-decode/encode; for
+gRPC, move status between H2 trailing HEADERS and the in-body `0x80` frame).
+Method identity is the URL path, which the proxy's `Router` already matches.
+
+**Learning — cancellation has to reach the backend through two hops, each with
+its own gap.** A client abort is a wire-level `RST_STREAM`; turning it into a
+backend teardown surfaced three independent gaps, all fixed or tracked:
+
+1. **The proxy's body feeder never saw the reset.** For a server-stream, the
+   request body already ended cleanly at `END_STREAM`, so `on_data` closed the
+   body pipe and the later `Reset` was skipped. The reset instead surfaces as the
+   *response* pipe closing, so `relay_connect_streaming_h2` now races the relay
+   against `tx.closed()` and fires the shared `CancelSignal`.
+2. **The backend's H2 server never saw the socket close.** `SharedByteBufferStream::peek`
+   (foundation_core) maps `PeekState::EndOfFile` to `Ok(0)` — indistinguishable
+   from `WouldBlock` — so the server parks forever on a peer that half-closed its
+   socket. The relay's outbound pump now sends an explicit `RST_STREAM(CANCEL)`
+   when its response consumer goes away. The underlying EOF/`WouldBlock`
+   conflation is a separate foundation_core bug (tracked in bug-backlog).
+3. **The handler can't `await` its own cancellation.** `exchange_until_aborted`
+   drops the response side (holding the handler stream) *before*
+   `run_streaming_h2` fires `cancel.cancel()`, so a streaming handler's
+   `ctx.cancelled().await` never completes on peer disconnect — only
+   `ctx.is_canceled()` (read from a parked `Ctx`) is observable. The test
+   therefore parks the handler's `Ctx` in a `Slot` and polls `is_canceled()`,
+   mirroring `foundation_connectrpc/tests/cancellation_tests.rs`. The drop-before-cancel
+   ordering is a connectrpc limitation tracked in bug-backlog.
+
+**Learning — the connectrpc typed client's `cancel()` does not emit a wire
+reset.** It cancels the local signal but keeps the H2 socket open, so it cannot
+stand in for "the client aborted" in a cancellation test. The test drives a raw
+`H2Channel` client that sends a genuine `RST_STREAM` — the faithful HTTP/2 abort
+signal. Tracked in bug-backlog (client-side cancellation does not propagate).

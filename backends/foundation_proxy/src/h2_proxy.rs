@@ -26,7 +26,7 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{PipeReceiver, PipeSender, Stream, TryRecvError, TrySendError};
+use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender, Stream, TryRecvError, TrySendError};
 use foundation_netio::http::ClientRequestBuilder;
 use foundation_netio::http2::frame::ErrorCode;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
@@ -35,18 +35,28 @@ use foundation_netio::shared::client::body_reader::{
 };
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{
-    pushable_request_body, Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod,
-    SimpleUrl,
+    pushable_request_body, Proto, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders,
+    SimpleIncomingRequest, SimpleMethod, SimpleUrl,
 };
 
 use foundation_http::native::serve::{BoxFuture, H2Serve};
 use foundation_http::shared::context::ContextBag;
 
-use foundation_connectrpc::shared::transport::{BodyStream, HeadStream, SendBody};
-use foundation_connectrpc::{H2Transport, Transport};
+use foundation_connectrpc::shared::protocol::connect::{
+    streaming_content_type as connect_streaming_content_type,
+};
+use foundation_connectrpc::shared::protocol::grpc::content_type as grpc_content_type;
+use foundation_connectrpc::shared::transport::{BodyStream, HeadStream, SendBody, DEFAULT_PIPE_DEPTH};
+use foundation_connectrpc::{
+    parse_connect_content_type, CancelSignal, ConnectHandler, H2Transport, Transport,
+};
 use futures_util::StreamExt;
 
+use crate::config::BackendProtocol;
 use crate::forward::{forward_request_headers, strip_hop_by_hop, upstream_url, SharedHttpClient};
+use crate::rpc_relay::{
+    build_streaming_relay_to_grpc, connect_unary_roundtrip, translate_connect_deadline_to_grpc,
+};
 use crate::runtime::BackendLease;
 use crate::state::ProxyState;
 
@@ -106,6 +116,27 @@ impl H2Serve for H2ProxyHandler {
                 // through `tx` as an `H2Frame::Trailers`. `host`/`client` are unused.
                 forward_upstream_h2(
                     lease, method, path, orig_headers, client_ip, scheme, body, &tx,
+                )
+                .await;
+            } else if lease.backend().protocol() == BackendProtocol::Grpc
+                && is_connect_streaming_request(&orig_headers)
+            {
+                // Connect streaming (server-stream / client-stream / bidi) to a
+                // `grpc://` backend: translate at the frame level. bidi needs the H2
+                // front end — the H1 leg is half-duplex. Async all the way, like the
+                // gRPC leg; the Connect-framed response flows back as DATA frames.
+                relay_connect_streaming_h2(
+                    lease, header, orig_headers, client_ip, scheme, body, &tx,
+                )
+                .await;
+            } else if lease.backend().protocol() == BackendProtocol::Grpc
+                && is_connect_unary_request(&orig_headers)
+            {
+                // Connect unary (bare `application/{codec}` body) to a `grpc://`
+                // backend: decode, envelope as one gRPC message, and decode the
+                // single gRPC response back to a bare Connect body.
+                relay_connect_unary_h2(
+                    lease, header, orig_headers, client_ip, scheme, body, &tx,
                 )
                 .await;
             } else {
@@ -283,6 +314,29 @@ fn is_grpc_request(headers: &SimpleHeaders) -> bool {
         .get(&SimpleHeader::CONTENT_TYPE)
         .and_then(|values| values.first())
         .is_some_and(|ct| ct == "application/grpc" || ct.starts_with("application/grpc+"))
+}
+
+/// Whether a request is a Connect **streaming** call (`application/connect+{codec}`),
+/// which the D-leg relay translates to native gRPC for a `grpc://` backend. Unary
+/// Connect (`application/{codec}`, bare body) is deliberately excluded: it takes
+/// a different bare-bytes↔envelope path, not the enveloped streaming seam.
+fn is_connect_streaming_request(headers: &SimpleHeaders) -> bool {
+    headers
+        .get(&SimpleHeader::CONTENT_TYPE)
+        .and_then(|values| values.first())
+        .and_then(|ct| parse_connect_content_type(ct))
+        .is_some_and(|(_, is_streaming)| is_streaming)
+}
+
+/// Whether a request is a Connect **unary** call (`application/{codec}`, bare body),
+/// which the D-leg relay translates to native gRPC via the bare-bytes↔envelope path
+/// (distinct from the enveloped streaming seam).
+fn is_connect_unary_request(headers: &SimpleHeaders) -> bool {
+    headers
+        .get(&SimpleHeader::CONTENT_TYPE)
+        .and_then(|values| values.first())
+        .and_then(|ct| parse_connect_content_type(ct))
+        .is_some_and(|(_, is_streaming)| !is_streaming)
 }
 
 /// Forward one H2 stream to its backend over HTTP/2 (no downgrade) via connectrpc's
@@ -463,6 +517,300 @@ async fn response_relay(
                 .await;
         }
     }
+}
+
+/// Relay a Connect streaming request (server-stream / client-stream / bidi) from
+/// the H2 front end to a native-gRPC backend, translating at the frame level and
+/// streaming in both directions. Runs on the valtron worker — async all the way.
+///
+/// The request body is streamed from H2 DATA frames into the relay's request
+/// pipe (never buffered whole), and the Connect-framed response bytes are drained
+/// back out as H2 DATA frames. bidi (full-duplex) is only reachable here — the H1
+/// leg is half-duplex and cannot carry it. The response status rides the Connect
+/// `EndStreamResponse` envelope in the body, not trailing HEADERS.
+#[allow(clippy::too_many_arguments)]
+async fn relay_connect_streaming_h2(
+    lease: BackendLease,
+    header: SimpleIncomingRequestHeader,
+    orig_headers: SimpleHeaders,
+    client_ip: String,
+    scheme: String,
+    body: PipeReceiver<H2IncomingFrame>,
+    tx: &PipeSender<H2Frame>,
+) {
+    let url = upstream_url(lease.backend().url(), &header.url.url);
+
+    // The inbound content-type selects the codec; the outbound gRPC content-type
+    // and the response content-type follow from it. The caller only routes
+    // streaming Connect here, but re-check rather than mis-relay a unary body.
+    let inbound_ct = orig_headers
+        .get(&SimpleHeader::CONTENT_TYPE)
+        .and_then(|v| v.first())
+        .cloned()
+        .unwrap_or_else(|| "application/connect+json".to_string());
+    let Some((codec, is_streaming)) = parse_connect_content_type(&inbound_ct) else {
+        tracing::warn!(%url, content_type = %inbound_ct, "unrecognized connect content-type");
+        let _ = tx.send(h2_status(415, true)).await;
+        return;
+    };
+    if !is_streaming {
+        tracing::warn!(%url, content_type = %inbound_ct, "connect unary misrouted to streaming relay");
+        let _ = tx.send(h2_status(415, true)).await;
+        return;
+    }
+
+    // Outbound gRPC request headers: the same hop-by-hop + forwarding policy as
+    // the transparent leg, re-typed to gRPC and given `te: trailers`.
+    let mut out_headers = forward_request_headers(&orig_headers, &client_ip, &scheme);
+    out_headers.insert(SimpleHeader::CONTENT_TYPE, vec![grpc_content_type(&codec)]);
+    out_headers.insert(
+        SimpleHeader::from("te".to_string()),
+        vec!["trailers".to_string()],
+    );
+    translate_connect_deadline_to_grpc(&mut out_headers);
+
+    // Rebuild the incoming request so `ConnectHandler::new_conn` sees the full
+    // shape (peer, headers); the body is streamed separately through `body`.
+    let request = match SimpleIncomingRequest::builder()
+        .with_proto(Proto::HTTP20)
+        .with_uri(header.uri)
+        .with_url(header.url)
+        .with_headers(orig_headers)
+        .with_method(header.method)
+        .with_connection(header.connection)
+        .build()
+    {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!(%url, "build connect request failed: {e}");
+            let _ = tx.send(h2_status(400, true)).await;
+            return;
+        }
+    };
+
+    let (body_tx, body_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
+    let (responder_tx, responder_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
+
+    let (driver, cancel) = match build_streaming_relay_to_grpc(
+        ConnectHandler,
+        request,
+        body_rx,
+        responder_tx,
+        url.clone(),
+        out_headers,
+    ) {
+        Ok(relay) => relay,
+        Err(e) => {
+            tracing::warn!(%url, "connect→grpc h2 relay setup failed: {e}");
+            let _ = tx.send(h2_status(502, true)).await;
+            return;
+        }
+    };
+
+    // Response head: Connect streaming content-type + 200.
+    let mut resp_headers = SimpleHeaders::new();
+    resp_headers.insert(
+        SimpleHeader::CONTENT_TYPE,
+        vec![connect_streaming_content_type(&codec)],
+    );
+    if tx
+        .send(H2Frame::Headers {
+            status: 200,
+            headers: simple_headers_to_h2(&resp_headers),
+            end_stream: false,
+        })
+        .await
+        .is_err()
+    {
+        return;
+    }
+
+    // Three concurrent legs: H2 DATA → request pipe, the frame-relay driver, and
+    // the response pipe → H2 DATA. The driver's cancel signal tears the outbound
+    // side down if the client or the backend goes away.
+    //
+    // A client that aborts after its request body already ended (the normal
+    // server-stream cancel) never yields a `Reset` on the body pipe — the body
+    // pipe closed cleanly at `END_STREAM`. It surfaces instead as the response
+    // pipe (`tx`) closing, so race the relay against that closure and fire the
+    // shared cancel: the driver drops the outbound exchange, whose H2 pump then
+    // closes the backend socket (spec 63 T13).
+    let relay = futures_util::future::join3(
+        feed_request_body(body, body_tx, cancel.clone()),
+        driver,
+        drain_response_body(responder_rx, tx),
+    );
+    let client_gone = {
+        let cancel = cancel.clone();
+        async move {
+            tx.closed().await;
+            cancel.cancel();
+        }
+    };
+    let relay = Box::pin(relay);
+    let client_gone = Box::pin(client_gone);
+    match futures_util::future::select(relay, client_gone).await {
+        futures_util::future::Either::Left(_) => {}
+        futures_util::future::Either::Right(_) => {}
+    }
+
+    drop(lease);
+}
+
+/// Relay a Connect **unary** request (bare `application/{codec}` body) from the
+/// H2 front end to a native-gRPC backend. The bare body is buffered whole (a
+/// single small message), decoded, enveloped as one gRPC message, and the single
+/// gRPC response message decoded back to a bare Connect body rendered as H2
+/// HEADERS + DATA. Async — runs on the valtron worker.
+#[allow(clippy::too_many_arguments)]
+async fn relay_connect_unary_h2(
+    lease: BackendLease,
+    header: SimpleIncomingRequestHeader,
+    orig_headers: SimpleHeaders,
+    client_ip: String,
+    scheme: String,
+    body: PipeReceiver<H2IncomingFrame>,
+    tx: &PipeSender<H2Frame>,
+) {
+    let url = upstream_url(lease.backend().url(), &header.url.url);
+
+    let inbound_ct = orig_headers
+        .get(&SimpleHeader::CONTENT_TYPE)
+        .and_then(|v| v.first())
+        .cloned()
+        .unwrap_or_else(|| "application/json".to_string());
+    let Some((codec, _)) = parse_connect_content_type(&inbound_ct) else {
+        tracing::warn!(%url, content_type = %inbound_ct, "unrecognized connect content-type");
+        let _ = tx.send(h2_status(415, true)).await;
+        return;
+    };
+
+    // Buffer the bare request body — a single small message needed whole.
+    let mut req_body = Vec::new();
+    while let Some(frame) = body.receive().await {
+        match frame {
+            H2IncomingFrame::Data(bytes) => req_body.extend_from_slice(&bytes),
+            H2IncomingFrame::Reset(_) => break,
+        }
+    }
+    let req_body = Bytes::from(req_body);
+
+    let mut out_headers = forward_request_headers(&orig_headers, &client_ip, &scheme);
+    out_headers.insert(SimpleHeader::CONTENT_TYPE, vec![grpc_content_type(&codec)]);
+    out_headers.insert(
+        SimpleHeader::from("te".to_string()),
+        vec!["trailers".to_string()],
+    );
+    translate_connect_deadline_to_grpc(&mut out_headers);
+
+    let request = match SimpleIncomingRequest::builder()
+        .with_proto(Proto::HTTP20)
+        .with_uri(header.uri)
+        .with_url(header.url)
+        .with_headers(orig_headers)
+        .with_method(header.method)
+        .with_connection(header.connection)
+        .build()
+    {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::warn!(%url, "build connect request failed: {e}");
+            let _ = tx.send(h2_status(400, true)).await;
+            return;
+        }
+    };
+
+    let response =
+        match connect_unary_roundtrip(request, req_body, codec, url.clone(), out_headers).await {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::warn!(%url, "connect unary→grpc h2 relay failed: {e}");
+                let _ = tx.send(h2_status(502, true)).await;
+                return;
+            }
+        };
+
+    // Response HEADERS: the unary outcome (status, content-type, `Trailer-`
+    // metadata from gRPC trailers) folded into HEADERS, then the bare body DATA.
+    let code = u16::try_from(Into::<usize>::into(response.status)).unwrap_or(500);
+    if tx
+        .send(H2Frame::Headers {
+            status: code,
+            headers: simple_headers_to_h2(&response.headers),
+            end_stream: false,
+        })
+        .await
+        .is_err()
+    {
+        return;
+    }
+    let body_bytes = match response.body {
+        Some(SendSafeBody::Bytes(b)) => Bytes::from(b),
+        _ => Bytes::new(),
+    };
+    let _ = tx
+        .send(H2Frame::Data {
+            payload: body_bytes,
+            end_stream: true,
+        })
+        .await;
+
+    drop(lease);
+}
+
+/// Stream H2 DATA frames into the relay's request body pipe, then half-close the
+/// request direction so the inbound reader sees end-of-stream. A client reset
+/// (RST_STREAM) is not a clean half-close — it cancels the call — so it fires the
+/// relay's shared cancel signal, tearing the outbound gRPC side down too
+/// (spec 63 T13).
+async fn feed_request_body(
+    body: PipeReceiver<H2IncomingFrame>,
+    body_tx: PipeSender<Bytes>,
+    cancel: CancelSignal,
+) {
+    while let Some(frame) = body.receive().await {
+        match frame {
+            H2IncomingFrame::Data(bytes) => {
+                if bytes.is_empty() {
+                    continue;
+                }
+                if body_tx.send(bytes).await.is_err() {
+                    break;
+                }
+            }
+            H2IncomingFrame::Reset(_) => {
+                cancel.cancel();
+                break;
+            }
+        }
+    }
+    body_tx.close();
+}
+
+/// Drain the relay's framed response bytes into H2 DATA frames, terminating the
+/// stream with an empty `END_STREAM` DATA frame once the pipe closes.
+async fn drain_response_body(responder_rx: PipeReceiver<Bytes>, tx: &PipeSender<H2Frame>) {
+    while let Some(bytes) = responder_rx.receive().await {
+        if bytes.is_empty() {
+            continue;
+        }
+        if tx
+            .send(H2Frame::Data {
+                payload: bytes,
+                end_stream: false,
+            })
+            .await
+            .is_err()
+        {
+            return;
+        }
+    }
+    let _ = tx
+        .send(H2Frame::Data {
+            payload: Bytes::new(),
+            end_stream: true,
+        })
+        .await;
 }
 
 /// Render `headers` as HPACK-ready `(name, value)` byte pairs for an `H2Frame`.

@@ -94,6 +94,9 @@ walkdir = "2"
 cuda = []
 # Disables the need to dynamically link against libcuda.so / cuda.dll
 cuda-no-vmm = ["cuda"]
+# CUDA without NCCL. NCCL (multi-GPU all-reduce) is on by default and linked
+# when CMake finds libnccl; this turns it off on purpose.
+cuda-no-nccl = ["cuda"]
 metal = []
 dynamic-link = []
 vulkan = []

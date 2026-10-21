@@ -33,7 +33,7 @@ has_fundamentals: true
 builds_on: ""
 related_specs:
   - "specifications/completed/28-cloudflare-workers-readiness"
-  - "specifications/63-connectrpc-proxy"
+  - "specifications/completed/63-connectrpc-proxy"
   - "specifications/61-llama-vendoring-and-crate-publishing"
   - "specifications/29-wasm-http-client"
   - "specifications/completed/41-connectrpc"
@@ -89,7 +89,7 @@ There are therefore **two independent auth channels**:
 This mirrors the existing deployment primitives (`foundation_packager`,
 `foundation_deployment_docker`, `foundation_deployment_platform`) and the RPC
 layer (`foundation_connectrpc`), and extends the proxy work begun in
-`specifications/63-connectrpc-proxy`.
+`specifications/completed/63-connectrpc-proxy`.
 
 # Goals
 
@@ -418,7 +418,7 @@ agent-rpc client token; agent-rpc never sees the registration token.
   (Sandboxes/Containers gap is `05-cloudflare` T3).
 - `backends/foundation_proxy/src/{config,router,h2_proxy,forward}.rs` — where the
   registration authority and routing table land.
-- `specifications/63-connectrpc-proxy/` — per-endpoint protocol selection the
+- `specifications/completed/63-connectrpc-proxy/` — per-endpoint protocol selection the
   registrar's routing table plugs into.
 
 ---
