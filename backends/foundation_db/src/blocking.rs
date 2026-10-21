@@ -36,6 +36,8 @@
 //! Don't use `Blocking` from code that already runs inside a valtron task:
 //! waiting there ties up the worker. In async code, call the `Async*` traits.
 
+use std::any::type_name;
+use std::fmt;
 use std::future::Future;
 use std::ops::Deref;
 use std::pin::Pin;
@@ -129,10 +131,10 @@ impl<S> AsRef<S> for Blocking<S> {
     }
 }
 
-impl<S> core::fmt::Debug for Blocking<S> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+impl<S> fmt::Debug for Blocking<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Blocking")
-            .field("store", &core::any::type_name::<S>())
+            .field("store", &type_name::<S>())
             .finish()
     }
 }
@@ -141,7 +143,7 @@ impl<S> core::fmt::Debug for Blocking<S> {
 // Waiting helpers
 // ---------------------------------------------------------------------------
 
-fn executor_error(e: impl core::fmt::Display) -> StorageError {
+fn executor_error(e: impl fmt::Display) -> StorageError {
     StorageError::Backend(format!("Blocking: can't wait on the valtron executor: {e}"))
 }
 

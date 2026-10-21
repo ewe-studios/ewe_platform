@@ -7,7 +7,7 @@
 //!
 //! `StorageProvider` implements only the async storage traits.
 //! [`AsyncCredentialStore`] maps onto them directly. The sync
-//! [`CredentialStore`] impl goes through `foundation_db::Blocking`, so it
+//! [`CredentialStore`] impl goes through `Blocking`, so it
 //! exists only where valtron can block (not on JS-hosted wasm).
 
 use std::sync::Arc;
@@ -175,13 +175,16 @@ impl CredentialStorage {
     }
 }
 
-// The sync API waits on the async provider through `foundation_db::Blocking`,
+// The sync API waits on the async provider through `Blocking`,
 // so it only exists where valtron can block (not on JS-hosted wasm, where
 // callers use `AsyncCredentialStore`).
 foundation_core::blocking_boundary! {
+    use foundation_core::valtron::Stream;
+    use foundation_db::{Blocking, KeyValueStore};
+
     impl CredentialStorage {
-        fn blocking(&self) -> foundation_db::Blocking<StorageProvider> {
-            foundation_db::Blocking::from_arc(Arc::clone(&self.storage))
+        fn blocking(&self) -> Blocking<StorageProvider> {
+            Blocking::from_arc(Arc::clone(&self.storage))
         }
     }
 
@@ -190,7 +193,6 @@ foundation_core::blocking_boundary! {
             &self,
             key: &str,
         ) -> Result<Option<V>, CredentialStoreError> {
-            use foundation_db::KeyValueStore;
             self.blocking().get(key).map_err(|e| match e {
                 StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
                 other => CredentialStoreError::Storage(other),
@@ -202,29 +204,24 @@ foundation_core::blocking_boundary! {
             key: &str,
             value: V,
         ) -> Result<(), CredentialStoreError> {
-            use foundation_db::KeyValueStore;
             self.blocking()
                 .set(key, value)
                 .map_err(CredentialStoreError::Storage)
         }
 
         fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-            use foundation_db::KeyValueStore;
             self.blocking()
                 .delete(key)
                 .map_err(CredentialStoreError::Storage)
         }
 
         fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-            use foundation_db::KeyValueStore;
             self.blocking()
                 .exists(key)
                 .map_err(CredentialStoreError::Storage)
         }
 
         fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-            use foundation_core::valtron::Stream;
-            use foundation_db::KeyValueStore;
             let store = self.blocking();
             let stream = store
                 .list_keys(prefix)

@@ -19,7 +19,7 @@ use std::net::{SocketAddr, TcpStream};
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{block_on_future, valtron_test};
+use foundation_core::valtron::{block_on_future, valtron_test, BlockingFutureExt};
 use foundation_deployment_platform::docker::ContainerGroup;
 use foundation_deployment_platform::docker_container;
 use foundation_keychain::core::store::apply_schema;
@@ -102,7 +102,7 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     // into the crate directory on every run.
     let db_dir = tempfile::tempdir().expect("tempdir");
     let db_path = db_dir.path().join("bw_e2e.db");
-    let p = foundation_core::valtron::BlockingFutureExt::block({
+    let p = BlockingFutureExt::block({
         let url = db_path.to_str().expect("utf-8 temp path").to_string();
         async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })

@@ -6,10 +6,11 @@
 //! `StorageError` (not panic). The executor-driven path is covered by
 //! `blocking_executor_tests.rs`.
 
+use foundation_compact::ids::new_scru128_string;
 use foundation_core::valtron::Stream;
 use foundation_db::{
     AsyncKeyValueStore, AsyncListStream, BlobStore, Blocking, DocumentStore, KeyValueStore,
-    MemoryDocumentStore, MemoryStorage, QueryStore, RateLimiterStore, StorageError,
+    MemoryDocumentStore, MemoryStorage, PromotableDocument, QueryStore, RateLimiterStore, StorageError,
     StorageItemStream, StorageResult,
 };
 use serde::{de::DeserializeOwned, Serialize};
@@ -91,7 +92,7 @@ struct Note {
     n: u32,
 }
 
-impl foundation_db::PromotableDocument for Note {
+impl PromotableDocument for Note {
     fn record_type(&self) -> Option<String> {
         Some("note".into())
     }
@@ -107,10 +108,10 @@ fn document_store_round_trips() {
     let first = store.append("k", Note { n: 0 }).unwrap();
     let second = store.append_promotable("k", Note { n: 1 }).unwrap();
     assert_eq!(second.record_type.as_deref(), Some("note"));
-    let third_id = foundation_compact::ids::new_scru128_string();
+    let third_id = new_scru128_string();
     let third = store.append_with_id("k", &third_id, Note { n: 2 }).unwrap();
     assert_eq!(third.id, third_id);
-    let fourth_id = foundation_compact::ids::new_scru128_string();
+    let fourth_id = new_scru128_string();
     let fourth = store
         .append_promotable_with_id("k", &fourth_id, Note { n: 3 })
         .unwrap();

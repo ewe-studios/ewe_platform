@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test};
+use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
 use foundation_db::core::storage_provider::AsyncQueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
@@ -45,7 +45,7 @@ where
 fn start_server() -> TestServer {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("kc.db");
-    let provider = foundation_core::valtron::BlockingFutureExt::block({
+    let provider = BlockingFutureExt::block({
         let url = db_path.to_str().unwrap().to_string();
         async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })

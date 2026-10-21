@@ -6,6 +6,7 @@
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::schema::{MigrationRunner, MIGRATIONS};
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
     AsyncRateLimiterStore, DataValue, SqlRow,
@@ -99,7 +100,7 @@ impl TursoStorage {
         // `kv_store`/`_migrations`, so every other table — including `documents`
         // — was never created on the native sync path. The runner is idempotent
         // (each migration is `IF NOT EXISTS` and tracked in `_migrations`).
-        crate::core::schema::MigrationRunner::new(crate::core::schema::MIGRATIONS)
+        MigrationRunner::new(MIGRATIONS)
             .run_async(self)
             .await?;
         Ok(())

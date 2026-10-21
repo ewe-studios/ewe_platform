@@ -30,6 +30,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::schema::{MigrationRunner, MIGRATIONS};
 
 /// Schedule a future, returning a boxed stream.
 fn schedule_future<T: Send + 'static, E: Into<StorageError> + Send + 'static, F>(
@@ -182,7 +183,7 @@ impl Default for LibsqlStore {
             let store = Self::new_kv(":memory:", None)
                 .await
                 .expect("LibsqlStore::default: failed to open an in-memory database");
-            crate::core::schema::MigrationRunner::new(crate::core::schema::MIGRATIONS)
+            MigrationRunner::new(MIGRATIONS)
                 .run_async(&store)
                 .await
                 .expect("LibsqlStore::default: failed to migrate the in-memory database");

@@ -122,12 +122,14 @@ mod blocking_boundary_probe {
 
     crate::blocking_boundary! {
         if {
+            use core::future::Future;
+
             use super::{from_future, sync_collect_one, BlockingFutureExt, BlockingStreamExt};
 
             #[allow(dead_code)]
             fn probe<F, S>(future: F, stream: S)
             where
-                F: core::future::Future + Send + 'static,
+                F: Future + Send + 'static,
                 F::Output: Send + 'static,
                 S: futures_core::Stream + Send + 'static,
                 S::Item: Send + 'static,

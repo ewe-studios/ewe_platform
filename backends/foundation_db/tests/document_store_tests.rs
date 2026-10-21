@@ -6,7 +6,9 @@
 
 use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_core::valtron::BlockingFutureExt;
-use foundation_db::{Blocking, SqlDocumentStore, TursoStorage};
+use foundation_db::{
+    Blocking, MigrationRunner, SqlDocumentStore, StorageError, TursoStorage, MIGRATIONS,
+};
 use std::sync::Mutex;
 use tempfile::TempDir;
 
@@ -33,7 +35,7 @@ fn make_store() -> (TempDir, Blocking<SqlDocumentStore<TursoStorage>>) {
     let storage = async move {
         let storage = TursoStorage::new(&url).await?;
         storage.init_schema().await?;
-        Ok::<_, foundation_db::StorageError>(storage)
+        Ok::<_, StorageError>(storage)
     }
     .block()
     .unwrap();
@@ -144,7 +146,6 @@ fn scan_documents_is_newest_first() {
 /// never existed). Guards F06's "migrations registered + applied" done-when.
 #[test]
 fn migration_runner_applies_all_then_is_idempotent() {
-    use foundation_db::{MigrationRunner, MIGRATIONS};
     init_valtron();
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("migrate.db").to_str().unwrap().to_owned();

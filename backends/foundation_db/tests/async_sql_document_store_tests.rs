@@ -5,7 +5,7 @@
 
 use foundation_db::traits::AsyncDocumentStore;
 use foundation_core::valtron::BlockingFutureExt;
-use foundation_db::{SqlDocumentStore, TursoStorage};
+use foundation_db::{SqlDocumentStore, StorageError, TursoStorage};
 use futures_lite::StreamExt;
 use std::sync::Mutex;
 use tempfile::TempDir;
@@ -30,7 +30,7 @@ fn make_store() -> (TempDir, SqlDocumentStore<TursoStorage>) {
     let storage = async move {
         let storage = TursoStorage::new(&url).await?;
         storage.init_schema().await?;
-        Ok::<_, foundation_db::StorageError>(storage)
+        Ok::<_, StorageError>(storage)
     }
     .block()
     .unwrap();

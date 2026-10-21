@@ -17,7 +17,7 @@
 use std::sync::Mutex;
 
 use foundation_db::traits::{AsyncBlobStore, AsyncDocumentStore};
-use foundation_db::{D1R2DocumentStore, MemoryStorage, TursoStorage};
+use foundation_db::{D1R2DocumentStore, MemoryStorage, StorageError, TursoStorage};
 use futures_lite::StreamExt;
 
 static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
@@ -36,7 +36,7 @@ fn make_store() -> (D1R2DocumentStore<TursoStorage, MemoryStorage>, MemoryStorag
     let turso = futures_lite::future::block_on(async {
         let turso = TursoStorage::new(":memory:").await?;
         turso.init_schema().await?;
-        Ok::<_, foundation_db::StorageError>(turso)
+        Ok::<_, StorageError>(turso)
     })
     .unwrap();
     let blobs = MemoryStorage::new();

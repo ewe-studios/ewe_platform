@@ -41,6 +41,8 @@ foundation_core::blocking_boundary! {
     }
 }
 
+use foundation_core::valtron::BLOCKING_BOUNDARY;
+
 // Compile-time gate checks. Native always has `Blocking`. The Cloudflare JS
 // bindings (`wasm-bindgen-bindings`) turn on `foundation_core/js-wasmbindgen`,
 // so with them on wasm `Blocking` must be gone.
@@ -51,7 +53,7 @@ const _: () = assert!(
     !HAS_BLOCKING,
     "Blocking must not exist on JS-hosted wasm (it would freeze the isolate)"
 );
-const _: () = assert!(HAS_BLOCKING == foundation_core::valtron::BLOCKING_BOUNDARY);
+const _: () = assert!(HAS_BLOCKING == BLOCKING_BOUNDARY);
 
 // Native — TCP/DB backends, rows streaming
 #[cfg(not(target_family = "wasm"))]

@@ -1,28 +1,30 @@
 //! libsql storage backend integration tests.
 #![cfg(feature = "libsql")]
 
-use foundation_db::{Blocking, KeyValueStore, LibsqlStore};
+use std::sync::Mutex;
+
+use foundation_core::valtron::{initialize_pool, BlockingFutureExt, PoolGuard};
+use foundation_db::{Blocking, KeyValueStore, LibsqlStore, StorageError};
+use tempfile::TempDir;
 
 /// Open + init a KV store (async constructors) and wrap it in the sync view.
 fn open(url: &str) -> Blocking<LibsqlStore> {
     let url = url.to_owned();
-    let storage = foundation_core::valtron::BlockingFutureExt::block(async move {
+    let storage = BlockingFutureExt::block(async move {
         let storage = LibsqlStore::new_kv(&url, None).await?;
         storage.init_kv().await?;
-        Ok::<_, foundation_db::StorageError>(storage)
+        Ok::<_, StorageError>(storage)
     })
     .unwrap();
     Blocking::new(storage)
 }
-use tempfile::TempDir;
 
 /// Initialize the Valtron executor for tests (shared across the binary).
 fn init_valtron() {
-    static POOL_GUARD: std::sync::Mutex<Option<foundation_core::valtron::PoolGuard>> =
-        std::sync::Mutex::new(None);
+    static POOL_GUARD: Mutex<Option<PoolGuard>> = Mutex::new(None);
     let mut guard = POOL_GUARD.lock().unwrap();
     if guard.is_none() {
-        *guard = Some(foundation_core::valtron::initialize_pool(42, None));
+        *guard = Some(initialize_pool(42, None));
     }
 }
 

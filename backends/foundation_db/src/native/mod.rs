@@ -36,6 +36,9 @@ use crate::core::state::traits::StateStore;
 use crate::core::state::file::FileStateStore;
 use std::path::Path;
 
+#[cfg(feature = "libsql")]
+use foundation_core::valtron::BlockingFutureExt;
+
 /// Select a state store backend based on environment configuration.
 ///
 /// Priority (first match wins):
@@ -77,7 +80,6 @@ pub fn create_state_store(
     {
         // `create_state_store` serves the sync `StateStore` API, so this is a
         // sync boundary over libsql's async constructor.
-        use foundation_core::valtron::BlockingFutureExt;
         let (dir, project, stage) = (project_dir.to_path_buf(), project.to_owned(), stage.to_owned());
         let store = async move { LibsqlStore::from_env_state(&dir, &project, &stage).await }.block()?;
         return Ok(Box::new(store));

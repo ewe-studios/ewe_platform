@@ -6,20 +6,21 @@
 use std::pin::Pin;
 use std::sync::Mutex;
 use std::task::{Context, Poll};
+use std::vec::IntoIter;
 
-use foundation_core::valtron::{BlockingFutureExt, Stream};
+use foundation_core::valtron::{initialize_pool, BlockingFutureExt, PoolGuard, Stream};
 use foundation_db::{
     AsyncKeyValueStore, AsyncListStream, Blocking, DataValue, KeyValueStore, MemoryStorage,
-    QueryStore, StorageCleanup, StorageItemStream, StorageResult, TursoStorage,
+    QueryStore, StorageCleanup, StorageError, StorageItemStream, StorageResult, TursoStorage,
 };
 use serde::{de::DeserializeOwned, Serialize};
 
-static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
+static POOL_GUARD: Mutex<Option<PoolGuard>> = Mutex::new(None);
 
 fn init_valtron() {
     let mut guard = POOL_GUARD.lock().unwrap();
     if guard.is_none() {
-        *guard = Some(foundation_core::valtron::initialize_pool(42, None));
+        *guard = Some(initialize_pool(42, None));
     }
 }
 
@@ -36,7 +37,7 @@ fn collect<T>(stream: StorageItemStream<'_, T>) -> Vec<T> {
 /// A stream that is `Pending` once before every item (waking itself), like a
 /// network cursor.
 struct SlowKeys {
-    keys: std::vec::IntoIter<String>,
+    keys: IntoIter<String>,
     ready: bool,
 }
 
@@ -113,7 +114,7 @@ fn turso() -> Blocking<TursoStorage> {
     let storage = async {
         let storage = TursoStorage::new(":memory:").await?;
         storage.init_schema().await?;
-        Ok::<_, foundation_db::StorageError>(storage)
+        Ok::<_, StorageError>(storage)
     }
     .block()
     .unwrap();

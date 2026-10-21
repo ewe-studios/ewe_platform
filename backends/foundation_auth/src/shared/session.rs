@@ -7,6 +7,7 @@
 //! HOW: Sessions stored via `CredentialStore`. Token signing via HMAC-SHA256.
 
 use std::sync::{Arc, Mutex};
+use std::time::Duration as StdDuration;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Duration, Utc};
@@ -134,7 +135,7 @@ impl<S> SessionManager<S> {
 
         let token_cookie = Cookie::new(&self.config.token_cookie_name, token)
             .path("/")
-            .max_age(std::time::Duration::from_secs(
+            .max_age(StdDuration::from_secs(
                 self.config.max_session_age.num_seconds() as u64,
             ))
             .http_only(true)
@@ -149,7 +150,7 @@ impl<S> SessionManager<S> {
             .map_err(|e| SessionError::Serialization(e.to_string()))?;
         let data_cookie = Cookie::new(&self.config.data_cookie_name, &cache_json)
             .path("/")
-            .max_age(std::time::Duration::from_secs(300));
+            .max_age(StdDuration::from_secs(300));
         cookies.push(data_cookie);
 
         if !self.config.sliding_expiration {
