@@ -1,120 +1,126 @@
 # Spec 65 Progress: Agent RPC Serving System
 
-## Status: In Progress
+_Last updated: 2026-10-21. Read this first, then `LEARNINGS.md` ("Handoff guide"
+at the top) before touching code._
 
-Features 06 (WASM Lazy Streaming) and 01 (Agent RPC Model Server) are complete.
-Feature 00 (foundation) is 6/7: only T7 (deploy to Cloudflare with a live key)
-is open. Features 02–05 have not been started. An earlier version of
-this file said "Features 00–05 complete"; the feature docs and the code say
-otherwise (no agent-rpc / installer / registrar crates exist yet).
+## Status at a glance
 
-## Feature 01 — Agent RPC Model Server (branch `65-f01-agent-rpc`)
+| Feature | State | Where |
+|---|---|---|
+| 00 — foundation (wasm / Workers readiness) | 🔧 6/7 (T7 open) | PR #124 |
+| 01 — agent-rpc model server | ✅ 10/10 + GGUF; 🔧 bootstrap-secret redesign in progress | PR #126 |
+| 02 — manifest installer | ⏳ 0/9 | — |
+| 03 — proxy registration | ⏳ 0/8 | — |
+| 04 — registrar sidecar | ⏳ 0/7 | — |
+| 05 — Cloudflare | ⏳ 0/6 | — |
+| 06 — wasm async streaming | ✅ 5/5 | PR #124 |
+| (spec 68 — valtron wasm runtime tests) | ✅ owned path 10/10, bindgen path 5/5 | PR #124 (#125 merged into it) |
+
+## Branches and PRs (how the work is stacked)
+
+```
+master
+ └─ #124  worktree-65-agent-rpc-serving-system   (F06, F00 T1–T6, spec 68)
+     │     includes #125 (compact host-ABI backend, merged into this branch)
+     └─ #126  65-f01-agent-rpc                     (F01 + GGUF + bootstrap redesign)
+```
+
+- **#124** is open against master. It has master merged in (NCCL fix #128 and
+  stable releases #127 included). Review asks addressed: async model-metadata
+  lookup on wasm (`4eedff5e0`), runtime timer disposal (`47792e61e`).
+- **#126** targets #124's branch. When #124 merges, retarget #126 to master.
+- Landed on master already: #123 (release-PR job on a branch), #127 (releases on
+  stable; Cranelift only via mise env), #128 (llama.cpp CUDA links NCCL).
+
+## Feature 01 — Agent RPC Model Server (`65-f01-agent-rpc`)
 
 | Task | Status | Commit |
 |------|--------|--------|
 | T1 — shareability spike (candle: shared weights, per-generation KV) | ✅ | `5ab440281` |
-| T2 — crate scaffold | ✅ | `82141d432` |
-| T3 — `ModelHandle` | ✅ | `9f126086c` |
+| T2 — crate scaffold, `AgentRpcError` ↔ wire codes | ✅ | `82141d432` |
+| T3 — `ModelHandle` (load once, `Arc`) | ✅ | `9f126086c` |
 | T4 — `InstanceRegistry` | ✅ | `5d53b2788` |
-| T5 — generated RPC service | ✅ | `319b71153` |
-| T6 — unary round-trip | ✅ | `563a146da` |
-| T7 — streaming round-trip | ✅ | `c46ee3e4b` |
-| T8 — client auth (token → mTLS) | ✅ | `ca7b4d923` |
-| T9 — bootstrap payload | ✅ | `db79cfcdd` |
-| T10 — all three protocols e2e | ✅ | `spec 65 F1 T10` (last commit on the branch) |
+| T5 — generated `AgentService` (+ codegen fixes) | ✅ | `319b71153` |
+| T6 — unary round-trip over Connect | ✅ | `563a146da` |
+| T7 — streaming round-trip, proven unbuffered | ✅ | `c46ee3e4b` |
+| T8 — client auth (token → client cert → mTLS) | ✅ | `ca7b4d923` |
+| T9 — bootstrap payload (base64url + QR) | ✅ | `db79cfcdd` |
+| T10 — Connect / gRPC / gRPC-Web end to end | ✅ | `f734645e3` |
+| docker `buildkit` buffa pin (found during review) | ✅ | `47af8d9ba` |
+| GGUF `ModelSource` + llama.cpp shareability tests | ✅ | `9f10b5011` |
+| Signed, expiring bootstrap secret + SQL trusted-client store | 🔧 in progress | see "Current work" |
 
-Tests: `cargo test --profile uat -p foundation_agent_rpc` (LLVM profile: candle's
-`pulp` does not link under cranelift).
+Tests: `PROTOC=~/.local/share/mise/installs/protoc/36.2/bin/protoc cargo test --profile uat -p foundation_agent_rpc`
+(candle default) and `... --no-default-features --features gguf --test gguf_share_tests`.
 
-## Feature 06 — WASM Lazy Streaming
+### Current work: bootstrap secret redesign (owner's design, 2026-10-21)
+
+Replaces T8/T9's random single-use token with a **server-signed, time-boxed
+secret**, and persists enrolled clients:
+
+1. **Signing key** (used only for bootstrap secrets): Ed25519 by default. Loaded
+   from the path in an env var when set; otherwise from a default location,
+   generated there if missing. A lost key is regenerated on startup, which
+   invalidates every outstanding secret (by design).
+2. **Secret** = random bytes + `valid_from`/`valid_until`, signed by that key.
+   Shared form: base64 of a JSON dict `{public_key, signature, secret,
+   valid_from, valid_until}` (the QR code embeds the same string). Verification
+   rejects a bad signature, a key mismatch, or a time outside the window.
+3. **Trusted clients** that complete enrollment + mTLS are stored through
+   `foundation_db`'s SQL storage (SQLite by default; any foundation_db SQL
+   backend). The server consults the store on connect; clients can be revoked.
+
+## Feature 00 — foundation (`worktree-65-agent-rpc-serving-system`)
+
+| Task | Status |
+|------|--------|
+| T1 — `foundation_ai` wasm-clean (getrandom/ahash removed) | ✅ |
+| T2 — dependency-crate wasm audit | ✅ |
+| T3 — wasm32 CI compile gate | ✅ |
+| T4 — Workers AI provider (SSE without `[DONE]`) | ✅ |
+| T5 — examples `cf-agent-loop`, `cf-cloud-provider` | ✅ |
+| T6 — both examples green under Miniflare (`foundation_toolings/tests/cf_examples.rs`, `--features cf-worker-tests`) | ✅ |
+| T7 — `wrangler deploy` + live smoke test | ⏳ needs a Cloudflare account + `OPENROUTER_API_KEY` |
+
+## Feature 06 — WASM async streaming
 
 | Task | Status | Commit |
 |------|--------|--------|
 | T1 — parking `into_future_stream` bridge + pure-lens rename | ✅ | `59c4ef14d` |
 | T2 — `run_future` → `block_on_collect`, single-threaded `FutureIterator` fix | ✅ | `35d27d89f` |
-| T3 — lazy wasm `send_sse` + `SseProgress::Failed` error channel | ✅ | `4ce7ad6e5` |
-| T4 — map `Failed` → `ModelState::Error`, wasm `sleep` no-op | ✅ | `89db93212` |
-| T5 — `cf-cloud-provider` live streaming under `wrangler dev --local` | ✅ | this branch (see git log) |
+| T3 — lazy wasm `send_sse` + `SseProgress::Failed` | ✅ | `4ce7ad6e5` |
+| T4 — `Failed` → `ModelState::Error`, wasm `sleep` no-op | ✅ | `89db93212` |
+| T5 — `cf-cloud-provider` streams live under `wrangler dev --local` | ✅ | `0e33260b7`, `f69a727eb` |
 
-## T5 — what was actually wrong (two hangs, in order)
+The two T5 hangs (sync `get_model` lookup blocking the isolate; `Wait`
+busy-looping) and their fixes are in LEARNINGS "06 T5".
 
-Smoke test: `wrangler dev --local` + a mock OpenRouter (`OPENROUTER_BASE_URL`)
-that streams 7 SSE chunks 300 ms apart.
+## Spec 68 — valtron wasm runtime tests (lives on #124)
 
-1. **The first turn froze before any fetch.** `OpenAIProvider::get_model` misses
-   its cache on the first turn and did a sync `GET models/{name}` through
-   `HttpClient::send`, which on wasm was `block_on_collect`: a nested executor
-   loop inside the running agent task. The running task's slot counts as active,
-   so that loop never saw "nothing runnable" and spun on `CanProgress(None)`. The
-   JS event loop never ran, so the fetch never left the isolate (the mock saw zero
-   requests). Fixed by removing `block_on_collect` from every wasm path: wasm
-   `HttpClient::send` now returns an error pointing at `send_async`, and wasm
-   `get_model` skips the optional metadata lookup (it already fell back on error).
-2. **Then the generate task busy-looped on `Wait`.** With the fetch in flight the
-   SSE stream yields `Stream::Wait`; the agent loop returned `TaskStatus::Wait`,
-   which keeps the task active and pushes a `Wait` item into the output queue.
-   Each push woke the consumer, whose re-poll started another `setTimeout`
-   chain, so timer chains multiplied (~1,700 wakeups/s, workerd ~100% CPU, still
-   zero fetches). Fixed by parking:
-   - `BoxedSseIterator` and `ModelStreamBox` are now `WakeableStream`s; the SSE
-     model streams forward `wake` to the SSE stream (wasm `LazySseIterator` /
-     `WasmSseIterator` fire on fetch resolve / every chunk / close).
-   - On `Stream::Wait` the agent loop registers a `WakeSignal` callback and
-     returns `TaskStatus::Depends(signal)` (falls back to `Wait` when the stream
-     reports `NotSupported`).
-   - JS wasm `run_until` returns to the event loop when every task is parked on
-     readiness (no spin, no timer).
-   - The wake is event-driven: `WakeSignal`'s callback calls
-     `request_executor_resume()`, which queues one coalesced executor run as a
-     microtask (`spawn_local` on wasm-bindgen; a new `schedule_microtask` host
-     import → `queueMicrotask` on foundation_wasm).
+- **Bindgen tier** (`js-wasmbindgen`, what Workers run): `wasm-testbed test
+  bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std
+  --filter wasm_js_yield_integration` → 5/5.
+- **Owned tier** (`js-foundation-wasm`, no wasm-bindgen): `wasm-testbed deno
+  backends/foundation_core/integration/wasm_tests` → 10/10. Unblocked by:
+  foundation_compact's `host-abi` backend; a `crypto.getRandomValues` shim in the
+  embedded Deno; the `#[wasm_test]` runner disposing each case's timers.
+- Not done: browser run (Playwright); these suites are not in CI yet (backlog).
 
-Result: `POST /generate` streams all chunks in ~8.5 s (7 × 0.3 s per model call),
-`GET /` answers right after, workerd at ~1.6% CPU.
+## What is deliberately not done / open
 
-Also fixed on the way: `OPENROUTER_BASE_URL` doubled the version segment
-(`/api/v1/v1/chat/completions`); foundation_wasm ran scheduled callbacks under the
-registry lock (re-entrant lock on reschedule) and never removed fired timeouts;
-temporary `VALTRON-DBG` logs removed.
+- F00 T7 (live deploy) — needs credentials.
+- F01 gaps (backlog + LEARNINGS): gRPC over TLS (no h2-over-TLS client); valtron
+  worker starvation by blocking h1 serve (run agent-rpc with ≥ 8 workers);
+  mTLS through the proxy needs passthrough (F03).
+- Wasm runtime suites not in CI; `foundation_proxy` e2e intermittent hang
+  (agent branch `fix/proxy-e2e-hang` exists, unfinished — see LEARNINGS).
 
-Also fixed: **agent turns over HTTP backends tripped loop detection.** The HTTP
-SSE streams send snapshots (each chunk re-sends the text so far), which the agent
-loop's `coalesce_turn`/`join_text_chunks` already handle, but `LoopDetector` ran
-on the raw chunks and saw near-duplicates: a one-line answer took 4 model calls
-and ended in `LoopDetected(FuzzyLoop)`, natively and on wasm. Loop detection now
-runs on the coalesced turn, and `Turn::text()`/`Answer` join each run of chunks
-with the same rule (they concatenated every snapshot). Regression tests:
-`session_mock_tests::snapshot_stream_*` (fail without the fix).
+## Next steps (in order)
 
-Also fixed: native single-threaded drivers re-polled a task that returns
-`TaskStatus::Wait` forever without handing back to the caller
-(`park_busy_loop::forever_wait_parks_not_busy_loops`, which was red). `Wait`
-now reaches the executor as `State::Wait` on all targets and the stream driver
-returns to its caller on it (native); other native `run_until` loops keep
-re-polling.
+1. Finish the bootstrap-secret redesign on #126 (above), then get #124 and #126
+   merged (retarget #126 to master after #124).
+2. Features 02 → 05 in dependency order (02 and 03 independent; 04 needs 02 + 03;
+   05 needs 00 + 01).
+3. F00 T7 when credentials exist.
 
-Found and recorded in `docs/bug-backlog.md`: readiness signals that never request
-a resume stall on wasm; nested blocking helpers spin on wasm; wasm SSE parser
-errors are swallowed; interval callbacks run under the registry lock.
-
-## Feature status
-
-- **00-foundation** — 🔧 6/7: T1–T6 done (T6:
-  `foundation_toolings/tests/cf_examples.rs`, both examples green under
-  miniflare with mocked vendors); T7 (deploy to Cloudflare, live key) open.
-- **01-agent-rpc** — ✅ complete (10/10, branch `65-f01-agent-rpc`)
-- **02-manifest-installer** — ⏳ not started (0/9)
-- **03-proxy-registration** — ⏳ not started (0/8)
-- **04-registrar-sidecar** — ⏳ not started (0/7)
-- **05-cloudflare** — ⏳ not started (0/6)
-- **06-wasm-async-streaming** — ✅ complete (5/5)
-
-## Next steps
-
-1. Features 02 → 05 in order (01 is done).
-2. Feature 00 T7: deploy + live OpenRouter run (needs a Cloudflare account and
-   `OPENROUTER_API_KEY`; not available in this sandbox).
-3. Spec 68 leftovers: the owned (`js-foundation-wasm`) path is blocked on
-   `foundation_compact`'s wasm-bindgen dependency (backlog §5); browser run.
-
-_Created: 2026-10-20_
+_Created: 2026-10-20 · Rewritten for handoff: 2026-10-21_

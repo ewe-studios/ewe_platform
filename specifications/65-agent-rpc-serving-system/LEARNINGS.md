@@ -1,7 +1,114 @@
 # LEARNINGS — Agent RPC Serving System
 
-_No implementation yet — this file is seeded at spec creation and updated after
-each milestone/task. See `.agents/skills/specifications-management/skill.md`._
+_Updated after each milestone/task (see
+`.agents/skills/specifications-management/skill.md`). The **Handoff guide** below
+is the current state of the world; the dated sections after it are the history,
+oldest first._
+
+## Handoff guide (2026-10-21) — read this before anything else
+
+### Where the work lives
+
+- `progress.md` has the task tables, the PR stack and next steps.
+- PR #124 (`worktree-65-agent-rpc-serving-system`) → master: F06, F00 T1–T6,
+  spec 68. PR #126 (`65-f01-agent-rpc`) → #124's branch: F01. Retarget #126 to
+  master once #124 merges. Merge the base into a stacked branch with a merge
+  commit (never rebase a pushed branch).
+
+### Build and test recipes (each one cost time to discover)
+
+- **Profiles:** tests use `--profile uat` (`dev` on LLVM). Plain `cargo` builds
+  `dev` with LLVM too; only mise's `[env]` switches `dev` to Cranelift
+  (`CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift` + `CARGO_UNSTABLE_CODEGEN_BACKEND`).
+  Never put `codegen-backend` (nightly-only) back in `Cargo.toml` or
+  `.cargo/config.toml`: releases build on **stable** (`ci/release-rust-toolchain`)
+  and stable cargo refuses to load such a workspace. Cranelift can't do
+  `catch_unwind`, coverage or wasm32 — another reason tests use `uat`.
+- **protoc:** agent-rpc's `build.rs` needs it:
+  `PROTOC=~/.local/share/mise/installs/protoc/36.2/bin/protoc`.
+- **Git worktrees have no submodules.** A fresh worktree's `tools/llama.cpp` is
+  empty, so llama.cpp "fails to build" (`llama.h` not found). Run
+  `git submodule update --init tools/llama.cpp`; the CPU build then works (CUDA
+  is exercised by CI's image smoke test). This is what made an earlier agent
+  wrongly conclude llama.cpp could not be built.
+- **Disk:** the container has ~250 GB but most is used; full `uat` builds of
+  agent-rpc + llama.cpp + candle take ~15–18 GB per target dir, and worktrees
+  each get their own. Check `df -h /` before big builds; delete stale `target/`
+  dirs (never sources). Don't run `mise run`/`mise exec`: it installs every
+  pinned tool first and has filled the disk.
+- **Wasm suites** (spec 68): owned path `cargo run -p foundation_testbed
+  --no-default-features --features wasm-embedded-js --profile uat --bin
+  wasm-testbed -- deno backends/foundation_core/integration/wasm_tests`; bindgen
+  path needs `deno` + `wasm-bindgen` 0.2.126 on PATH (mise installs under
+  `~/.local/share/mise/installs/`), then `wasm-testbed test bindgen-deno
+  ./backends/foundation_core --features js-wasmbindgen,std --filter
+  wasm_js_yield_integration`.
+- **Miniflare** (F00 T6): `cargo test -p foundation_toolings --features
+  cf-worker-tests --test cf_examples` (needs wrangler + worker-build).
+
+### Cross-cutting lessons from the 2026-10-20/21 sessions
+
+1. **Wasm: park, never poll; never block.** A wasm task waiting on I/O must
+   return `TaskStatus::Depends(WakeSignal)` and be resumed from a JS event
+   (`request_executor_resume()` → one coalesced microtask). Any sync
+   `HttpClient::send`/`block_on_*` inside a running wasm task freezes the isolate.
+   On wasm, `send` errors on purpose; use `send_async`/`send_sse`. Optional work
+   that used to be sync (OpenAI model metadata) now runs as its own detached
+   valtron task over `send_async` and fills a shared cache (`OpenAIModel::info()`).
+2. **Two wasm JS backends, each with its own hooks:** `js-wasmbindgen` (Workers,
+   wasm-bindgen glue) and `js-foundation-wasm` (owned runtime, `abi` imports from
+   `foundation-wasm.js`). foundation_compact follows the same split: features
+   `wasm-bindgen` (default) and `host-abi` (wins when both are on). If an owned
+   module imports `__wbindgen_placeholder__`, some crate in its graph pulled in
+   wasm-bindgen — check with `cargo tree --target wasm32-unknown-unknown -i
+   wasm-bindgen`.
+3. **"No pool" panics on single-threaded wasm were a harness leak, not
+   threading.** The `#[wasm_test]` runner gives each case a fresh instance; a
+   case's `yield_for` timer outlived it and fired into the next, pool-less
+   instance. Fix: `FoundationWasm.dispose()` (cancel timeouts/intervals/
+   microtasks/rAF) per case. `single::is_initialized()` guards the resume
+   callback as a safety net. Lesson: when a single-threaded runtime "loses" its
+   pool, look for a callback outliving its instance.
+4. **Shared models: prove "same output as alone".** Greedy decoding makes a
+   generation deterministic, so interleaving two streams on one loaded model and
+   comparing against solo runs is an exact cross-talk test. It caught candle's
+   shared KV cache (fixed: `CandleWeights` shared, `CandleGeneration` per call).
+   llama.cpp passes by construction (fresh context per generation); pinned by
+   `gguf_share_tests.rs`.
+5. **Generated code must match its runtime:** `buffa-build` = the `buffa`
+   runtime version (`=0.8.1`); a 0.9 codegen against the 0.8 runtime does not
+   compile (it broke docker's untested `buildkit` feature on master too).
+6. **`https` silently didn't work** through connectrpc's `H1Transport` (built
+   `http://` URLs) and netio's `open_exchange` (fresh pool, TLS connector
+   dropped). Both fixed; test TLS paths end to end, not just "it connects".
+7. **connectrpc client error decoding** was wrong three ways (Connect status
+   from HTTP code only; gRPC trailers via `transmute`, not marked wire; gRPC-Web
+   unary errors decoded as messages). All fixed in F01; assert codes + messages
+   in protocol tests.
+8. **valtron worker starvation:** a task parked on a worker that then blocks
+   (h1 serve in `poll(2)`) is stranded until that call ends. Run agent-rpc with
+   ≥ 8 workers + one per concurrent HTTP/1.1 call; in-process h1 streaming tests
+   can stall ~30 s. Root fix belongs in valtron/connectrpc (backlog). The
+   foundation_proxy e2e intermittent hang (`rpc_proxy_e2e_tests`, 4 unary tests
+   hung to the 60-min CI timeout once on master) is probably the same class; an
+   agent started on `fix/proxy-e2e-hang` and stopped on a spend limit without a
+   conclusion — its worktree has unfinished work.
+9. **CUDA/NCCL:** llama.cpp `GGML_CUDA_NCCL` (default ON) compiles NCCL into
+   ggml-cuda when found; our `build.rs` links the static archives itself, so it
+   must name the library CMake found (`NCCL_LIBRARY` in `CMakeCache.txt`).
+   `cuda-no-nccl` opts out. The image smoke tests run on PRs that touch
+   `infrastructure/llama-*`.
+10. **Missing model files must be errors:** `infrastructure_llama_cpp` used
+    `debug_assert!(path.exists())` (panic in debug/uat); now `FileNotFound`.
+11. **Releases:** release-plz on stable (`ci/release-rust-toolchain`), triggered
+    by a green "Audit: Checks & Tests" on master; the release-PR job checks out a
+    local branch (release-plz refuses a detached HEAD). The Publish dry-run job
+    also runs on stable and guards stable-buildability.
+
+### Where bugs are tracked
+
+`docs/bug-backlog.md` (grouped by crate) is the source of truth; add an entry in
+the same change that finds a bug and remove it in the change that fixes it.
 
 ## Key finding (creation)
 
@@ -553,8 +660,9 @@ the isolate.
   a `FailedAction`).
 - **`CandleModels::shares_weights_with`** (`Arc::ptr_eq`) is the observable proof
   that two handles are one load; agent-rpc's `ModelHandle` builds on it.
-- **llama.cpp (`LlamaModels`) is unverified**: building it needs the
-  `tools/llama.cpp` sources, which this environment does not have. Backlog §10.
+- **llama.cpp (`LlamaModels`)** was left unverified here because the agent's
+  worktree had no `tools/llama.cpp` submodule checkout; verified later (see
+  "01 T2–T3 … GGUF" and `tests/gguf_share_tests.rs`).
 - **Build notes:** candle's `pulp` does not link under the default cranelift dev
   backend; build and test with `--profile uat` (LLVM). `foundation_ai`'s own test
   targets cannot build without llama.cpp (unconditional dev-dependency), so the
