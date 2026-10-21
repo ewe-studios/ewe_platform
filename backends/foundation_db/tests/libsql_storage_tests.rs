@@ -3,13 +3,11 @@
 
 use foundation_db::{Blocking, KeyValueStore, LibsqlStore};
 
-// NOTE: the functions below carry no `#[test]` (they never run; libsql needs a
-// tokio runtime). Tracked in docs/bug-backlog.md (foundation_db).
-
 /// Open + init a KV store (async constructors) and wrap it in the sync view.
 fn open(url: &str) -> Blocking<LibsqlStore> {
-    let storage = futures_lite::future::block_on(async {
-        let storage = LibsqlStore::new_kv(url, None).await?;
+    let url = url.to_owned();
+    let storage = foundation_core::valtron::BlockingFutureExt::block(async move {
+        let storage = LibsqlStore::new_kv(&url, None).await?;
         storage.init_kv().await?;
         Ok::<_, foundation_db::StorageError>(storage)
     })
@@ -18,12 +16,17 @@ fn open(url: &str) -> Blocking<LibsqlStore> {
 }
 use tempfile::TempDir;
 
-/// Initialize the Valtron executor for tests.
+/// Initialize the Valtron executor for tests (shared across the binary).
 fn init_valtron() {
-    foundation_core::valtron::single::initialize_pool(42);
+    static POOL_GUARD: std::sync::Mutex<Option<foundation_core::valtron::PoolGuard>> =
+        std::sync::Mutex::new(None);
+    let mut guard = POOL_GUARD.lock().unwrap();
+    if guard.is_none() {
+        *guard = Some(foundation_core::valtron::initialize_pool(42, None));
+    }
 }
 
-#[allow(dead_code)]
+#[test]
 fn test_libsql_storage_basic() {
     init_valtron();
     let temp_dir = TempDir::new().unwrap();
@@ -49,7 +52,7 @@ fn test_libsql_storage_basic() {
     assert!(!deleted);
 }
 
-#[allow(dead_code)]
+#[test]
 fn test_libsql_storage_list_keys() {
     init_valtron();
     let temp_dir = TempDir::new().unwrap();

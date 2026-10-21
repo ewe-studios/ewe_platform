@@ -19,6 +19,43 @@ DocumentStore / AsyncDocumentStore  ← structured documents with ordering
 Each level builds on the one below. `AsyncDocumentStore` needs `AsyncQueryStore`
 for SQL backends and `AsyncBlobStore` for large blobs.
 
+### Async is the implementation; sync is a boundary view
+
+Every backend that does I/O (Turso, libsql, D1, R2, `JsonFileStorage`,
+`StorageProvider`, the Cloudflare D1/KV/R2 Worker stores, `SqlDocumentStore`,
+`D1R2DocumentStore`) implements **only** the `Async*` traits. Async code calls
+them directly with `.await`.
+
+Sync code wraps the store in **`Blocking<S>`**, which implements each sync trait
+(`KeyValueStore`, `BlobStore`, `QueryStore`, `RateLimiterStore`,
+`DocumentStore`, and so `StorageCleanup`) for `Blocking<S>` wherever `S`
+implements the async one:
+
+```rust
+use foundation_db::{Blocking, KeyValueStore, TursoStorage};
+
+let store = Blocking::new(TursoStorage::new("app.db").await?); // or Blocking::<TursoStorage>::default()
+store.set("k", "v")?;          // waits on the valtron executor
+```
+
+- A future is polled once first. A store with no I/O is ready at once and
+  needs no executor; otherwise valtron drives it. A missing executor is a
+  `StorageError`, not a panic.
+- Streams (`list_keys`, `query`, `scan*`) are pulled lazily, one item per
+  `next()`.
+- `Blocking` exists only where valtron can block: native, and wasm hosts that
+  are not JS. On JS-hosted wasm (Cloudflare Workers, browsers) blocking would
+  freeze the isolate, so `Blocking` is compiled out (gated by
+  `foundation_core::blocking_boundary!`) and callers `.await` the async traits.
+  Building with `wasm-bindgen-bindings` turns on that JS mode.
+- Don't use `Blocking` inside code that already runs in a valtron task: in
+  async code, call the `Async*` traits.
+
+The pure in-memory stores (`MemoryStorage`, `MemoryJsonStore`,
+`MemoryDocumentStore`) still implement the sync traits directly as well. They
+never wait, so this is safe everywhere. It is temporary: those impls go once
+foundation_ai's `AgentSession` moves to the async traits.
+
 ## 2. BlobStore
 
 The simplest trait — store and retrieve raw bytes:
@@ -139,7 +176,7 @@ trait AsyncDocumentStore: Send + Sync {
 
 **Backends**:
 - `MemoryDocumentStore` — in-memory (tests)
-- `AsyncSqlDocumentStore<Q>` — generic over any `AsyncQueryStore` (F22b)
+- `SqlDocumentStore<Q>` — generic over any `AsyncQueryStore` (F22b)
 - `D1R2DocumentStore<Q, B>` — D1 + R2 with offload (F23)
 - `FjallDocumentStore` — fjall key-value with NDJSON (F22)
 - `VectorStore` implementations use DocumentStore patterns for vector metadata
@@ -154,7 +191,8 @@ pub static MIGRATIONS: &[Migration] = &[
     Migration { id: "002_add_email", name: "...", sql: include_str!("002.sql") },
 ];
 
-MigrationRunner::new(MIGRATIONS).run(&store)?;
+MigrationRunner::new(MIGRATIONS).run_async(&store).await?;
+// From sync code: MigrationRunner::new(MIGRATIONS).run(&Blocking::new(store))?;
 ```
 
 Migrations are idempotent (tracked by `id` in a `_migrations` table). Each
@@ -163,20 +201,25 @@ feature crate owns its own.
 
 ## 8. The StorageProvider (unified backend)
 
-`StorageProvider` implements all traits simultaneously, routing to the
-appropriate backend:
+`StorageProvider` implements the async KV, query, rate-limit and blob traits,
+routing to the selected backend:
 
 ```rust
-let provider = StorageProvider::new(config)?;
+let provider = StorageProvider::new(config).await?;
 
-// As KeyValueStore
-provider.set("session:123", &session_data)?;
+// As AsyncKeyValueStore
+provider.set_async("session:123", session_data).await?;
 
-// As QueryStore
-let rows = provider.query("SELECT * FROM users WHERE id = ?", &[DataValue::Text("123")])?;
+// As AsyncQueryStore
+let rows = provider
+    .query_async("SELECT * FROM users WHERE id = ?", &[DataValue::Text("123".into())])
+    .await?
+    .collect_all()
+    .await?;
 
-// As DocumentStore (via AsyncDocumentStore + valtron bridge)
-let doc = provider.append_async("messages", &message).await?;
+// From sync code, through the Blocking view
+let sync = Blocking::new(provider);
+sync.set("session:123", session_data)?;
 ```
 
 ## 9. Target gating

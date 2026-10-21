@@ -9,9 +9,9 @@
 //! Behavioural conformance (scru128 ordering, inclusive `scan_from`, promoted
 //! columns) is covered by the Turso suite (`async_sql_document_store_tests.rs`):
 //! all SQL backends share the same `sql` builder module, so the statements are
-//! identical. Driving libsql at runtime additionally needs a **tokio** runtime
-//! (libsql is tokio-based, unlike pure-Rust Turso), so a behavioural libsql run
-//! belongs in a tokio-harnessed follow-up, not here.
+//! identical. (libsql itself does run on valtron — `libsql_storage_tests.rs`
+//! drives a real local database — so a behavioural libsql document-store run
+//! could be added here too.)
 //!
 //! Gated behind the `libsql` feature:
 //! `cargo test -p foundation_db --no-default-features --features libsql`.

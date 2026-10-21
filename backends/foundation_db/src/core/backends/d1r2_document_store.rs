@@ -22,7 +22,7 @@
 //! threshold, and writes the row (placeholder `content` + `r2_key` when
 //! offloaded). Reads resolve `r2_key` back through the blob store. Scans go
 //! through the trait's [`AsyncQueryStream`] and `collect_all` for bounded reads,
-//! mirroring [`super::async_sql_document_store::AsyncSqlDocumentStore`].
+//! mirroring [`super::sql_document_store::SqlDocumentStore`].
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
