@@ -752,17 +752,25 @@ impl ProcessController for ThreadYielder {
             .send(ThreadActivity::Parked(self.thread_id.clone()))
             .expect("should send event");
 
-        let guard = self.wait_state.lock().unwrap();
+        // A parked task becoming ready anywhere interrupts this wait
+        // (`request_executor_resume`), so it resumes at once.
+        let interrupter = self.clone();
+        crate::valtron::executors::idle_wake::park_idle(
+            std::sync::Arc::new(move || interrupter.interrupt()),
+            || {
+                let guard = self.wait_state.lock().unwrap();
 
-        // Wait while not notified (spurious wakeups are handled by re-checking)
-        let (mut guard, result) = self
-            .condvar
-            .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
-            .unwrap();
-        let _timed_out = result.timed_out();
+                // Wait while not notified (spurious wakeups are handled by re-checking)
+                let (mut guard, result) = self
+                    .condvar
+                    .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
+                    .unwrap();
+                let _timed_out = result.timed_out();
 
-        // CRITICAL: Reset state using the guard returned by wait_timeout_while.
-        *guard = WaitState::Waiting;
+                // CRITICAL: Reset state using the guard returned by wait_timeout_while.
+                *guard = WaitState::Waiting;
+            },
+        );
 
         self.sender
             .send(ThreadActivity::Unparked(self.thread_id.clone()))

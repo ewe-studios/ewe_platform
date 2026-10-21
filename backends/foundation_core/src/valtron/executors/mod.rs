@@ -63,6 +63,9 @@ pub use wasm::js_stream;
 #[cfg(feature = "multi")]
 pub mod multi;
 
+#[cfg(not(target_family = "wasm"))]
+pub(crate) mod idle_wake;
+
 /// Ask the executor's host to run it again because a readiness signal fired.
 ///
 /// WHY: a task parked on `TaskStatus::Depends` becomes runnable only when the
@@ -72,8 +75,9 @@ pub mod multi;
 /// callback does this for you.
 ///
 /// On JS wasm builds this queues one coalesced executor run on the event loop
-/// (see the active backend's `request_resume`). Everywhere else it is a no-op:
-/// native executors re-check parked tasks' readiness on their own loop.
+/// (see the active backend's `request_resume`). On native it wakes executor
+/// threads sleeping for lack of work (see `idle_wake`), so they re-check
+/// parked tasks at once instead of sleeping out their back-off.
 ///
 /// [`WakeSignal`]: crate::valtron::WakeSignal
 #[inline]
@@ -83,6 +87,9 @@ pub fn request_executor_resume() {
         any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
     ))]
     wasm::request_resume();
+
+    #[cfg(not(target_family = "wasm"))]
+    idle_wake::resume_idle();
 }
 
 // Re-export PoolGuard at executor level so tests can use valtron::PoolGuard

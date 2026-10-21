@@ -148,6 +148,8 @@ unsafe fn queue_waker_wake(data: *const ()) {
     // Unbounded queue: push only fails if closed, in which case the woken task
     // has already gone away and dropping the token is the correct outcome.
     let _ = state.queue.push(WakeToken { id: state.id });
+    // Tell an idle executor the parked task is ready (else it oversleeps).
+    crate::valtron::request_executor_resume();
 }
 
 /// Wake by reference: push this waker's token without consuming the strong ref.
@@ -160,6 +162,7 @@ unsafe fn queue_waker_wake(data: *const ()) {
 unsafe fn queue_waker_wake_by_ref(data: *const ()) {
     let state = core::mem::ManuallyDrop::new(Arc::from_raw(data.cast::<WakerState>()));
     let _ = state.queue.push(WakeToken { id: state.id });
+    crate::valtron::request_executor_resume();
 }
 
 /// Drop: reclaim and release one `Arc<WakerState>` strong reference.
