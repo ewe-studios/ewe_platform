@@ -851,6 +851,19 @@ fn main() {
         if cfg!(feature = "cuda-no-vmm") {
             config.define("GGML_CUDA_NO_VMM", "ON");
         }
+
+        // NCCL (multi-GPU all-reduce) is on by default, as in llama.cpp; CMake
+        // compiles it in only when it finds libnccl, and the link step below
+        // links exactly the library it found. `cuda-no-nccl` turns it off on
+        // purpose (e.g. a single-GPU build that must not depend on libnccl).
+        config.define(
+            "GGML_CUDA_NCCL",
+            if cfg!(feature = "cuda-no-nccl") {
+                "OFF"
+            } else {
+                "ON"
+            },
+        );
     }
 
     // Android doesn't have OpenMP support AFAICT and openmp is a default feature. Do this here
@@ -966,6 +979,27 @@ fn main() {
 
             // culibos is required when statically linking cudart_static
             println!("cargo:rustc-link-lib=static=culibos");
+        }
+
+        // ggml-cuda references NCCL when CMake found it (GGML_CUDA_NCCL is on
+        // unless `cuda-no-nccl`). CMake links it into its own targets, but we
+        // link the static ggml archives ourselves, so the library has to be
+        // named here too or the final link fails on `ncclCommDestroy` & co.
+        if !cfg!(feature = "cuda-no-nccl") {
+            let cmake_cache = build_dir.join("build").join("CMakeCache.txt");
+            println!("cargo:rerun-if-env-changed=NCCL_ROOT");
+            match std::fs::read_to_string(&cmake_cache)
+                .ok()
+                .as_deref()
+                .and_then(nccl_library_from_cmake_cache)
+            {
+                Some(nccl) => link_nccl(&nccl),
+                None => println!(
+                    "cargo:warning=CUDA build without NCCL: CMake did not find libnccl \
+                     (set NCCL_ROOT to point at it), so multi-GPU all-reduce falls back \
+                     to the slower path. Enable `cuda-no-nccl` to make that explicit."
+                ),
+            }
         }
     }
 
@@ -1098,5 +1132,36 @@ fn main() {
                     });
             }
         }
+    }
+}
+
+/// The NCCL library CMake found for ggml-cuda, from its `CMakeCache.txt`
+/// (`NCCL_LIBRARY:FILEPATH=...`, set by llama.cpp's `FindNCCL.cmake`). `None`
+/// when the entry is missing, empty or `NCCL_LIBRARY-NOTFOUND`, in which case
+/// CMake compiled ggml-cuda without NCCL.
+fn nccl_library_from_cmake_cache(cache: &str) -> Option<PathBuf> {
+    cache
+        .lines()
+        .find_map(|line| line.strip_prefix("NCCL_LIBRARY:FILEPATH="))
+        .map(str::trim)
+        .filter(|path| !path.is_empty() && !path.ends_with("-NOTFOUND"))
+        .map(PathBuf::from)
+}
+
+/// Link the NCCL library at `path` the way CMake found it: a static archive
+/// (`libnccl_static.a`) statically, anything else (`libnccl.so`) dynamically.
+fn link_nccl(path: &Path) {
+    if let Some(dir) = path.parent() {
+        println!("cargo:rustc-link-search=native={}", dir.display());
+    }
+    let file = path
+        .file_name()
+        .and_then(|f| f.to_str())
+        .unwrap_or_default();
+    if file.ends_with(".a") {
+        let name = file.trim_start_matches("lib").trim_end_matches(".a");
+        println!("cargo:rustc-link-lib=static={name}");
+    } else {
+        println!("cargo:rustc-link-lib=nccl");
     }
 }

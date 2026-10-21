@@ -23,13 +23,13 @@
 //! earliest wait deadline (or timer) bounds the `poll` timeout. Nothing polls
 //! on a timer.
 //!
-//! A hangup is the peer shutting down its side (`POLLRDHUP`, Linux and
-//! Android) or the socket failing (`POLLHUP`/`POLLERR`). Like Go's `net/http`,
-//! which cancels a request's context when its background read sees EOF, and
-//! nginx, which ends a request whose client closed the connection, a peer that
-//! half-closes counts as gone. Data the peer sends ahead (a pipelined request)
-//! is not a hangup and is left unread. Other unix systems have no
-//! `POLLRDHUP`; there only a reset or a failed socket is seen.
+//! A hangup is the peer shutting down its side (`POLLRDHUP` on Linux/Android,
+//! `POLLHUP` elsewhere) or the socket failing (`POLLHUP`/`POLLERR`). Like Go's
+//! `net/http`, which cancels a request's context when its background read sees
+//! EOF, and nginx, which ends a request whose client closed the connection, a
+//! peer that half-closes counts as gone. Data the peer sends ahead (a pipelined
+//! request) is not a hangup and is left unread — `POLLHUP` only fires once that
+//! data is read, so a pipelined request is not mistaken for a close.
 //!
 //! Transports without a kernel fd that reports readiness (the WireGuard
 //! overlay, `io_uring` completion sockets, openssl/native-tls) cannot be waited
@@ -361,10 +361,10 @@ const GONE_EVENTS: libc::c_short = libc::POLLERR | libc::POLLHUP | libc::POLLNVA
 /// The `poll(2)` event that reports the peer shut down its side.
 #[cfg(any(target_os = "linux", target_os = "android"))]
 const HANGUP_EVENTS: libc::c_short = libc::POLLRDHUP;
-/// No `POLLRDHUP` here: only a reset or failed socket (`GONE_EVENTS`, always
-/// reported) shows the peer is gone.
+/// No `POLLRDHUP` here: `POLLHUP` reports both a graceful close and a reset
+/// (verified on macOS), once the peer's data has been read.
 #[cfg(all(unix, not(any(target_os = "linux", target_os = "android"))))]
-const HANGUP_EVENTS: libc::c_short = 0;
+const HANGUP_EVENTS: libc::c_short = libc::POLLHUP;
 
 #[cfg(not(unix))]
 impl ConnIo {

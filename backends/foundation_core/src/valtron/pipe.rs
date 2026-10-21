@@ -48,6 +48,11 @@ pub(crate) struct PipeInner<T> {
     /// closes only when the last one drops, so a `PipeSender` clone handing a
     /// second producer the pipe can drop without EOF-ing the stream.
     sender_count: AtomicUsize,
+    /// Number of live receiver handles sharing this pipe. Mirrors `sender_count`:
+    /// the receive direction closes only when the last receiver drops, so a
+    /// `PipeReceiver` clone moved into a `'static` future (e.g. a per-chunk
+    /// blocking reader) can drop without EOF-ing the pipe under its owner.
+    receiver_count: AtomicUsize,
     /// Waker of a consumer parked on an empty pipe; fired by a producer `push`.
     pub(crate) consumer_waker: Mutex<Option<Waker>>,
     /// Waker of a producer parked on a full pipe; fired by a consumer `pop`.
@@ -120,6 +125,7 @@ impl<T> Pipe<T> {
         let inner = Arc::new(PipeInner {
             queue: Arc::new(ConcurrentQueue::bounded(depth.max(1))),
             sender_count: AtomicUsize::new(1),
+            receiver_count: AtomicUsize::new(1),
             consumer_waker: Mutex::new(None),
             producer_waker: Mutex::new(None),
             close_wakers: Mutex::new(Vec::new()),
@@ -352,13 +358,16 @@ impl<T> Future for SendFuture<'_, T> {
 // Receiver half
 // ============================================================================
 
-/// The consumer half of a [`Pipe<T>`]. Not `Clone` — one receiver per pipe.
+/// The consumer half of a [`Pipe<T>`]. `Clone` hands a second consumer the same
+/// pipe; the receive direction closes only when the **last** receiver drops (see
+/// [`Drop`](PipeReceiver#impl-Drop-for-PipeReceiver%3CT%3E)).
 pub struct PipeReceiver<T> {
     pub(crate) inner: Arc<PipeInner<T>>,
 }
 
 impl<T> Clone for PipeReceiver<T> {
     fn clone(&self) -> Self {
+        self.inner.receiver_count.fetch_add(1, Ordering::Relaxed);
         Self { inner: self.inner.clone() }
     }
 }
@@ -436,10 +445,16 @@ impl<T> PipeReceiver<T> {
 
 impl<T> Drop for PipeReceiver<T> {
     fn drop(&mut self) {
-        // A dropped receiver closes the pipe so a producer parked on a full pipe
-        // wakes and observes `Closed` on its next send rather than hanging.
-        self.inner.close_queue();
-        self.inner.wake_producer();
+        // Closing on the last receiver's drop is the pipe's close-from-the-read
+        // side: a producer parked on a full pipe wakes and observes `Closed` on
+        // its next send rather than hanging. A receiver may be `Clone`d (to move
+        // a cheap `Arc` handle into a `'static` future, e.g. a per-chunk reader),
+        // so only the *last* receiver's drop closes — a clone's drop must not
+        // EOF the pipe while its owner still reads.
+        if self.inner.receiver_count.fetch_sub(1, Ordering::AcqRel) == 1 {
+            self.inner.close_queue();
+            self.inner.wake_producer();
+        }
     }
 }
 
