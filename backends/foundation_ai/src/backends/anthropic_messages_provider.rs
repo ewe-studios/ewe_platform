@@ -519,25 +519,10 @@ impl AnthropicMessagesProvider {
         Ok(info)
     }
 
-    /// Native: look the model up synchronously (best effort).
-    #[cfg(not(target_family = "wasm"))]
-    fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
-        let fetched = match (&self.http_client, self.model_info_request(model_name)) {
-            (Some(client), Ok(Some(req))) => model_info::fetch_blocking(
-                client,
-                req,
-                parse_anthropic_error,
-                AnthropicModelResponse::into_info,
-            )
-            .ok(),
-            _ => None,
-        };
-        fetched.unwrap_or_else(|| model_info::placeholder(model_name, "anthropic"))
-    }
-
-    /// Wasm: placeholder now, the lookup as its own valtron task (see
-    /// [`model_info::spawn_lookup`]).
-    #[cfg(target_family = "wasm")]
+    /// Placeholder metadata now; the `GET /v1/models/{name}` lookup runs in
+    /// the background ([`model_info::spawn_lookup`]) and replaces it in the
+    /// shared cache, which [`AnthropicModel::info`] reads. `get_model` never
+    /// blocks on the network, on any target.
     fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
         if let (Some(client), Ok(Some(req))) = (&self.http_client, self.model_info_request(model_name)) {
             model_info::spawn_lookup(

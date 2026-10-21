@@ -116,26 +116,6 @@ pub async fn fetch<T: DeserializeOwned>(
     parse(status.into(), body, error_detail, convert)
 }
 
-/// [`fetch`] over the blocking [`HttpClient::send`] — for native
-/// `get_model`, which is synchronous. Never call it on wasm.
-///
-/// # Errors
-///
-/// As [`fetch`].
-#[cfg(not(target_family = "wasm"))]
-pub fn fetch_blocking<T: DeserializeOwned>(
-    client: &Arc<dyn HttpClient>,
-    req: PreparedRequest,
-    error_detail: fn(&str) -> Option<String>,
-    convert: fn(T) -> OpenAIModelInfo,
-) -> GenerationResult<OpenAIModelInfo> {
-    let response = client
-        .send(req)
-        .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
-    let (status, _headers, body) = response.into_parts();
-    parse(status.into(), body, error_detail, convert)
-}
-
 fn parse<T: DeserializeOwned>(
     status_code: usize,
     body: foundation_netio::shared::http::SendSafeBody,
@@ -155,11 +135,32 @@ fn parse<T: DeserializeOwned>(
 
 /// Run `lookup` as its own valtron task; on success its metadata replaces
 /// `model_name`'s placeholder in `cache`. A failure keeps the placeholder (the
-/// metadata is optional) and is logged.
+/// metadata is optional) and is logged, as is a missing executor.
+///
+/// This is how `get_model` looks a model up on every target: it never blocks
+/// on the network (it may run inside an agent task, or in a Worker where a
+/// blocking request cannot complete). Callers that need the metadata now
+/// await the provider's `fetch_model_info`.
+#[cfg(not(target_family = "wasm"))]
+pub fn spawn_lookup<F>(cache: ModelInfoCache, model_name: String, lookup: F)
+where
+    F: std::future::Future<Output = GenerationResult<OpenAIModelInfo>> + Send + 'static,
+{
+    spawn_lookup_task(cache, model_name, lookup);
+}
+
+/// See the native variant.
 #[cfg(target_family = "wasm")]
 pub fn spawn_lookup<F>(cache: ModelInfoCache, model_name: String, lookup: F)
 where
     F: std::future::Future<Output = GenerationResult<OpenAIModelInfo>> + 'static,
+{
+    spawn_lookup_task(cache, model_name, lookup);
+}
+
+fn spawn_lookup_task<F>(cache: ModelInfoCache, model_name: String, lookup: F)
+where
+    F: std::future::Future<Output = GenerationResult<OpenAIModelInfo>> + MaybeSend + 'static,
 {
     let task = async move {
         match lookup.await {
@@ -170,9 +171,20 @@ where
         }
     };
     if let Err(e) = foundation_core::valtron::send(foundation_core::valtron::from_future(task)) {
-        tracing::warn!(error = %e, "could not schedule model metadata lookup");
+        tracing::debug!(error = %e, "model metadata lookup not scheduled (no executor); keeping placeholder");
     }
 }
+
+/// `Send` where the executor needs it (native), nothing on wasm.
+#[cfg(not(target_family = "wasm"))]
+pub trait MaybeSend: Send {}
+#[cfg(not(target_family = "wasm"))]
+impl<T: Send> MaybeSend for T {}
+/// `Send` where the executor needs it (native), nothing on wasm.
+#[cfg(target_family = "wasm")]
+pub trait MaybeSend {}
+#[cfg(target_family = "wasm")]
+impl<T> MaybeSend for T {}
 
 /// Seconds since the Unix epoch for an RFC 3339 UTC-or-offset time such as
 /// `2025-02-19T00:00:00Z` or `2025-02-19T09:30:00.5+02:00` (fractional

@@ -10,7 +10,7 @@
 use clap::{Parser, Subcommand};
 use foundation_ai::agentic::{AgentSession, AgenticError, Answer};
 use foundation_ai::harness::RouterPreset;
-use foundation_core::valtron::valtron;
+use foundation_core::valtron::{block_on_future, valtron};
 use foundation_errstacks::ErrorTrace;
 use foundation_repl::{Repl, ReplTheme};
 
@@ -101,7 +101,7 @@ fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
 fn run_ask(session: &Session, question: String) -> bool {
     tracing::trace!("ask: sending question to model: {question}");
 
-    match session.ask(question) {
+    match block_on_future(session.ask(question)) {
         Ok(Answer::Complete(text)) => {
             println!("{}", or_no_response(&text));
             true
@@ -149,7 +149,7 @@ fn run_repl(session: &Session) {
         tracing::trace!("agent: sending message to model: {input}");
 
         let thinking = repl.animation("thinking");
-        let outcome = session.ask(input);
+        let outcome = block_on_future(session.ask(input));
         thinking.finish();
 
         // `report_error` styles errors as errors rather than as the model's

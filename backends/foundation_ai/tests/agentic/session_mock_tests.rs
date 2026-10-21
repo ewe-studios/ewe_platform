@@ -637,7 +637,7 @@ async fn text_stream_turns_snapshots_into_new_text() {
 }
 
 /// Sync at the boundary: a plain `for` loop over the async events, driven by
-/// valtron's `block_on_stream` — no separate sync API.
+/// valtron's `run_stream_iter` — no separate sync API.
 #[valtron_test]
 fn events_can_be_iterated_from_sync_code() {
     let mut mock = MockModelProvider::new();
@@ -646,7 +646,7 @@ fn events_can_be_iterated_from_sync_code() {
 
     let mut text = String::new();
     let mut done = false;
-    for event in foundation_core::valtron::block_on_stream(
+    for event in foundation_core::valtron::run_stream_iter(
         session.run_turn_stream("hi").expect("turn runs").events(),
     )
     .expect("scheduled")

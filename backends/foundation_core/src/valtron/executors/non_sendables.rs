@@ -304,11 +304,11 @@ where
 }
 
 /// Iterate an async stream from synchronous code: the sync boundary for an
-/// async-first API (`for event in block_on_stream(turn.events())? { .. }`).
+/// async-first API (`for event in run_stream_iter(turn.events())? { .. }`).
 ///
 /// WHY: APIs are written once, async (they wait by parking, so they work on
 /// every target). Sync callers should not need a second API — they wrap the
-/// async one here, the stream counterpart of [`block_on_future`].
+/// async one here, the stream counterpart of [`run_future_iter`] and [`block_on_future`].
 ///
 /// WHAT: Schedules `stream` as a valtron task ([`from_stream`]) and returns a
 /// plain `Iterator` over its items ([`next_values`](crate::valtron::next_values)).
@@ -321,7 +321,7 @@ where
 /// # Errors
 ///
 /// When the task cannot be scheduled (e.g. the pool is not initialized).
-pub fn block_on_stream<S>(
+pub fn run_stream_iter<S>(
     stream: S,
 ) -> GenericResult<crate::valtron::StreamValues<S::Item, DrivenStreamIterator<StreamTask<S>>>>
 where
