@@ -80,7 +80,7 @@ Mutex is never accessed again.
 
 ## Cranelift Incompatibility
 
-The Cranelift codegen backend (`codegen-backend = "cranelift"` in `[profile.dev]`)
+The Cranelift codegen backend (`dev` builds under mise: `CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift` in its `[env]`)
 does not fully support panic unwinding on all platforms. Under Cranelift:
 
 - `catch_unwind` does NOT catch panics

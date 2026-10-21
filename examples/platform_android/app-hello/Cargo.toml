@@ -16,7 +16,6 @@ foundation_macros = { path = "../../../backends/foundation_macros" }
 
 [profile.uat]
 inherits = "release"
-codegen-backend = "llvm"
 
 [[bin]]
 name = "hello_dashboard"
