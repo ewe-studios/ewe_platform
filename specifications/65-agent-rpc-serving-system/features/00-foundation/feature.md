@@ -9,10 +9,10 @@ created: 2026-10-19
 last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 4
-  uncompleted: 3
+  completed: 6
+  uncompleted: 1
   total: 7
-  completion_percentage: 57
+  completion_percentage: 86
 ---
 
 # WASM & Cloudflare Workers Readiness (Foundation)
@@ -408,15 +408,24 @@ impl Model for WorkersAiModel {
       stream ends on EOF, not a sentinel — see LEARNINGS.md "WASM T4 resolution").
       wasm `cargo check --no-default-features` stays green (provider holds
       `Arc<dyn HttpClient>`, no native client, no `thread::sleep`).
-- [ ] **T5 — examples.** `cf-agent-loop` (agentic + Workers AI via `dispatch_cf`)
+- [x] **T5 — examples.** `cf-agent-loop` (agentic + Workers AI via `dispatch_cf`)
       and `cf-cloud-provider` (`foundation_ai` deployed on Cloudflare calling
       OpenRouter via `FetchHttpClient`, using the existing `OpenAIConfig::openrouter`);
       both
       `cargo check --target wasm32-unknown-unknown` + `wasm-pack build`.
-- [ ] **T6 — miniflare-local verification.** Drive each example through
+- [x] **T6 — miniflare-local verification.** Drive each example through
       `foundation_toolings::harness::Miniflare` (wrangler `dev --local`), with a
       **mocked vendor `fetch`** (no live keys); red test = an OpenRouter request
       streams through the Worker locally.
+      Done in `foundation_toolings/tests/cf_examples.rs` (opt-in
+      `--features cf-worker-tests`): `worker-build --release` each example, an
+      in-process mock vendor (OpenRouter SSE deltas + `[DONE]`; Workers AI
+      cumulative `{"response"}` chunks), then assert the answer arrives once,
+      the vendor saw exactly one call, and `GET /` still answers. Both green.
+      Getting there fixed: the isolate freeze (feature 06 T5), the doubled
+      OpenRouter `/v1`, loop detection on snapshot streams, snapshot
+      concatenation in both examples' output, and the harness (undrained pipes,
+      orphaned workerd on stop, no `--var`/POST/chunked support).
 - [ ] **T7 — on-Cloudflare verification.** `wrangler deploy` each example; smoke
       test with a **live OpenRouter call gated behind an env secret**
       (`OPENROUTER_API_KEY` in Worker bindings) plus the mocked path; red test =
@@ -448,7 +457,7 @@ rustup target add wasm32-unknown-unknown   # one-time
 cargo check --target wasm32-unknown-unknown -p foundation_ai --no-default-features
 cargo check --target wasm32-unknown-unknown -p foundation_arrow
 cargo test -p foundation_ai --test provider_tests workers_ai   # mocked SSE server
-cargo test -p foundation_toolings --test miniflare_smoke   # harness-driven
+cargo test -p foundation_toolings --features cf-worker-tests --test cf_examples   # harness-driven, mocked vendors
 ```
 
 ## Success Criteria
@@ -460,7 +469,7 @@ cargo test -p foundation_toolings --test miniflare_smoke   # harness-driven
 - [ ] `foundation_arrow` (and the other AI deps) compile clean to wasm32
 - [ ] CI `wasm-check` covers the AI crates and fails on regression
 - [ ] `cf-agent-loop` + `cf-cloud-provider` verified via miniflare locally **and**
-      on Cloudflare
+      on Cloudflare (local miniflare ✅; Cloudflare deploy is T7)
 - [ ] A deployed Cloudflare Worker running `foundation_ai` streams a real
       OpenRouter answer (env-secret-gated), validating the cross-platform
       provider path end-to-end

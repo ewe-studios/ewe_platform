@@ -19,6 +19,7 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelOutput, SessionRecord, TextContent, ToolArguments, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
+use futures_lite::StreamExt;
 use foundation_db::{MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
 
 type Session = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
@@ -69,13 +70,13 @@ fn assistant_texts(records: &[SessionRecord]) -> Vec<String> {
 // Matrix 7.1 — run_turn returns the assistant reply
 
 #[valtron_test]
-fn run_turn_returns_the_mock_reply() {
+async fn run_turn_returns_the_mock_reply() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("mock says hi")]);
 
     let session = session_with(mock);
     let records = session
-        .run_turn(user_msg("hi"))
+        .run_turn(user_msg("hi")).await
         .expect("turn should succeed");
 
     assert_eq!(assistant_texts(&records), vec!["mock says hi".to_string()]);
@@ -85,12 +86,12 @@ fn run_turn_returns_the_mock_reply() {
 // Matrix 7.3 — run_turn on a failing provider reports the failure
 
 #[valtron_test]
-fn run_turn_reports_a_provider_failure() {
+async fn run_turn_reports_a_provider_failure() {
     let mut mock = MockModelProvider::new();
     mock.fail_with(|_| true, "mock failure");
 
     let session = session_with(mock);
-    let turn = session.run_turn(user_msg("hi")).expect("the turn started");
+    let turn = session.run_turn(user_msg("hi")).await.expect("the turn started");
 
     assert!(
         turn.failure().is_some(),
@@ -134,11 +135,62 @@ fn fails_after_partial_output() -> MockModelProvider {
     mock
 }
 
+/// The chunks an HTTP backend streams for one answer: each re-sends the text so
+/// far (a snapshot), and the closing chunk repeats the whole answer.
+fn snapshot_chunks() -> Vec<Messages> {
+    [
+        "The",
+        "The capital",
+        "The capital of",
+        "The capital of France",
+        "The capital of France is",
+        "The capital of France is Paris",
+        "The capital of France is Paris.",
+        "The capital of France is Paris.",
+    ]
+    .into_iter()
+    .map(mock_text)
+    .collect()
+}
+
+/// Regression (spec 65 feature 06 T5 smoke test): the loop detector ran on the
+/// raw chunks, so consecutive snapshots looked like a repeating answer. A
+/// one-line reply took four model calls and ended in `LoopDetected`, and
+/// `Turn::text` concatenated every snapshot. One generation, one answer.
 #[valtron_test]
-fn run_turn_keeps_the_partial_output_before_a_failure() {
+async fn snapshot_stream_is_one_answer_not_a_loop() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(snapshot_chunks());
+    let session = session_with(mock);
+
+    let turn = session
+        .run_turn("What is the capital of France?").await
+        .expect("turn runs");
+
+    assert!(turn.failure().is_none(), "{:?}", turn.failure());
+    assert_eq!(turn.text(), "The capital of France is Paris.");
+}
+
+/// The same snapshot stream through the text-only `Answer` path.
+#[valtron_test]
+async fn snapshot_stream_answer_is_the_last_snapshot() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(snapshot_chunks());
+    let session = session_with(mock);
+
+    let answer = session
+        .ask("What is the capital of France?").await
+        .expect("turn runs");
+
+    assert!(answer.is_complete(), "{answer:?}");
+    assert_eq!(answer.text(), "The capital of France is Paris.");
+}
+
+#[valtron_test]
+async fn run_turn_keeps_the_partial_output_before_a_failure() {
     let session = session_with(fails_after_partial_output());
     let turn = session
-        .run_turn("do the thing")
+        .run_turn("do the thing").await
         .expect("a mid-turn failure is not an Err");
 
     assert_eq!(turn.text(), "Working on it. ");
@@ -160,9 +212,9 @@ fn run_turn_keeps_the_partial_output_before_a_failure() {
 }
 
 #[valtron_test]
-fn ask_returns_the_partial_text_and_the_error() {
+async fn ask_returns_the_partial_text_and_the_error() {
     let session = session_with(fails_after_partial_output());
-    let answer = session.ask("do the thing").expect("the turn started");
+    let answer = session.ask("do the thing").await.expect("the turn started");
 
     match &answer {
         Answer::Failed {
@@ -181,14 +233,15 @@ fn ask_returns_the_partial_text_and_the_error() {
 }
 
 #[valtron_test]
-fn events_yield_the_partial_output_then_a_terminal_failure() {
+async fn events_yield_the_partial_output_then_a_terminal_failure() {
     let session = session_with(fails_after_partial_output());
     let events: Vec<TurnEvent> = session
         .run_turn_stream("do the thing")
         .expect("the turn started")
         .events()
         .filter(|e| !matches!(e, TurnEvent::Progress(_)))
-        .collect();
+        .collect()
+        .await;
 
     let text = events
         .iter()
@@ -214,19 +267,20 @@ fn events_yield_the_partial_output_then_a_terminal_failure() {
 }
 
 #[valtron_test]
-fn ask_and_events_on_a_completed_turn() {
+async fn ask_and_events_on_a_completed_turn() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("Hel"), mock_text("lo")]);
     let session = session_with(mock);
 
-    let answer = session.ask("hi").expect("turn runs");
+    let answer = session.ask("hi").await.expect("turn runs");
     assert_eq!(answer, Answer::Complete("Hello".into()));
 
     let events: Vec<TurnEvent> = session
         .run_turn_stream("hi again")
         .expect("turn runs")
         .events()
-        .collect();
+        .collect()
+        .await;
     let text: String = events
         .iter()
         .filter_map(|e| match e {
@@ -240,7 +294,7 @@ fn ask_and_events_on_a_completed_turn() {
         other => panic!("expected a terminal Done, got {other:?}"),
     }
 
-    let turn = session.run_turn("and again").expect("turn runs");
+    let turn = session.run_turn("and again").await.expect("turn runs");
     assert_eq!(turn.text(), "Hello");
     assert!(turn.failure().is_none());
     assert!(turn.usage().is_some(), "the summary's usage is exposed");
@@ -277,12 +331,12 @@ fn run_turn_stream_yields_records() {
 // Matrix 6.5 — the assistant reply is persisted to session history
 
 #[valtron_test]
-fn assistant_reply_persisted_to_history() {
+async fn assistant_reply_persisted_to_history() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("remember me")]);
 
     let session = session_with(mock);
-    session.run_turn(user_msg("hi")).expect("turn succeeds");
+    session.run_turn(user_msg("hi")).await.expect("turn succeeds");
 
     let history = session.message_api().all().expect("history readable");
     let has_assistant = history.iter().any(|r| {
@@ -303,7 +357,7 @@ fn assistant_reply_persisted_to_history() {
 // Matrix 3.2 — follow_up is processed by a subsequent turn
 
 #[valtron_test]
-fn follow_up_message_is_processed() {
+async fn follow_up_message_is_processed() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("answered")]);
 
@@ -313,7 +367,7 @@ fn follow_up_message_is_processed() {
     // run_turn drains the follow-up queue at the outer boundary alongside its
     // own prompt; both are answered.
     let records = session
-        .run_turn(user_msg("direct question"))
+        .run_turn(user_msg("direct question")).await
         .expect("turn succeeds");
     assert!(
         !assistant_texts(&records).is_empty(),
@@ -353,7 +407,7 @@ fn end_persists_queued_messages() {
 // Matrix 3.1 — steer injects a priority message answered on the next turn
 
 #[valtron_test]
-fn steer_injects_priority_message() {
+async fn steer_injects_priority_message() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("steered reply")]);
 
@@ -362,7 +416,7 @@ fn steer_injects_priority_message() {
     // steer() sets the priority queue; run the turn, then confirm the priority
     // message reached session history (whether the turn Ok's or trips loop
     // detection on the mock's identical replies — both drain the queue).
-    let _ = session.run_turn(user_msg("normal"));
+    let _ = session.run_turn(user_msg("normal")).await;
 
     let history = session.message_api().all().expect("history readable");
     let saw_priority = history.iter().any(|r| matches!(
@@ -380,7 +434,7 @@ fn steer_injects_priority_message() {
 // Persistent stores satisfy build()'s `Default` bound
 
 #[valtron_test]
-fn build_and_run_a_turn_on_sql_backed_stores() {
+async fn build_and_run_a_turn_on_sql_backed_stores() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("hello from sqlite")]);
 
@@ -392,7 +446,7 @@ fn build_and_run_a_turn_on_sql_backed_stores() {
         .expect("a session over default SQL stores builds");
 
     let records = session
-        .run_turn(user_msg("hi"))
+        .run_turn(user_msg("hi")).await
         .expect("turn should succeed");
     assert_eq!(
         assistant_texts(&records),
@@ -404,7 +458,7 @@ fn build_and_run_a_turn_on_sql_backed_stores() {
 // Proposal 15, item 6: turns and steering take anything Into<Messages>
 
 #[valtron_test]
-fn run_turn_accepts_a_plain_string() {
+async fn run_turn_accepts_a_plain_string() {
     let mut mock = MockModelProvider::new();
     mock.on(
         last_user_contains("plain prompt"),
@@ -414,13 +468,13 @@ fn run_turn_accepts_a_plain_string() {
     let session = session_with(mock);
 
     let records = session
-        .run_turn("plain prompt")
+        .run_turn("plain prompt").await
         .expect("turn should succeed");
     assert_eq!(assistant_texts(&records), vec!["got it".to_string()]);
 
     // An owned String works the same way.
     let records = session
-        .run_turn(String::from("plain prompt again"))
+        .run_turn(String::from("plain prompt again")).await
         .expect("turn should succeed");
     assert_eq!(assistant_texts(&records), vec!["got it".to_string()]);
 }
@@ -545,4 +599,68 @@ mod raw_stream_access {
         let mapped = raw.map_done(|record| Turn::text_of(&record));
         assert_eq!(texts(mapped), vec!["converted".to_string()]);
     }
+}
+
+// ---------------------------------------------------------------------------
+// TurnStream::into_text_stream — the async text-only view a chat UI streams
+
+/// Deltas (local backends) arrive whole; the turn's text adds up once.
+#[valtron_test]
+async fn text_stream_yields_deltas_once() {
+
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("Hel"), mock_text("lo")]);
+    let pieces: Vec<String> = session_with(mock)
+        .run_turn_stream("hi")
+        .expect("turn runs")
+        .into_text_stream()
+        .collect()
+        .await;
+    assert_eq!(pieces.concat(), "Hello", "{pieces:?}");
+    assert!(pieces.iter().all(|p| !p.is_empty()));
+}
+
+/// Snapshots (HTTP backends re-send the text so far) yield only what is new.
+#[valtron_test]
+async fn text_stream_turns_snapshots_into_new_text() {
+
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("Hel"), mock_text("Hello"), mock_text("Hello!")]);
+    let pieces: Vec<String> = session_with(mock)
+        .run_turn_stream("hi")
+        .expect("turn runs")
+        .into_text_stream()
+        .collect()
+        .await;
+    assert_eq!(pieces.concat(), "Hello!", "{pieces:?}");
+    assert_eq!(pieces.first().map(String::as_str), Some("Hel"));
+}
+
+/// Sync at the boundary: a plain `for` loop over the async events, driven by
+/// valtron's `block_on_stream` — no separate sync API.
+#[valtron_test]
+fn events_can_be_iterated_from_sync_code() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("Hel"), mock_text("lo")]);
+    let session = session_with(mock);
+
+    let mut text = String::new();
+    let mut done = false;
+    for event in foundation_core::valtron::block_on_stream(
+        session.run_turn_stream("hi").expect("turn runs").events(),
+    )
+    .expect("scheduled")
+    {
+        match event {
+            TurnEvent::Text(t) => text.push_str(&t),
+            TurnEvent::Done(_) => done = true,
+            _ => {}
+        }
+    }
+    assert_eq!(text, "Hello");
+    assert!(done, "the terminal Done arrived");
+
+    let answer = foundation_core::valtron::block_on_future(session.ask("again"))
+        .expect("turn runs");
+    assert_eq!(answer.text(), "Hello");
 }

@@ -31,7 +31,7 @@ use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::shared::client::{
     body_reader::collect_strings_from_send_safe,
-    http_client::{BoxedSseIterator, HttpClient},
+    http_client::{BoxedSseIterator, HttpClient, SseProgress},
     request::{Extensions, PreparedRequest},
 };
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
@@ -507,6 +507,17 @@ struct WorkersAiStream {
     done: bool,
 }
 
+/// Readiness comes from the underlying SSE stream: a consumer parked on this
+/// stream's `Wait` is woken when the next SSE event (or end of stream) arrives.
+impl foundation_core::valtron::WakeableStream for WorkersAiStream {
+    fn wake(
+        &mut self,
+        cb: foundation_core::valtron::WakeCallback,
+    ) -> foundation_core::valtron::WakeResult {
+        self.inner.wake(cb)
+    }
+}
+
 impl Iterator for WorkersAiStream {
     type Item = Stream<Messages, ModelState>;
 
@@ -519,6 +530,9 @@ impl Iterator for WorkersAiStream {
 
         match item {
             Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
+            Stream::Pending(SseProgress::Failed(msg)) => {
+                Some(Stream::Pending(ModelState::Error(msg)))
+            }
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
@@ -546,6 +560,9 @@ impl Iterator for WorkersAiStream {
                                 | Stream::Wait
                                 | Stream::Spread(_) => {}
                             }
+                        }
+                        StreamSpread::Pending(SseProgress::Failed(msg)) => {
+                            mapped.push(StreamSpread::Pending(ModelState::Error(msg)));
                         }
                         StreamSpread::Pending(_) => {
                             mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));

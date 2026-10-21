@@ -28,8 +28,16 @@ Key properties:
 - `host_apply` is the single re-entry point from JS into wasm.
 - Animation frames use `requestAnimationFrame` with a monotonic timestamp.
 - Works in browser and Deno (both have the JS event loop).
+- Timeouts and microtasks are one-shot: the callback is removed from
+  `SCHEDULED_CALLBACKS` when it fires and runs after the registry lock is
+  released, so it may schedule again. Cancelling one that already fired is a
+  no-op.
+- **Microtasks** (`register_microtask` → `schedule_microtask` import →
+  `queueMicrotask`): run once right after the current JS task, before timers and
+  I/O. valtron uses this to resume its executor when a readiness signal fires
+  (`request_executor_resume`), instead of polling on a timer.
 
-Source: `src/host_runtime.rs` — `abi::web::schedule_timeout`, `schedule_interval`,
+Source: `src/host_runtime.rs` — `abi::web::schedule_timeout`, `schedule_microtask`, `schedule_interval`,
 `request_animation_frame` (wasm_import_module = "abi" FFI imports).
 
 ## WASI Host (timer-based polling) — `wasi` / `wasip2` features

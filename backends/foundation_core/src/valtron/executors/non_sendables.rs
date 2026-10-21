@@ -303,6 +303,36 @@ where
     drive_iterator(crate::valtron::from_future(future), ctx)
 }
 
+/// Iterate an async stream from synchronous code: the sync boundary for an
+/// async-first API (`for event in block_on_stream(turn.events())? { .. }`).
+///
+/// WHY: APIs are written once, async (they wait by parking, so they work on
+/// every target). Sync callers should not need a second API — they wrap the
+/// async one here, the stream counterpart of [`block_on_future`].
+///
+/// WHAT: Schedules `stream` as a valtron task ([`from_stream`]) and returns a
+/// plain `Iterator` over its items ([`next_values`](crate::valtron::next_values)).
+/// Each `next()` waits for the next item the way [`block_on_future`] waits
+/// for its result; the iterator ends when the stream does.
+///
+/// Not for single-threaded wasm request handlers: there, consume the stream
+/// with `.await` so the event loop can deliver its I/O.
+///
+/// # Errors
+///
+/// When the task cannot be scheduled (e.g. the pool is not initialized).
+pub fn block_on_stream<S>(
+    stream: S,
+) -> GenericResult<crate::valtron::StreamValues<S::Item, DrivenStreamIterator<StreamTask<S>>>>
+where
+    S: futures_core::Stream + 'static,
+    S::Item: 'static,
+{
+    Ok(crate::valtron::StreamValues::new(crate::valtron::next_values(
+        execute(from_stream(stream), None)?,
+    )))
+}
+
 /// Block the calling thread until `future` completes, returning its output
 /// (single-threaded / wasm executor variant — Decision 00 Level 3 / feature 00-F3).
 ///
@@ -402,10 +432,28 @@ where
     StreamTask::new(stream)
 }
 
-/// Execute a future using the unified executor (WASM — Send required for trait bounds,
-/// but no actual cross-thread movement occurs since wasm32 is single-threaded).
+/// Block the calling thread until `future` completes, collecting every `Ready`
+/// output it produced into a `Vec` (single-threaded / wasm executor variant).
+///
+/// # WASM-unsafe: native-only
+///
+/// This is a *blocking* helper — the `collect()` is inherent, because a future
+/// has no stream to return — so it never yields to the JS event loop. On wasm32
+/// (a single-threaded, cooperative runtime) it deadlocks the isolate: any future
+/// awaiting a `JsFuture`/promise can never resolve while the collector parks.
+/// Prefer [`run_future_iter`] (a lazy iterator that yields
+/// [`ThreadedValue::Waiting`] while pending) or the parking stream bridges
+/// (`into_future_stream` / `into_next_stream`). Keep this helper for native
+/// callers that genuinely need a run-to-completion block.
+///
+/// WHY: The unified executor's `DrivenRecvIterator` may yield several `Ready`
+/// values (a future can spawn sub-tasks), so "run to completion" here means
+/// "gather them all", not "return the first".
+///
+/// WHAT: Wraps `future` as a [`FutureTask`], executes it via [`execute_as_task`],
+/// and gathers every `Ready` output into a `Vec`.
 #[cfg(any(feature = "std", feature = "alloc"))]
-pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
+pub fn block_on_collect<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
     F: Future + 'static,
     F::Output: 'static,
@@ -928,6 +976,15 @@ where
     #[cfg_attr(not(feature = "multi"), allow(unused_variables))]
     run_until(|indicator: ProgressIndicator| {
         if nothing_runnable(&indicator) {
+            return true;
+        }
+        // Native: a task yielded (`TaskStatus::Wait`) and pushed `Stream::Wait`
+        // for the caller. Hand control back so the caller sees it (a parking
+        // bridge then returns `Poll::Pending`) instead of re-polling a task that
+        // may wait forever. On JS the executor's own `Wait` arm yields to the
+        // event loop on a short timer and returns, so this is native-only.
+        #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+        if matches!(indicator, ProgressIndicator::Wait) {
             return true;
         }
         if let ProgressIndicator::CanProgress(Some(state)) = indicator {

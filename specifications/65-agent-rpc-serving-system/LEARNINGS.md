@@ -363,7 +363,7 @@ sync path not block", not "add an async seam":
    `into_pure_future_stream()` (`StreamAsFutureStream`, no `WakeableStream` bound).
 2. **Remove `run_future` from the wasm sync path.** wasm `send_sse` becomes a lazy
    `LazySseIterator` (spawns `do_fetch` via `spawn_local` on first poll, flattens a
-   `WasmSseIterator`), and `run_future` is renamed `block_on_future` + documented
+   `WasmSseIterator`), and `run_future` is renamed `block_on_collect` + documented
    wasm-unsafe (native-only). Fetch failures surface as `SseProgress::Failed(msg)`,
    mapped to `ModelState::Error` by the OpenAI/Workers-AI streams.
 
@@ -396,4 +396,136 @@ the isolate.
   (which still holds the unconsumed item). Corrected to assert the remaining item
   then `None`. Now the whole foundation_core suite is green.
 
+## 06 T2 (2026-10-20) — `run_future` → `block_on_collect` + the single-threaded drop-on-`Pending` fix
+
+- The audit found **two** pre-existing blocking helpers, not one: `block_on_future`
+  (returns a single `F::Output`, drives to completion; used by the `#[valtron]`
+  macro, tests, `deployment_platform`, `keychain`) and `run_future` (returns
+  `GenericResult<Vec<F::Output>>`, the sync `collect()` wasm trap). The feature
+  doc's "rename `run_future` → `block_on_future`" would have collided with the
+  existing single-output `block_on_future`, so the collect helper was renamed
+  **`block_on_collect`** instead, keeping the two blocking helpers distinct
+  (`block_on_future` = single output, `block_on_collect` = all outputs).
+- `block_on_collect` (both `non_sendables.rs` and `sendables.rs`) is now
+  documented `# WASM-unsafe: native-only`: the `collect()` is inherent (a future
+  has no stream to return), so it never yields to the JS event loop and deadlocks
+  the single-threaded wasm isolate. Its three remaining call sites (netio
+  `send`/`send_sse`, ai `backend_utils::sleep`) are the traps T3/T4 remove.
+- **Fixed** the single-threaded `FutureIterator` (`future_task.rs`,
+  `not(multi)`) that rebuilt + dropped the future on every `next()`, so a future
+  that returned `Pending` once could never make progress. It now holds
+  `factory: Option<F>` (runs once) + `future: Option<Pin<Box<Fut>>>` and re-polls
+  the retained future on each `next()`, yielding `ThreadedValue::Waiting` on
+  `Pending` without dropping it.
+- Added `test_threaded_future_survives_pending` (a `PendingNTimes` future that is
+  `Pending` twice before resolving) asserting two `Waiting`s then the values flow —
+  the old code would have yielded `Waiting` then `None`, losing the values.
+- Gates green: `cargo check -p foundation_core` (default + `--features multi`) and
+  `cargo check -p foundation_core --target wasm32-unknown-unknown`; full
+  `cargo test -p foundation_core --profile uat` (742 passed, 0 failed).
+
+## 06 T3 (2026-10-20) — wasm `send_sse` goes lazy; the deferred-error channel lands
+
+- `SseProgress` gained `Failed(String)` (so `Clone, Debug, Eq, PartialEq`, but the
+  `Copy` derive is gone — `String` isn't `Copy`). This was safe because no code
+  matches `SseProgress` exhaustively: the native `map_progress` only *constructs*
+  it, and the model layer maps `Stream::Pending(_)` / `Stream::Pending(p)` by
+  wildcard/bind, never by enumerating variants.
+- Wasm `send_sse` no longer wraps `fetch` in `block_on_collect`. It returns a
+  `LazySseIterator` immediately; the first `next()` spawns the fetch via
+  `spawn_local` and yields `Pending(Connecting)`, then `Wait` until the fetch
+  resolves, then flattens the body `WasmSseIterator`. A fetch failure surfaces as
+  `Pending(Failed(msg))` then `None` (the `failed: Option<String>` terminal guard),
+  because a lazy iterator can no longer carry the error on its `Result`.
+- The fetch work is a free `async fn fetch_sse(req, max_redirects) -> Result<WasmSseIterator, _>`,
+  shared by the async `send_sse_async` seam and the lazy `spawn_local` path. It holds
+  `web_sys::Request`/`Response` across `.await`s, so it is `!Send`; `send_sse_async`
+  wraps it in `SendWrapper`, `spawn_local` needs no `Send`.
+- `impl WakeableStream for WasmSseIterator` registers on a `WakeRegistry` that the
+  `spawn_local` reader fires on every queue push and on done/close. `impl
+  WakeableStream for LazySseIterator` delegates to the body iterator once the fetch
+  resolved, else registers on its own fetch-stage registry. Both types carry
+  `unsafe impl Send` (wasm is single-threaded; the `!Send` registry/callbacks are
+  only touched on that thread).
+- `send_sse_async` switched from `into_pure_future_stream()` (raw lens, forwards
+  `Wait`/`Pending` and busy-polls) to `into_future_stream()` (parks via
+  `WakeableStream`), which is what makes the async seam genuinely await-friendly.
+- Gates green: `cargo check -p foundation_netio` (native), wasm `--no-default-features
+  --features wasm-fetch`, and `cargo test -p foundation_netio --profile uat`
+  (979 passed, 1 pre-existing macOS unix-socket failure `EINVAL`, already in the
+  backlog). `cargo check -p foundation_ai` (native + wasm) also green after the
+  `SseProgress` change.
+
+## 06 T4 (2026-10-20) — model-layer error mapping + the last `block_on_collect` backoff is retired
+
+- `OpenAIStream::next` and `WorkersAiStream::next` now split the `SseProgress::Failed`
+  arm out of their `Stream::Pending(_)`/`StreamSpread::Pending(_)` matches and map it
+  to `ModelState::Error(msg)`; every other `Pending` still maps to
+  `GeneratingTokens(None)`. This is the in-band path a lazy `send_sse` uses to reach a
+  sync `Model::stream` consumer with a deferred fetch failure.
+- Wasm `backend_utils::sleep` was the third and last wasm `block_on_collect` caller.
+  It became a documented **no-op**: there is no synchronous sleep on wasm
+  (`std::thread::sleep` panics "time not implemented", and `block_on_collect` deadlocks
+  the isolate), and the retry backoff that calls it is unreachable on wasm anyway —
+  the non-streaming `generate` path deadlocks earlier at `HttpClient::send`, which
+  still wraps `fetch` in `block_on_collect`. Making backoff genuinely yield needs an
+  async `generate` seam (a `Model` API change) that feature 06 deliberately avoids;
+  the non-streaming wasm path is tracked in `docs/bug-backlog.md` under a new
+  `foundation_ai` section.
+- Two new tests (`tests/providers/sse_error_mapping_tests.rs`) drive the public
+  `Model::stream` path through a mock `HttpClient` whose `send_sse` yields a single
+  `Pending(Failed("boom"))`, asserting `OpenAIStream` and `WorkersAiStream` both map
+  it to `ModelState::Error("boom")` and then terminate. Gates green: `cargo test -p
+  foundation_ai --profile uat` (all suites pass, provider_tests 243→245) and wasm
+  `cargo check --target wasm32-unknown-unknown -p foundation_ai --no-default-features`.
+
+## 06 T5 (2026-10-20) — the live smoke test: park, don't poll; wake from JS
+
+- **Reproduce before theorising.** `wrangler dev --local` plus a 40-line Python
+  mock of `/chat/completions` (SSE chunks 300 ms apart, wired in through
+  `OPENROUTER_BASE_URL`) reproduced the hang in seconds and showed the mock
+  received **zero** requests, so the isolate was frozen before the fetch, not
+  waiting on it.
+- **Hang 1: a hidden sync HTTP call.** `OpenAIProvider::get_model` does a sync
+  `GET models/{name}` on a cache miss (the first turn). On wasm, sync `send` was
+  `block_on_collect`, which runs a nested `run_until` *inside the running agent
+  task*. The running task's slot counts as active, so the nested loop spins on
+  `CanProgress(None)` forever. Lesson: no sync "block on" helper may be reachable
+  from a task on wasm. Wasm `send` now errors (`use send_async`), and `get_model`
+  skips the optional lookup on wasm.
+- **Hang 2: `TaskStatus::Wait` is not a park.** `Wait` keeps the task active
+  *and* pushes a `Stream::Wait` item to the output queue; every push wakes the
+  consumer, whose next poll drives the executor and arms another `setTimeout`
+  chain. Chains multiplied (~1,700 timer callbacks/s). Use
+  `TaskStatus::Depends(signal)` for I/O waits.
+- **Make the boxed streams wakeable.** `BoxedSseIterator`/`ModelStreamBox` became
+  `dyn WakeableStream` (the trait's default `wake` = `NotSupported`, so in-process
+  streams need only an empty impl). The valtron adapters (`MapPending`, …) and
+  `NotifyQueue` already forward `wake`, so native SSE gets real wakes too.
+  `NotifyQueue::register_wake` fires immediately if data is already queued; the
+  wasm SSE iterators now do the same (register-then-check), so a wake is never lost.
+- **Event-driven resume instead of timers.** JS wasm `run_until` now returns to
+  the event loop when every task is parked on readiness. Whoever flips the signal
+  calls `request_executor_resume()` (`WakeSignal::callback` does), which queues
+  one coalesced executor run as a microtask: `spawn_local` on wasm-bindgen, and a
+  new `schedule_microtask` host import (`queueMicrotask`) on foundation_wasm.
+  `setTimeout` stays only for real timers (`Delayed`/`SpinWait` deadlines).
+- **foundation_wasm schedule registry:** callbacks ran under the registry mutex
+  and fired timeouts were never removed. A callback that reschedules (valtron's
+  yield loop, `testing::run_async`) re-locked the same std `Mutex`. Callbacks are
+  now taken out (one-shot) and run after the lock drops; cancelling an
+  already-fired one is a no-op.
+- **Unrelated bugs the smoke test exposed:** `OPENROUTER_BASE_URL` ended in `/v1`
+  while `build_url` appends `api_version`, so every OpenRouter call hit
+  `/api/v1/v1/...` (fixed). And the agent loop ran `LoopDetector` on the raw
+  streamed chunks: HTTP backends send snapshots (the text so far), so every
+  answer looked like a loop (4 model calls, then `LoopDetected`). The loop already
+  had the right joiner (`join_text_chunks`); detection and `Turn::text`/`Answer`
+  just weren't using it. Fixed; `session_mock_tests::snapshot_stream_*` pin it.
+- **`TaskStatus::Wait` on native single-threaded** mapped to `State::Pending(None)`,
+  which no driver stop-check sees, so a forever-`Wait` task held the caller
+  (`park_busy_loop` was red). It is now `State::Wait` everywhere; the native stream
+  driver hands back on it, other native loops keep re-polling.
+- **`cargo test -p foundation_ai` skips the agentic suite**: `agentic_tests`
+  needs `--features testing`. Run it explicitly.
 

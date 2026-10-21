@@ -5,9 +5,7 @@
 pub mod js_stream;
 
 use crate::valtron::{ProgressIndicator, State};
-use foundation_nostd::primitives::cooperative_spin_waiter::{
-    CooperativeSpinWaiter, WaitStatus,
-};
+use foundation_nostd::primitives::cooperative_spin_waiter::{CooperativeSpinWaiter, WaitStatus};
 use std::time;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue};
@@ -19,21 +17,57 @@ pub const JS_WAIT_CHECK_INTERVAL: time::Duration = time::Duration::from_millis(4
 /// Module-level checker used by both the executor's `run_until` and the
 /// setTimeout callback's re-invocation. Returns true when the executor
 /// should stop and yield back to JS.
+///
+/// NOTE: `Wait` and `SpinWait` are deliberately NOT stop states. They are
+/// "yield" states: `run_until` handles them in its own arms (scheduling a
+/// fresh `setTimeout` before returning). If the checker stopped on them, the
+/// setTimeout re-invocation would break on the very first `Wait` without
+/// rescheduling, and a task parked on in-flight async work (e.g. the wasm lazy
+/// SSE fetch) would never be re-polled — freezing the isolate.
 fn js_should_stop(signal: ProgressIndicator) -> bool {
     matches!(
         signal,
-        ProgressIndicator::NoWork
-            | ProgressIndicator::SpinWait(_)
-            | ProgressIndicator::Wait
-            | ProgressIndicator::CanProgress(Some(State::Reschedule))
+        ProgressIndicator::NoWork | ProgressIndicator::CanProgress(Some(State::Reschedule))
     )
 }
 
 /// Module-level function called from the setTimeout closure.
 /// After the timer fires and the resumed flag is set, this re-invokes
-/// the valtron executor to continue processing.
+/// the valtron executor to continue processing. A no-op when this thread never
+/// initialized a pool (a yield outside any executor still queues the timer).
 fn js_yield_and_continue() {
-    crate::valtron::single::run_until(js_should_stop);
+    if crate::valtron::single::is_initialized() {
+        crate::valtron::single::run_until(js_should_stop);
+    }
+}
+
+thread_local! {
+    /// Set while a resume microtask is queued, so a burst of wakes (one per SSE
+    /// chunk, say) queues a single executor run instead of one per wake.
+    static RESUME_QUEUED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Ask the JS event loop to run the valtron executor again — the event-driven
+/// counterpart to the `setTimeout` yield.
+///
+/// WHY: a task parked on a readiness signal (`TaskStatus::Depends`) has nothing
+/// to poll; it becomes runnable only when some JS-side async work (a `fetch`, a
+/// `ReadableStream` read) completes. Instead of re-checking on a timer, the code
+/// that observes that completion calls this, and the executor runs exactly once
+/// per burst of wakes.
+///
+/// HOW: queues a microtask via `wasm_bindgen_futures::spawn_local` (the same
+/// queue wasm-bindgen drives Rust futures on), so it runs as soon as the current
+/// JS turn finishes — never re-entrantly inside an executor tick. Repeated calls
+/// while one is queued are coalesced.
+pub fn request_resume() {
+    if RESUME_QUEUED.with(|queued| queued.replace(true)) {
+        return;
+    }
+    wasm_bindgen_futures::spawn_local(async {
+        RESUME_QUEUED.with(|queued| queued.set(false));
+        js_yield_and_continue();
+    });
 }
 
 fn wasm_bindgen_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) {
@@ -46,7 +80,6 @@ fn wasm_bindgen_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) 
     // CF Workers (DedicatedWorkerGlobalScope) and browsers (Window).
     let global = js_sys::global();
     if let Some(scope) = global.dyn_ref::<web_sys::DedicatedWorkerGlobalScope>() {
-        web_sys::console::log_1(&"JSThreadYielder: using DedicatedWorkerGlobalScope".into());
         scope
             .set_timeout_with_callback_and_timeout_and_arguments_0(
                 closure.as_ref().unchecked_ref(),
@@ -54,7 +87,6 @@ fn wasm_bindgen_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) 
             )
             .expect("set_timeout failed");
     } else if let Some(window) = global.dyn_ref::<web_sys::Window>() {
-        web_sys::console::log_1(&"JSThreadYielder: using Window".into());
         window
             .set_timeout_with_callback_and_timeout_and_arguments_0(
                 closure.as_ref().unchecked_ref(),
@@ -63,13 +95,17 @@ fn wasm_bindgen_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) 
             .expect("set_timeout failed");
     } else {
         // Fallback: CF Workers and other JS environments — call setTimeout via Reflect
-        web_sys::console::log_1(&"JSThreadYielder: falling back to Reflect::get(setTimeout)".into());
         let global = js_sys::global();
         let set_timeout = js_sys::Reflect::get(&global, &JsValue::from_str("setTimeout"))
             .expect("global has no setTimeout");
-        let set_timeout = set_timeout.dyn_ref::<js_sys::Function>()
+        let set_timeout = set_timeout
+            .dyn_ref::<js_sys::Function>()
             .expect("setTimeout is not a function");
-        let _ = set_timeout.call2(&global, closure.as_ref().unchecked_ref(), &JsValue::from_f64(dur.as_millis() as f64));
+        let _ = set_timeout.call2(
+            &global,
+            closure.as_ref().unchecked_ref(),
+            &JsValue::from_f64(dur.as_millis() as f64),
+        );
     }
     closure.forget();
 }

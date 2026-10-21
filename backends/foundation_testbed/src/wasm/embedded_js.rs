@@ -82,6 +82,36 @@ const BOOTSTRAP_GLOBALS: &str = r#"
     Request: request.Request,
     Response: response.Response,
   });
+  // `crypto.getRandomValues` without deno_crypto (its `aes =0.8.3` pin clashes
+  // with turso; see Cargo.toml). Backed by OS entropy through
+  // `op_fwt_get_random_values`, with the Web Crypto contract: integer typed
+  // arrays only, at most 65536 bytes per call, fills in place and returns `view`.
+  if (typeof globalThis.crypto?.getRandomValues !== "function") {
+    const fill = globalThis.Deno.core.ops.op_fwt_get_random_values;
+    const MAX_BYTES = 65536; // Web Crypto's per-call quota (spec)
+    const crypto = {
+      getRandomValues(view) {
+        if (
+          !ArrayBuffer.isView(view) || view instanceof DataView ||
+          view instanceof Float32Array || view instanceof Float64Array
+        ) {
+          throw new TypeError("crypto.getRandomValues: expected an integer TypedArray");
+        }
+        if (view.byteLength > MAX_BYTES) {
+          const err = new Error(
+            `crypto.getRandomValues: ${view.byteLength} bytes exceeds the ${MAX_BYTES}-byte quota`,
+          );
+          err.name = "QuotaExceededError";
+          throw err;
+        }
+        fill(new Uint8Array(view.buffer, view.byteOffset, view.byteLength));
+        return view;
+      },
+    };
+    Object.defineProperty(globalThis, "crypto", {
+      value: crypto, writable: true, configurable: true, enumerable: false,
+    });
+  }
 })(globalThis);
 "#;
 
@@ -104,6 +134,17 @@ fn op_fwt_report(state: &mut OpState, #[string] json: String) {
     let sink = state.borrow::<ReportSink>();
     *sink.0.borrow_mut() = Some(json);
 }
+
+/// Fill `buf` from OS entropy (foundation_compact's vendored getrandom): backs
+/// the bootstrap's `crypto.getRandomValues`, which checks the Web Crypto
+/// contract (integer view, 65536-byte quota) before calling in.
+#[op2(fast)]
+fn op_fwt_get_random_values(#[buffer] buf: &mut [u8]) -> Result<(), JsErrorBox> {
+    foundation_compact::entropy::fill(buf)
+        .map_err(|e| JsErrorBox::generic(format!("op_fwt_get_random_values: {e}")))
+}
+
+deno_core::extension!(fwt_crypto, ops = [op_fwt_get_random_values]);
 
 /// Shared cell the report op writes into; the driver keeps a clone to read out.
 #[derive(Default, Clone)]
@@ -177,6 +218,8 @@ fn build_runtime_with(extra: Vec<Extension>) -> Result<JsRuntime, Box<dyn std::e
         // ESM and publishes the `WebSocket` global.
         deno_websocket::deno_websocket::init(),
         fwt_websocket_glue::init(),
+        // `crypto.getRandomValues` (see BOOTSTRAP_GLOBALS).
+        fwt_crypto::init(),
     ];
     extensions.extend(extra);
 

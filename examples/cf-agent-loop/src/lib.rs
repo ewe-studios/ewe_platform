@@ -15,7 +15,7 @@ use std::sync::{Arc, OnceLock};
 
 use wasm_bindgen::prelude::*;
 
-use foundation_ai::agentic::{AgentSession, Turn};
+use foundation_ai::agentic::AgentSession;
 use foundation_ai::backends::workers_ai::{WorkersAiConfig, WorkersAiProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_core::valtron::{initialize_pool, PoolGuard, StreamIteratorExt};
@@ -108,16 +108,13 @@ async fn run_prompt(prompt: &str) -> Result<String, String> {
     if prompt.trim().is_empty() {
         return Ok("Send a prompt in the request body.".to_string());
     }
-    let session = get_or_build_session()?;
-    let turn = session
-        .run_turn_stream(prompt.to_string())
+    // `ask` waits by parking, yielding to the JS event loop while the
+    // Workers AI fetch is in flight; snapshot/delta chunks are already joined.
+    let answer = get_or_build_session()?
+        .ask(prompt.to_string())
+        .await
         .map_err(|e| e.to_string())?;
-
-    // `into_collect_future` parks on valtron's Wait/Pending states, yielding to
-    // the JS event loop so the in-flight Workers AI fetch can resolve.
-    let records = turn.into_inner().into_collect_future().await;
-    let text = records.iter().map(Turn::text_of).collect::<String>();
-    Ok(text)
+    answer.into_result().map_err(|e| e.to_string())
 }
 
 // ---------------------------------------------------------------------------

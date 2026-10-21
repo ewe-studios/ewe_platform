@@ -18,7 +18,7 @@ use foundation_ai::harness::{CloudPresets, RouterMix, CLAUDE_OPUS, CLAUDE_SONNET
 use foundation_core::valtron::valtron;
 
 #[valtron]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let anthropic_key = std::env::var("ANTHROPIC_API_KEY")
         .expect("ANTHROPIC_API_KEY must be set");
     let openai_key = std::env::var("OPENAI_API_KEY")
@@ -47,7 +47,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     println!("Sending hello via mixed router...");
-    let turn = agent.run_turn("Hello! Say hi and tell me which model you are.")?;
+    let turn = agent.run_turn("Hello! Say hi and tell me which model you are.").await?;
 
     for record in &turn {
         println!("{record:?}");

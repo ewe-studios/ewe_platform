@@ -18,7 +18,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{
     CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, Stream, TaskIterator,
-    TaskStatus,
+    park_on, TaskStatus,
 };
 use foundation_db::traits::DocumentStore;
 
@@ -36,9 +36,8 @@ use crate::agentic::steering::SteeringQueues;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::agentic::tool_impl::{ToolCallManager, ToolCallRequest, ToolCallResult, ToolError};
 use crate::types::{
-    MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelState,
-    SessionId, SessionRecord, StopReason, TextBasedFormatter, TextContent, ToolFormatter,
-    UserModelContent,
+    MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ModelParams, SessionId,
+    SessionRecord, StopReason, TextBasedFormatter, TextContent, ToolFormatter, UserModelContent,
 };
 
 // ---------------------------------------------------------------------------
@@ -179,7 +178,7 @@ pub enum AgentLoopState {
     InnerAssemble,
     /// Model generation in progress — pump the stream step-wise.
     InnerGenerate {
-        stream: Box<dyn Iterator<Item = Stream<Messages, ModelState>> + Send>,
+        stream: crate::types::ModelStreamBox,
         collected: Vec<Messages>,
     },
     /// Tool calls extracted from the model's output.
@@ -310,7 +309,7 @@ fn assembled_answer(collected: &[Messages]) -> String {
 /// snapshot). Snapshots are recognisable — every chunk extends the previous
 /// one — so in that case the last chunk is the answer; otherwise the chunks
 /// are concatenated.
-fn join_text_chunks(chunks: &[&str]) -> String {
+pub(crate) fn join_text_chunks(chunks: &[&str]) -> String {
     let is_snapshots =
         chunks.len() > 1 && chunks.windows(2).all(|pair| pair[1].starts_with(pair[0]));
     if is_snapshots {
@@ -798,7 +797,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         match model.stream(interaction, Some(params)) {
             Ok(stream) => {
                 self.state = AgentLoopState::InnerGenerate {
-                    stream: Box::new(stream),
+                    stream,
                     collected: Vec::new(),
                 };
                 TaskStatus::Pending(AgentProgress::Generating {
@@ -864,9 +863,16 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                 self.state = AgentLoopState::InnerGenerate { stream, collected };
                 TaskStatus::Pending(progress)
             }
-            Stream::Init | Stream::Ignore | Stream::Wait => {
+            Stream::Init | Stream::Ignore => {
                 self.state = AgentLoopState::InnerGenerate { stream, collected };
                 TaskStatus::Ignore
+            }
+            Stream::Wait => {
+                // No token yet (the model stream is waiting on I/O): park until
+                // it has one rather than being re-polled in a loop.
+                let status = park_on(&mut *stream);
+                self.state = AgentLoopState::InnerGenerate { stream, collected };
+                status
             }
             Stream::Delayed(d) => {
                 self.state = AgentLoopState::InnerGenerate { stream, collected };
@@ -899,7 +905,10 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         collected: &[Messages],
     ) -> TaskStatus<SessionRecord, AgentProgress> {
         // Run loop detection (F17) synchronously on the model outputs.
-        for msg in collected {
+        // Check the coalesced turn, not the raw chunks: HTTP backends stream
+        // snapshots (each chunk re-sends the text so far), and consecutive
+        // snapshots look like a repeating answer to the loop detector.
+        for msg in &coalesce_turn(collected) {
             if let Messages::Assistant { ref content, .. } = msg {
                 let detection = self.detector.check(content);
                 if detection != LoopDetection::NoLoop {

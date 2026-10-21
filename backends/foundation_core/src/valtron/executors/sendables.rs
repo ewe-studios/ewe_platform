@@ -463,16 +463,27 @@ where
 }
 
 // ============================================================================
-// run_future - Execute Future through unified executor
+// block_on_collect - Execute Future through unified executor
 // ============================================================================
 
-/// Execute a future using the unified executor (native - requires Send).
+/// Block the calling thread until `future` completes, collecting every `Ready`
+/// output it produced into a `Vec` (native — requires `Send`).
 ///
-/// WHY: Simplest way to run async code through valtron
-/// WHAT: Wraps future in `FutureTask` and executes via unified executor
+/// # WASM-unsafe: native-only
 ///
-/// Note: This requires the unified executor to be available and properly configured.
-pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
+/// This is a *blocking* helper — the `collect()` is inherent, because a future
+/// has no stream to return — so it never yields to the JS event loop and
+/// deadlocks the single-threaded wasm isolate. Prefer [`run_future_iter`] (a
+/// lazy iterator that yields [`ThreadedValue::Waiting`] while pending) or the
+/// parking stream bridges (`into_future_stream` / `into_next_stream`). Keep this
+/// helper for native callers that genuinely need a run-to-completion block.
+///
+/// WHY: The unified executor's `DrivenRecvIterator` may yield several `Ready`
+/// values (a future can spawn sub-tasks), so "run to completion" here means
+/// "gather them all", not "return the first".
+///
+/// WHAT: Wraps future in `FutureTask` and executes via unified executor.
+pub fn block_on_collect<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
@@ -737,6 +748,36 @@ where
 {
     let stream = execute(task, None)?;
     collect_one(stream).ok_or_else(|| "sync_collect_one: stream produced no result".into())
+}
+
+/// Iterate an async stream from synchronous code: the sync boundary for an
+/// async-first API (`for event in block_on_stream(turn.events())? { .. }`).
+///
+/// WHY: APIs are written once, async (they wait by parking, so they work on
+/// every target). Sync callers should not need a second API — they wrap the
+/// async one here, the stream counterpart of [`block_on_future`].
+///
+/// WHAT: Schedules `stream` as a valtron task ([`from_stream`]) and returns a
+/// plain `Iterator` over its items ([`next_values`](crate::valtron::next_values)).
+/// Each `next()` waits for the next item the way [`block_on_future`] waits
+/// for its result; the iterator ends when the stream does.
+///
+/// Not for single-threaded wasm request handlers: there, consume the stream
+/// with `.await` so the event loop can deliver its I/O.
+///
+/// # Errors
+///
+/// When the task cannot be scheduled (e.g. the pool is not initialized).
+pub fn block_on_stream<S>(
+    stream: S,
+) -> GenericResult<crate::valtron::StreamValues<S::Item, DrivenStreamIterator<StreamTask<S>>>>
+where
+    S: futures_core::Stream + Send + 'static,
+    S::Item: Send + 'static,
+{
+    Ok(crate::valtron::StreamValues::new(crate::valtron::next_values(
+        execute(from_stream(stream), None)?,
+    )))
 }
 
 /// Block the calling thread until `future` completes, returning its output

@@ -2,11 +2,16 @@
 //!
 //! WHY: We need to compile the user's crate to wasm32-unknown-unknown before testing.
 //! WHAT: Invokes cargo as a subprocess, captures output, locates the resulting .wasm.
-//! HOW: Uses `std::process::Command` with inherited stdout/stderr so the user
-//!      sees build output in real time.
+//! HOW: Uses `std::process::Command` with inherited stderr so the user sees
+//!      build output in real time, and `--message-format=json-render-diagnostics`
+//!      on stdout so the built `.wasm` artifacts are located from what cargo
+//!      reports rather than guessed from the target-dir layout (which changes:
+//!      cargo's newer build-dir layout puts test binaries under
+//!      `build/<pkg>/<hash>/out/`, not `deps/`).
 
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use tracing::{debug, info};
 
@@ -173,9 +178,12 @@ fn run_impl(
         cmd.arg("--features").arg(features);
     }
 
+    cmd.arg("--message-format=json-render-diagnostics")
+        .stdout(Stdio::piped());
+
     debug!("Executing: {:?}", cmd);
 
-    let status = cmd.status().map_err(|e| {
+    let mut child = cmd.spawn().map_err(|e| {
         if e.kind() == std::io::ErrorKind::NotFound {
             WasmTestbedError::CargoNotFound.trace()
         } else {
@@ -183,8 +191,49 @@ fn run_impl(
         }
     })?;
 
+    // Stream cargo's JSON messages line by line, keeping only the `.wasm`
+    // artifact paths (and whether each came from a test target).
+    let mut artifacts: Vec<(PathBuf, bool)> = Vec::new();
+    if let Some(stdout) = child.stdout.take() {
+        for line in BufReader::new(stdout).lines() {
+            let line = line.map_err(|e| WasmTestbedError::CargoExecFailed(e).trace())?;
+            artifacts.extend(wasm_artifacts(&line));
+        }
+    }
+
+    let status = child
+        .wait()
+        .map_err(|e| WasmTestbedError::CargoExecFailed(e).trace())?;
+
     if !status.success() {
         return Err(WasmTestbedError::CargoBuildFailed(status.code()).trace());
+    }
+
+    // Prefer what cargo reported. Tests: the test binary carrying
+    // `__wbgt_` exports. Library: the package's own cdylib.
+    let reported = if include_tests {
+        artifacts
+            .iter()
+            .filter(|(_, is_test)| *is_test)
+            .find(|(path, _)| has_wasm_bindgen_tests(path))
+            .map(|(path, _)| path.clone())
+    } else {
+        artifacts
+            .iter()
+            .filter(|(_, is_test)| !*is_test)
+            .find(|(path, _)| {
+                path.file_stem()
+                    .is_some_and(|stem| stem.to_string_lossy() == package_name.replace('-', "_"))
+            })
+            .map(|(path, _)| path.clone())
+    };
+    if let Some(wasm_path) = reported {
+        info!("Built wasm: {}", wasm_path.display());
+        return Ok(BuildOutput {
+            wasm_path,
+            package_name,
+            profile: profile.to_string(),
+        });
     }
 
     let deps_dir = target_dir
@@ -212,15 +261,13 @@ fn run_impl(
                 continue;
             }
             let path = entry.path();
-            if let Ok(content) = std::fs::read(&path) {
-                if content.windows(7).any(|w| w == b"__wbgt_") {
-                    info!("Built test wasm: {}", path.display());
-                    return Ok(BuildOutput {
-                        wasm_path: path,
-                        package_name,
-                        profile: profile.to_string(),
-                    });
-                }
+            if has_wasm_bindgen_tests(&path) {
+                info!("Built test wasm: {}", path.display());
+                return Ok(BuildOutput {
+                    wasm_path: path,
+                    package_name,
+                    profile: profile.to_string(),
+                });
             }
         }
     }
@@ -251,3 +298,34 @@ fn run_impl(
         profile: profile.to_string(),
     })
 }
+
+/// The `.wasm` files a cargo `compiler-artifact` JSON message reports, each
+/// tagged with whether it came from a test target. Other messages yield nothing.
+fn wasm_artifacts(line: &str) -> Vec<(PathBuf, bool)> {
+    let Ok(message) = serde_json::from_str::<serde_json::Value>(line) else {
+        return Vec::new();
+    };
+    if message.get("reason").and_then(serde_json::Value::as_str) != Some("compiler-artifact") {
+        return Vec::new();
+    }
+    let is_test = message
+        .get("profile")
+        .and_then(|p| p.get("test"))
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false);
+    message
+        .get("filenames")
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(serde_json::Value::as_str)
+        .filter(|name| name.ends_with(".wasm"))
+        .map(|name| (PathBuf::from(name), is_test))
+        .collect()
+}
+
+/// Whether a wasm binary carries `#[wasm_bindgen_test]` exports (`__wbgt_`).
+fn has_wasm_bindgen_tests(path: &Path) -> bool {
+    std::fs::read(path).is_ok_and(|content| content.windows(7).any(|w| w == b"__wbgt_"))
+}
+

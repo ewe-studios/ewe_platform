@@ -789,6 +789,10 @@ where
 // ============================================================================
 
 /// Iterator that polls a future on each `next()` call.
+///
+/// Retains the pinned future across `next()` calls: a `Pending` poll yields
+/// [`ThreadedValue::Waiting`] but keeps the future alive so the next `next()`
+/// re-polls it. The factory (`F`) runs exactly once, on first poll.
 #[cfg(all(not(feature = "multi"), any(feature = "std", feature = "alloc")))]
 pub struct FutureIterator<F, Fut, I, T, E>
 where
@@ -796,9 +800,10 @@ where
     Fut: Future<Output = Result<I, E>>,
     I: Iterator<Item = Result<T, E>>,
 {
-    future: Option<F>,
+    factory: Option<F>,
+    future: Option<Pin<Box<Fut>>>,
     inner_iter: Option<I>,
-    _phantom: PhantomData<(Fut, T, E)>,
+    _phantom: PhantomData<(T, E)>,
 }
 
 #[cfg(all(not(feature = "multi"), any(feature = "std", feature = "alloc")))]
@@ -811,22 +816,36 @@ where
     type Item = ThreadedValue<T, E>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // If we already have the inner iterator, pull from it
+        // Pull from the already-acquired inner iterator first; when it is
+        // exhausted, clear it so the next call falls through to the future.
         if let Some(iter) = &mut self.inner_iter {
-            return iter.next().map(ThreadedValue::Value);
+            if let Some(item) = iter.next() {
+                return Some(ThreadedValue::Value(item));
+            }
+            self.inner_iter = None;
         }
 
-        // Otherwise, poll the future
-        let mut future = {
-            let f = self.future.take()?;
-            Box::pin((f)())
-        };
+        // Start the future from the factory exactly once, then poll it. On
+        // `Pending` we return `Waiting` but *retain* the pinned future, so the
+        // next `next()` re-polls it instead of dropping it (the old code
+        // rebuilt and dropped the future on every call, so a future that was
+        // `Pending` once could never make progress).
+        if self.future.is_none() {
+            let f = self.factory.take()?;
+            self.future = Some(Box::pin(f()));
+        }
 
         let waker = get_noop_waker();
         let mut cx = Context::from_waker(&waker);
 
-        match future.as_mut().poll(&mut cx) {
+        let polled = match self.future.as_mut() {
+            Some(future) => future.as_mut().poll(&mut cx),
+            None => return None,
+        };
+
+        match polled {
             Poll::Ready(Ok(iter)) => {
+                self.future = None;
                 self.inner_iter = Some(iter);
                 // Return first item from the newly acquired iterator
                 if let Some(iter) = &mut self.inner_iter {
@@ -834,7 +853,10 @@ where
                 }
                 None
             }
-            Poll::Ready(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            Poll::Ready(Err(e)) => {
+                self.future = None;
+                Some(ThreadedValue::Value(Err(e)))
+            }
             Poll::Pending => Some(ThreadedValue::Waiting),
         }
     }
@@ -877,7 +899,8 @@ where
 
     pub fn execute(self) -> impl Iterator<Item = ThreadedValue<T, E>> {
         FutureIterator {
-            future: Some(self.future_fn),
+            factory: Some(self.future_fn),
+            future: None,
             inner_iter: None,
             _phantom: PhantomData,
         }

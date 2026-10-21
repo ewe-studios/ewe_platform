@@ -48,7 +48,9 @@ pub use tool_impl::{FnTool, ToolArgs, ToolCallResult, ToolError, ToolImpl};
 pub use toolshed::{
     tool_fn, ContextSearch, MemoryAccess, SessionParts, ToolConstructor, ToolShed, ToolShedError,
 };
-pub use turn::{Answer, Turn, TurnEvent, TurnEvents, TurnOutcome, TurnStream, TurnSummary};
+pub use turn::{
+    Answer, Turn, TurnEvent, TurnEvents, TurnOutcome, TurnStream, TurnSummary, TurnTextStream,
+};
 
 /// Loop internals, for custom loops, extensions and tests.
 ///

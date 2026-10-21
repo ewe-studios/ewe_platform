@@ -32,7 +32,8 @@ created: 2026-10-20
      resume-on-wake. Update existing raw-lens callers to
      `into_pure_future_stream`. Compile-check native + wasm.
    - **T2 — `run_future` audit (foundation_core).** Rename `run_future` →
-     `block_on_future` and document it wasm-unsafe (native-only); it has no
+     `block_on_collect` (not `block_on_future`, which already exists as the
+     single-output driver) and document it wasm-unsafe (native-only); it has no
      native callers today, only the three wasm traps removed in T3/T4. Fix the
      single-threaded `ThreadedIterFuture` / `run_future_iter` wasm path (polls
      inline with a no-op waker and drops the future on first `Pending`). wasm

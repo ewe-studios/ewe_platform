@@ -1,9 +1,6 @@
 // SCRU128 monotonic IDs — folded from foundation_rng.
 // Original: https://github.com/scru128/rust (MIT OR Apache-2.0)
 
-#[cfg(not(feature = "std"))]
-use core as std;
-
 mod rand_adapter;
 #[cfg(feature = "global_gen")]
 mod global_gen;

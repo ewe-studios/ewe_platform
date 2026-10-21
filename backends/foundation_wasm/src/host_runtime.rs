@@ -234,12 +234,15 @@ pub mod internal_api {
 
     /// [`unregister_schedule_callback`] unregisters the underlying callback
     /// in the schedule callback list.
+    ///
+    /// Scheduled callbacks are one-shot and removed when they fire, so cancelling
+    /// one that already ran is a no-op rather than an error.
     pub fn unregister_schedule_callback(addr: InternalPointer) {
-        SCHEDULED_CALLBACKS
+        let _already_fired = SCHEDULED_CALLBACKS
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
             .delete(addr)
-            .expect("should be registered");
+            .is_none();
     }
 
     /// Run a registered scheduled callback by ID (oneshot timeout).
@@ -252,12 +255,17 @@ pub mod internal_api {
     ///
     /// Panics if the internal mutex is poisoned.
     pub fn run_schedule_callback(id: InternalPointer) -> crate::WasmRequestResult<()> {
-        match SCHEDULED_CALLBACKS
+        // Take the one-shot callback out and drop the lock BEFORE running it: a
+        // callback that schedules again would otherwise re-lock this mutex.
+        let item = SCHEDULED_CALLBACKS
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-            .call(id)
-        {
-            Some(()) => Ok(()),
+            .take(id);
+        match item {
+            Some(item) => {
+                crate::schedule::perform_scheduled(&item);
+                Ok(())
+            }
             None => Err(crate::WASMErrors::GuestError(
                 crate::GuestOperationError::UnknownInternalPointer(id),
             )),
@@ -702,6 +710,12 @@ pub mod abi {
             /// [`unschedule_timeout`] unregisters a function timeout registration.
             pub fn unschedule_timeout(callback: u64);
 
+            /// [`schedule_microtask`] asks the host to run the scheduled callback
+            /// `callback` once, as a microtask — as soon as the current host task
+            /// finishes, before any timer or I/O event (JS `queueMicrotask`). The
+            /// host fires it through `run_scheduled_callback`, like a timeout.
+            pub fn schedule_microtask(callback: u64);
+
             /// [`schedule_interval`] registers a function to be polled every [`timing`]
             /// and calls the relevant function when the timing is met recurringly.
             /// Think of it as setInterval in JS Host.
@@ -998,6 +1012,7 @@ pub mod abi {
             pub fn hook_up_animation_frames() {}
             pub fn schedule_timeout(_timing: f64, _callback: u64) {}
             pub fn unschedule_timeout(_callback: u64) {}
+            pub fn schedule_microtask(_callback: u64) {}
             pub fn schedule_interval(_timing: f64, _callback: u64) {}
             pub fn unschedule_interval(_callback: u64) {}
             pub fn host_batch_apply(
@@ -1373,6 +1388,37 @@ pub mod abi {
             let id = internal_api::register_schedule_callback(f);
             unsafe {
                 abi::web::schedule_timeout(timing, id.into_inner());
+            };
+            id
+        }
+
+        /// [`register_microtask`] runs `f` once as a host microtask: after the
+        /// current host task finishes and before any timer or I/O callback. Use
+        /// it to resume guest work from inside an event-driven wake without
+        /// re-entering the guest, and without the latency of a timer.
+        #[cfg(target_family = "wasm")]
+        pub fn register_microtask<F>(f: F) -> InternalPointer
+        where
+            F: Fn() + 'static,
+        {
+            let id = internal_api::register_schedule(f);
+            unsafe {
+                abi::web::schedule_microtask(id.into_inner());
+            };
+            id
+        }
+
+        /// [`register_microtask`] runs `f` once as a host microtask (see the wasm
+        /// variant). Native builds have no host event loop; the stub import never
+        /// fires it.
+        #[cfg(not(target_family = "wasm"))]
+        pub fn register_microtask<F>(f: F) -> InternalPointer
+        where
+            F: Fn() + Send + Sync + 'static,
+        {
+            let id = internal_api::register_schedule(f);
+            unsafe {
+                abi::web::schedule_microtask(id.into_inner());
             };
             id
         }

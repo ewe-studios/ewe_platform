@@ -601,9 +601,10 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     ///
     /// Pushes the prompt into the follow-up queue, builds a fresh `AgentLoop`,
     /// schedules it via `execute()` (cfg-selects sendables vs `non_sendables`
-    /// based on the `multi` feature), and returns a [`TurnStream`]: iterate it
-    /// for the raw `Stream<SessionRecord, AgentProgress>` items, or call
-    /// [`TurnStream::events`] for [`TurnEvent`](crate::agentic::TurnEvent)s.
+    /// based on the `multi` feature), and returns a [`TurnStream`]: the raw
+    /// valtron stream (for composing inside valtron tasks), with
+    /// [`TurnStream::events`] / [`TurnStream::into_text_stream`] as the async
+    /// views to consume it with.
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] if the loop cannot be scheduled.
     pub fn run_turn_stream(
@@ -651,8 +652,17 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// `Vec<SessionRecord>`.
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] only if the turn could not start.
-    pub fn run_turn(&self, prompt: impl Into<Messages>) -> Result<Turn, ErrorTrace<AgenticError>> {
-        Ok(Turn::collect(self.run_turn_stream(prompt)?))
+    ///
+    /// Async: the turn starts now and the returned future waits for it by
+    /// parking, so it works on every target. The future owns everything it
+    /// needs (`'static`), so it can be spawned, or driven from synchronous
+    /// code with `foundation_core::valtron::block_on_future`.
+    pub fn run_turn(
+        &self,
+        prompt: impl Into<Messages>,
+    ) -> impl std::future::Future<Output = Result<Turn, ErrorTrace<AgenticError>>> + 'static {
+        let started = self.run_turn_stream(prompt);
+        async move { Ok(Turn::collect(started?).await) }
     }
 
     /// Run a turn and return just its assistant text.
@@ -664,8 +674,14 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] only if the turn could not start
     /// (preflight, access, the stream failing to start).
-    pub fn ask(&self, prompt: impl Into<Messages>) -> Result<Answer, ErrorTrace<AgenticError>> {
-        Ok(Answer::collect(self.run_turn_stream(prompt)?))
+    ///
+    /// Async and `'static`, like [`run_turn`](Self::run_turn).
+    pub fn ask(
+        &self,
+        prompt: impl Into<Messages>,
+    ) -> impl std::future::Future<Output = Result<Answer, ErrorTrace<AgenticError>>> + 'static {
+        let started = self.run_turn_stream(prompt);
+        async move { Ok(Answer::collect(started?).await) }
     }
 
     /// Inject a high-priority steering message — interrupts current work.

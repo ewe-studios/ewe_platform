@@ -256,7 +256,23 @@ where
                     State::Done
                 }
             },
+            // `Wait` is the task's "no data yet, queue still open" signal: a
+            // yield, not a park (tasks waiting on I/O should park with
+            // `TaskStatus::Depends`).
+            //
+            // Single-threaded executor (native and wasm): it reaches the executor
+            // as `State::Wait`, so the stream driver hands control back to its
+            // caller (native) or yields to the JS event loop on a short timer
+            // (wasm) instead of re-polling the task in a tight loop.
+            //
+            // Thread pool (`multi`): `State::Wait` parks the worker for its idle
+            // back-off with no sleeper to wake it, which stalls a fast producer
+            // (`bridge_park_executor`); re-poll immediately instead — other
+            // threads make progress meanwhile.
             TaskStatus::Wait => match self.channel.push(Stream::Wait) {
+                #[cfg(not(feature = "multi"))]
+                Ok(()) => State::Wait,
+                #[cfg(feature = "multi")]
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(_)) => {
                     self.pending_msg = Some(Stream::Wait);

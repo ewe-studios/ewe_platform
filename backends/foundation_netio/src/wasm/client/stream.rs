@@ -20,7 +20,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Stream, WakeCallback, WakeResult, WakeRegistry, WakeableStream};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -76,11 +76,14 @@ impl Read for QueueReader {
 /// into the shared queue.
 ///
 /// Each chunk is a `Uint8Array` pushed as `Vec<u8>`. When the stream
-/// ends or errors, `done` is set to `true`.
+/// ends or errors, `done` is set to `true`. Every readiness edge (a push
+/// or a transition to closed) fires `wake`, so a bridge parked on
+/// `Stream::Wait` is re-polled as soon as there is more data.
 fn spawn_stream_reader(
     body: web_sys::ReadableStream,
     queue: Arc<ConcurrentQueue<Vec<u8>>>,
     done: Arc<AtomicBool>,
+    wake: Arc<WakeRegistry>,
 ) {
     wasm_bindgen_futures::spawn_local(async move {
         let reader = body
@@ -93,6 +96,7 @@ fn spawn_stream_reader(
                 Err(e) => {
                     tracing::error!("SSE ReadableStream read error: {e:?}");
                     done.store(true, Ordering::Release);
+                    wake.fire();
                     break;
                 }
             };
@@ -104,6 +108,7 @@ fn spawn_stream_reader(
 
             if done_flag {
                 done.store(true, Ordering::Release);
+                wake.fire();
                 break;
             }
 
@@ -113,8 +118,10 @@ fn spawn_stream_reader(
                 if !bytes.is_empty() {
                     if queue.push(bytes).is_err() {
                         done.store(true, Ordering::Release);
+                        wake.fire();
                         break;
                     }
+                    wake.fire();
                 }
             }
         }
@@ -140,6 +147,7 @@ pub struct WasmSseIterator {
     parser: SseParser<QueueReader>,
     done: Arc<AtomicBool>,
     queue: Arc<ConcurrentQueue<Vec<u8>>>,
+    wake: Arc<WakeRegistry>,
     started: bool,
 }
 
@@ -147,8 +155,9 @@ impl WasmSseIterator {
     pub fn new(body: web_sys::ReadableStream) -> Self {
         let queue = Arc::new(ConcurrentQueue::unbounded());
         let done = Arc::new(AtomicBool::new(false));
+        let wake = Arc::new(WakeRegistry::new());
 
-        spawn_stream_reader(body, queue.clone(), done.clone());
+        spawn_stream_reader(body, queue.clone(), done.clone(), wake.clone());
 
         let reader = QueueReader::new(queue.clone());
         let buffer = SharedByteBufferStream::ref_cell(reader);
@@ -158,6 +167,7 @@ impl WasmSseIterator {
             parser,
             done,
             queue,
+            wake,
             started: false,
         }
     }
@@ -166,6 +176,18 @@ impl WasmSseIterator {
 // SAFETY: wasm32 is single-threaded; the !Send JS types live inside the
 // spawned async task, not in the iterator struct.
 unsafe impl Send for WasmSseIterator {}
+
+impl WakeableStream for WasmSseIterator {
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.wake.register(cb);
+        // Register-then-check: if a chunk (or end of stream) is already waiting,
+        // no future push will fire the registry, so fire it now.
+        if !self.queue.is_empty() || self.done.load(Ordering::Acquire) {
+            self.wake.fire();
+        }
+        WakeResult::Successful
+    }
+}
 
 impl Iterator for WasmSseIterator {
     type Item = Stream<ParseResult, SseProgress>;

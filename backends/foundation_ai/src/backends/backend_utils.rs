@@ -9,20 +9,26 @@ use crate::types::{Tool, ToolArguments};
 /// runtime.
 ///
 /// On native the provider path already runs on a pool worker thread, so a
-/// plain `std::thread::sleep` is fine. On wasm `std::thread::sleep` is not
-/// implemented ("time not implemented"), so we drive valtron's cooperative
-/// `sleep_async` (setTimeout-backed) through `run_future` — the same sync→async
-/// bridge the wasm `HttpClient::send` uses to run `fetch`.
+/// plain `std::thread::sleep` is fine.
 #[cfg(not(target_family = "wasm"))]
 pub(crate) fn sleep(duration: std::time::Duration) {
     std::thread::sleep(duration);
 }
 
+/// Sleep for `duration` during provider retry backoff on wasm.
+///
+/// This is a no-op: wasm has no synchronous sleep (`std::thread::sleep` panics
+/// with "time not implemented", and driving valtron's `sleep_async` through
+/// `block_on_collect` would deadlock the single-threaded isolate). The retry
+/// backoff that calls this is itself unreachable on wasm — the non-streaming
+/// `generate` path deadlocks earlier at `HttpClient::send`, which still wraps
+/// `fetch` in `block_on_collect`. Making backoff actually yield requires an
+/// async `generate` seam (a `Model` API change), which feature
+/// `06-wasm-async-streaming` deliberately avoids; that wasm path is tracked in
+/// `docs/bug-backlog.md`.
 #[cfg(target_family = "wasm")]
-pub(crate) fn sleep(duration: std::time::Duration) {
-    let _ = foundation_core::valtron::run_future(foundation_compact::SendWrapper::new(
-        foundation_core::valtron::sleep_async(duration),
-    ));
+pub(crate) fn sleep(_duration: std::time::Duration) {
+    // Intentionally empty: see the doc comment above.
 }
 
 /// Flatten a `ToolDeclarations` into a flat Vec<Tool> for provider APIs.
