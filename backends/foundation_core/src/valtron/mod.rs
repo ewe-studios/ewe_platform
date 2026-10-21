@@ -44,6 +44,12 @@ pub use task::*;
 pub use types::*;
 pub use wake::*;
 
+/// Support for valtron's macros. Not public API.
+#[doc(hidden)]
+pub mod __private {
+    pub use super::executors::block_on_future_unchecked as block_on_future;
+}
+
 // `futures_lite::StreamExt` — `.next().await`, `.collect::<Vec<_>>().await`,
 // `.for_each(..).await`, … on the `futures_core::Stream` bridges returned by
 // `into_next_stream()`/`into_future_stream()`. Re-exported so a consumer needs no

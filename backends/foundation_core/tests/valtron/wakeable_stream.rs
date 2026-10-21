@@ -79,7 +79,7 @@ fn combinator_wake_forward_and_default_split() {
 /// signal readiness.
 #[test]
 fn park_on_depends_on_a_waking_stream_and_waits_otherwise() {
-    use foundation_core::valtron::{park_on, EventReadiness, TaskStatus};
+    use foundation_core::valtron::{park_on, TaskStatus};
 
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
     let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));

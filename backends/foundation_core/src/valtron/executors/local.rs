@@ -542,6 +542,9 @@ pub struct NotifyQueueStreamIterator<D, P> {
     chan: Arc<NotifyQueue<Stream<D, P>>>,
     max_turns: usize,
     park_duration: time::Duration,
+    /// Set once a consumer registers a wake callback: it parks on the wake
+    /// instead of blocking, so `next` must not wait on an empty queue.
+    woken_consumer: bool,
 }
 
 impl<D, P> NotifyQueueStreamIterator<D, P> {
@@ -566,6 +569,7 @@ impl<D, P> NotifyQueueStreamIterator<D, P> {
             chan,
             max_turns,
             park_duration,
+            woken_consumer: false,
         }
     }
 
@@ -591,6 +595,16 @@ impl<D, P> NotifyQueueStreamIterator<D, P> {
     #[must_use]
     pub fn is_closed(&self) -> bool {
         self.chan.is_closed()
+    }
+
+    /// The next item without waiting: `Some(Some(item))`, `Some(None)` once
+    /// the queue is closed and drained, `None` when it is empty for now.
+    pub fn try_next(&mut self) -> Option<Option<Stream<D, P>>> {
+        match self.chan.pop() {
+            Ok(value) => Some(Some(value)),
+            Err(PopError::Closed) => Some(None),
+            Err(PopError::Empty) => None,
+        }
     }
 
     /// Returns the current number of items in the queue.
@@ -621,6 +635,13 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
             Err(PopError::Empty) => {}
         }
 
+        // An async consumer (one that registered a wake) parks on that wake:
+        // blocking here would stall its executor thread for up to
+        // `max_spins` timed waits per park.
+        if self.woken_consumer {
+            return Some(Stream::Wait);
+        }
+
         // Queue is empty - block efficiently until item is available
         match self.chan.wait_for_item(self.park_duration) {
             Some(NotificationItem::Ready(value)) => Some(value),
@@ -643,6 +664,7 @@ where
     P: Send + 'static,
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.woken_consumer = true;
         self.chan.register_wake(cb);
         WakeResult::Successful
     }
@@ -655,6 +677,7 @@ where
     P: 'static,
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.woken_consumer = true;
         self.chan.register_wake(cb);
         WakeResult::Successful
     }

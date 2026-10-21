@@ -151,6 +151,53 @@ where
     }
 }
 
+impl<D, P> TaskStatus<D, P> {
+    /// Pull the next item of `stream` and return the status a task reports
+    /// for it — the whole "drain a stream inside a task" match in one call.
+    ///
+    /// | stream item | status |
+    /// |---|---|
+    /// | `Next(d)` | `Ready(d)` |
+    /// | `Pending(p)` | `Pending(p)` |
+    /// | `Spread(items)` | `Spread(items)` |
+    /// | `Delayed(d)` | `Delayed(d)` |
+    /// | `Init` / `Ignore` | `Init` / `Ignore` |
+    /// | `Wait` | parks on the stream ([`park_on`]) |
+    /// | end of stream | `None` |
+    ///
+    /// A task that needs the value handles `Ready` and returns everything
+    /// else as-is:
+    ///
+    /// ```ignore
+    /// match TaskStatus::from_stream(&mut self.stream)? {
+    ///     TaskStatus::Ready(chunk) => { self.collected.push(chunk); Some(TaskStatus::Ignore) }
+    ///     other => Some(other),
+    /// }
+    /// ```
+    pub fn from_stream<S>(stream: &mut S) -> Option<Self>
+    where
+        S: crate::valtron::WakeableStream<D = D, P = P> + ?Sized,
+    {
+        Some(match stream.next()? {
+            Stream::Next(value) => TaskStatus::Ready(value),
+            Stream::Pending(progress) => TaskStatus::Pending(progress),
+            Stream::Delayed(duration) => TaskStatus::Delayed(duration),
+            Stream::Init => TaskStatus::Init,
+            Stream::Ignore => TaskStatus::Ignore,
+            Stream::Wait => park_on(stream),
+            Stream::Spread(items) => TaskStatus::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        crate::valtron::streams::StreamSpread::Done(d) => TaskSpread::Ready(d),
+                        crate::valtron::streams::StreamSpread::Pending(p) => TaskSpread::Pending(p),
+                    })
+                    .collect(),
+            ),
+        })
+    }
+}
+
 /// A readiness signal backed by a `ConcurrentQueue<T>`.
 ///
 /// The task considers itself ready when the queue is **non-empty** — i.e.,

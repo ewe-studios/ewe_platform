@@ -293,7 +293,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
     let (inner_def, run_call) = if is_async {
         (
             quote! {},
-            quote! { #fc::valtron::block_on_future(async move #block) },
+            quote! { #fc::valtron::__private::block_on_future(async move #block) },
         )
     } else {
         (

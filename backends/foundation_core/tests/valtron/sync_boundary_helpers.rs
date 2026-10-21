@@ -404,3 +404,82 @@ fn run_stream_iter_waits_for_items_that_arrive_later() {
     producer.join().expect("producer");
     assert_eq!(values, vec![0, 1, 2]);
 }
+
+// ---------------------------------------------------------------------------
+// .block() / .blocking() — the method forms at a sync boundary
+// ---------------------------------------------------------------------------
+
+/// `.block()` returns a future's output; `.blocking()?` iterates a stream.
+#[valtron_test]
+fn block_and_blocking_are_the_sync_boundary() {
+    use foundation_core::valtron::{BlockingFutureExt, BlockingStreamExt};
+
+    assert_eq!(async { 6 * 7 }.block(), 42);
+    let doubled: Vec<u32> = futures_lite::StreamExt::map(futures_lite::stream::iter(1..=3u32), |x| x * 2)
+        .blocking()
+        .expect("scheduled")
+        .collect();
+    assert_eq!(doubled, vec![2, 4, 6]);
+}
+
+/// A blocked-on future that itself awaits a valtron task's stream (the shape
+/// of `session.ask(..).block()`): the inner task must still be driven.
+#[valtron_test]
+fn block_on_a_future_that_awaits_a_valtron_stream() {
+    use foundation_core::valtron::{BlockingFutureExt, StreamIteratorExt};
+
+    let values = async {
+        let inner = foundation_core::valtron::execute(CounterTask::new(3, 9), None).expect("scheduled");
+        futures_lite::StreamExt::collect::<Vec<u32>>(inner.values()).await
+    }
+    .block();
+    assert_eq!(values, vec![9]);
+}
+
+/// Two blocking iterators pulled in lock-step (`zip`): neither may starve the
+/// other, though both are driven by the same pool.
+#[valtron_test]
+fn two_blocking_iterators_interleave() {
+    use foundation_core::valtron::BlockingStreamExt;
+
+    let a = futures_lite::stream::iter(0..100u32).blocking().expect("a");
+    let b = futures_lite::stream::iter(100..200u32).blocking().expect("b");
+    let pairs: Vec<(u32, u32)> = a.zip(b).collect();
+    assert_eq!(pairs.len(), 100);
+    assert!(pairs.iter().all(|(x, y)| y - x == 100));
+}
+
+/// Stopping early (dropping the iterator mid-stream) leaves the pool usable.
+#[valtron_test]
+fn dropping_a_blocking_iterator_early_leaves_the_pool_usable() {
+    use foundation_core::valtron::{BlockingFutureExt, BlockingStreamExt};
+
+    let first_three: Vec<u32> = futures_lite::stream::iter(0..1_000_000u32)
+        .blocking()
+        .expect("scheduled")
+        .take(3)
+        .collect();
+    assert_eq!(first_three, vec![0, 1, 2]);
+    assert_eq!(async { "still works" }.block(), "still works");
+}
+
+/// A stream that is pending between every item (it wakes itself) still yields
+/// everything, in order, through `.blocking()`.
+#[valtron_test]
+fn blocking_over_a_stream_pending_between_items() {
+    use foundation_core::valtron::BlockingStreamExt;
+
+    let mut toggle = false;
+    let mut next = 0u32;
+    let stream = futures_lite::stream::poll_fn(move |cx| {
+        toggle = !toggle;
+        if toggle {
+            cx.waker().wake_by_ref();
+            return std::task::Poll::Pending;
+        }
+        next += 1;
+        std::task::Poll::Ready((next <= 50).then_some(next))
+    });
+    let got: Vec<u32> = stream.blocking().expect("scheduled").collect();
+    assert_eq!(got, (1..=50).collect::<Vec<_>>());
+}
