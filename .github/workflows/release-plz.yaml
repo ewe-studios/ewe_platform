@@ -158,6 +158,13 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          # release-plz links a stable Cargo library, which refuses the
+          # workspace's nightly-only `codegen-backend` profile key (enabled by
+          # `[unstable] codegen-backend = true` in .cargo/config.toml).
+          # RUSTC_BOOTSTRAP=1 makes that library report the `dev` channel, so it
+          # honours `[unstable]` as the pinned nightly cargo does. No effect on
+          # the real (nightly) cargo/rustc.
+          RUSTC_BOOTSTRAP: "1"
         run: |
           if [ -z "$CARGO_REGISTRY_TOKEN" ]; then
             echo "::error::CARGO_REGISTRY_TOKEN is not set; cannot publish to crates.io"
@@ -254,4 +261,11 @@ jobs:
       - name: Open or update the release PR
         env:
           GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          # release-plz links a stable Cargo library, which refuses the
+          # workspace's nightly-only `codegen-backend` profile key (enabled by
+          # `[unstable] codegen-backend = true` in .cargo/config.toml).
+          # RUSTC_BOOTSTRAP=1 makes that library report the `dev` channel, so it
+          # honours `[unstable]` as the pinned nightly cargo does. No effect on
+          # the real (nightly) cargo/rustc.
+          RUSTC_BOOTSTRAP: "1"
         run: release-plz release-pr --git-token "$GITHUB_TOKEN"

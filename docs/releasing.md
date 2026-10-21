@@ -54,3 +54,8 @@ binaries and attaches them to that GitHub release.
 - Running release-plz locally inside a `git worktree` is not supported: it
   copies the repository to a temp dir whose `.git` still points at the
   worktree, so its checkouts move the worktree's `HEAD`. Use a normal clone.
+- release-plz links a stable Cargo library, which rejects the workspace's
+  nightly-only `codegen-backend` profile key (`[unstable] codegen-backend` in
+  `.cargo/config.toml`) with "feature `codegen-backend` is required". The
+  workflow sets `RUSTC_BOOTSTRAP=1` on its release-plz steps so that library
+  allows nightly features; do the same when running release-plz locally.
