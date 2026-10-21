@@ -344,7 +344,7 @@ async fn connect_unary_via_h1_proxy() {
         .await
         .expect("connect unary");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(resp.msg, Msg::of("echo:connect-h1"), "Connect unary over H1 must round-trip");
@@ -361,7 +361,7 @@ async fn connect_server_stream_via_h1_proxy() {
     let client = connect_h1_client(&addr, SERVER_STREAM);
     let got = collect_stream(&client, "connect-h1-stream").await;
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -386,7 +386,7 @@ async fn connect_unary_via_h2_proxy() {
         .await
         .expect("connect unary");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(resp.msg, Msg::of("echo:connect-h2"), "Connect unary over H2 must round-trip");
@@ -403,7 +403,7 @@ async fn connect_server_stream_via_h2_proxy() {
     let client = connect_h2_client(&addr, SERVER_STREAM);
     let got = collect_stream(&client, "connect-h2-stream").await;
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -430,7 +430,7 @@ async fn grpc_unary_via_proxy_carries_status() {
         .await
         .expect("grpc unary");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(resp.msg, Msg::of("echo:grpc"), "gRPC unary must round-trip");
@@ -469,7 +469,7 @@ async fn grpc_server_stream_via_proxy_carries_status() {
         .and_then(|v| v.first())
         .map(|s| s.as_str());
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -496,7 +496,7 @@ async fn grpc_web_unary_via_proxy() {
         .await
         .expect("grpc-web unary");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(resp.msg, Msg::of("echo:grpc-web"), "gRPC-Web unary must round-trip");
@@ -514,7 +514,7 @@ async fn grpc_web_server_stream_via_proxy() {
     let client = grpc_web_client(&addr, SERVER_STREAM);
     let got = collect_stream(&client, "grpc-web-stream").await;
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -542,7 +542,7 @@ async fn grpc_web_unary_via_grpc_backend() {
         .await
         .expect("grpc-web unary through grpc backend");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -580,7 +580,7 @@ async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
         .and_then(|v| v.first())
         .map(|s| s.as_str());
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -629,10 +629,15 @@ async fn grpc_web_text_unary_via_grpc_backend() {
     .expect("build text request")
     .add_header(SimpleHeader::CONTENT_TYPE, "application/grpc-web-text+json")
     .body(SendSafeBody::Bytes(body.into_bytes()));
-    let resp = client.request(builder).expect("request").send().expect("send");
+    let resp = client
+        .request(builder)
+        .expect("request")
+        .send_async()
+        .await
+        .expect("send");
     let (status, resp_headers, resp_body, _pool, _conn) = resp.into_parts();
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(status, Status::OK, "gRPC-Web-text unary must answer 200");
@@ -691,7 +696,7 @@ async fn connect_unary_via_grpc_backend() {
         .await
         .expect("connect unary through grpc backend");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -713,7 +718,7 @@ async fn connect_server_stream_via_grpc_backend() {
     let client = connect_h1_client(&addr, SERVER_STREAM);
     let got = collect_stream(&client, "connect-relay-stream").await;
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -743,7 +748,7 @@ async fn connect_client_stream_via_grpc_backend() {
         .await
         .expect("connect client stream through grpc backend");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -781,7 +786,7 @@ async fn connect_bidi_via_grpc_backend() {
         got.push(msg.text);
     }
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -807,7 +812,7 @@ async fn connect_unary_via_grpc_backend_h2() {
         .await
         .expect("connect unary through grpc backend over h2");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(
@@ -850,7 +855,7 @@ async fn connect_streams_spread_across_grpc_backends() {
     });
     let tags: Vec<String> = futures_util::future::join_all(futs).await;
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     shutdown_a.turn_on();
     shutdown_b.turn_on();
 
