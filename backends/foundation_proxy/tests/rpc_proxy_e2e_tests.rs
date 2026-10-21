@@ -257,6 +257,23 @@ fn proxy_config_grpc_multi(ports: &[u16]) -> ProxyConfig {
         .service(svc)
 }
 
+/// Per-test hang guard for this suite, in milliseconds.
+///
+/// WHY: a hang here once ran until CI's 60-minute job timeout. With this, a
+/// hung test fails on its own and the pool is torn down for the next test (see
+/// `#[valtron_test(timeout = ..)]`). It is a safety net, not a fix: a passing
+/// test takes well under a second.
+///
+/// Default 30 s. Override with `RPC_E2E_TEST_TIMEOUT_MS` (e.g. for slow
+/// instrumented builds).
+fn test_timeout_ms() -> u64 {
+    const DEFAULT_TIMEOUT_MS: u64 = 30_000;
+    std::env::var("RPC_E2E_TEST_TIMEOUT_MS")
+        .ok()
+        .and_then(|v| v.trim().parse().ok())
+        .unwrap_or(DEFAULT_TIMEOUT_MS)
+}
+
 fn ctx() -> Ctx {
     Ctx::background().with_deadline(Duration::from_secs(15))
 }
@@ -332,7 +349,7 @@ async fn collect_stream(client: &Client<Msg, Msg>, seed: &str) -> Vec<String> {
 
 /// WHY: Connect is HTTP/1.1-native and must pass through the proxy's plain H1
 /// forward leg untouched, over the H1 front end.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_h1_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
     let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
@@ -352,7 +369,7 @@ async fn connect_unary_via_h1_proxy() {
 
 /// WHY: Connect server-streaming (framed `application/connect+json`) must flow
 /// through the H1 leg without buffering or dropping the envelope frames.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_server_stream_via_h1_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
     let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
@@ -374,7 +391,7 @@ async fn connect_server_stream_via_h1_proxy() {
 /// WHY: Connect over an H2 front end is legal (Connect runs over HTTP/2 too);
 /// the proxy must not misroute it — it is not `application/grpc`, so it takes
 /// the HTTP/1.1 upstream leg without dropping the call.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_h2_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
     let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
@@ -394,7 +411,7 @@ async fn connect_unary_via_h2_proxy() {
 
 /// WHY: Connect server-streaming over the H2 front end exercises the streaming
 /// forward path through the H2 front end's downgrade-to-H1 upstream leg.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_server_stream_via_h2_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
     let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
@@ -418,7 +435,7 @@ async fn connect_server_stream_via_h2_proxy() {
 /// WHY: gRPC requires HTTP/2 end-to-end and delivers status in trailing HEADERS.
 /// The proxy's H2 leg (`application/grpc`) must relay the backend's `grpc-status`
 /// trailer to the client — a lost trailer would surface as a silent `Ok(default)`.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_unary_via_proxy_carries_status() {
     let (backend_port, backend_shutdown) = start_backend();
     let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
@@ -445,7 +462,7 @@ async fn grpc_unary_via_proxy_carries_status() {
 
 /// WHY: gRPC server-streaming over the proxy's H2 leg must deliver every message
 /// in order *and* still carry `grpc-status` after the stream ends.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_server_stream_via_proxy_carries_status() {
     let (backend_port, backend_shutdown) = start_backend();
     let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
@@ -484,7 +501,7 @@ async fn grpc_server_stream_via_proxy_carries_status() {
 
 /// WHY: gRPC-Web is browser-compatible and HTTP/1.1-transparent; it must pass
 /// through the proxy's H1 leg to the backend's gRPC-Web dispatch untouched.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_unary_via_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
     let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
@@ -505,7 +522,7 @@ async fn grpc_web_unary_via_proxy() {
 /// WHY: gRPC-Web server-streaming carries its status in a final body frame (not
 /// trailers); the proxy's transparent H1 leg must relay every frame so the
 /// client can reassemble the stream.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_server_stream_via_proxy() {
     let (backend_port, backend_shutdown) = start_backend();
     let proxy = ProxyServer::start(proxy_config(backend_port)).expect("start proxy");
@@ -530,7 +547,7 @@ async fn grpc_web_server_stream_via_proxy() {
 /// gRPC-Web dispatch at all. An inbound gRPC-Web unary call (HTTP/1.1) must be
 /// translated at the frame level: de-framed by `GrpcWebHandler` and re-enveloped
 /// as native gRPC by `GrpcClient` over `H2Transport`, then translated back.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_unary_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
@@ -556,7 +573,7 @@ async fn grpc_web_unary_via_grpc_backend() {
 /// buffered whole into a single envelope), and the terminal `grpc-status` must
 /// survive the gRPC→gRPC-Web trailer-frame translation — a dropped status would
 /// surface as a silent `Ok(default)` on the client.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
@@ -601,7 +618,7 @@ async fn grpc_web_server_stream_via_grpc_backend_carries_status() {
 /// WHY: gRPC-Web **text** mode base64-encodes the whole body. The relay must
 /// preserve text mode end-to-end: de-frame a base64 request, re-envelope as
 /// native gRPC, and base64-encode the framed response back.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn grpc_web_text_unary_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
@@ -684,7 +701,7 @@ async fn grpc_web_text_unary_via_grpc_backend() {
 /// call (bare `application/json` body) must be translated: de-framed as bare
 /// bytes, enveloped as a single gRPC message, and the single gRPC response
 /// message decoded back to a bare Connect body.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
@@ -709,7 +726,7 @@ async fn connect_unary_via_grpc_backend() {
 /// WHY: a Connect server-stream through the D leg must be relayed frame-by-frame
 /// (not buffered whole), with the streaming shape (`application/connect+json`)
 /// preserved on the way back.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_server_stream_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
@@ -735,7 +752,7 @@ async fn connect_server_stream_via_grpc_backend() {
 /// WHY: a Connect client-stream (many enveloped request frames, one response)
 /// must flow through the relay in the request direction, which the unary path
 /// never exercises.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_client_stream_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
@@ -762,7 +779,7 @@ async fn connect_client_stream_via_grpc_backend() {
 /// unexercised, and it needs the H2 front end — the H1 leg is half-duplex. Each
 /// request message must be echoed back as it is sent, in both directions, through
 /// the D-leg translation to a native-gRPC backend.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_bidi_via_grpc_backend() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
@@ -800,7 +817,7 @@ async fn connect_bidi_via_grpc_backend() {
 /// `application/json` body) to a `grpc://` backend must take the same
 /// bare-bytes↔envelope translation as the H1 leg — the H2 leg must not downgrade
 /// it to H1 (the backend is H2-only) nor misroute it as streaming.
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_unary_via_grpc_backend_h2() {
     let (backend_port, backend_shutdown) = start_backend_grpc_only();
     let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).expect("start proxy");
@@ -830,7 +847,7 @@ async fn connect_unary_via_grpc_backend_h2() {
 /// WHAT: two tagged backends behind one proxy; many concurrent Connect unary
 /// calls over the H2 front end; both tags must be observed (neither backend sits
 /// idle while the other serves everything).
-#[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
+#[valtron_test(seed = 63, threads = 8, timeout = test_timeout_ms())]
 async fn connect_streams_spread_across_grpc_backends() {
     let (port_a, shutdown_a) = start_backend_grpc_only_tagged("A");
     let (port_b, shutdown_b) = start_backend_grpc_only_tagged("B");

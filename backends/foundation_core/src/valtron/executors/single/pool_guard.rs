@@ -13,4 +13,11 @@ impl PoolGuard {
     }
 
     pub fn shutdown(&self) {}
+
+    /// No pool threads exist, so there is nothing to wait for: always `true`.
+    /// Mirrors the multi-threaded `PoolGuard::shutdown_within`.
+    #[must_use]
+    pub fn shutdown_within(&self, _timeout: core::time::Duration) -> bool {
+        true
+    }
 }
