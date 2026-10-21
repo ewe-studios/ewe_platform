@@ -5,6 +5,7 @@
 //! `futures_lite::future::block_on`.
 
 use foundation_db::traits::{AsyncDocumentStore, AsyncStorageItemStream, PromotableDocument};
+use foundation_compact::ids::new_scru128_string;
 use foundation_db::MemoryDocumentStore;
 use futures_lite::future::block_on;
 use futures_lite::StreamExt;
@@ -69,7 +70,7 @@ fn scan_from_is_inclusive_and_ordered() {
 fn append_with_id_uses_caller_id() {
     block_on(async {
         let store = MemoryDocumentStore::new();
-        let id = foundation_compact::ids::new_scru128_string();
+        let id = new_scru128_string();
         let doc = store
             .append_with_id_async("k", &id, serde_json::json!({"x": 1}))
             .await

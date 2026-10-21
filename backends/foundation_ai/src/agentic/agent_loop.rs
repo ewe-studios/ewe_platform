@@ -15,11 +15,14 @@
 
 use core::future::Future;
 use core::pin::Pin;
+use std::mem;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use foundation_core::valtron::{
-    drive_iterator, CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, FutureTask,
+    drive_iterator, CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, EventReadinessPtr,
+    FutureTask,
     Stream, StreamSpread, TaskIterator, park_on, TaskStatus,
 };
 use foundation_db::traits::AsyncDocumentStore;
@@ -164,8 +167,34 @@ pub type StoreTask<T> = FutureTask<StoreFuture<T>>;
 enum StorePoll<T> {
     /// The store operation finished.
     Done(StorageResult<T>),
-    /// Not yet: return this status so the executor parks or re-polls the loop.
-    Waiting(TaskStatus<SessionRecord, AgentProgress>),
+    /// Not yet: the loop returns [`StoreWait::status`] so the executor parks
+    /// or re-polls it.
+    Waiting(StoreWait),
+}
+
+/// Why a store operation is not done yet — the subset of `TaskStatus` a
+/// `FutureTask` reports while pending.
+enum StoreWait {
+    /// Park until this readiness fires.
+    Depends(EventReadinessPtr),
+    /// Re-poll after this delay.
+    Delayed(Duration),
+    /// No progress possible right now; yield.
+    Wait,
+    /// Re-poll without parking.
+    Ignore,
+}
+
+impl StoreWait {
+    /// The loop's status for this wait.
+    fn status(self) -> TaskStatus<SessionRecord, AgentProgress> {
+        match self {
+            Self::Depends(readiness) => TaskStatus::Depends(readiness),
+            Self::Delayed(delay) => TaskStatus::Delayed(delay),
+            Self::Wait => TaskStatus::Wait,
+            Self::Ignore => TaskStatus::Ignore,
+        }
+    }
 }
 
 /// Poll a store operation once, translating the future task's status into
@@ -173,16 +202,16 @@ enum StorePoll<T> {
 fn poll_store<T: Send + 'static>(task: &mut StoreTask<T>, ctx: Ctx) -> StorePoll<T> {
     match task.next_status(ctx) {
         Some(TaskStatus::Ready(result)) => StorePoll::Done(result),
-        Some(TaskStatus::Depends(readiness)) => StorePoll::Waiting(TaskStatus::Depends(readiness)),
-        Some(TaskStatus::Delayed(delay)) => StorePoll::Waiting(TaskStatus::Delayed(delay)),
-        Some(TaskStatus::Wait) => StorePoll::Waiting(TaskStatus::Wait),
+        Some(TaskStatus::Depends(readiness)) => StorePoll::Waiting(StoreWait::Depends(readiness)),
+        Some(TaskStatus::Delayed(delay)) => StorePoll::Waiting(StoreWait::Delayed(delay)),
+        Some(TaskStatus::Wait) => StorePoll::Waiting(StoreWait::Wait),
         Some(
             TaskStatus::Init
             | TaskStatus::Ignore
             | TaskStatus::Pending(())
             | TaskStatus::Spawn(_)
             | TaskStatus::Spread(_),
-        ) => StorePoll::Waiting(TaskStatus::Ignore),
+        ) => StorePoll::Waiting(StoreWait::Ignore),
         // A `FutureTask` ends only after yielding its output, and the loop
         // drops each task once it is `Done`, so this is never polled again.
         None => StorePoll::Done(Err(StorageError::Generic(
@@ -809,7 +838,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> 
             panic!("transition_inner_assembling requires AgentLoopState::InnerAssembling, found {actual}")
         };
         match poll_store(task, ctx) {
-            StorePoll::Waiting(status) => status,
+            StorePoll::Waiting(wait) => wait.status(),
             StorePoll::Done(Ok(context)) => self.generate(context),
             StorePoll::Done(Err(error)) => {
                 // The model must not run on a context missing the session's
@@ -913,7 +942,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> 
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
         // We need to take ownership of the state to pump the stream.
-        let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+        let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerGenerate {
             mut stream,
@@ -1255,7 +1284,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> 
     fn transition_inner_tool_calls(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
-        let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+        let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerToolCalls { calls } = previous else {
             panic!(
@@ -1306,7 +1335,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> 
         &mut self,
         ctx: Ctx,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
-        let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+        let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerExecuting {
             calls,
@@ -1492,7 +1521,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> 
     fn transition_inner_emit_results(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
-        let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+        let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerEmitResults { results, idx } = previous else {
             panic!(
@@ -1586,9 +1615,9 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> 
             panic!("transition_flushing requires AgentLoopState::Flushing, found {actual}")
         };
         match poll_store(task, ctx.clone()) {
-            StorePoll::Waiting(status) => Some(status),
+            StorePoll::Waiting(wait) => Some(wait.status()),
             StorePoll::Done(result) => {
-                let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+                let previous = mem::replace(&mut self.state, AgentLoopState::Done);
                 let AgentLoopState::Flushing { then, .. } = previous else {
                     unreachable!("matched AgentLoopState::Flushing above")
                 };
@@ -1776,7 +1805,7 @@ where
         // Keep the message buffer bounded: once it reaches the flush
         // threshold, await a flush before doing anything else.
         if self.message_api.needs_flush() && self.can_flush_before() {
-            let then = std::mem::replace(&mut self.state, AgentLoopState::Done);
+            let then = mem::replace(&mut self.state, AgentLoopState::Done);
             self.state = AgentLoopState::Flushing {
                 task: self.flush_task(),
                 then: Box::new(then),
