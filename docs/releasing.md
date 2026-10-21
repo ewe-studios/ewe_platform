@@ -54,8 +54,10 @@ binaries and attaches them to that GitHub release.
 - Running release-plz locally inside a `git worktree` is not supported: it
   copies the repository to a temp dir whose `.git` still points at the
   worktree, so its checkouts move the worktree's `HEAD`. Use a normal clone.
-- release-plz links a stable Cargo library, which rejects the workspace's
-  nightly-only `codegen-backend` profile key (`[unstable] codegen-backend` in
-  `.cargo/config.toml`) with "feature `codegen-backend` is required". The
-  workflow sets `RUSTC_BOOTSTRAP=1` on its release-plz steps so that library
-  allows nightly features; do the same when running release-plz locally.
+- Releases build on **stable**, pinned in `ci/release-rust-toolchain` (bump
+  deliberately). The release jobs and the **Publish dry-run** job install that
+  toolchain; `rust-toolchain.toml`'s pinned nightly is for development only.
+  Keep the workspace loadable on stable: no nightly-only keys in `Cargo.toml` or
+  `.cargo/config.toml`. Dev's Cranelift backend (`codegen-backend`, nightly
+  only) is set through mise's `[env]` instead (`CARGO_PROFILE_DEV_CODEGEN_BACKEND`
+  and `CARGO_UNSTABLE_CODEGEN_BACKEND`), so stable cargo never sees it.
