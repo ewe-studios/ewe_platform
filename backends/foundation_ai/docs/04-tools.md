@@ -95,7 +95,7 @@ let tools = ToolShed::new()
 let agent = AgentSession::builder(router)
     .with_model("my-model")
     .with_toolshed(tools)
-    .build()?;
+    .build().await?;
 ```
 
 - `ToolShed::tool(..)` takes anything `Into<Box<dyn ToolConstructor>>`: a
@@ -331,7 +331,7 @@ let greet = FnTool::new(
 let agent = AgentSession::builder(router)
     .with_model("my-model")
     .with_toolshed(ToolShed::new().tool(GreetTool))
-    .build()?;
+    .build().await?;
 ```
 
 `ToolArgs` reads arguments whichever way the backend spelled them (`str`,

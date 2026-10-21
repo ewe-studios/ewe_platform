@@ -1,7 +1,7 @@
 //! `MemoryCoordinator` — bridges the latest-memory cache to the audit log (F07).
 //!
 //! WHY: [`MemoryStore`] is a **dumb cache** (latest memory record per tier) and the
-//! append-only `DocumentStore` is the **source of truth** (every memory record is
+//! append-only document store ([`AsyncDocumentStore`]) is the **source of truth** (every memory record is
 //! also appended for replay, Decision 03). Something has to keep them consistent:
 //! the `MemoryCoordinator` (held by `AgentSession`, F20) owns both and is the only
 //! thing that bridges them — `MemoryStore` never wraps `DocumentStore` (OD-07-3).
@@ -17,11 +17,12 @@
 //!   promoted column), then **re-populates** the cache. The cache is a derived view,
 //!   never the sole record.
 
-use foundation_core::valtron::Stream;
 use std::sync::Arc;
 
-use foundation_db::traits::{DocumentStore, PromotableDocument};
+use foundation_compact::SendWrapper;
+use foundation_db::traits::{AsyncDocumentStore, PromotableDocument};
 use foundation_db::StorageResult;
+use futures_lite::StreamExt;
 
 use super::memory_store::{MemoryStore, MemoryTier, SessionMemory};
 use crate::types::{SessionId, SessionRecord};
@@ -70,14 +71,14 @@ fn tier_ref(memory: &SessionMemory, tier: MemoryTier) -> Option<&SessionRecord> 
 
 /// Owns the latest-memory cache + the audit log and keeps them consistent.
 ///
-/// `M` is any [`MemoryStore`]; `D` is any [`DocumentStore`] (the audit log). The
+/// `M` is any [`MemoryStore`]; `D` is any [`AsyncDocumentStore`] (the audit log). The
 /// audit log uses one collection per session, `session:{session_id}`.
 pub struct MemoryCoordinator<M, D> {
     memory: Arc<M>,
     audit: Arc<D>,
 }
 
-impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
+impl<M: MemoryStore, D: AsyncDocumentStore> MemoryCoordinator<M, D> {
     /// Create a coordinator over a cache + an audit `DocumentStore`.
     pub fn new(memory: M, audit: D) -> Self {
         Self::from_shared(Arc::new(memory), Arc::new(audit))
@@ -112,7 +113,8 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
         // Audit first — promoted columns (record_type/summary) come from
         // `PromotableDocument for SessionRecord` above.
         self.audit
-            .append_promotable(&Self::audit_key(session), record.clone())?;
+            .append_promotable_async(&Self::audit_key(session), record.clone())
+            .await?;
 
         if let Err(e) = self.memory.set_async(session, record).await {
             tracing::warn!(
@@ -147,15 +149,16 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
         // Fallback: scan the audit log oldest-first and keep the last (newest)
         // record of each missing tier. (Rare — only after a crash between the audit
         // and cache writes.) Then re-populate the cache so the next resume is O(1).
-        for item in self
-            .audit
-            .scan_all::<SessionRecord>(&Self::audit_key(session))?
-        {
-            let record = match item {
-                Stream::Next(Ok(r)) => r,
-                Stream::Next(Err(e)) => return Err(e),
-                _ => continue,
-            };
+        let audit_key = Self::audit_key(session);
+        // The scan stream is `!Send` on wasm (JS-backed stores); this future
+        // must stay `Send` for the `MemoryAccess` trait, and wasm has one thread.
+        let mut records = SendWrapper::new(
+            self.audit
+                .scan_all_async::<SessionRecord>(&audit_key)
+                .await?,
+        );
+        while let Some(item) = SendWrapper::new(records.next()).await {
+            let record = item?;
             if let Some(tier) = MemoryTier::of(&record) {
                 if missing.contains(&tier) {
                     *slot_mut(&mut memory, tier) = Some(record); // overwrite → last wins = newest

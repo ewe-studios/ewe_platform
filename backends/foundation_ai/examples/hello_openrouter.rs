@@ -52,7 +52,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             ..AgentConfig::default()
         })
         .with_system_prompt("You are a helpful assistant. Keep responses brief.")
-        .build()?;
+        .build()
+        .await?;
 
     println!("Sending hello prompt via OpenRouter to {PRIMARY}...");
     let turn = agent.run_turn("Hello! Please say hi back in one sentence.").await?;
@@ -74,6 +75,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         turn.len()
     );
 
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }

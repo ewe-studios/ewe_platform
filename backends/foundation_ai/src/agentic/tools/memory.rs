@@ -10,14 +10,14 @@
 //! Tier-1 fact list, and writes it back via `update_working_memory` (version
 //! bump), reusing the memory generation task's persistence path.
 //!
-//! HOW: generic over the session's `M: MemoryStore` + `D: DocumentStore`,
+//! HOW: generic over the session's `M: MemoryStore` + `D: AsyncDocumentStore`,
 //! monomorphized at registration before boxing into `Arc<dyn ToolImpl>`.
 
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use foundation_compact::SystemTime;
-use foundation_db::traits::DocumentStore;
+use foundation_db::traits::AsyncDocumentStore;
 
 use crate::agentic::memory::MemoryHierarchy;
 use crate::agentic::memory_store::MemoryStore;
@@ -73,7 +73,7 @@ impl MemoryTool {
     pub fn new<M, D>(hierarchy: Arc<MemoryHierarchy<M, D>>) -> Self
     where
         M: MemoryStore + 'static,
-        D: DocumentStore + 'static,
+        D: AsyncDocumentStore + 'static,
     {
         Self { hierarchy }
     }
@@ -209,7 +209,7 @@ pub fn register_memory_tool<M, D>(
     hierarchy: Arc<MemoryHierarchy<M, D>>,
 ) where
     M: MemoryStore + 'static,
-    D: DocumentStore + 'static,
+    D: AsyncDocumentStore + 'static,
 {
     manager.register(Arc::new(MemoryTool::new(hierarchy)));
 }

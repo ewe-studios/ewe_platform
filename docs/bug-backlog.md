@@ -9,7 +9,7 @@ How to use it:
 - When you fix one, delete its entry in the PR that fixes it and name the PR in the commit message.
 - Group entries by crate. Mark limits that are still hard-coded constants with **(rule 8)**.
 
-Last refreshed: 2026-10-21, on `db/async-stores` (foundation_db async-only stores). Before that: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In flight on branches:
+Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async store traits; in-memory stores async-only). Before that: 2026-10-21, on `db/async-stores` (foundation_db async-only stores); 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In flight on branches:
 - `fix/connectrpc-cancel-and-limits`: connectrpc §1.
 - `fix/limits-and-core-sweep`: the Docker limits cleanup and the foundation_core leftovers.
 
@@ -209,33 +209,6 @@ Last refreshed: 2026-10-21, on `db/async-stores` (foundation_db async-only store
   - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
   - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
 
-## 10. Workspace / process
-
-- **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
-  - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
-- **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
-- **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
-  compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target
-  wasm32-unknown-unknown`). The runtime suites (`foundation_core/integration/wasm_tests`
-  via `wasm-testbed deno`/`web`, the bindgen-deno path, `cf-cloud-provider` under
-  miniflare) are local mise tasks, and `integration/wasm_tests` is a standalone
-  crate outside the root workspace, so not even its compile is gated. That is how
-  the feature 06 T5 isolate freeze shipped behind green CI, and how the
-  `wasm-embedded-js` testbed stopped building (deno_v8 had no JS engine selected)
-  unnoticed. Add a CI job that runs `mise run test:wasm-testbed:deno` (embedded
-  Deno; no browser needed) and `mise run test:wasm-bindgen:deno`.
-- **`wasm-testbed` warns on `Command::Bindgen(args)`** (`foundation_testbed/src/bin/wasm-testbed.rs:37`):
-  `args` is unused unless the `wasm-bindgen-test` feature is on (e.g. under
-  `--no-default-features --features wasm-embedded-js`). Gate the binding with the
-  same `cfg` as its use, or prefix it with `_` in the other arm.
-- **Running a wasm mise task installs every tool in `mise.toml`.** `mise exec`/`mise run`
-  first installs all pinned tools (bacon, cargo-nextest, cargo-audit, python…),
-  building several from source. On a small disk that fills it, and where the
-  GitHub attestation API is blocked the python install fails, so
-  `test:wasm-bindgen:deno` cannot start even though it only needs deno and
-  wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
-  task invoke the two binaries via `mise which`.
-
 ## 10. foundation_ai
 
 - **Non-streaming wasm `generate` is unsupported.** The providers' sync
@@ -260,16 +233,27 @@ Last refreshed: 2026-10-21, on `db/async-stores` (foundation_db async-only store
   number of bytes (a field on each provider config, default 64 KiB like Go
   `net/http`'s error-drain limit) before parsing.
 
-- **`AgentSession` still runs on the sync storage traits.** `MessageApi`,
-  `MemoryStore`/`KvMemoryStore`, `MemoryCoordinator`, `ContextProvider` and the
-  memory/search/agent tools take `D: DocumentStore` / `K: KeyValueStore` and
-  call them from inside the async session. For I/O stores that means
-  `foundation_db::Blocking` waits inside a valtron task. It is also the only
-  reason `MemoryStorage`, `MemoryJsonStore` and `MemoryDocumentStore` keep
-  their sync impls: `examples/cf-agent-loop` runs `AgentSession` on Workers,
-  where `Blocking` can't exist. Fix: move these to the `Async*` traits, then
-  delete the in-memory sync impls and the sync storage traits
-  (`foundation_db/src/core/storage_provider.rs`).
+- **Embeddings are generated synchronously inside async code.**
+  `EmbeddingProvider::embed` is sync, and `CachedEmbeddingProvider` calls the
+  model's sync `generate` on a cache miss (`src/agentic/embedding.rs`,
+  `embed_single`). `ContextProvider::search` (semantic recall, the
+  `search_context` tool) and the `shed` tool's embedding search call it from
+  async code, so an HTTP embedder blocks the worker, and on wasm the sync
+  `generate` fails (see the first entry). Fix: an async `embed` /
+  `embed_batch` over an async generate, awaited by the callers.
+- **A flush that finds another flush running returns `Ok(0)` at once.**
+  `MessageApi::flush` (`src/agentic/message_api.rs`) guards with an
+  `AtomicBool`; a second caller doesn't wait. The agent loop's `Flushing`
+  state then resumes with the buffer still at the threshold, so it re-enters
+  `Flushing` every step until the other flush (e.g. a concurrent
+  `AgentSession::end`) finishes. Fix: let the second caller await the running
+  flush (an async lock or a completion signal) instead of returning early.
+- **A cancelled flush can write a record twice.** A record stays in
+  `MessageApi`'s `retry` slot until its write returns, so a flush future
+  dropped after the store accepted the write but before it returned writes the
+  record again on the next flush. Fix: make the writes idempotent (upsert on
+  the document id for `append_with_id`, and give memory records a stable id),
+  or clear the slot through a store acknowledgement.
 
 ## 11. foundation_db and its sync callers
 
@@ -277,7 +261,8 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **Sync storage callers still go through `Blocking`.** Each should move to the
   `Async*` traits, one crate at a time, before the sync traits are deleted:
   - `foundation_auth` server services/handlers, generic over sync
-    `QueryStore`/`KeyValueStore` and run inside HTTP handler tasks;
+    `QueryStore`/`KeyValueStore` and run inside HTTP handler tasks (their
+    default store is now `Blocking<MemoryStorage>`);
   - `foundation_cedar` `KvPolicyStore`/`SqlPolicyStore`;
   - `foundation_vectors` `SqlVectorStore`/`LibsqlVectorStore`;
   - `foundation_cronjobs` `CronScheduler`;
@@ -290,9 +275,22 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   callers).
 - **`Default` for `TursoStorage` / `LibsqlStore` blocks.** `Default` is sync,
   so it waits on the async constructor with `.block()`, and panics without a
-  valtron pool. It exists for `S: Default` callers such as
-  `AgentSession::builder_for`. Fix: drop it once those callers construct
-  stores asynchronously.
+  valtron pool. It exists for `S: Default` callers: the deprecated
+  `AgentSession::builder_for` and the `agent` tool, which builds each
+  sub-agent's stores with `D::default()` / `M::default()`
+  (`foundation_ai/src/agentic/tools/agent.rs`). Fix: give the agent tool a
+  store factory (an async constructor) instead of the `Default` bound, remove
+  `builder_for`, then drop these `Default` impls.
+- **The in-memory rate limiters never let a busy window expire.**
+  `record_rate_limit_async` on `MemoryStorage` and `MemoryJsonStore`
+  (`src/core/backends/memory*.rs`) sets `window_start = now` on every call, so
+  a key hit at least once per window stays limited for good, and the count
+  never resets. Fix: start a new window (count 1) only when the old one has
+  expired; otherwise increment and keep `window_start`.
+- **`worker` is an unused dependency natively.** `cargo check -p foundation_db
+  --all-features` warns that `worker` (only used by the Workers bindings) is
+  unused. Fix: make it a wasm-only target dependency, like the other entry
+  above.
 - **Unused dependencies on wasm.** `cargo check --target wasm32` for
   `--features wasm-bindgen-storage` warns that `async-stream` and
   `foundation_netio` are unused (both are used only natively). Fix: move them
@@ -339,6 +337,52 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   fns. Their `write_at_async` ignores `offset` (it rewrites the whole file from
   `data`), and their `mode` field is never read. Fix: async delta methods over
   the `Async*` stores; honour `offset` and read-only `mode`.
+
+## 14. foundation_cronjobs
+
+- **`CronJob::next_fire` ignores the cron expression.** It always returns five
+  minutes from now (`src/scheduler.rs`, marked TODO), so every job runs on the
+  same fixed interval. Fix: parse `cron_expr` with a cron crate (`cron` or
+  `saffron`) and compute the real next fire time; reject an invalid
+  expression at `register`.
+- **`CronScheduler::load` drops errors.** It skips stream items that are
+  `Err`, and reads each column with `unwrap_or` defaults, so a failed read
+  or a bad row silently resets the job's state. Fix: return the first error;
+  treat a missing column as an error.
+
+## 15. foundation_cedar
+
+- **`unreachable call` warnings in `src/core/request.rs`.** The three
+  `EntityId::from_str(id).map_err(..)` calls map an error type that can't
+  occur (`Infallible`), so the compiler warns on each `map_err`. Fix: drop the
+  `map_err` (or use `EntityId::new`) so the build is warning-free.
+
+## 16. Workspace / process
+
+- **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
+  - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
+- **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
+- **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
+  compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target
+  wasm32-unknown-unknown`). The runtime suites (`foundation_core/integration/wasm_tests`
+  via `wasm-testbed deno`/`web`, the bindgen-deno path, `cf-cloud-provider` under
+  miniflare) are local mise tasks, and `integration/wasm_tests` is a standalone
+  crate outside the root workspace, so not even its compile is gated. That is how
+  the feature 06 T5 isolate freeze shipped behind green CI, and how the
+  `wasm-embedded-js` testbed stopped building (deno_v8 had no JS engine selected)
+  unnoticed. Add a CI job that runs `mise run test:wasm-testbed:deno` (embedded
+  Deno; no browser needed) and `mise run test:wasm-bindgen:deno`.
+- **`wasm-testbed` warns on `Command::Bindgen(args)`** (`foundation_testbed/src/bin/wasm-testbed.rs:37`):
+  `args` is unused unless the `wasm-bindgen-test` feature is on (e.g. under
+  `--no-default-features --features wasm-embedded-js`). Gate the binding with the
+  same `cfg` as its use, or prefix it with `_` in the other arm.
+- **Running a wasm mise task installs every tool in `mise.toml`.** `mise exec`/`mise run`
+  first installs all pinned tools (bacon, cargo-nextest, cargo-audit, python…),
+  building several from source. On a small disk that fills it, and where the
+  GitHub attestation API is blocked the python install fails, so
+  `test:wasm-bindgen:deno` cannot start even though it only needs deno and
+  wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
+  task invoke the two binaries via `mise which`.
 
 ## Paused
 

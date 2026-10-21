@@ -13,7 +13,7 @@ use foundation_auth::server::config::IdpConfig;
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::idp_server::IdpServer;
 use foundation_core::valtron::valtron_test;
-use foundation_db::MemoryStorage;
+use foundation_db::{Blocking, MemoryStorage};
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::client::StaticSocketAddr;
 use foundation_netio::http::SimpleHttpClient;
@@ -41,7 +41,7 @@ impl TestIdpServer {
 
         let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
         let query_store: Arc<dyn foundation_db::QueryStore> = Arc::new(provider);
-        let cache = MemoryStorage::new();
+        let cache = Blocking::new(MemoryStorage::new());
         let storage = Arc::new(HandlerStorage::new(query_store, cache));
 
         let config = IdpConfig::new("https://auth.example.com".into());
@@ -454,7 +454,7 @@ fn e2e_issuer_trailing_slash_normalized() {
     let db_path = dir.path().join("test_auth.db");
     let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
     let query_store: Arc<dyn foundation_db::QueryStore> = Arc::new(provider);
-    let cache = MemoryStorage::new();
+    let cache = Blocking::new(MemoryStorage::new());
     let storage = Arc::new(HandlerStorage::new(query_store, cache));
 
     let config = IdpConfig::new("https://auth.example.com/".into());
@@ -523,7 +523,7 @@ fn e2e_custom_prefix_routes_work() {
     let config = IdpConfig::new("https://auth.example.com".into());
     let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::new_serve();
     app.ctx.store(config);
-    IdpServer::<MemoryStorage>::register_routes(&mut app, "/auth/v1");
+    IdpServer::<Blocking<MemoryStorage>>::register_routes(&mut app, "/auth/v1");
 
     let shutdown = Arc::new(OnSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");

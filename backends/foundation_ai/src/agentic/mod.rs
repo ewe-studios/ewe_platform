@@ -41,6 +41,7 @@ pub use errors::{
 };
 pub use memory::{MemoryConfig, MemoryParseStrategy};
 pub use memory_store::{KvMemoryStore, MemoryStore};
+pub use message_api::MessageApiConfig;
 pub use progress::{AgentProgress, MemoryKind};
 pub use session::{AgentSession, AgentSessionBuilder};
 pub use token_ledger::TokenSnapshot;
@@ -74,7 +75,9 @@ pub mod internals {
     pub use super::memory::{MemoryAction, MemoryHierarchy};
     pub use super::memory_coordinator::MemoryCoordinator;
     pub use super::memory_store::{MemoryTier, SessionMemory};
-    pub use super::message_api::{MessageApi, MessageEvent, Receiver as MessageReceiver};
+    pub use super::message_api::{
+        MessageApi, MessageApiConfig, MessageEvent, Receiver as MessageReceiver,
+    };
     pub use super::progress::{lift_model_item, AgentStream};
     pub use super::serialization::{
         from_record_batch, to_record_batch, SerError, SessionRecordRow,

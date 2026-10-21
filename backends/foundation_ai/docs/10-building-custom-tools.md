@@ -187,7 +187,7 @@ Tools go in the session's `ToolShed`:
 let agent = AgentSession::builder(router)
     .with_model("my-model")
     .with_toolshed(ToolShed::new().tool(WeatherTool { api_key }))
-    .build()?;
+    .build().await?;
 ```
 
 A tool that needs the session (its context, memory or id) is added as a

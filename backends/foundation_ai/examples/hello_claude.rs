@@ -19,7 +19,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")
-        .build()?;
+        .build()
+        .await?;
 
     println!("Asking Claude...");
     let turn = agent.run_turn("Hello! Please say hi back in one sentence.").await?;
@@ -35,6 +36,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     );
     println!("\nClaude responded! Got {} records.", turn.len());
 
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }

@@ -15,7 +15,7 @@ let agent = AgentSession::builder(router)
         ..AgentConfig::default()
     })
     .with_model(model_id)           // models are set on the builder, not in AgentConfig
-    .build()?;
+    .build().await?;
 ```
 
 - **Inner iterations** count tool rounds: generate → run tools → generate
@@ -34,7 +34,7 @@ let agent = builder
     .with_model("claude-sonnet-4-6")
     .with_fallback_models(["gpt-4o"])
     .with_config(AgentConfig { circuit_breaker_threshold: 2, ..AgentConfig::default() })
-    .build()?;
+    .build().await?;
 ```
 
 The breaker moves to the next fallback when the error policy says
@@ -95,7 +95,7 @@ let agent = builder
         inject_newer_observations: true,
         ..ContextConfig::default()
     })
-    .build()?;
+    .build().await?;
 ```
 
 `recent_message_count` is the main lever on how much history each request
@@ -110,7 +110,7 @@ let agent = builder
         reflection_trigger_tokens: 20_000,
         ..MemoryConfig::default()
     })
-    .build()?;
+    .build().await?;
 ```
 
 Crossing a threshold only emits `AgentProgress::ProcessingMemory` today;

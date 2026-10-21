@@ -25,28 +25,32 @@ A few fields have custom handling:
 - `ExecutionHint` serializes lowercase (`"parallel"`, …).
 - `Args` serializes as its JSON Schema only; the validator is rebuilt on load.
 
-`MessageApi` stores each record as the JSON `content` of a `DocumentStore`
-document, keyed by session id.
+`MessageApi` stores each record as the JSON `content` of a document in an
+`AsyncDocumentStore`, keyed by session id.
 
 ## 2. How records are persisted
 
-`MessageApi::append` buffers a record in memory and flushes to the
-`DocumentStore` when the buffer reaches 50 records (configurable with
-`MessageApi::with_config`), when you call `flush()`, before every `recent()` /
-`all()` read, and in `AgentSession::end()`.
+`MessageApi::append` only buffers a record in memory; writing is async.
+The buffer is written by `flush().await`, which every read (`recent()`,
+`all()`, `scan_from()`, `clear()`) runs first. Inside a turn the agent loop
+awaits a flush as soon as the buffer reaches `MessageApiConfig::flush_threshold`
+(default 50; set it with `AgentSessionBuilder::with_message_config` or
+`MessageApi::with_config`), at every context assembly and when the turn ends;
+`AgentSession::end()` flushes too. Code that appends outside a turn bounds the
+buffer itself: await `flush()` once `needs_flush()` is true.
 
 | Record | Written as |
 |---|---|
-| `Conversation { message }` | `append_with_id`, using the message's scru128 id as the document id |
-| `WorkingMemory`, `Observation`, `Reflection` | `append_promotable` (promoted columns filled) — when written through `MessageApi` |
-| `Retracted`, `Summary`, `FailedAction` | `append` |
+| `Conversation { message }` | `append_with_id_async`, using the message's scru128 id as the document id |
+| `WorkingMemory`, `Observation`, `Reflection` | `append_promotable_async` (promoted columns filled) — when written through `MessageApi` |
+| `Retracted`, `Summary`, `FailedAction` | `append_async` |
 
 The agent loop appends user messages, accepted assistant messages and tool
 results. It does not append `FailedAction` or `Summary`; those only reach the
 caller through the stream.
 
 Memory tiers have their own path: `MemoryCoordinator` writes the record to an
-audit `DocumentStore` and overwrites the latest copy in the `MemoryStore`
+audit document store and overwrites the latest copy in the `MemoryStore`
 (`memory:{session_id}` → `SessionMemory { working, observation, reflection }`).
 See Doc 11.
 
@@ -71,7 +75,7 @@ Subscribers can watch the log: `message_api.subscribe()` returns a receiver of
 ```rust
 use foundation_ai::agentic::internals::{to_record_batch, from_record_batch};
 
-let records = agent.message_api().all()?;
+let records = agent.message_api().all().await?;
 let batch = to_record_batch(&records)?;          // arrow RecordBatch
 let restored = from_record_batch(&batch)?;       // Vec<SessionRecord>, round-trips via `content`
 ```

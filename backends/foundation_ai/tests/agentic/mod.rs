@@ -2,6 +2,7 @@ mod access_tests;
 #[cfg(feature = "live-model-tests")]
 mod integrations;
 mod agent_loop_generation_tests;
+mod agent_tool_tests;
 mod agent_loop_tests;
 mod agentic_types_tests;
 mod base_types_tests;

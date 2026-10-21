@@ -2,6 +2,7 @@
 //! whichever backend produced them, and `ToolCallResult::text` builds a plain
 //! result.
 
+use foundation_core::valtron::valtron_test;
 use std::sync::Arc;
 
 use foundation_ai::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
@@ -243,8 +244,8 @@ fn fn_tool_declares_itself_and_runs_the_closure() {
     assert_eq!(renamed.definition().category(), Some("social"));
 }
 
-#[test]
-fn fn_tool_goes_into_a_toolshed_and_validates_through_the_manager() {
+#[valtron_test]
+async fn fn_tool_goes_into_a_toolshed_and_validates_through_the_manager() {
     use foundation_ai::agentic::internals::ToolCallRequest;
     use foundation_ai::agentic::{AgentSession, ToolShed};
     use foundation_ai::types::{ExecutionHint, ProviderRouter};
@@ -253,6 +254,7 @@ fn fn_tool_goes_into_a_toolshed_and_validates_through_the_manager() {
         .with_model("test-model")
         .with_toolshed(ToolShed::new().tool(greet_tool()))
         .build()
+        .await
         .expect("session builds");
     let manager = session.tool_manager();
     assert!(manager.names().contains(&"greet".to_string()));

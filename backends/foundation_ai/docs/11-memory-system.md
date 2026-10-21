@@ -52,7 +52,7 @@ let agent = builder
         reflection_trigger_tokens: 40_000,    // default
         ..MemoryConfig::default()
     })
-    .build()?;
+    .build().await?;
 ```
 
 `check_triggers()` returns:
@@ -79,7 +79,7 @@ use foundation_ai::harness::ToolPreset;
 let agent = AgentSession::builder(router)
     .with_model("my-model")
     .with_toolshed(ToolShed::new().tools(ToolPreset::session_memory()))
-    .build()?;
+    .build().await?;
 ```
 
 `ToolPreset::memory(hierarchy)` builds the same tool over a hierarchy you
@@ -88,16 +88,15 @@ pass in.
 ## 5. Storage
 
 `MemoryStore` is a small async trait — get / set / hydrate / clear the latest
-record per tier, plus a synchronous `hydrate_sync` the loop uses.
-`KvMemoryStore<K: KeyValueStore>` implements it over any `foundation_db`
-key-value store, keeping the whole bundle under one key:
+record per tier. `KvMemoryStore<K: AsyncKeyValueStore>` implements it over any
+`foundation_db` key-value store, keeping the whole bundle under one key:
 
 ```
 memory:{session_id} → SessionMemory { working, observation, reflection }
 ```
 
 `MemoryCoordinator<M, D>` dual-writes: it appends each memory record to an
-audit `DocumentStore` and overwrites the latest copy in the `MemoryStore`.
+audit `AsyncDocumentStore` and overwrites the latest copy in the `MemoryStore`.
 `MemoryHierarchy` writes through the coordinator.
 
 ## 6. One store for everything

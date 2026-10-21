@@ -1,9 +1,12 @@
 //! Public-API coverage for `ContextProvider::assemble_from_memory` — the
-//! Decision-03 context assembly order (matrix 6.1/6.2). Synchronous and
-//! deterministic; context.rs was 78% region coverage with this branch logic
+//! Decision-03 context assembly order (matrix 6.1/6.2). Deterministic; the
+//! in-memory stores resolve at once, so each test drives the async calls with
+//! `block_on`; context.rs was 78% region coverage with this branch logic
 //! (working/reflection/observation injection, recent messages) untested.
 
 use std::sync::Arc;
+
+use futures_lite::future::block_on;
 
 use foundation_ai::agentic::internals::{ContextProvider, MessageApi, TokenLedger};
 use foundation_ai::agentic::memory_store::SessionMemory;
@@ -64,7 +67,7 @@ fn user_record(text: &str) -> SessionRecord {
 
 #[test]
 fn empty_memory_yields_system_prompt_only() {
-    let ctx = provider(ContextConfig::default()).assemble_from_memory(&SessionMemory::default());
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&SessionMemory::default())).expect("assemble");
     assert_eq!(ctx.system_prompt.as_deref(), Some("SYS"));
     assert!(
         ctx.messages.is_empty(),
@@ -79,7 +82,7 @@ fn working_memory_is_injected() {
         working: Some(working_memory("the sky is blue")),
         ..SessionMemory::default()
     };
-    let ctx = provider(ContextConfig::default()).assemble_from_memory(&memory);
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
     assert!(
         !ctx.messages.is_empty(),
         "working memory must appear in the assembled context"
@@ -97,7 +100,7 @@ fn recent_messages_are_included() {
     let _ = p.message_api().append(user_record("first"));
     let _ = p.message_api().append(user_record("second"));
 
-    let ctx = p.assemble_from_memory(&SessionMemory::default());
+    let ctx = block_on(p.assemble_from_memory(&SessionMemory::default())).expect("assemble");
     let count = ctx
         .messages
         .iter()
@@ -116,7 +119,7 @@ fn recent_message_count_is_capped_by_config() {
     let _ = p.message_api().append(user_record("older"));
     let _ = p.message_api().append(user_record("newer"));
 
-    let ctx = p.assemble_from_memory(&SessionMemory::default());
+    let ctx = block_on(p.assemble_from_memory(&SessionMemory::default())).expect("assemble");
     let count = ctx
         .messages
         .iter()
@@ -180,7 +183,7 @@ fn reflection_memory_is_injected() {
         reflection: Some(reflection(1)),
         ..SessionMemory::default()
     };
-    let ctx = provider(ContextConfig::default()).assemble_from_memory(&memory);
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
     assert!(
         assistant_texts_of(&ctx).contains("prefers tea"),
         "reflection memory must be injected: {ctx:?}"
@@ -195,7 +198,7 @@ fn observation_injected_when_newer_than_reflection() {
         observation: Some(observation(5)),
         ..SessionMemory::default()
     };
-    let ctx = provider(ContextConfig::default()).assemble_from_memory(&memory);
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
     assert!(
         assistant_texts_of(&ctx).contains("likes tea"),
         "a newer observation must be injected alongside the reflection: {ctx:?}"
@@ -210,7 +213,7 @@ fn observation_skipped_when_older_than_reflection() {
         observation: Some(observation(1)),
         ..SessionMemory::default()
     };
-    let ctx = provider(ContextConfig::default()).assemble_from_memory(&memory);
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
     assert!(
         !assistant_texts_of(&ctx).contains("likes tea"),
         "an observation older than the latest reflection must be skipped (INCON-03): {ctx:?}"
@@ -223,7 +226,7 @@ fn observation_injected_when_no_reflection() {
         observation: Some(observation(1)),
         ..SessionMemory::default()
     };
-    let ctx = provider(ContextConfig::default()).assemble_from_memory(&memory);
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
     assert!(
         assistant_texts_of(&ctx).contains("likes tea"),
         "with no reflection, the observation is always injected: {ctx:?}"
@@ -283,9 +286,9 @@ fn provider_seeded(texts: &[&str]) -> ContextProvider<MemoryDocumentStore, M> {
     let session_id = SessionId::new();
     let api = MessageApi::new(session_id.clone(), MemoryDocumentStore::new());
     for t in texts {
-        api.append(user_record(t));
+        let _ = api.append(user_record(t));
     }
-    api.flush().expect("flush");
+    block_on(api.flush()).expect("flush");
     let store = Arc::new(KvMemoryStore::new(MemoryStorage::new()));
     ContextProvider::new(
         session_id,
@@ -299,7 +302,7 @@ fn provider_seeded(texts: &[&str]) -> ContextProvider<MemoryDocumentStore, M> {
 
 #[test]
 fn semantic_search_uses_embeddings_not_keywords() {
-    futures_lite::future::block_on(async {
+    block_on(async {
         let p = provider_seeded(&[
             "I have a cat named Whiskers",
             "My laptop is very fast",
@@ -308,7 +311,7 @@ fn semantic_search_uses_embeddings_not_keywords() {
         .with_embedder(Arc::new(TopicEmbedder), "topic");
 
         // "feline" shares NO substring with "cat" — only an embedder can match it.
-        let hits = p.search("feline companion", SearchMode::Semantic, 5).await;
+        let hits = p.search("feline companion", SearchMode::Semantic, 5).await.expect("search");
         assert!(!hits.is_empty(), "semantic search should return hits");
         let top = &hits[0];
         assert!(
@@ -322,26 +325,26 @@ fn semantic_search_uses_embeddings_not_keywords() {
 
 #[test]
 fn semantic_search_without_embedder_falls_back_to_keyword() {
-    futures_lite::future::block_on(async {
+    block_on(async {
         // No embedder → keyword fallback: "feline" won't match "cat".
         let p = provider_seeded(&["I have a cat named Whiskers", "My laptop is fast"]);
 
-        let none = p.search("feline", SearchMode::Semantic, 5).await;
+        let none = p.search("feline", SearchMode::Semantic, 5).await.expect("search");
         assert!(none.is_empty(), "keyword fallback can't match feline→cat");
 
         // But a shared keyword does match under the fallback.
-        let some = p.search("laptop", SearchMode::Semantic, 5).await;
+        let some = p.search("laptop", SearchMode::Semantic, 5).await.expect("search");
         assert!(some.iter().any(|h| h.content.contains("laptop")), "keyword hit");
     });
 }
 
 #[test]
 fn graph_search_falls_back_to_hybrid_not_silently_empty() {
-    futures_lite::future::block_on(async {
+    block_on(async {
         // F17: Graph mode has no session knowledge graph, so instead of silently
         // returning empty it falls back to hybrid recall (keyword here, no embedder).
         let p = provider_seeded(&["the laptop is on the desk", "unrelated note"]);
-        let hits = p.search("laptop", SearchMode::Graph, 5).await;
+        let hits = p.search("laptop", SearchMode::Graph, 5).await.expect("search");
         assert!(
             hits.iter().any(|h| h.content.contains("laptop")),
             "Graph mode must fall back to useful recall, got: {hits:?}"
@@ -353,7 +356,7 @@ fn graph_search_falls_back_to_hybrid_not_silently_empty() {
 // search_from_memory — the SearchMode matrix
 // ---------------------------------------------------------------------------
 //
-// `search_from_memory` is the synchronous recall path the agent loop uses to
+// `search_from_memory` is the recall path the agent loop uses to
 // pull relevant history into a turn. Each SearchMode routes differently, and
 // two of them (Graph, Hybrid) deliberately fall back rather than returning
 // empty — a silent empty result reads as "nothing relevant" and quietly
@@ -373,12 +376,13 @@ fn semantic_search_falls_back_to_keywords_without_an_embedder() {
     // No embedder is wired here, so Semantic must degrade to keyword matching
     // rather than returning nothing.
     let provider = provider_seeded(&["the capital of france is paris"]);
-    let hits = provider.search_from_memory(
+    let hits = block_on(provider.search_from_memory(
         "paris",
         SearchMode::Semantic,
         5,
         &SessionMemory::default(),
-    );
+    ))
+    .expect("search");
     assert!(
         !hits.is_empty(),
         "Semantic must fall back to keyword recall when no embedder is wired"
@@ -388,12 +392,13 @@ fn semantic_search_falls_back_to_keywords_without_an_embedder() {
 #[test]
 fn memory_mode_searches_the_memory_tiers() {
     let provider = provider_seeded(&[]);
-    let hits = provider.search_from_memory(
+    let hits = block_on(provider.search_from_memory(
         "dark mode",
         SearchMode::Memory,
         5,
         &memory_with_fact("user prefers dark mode"),
-    );
+    ))
+    .expect("search");
     assert!(
         !hits.is_empty(),
         "Memory mode must find a matching working-memory fact"
@@ -405,12 +410,13 @@ fn memory_mode_ignores_the_message_log() {
     // Memory mode reads tiers only; a match that exists solely in messages must
     // not appear, or the mode's contract is meaningless.
     let provider = provider_seeded(&["only in the message log"]);
-    let hits = provider.search_from_memory(
+    let hits = block_on(provider.search_from_memory(
         "message log",
         SearchMode::Memory,
         5,
         &SessionMemory::default(),
-    );
+    ))
+    .expect("search");
     assert!(
         hits.is_empty(),
         "Memory mode must not search the message log: {hits:?}"
@@ -423,12 +429,13 @@ fn graph_mode_falls_back_instead_of_returning_empty() {
     // It must fall back to hybrid recall — returning empty would read as
     // "no results" and silently degrade the turn.
     let provider = provider_seeded(&["graph fallback content here"]);
-    let hits = provider.search_from_memory(
+    let hits = block_on(provider.search_from_memory(
         "fallback",
         SearchMode::Graph,
         5,
         &SessionMemory::default(),
-    );
+    ))
+    .expect("search");
     assert!(
         !hits.is_empty(),
         "Graph must fall back to recall, not return empty"
@@ -439,24 +446,26 @@ fn graph_mode_falls_back_instead_of_returning_empty() {
 fn search_returns_nothing_for_a_query_that_matches_nothing() {
     // The contrast case: the fallbacks above must not be manufacturing hits.
     let provider = provider_seeded(&["completely unrelated text"]);
-    let hits = provider.search_from_memory(
+    let hits = block_on(provider.search_from_memory(
         "zzzznomatchzzzz",
         SearchMode::Semantic,
         5,
         &SessionMemory::default(),
-    );
+    ))
+    .expect("search");
     assert!(hits.is_empty(), "a non-matching query must yield no hits: {hits:?}");
 }
 
 #[test]
 fn search_is_case_insensitive() {
     let provider = provider_seeded(&["The Capital Of France"]);
-    let hits = provider.search_from_memory(
+    let hits = block_on(provider.search_from_memory(
         "CAPITAL",
         SearchMode::Semantic,
         5,
         &SessionMemory::default(),
-    );
+    ))
+    .expect("search");
     assert!(
         !hits.is_empty(),
         "recall must not miss a match on case alone"

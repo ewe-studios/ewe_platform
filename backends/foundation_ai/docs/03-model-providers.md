@@ -106,7 +106,7 @@ so APIs that take `impl Into<ModelId>` accept `"gpt-4o"` directly.
 // One provider serves everything — a provider converts into a router:
 let router: ProviderRouter = provider.into();
 // (= ProviderRouter::single(Box::new(RoutableProviderBox::new(provider))))
-let agent = AgentSession::builder(provider).with_model("my-model").build()?;   // builder takes impl Into<RouterPreset>: a preset (models included), a router, or one provider
+let agent = AgentSession::builder(provider).with_model("my-model").build().await?;   // builder takes impl Into<RouterPreset>: a preset (models included), a router, or one provider
 
 // Several providers:
 let router = ProviderRouter::builder()

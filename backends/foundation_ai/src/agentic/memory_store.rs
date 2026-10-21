@@ -9,7 +9,7 @@
 //! A `MemoryCoordinator` (in `memory_coordinator.rs`) owns both stores, does
 //! dual-write, and the `record_type` fallback.
 
-use foundation_db::traits::KeyValueStore;
+use foundation_db::traits::AsyncKeyValueStore;
 use foundation_db::{StorageError, StorageResult};
 use serde::{Deserialize, Serialize};
 
@@ -116,21 +116,12 @@ pub trait MemoryStore: Send + Sync {
 
     /// Clear a session's cached memory.
     async fn clear_async(&self, session: &SessionId) -> StorageResult<()>;
-
-    /// Synchronous hydrate for the `AgentLoop`'s `TaskIterator` (F19).
-    /// Default returns empty — concrete stores override when sync is cheap.
-    /// # Errors
-    /// Returns [`StorageError`] if the record cannot be stored.
-    fn hydrate_sync(&self, session: &SessionId) -> StorageResult<SessionMemory> {
-        let _ = session;
-        Ok(SessionMemory::default())
-    }
 }
 
 // ---------------------------------------------------------------------------
-// KvMemoryStore — universal impl over any KeyValueStore
+// KvMemoryStore — universal impl over any AsyncKeyValueStore
 
-/// `MemoryStore` backed by a `KeyValueStore`. Stores the full `SessionMemory`
+/// `MemoryStore` backed by an [`AsyncKeyValueStore`]. Stores the full `SessionMemory`
 /// bundle under one key per session (`memory:{session_id}`), so `hydrate` is
 /// a single KV get.
 pub struct KvMemoryStore<K> {
@@ -151,14 +142,14 @@ impl<K: Default> Default for KvMemoryStore<K> {
 }
 
 #[async_trait::async_trait]
-impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
+impl<K: AsyncKeyValueStore> MemoryStore for KvMemoryStore<K> {
     async fn get_async(
         &self,
         session: &SessionId,
         tier: MemoryTier,
     ) -> StorageResult<Option<SessionRecord>> {
         let key = SessionMemory::key(session);
-        let mem: Option<SessionMemory> = self.kv.get(&key)?;
+        let mem: Option<SessionMemory> = self.kv.get_async(&key).await?;
         Ok(mem.and_then(|m| m.get(tier).cloned()))
     }
 
@@ -169,29 +160,19 @@ impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
             )
         })?;
         let key = SessionMemory::key(session);
-        let mem: SessionMemory = self.kv.get(&key)?.unwrap_or_default();
-        self.kv.set(&key, mem.set(tier, record.clone()))
+        let mem: SessionMemory = self.kv.get_async(&key).await?.unwrap_or_default();
+        self.kv.set_async(&key, mem.set(tier, record.clone())).await
     }
 
     async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory> {
         let key = SessionMemory::key(session);
         self.kv
-            .get(&key)
+            .get_async(&key)
+            .await
             .map(std::option::Option::unwrap_or_default)
     }
 
     async fn clear_async(&self, session: &SessionId) -> StorageResult<()> {
-        self.kv.delete(&SessionMemory::key(session))
-    }
-
-    fn hydrate_sync(&self, session: &SessionId) -> StorageResult<SessionMemory> {
-        let key = SessionMemory::key(session);
-        self.kv
-            .get(&key)
-            .map(std::option::Option::unwrap_or_default)
+        self.kv.delete_async(&SessionMemory::key(session)).await
     }
 }
-
-// ---------------------------------------------------------------------------
-// Tests
-

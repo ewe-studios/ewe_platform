@@ -20,7 +20,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")
-        .build()?;
+        .build()
+        .await?;
 
     println!("Asking GPT-4o...");
     // `ask` returns just the text: complete, or what was produced before a
@@ -40,6 +41,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         }
     }
 
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }

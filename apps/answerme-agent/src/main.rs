@@ -59,7 +59,7 @@ enum Command {
 #[valtron(tracing = "info", tracing_targets = true, tracing_names = true)]
 fn main() {
     let cli = Cli::parse();
-    let session = match build_session() {
+    let session = match block_on_future(build_session()) {
         Ok(session) => session,
         Err(e) => {
             tracing::error!("building the agent session failed: {e}");
@@ -76,7 +76,7 @@ fn main() {
     };
 
     // Persist the session log before exiting — including after a failed turn.
-    let ended = session.end();
+    let ended = block_on_future(session.end());
     if let Err(e) = &ended {
         tracing::error!("ending the session failed: {e}");
     }
@@ -88,12 +88,13 @@ fn main() {
 /// Build the llama.cpp-backed agent session shared by both commands: Gemma 4
 /// E2B on the CPU, with the default GGUF config (`HuggingFace` cache dir,
 /// `q4_k_m`, 4096-token context, one thread per CPU). The preset's model is
-/// the session's model.
-fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
+/// the session's model. `main` is the sync boundary that waits on it.
+async fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
     let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
     AgentSession::builder(preset)
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
         .build()
+        .await
 }
 
 /// One-shot: run a single turn and print the reply on stdout. Returns whether

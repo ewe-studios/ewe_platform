@@ -18,7 +18,7 @@ use super::super::services::{
 use super::super::storage::{
     self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email, update_user_lockout,
 };
-use foundation_db::{KeyValueStore, MemoryStorage, core::storage_provider::QueryStore};
+use foundation_db::{core::storage_provider::QueryStore, Blocking, KeyValueStore, MemoryStorage};
 
 use crate::shared::auth_session::{UpstreamAuthSession, UpstreamAuthSessionStore};
 use crate::shared::provider::{ProviderMapping, ProviderType, UpstreamProvider};
@@ -227,7 +227,7 @@ impl From<TokenServiceError> for IdpError {
     }
 }
 
-pub struct IdpHandlerCore<KV: KeyValueStore = foundation_db::MemoryStorage> {
+pub struct IdpHandlerCore<KV: KeyValueStore = Blocking<MemoryStorage>> {
     config: Arc<IdpConfig>,
     storage: Arc<HandlerStorage<KV>>,
     token_service: Arc<TokenService>,

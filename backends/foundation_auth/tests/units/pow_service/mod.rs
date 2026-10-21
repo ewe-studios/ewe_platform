@@ -3,7 +3,7 @@
 use foundation_auth::server::services::pow_service::{
     AsyncPowService, PowChallenge, PowService, PowSolution,
 };
-use foundation_db::{AsyncKeyValueStore, KeyValueStore, MemoryStorage};
+use foundation_db::{Blocking, MemoryStorage};
 use futures_lite::future::block_on;
 use sha2::{Digest, Sha256};
 
@@ -24,7 +24,7 @@ fn count_leading_zero_bytes(hash: &[u8]) -> u32 {
 
 #[test]
 fn sync_generate_and_verify_easy_pow() {
-    let service = PowService::new(MemoryStorage::new(), 8, 300, 600);
+    let service = PowService::new(Blocking::new(MemoryStorage::new()), 8, 300, 600);
     let challenge = service.generate_challenge().expect("generate challenge");
     assert_eq!(challenge.difficulty, 8);
     assert_eq!(challenge.expires_in, 300);
@@ -38,7 +38,7 @@ fn sync_generate_and_verify_easy_pow() {
 
 #[test]
 fn sync_reuse_solution_fails() {
-    let service = PowService::new(MemoryStorage::new(), 8, 300, 600);
+    let service = PowService::new(Blocking::new(MemoryStorage::new()), 8, 300, 600);
     let challenge = service.generate_challenge().expect("generate challenge");
     let sol = find_nonce(&challenge.challenge, 1).expect("should find nonce");
 
@@ -54,7 +54,7 @@ fn sync_reuse_solution_fails() {
 
 #[test]
 fn sync_unknown_challenge_returns_false() {
-    let service = PowService::new(MemoryStorage::new(), 8, 300, 600);
+    let service = PowService::new(Blocking::new(MemoryStorage::new()), 8, 300, 600);
     // Never generated, just a fake challenge string
     assert!(!service.verify_solution(&PowSolution {
         challenge: "nonexistent_challenge".into(),
@@ -115,7 +115,9 @@ fn async_unknown_challenge_returns_false() {
 
 #[test]
 fn sync_cross_instance_challenge_match() {
-    let cache = MemoryStorage::new();
+    // The sync service takes a sync store: the in-memory one through
+    // `Blocking`, whose clones share the same store.
+    let cache = Blocking::new(MemoryStorage::new());
     // Instance A generates the challenge
     let service_a = PowService::new(cache.clone(), 8, 300, 600);
     let challenge = service_a.generate_challenge().expect("generate");

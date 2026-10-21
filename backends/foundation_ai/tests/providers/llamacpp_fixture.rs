@@ -132,6 +132,7 @@ async fn agent_session_run_turn_through_gguf() {
             .with_memory_config(MemoryConfig::default())
             .with_error_policy(ErrorPolicy::new())
             .build()
+            .await
             .expect("session builds");
 
     let records = session

@@ -86,10 +86,9 @@ one row per `next()`.
 Why this direction? The async impl is the one that *must* exist for serverless
 (where `Blocking` doesn't exist, because blocking would freeze the isolate).
 Making sync a single generic adapter means one source of truth and no per-backend
-sync twins that block on their own futures. (Pure in-memory stores with no I/O —
-`MemoryStorage`, `MemoryJsonStore`, `MemoryDocumentStore` — still implement the
-sync traits directly too, until foundation_ai's `AgentSession` moves to the async
-traits.)
+sync twins that block on their own futures. The pure in-memory stores
+(`MemoryStorage`, `MemoryJsonStore`, `MemoryDocumentStore`) follow the same
+rule: async impls only, `Blocking` for sync callers.
 
 ---
 

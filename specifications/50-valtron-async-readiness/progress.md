@@ -35,7 +35,7 @@ it. What master has, checked against the source:
 
 ## In progress
 
-### foundation_db: async-only stores (branch `db/async-stores`, PR not open yet)
+### foundation_db: async-only stores (PR #131, merged)
 
 Done (committed):
 - `foundation_core`: `valtron::BLOCKING_BOUNDARY` + `blocking_boundary!` macro
@@ -103,14 +103,55 @@ Extra checks:
   - foundation_keychain;
   - `examples/cf-login-app` and `examples/cf-agent-loop`.
 
-Left: nothing for PR 1. The branch is pushed; the coordinator opens the PR.
+Merged as PR #131 (merge commit `c84382913`).
+
+### foundation_ai on the async store traits (branch `ai/async-stores`, PR not open yet)
+
+Done (committed and pushed):
+- foundation_ai: `MessageApi`, `KvMemoryStore`, `MemoryCoordinator`,
+  `MemoryHierarchy`, `ContextProvider`, the memory/search/agent tools,
+  `AgentSession` and its builder are generic over `AsyncDocumentStore` /
+  `AsyncKeyValueStore` and await them.
+- `AgentLoop` awaits the stores from its own states: `InnerAssembling`
+  (context assembly), `Flushing` (when the buffer reaches
+  `MessageApiConfig::flush_threshold`, and at turn end) and `Summarizing`.
+  It polls a `FutureTask` in place, so a ready store adds no step and a
+  waiting one parks the task. Store failures end the turn with a
+  `FailedAction` (`AgenticError::MessageStore`).
+- Breaking API: `build()` / `end()` async; `MessageApi` reads and `flush`
+  async, `append` buffers only, `with_config` takes `MessageApiConfig`;
+  `ContextProvider::{assemble, assemble_from_memory, search,
+  search_from_memory}` async and return `StorageResult`;
+  `MemoryStore::hydrate_sync` removed.
+- foundation_db: `MemoryStorage`, `MemoryJsonStore`, `MemoryDocumentStore`
+  lost their sync impls. Small fixes there: wasm-safe clock, no unwrap or
+  underflow in the rate limiters, `get_blob_async` reports a non-blob value,
+  no panic on a poisoned lock.
+- Callers: foundation_auth server defaults to `Blocking<MemoryStorage>`;
+  foundation_cedar and foundation_cronjobs tests use `Blocking` (cronjobs'
+  inline tests moved to `tests/`); answerme-agent, cf-agent-loop and
+  cf-cloud-provider await `build()` / `end()`.
+- Docs (foundation_ai README and docs 00–12, foundation_db docs 00/01) and
+  the bug backlog are updated.
+
+Checks (`scripts/ci/ci.py run <crate> --step build --step clippy --step test --step wasm`):
+
+| Crate | Result |
+|-------|--------|
+| foundation_db | pass |
+| foundation_cedar | pass; `--features db` tests (not in CI) pass too |
+| foundation_cronjobs | pass |
+| foundation_auth | pass; `server-test`: 124 pass, the 17 known IdP HTTP failures (backlog §12) |
+| answerme-agent | pass (first run failed: `block_on_future` needs a `'static` future, so `AgentSession::end` now returns one, like `run_turn`) |
+| foundation_ai | pass, steps one at a time with `target/uat` wiped in between: `build`, `clippy`, `test` run 1 (`testing`: one flaky provider test failed once, fixed — it recorded only the last request path), `test` run 2 (`--no-default-features --features testing`), `wasm` |
+
+Extra: `examples/cf-agent-loop` and `examples/cf-cloud-provider` build for
+wasm32 (separate target dir, deleted after).
 
 ## Next
 
-- Follow-up PR: move foundation_ai's `AgentSession` stores (MessageApi,
-  MemoryStore/KvMemoryStore, MemoryCoordinator, ContextProvider, tools) to the
-  `Async*` traits, then delete the remaining sync impls and sync traits.
-- Then the other sync storage callers (backlog §11): foundation_auth server
+- Remove the sync storage traits once the other sync callers have moved.
+- The other sync storage callers (backlog §11): foundation_auth server
   services, foundation_cedar, foundation_vectors, foundation_cronjobs,
   `MigrationRunner::run`, `StorageCleanup`; and an async `StateStore`.
 - Confirm F02's state and update all three features' front matter.

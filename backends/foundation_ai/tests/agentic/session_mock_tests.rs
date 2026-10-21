@@ -19,18 +19,27 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelOutput, SessionRecord, TextContent, ToolArguments, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
+use futures_lite::future::block_on;
 use futures_lite::StreamExt;
-use foundation_db::{Blocking, MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
+use foundation_db::{MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
 
 type Session = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
 
-/// The same session over SQL-backed stores (Turso / `SQLite`).
-/// SQL-backed stores are async-only; the session (still on the sync storage
-/// traits) takes their `Blocking` views.
-type SqlSession = AgentSession<
-    Blocking<SqlDocumentStore<TursoStorage>>,
-    KvMemoryStore<Blocking<TursoStorage>>,
->;
+/// The same session over SQL-backed stores (Turso / `SQLite`), which the
+/// session uses through the async store traits directly.
+type SqlSession = AgentSession<SqlDocumentStore<TursoStorage>, KvMemoryStore<TursoStorage>>;
+
+/// A migrated in-memory Turso database, opened asynchronously.
+async fn in_memory_turso() -> TursoStorage {
+    let storage = TursoStorage::new(":memory:")
+        .await
+        .expect("open an in-memory Turso database");
+    storage
+        .init_schema()
+        .await
+        .expect("migrate the in-memory Turso database");
+    storage
+}
 
 fn user_msg(text: &str) -> Messages {
     Messages::User {
@@ -45,7 +54,7 @@ fn user_msg(text: &str) -> Messages {
 }
 
 /// A session whose router is the given mock, built the way the app builds one.
-fn session_with(mock: MockModelProvider) -> Session {
+async fn session_with(mock: MockModelProvider) -> Session {
     AgentSession::builder(mock.into_router())
         .with_system_prompt("You are a helpful assistant.")
         .with_model("mock")
@@ -53,6 +62,7 @@ fn session_with(mock: MockModelProvider) -> Session {
         .with_memory_config(MemoryConfig::default())
         .with_error_policy(ErrorPolicy::new())
         .build()
+        .await
         .expect("session builds")
 }
 
@@ -79,7 +89,7 @@ async fn run_turn_returns_the_mock_reply() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("mock says hi")]);
 
-    let session = session_with(mock);
+    let session = session_with(mock).await;
     let records = session
         .run_turn(user_msg("hi")).await
         .expect("turn should succeed");
@@ -95,7 +105,7 @@ async fn run_turn_reports_a_provider_failure() {
     let mut mock = MockModelProvider::new();
     mock.fail_with(|_| true, "mock failure");
 
-    let session = session_with(mock);
+    let session = session_with(mock).await;
     let turn = session.run_turn(user_msg("hi")).await.expect("the turn started");
 
     assert!(
@@ -166,7 +176,7 @@ fn snapshot_chunks() -> Vec<Messages> {
 async fn snapshot_stream_is_one_answer_not_a_loop() {
     let mut mock = MockModelProvider::new();
     mock.on_any(snapshot_chunks());
-    let session = session_with(mock);
+    let session = session_with(mock).await;
 
     let turn = session
         .run_turn("What is the capital of France?").await
@@ -181,7 +191,7 @@ async fn snapshot_stream_is_one_answer_not_a_loop() {
 async fn snapshot_stream_answer_is_the_last_snapshot() {
     let mut mock = MockModelProvider::new();
     mock.on_any(snapshot_chunks());
-    let session = session_with(mock);
+    let session = session_with(mock).await;
 
     let answer = session
         .ask("What is the capital of France?").await
@@ -193,7 +203,7 @@ async fn snapshot_stream_answer_is_the_last_snapshot() {
 
 #[valtron_test]
 async fn run_turn_keeps_the_partial_output_before_a_failure() {
-    let session = session_with(fails_after_partial_output());
+    let session = session_with(fails_after_partial_output()).await;
     let turn = session
         .run_turn("do the thing").await
         .expect("a mid-turn failure is not an Err");
@@ -218,7 +228,7 @@ async fn run_turn_keeps_the_partial_output_before_a_failure() {
 
 #[valtron_test]
 async fn ask_returns_the_partial_text_and_the_error() {
-    let session = session_with(fails_after_partial_output());
+    let session = session_with(fails_after_partial_output()).await;
     let answer = session.ask("do the thing").await.expect("the turn started");
 
     match &answer {
@@ -239,7 +249,7 @@ async fn ask_returns_the_partial_text_and_the_error() {
 
 #[valtron_test]
 async fn events_yield_the_partial_output_then_a_terminal_failure() {
-    let session = session_with(fails_after_partial_output());
+    let session = session_with(fails_after_partial_output()).await;
     let events: Vec<TurnEvent> = session
         .run_turn_stream("do the thing")
         .expect("the turn started")
@@ -275,7 +285,7 @@ async fn events_yield_the_partial_output_then_a_terminal_failure() {
 async fn ask_and_events_on_a_completed_turn() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("Hel"), mock_text("lo")]);
-    let session = session_with(mock);
+    let session = session_with(mock).await;
 
     let answer = session.ask("hi").await.expect("turn runs");
     assert_eq!(answer, Answer::Complete("Hello".into()));
@@ -309,11 +319,11 @@ async fn ask_and_events_on_a_completed_turn() {
 // Matrix 7.2 — run_turn_stream yields records progressively
 
 #[valtron_test]
-fn run_turn_stream_yields_records() {
+async fn run_turn_stream_yields_records() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("streamed")]);
 
-    let session = session_with(mock);
+    let session = session_with(mock).await;
     let stream = session
         .run_turn_stream(user_msg("hi"))
         .expect("stream should schedule");
@@ -340,10 +350,10 @@ async fn assistant_reply_persisted_to_history() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("remember me")]);
 
-    let session = session_with(mock);
+    let session = session_with(mock).await;
     session.run_turn(user_msg("hi")).await.expect("turn succeeds");
 
-    let history = session.message_api().all().expect("history readable");
+    let history = session.message_api().all().await.expect("history readable");
     let has_assistant = history.iter().any(|r| {
         matches!(
             r,
@@ -366,7 +376,7 @@ async fn follow_up_message_is_processed() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("answered")]);
 
-    let session = session_with(mock);
+    let session = session_with(mock).await;
     session.follow_up(user_msg("queued question"));
 
     // run_turn drains the follow-up queue at the outer boundary alongside its
@@ -384,16 +394,16 @@ async fn follow_up_message_is_processed() {
 // Matrix 6.9 — end() drains queues and persists remaining messages
 
 #[valtron_test]
-fn end_persists_queued_messages() {
+async fn end_persists_queued_messages() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("hi")]);
 
-    let session = session_with(mock);
+    let session = session_with(mock).await;
     session.follow_up(user_msg("left in the queue"));
 
-    session.end().expect("end should succeed");
+    session.end().await.expect("end should succeed");
 
-    let history = session.message_api().all().expect("history readable");
+    let history = session.message_api().all().await.expect("history readable");
     let persisted_user = history.iter().any(|r| {
         matches!(
             r,
@@ -416,14 +426,14 @@ async fn steer_injects_priority_message() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("steered reply")]);
 
-    let session = session_with(mock);
+    let session = session_with(mock).await;
     session.steer(user_msg("urgent priority"));
     // steer() sets the priority queue; run the turn, then confirm the priority
     // message reached session history (whether the turn Ok's or trips loop
     // detection on the mock's identical replies — both drain the queue).
     let _ = session.run_turn(user_msg("normal")).await;
 
-    let history = session.message_api().all().expect("history readable");
+    let history = session.message_api().all().await.expect("history readable");
     let saw_priority = history.iter().any(|r| matches!(
         r,
         SessionRecord::Conversation { message: Messages::User { content: UserModelContent::Text(TextContent { content, .. }), .. } }
@@ -436,7 +446,7 @@ async fn steer_injects_priority_message() {
 }
 
 // ---------------------------------------------------------------------------
-// Persistent stores satisfy build()'s `Default` bound
+// Persistent (SQL) stores run a session through the async store traits
 
 #[valtron_test]
 async fn build_and_run_a_turn_on_sql_backed_stores() {
@@ -444,10 +454,11 @@ async fn build_and_run_a_turn_on_sql_backed_stores() {
     mock.on_any(vec![mock_text("hello from sqlite")]);
 
     let session: SqlSession = AgentSession::builder(mock.into_router())
-        .with_doc_store(Blocking::<SqlDocumentStore<TursoStorage>>::default())
-        .with_memory_store(KvMemoryStore::<Blocking<TursoStorage>>::default())
+        .with_doc_store(SqlDocumentStore::new(in_memory_turso().await))
+        .with_memory_store(KvMemoryStore::new(in_memory_turso().await))
         .with_model("mock")
         .build()
+        .await
         .expect("a session over default SQL stores builds");
 
     let records = session
@@ -470,7 +481,7 @@ async fn run_turn_accepts_a_plain_string() {
         vec![mock_text("got it")],
     );
     mock.on_any(vec![mock_text("wrong prompt")]);
-    let session = session_with(mock);
+    let session = session_with(mock).await;
 
     let records = session
         .run_turn("plain prompt").await
@@ -485,10 +496,10 @@ async fn run_turn_accepts_a_plain_string() {
 }
 
 #[valtron_test]
-fn follow_up_accepts_a_plain_string() {
+async fn follow_up_accepts_a_plain_string() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("ok")]);
-    let session = session_with(mock);
+    let session = session_with(mock).await;
 
     session.follow_up("queued as a user message");
     let queued = session.steering_queues().drain_follow_up();
@@ -543,7 +554,9 @@ mod raw_stream_access {
     ) {
         let mut mock = MockModelProvider::new();
         mock.on_any(vec![mock_text(reply)]);
-        let session = session_with(mock);
+        // These tests drive the turn synchronously; the in-memory stores make
+        // `build()` resolve at once, so `block_on` is the sync boundary here.
+        let session = block_on(session_with(mock));
         let stream = session
             .run_turn_stream("hi")
             .expect("stream should schedule");
@@ -615,7 +628,7 @@ async fn text_stream_yields_deltas_once() {
 
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("Hel"), mock_text("lo")]);
-    let pieces: Vec<String> = session_with(mock)
+    let pieces: Vec<String> = session_with(mock).await
         .run_turn_stream("hi")
         .expect("turn runs")
         .into_text_stream()
@@ -631,7 +644,7 @@ async fn text_stream_turns_snapshots_into_new_text() {
 
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("Hel"), mock_text("Hello"), mock_text("Hello!")]);
-    let pieces: Vec<String> = session_with(mock)
+    let pieces: Vec<String> = session_with(mock).await
         .run_turn_stream("hi")
         .expect("turn runs")
         .into_text_stream()
@@ -644,10 +657,10 @@ async fn text_stream_turns_snapshots_into_new_text() {
 /// Sync at the boundary: a plain `for` loop over the async events, driven by
 /// valtron's `run_stream_iter` — no separate sync API.
 #[valtron_test]
-fn events_can_be_iterated_from_sync_code() {
+async fn events_can_be_iterated_from_sync_code() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("Hel"), mock_text("lo")]);
-    let session = session_with(mock);
+    let session = session_with(mock).await;
 
     let mut text = String::new();
     let mut done = false;

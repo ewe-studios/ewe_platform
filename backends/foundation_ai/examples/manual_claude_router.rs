@@ -68,7 +68,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             ..AgentConfig::default()
         })
         .with_system_prompt("You are a helpful assistant.")
-        .build()?;
+        .build()
+        .await?;
 
     println!("Manual Claude router built successfully!");
 
@@ -92,6 +93,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         turn.len()
     );
 
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }

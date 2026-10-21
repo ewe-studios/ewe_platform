@@ -44,7 +44,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             ..AgentConfig::default()
         })
         .with_system_prompt("You are a helpful assistant with a GPT-4o fallback.")
-        .build()?;
+        .build()
+        .await?;
 
     println!("Sending hello via mixed router...");
     let turn = agent.run_turn("Hello! Say hi and tell me which model you are.").await?;
@@ -62,6 +63,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         turn.len()
     );
 
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }
