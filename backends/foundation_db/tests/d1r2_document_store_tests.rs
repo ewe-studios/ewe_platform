@@ -19,7 +19,7 @@ mod common;
 
 use common::{init_valtron, make_d1_store, make_r2_store};
 use foundation_db::traits::{AsyncDocumentStore, QueryStore};
-use foundation_db::{D1R2DocumentStore, D1Store, R2Store};
+use foundation_db::{Blocking, D1R2DocumentStore, D1Store, R2Store};
 use futures_lite::StreamExt;
 
 /// Full `documents` schema (migrations 020+021+022) under a unique table name so
@@ -35,7 +35,7 @@ fn create_table(d1: &D1Store, table: &str) {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, \
             title TEXT, summary TEXT, record_type TEXT, r2_key TEXT)"
     );
-    d1.execute_batch(&sql).unwrap();
+    Blocking::new(d1.clone()).execute_batch(&sql).unwrap();
 }
 
 fn unique(prefix: &str) -> String {
@@ -140,7 +140,7 @@ fn large_document_offloads_to_r2_and_reads_through() {
 
         // Verify the offload actually happened: the big row carries an r2_key, the
         // small one does not. (Inspect via the raw D1 client.)
-        let d1 = make_d1_store().unwrap();
+        let d1 = Blocking::new(make_d1_store().unwrap());
         let rows: Vec<(String, Option<String>)> = {
             use foundation_db::DataValue;
             let sql = format!("SELECT doc_id, r2_key FROM {table} WHERE collection_key = ?");

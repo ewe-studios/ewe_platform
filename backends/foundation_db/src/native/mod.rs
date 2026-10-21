@@ -25,14 +25,19 @@ pub use d1_kvstore::D1Store;
 pub use r2_blobstore::R2Store;
 
 pub mod json_file;
+#[cfg(feature = "libsql")]
 pub mod rows_stream;
 
 pub use json_file::*;
+#[cfg(feature = "libsql")]
 pub use rows_stream::*;
 
 use crate::core::state::traits::StateStore;
 use crate::core::state::file::FileStateStore;
 use std::path::Path;
+
+#[cfg(feature = "libsql")]
+use foundation_core::valtron::BlockingFutureExt;
 
 /// Select a state store backend based on environment configuration.
 ///
@@ -67,21 +72,17 @@ pub fn create_state_store(
     }
 
     #[cfg(feature = "libsql")]
+    if std::env::var("TURSO_DATABASE_URL").is_ok()
+        || std::env::var("LIBSQL_TURSO_URL").is_ok()
+        || std::env::var("LIBSQL_LOCAL_PATH").is_ok()
+        || std::env::var("DEPLOYMENT_STATE_DB").is_ok()
+        || project_dir.join(".deployment/state.db").exists()
     {
-        if std::env::var("TURSO_DATABASE_URL").is_ok() {
-            return Ok(Box::new(LibsqlStore::from_env_state(project_dir, project, stage)?));
-        }
-
-        if std::env::var("LIBSQL_TURSO_URL").is_ok() {
-            return Ok(Box::new(LibsqlStore::from_env_state(project_dir, project, stage)?));
-        }
-
-        if std::env::var("LIBSQL_LOCAL_PATH").is_ok()
-            || std::env::var("DEPLOYMENT_STATE_DB").is_ok()
-            || project_dir.join(".deployment/state.db").exists()
-        {
-            return Ok(Box::new(LibsqlStore::from_env_state(project_dir, project, stage)?));
-        }
+        // `create_state_store` serves the sync `StateStore` API, so this is a
+        // sync boundary over libsql's async constructor.
+        let (dir, project, stage) = (project_dir.to_path_buf(), project.to_owned(), stage.to_owned());
+        let store = async move { LibsqlStore::from_env_state(&dir, &project, &stage).await }.block()?;
+        return Ok(Box::new(store));
     }
 
     Ok(Box::new(FileStateStore::new(project_dir, project, stage)))

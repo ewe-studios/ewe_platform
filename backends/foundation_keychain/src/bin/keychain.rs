@@ -9,7 +9,7 @@ fn main() {
     use std::sync::Arc;
 
     use foundation_core::synca::OnSignal;
-    use foundation_core::valtron::{block_on_future, initialize_pool};
+    use foundation_core::valtron::{block_on_future, initialize_pool, BlockingFutureExt};
     use foundation_db::core::storage_provider::AsyncQueryStore;
     use foundation_db::{StorageBackend, StorageProvider};
     use foundation_http::native::server::{HttpServer, ServerConfig};
@@ -23,8 +23,11 @@ fn main() {
     let db_url = std::env::var("KEYCHAIN_DB").unwrap_or_else(|_| "/data/keychain.db".to_string());
     let addr = std::env::var("LISTEN_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".to_string());
 
-    let provider = StorageProvider::new(StorageBackend::Turso { url: db_url.clone() })
-        .expect("open keychain database");
+    let provider = BlockingFutureExt::block({
+        let url = db_url.clone();
+        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+    })
+    .expect("open keychain database");
     let db: Arc<dyn AsyncQueryStore> = Arc::new(provider);
 
     let schema_db = Arc::clone(&db);

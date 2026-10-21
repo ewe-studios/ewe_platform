@@ -103,6 +103,7 @@ async fn build_context(env: &Env) -> Result<KeychainContext, String> {
         db: Arc::new(db),
         table_prefix: String::new(),
     })
+    .await
     .map_err(|e| e.to_string())?;
 
     provider

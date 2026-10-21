@@ -2,7 +2,7 @@
 
 use foundation_core::valtron::Stream;
 use foundation_db::{
-    BlobStore, KeyValueStore, MemoryJsonStore, QueryStore, RateLimiterStore, StorageBackend,
+    AsyncQueryStore, BlobStore, Blocking, KeyValueStore, MemoryJsonStore, QueryStore, RateLimiterStore, StorageBackend,
     StorageError, StorageItemStream, StorageProvider,
 };
 
@@ -179,13 +179,24 @@ fn test_memory_json_query_not_supported() {
     assert!(result.is_err());
 }
 
+/// The async `QueryStore` mirror reports the same: no SQL engine.
+#[test]
+fn test_memory_json_async_query_not_supported() {
+    let store = MemoryJsonStore::new();
+    futures_lite::future::block_on(async {
+        assert!(matches!(store.query_async("SELECT 1", &[]).await, Err(StorageError::Generic(_))));
+        assert!(matches!(store.execute_async("DELETE FROM t", &[]).await, Err(StorageError::Generic(_))));
+        assert!(matches!(store.execute_batch_async("SELECT 1").await, Err(StorageError::Generic(_))));
+    });
+}
+
 // ============================================================================
 // StorageProvider integration
 // ============================================================================
 
 #[test]
 fn test_storage_provider_memory_json() {
-    let provider = StorageProvider::memory_json();
+    let provider = Blocking::new(StorageProvider::memory_json());
     let _ = provider.set::<()>("key", ()).unwrap();
     let result: Option<()> = provider.get("key").unwrap();
     assert!(result.is_some());
@@ -193,7 +204,9 @@ fn test_storage_provider_memory_json() {
 
 #[test]
 fn test_storage_provider_memory_json_via_new() {
-    let provider = StorageProvider::new(StorageBackend::MemoryJson).unwrap();
+    let provider = Blocking::new(
+        futures_lite::future::block_on(StorageProvider::new(StorageBackend::MemoryJson)).unwrap(),
+    );
     let _ = provider.set("count", 99i64).unwrap();
     let count: Option<i64> = provider.get("count").unwrap();
     assert_eq!(count, Some(99));

@@ -299,7 +299,7 @@ to the in-memory stores.
 |------|---------|---------|
 | `MemoryDocumentStore` | RAM (`Vec<SessionRecord>`) | (always) |
 | `SqlDocumentStore<Q>` | Sync SQL (`QueryStore`) | `turso` / `libsql` |
-| `AsyncSqlDocumentStore<Q>` | Async SQL | `turso` / `libsql` |
+| `SqlDocumentStore<Q>` | Async SQL (sync callers: `Blocking<SqlDocumentStore<Q>>`) | `turso` / `libsql` |
 | `D1R2DocumentStore<Q, B>` | D1 + R2 | `d1` + `r2` |
 
 **KeyValueStore backends (wrap into `KvMemoryStore`):**

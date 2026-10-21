@@ -77,6 +77,7 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
         db: Arc::clone(&db),
         table_prefix: "app".to_string(),
     })
+    .await
     .map_err(|e| format!("storage provider init failed: {e:?}"))?;
     let cred_storage = CredentialStorage::new(provider);
 

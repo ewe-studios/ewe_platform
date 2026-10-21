@@ -3,7 +3,8 @@
 
 use std::sync::{Arc, Mutex};
 
-use foundation_db::LibsqlStore;
+use foundation_core::valtron::BlockingFutureExt;
+use foundation_db::{Blocking, LibsqlStore};
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{
     VectorEntry, VectorMatch, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
@@ -21,11 +22,14 @@ fn init() {
     }
 }
 
-fn make_store() -> (TempDir, LibsqlVectorStore<LibsqlStore>) {
+fn make_store() -> (TempDir, LibsqlVectorStore<Blocking<LibsqlStore>>) {
     init();
     let dir = TempDir::new().unwrap();
     let db = dir.path().join("vec.db");
-    let backend = Arc::new(LibsqlStore::new_kv(db.to_str().unwrap(), None).unwrap());
+    let path = db.to_str().unwrap().to_owned();
+    let backend = Arc::new(Blocking::new(
+        async move { LibsqlStore::new_kv(&path, None).await }.block().unwrap(),
+    ));
     let store = LibsqlVectorStore::new(backend, VectorStoreConfig::new(3, DistanceMetric::Cosine))
         .unwrap();
     (dir, store)

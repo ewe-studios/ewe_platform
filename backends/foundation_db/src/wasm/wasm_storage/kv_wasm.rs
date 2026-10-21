@@ -1,35 +1,20 @@
 //! KV storage via wasm-bindgen — calls Cloudflare KV JS API directly.
 //!
-//! Wraps `KVNamespace` and implements `KeyValueStore` and `RateLimiterStore`
-//! using Cloudflare Workers KV. Async `*_async` methods are the source of truth
-//! (JS Promises); sync trait methods delegate via `schedule_future`.
+//! Wraps `KVNamespace` and implements the `Async*` key-value, rate-limiter and
+//! blob traits using Cloudflare Workers KV (plus an `AsyncQueryStore` that
+//! reports SQL as unsupported). There are no sync impls: a sync call would
+//! block the isolate waiting on a JS Promise that could then never resolve.
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncRateLimiterStore, BlobStore,
-    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
+    AsyncRateLimiterStore, DataValue,
 };
 use crate::wasm::bindgen::KVNamespace;
-use foundation_core::valtron::{collect_one, execute, from_future, Stream};
 use js_sys::Object;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use foundation_compact::SendWrapper;
-
-
-/// One-shot blocking bridge for init/migrations.
-fn exec_future<T: 'static, E: Into<StorageError> + 'static, F>(future: F) -> StorageResult<T>
-where
-    F: std::future::Future<Output = Result<T, E>> + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
-    let result: Result<Option<T>, StorageError> = collect_one(stream)
-        .map(|r| r.map_err(Into::into))
-        .transpose();
-    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
-}
 
 // ===========================================================================
 // KVWasmStorage
@@ -56,65 +41,11 @@ impl KVWasmStorage {
         format!("{}:{}", self.prefix, key)
     }
 
-    #[allow(dead_code)]
-    fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
-    }
-
-    fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
-        Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
-    }
 }
 
 // ===========================================================================
 // KeyValueStore
 // ===========================================================================
-
-impl KeyValueStore for KVWasmStorage {
-    fn get<'a, V: serde::de::DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> StorageResult<Option<V>> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.get_async::<V>(&key).await
-        })
-    }
-
-    fn set<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.set_async(&key, value).await
-        })
-    }
-
-    fn delete(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.delete_async(&key).await
-        })
-    }
-
-    fn exists(&self, key: &str) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.exists_async(&key).await
-        })
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let this = self.clone();
-        let prefix = prefix.map(String::from);
-        let keys = exec_future(async move {
-            this.list_keys_async(prefix.as_deref()).await
-        })?;
-        Ok(Self::stream_many(keys))
-    }
-}
 
 impl KVWasmStorage {
     /// Get a value by key.
@@ -260,28 +191,27 @@ impl AsyncKeyValueStore for KVWasmStorage {
 // QueryStore (not supported for KV)
 // ===========================================================================
 
-impl QueryStore for KVWasmStorage {
-    fn query(
+/// Workers KV has no SQL engine: every query method fails with
+/// `StorageError::Generic`.
+#[async_trait::async_trait]
+impl AsyncQueryStore for KVWasmStorage {
+    async fn query_async(
         &self,
         _sql: &str,
         _params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
+    ) -> StorageResult<AsyncQueryStream> {
         Err(StorageError::Generic(
             "QueryStore not supported for KVWasmStorage".to_string(),
         ))
     }
 
-    fn execute(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<u64> {
+    async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
         Err(StorageError::Generic(
             "QueryStore not supported for KVWasmStorage".to_string(),
         ))
     }
 
-    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
+    async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
         Err(StorageError::Generic(
             "QueryStore not supported for KVWasmStorage".to_string(),
         ))
@@ -291,37 +221,6 @@ impl QueryStore for KVWasmStorage {
 // ===========================================================================
 // RateLimiterStore
 // ===========================================================================
-
-impl RateLimiterStore for KVWasmStorage {
-    fn check_rate_limit(
-        &self,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.check_rate_limit_async(&key, max_count, window_seconds).await
-        })
-    }
-
-    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.record_rate_limit_async(&key).await
-        })
-    }
-
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.reset_rate_limit_async(&key).await
-        })
-    }
-}
 
 impl KVWasmStorage {
     /// Check if a rate limit key is allowed.
@@ -463,41 +362,6 @@ impl AsyncRateLimiterStore for KVWasmStorage {
 // ===========================================================================
 // BlobStore (KV stores strings, so blobs are base64-encoded)
 // ===========================================================================
-
-impl BlobStore for KVWasmStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        let data = data.to_vec();
-        exec_future(async move {
-            this.put_blob_async(&key, &data).await
-        })
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.get_blob_async(&key).await
-        })
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.delete_blob_async(&key).await
-        })
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.blob_exists_async(&key).await
-        })
-    }
-}
 
 impl KVWasmStorage {
     /// Put a blob into KV storage (base64-encoded).

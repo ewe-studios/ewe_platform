@@ -5,7 +5,9 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::AsyncQueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::{accounts, ciphers, folders, sync};
@@ -29,8 +31,9 @@ where
 fn fresh_ctx() -> (KeychainContext, TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("keychain_test.db");
-    let provider = StorageProvider::new(StorageBackend::Turso {
-        url: db_path.to_str().unwrap().to_string(),
+    let provider = BlockingFutureExt::block({
+        let url = db_path.to_str().unwrap().to_string();
+        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })
     .expect("init turso");
     let db: Arc<dyn AsyncQueryStore> = Arc::new(provider);

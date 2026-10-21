@@ -1,22 +1,41 @@
 //! libsql storage backend integration tests.
 #![cfg(feature = "libsql")]
 
-use foundation_db::{KeyValueStore, LibsqlStore, QueryStore};
+use std::sync::Mutex;
+
+use foundation_core::valtron::{initialize_pool, BlockingFutureExt, PoolGuard};
+use foundation_db::{Blocking, KeyValueStore, LibsqlStore, StorageError};
 use tempfile::TempDir;
 
-/// Initialize the Valtron executor for tests.
-fn init_valtron() {
-    foundation_core::valtron::single::initialize_pool(42);
+/// Open + init a KV store (async constructors) and wrap it in the sync view.
+fn open(url: &str) -> Blocking<LibsqlStore> {
+    let url = url.to_owned();
+    let storage = BlockingFutureExt::block(async move {
+        let storage = LibsqlStore::new_kv(&url, None).await?;
+        storage.init_kv().await?;
+        Ok::<_, StorageError>(storage)
+    })
+    .unwrap();
+    Blocking::new(storage)
 }
 
+/// Initialize the Valtron executor for tests (shared across the binary).
+fn init_valtron() {
+    static POOL_GUARD: Mutex<Option<PoolGuard>> = Mutex::new(None);
+    let mut guard = POOL_GUARD.lock().unwrap();
+    if guard.is_none() {
+        *guard = Some(initialize_pool(42, None));
+    }
+}
+
+#[test]
 fn test_libsql_storage_basic() {
     init_valtron();
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = LibsqlStore::new_kv(url, None).unwrap();
-    storage.init_kv().unwrap();
+    let storage = open(url);
 
     storage.set::<String>("test_key", "test_value".to_string()).unwrap();
 
@@ -35,14 +54,14 @@ fn test_libsql_storage_basic() {
     assert!(!deleted);
 }
 
+#[test]
 fn test_libsql_storage_list_keys() {
     init_valtron();
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = LibsqlStore::new_kv(url, None).unwrap();
-    storage.init_kv().unwrap();
+    let storage = open(url);
 
     storage.set::<String>("prefix:key1", "value1".to_string()).unwrap();
     storage.set::<String>("prefix:key2", "value2".to_string()).unwrap();

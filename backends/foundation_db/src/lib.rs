@@ -22,6 +22,39 @@ pub mod core;
 // Central storage provider (wraps all backends)
 pub mod storage_provider;
 
+// `Blocking<S>`: the sync storage traits over the async ones. Only where
+// valtron can block — native and non-JS wasm, never JS-hosted wasm (Cloudflare
+// Workers, browsers), where blocking would freeze the isolate. The gate is
+// foundation_core's (`valtron::BLOCKING_BOUNDARY`), evaluated with its features.
+foundation_core::blocking_boundary! {
+    if {
+        mod blocking;
+        pub use blocking::Blocking;
+
+        /// Whether [`Blocking`] exists in this build (it does). Mirrors
+        /// `foundation_core::valtron::BLOCKING_BOUNDARY`.
+        pub const HAS_BLOCKING: bool = true;
+    } else {
+        /// Whether `Blocking` exists in this build: not on JS-hosted wasm,
+        /// where callers `.await` the `Async*` storage traits instead.
+        pub const HAS_BLOCKING: bool = false;
+    }
+}
+
+use foundation_core::valtron::BLOCKING_BOUNDARY;
+
+// Compile-time gate checks. Native always has `Blocking`. The Cloudflare JS
+// bindings (`wasm-bindgen-bindings`) turn on `foundation_core/js-wasmbindgen`,
+// so with them on wasm `Blocking` must be gone.
+#[cfg(not(target_family = "wasm"))]
+const _: () = assert!(HAS_BLOCKING, "Blocking must exist on native targets");
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-bindings"))]
+const _: () = assert!(
+    !HAS_BLOCKING,
+    "Blocking must not exist on JS-hosted wasm (it would freeze the isolate)"
+);
+const _: () = assert!(HAS_BLOCKING == BLOCKING_BOUNDARY);
+
 // Native — TCP/DB backends, rows streaming
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
@@ -44,8 +77,9 @@ pub use storage_provider::{StorageBackend, StorageProvider};
 
 // Re-export trait types at top level for convenience
 pub use core::storage_provider::{
-    AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncStorageItemStream, BlobStore, DataValue, FromDataValue, KeyValueStore, QueryStore,
+    AsyncBlobStore, AsyncDocumentStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore,
+    AsyncQueryStream, AsyncRateLimiterStore, AsyncStorageItemStream, BlobStore, DataValue,
+    Document, DocumentStore, FromDataValue, KeyValueStore, PromotableDocument, QueryStore,
     RateLimiterStore, SqlRow, StorageItemStream,
 };
 

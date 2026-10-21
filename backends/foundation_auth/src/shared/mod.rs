@@ -1,6 +1,10 @@
 //! Shared auth modules (wasm32-compatible, pure logic).
 
-pub mod auth_manager;   // Feature 08: Auth Manager
+// Feature 08: Auth Manager. It keeps its token in the sync `CredentialStore`,
+// which exists only where valtron can block, so it is absent on JS-hosted wasm.
+foundation_core::blocking_boundary! {
+    pub mod auth_manager;
+}
 pub mod auth_state;
 pub mod auth_session;       // Feature 04: Upstream auth session store
 pub mod auth_token;

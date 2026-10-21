@@ -17,7 +17,7 @@
 use std::sync::Mutex;
 
 use foundation_db::traits::{AsyncBlobStore, AsyncDocumentStore};
-use foundation_db::{D1R2DocumentStore, MemoryStorage, TursoStorage};
+use foundation_db::{D1R2DocumentStore, MemoryStorage, StorageError, TursoStorage};
 use futures_lite::StreamExt;
 
 static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
@@ -33,8 +33,12 @@ fn init_valtron() {
 /// plus a handle to the blob store so tests can assert on offload directly.
 fn make_store() -> (D1R2DocumentStore<TursoStorage, MemoryStorage>, MemoryStorage) {
     init_valtron();
-    let turso = TursoStorage::new(":memory:").unwrap();
-    turso.init_schema().unwrap();
+    let turso = futures_lite::future::block_on(async {
+        let turso = TursoStorage::new(":memory:").await?;
+        turso.init_schema().await?;
+        Ok::<_, StorageError>(turso)
+    })
+    .unwrap();
     let blobs = MemoryStorage::new();
     let store = D1R2DocumentStore::new(turso, blobs.clone());
     (store, blobs)

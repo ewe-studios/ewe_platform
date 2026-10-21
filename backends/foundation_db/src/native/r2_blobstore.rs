@@ -3,7 +3,8 @@
 //! WHY: R2 is Cloudflare's S3-compatible object storage - ideal for binary blobs
 //! and JSON resource state.
 //!
-//! WHAT: `R2Store` implements `BlobStore` and `StateStore` traits for Cloudflare R2.
+//! WHAT: `R2Store` implements `AsyncBlobStore` and `StateStore` for Cloudflare R2.
+//! Sync blob callers wrap it in `foundation_db::Blocking`.
 //!
 //! HOW: Different constructors for different usage modes:
 //!   - `R2Store::new_blob()` — `BlobStore` (raw binary, key: `{prefix}/key`)
@@ -17,9 +18,7 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::ResourceState;
-use crate::core::storage_provider::{
-    AsyncBlobStore, BlobStore,
-};
+use crate::core::storage_provider::AsyncBlobStore;
 
 /// Default Cloudflare API base. Tests override via `R2Store::with_base_url`.
 pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
@@ -148,14 +147,6 @@ impl R2Store {
             R2Mode::Blob { bucket, .. } | R2Mode::State { bucket, .. } => (bucket, &self.account_id, &self.base_url),
         };
         format!("{base_url}/accounts/{account_id}/r2/buckets/{bucket}/objects/{key}")
-    }
-
-    fn body_bytes(body: &SendSafeBody) -> Option<Vec<u8>> {
-        match body {
-            SendSafeBody::Text(s) => Some(s.as_bytes().to_vec()),
-            SendSafeBody::Bytes(b) => Some(b.clone()),
-            _ => None,
-        }
     }
 
     fn body_text(body: &SendSafeBody) -> Option<String> {
@@ -307,92 +298,6 @@ impl R2Store {
             .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
         serde_json::from_str(&text)
             .map_err(|e| StorageError::Serialization(format!("R2 LIST parse failed: {e}")))
-    }
-}
-
-// ===========================================================================
-// BlobStore
-// ===========================================================================
-
-impl BlobStore for R2Store {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let object_key = self.blob_object_key(key);
-        let url = self.object_url(&object_key);
-        let response = self
-            .client
-            .put(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 PUT request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .header(SimpleHeader::CONTENT_TYPE, "application/octet-stream")
-            .body_bytes(data.to_vec())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("R2 PUT request failed: {e}")))?;
-        let status_code: usize = response.get_status().into();
-        if status_code >= 400 {
-            return Err(StorageError::Backend(format!("R2 PUT failed with status {}", response.get_status())));
-        }
-        Ok(())
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let object_key = self.blob_object_key(key);
-        let url = self.object_url(&object_key);
-        let response = self
-            .client
-            .get(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 GET request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("R2 GET request failed: {e}")))?;
-        if response.get_status() == Status::NotFound {
-            return Ok(None);
-        }
-        if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("R2 GET failed with status {}", response.get_status())));
-        }
-        let bytes = Self::body_bytes(response.get_body_ref())
-            .ok_or_else(|| StorageError::Backend("R2 GET: empty response body".to_string()))?;
-        Ok(Some(bytes))
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let object_key = self.blob_object_key(key);
-        let url = self.object_url(&object_key);
-        let response = self
-            .client
-            .delete(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 DELETE request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .header(SimpleHeader::CONNECTION, "close")
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("R2 DELETE request failed: {e}")))?;
-        let status_code: usize = response.get_status().into();
-        if status_code >= 400 && response.get_status() != Status::NotFound {
-            return Err(StorageError::Backend(format!("R2 DELETE failed with status {}", response.get_status())));
-        }
-        Ok(())
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let object_key = self.blob_object_key(key);
-        let url = self.object_url(&object_key);
-        let response = self
-            .client
-            .head(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 HEAD request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .header(SimpleHeader::CONNECTION, "close")
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("R2 HEAD request failed: {e}")))?;
-        Ok(response.get_status() == Status::OK)
     }
 }
 

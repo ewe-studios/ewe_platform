@@ -20,7 +20,9 @@ pub use shared::types::{
     AuthenticationStates, ConfidentialText, JwtCredential, OnAuthData, OAuthCredential,
     AuthProviderEndpoint, SessionCredential,
 };
-pub use shared::auth_manager::{AuthManager, AuthManagerConfig, AuthManagerError};
+foundation_core::blocking_boundary! {
+    pub use shared::auth_manager::{AuthManager, AuthManagerConfig, AuthManagerError};
+}
 pub use shared::auth_state::{AuthEvent, AuthState, AuthStateError, AuthStateMachine, QueuedRequest};
 pub use shared::auth_token::AuthToken;
 pub use shared::credential_store::{

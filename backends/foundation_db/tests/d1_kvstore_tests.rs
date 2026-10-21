@@ -4,10 +4,18 @@
 mod common;
 
 use common::{init_valtron, make_d1_store};
-use foundation_db::{DataValue, KeyValueStore, QueryStore};
+use foundation_core::valtron::BlockingFutureExt;
+use foundation_db::{Blocking, D1Store, DataValue, KeyValueStore, QueryStore};
 
-fn create_local_d1_store() -> Option<foundation_db::D1Store> {
-    make_d1_store()
+/// `D1Store` is async-only; these tests use its `Blocking` sync view.
+fn create_local_d1_store() -> Option<Blocking<D1Store>> {
+    make_d1_store().map(Blocking::new)
+}
+
+/// Create the KV table (async `init_kv`) before the sync calls.
+fn init_kv(storage: &Blocking<D1Store>) {
+    let storage = storage.shared();
+    async move { storage.init_kv().await }.block().unwrap();
 }
 
 #[test]
@@ -17,7 +25,7 @@ fn test_d1_kvstore_put_get() {
         println!("Skipping D1 test - miniflare not available");
         return;
     };
-    storage.init_kv().unwrap();
+    init_kv(&storage);
 
     let test_value = "Hello, D1!";
     let key = format!("test_put_get_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
@@ -37,7 +45,7 @@ fn test_d1_kvstore_delete() {
         println!("Skipping D1 test - miniflare not available");
         return;
     };
-    storage.init_kv().unwrap();
+    init_kv(&storage);
 
     let test_value = "To be deleted";
     let key = format!("test_delete_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
@@ -60,7 +68,7 @@ fn test_d1_kvstore_exists() {
         println!("Skipping D1 test - miniflare not available");
         return;
     };
-    storage.init_kv().unwrap();
+    init_kv(&storage);
 
     let key = format!("test_exists_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
 
@@ -82,7 +90,7 @@ fn test_d1_kvstore_list_keys() {
         println!("Skipping D1 test - miniflare not available");
         return;
     };
-    storage.init_kv().unwrap();
+    init_kv(&storage);
 
     storage.set("prefix:a", "1").unwrap();
     storage.set("prefix:b", "2").unwrap();

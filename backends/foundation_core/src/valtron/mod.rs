@@ -52,6 +52,100 @@ pub use task::*;
 pub use types::*;
 pub use wake::*;
 
+/// `true` where valtron can block the calling thread (`.block()`,
+/// `.blocking()`, [`block_on_future`], [`run_stream_iter`],
+/// [`sync_collect_one`]): native, and wasm hosts that are not JS. `false` on
+/// JS-hosted wasm (`js-wasmbindgen` / `js-foundation-wasm`), where blocking
+/// would freeze the isolate's only thread.
+///
+/// Evaluated in this crate, so it reflects foundation_core's own features
+/// after Cargo's feature unification — which a dependent crate cannot see
+/// with its own `cfg`. Use [`blocking_boundary!`](crate::blocking_boundary)
+/// to compile items only where blocking exists.
+pub const BLOCKING_BOUNDARY: bool = !cfg!(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+));
+
+/// Compile items only where valtron's blocking sync boundary exists
+/// ([`BLOCKING_BOUNDARY`] is `true`).
+///
+/// WHY: `.block()` / `.blocking()` are absent on JS-hosted wasm, and the
+/// choice is made by foundation_core's features, not the dependent crate's.
+/// A crate that offers a sync wrapper over an async API (e.g.
+/// `foundation_db::Blocking`) wraps it in this macro so the wrapper exists
+/// exactly where valtron can block.
+///
+/// ```ignore
+/// foundation_core::blocking_boundary! {
+///     mod blocking;
+///     pub use blocking::Blocking;
+/// }
+/// // Or with an `else` arm for the JS-hosted wasm build:
+/// foundation_core::blocking_boundary! {
+///     if { pub const HAS_BLOCKING: bool = true; }
+///     else { pub const HAS_BLOCKING: bool = false; }
+/// }
+/// ```
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
+#[macro_export]
+macro_rules! blocking_boundary {
+    (if { $($yes:tt)* } else { $($no:tt)* }) => { $($yes)* };
+    ($($yes:tt)*) => { $($yes)* };
+}
+
+/// Compile items only where valtron's blocking sync boundary exists — this is
+/// the JS-hosted wasm build, where it does not: the items are dropped (or the
+/// `else` arm is used). See the native definition for details.
+#[cfg(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+))]
+#[macro_export]
+macro_rules! blocking_boundary {
+    (if { $($yes:tt)* } else { $($no:tt)* }) => { $($no)* };
+    ($($yes:tt)*) => {};
+}
+
+// Compile-time check that `blocking_boundary!` and the blocking helpers use
+// the same gate: wherever the macro keeps its items, `.block()`,
+// `.blocking()` and `sync_collect_one` must exist. CI builds this natively and
+// for every wasm32 feature set of foundation_core in ci/packages.toml (plain
+// `std`, `js-foundation-wasm`, `js-wasmbindgen`), so a drift between the two
+// gates fails the build.
+#[cfg(feature = "std")]
+mod blocking_boundary_probe {
+    use super::BLOCKING_BOUNDARY;
+
+    crate::blocking_boundary! {
+        if {
+            use core::future::Future;
+
+            use super::{from_future, sync_collect_one, BlockingFutureExt, BlockingStreamExt};
+
+            #[allow(dead_code)]
+            fn probe<F, S>(future: F, stream: S)
+            where
+                F: Future + Send + 'static,
+                F::Output: Send + 'static,
+                S: futures_core::Stream + Send + 'static,
+                S::Item: Send + 'static,
+            {
+                let _ = sync_collect_one(from_future(async {}));
+                let _ = future.block();
+                let _ = stream.blocking();
+            }
+
+            const _: () = assert!(BLOCKING_BOUNDARY);
+        } else {
+            const _: () = assert!(!BLOCKING_BOUNDARY);
+        }
+    }
+}
+
 /// Support for valtron's macros. Not public API.
 #[doc(hidden)]
 pub mod __private {

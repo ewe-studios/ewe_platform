@@ -38,10 +38,9 @@ pub type StorageItemStream<'a, T> =
 /// Consumers pull one item at a time with `.next().await`
 /// (`while let Some(item) = stream.next().await { ... }`), so even an unbounded
 /// scan never materializes a `Vec` — back-pressure is natural and large
-/// collections can't OOM. This is the **async-canonical** read shape: the async
-/// `*_async` methods are the real implementation, and the sync `DocumentStore`
-/// bridges this stream to a sync iterator via valtron (`run_future_iter`),
-/// exactly as `QueryStore::query` wraps `query_async`.
+/// collections can't OOM. This is the **async-canonical** read shape: the
+/// `Async*` traits are the real implementation, and `foundation_db::Blocking`
+/// bridges this stream to a sync iterator where a sync caller needs one.
 #[cfg(target_family = "wasm")]
 pub type AsyncStorageItemStream<'a, T> =
     Pin<Box<dyn futures_core::Stream<Item = StorageResult<T>> + 'a>>;
@@ -288,55 +287,6 @@ impl futures_core::Stream for AsyncListStream {
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
         Pin::new(&mut this.inner).poll_next(cx)
-    }
-}
-
-// ===========================================================================
-// Sync iterator bridges — used inside `run_future_iter` worker threads
-// to bridge async streams to sync Iterators.
-// ===========================================================================
-
-/// Bridges `AsyncQueryStream` to a sync `Iterator`.
-/// Used inside `run_future_iter` worker threads where `block_on` is available.
-pub struct AsyncQueryStreamIterator {
-    stream: AsyncQueryStream,
-}
-
-impl AsyncQueryStreamIterator {
-    #[must_use]
-    pub fn new(stream: AsyncQueryStream) -> Self {
-        Self { stream }
-    }
-}
-
-impl Iterator for AsyncQueryStreamIterator {
-    type Item = StorageResult<SqlRow>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        use futures_lite::future::block_on;
-        block_on(self.stream.next())
-    }
-}
-
-/// Bridges `AsyncListStream` to a sync `Iterator`.
-/// Used inside `run_future_iter` worker threads where `block_on` is available.
-pub struct AsyncListStreamIterator {
-    stream: AsyncListStream,
-}
-
-impl AsyncListStreamIterator {
-    #[must_use]
-    pub fn new(stream: AsyncListStream) -> Self {
-        Self { stream }
-    }
-}
-
-impl Iterator for AsyncListStreamIterator {
-    type Item = StorageResult<String>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        use futures_lite::future::block_on;
-        block_on(self.stream.next())
     }
 }
 

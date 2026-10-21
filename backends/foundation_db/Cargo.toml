@@ -85,8 +85,10 @@ multi = ["foundation_core/multi", "foundation_netio/multi"]
 # Wasm compatibility — browser time APIs (entropy via foundation_compact)
 wasm = ["chrono/wasmbind"]
 
-# Wasm-bindgen bridge types for Cloudflare Workers (D1/R2/KV)
-wasm-bindgen-bindings = ["dep:wasm-bindgen", "dep:js-sys"]
+# Wasm-bindgen bridge types for Cloudflare Workers (D1/R2/KV). Turns on
+# valtron's JS backend too: these stores only make progress when the isolate's
+# event loop runs, so valtron must not block there (no `Blocking<S>`).
+wasm-bindgen-bindings = ["dep:wasm-bindgen", "dep:js-sys", "foundation_core/js-wasmbindgen"]
 
 # Wasm-bindgen storage trait implementations (calls CF JS APIs directly)
 wasm-bindgen-storage = ["wasm-bindgen-bindings", "wasm", "dep:wasm-bindgen-futures"]

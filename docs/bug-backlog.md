@@ -9,7 +9,7 @@ How to use it:
 - When you fix one, delete its entry in the PR that fixes it and name the PR in the commit message.
 - Group entries by crate. Mark limits that are still hard-coded constants with **(rule 8)**.
 
-Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In flight on branches:
+Last refreshed: 2026-10-21, on `db/async-stores` (foundation_db async-only stores). Before that: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In flight on branches:
 - `fix/connectrpc-cancel-and-limits`: connectrpc §1.
 - `fix/limits-and-core-sweep`: the Docker limits cleanup and the foundation_core leftovers.
 
@@ -112,12 +112,6 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   `TaskStatus::from_stream` still waits `max_spins` timed waits
   (`executors/local.rs`). Likely fix: the async conversions register their
   wake before the first pull.
-- **Wasm storage and OAuth block on their own futures.** `foundation_db`'s
-  `D1WasmStorage` / `KVWasmStorage` / `R2WasmStorage` and
-  `foundation_auth::wasm_bindgen::oauth` implement sync traits with
-  `collect_one(execute(from_future(..)))`, which spins forever in a Worker.
-  Fix (next PR): make the stores async-only; sync callers use `.block()`.
-
 - **Cross-thread wakes don't wake an idle single-threaded executor.** The native idle wait is a `park_timeout` that nothing unparks, so tasks woken from another thread still poll at up to 100 ms.
 - **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`, `DEFAULT_YIELD_WAIT_TIME` (4 s), `BACK_OFF_*`, and `ThreadedIterFuture`'s queue size of 16 and its 10 ms sleep.
 - **`ThreadedIterFuture` (multi) busy-polls.**
@@ -265,6 +259,86 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   body to extract the vendor message. Likely fix: read at most a configured
   number of bytes (a field on each provider config, default 64 KiB like Go
   `net/http`'s error-drain limit) before parsing.
+
+- **`AgentSession` still runs on the sync storage traits.** `MessageApi`,
+  `MemoryStore`/`KvMemoryStore`, `MemoryCoordinator`, `ContextProvider` and the
+  memory/search/agent tools take `D: DocumentStore` / `K: KeyValueStore` and
+  call them from inside the async session. For I/O stores that means
+  `foundation_db::Blocking` waits inside a valtron task. It is also the only
+  reason `MemoryStorage`, `MemoryJsonStore` and `MemoryDocumentStore` keep
+  their sync impls: `examples/cf-agent-loop` runs `AgentSession` on Workers,
+  where `Blocking` can't exist. Fix: move these to the `Async*` traits, then
+  delete the in-memory sync impls and the sync storage traits
+  (`foundation_db/src/core/storage_provider.rs`).
+
+## 11. foundation_db and its sync callers
+
+Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
+- **Sync storage callers still go through `Blocking`.** Each should move to the
+  `Async*` traits, one crate at a time, before the sync traits are deleted:
+  - `foundation_auth` server services/handlers, generic over sync
+    `QueryStore`/`KeyValueStore` and run inside HTTP handler tasks;
+  - `foundation_cedar` `KvPolicyStore`/`SqlPolicyStore`;
+  - `foundation_vectors` `SqlVectorStore`/`LibsqlVectorStore`;
+  - `foundation_cronjobs` `CronScheduler`;
+  - `MigrationRunner::run` and `StorageCleanup` (keep only `run_async` and an
+    async cleanup).
+- **`StateStore` is still a sync trait.** `LibsqlStore`'s `StateStore::init`
+  / `sync_remote` and `native::create_state_store` wait on libsql with
+  `.block()`, and `D1Store`'s `StateStore` impl uses a blocking HTTP call
+  (`execute_sql`). Fix: an async `StateStore` (the deployment crates are its
+  callers).
+- **`Default` for `TursoStorage` / `LibsqlStore` blocks.** `Default` is sync,
+  so it waits on the async constructor with `.block()`, and panics without a
+  valtron pool. It exists for `S: Default` callers such as
+  `AgentSession::builder_for`. Fix: drop it once those callers construct
+  stores asynchronously.
+- **Unused dependencies on wasm.** `cargo check --target wasm32` for
+  `--features wasm-bindgen-storage` warns that `async-stream` and
+  `foundation_netio` are unused (both are used only natively). Fix: move them
+  to target-specific dependencies.
+- **No CI build covers several feature sets, and they had rotted:**
+  - foundation_db `libsql` (two libsql tests had no `#[test]`; fixed);
+  - foundation_nativeapis `vfs-native,vfs-d1,vfs-r2` (didn't compile; fixed);
+  - foundation_vectors `sql-store`;
+  - foundation_auth `server-test`;
+  - `examples/cf-login-app` (its manifest couldn't load; fixed).
+
+  Fix: add these runs to `ci/packages.toml` and an examples job.
+
+## 12. foundation_auth
+
+- **17 IdP HTTP integration tests fail, on master too.** `tests/integration/e2e`
+  (8) and `tests/integration/idp_server` (9) get non-success responses
+  (e.g. `introspect_returns_inactive_for_unknown_token`: `response.is_success()`
+  is false). CI never runs them: the test target needs `server-test`, which
+  `ci/packages.toml` doesn't enable. Fix: find why the handlers fail, then add a
+  `server-test` run.
+- **`--features server-native` tests don't link here.** `webauthn-rs` needs
+  OpenSSL 3 symbols (`EVP_Q_digest`, `OPENSSL_sk_*`) that the build host
+  doesn't provide. Fix: vendor OpenSSL (`openssl/vendored`) or document the
+  system dependency.
+- **`AuthManager` calls the sync `CredentialStore` from async fns.**
+  `authenticate`, `refresh` and `logout` (`src/shared/auth_manager.rs`) block
+  on storage inside async code, and `AuthManager` is compiled out on JS-hosted
+  wasm because of it. Fix: move it to `AsyncCredentialStore`.
+- **`NativeOAuth` keeps sync twins** (`exchange_code`, `client_credentials`,
+  `refresh_token`) next to the `*_async` methods (`src/native/oauth.rs`),
+  against the async-only API rule. Fix: keep only the async methods (as the
+  wasm client now does) and let callers `.block()`.
+
+## 13. foundation_nativeapis
+
+- **`FjallDocumentStore` implements only the sync `DocumentStore`** although it
+  does disk I/O (`src/shared/vfs/fjall_document_store.rs`). Fix: implement
+  `AsyncDocumentStore` (the I/O can run in the async body, like
+  `JsonFileStorage`) and let sync callers use `Blocking`.
+- **The async D1/R2 VFS files block and ignore the write offset.**
+  `AsyncD1File` / `AsyncR2File` (`src/native/vfs/{d1,r2}_delta/mod.rs`) call
+  the sync delta methods, which now wait through `Blocking`, from inside async
+  fns. Their `write_at_async` ignores `offset` (it rewrites the whole file from
+  `data`), and their `mode` field is never read. Fix: async delta methods over
+  the `Async*` stores; honour `offset` and read-only `mode`.
 
 ## Paused
 

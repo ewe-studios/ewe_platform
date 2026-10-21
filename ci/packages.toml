@@ -183,7 +183,13 @@ wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_db]
 wasm = "enforce"
-wasm-runs = ["--no-default-features --features wasm"]
+# Plain wasm (no JS host): `Blocking<S>` must compile. With the Cloudflare
+# bindings (`wasm-bindgen-storage` turns on valtron's JS mode) it must be absent;
+# `src/lib.rs` asserts both at compile time.
+wasm-runs = [
+  "--no-default-features --features wasm",
+  "--no-default-features --features wasm-bindgen-storage",
+]
 
 [packages.foundation_netio]
 wasm = "enforce"

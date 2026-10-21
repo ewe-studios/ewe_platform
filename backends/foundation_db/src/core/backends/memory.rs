@@ -11,7 +11,8 @@ use zeroize::Zeroizing;
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncRateLimiterStore,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
+    AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use foundation_core::valtron::Stream;
@@ -38,6 +39,13 @@ impl Default for MemoryStorage {
     }
 }
 
+/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
+/// and reached from sync code through `foundation_db::Blocking`): this store
+/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
+/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
+/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
+/// this impl goes once it moves to the `Async*` traits
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl KeyValueStore for MemoryStorage {
     fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self
@@ -103,6 +111,14 @@ impl KeyValueStore for MemoryStorage {
 
 /// In-memory implementation of [`QueryStore`] for testing.
 /// Note: This is a simplified implementation for testing purposes.
+///
+/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
+/// and reached from sync code through `foundation_db::Blocking`): this store
+/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
+/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
+/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
+/// this impl goes once it moves to the `Async*` traits
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl QueryStore for MemoryStorage {
     fn query(
         &self,
@@ -135,6 +151,14 @@ struct RateLimitEntry {
 }
 
 /// In-memory implementation of [`RateLimiterStore`].
+///
+/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
+/// and reached from sync code through `foundation_db::Blocking`): this store
+/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
+/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
+/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
+/// this impl goes once it moves to the `Async*` traits
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl RateLimiterStore for MemoryStorage {
     fn check_rate_limit(
         &self,
@@ -223,6 +247,13 @@ impl RateLimiterStore for MemoryStorage {
     }
 }
 
+/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
+/// and reached from sync code through `foundation_db::Blocking`): this store
+/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
+/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
+/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
+/// this impl goes once it moves to the `Async*` traits
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl BlobStore for MemoryStorage {
     fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let mut storage = self
@@ -406,5 +437,32 @@ impl AsyncRateLimiterStore for MemoryStorage {
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         data.remove(&rate_key);
         Ok(())
+    }
+}
+
+/// Async mirror of the sync [`QueryStore`] impl above: `MemoryStorage` has no SQL
+/// engine, so every query method fails with `StorageError::Generic`.
+#[async_trait::async_trait]
+impl AsyncQueryStore for MemoryStorage {
+    async fn query_async(
+        &self,
+        _sql: &str,
+        _params: &[DataValue],
+    ) -> StorageResult<AsyncQueryStream> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for MemoryStorage".to_string(),
+        ))
+    }
+
+    async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for MemoryStorage".to_string(),
+        ))
+    }
+
+    async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for MemoryStorage".to_string(),
+        ))
     }
 }

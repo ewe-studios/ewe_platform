@@ -20,12 +20,17 @@ use foundation_ai::types::{
 };
 use foundation_core::valtron::{valtron_test, Stream};
 use futures_lite::StreamExt;
-use foundation_db::{MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
+use foundation_db::{Blocking, MemoryDocumentStore, MemoryStorage, SqlDocumentStore, TursoStorage};
 
 type Session = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
 
 /// The same session over SQL-backed stores (Turso / `SQLite`).
-type SqlSession = AgentSession<SqlDocumentStore<TursoStorage>, KvMemoryStore<TursoStorage>>;
+/// SQL-backed stores are async-only; the session (still on the sync storage
+/// traits) takes their `Blocking` views.
+type SqlSession = AgentSession<
+    Blocking<SqlDocumentStore<TursoStorage>>,
+    KvMemoryStore<Blocking<TursoStorage>>,
+>;
 
 fn user_msg(text: &str) -> Messages {
     Messages::User {
@@ -439,8 +444,8 @@ async fn build_and_run_a_turn_on_sql_backed_stores() {
     mock.on_any(vec![mock_text("hello from sqlite")]);
 
     let session: SqlSession = AgentSession::builder(mock.into_router())
-        .with_doc_store(SqlDocumentStore::<TursoStorage>::default())
-        .with_memory_store(KvMemoryStore::<TursoStorage>::default())
+        .with_doc_store(Blocking::<SqlDocumentStore<TursoStorage>>::default())
+        .with_memory_store(KvMemoryStore::<Blocking<TursoStorage>>::default())
         .with_model("mock")
         .build()
         .expect("a session over default SQL stores builds");

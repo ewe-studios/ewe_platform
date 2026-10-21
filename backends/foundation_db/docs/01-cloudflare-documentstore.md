@@ -22,9 +22,9 @@ it has two properties that dominate every storage decision:
    and stateless; all durable state lives in *bindings* to managed services.
 
 So the canonical storage trait on Workers is the **async** one
-(`AsyncDocumentStore`), and the synchronous `DocumentStore` is a thin valtron
-wrapper over it (§7). This is the house rule across the platform: **async holds
-the real logic; sync wraps async.**
+(`AsyncDocumentStore`). There is no synchronous view on Workers at all (§7).
+This is the house rule across the platform: **async holds the real logic; sync
+is a boundary view over it, only where blocking is possible.**
 
 The three storage bindings you get are **D1**, **R2**, and **KV**. They are not
 interchangeable.
@@ -171,12 +171,16 @@ is what makes both possible.
 ## 7. Async-first, sync-via-valtron
 
 Workers force async, but native callers often want a synchronous API. The
-platform rule: **write the async impl once; wrap it for sync with valtron.**
-`valtron`'s block-on/drive primitive runs an async future to completion on a
-worker pool, so the sync `DocumentStore` is a few lines delegating to the async
-`AsyncDocumentStore`. We never hand-roll a second async→sync bridge (and never
-`std::thread::block_on` on wasm, where it would deadlock the isolate). This keeps
-one source of truth for the logic and one well-tested bridge.
+platform rule: **write the async impl once; sync callers wrap it at their
+boundary.** `foundation_db::Blocking<S>` is the one bridge: it implements the sync
+`DocumentStore` (and the other sync storage traits) over any async store,
+waiting on valtron. Backends never carry their own sync twin.
+
+`Blocking` does not exist on JS-hosted wasm. A Worker has one thread, so blocking
+it would stop the event loop that has to deliver the D1/R2 Promise, and the call
+would never return (the old per-backend sync impls spun forever there). On
+Workers you `.await` `AsyncDocumentStore` directly; building foundation_db with
+`wasm-bindgen-bindings` turns on valtron's JS mode, which compiles `Blocking` out.
 
 ---
 

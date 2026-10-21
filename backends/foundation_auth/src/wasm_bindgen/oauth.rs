@@ -1,10 +1,8 @@
 //! OAuth 2.0 token exchange using browser/worker fetch API.
 //!
-//! Public methods are synchronous (matching `NativeOAuth` API) and resolve JS
-//! Promises internally via `exec_future`. The underlying async
-//! implementations are exposed as `*_async` variants for callers that prefer them.
-
-use foundation_core::valtron::{collect_one, execute, from_future};
+//! The API is async only: every token request awaits a JS `fetch` Promise,
+//! which can only resolve while the isolate's event loop runs. A sync wrapper
+//! would have to block that loop and so would wait forever.
 
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -12,22 +10,6 @@ use web_sys::{Request, RequestInit, RequestMode, Response};
 
 use crate::shared::oauth::{OAuthConfig, OAuthError, OAuthManager, TokenResponse};
 use crate::shared::oauth_token::OAuthToken;
-
-/// Execute a `Future` on the valtron thread pool and collect the result.
-fn exec_future<T: 'static, E: std::fmt::Display + 'static, F>(
-    future: F,
-) -> Result<T, OAuthError>
-where
-    F: std::future::Future<Output = Result<T, E>> + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| OAuthError::TokenRequestFailed(format!("valtron exec failed: {e}")))?;
-    let result: Result<Option<T>, OAuthError> = collect_one(stream)
-        .map(|r| r.map_err(|e| OAuthError::TokenRequestFailed(e.to_string())))
-        .transpose();
-    result?.ok_or_else(|| OAuthError::TokenRequestFailed("no result from valtron".into()))
-}
 
 /// Wasm OAuth client wrapping shared OAuth configuration with async token exchange.
 #[derive(Clone)]
@@ -50,63 +32,12 @@ impl WasmOAuth {
         &self.inner
     }
 
-    // ========================================================================
-    // Sync API (matching NativeOAuth)
-    // ========================================================================
-
-    /// Exchange authorization code for tokens.
+    /// Exchange an authorization code for tokens.
     ///
     /// # Errors
     ///
     /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
-    pub fn exchange_code(
-        &self,
-        code: &str,
-        code_verifier: Option<&str>,
-    ) -> Result<OAuthToken, OAuthError> {
-        let this = self.clone();
-        let code = code.to_string();
-        let code_verifier = code_verifier.map(String::from);
-        exec_future(async move {
-            this.exchange_code_async(&code, code_verifier.as_deref()).await
-        })
-    }
-
-    /// Client credentials flow for service-to-service authentication.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
-    pub fn client_credentials(
-        &self,
-        scopes: Option<Vec<String>>,
-    ) -> Result<OAuthToken, OAuthError> {
-        let this = self.clone();
-        let scopes = scopes.clone();
-        exec_future(async move {
-            this.client_credentials_async(scopes).await
-        })
-    }
-
-    /// Refresh an access token using a refresh token.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
-    pub fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
-        let this = self.clone();
-        let refresh_token = refresh_token.to_string();
-        exec_future(async move {
-            this.refresh_token_async(&refresh_token).await
-        })
-    }
-
-    // ========================================================================
-    // Async API (direct Promise resolution)
-    // ========================================================================
-
-    /// Async version of [`Self::exchange_code`].
-    pub async fn exchange_code_async(
+    pub async fn exchange_code(
         &self,
         code: &str,
         code_verifier: Option<&str>,
@@ -137,8 +68,12 @@ impl WasmOAuth {
         parse_token_response(resp).await
     }
 
-    /// Async version of [`Self::client_credentials`].
-    pub async fn client_credentials_async(
+    /// Client credentials flow for service-to-service authentication.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
+    pub async fn client_credentials(
         &self,
         scopes: Option<Vec<String>>,
     ) -> Result<OAuthToken, OAuthError> {
@@ -173,8 +108,12 @@ impl WasmOAuth {
         parse_token_response(resp).await
     }
 
-    /// Async version of [`Self::refresh_token`].
-    pub async fn refresh_token_async(
+    /// Refresh an access token using a refresh token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
+    pub async fn refresh_token(
         &self,
         refresh_token: &str,
     ) -> Result<OAuthToken, OAuthError> {
