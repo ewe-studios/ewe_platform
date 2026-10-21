@@ -281,9 +281,18 @@ The sync `CredentialStore` is the last thing in foundation_auth that needs
 - `SessionManager<S>`: the sync block `impl<S: CredentialStore>`
   (`create_session`, `get_session`, `revoke_session`, `revoke_all_sessions`) is
   deleted; the async block (`*_async`) stays. Rename question: see §9 Q2.
-- `AuthManager`: `init_from_store` and `get_valid_token` (sync, read storage)
-  become `async fn`; `authenticate`, `refresh`, `logout` (already async) await
-  the async store. `AuthManager` stops being compiled out on JS-hosted wasm
+- `AsyncCredentialStore` (and `OAuthTokenStore`) futures become `Send`
+  natively (`#[async_trait]`) and stay `?Send` on wasm
+  (`#[cfg_attr(target_family = "wasm", async_trait(?Send))]`). Natively the
+  session/auth futures then run on valtron's thread pool (e.g. inside the IdP
+  handler tasks and `#[valtron_test]`); the wasm-only D1 impls keep `?Send`.
+- `AuthManager`: `init_from_store` (reads storage) becomes `async fn`;
+  `get_valid_token` reads only the in-memory token and stays sync;
+  `authenticate`, `refresh`, `logout` (already async) await the async store;
+  the private `persist_token`, `persist_jwt_token`, `clear_stored_tokens`
+  become async and their errors are no longer dropped. New accessor
+  `jwt_manager()`. Its inline `#[cfg(test)]` module moves to
+  `tests/auth_manager_tests.rs` (public API only). `AuthManager` stops being compiled out on JS-hosted wasm
   (backlog §12 entry "`AuthManager` calls the sync `CredentialStore`" is fixed
   and deleted).
 - `foundation_db::wasm::WasmCredentialStore` / `wasm::session` (their docs say
@@ -427,8 +436,7 @@ one-item stream. Multi-row results stay streams (never collected).
 Implementations:
 
 - `FileStateStore` (`core/state/file.rs`): async impl over its existing file
-  logic, exposed also as inherent sync `read_state` / `write_state` /
-  `remove_state` (plain `std::fs`; not a storage trait) — see §9 Q3.
+  logic (no sync side door; decision Q3).
 - `NamespacedStore<S: StateStore>`: async impl; `store_typed`, `get_typed`,
   `remove` become `async fn`.
 - `LibsqlStore`: `init` / `sync_remote` await libsql (the `.block()`s go).
@@ -454,10 +462,15 @@ Callers:
 - foundation_deployment_docker / _hetzner / ewe_deployables: in `deploy` /
   `destroy` (already `BoxFuture`s), `store.store_typed(..)` →
   `store.store_typed(..).await`, same for `get_typed`, `remove`.
-- foundation_proxy: `ProxyStateStore` is file-backed only; `load` / `save` /
-  `save_backend_state` use `FileStateStore`'s inherent sync file methods, so
-  `ProxyServer::start` and the admin path stay sync without blocking on a
-  future (§9 Q3).
+- foundation_proxy (decision Q3: async startup): `ProxyStateStore::{load,
+  save, save_backend_state}` become `async fn` awaiting `StateStore`;
+  `restore_persisted_state` becomes an async step of startup, and
+  `ProxyState::persist_backend_state` an `async fn` awaited by the admin
+  control path (`src/control.rs`). Every function on those paths that now
+  awaits becomes async up to the process entry point; only that entry point
+  (a sync `main` / `ProxyServer::start` called from sync code) waits, with
+  `block_on_future` / `.block()` behind `blocking_boundary!`. The exact
+  boundary is found while implementing T8 and recorded here.
 - Tests: `state_store_tests`, `state_namespaced_tests`, `store_state_task`,
   the deployable tests, `cloudflare_worker_integration`, proxy
   `persistence_tests` become async (`#[valtron_test]`).
@@ -538,8 +551,9 @@ instead of keeping a trait.
 - **C. Keep the `Async*` names.** No churn; the names stay longer than they
   need to and suggest a sync twin exists.
 
-**Recommendation: B.** Waiting for the owner's answer; nothing in this feature
-depends on it.
+**Decided (owner, 2026-10-21): B.** The rename, including the
+`SessionManager::*_async` suffix, is a separate mechanical PR right after this
+one merges. Not in this PR.
 
 ## 5. Breaking public API changes
 
@@ -566,7 +580,9 @@ foundation_auth:
   `TosService::needs_acceptance` returns `Result<bool, _>`;
   `IdpHandlerCore`/`IdpServer` default `KV = MemoryStorage`;
   `OAuthTokenStore: AsyncCredentialStore` with async helpers;
-  `AuthManager::{init_from_store, get_valid_token}` async.
+  `AsyncCredentialStore` futures `Send` natively;
+  `AuthManager::init_from_store` async; `AuthManager` no longer gated on
+  `blocking_boundary!` (it now exists on JS-hosted wasm).
 
 foundation_cedar: `PolicyStore` async; `load_from_store` async;
 `KvPolicyStore<S: AsyncKeyValueStore>`; `SqlPolicyStore` over
@@ -677,8 +693,9 @@ push, update `progress.md`/`learnings.md` and the PR checklist.
 - **T8 — async `StateStore`.** Files: `foundation_db/src/core/state/{traits,
   file, namespaced, store_state_task}.rs`, `src/native/{libsql_store,
   d1_kvstore, r2_blobstore, mod}.rs`; callers in foundation_deployment,
-  foundation_deployment_docker, foundation_deployment_hetzner, ewe_deployables,
-  foundation_proxy; their tests. Done when no `.block()` remains in
+  foundation_deployment_docker, foundation_deployment_hetzner, ewe_deployables;
+  foundation_proxy's persistence, startup (`server.rs`) and admin control path
+  (`state.rs`, `control.rs`) made async up to the entry point; their tests. Done when no `.block()` remains in
   foundation_db `src/`, and `ci.py run` passes for foundation_db,
   foundation_deployment, foundation_deployment_docker,
   foundation_deployment_hetzner, ewe_deployables, foundation_proxy.
@@ -703,7 +720,9 @@ push, update `progress.md`/`learnings.md` and the PR checklist.
 - **T13 — docs and records:** foundation_db/foundation_auth docs and READMEs,
   `docs/bug-backlog.md` (delete fixed §11/§12 entries, add the new ones),
   spec 50 `progress.md`/`learnings.md`, this feature's status.
-- **T14 (pending owner decision) — `Async*` → plain-name rename** (§4).
+- **T14 — moved out:** the `Async*` → plain-name rename (and the
+  `SessionManager::*_async` suffix) is a follow-up PR after this one merges
+  (decision Q1/Q2).
 
 ## 8. Verification
 
@@ -737,23 +756,24 @@ Known pre-existing failures (not caused by this feature):
   §12) — fixed in T1 (body reading and error mapping, §3.1);
 - `--features server-native` doesn't link on this host (OpenSSL 3 symbols).
 
-## 9. Risks and open questions
+## 9. Risks and decisions
 
-- **Q1 (owner): rename `Async*` to the plain names?** Options and
-  recommendation in §4. Not blocking.
-- **Q2 (owner, with Q1): `SessionManager::*_async` names.** Once the sync
-  methods go, `create_session_async` etc. could drop the suffix. Proposed to
-  ride with the Q1 rename.
-- **Q3: `FileStateStore` inherent sync file methods for foundation_proxy.**
-  `ProxyServer::start` and the admin control path are sync. Rather than block
-  on a future there, the proxy uses `FileStateStore`'s plain `std::fs`
-  methods (it is file-backed by construction). Alternative: make
-  `ProxyStateStore` async and `restore_persisted_state` an async step of
-  startup. Recommendation: the inherent methods (no boundary, no behaviour
-  change); flagged in case the owner prefers the async route.
-- **Q4: `AsyncVectorStore::len_async -> usize`** can't report a storage error.
-  Changing it to `Result<usize, _>` touches every vector store; kept out of
-  scope, recorded in the backlog.
+Owner decisions (2026-10-21):
+
+- **Q1 — rename `Async*` to the plain names: decided B.** A separate,
+  mechanical follow-up PR right after this one merges; not in this PR.
+- **Q2 — drop the `SessionManager::*_async` suffix: decided,** in that same
+  follow-up rename PR.
+- **Q3 — foundation_proxy state: decided, async startup.** The proxy's
+  startup and admin paths that touch state become async and `.await` the
+  async `StateStore`; only the true process entry point waits, through
+  `block_on_future` / `.block()` behind `blocking_boundary!` (§3.8). No sync
+  file methods on `FileStateStore`.
+- **Q4 — `AsyncVectorStore::len_async -> usize` can't report errors:
+  decided,** record in the backlog and leave it.
+
+Risks:
+
 - **Risk: `FileStateStore` / `FilePolicyStore` do blocking `std::fs` inside
   `async fn`.** Files are small and local; acceptable for now, recorded as a
   backlog item (an async fs seam would fix it).

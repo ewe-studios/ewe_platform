@@ -186,8 +186,8 @@ impl AuthManager {
     /// # Errors
     ///
     /// Returns `AuthManagerError` if loading from the store fails.
-    pub fn init_from_store(&mut self) -> Result<Option<AuthToken>, AuthManagerError> {
-        let token_result = self.store.get_oauth_token("default");
+    pub async fn init_from_store(&mut self) -> Result<Option<AuthToken>, AuthManagerError> {
+        let token_result = self.store.get_oauth_token("default").await;
         match token_result {
             Ok(Some(oauth_token)) => {
                 let expires_at = oauth_token
@@ -235,7 +235,7 @@ impl AuthManager {
                 }
 
                 // Expired with no refresh token — clear everything
-                let _ = self.clear_stored_tokens();
+                self.clear_stored_tokens().await?;
                 Ok(None)
             }
             Ok(None) => Ok(None),
@@ -269,7 +269,7 @@ impl AuthManager {
                     expires_at: oauth.expires,
                     scope: None,
                 };
-                self.persist_token(&token)?;
+                self.persist_token(&token).await?;
 
                 // Build JwtToken for lifecycle tracking
                 let jwt_token = JwtToken::from_parts(
@@ -360,7 +360,7 @@ impl AuthManager {
         match refresh_fn(refresh_token) {
             Ok(new_token) => {
                 self.jwt_manager.set_token(new_token.clone());
-                self.persist_jwt_token(&new_token)?;
+                self.persist_jwt_token(&new_token).await?;
                 let _ = self
                     .state_machine
                     .handle_event(AuthEvent::RefreshCompleted);
@@ -368,8 +368,11 @@ impl AuthManager {
             }
             Err(e) => {
                 let _ = self.state_machine.transition_to(AuthEvent::RefreshFailed);
-                let _ = self.clear_stored_tokens();
                 self.jwt_manager.clear_token();
+                // If clearing the stored token fails too, report that: the
+                // stale token would otherwise come back on the next
+                // `init_from_store`. Otherwise report the refresh error.
+                self.clear_stored_tokens().await?;
                 Err(e)
             }
         }
@@ -385,11 +388,11 @@ impl AuthManager {
     /// Returns `AuthManagerError` if store or session operations fail.
     pub async fn logout(&mut self, user_id: Option<&str>) -> Result<(), AuthManagerError> {
         if let (Some(ref session_mgr), Some(uid)) = (&self.session_mgr, user_id) {
-            session_mgr.revoke_all_sessions(uid)?;
+            session_mgr.revoke_all_sessions_async(uid).await?;
         }
 
         self.jwt_manager.clear_token();
-        self.clear_stored_tokens()?;
+        self.clear_stored_tokens().await?;
         let _ = self.state_machine.transition_to(AuthEvent::Logout);
 
         Ok(())
@@ -416,6 +419,12 @@ impl AuthManager {
     #[must_use]
     pub fn store(&self) -> &CredentialStorage {
         &self.store
+    }
+
+    /// Borrow the JWT lifecycle manager (the token currently held).
+    #[must_use]
+    pub fn jwt_manager(&self) -> &JwtManager {
+        &self.jwt_manager
     }
 
     /// Borrow the JWT verifier (if configured).
@@ -445,7 +454,7 @@ impl AuthManager {
     // Internal helpers
     // ===========================================================================
 
-    fn persist_token(&self, token: &AuthToken) -> Result<(), AuthManagerError> {
+    async fn persist_token(&self, token: &AuthToken) -> Result<(), AuthManagerError> {
         match token {
             AuthToken::OAuth {
                 access_token,
@@ -464,14 +473,14 @@ impl AuthManager {
                     scope: scope.clone(),
                     id_token: None,
                 };
-                self.store.store_oauth_token("default", &oauth_token)?;
+                self.store.store_oauth_token("default", &oauth_token).await?;
                 Ok(())
             }
             _ => Ok(()),
         }
     }
 
-    fn persist_jwt_token(&self, token: &JwtToken) -> Result<(), AuthManagerError> {
+    async fn persist_jwt_token(&self, token: &JwtToken) -> Result<(), AuthManagerError> {
         let oauth_token = OAuthToken {
             access_token: token.access_token(),
             token_type: "Bearer".to_string(),
@@ -482,418 +491,14 @@ impl AuthManager {
             scope: token.scope.clone(),
             id_token: None,
         };
-        self.store.store_oauth_token("default", &oauth_token)?;
+        self.store.store_oauth_token("default", &oauth_token).await?;
         Ok(())
     }
 
-    fn clear_stored_tokens(&self) -> Result<(), AuthManagerError> {
+    async fn clear_stored_tokens(&self) -> Result<(), AuthManagerError> {
         self.store
             .delete_oauth_token("default")
+            .await
             .map_err(AuthManagerError::Store)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::shared::session::SessionConfig;
-
-    fn init_valtron() {
-        foundation_core::valtron::single::initialize_pool(42);
-    }
-
-    fn test_config() -> AuthManagerConfig {
-        AuthManagerConfig::new().with_refresh_buffer(300)
-    }
-
-    fn test_manager() -> AuthManager {
-        init_valtron();
-        let store = CredentialStorage::memory();
-        AuthManager::new(store, test_config())
-    }
-
-    /// Drive a future that completes synchronously (no real async I/O).
-    fn block_on<F: std::future::Future>(f: F) -> F::Output {
-        let mut f = std::pin::pin!(f);
-        let waker = noop_waker();
-        let mut cx = std::task::Context::from_waker(&waker);
-        match f.as_mut().poll(&mut cx) {
-            std::task::Poll::Ready(v) => v,
-            std::task::Poll::Pending => panic!("future returned Pending — expected sync completion"),
-        }
-    }
-
-    fn noop_waker() -> std::task::Waker {
-        use std::task::{RawWaker, RawWakerVTable, Waker};
-        fn no_op(_: *const ()) {}
-        fn clone(_: *const ()) -> RawWaker {
-            RawWaker::new(
-                std::ptr::null(),
-                &RawWakerVTable::new(clone, no_op, no_op, no_op),
-            )
-        }
-        unsafe {
-            Waker::from_raw(RawWaker::new(
-                std::ptr::null(),
-                &RawWakerVTable::new(clone, no_op, no_op, no_op),
-            ))
-        }
-    }
-
-    fn store_valid_oauth_token(store: &CredentialStorage) {
-        let token = OAuthToken {
-            access_token: "valid_access_token".to_string(),
-            token_type: "Bearer".to_string(),
-            expires_in: Some(3600),
-            refresh_token: Some("valid_refresh_token".to_string()),
-            scope: Some("openid profile".to_string()),
-            id_token: None,
-        };
-        store.store_oauth_token("default", &token).unwrap();
-    }
-
-    fn store_expired_oauth_token(store: &CredentialStorage, with_refresh: bool) {
-        let token = OAuthToken {
-            access_token: "expired_access_token".to_string(),
-            token_type: "Bearer".to_string(),
-            expires_in: Some(0),
-            refresh_token: if with_refresh {
-                Some("expired_refresh_token".to_string())
-            } else {
-                None
-            },
-            scope: None,
-            id_token: None,
-        };
-        store.store_oauth_token("default", &token).unwrap();
-    }
-
-    // ===== Initial state =====
-
-    #[test]
-    fn test_initial_state() {
-        let mgr = test_manager();
-        assert!(!mgr.is_authenticated());
-        assert_eq!(mgr.state(), AuthState::Unauthenticated);
-    }
-
-    // ===== init_from_store =====
-
-    #[test]
-    fn test_init_from_store_valid_token() {
-        let mut mgr = test_manager();
-        store_valid_oauth_token(&mgr.store);
-
-        let result = mgr.init_from_store().unwrap();
-        assert!(result.is_some());
-        assert!(mgr.is_authenticated());
-        assert_eq!(mgr.state(), AuthState::Authenticated);
-
-        let token = result.unwrap();
-        assert!(!token.is_expired());
-    }
-
-    #[test]
-    fn test_init_from_store_expired_with_refresh() {
-        let mut mgr = test_manager();
-        store_expired_oauth_token(&mgr.store, true);
-
-        let result = mgr.init_from_store().unwrap();
-        assert!(result.is_none());
-        assert_eq!(mgr.state(), AuthState::TokenExpired);
-        assert!(mgr.jwt_manager.get_token().is_some());
-    }
-
-    #[test]
-    fn test_init_from_store_expired_no_refresh() {
-        let mut mgr = test_manager();
-        store_expired_oauth_token(&mgr.store, false);
-
-        let result = mgr.init_from_store().unwrap();
-        assert!(result.is_none());
-        assert_eq!(mgr.state(), AuthState::Unauthenticated);
-    }
-
-    #[test]
-    fn test_init_from_store_empty() {
-        let mut mgr = test_manager();
-        let result = mgr.init_from_store().unwrap();
-        assert!(result.is_none());
-        assert_eq!(mgr.state(), AuthState::Unauthenticated);
-    }
-
-    // ===== authenticate =====
-
-    #[test]
-    fn test_authenticate_oauth() {
-        let mut mgr = test_manager();
-        let expires = chrono::Utc::now().timestamp() as f64 + 3600.0;
-        let cred = AuthCredential::OAuth(crate::OAuthCredential {
-            expires,
-            access_token: ConfidentialText::new("oauth_access".to_string()),
-            refresh_token: Some(ConfidentialText::new("oauth_refresh".to_string())),
-        });
-
-        let result = block_on(mgr.authenticate(cred));
-        assert!(result.is_ok());
-        assert!(mgr.is_authenticated());
-        assert_eq!(mgr.state(), AuthState::Authenticated);
-
-        // Token should be persisted
-        let stored = mgr.store.get_oauth_token("default").unwrap();
-        assert!(stored.is_some());
-        assert_eq!(stored.unwrap().access_token, "oauth_access");
-    }
-
-    #[test]
-    fn test_authenticate_unsupported_credential() {
-        let mut mgr = test_manager();
-        let cred = AuthCredential::UsernameAndPassword {
-            username: "user".to_string(),
-            password: ConfidentialText::new("pass".to_string()),
-        };
-
-        let result = block_on(mgr.authenticate(cred));
-        assert!(result.is_err());
-        assert_eq!(mgr.state(), AuthState::Failed);
-    }
-
-    // ===== get_valid_token =====
-
-    #[test]
-    fn test_get_valid_token_authenticated() {
-        let mut mgr = test_manager();
-        store_valid_oauth_token(&mgr.store);
-        mgr.init_from_store().unwrap();
-
-        let result = mgr.get_valid_token();
-        assert!(result.is_ok());
-        let token = result.unwrap();
-        assert!(!token.is_expired());
-    }
-
-    #[test]
-    fn test_get_valid_token_not_authenticated() {
-        let mgr = test_manager();
-        let result = mgr.get_valid_token();
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_get_valid_token_expired() {
-        let mut mgr = test_manager();
-
-        // Manually set up an authenticated state with a near-expiry token
-        let soon = chrono::Utc::now().timestamp() + 60; // 1 minute from now
-        mgr.jwt_manager.set_token(JwtToken::from_parts(
-            "expiring_token".to_string(),
-            Some("refresh".to_string()),
-            soon,
-            None,
-            None,
-            None,
-        ));
-        let _ = mgr
-            .state_machine
-            .transition_to(AuthEvent::AuthenticateStarted);
-        let _ = mgr
-            .state_machine
-            .transition_to(AuthEvent::AuthenticateCompleted);
-
-        // Token within refresh buffer (300s) — should return TokenExpired
-        let result = mgr.get_valid_token();
-        assert!(matches!(result, Err(AuthManagerError::TokenExpired)));
-    }
-
-    #[test]
-    fn test_get_valid_token_during_refresh() {
-        let mut mgr = test_manager();
-        let _ = mgr
-            .state_machine
-            .transition_to(AuthEvent::AuthenticateStarted);
-        let _ = mgr
-            .state_machine
-            .transition_to(AuthEvent::AuthenticateCompleted);
-        let _ = mgr.state_machine.transition_to(AuthEvent::TokenExpired);
-        let _ = mgr.state_machine.transition_to(AuthEvent::RefreshStarted);
-
-        let result = mgr.get_valid_token();
-        assert!(matches!(result, Err(AuthManagerError::TokenExpired)));
-    }
-
-    // ===== refresh =====
-
-    #[test]
-    fn test_refresh_success() {
-        let mut mgr = test_manager();
-        store_valid_oauth_token(&mgr.store);
-        mgr.init_from_store().unwrap();
-
-        let new_expires = chrono::Utc::now().timestamp() + 7200;
-        let result = block_on(mgr.refresh(|_old_refresh| {
-            Ok(JwtToken::from_parts(
-                "new_access".to_string(),
-                Some("new_refresh".to_string()),
-                new_expires,
-                None,
-                None,
-                None,
-            ))
-        }));
-
-        assert!(result.is_ok());
-        assert!(mgr.is_authenticated());
-        assert_eq!(
-            mgr.jwt_manager.get_token().unwrap().access_token(),
-            "new_access"
-        );
-    }
-
-    #[test]
-    fn test_refresh_failure() {
-        let mut mgr = test_manager();
-        store_valid_oauth_token(&mgr.store);
-        mgr.init_from_store().unwrap();
-
-        let result = block_on(mgr.refresh(|_| {
-            Err(AuthManagerError::Jwt(JwtError::RefreshFailed(
-                "server error".to_string(),
-            )))
-        }));
-
-        assert!(result.is_err());
-        assert_eq!(mgr.state(), AuthState::Failed);
-        assert!(mgr.jwt_manager.get_token().is_none());
-    }
-
-    #[test]
-    fn test_refresh_no_token() {
-        let mut mgr = test_manager();
-        let result = block_on(mgr.refresh(|_| unreachable!()));
-        assert!(matches!(result, Err(AuthManagerError::NoRefreshToken)));
-    }
-
-    #[test]
-    fn test_refresh_from_token_expired_state() {
-        let mut mgr = test_manager();
-        store_expired_oauth_token(&mgr.store, true);
-        mgr.init_from_store().unwrap();
-        assert_eq!(mgr.state(), AuthState::TokenExpired);
-
-        let new_expires = chrono::Utc::now().timestamp() + 7200;
-        let result = block_on(mgr.refresh(|old_refresh| {
-            assert_eq!(old_refresh, "expired_refresh_token");
-            Ok(JwtToken::from_parts(
-                "refreshed_access".to_string(),
-                Some("refreshed_refresh".to_string()),
-                new_expires,
-                None,
-                None,
-                None,
-            ))
-        }));
-
-        assert!(result.is_ok());
-        assert!(mgr.is_authenticated());
-    }
-
-    // ===== logout =====
-
-    #[test]
-    fn test_logout() {
-        let mut mgr = test_manager();
-        store_valid_oauth_token(&mgr.store);
-        mgr.init_from_store().unwrap();
-        assert!(mgr.is_authenticated());
-
-        block_on(mgr.logout(None)).unwrap();
-
-        assert!(!mgr.is_authenticated());
-        assert_eq!(mgr.state(), AuthState::Unauthenticated);
-        assert!(mgr.jwt_manager.get_token().is_none());
-
-        // Stored tokens should be cleared
-        let stored = mgr.store.get_oauth_token("default").unwrap();
-        assert!(stored.is_none());
-    }
-
-    #[test]
-    fn test_logout_with_session_manager() {
-        init_valtron();
-        let store = CredentialStorage::memory();
-        let session_store = CredentialStorage::memory();
-        let signing_key = vec![0xAB; 32];
-        let session_mgr =
-            SessionManager::new(session_store, SessionConfig::default(), &signing_key).unwrap();
-
-        let mut mgr = AuthManager::new(store, test_config()).with_session_manager(session_mgr);
-
-        // Create a session first so we can verify revocation
-        mgr.session_mgr
-            .as_ref()
-            .unwrap()
-            .create_session("test_user", None, None)
-            .unwrap();
-
-        store_valid_oauth_token(&mgr.store);
-        mgr.init_from_store().unwrap();
-
-        block_on(mgr.logout(Some("test_user"))).unwrap();
-        assert!(!mgr.is_authenticated());
-        assert_eq!(mgr.state(), AuthState::Unauthenticated);
-    }
-
-    // ===== reset =====
-
-    #[test]
-    fn test_reset_from_failed() {
-        let mut mgr = test_manager();
-        let _ = mgr
-            .state_machine
-            .transition_to(AuthEvent::AuthenticateStarted);
-        let _ = mgr.state_machine.transition_to(AuthEvent::RefreshFailed);
-        assert_eq!(mgr.state(), AuthState::Failed);
-
-        mgr.reset();
-        assert_eq!(mgr.state(), AuthState::Unauthenticated);
-        assert!(!mgr.is_authenticated());
-    }
-
-    #[test]
-    fn test_reset_from_authenticated() {
-        let mut mgr = test_manager();
-        store_valid_oauth_token(&mgr.store);
-        mgr.init_from_store().unwrap();
-        assert!(mgr.is_authenticated());
-
-        mgr.reset();
-        assert!(!mgr.is_authenticated());
-    }
-
-    // ===== builder methods =====
-
-    #[test]
-    fn test_with_jwks_manager() {
-        let mgr = test_manager()
-            .with_jwks_manager(JwksManager::new("https://example.com/.well-known/jwks.json".to_string(), None));
-        assert!(mgr.jwks_manager().is_some());
-    }
-
-    // ===== config =====
-
-    #[test]
-    fn test_config_builder() {
-        let config = AuthManagerConfig::new()
-            .with_token_storage_key("custom:key")
-            .with_refresh_buffer(60);
-        assert_eq!(config.token_storage_key, "custom:key");
-        assert_eq!(config.refresh_buffer_seconds, 60);
-    }
-
-    #[test]
-    fn test_config_debug() {
-        let config = AuthManagerConfig::new();
-        let debug = format!("{config:?}");
-        assert!(debug.contains("AuthManagerConfig"));
     }
 }

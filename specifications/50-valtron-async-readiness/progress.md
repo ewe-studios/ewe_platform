@@ -13,7 +13,7 @@ _Recorded 2026-10-21._ Goal: async all the way, with sync only at real boundarie
 | valtron async-first API (`.block()` / `.blocking()` native-only, `blocking_boundary!`) | #130 | ✅ merged |
 | foundation_db: I/O-backed stores async-only; `Blocking<S>` for sync callers | #131 | ✅ merged |
 | foundation_ai: `AgentSession` on the `Async*` traits; in-memory stores async-only; `build()` / `end()` async | #132 | ✅ merged |
-| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` (draft PR #133, spec 50 F04) | 🔧 in progress: T1 done |
+| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` (draft PR #133, spec 50 F04) | 🔧 in progress: T1–T2 done |
 
 **After this stream:** spec 65's agent-rpc review round 2 on PR #126. The plan is recorded in `specifications/65-agent-rpc-serving-system/progress.md`: pluggable traits for bare metal / Docker / Workers, auth moving into foundation_auth with a `CaStore` trait, and a `ClientAuth` provider built on our signed JSON secret (not a JWT).
 
@@ -173,7 +173,8 @@ deleting the sync storage traits.
 | Task | State | Checks |
 |------|-------|--------|
 | T1 foundation_auth IdP server on the async traits | done | `ci.py run foundation_auth` (build, clippy, test, wasm): pass. `cargo test --features server-test`: 138 pass, 0 fail (the 17 IdP failures are fixed: bodies were never read, and handler errors became 500) |
-| T2–T14 | pending | |
+| T2 foundation_auth credential/session layer async-only | done | `cargo test -p foundation_auth`: pass (22 AuthManager tests moved to `tests/`); `--features server-test`: 138 pass; wasm `wasm`, `wasm,wasm-bindgen-session`, `wasm,wasm-bindgen-oauth`: build; `examples/cf-login-app` wasm32: builds |
+| T3–T14 | pending | |
 
 ## Next
 

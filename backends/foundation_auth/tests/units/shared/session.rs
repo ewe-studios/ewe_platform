@@ -3,24 +3,20 @@
 use chrono::{Duration, Utc};
 use foundation_auth::shared::credential_store::CredentialStorage;
 use foundation_auth::shared::session::{Session, SessionConfig, SessionManager};
-use foundation_auth::CredentialStore;
-
-fn init_valtron() {
-    foundation_core::valtron::single::initialize_pool(42);
-}
+use foundation_auth::AsyncCredentialStore;
+use foundation_core::valtron::valtron_test;
 
 fn make_manager() -> SessionManager<CredentialStorage> {
-    init_valtron();
     let store = CredentialStorage::memory();
     let key = vec![0xAB; 32];
     SessionManager::new(store, SessionConfig::default(), &key).expect("create session manager")
 }
 
-#[test]
-fn test_create_session() {
+#[valtron_test]
+async fn test_create_session() {
     let mgr = make_manager();
     let (session, cookies) = mgr
-        .create_session("user_1", Some("127.0.0.1"), Some("TestAgent"))
+        .create_session_async("user_1", Some("127.0.0.1"), Some("TestAgent")).await
         .unwrap();
 
     assert_eq!(session.user_id, "user_1");
@@ -29,25 +25,25 @@ fn test_create_session() {
     assert!(!cookies.is_empty());
 }
 
-#[test]
-fn test_revoke_single_session() {
+#[valtron_test]
+async fn test_revoke_single_session() {
     let mgr = make_manager();
-    let (session, _) = mgr.create_session("user_1", None, None).unwrap();
+    let (session, _) = mgr.create_session_async("user_1", None, None).await.unwrap();
 
-    mgr.revoke_session(&session.id).unwrap();
+    mgr.revoke_session_async(&session.id).await.unwrap();
 
-    let stored: Option<Session> = mgr.store().get(&session.id).unwrap();
+    let stored: Option<Session> = mgr.store().get_async(&session.id).await.unwrap();
     assert!(stored.is_some_and(|s| s.revoked));
 }
 
-#[test]
-fn test_revoke_all_sessions() {
+#[valtron_test]
+async fn test_revoke_all_sessions() {
     let mgr = make_manager();
-    mgr.create_session("user_1", None, None).unwrap();
-    mgr.create_session("user_1", None, None).unwrap();
-    mgr.create_session("user_2", None, None).unwrap();
+    mgr.create_session_async("user_1", None, None).await.unwrap();
+    mgr.create_session_async("user_1", None, None).await.unwrap();
+    mgr.create_session_async("user_2", None, None).await.unwrap();
 
-    let count = mgr.revoke_all_sessions("user_1").unwrap();
+    let count = mgr.revoke_all_sessions_async("user_1").await.unwrap();
     assert_eq!(count, 2);
 }
 

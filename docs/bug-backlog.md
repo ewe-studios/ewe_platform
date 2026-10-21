@@ -323,10 +323,17 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   OpenSSL 3 symbols (`EVP_Q_digest`, `OPENSSL_sk_*`) that the build host
   doesn't provide. Fix: vendor OpenSSL (`openssl/vendored`) or document the
   system dependency.
-- **`AuthManager` calls the sync `CredentialStore` from async fns.**
-  `authenticate`, `refresh` and `logout` (`src/shared/auth_manager.rs`) block
-  on storage inside async code, and `AuthManager` is compiled out on JS-hosted
-  wasm because of it. Fix: move it to `AsyncCredentialStore`.
+- **Unused dependencies on wasm.** `cargo check --target wasm32-unknown-unknown
+  -p foundation_auth --no-default-features --features wasm` warns that
+  `argon2`, `foundation_errstacks`, `pbkdf2`, `time` and `uuid` are unused
+  there. Fix: make the native-only ones target-specific dependencies (or gate
+  them behind the features that use them).
+- **`foundation_db::wasm::{WasmCredentialStore, session}` duplicate
+  `CredentialStorage`.** Their docs say they exist because the sync
+  `CredentialStore` routed D1 through blocking calls; that trait is gone (spec
+  50 F04), and `CredentialStorage` over a D1 `StorageProvider` already serves
+  `AsyncCredentialStore` on Workers. Fix: fold callers onto
+  `CredentialStorage` and delete the duplicates.
 - **`NativeOAuth` keeps sync twins** (`exchange_code`, `client_credentials`,
   `refresh_token`) next to the `*_async` methods (`src/native/oauth.rs`),
   against the async-only API rule. Fix: keep only the async methods (as the

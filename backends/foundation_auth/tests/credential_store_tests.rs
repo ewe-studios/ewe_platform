@@ -1,63 +1,50 @@
-//! CredentialStorage tests — Turso backend with shared valtron pool.
+//! `CredentialStorage` tests — Turso backend, async (`#[valtron_test]`).
 
 use foundation_auth::shared::credential_store::{
-    CredentialStorage, CredentialStore, OAuthTokenStore, StoredCredential,
+    AsyncCredentialStore, CredentialStorage, OAuthTokenStore, StoredCredential,
 };
 use foundation_auth::shared::oauth_token::OAuthToken;
 use foundation_db::{StorageBackend, StorageProvider};
-use foundation_core::valtron::BlockingFutureExt;
-use std::sync::Mutex;
+use foundation_core::valtron::valtron_test;
 
-/// Shared Valtron pool guard — initialized once and reused across all tests
-/// to avoid parallel tests interfering with each other's thread pool.
-static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
-
-fn init_valtron() {
-    let mut guard = POOL_GUARD.lock().unwrap();
-    if guard.is_none() {
-        *guard = Some(foundation_core::valtron::initialize_pool(42, None));
-    }
-}
-
-fn sqlite_store() -> (CredentialStorage, tempfile::TempDir) {
-    init_valtron();
+async fn sqlite_store() -> (CredentialStorage, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("auth.sqlite");
     let url = db_path.to_str().expect("non-utf8 tempdir path").to_owned();
-    let store = async move { CredentialStorage::turso(&url).await }
-        .block()
+    let store = CredentialStorage::turso(&url)
+        .await
         .expect("init turso credential storage");
     (store, dir)
 }
 
-#[test]
-fn sqlite_store_basic_roundtrip() {
-    let (store, _dir) = sqlite_store();
+#[valtron_test]
+async fn sqlite_store_basic_roundtrip() {
+    let (store, _dir) = sqlite_store().await;
 
     store
-        .set("test_key", "test_value")
+        .set_async("test_key", "test_value").await
         .expect("Failed to set credential");
 
     let value: String = store
-        .get("test_key")
+        .get_async("test_key").await
         .expect("Failed to get credential")
         .expect("Credential not found");
     assert_eq!(value, "test_value");
 
-    assert!(store.exists("test_key").expect("Failed to check existence"));
+    assert!(store.exists_async("test_key").await.expect("Failed to check existence"));
     assert!(!store
-        .exists("nonexistent")
+        .exists_async("nonexistent").await
         .expect("Failed to check existence"));
 
     store
-        .delete("test_key")
+        .delete_async("test_key").await
         .expect("Failed to delete credential");
-    assert!(!store.exists("test_key").expect("Failed to check existence"));
+    assert!(!store.exists_async("test_key").await.expect("Failed to check existence"));
 }
 
-#[test]
-fn sqlite_store_oauth_helpers() {
-    let (store, _dir) = sqlite_store();
+#[valtron_test]
+async fn sqlite_store_oauth_helpers() {
+    let (store, _dir) = sqlite_store().await;
 
     let token = OAuthToken {
         access_token: "access_123".to_string(),
@@ -69,40 +56,40 @@ fn sqlite_store_oauth_helpers() {
     };
 
     store
-        .store_oauth_token("test_provider", &token)
+        .store_oauth_token("test_provider", &token).await
         .expect("Failed to store OAuth token");
 
     let retrieved = store
-        .get_oauth_token("test_provider")
+        .get_oauth_token("test_provider").await
         .expect("Failed to get OAuth token")
         .expect("OAuth token not found");
     assert_eq!(retrieved.access_token, "access_123");
     assert_eq!(retrieved.refresh_token, Some("refresh_456".to_string()));
 
     store
-        .store_oauth_state("test_state", "verifier_abc", 9_999_999_999)
+        .store_oauth_state("test_state", "verifier_abc", 9_999_999_999).await
         .expect("Failed to store OAuth state");
 
     let state = store
-        .get_oauth_state("test_state")
+        .get_oauth_state("test_state").await
         .expect("Failed to get OAuth state")
         .expect("OAuth state not found");
     assert_eq!(state.code_verifier, "verifier_abc");
     assert!(!state.is_expired());
 }
 
-#[test]
-fn sqlite_store_list_keys_filters_by_prefix() {
-    let (store, _dir) = sqlite_store();
+#[valtron_test]
+async fn sqlite_store_list_keys_filters_by_prefix() {
+    let (store, _dir) = sqlite_store().await;
 
-    let _ = store.set("oauth:provider1", "value1").unwrap();
-    let _ = store.set("oauth:provider2", "value2").unwrap();
-    let _ = store.set("jwt:token", "value3").unwrap();
+    store.set_async("oauth:provider1", "value1").await.unwrap();
+    store.set_async("oauth:provider2", "value2").await.unwrap();
+    store.set_async("jwt:token", "value3").await.unwrap();
 
-    let keys = store.list_keys(None).unwrap();
+    let keys = store.list_keys_async(None).await.unwrap();
     assert_eq!(keys.len(), 3);
 
-    let keys = store.list_keys(Some("oauth:")).unwrap();
+    let keys = store.list_keys_async(Some("oauth:")).await.unwrap();
     assert_eq!(keys.len(), 2);
     assert!(keys.contains(&"oauth:provider1".to_string()));
     assert!(keys.contains(&"oauth:provider2".to_string()));
@@ -118,17 +105,16 @@ fn stored_credential_tracks_access() {
     assert!(stored.last_accessed_at.is_some());
 }
 
-#[test]
-fn credential_storage_wraps_arbitrary_provider() {
-    init_valtron();
+#[valtron_test]
+async fn credential_storage_wraps_arbitrary_provider() {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("wrap.sqlite");
     let url = db_path.to_string_lossy().into_owned();
-    let provider = async move { StorageProvider::new(StorageBackend::Turso { url }).await }
-        .block()
+    let provider = StorageProvider::new(StorageBackend::Turso { url })
+        .await
         .expect("init turso provider");
     let store = CredentialStorage::new(provider);
-    let _ = store.set("k", "v").unwrap();
-    let got: String = store.get("k").unwrap().unwrap();
+    store.set_async("k", "v").await.unwrap();
+    let got: String = store.get_async("k").await.unwrap().unwrap();
     assert_eq!(got, "v");
 }
