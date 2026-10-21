@@ -317,7 +317,14 @@ SQL/KV ones do I/O, so it becomes async:
   `SqlPolicyStore<'a> { store: &'a dyn AsyncQueryStore }`;
   `fn ensure_table(&self)` → `async fn ensure_table(&self)`; row reads pull
   the first row from the async stream.
-- Adds `async-trait` (always) to `Cargo.toml`.
+- `Cargo.toml`: adds `async-trait`; `db` now pulls `foundation_db` and
+  `futures-lite` (the unused optional `foundation_core` dependency goes);
+  dev-dependencies `foundation_core` (for `#[valtron_test]`),
+  `foundation_db` with `turso`, and `tempfile`.
+- `SqlPolicyStore::load_entities` reads the nullable `entities_json` as
+  `Option<String>` (NULL or empty → `None`); it used to fail on NULL.
+- New `tests/sql_store.rs`: the first tests of `SqlPolicyStore`, over a
+  temporary Turso database.
 - Tests: `tests/{kv_store, traits, resolver, file_store}.rs` become
   `#[valtron_test]` async tests (or drive the future with `block_on_future`
   where a sync test is wanted).

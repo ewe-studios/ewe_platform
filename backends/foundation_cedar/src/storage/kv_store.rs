@@ -1,14 +1,16 @@
-use foundation_db::traits::KeyValueStore;
+use foundation_db::AsyncKeyValueStore;
 
 use super::traits::PolicyStore;
 use crate::core::errors::CedarError;
 
-pub struct KvPolicyStore<'a, S: KeyValueStore> {
+/// Policies, schema, entities and version kept under `{namespace}:{key}` in an
+/// async key-value store.
+pub struct KvPolicyStore<'a, S: AsyncKeyValueStore> {
     store: &'a S,
     namespace: String,
 }
 
-impl<'a, S: KeyValueStore> KvPolicyStore<'a, S> {
+impl<'a, S: AsyncKeyValueStore> KvPolicyStore<'a, S> {
     #[must_use]
     pub fn new(store: &'a S, namespace: &str) -> Self {
         Self {
@@ -21,37 +23,40 @@ impl<'a, S: KeyValueStore> KvPolicyStore<'a, S> {
         format!("{}:{suffix}", self.namespace)
     }
 
-    fn load_required(&self, suffix: &str) -> Result<String, CedarError> {
-        let key = self.key(suffix);
+    async fn load_optional(&self, suffix: &str) -> Result<Option<String>, CedarError> {
         self.store
-            .get::<String>(&key)
-            .map_err(|e| CedarError::PolicyParse(format!("KV store error: {e}")))?
-            .ok_or_else(|| CedarError::PolicyParse(format!("Key '{key}' not found in store")))
-    }
-}
-
-impl<S: KeyValueStore> PolicyStore for KvPolicyStore<'_, S> {
-    fn load_policies(&self) -> Result<String, CedarError> {
-        self.load_required("policies")
-    }
-
-    fn load_schema(&self) -> Result<String, CedarError> {
-        self.load_required("schema")
-    }
-
-    fn load_entities(&self) -> Result<Option<String>, CedarError> {
-        let key = self.key("entities");
-        self.store
-            .get::<String>(&key)
+            .get_async::<String>(&self.key(suffix))
+            .await
             .map_err(|e| CedarError::PolicyParse(format!("KV store error: {e}")))
     }
 
-    fn version(&self) -> Result<String, CedarError> {
-        self.load_required("version")
+    async fn load_required(&self, suffix: &str) -> Result<String, CedarError> {
+        self.load_optional(suffix).await?.ok_or_else(|| {
+            CedarError::PolicyParse(format!("Key '{}' not found in store", self.key(suffix)))
+        })
     }
 }
 
-impl<S: KeyValueStore> core::fmt::Debug for KvPolicyStore<'_, S> {
+#[async_trait::async_trait]
+impl<S: AsyncKeyValueStore> PolicyStore for KvPolicyStore<'_, S> {
+    async fn load_policies(&self) -> Result<String, CedarError> {
+        self.load_required("policies").await
+    }
+
+    async fn load_schema(&self) -> Result<String, CedarError> {
+        self.load_required("schema").await
+    }
+
+    async fn load_entities(&self) -> Result<Option<String>, CedarError> {
+        self.load_optional("entities").await
+    }
+
+    async fn version(&self) -> Result<String, CedarError> {
+        self.load_required("version").await
+    }
+}
+
+impl<S: AsyncKeyValueStore> core::fmt::Debug for KvPolicyStore<'_, S> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("KvPolicyStore")
             .field("namespace", &self.namespace)

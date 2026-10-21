@@ -15,15 +15,19 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
 smol_str = "0.3"
+async-trait = "0.1"
 
-foundation_core = { path = "../foundation_core", version = "0.0.6", optional = true }
 foundation_db = { path = "../foundation_db", version = "0.0.4", optional = true, default-features = false }
+futures-lite = { version = "2", optional = true }
 
 [dev-dependencies]
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false, features = ["turso"] }
+tempfile = "3"
 
 [lints]
 workspace = true
 
 [features]
 default = []
-db = ["dep:foundation_core", "dep:foundation_db"]
+db = ["dep:foundation_db", "dep:futures-lite"]

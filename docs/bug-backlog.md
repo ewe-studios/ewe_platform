@@ -260,7 +260,6 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **Sync storage callers still go through `Blocking`.** Each should move to the
   `Async*` traits, one crate at a time, before the sync traits are deleted:
-  - `foundation_cedar` `KvPolicyStore`/`SqlPolicyStore`;
   - `foundation_vectors` `SqlVectorStore`/`LibsqlVectorStore`;
   - `foundation_cronjobs` `CronScheduler`;
   - `MigrationRunner::run` and `StorageCleanup` (keep only `run_async` and an
@@ -366,6 +365,12 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 15. foundation_cedar
 
+- **`SqlPolicyStore` reads its row once per field.** `load_from_store` calls
+  `load_schema`, `load_policies` and `load_entities`, and each runs the same
+  `SELECT` (`src/storage/sql_store.rs`). Fix: a `load_all` on `PolicyStore`
+  (default: the three calls) that the SQL store overrides with one query.
+- **`derive_more` is an unused dependency** (`cargo` warns). Fix: drop it
+  from `Cargo.toml`.
 - **`unreachable call` warnings in `src/core/request.rs`.** The three
   `EntityId::from_str(id).map_err(..)` calls map an error type that can't
   occur (`Infallible`), so the compiler warns on each `map_err`. Fix: drop the
