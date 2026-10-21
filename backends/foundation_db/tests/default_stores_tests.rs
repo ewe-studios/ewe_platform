@@ -1,9 +1,10 @@
 //! `Default` for the persistent stores: a default-constructed store must be
 //! usable as-is, so generic code that asks for `S: Default` (e.g.
 //! `AgentSession::build()`) works with SQL-backed stores, not just in-memory ones.
+//! The stores are async-only; `Blocking<S>: Default` gives the sync view.
 
 use foundation_db::traits::{DocumentStore, KeyValueStore};
-use foundation_db::{SqlDocumentStore, StorageProvider, TursoStorage};
+use foundation_db::{Blocking, SqlDocumentStore, StorageProvider, TursoStorage};
 use std::sync::Mutex;
 
 /// Shared Valtron pool guard: Turso drives its async work through valtron, so
@@ -20,7 +21,7 @@ fn init_valtron() {
 #[test]
 fn default_turso_storage_is_a_migrated_key_value_store() {
     init_valtron();
-    let storage = TursoStorage::default();
+    let storage = Blocking::<TursoStorage>::default();
 
     storage.set("greeting", "hello").unwrap();
     let value: Option<String> = storage.get("greeting").unwrap();
@@ -30,7 +31,7 @@ fn default_turso_storage_is_a_migrated_key_value_store() {
 #[test]
 fn default_sql_document_store_has_its_documents_table() {
     init_valtron();
-    let store = SqlDocumentStore::<TursoStorage>::default();
+    let store = Blocking::<SqlDocumentStore<TursoStorage>>::default();
 
     let doc = store.append("k", serde_json::json!({"n": 1})).unwrap();
     let docs = store.scan_documents("k", 10).unwrap();
@@ -41,8 +42,8 @@ fn default_sql_document_store_has_its_documents_table() {
 #[test]
 fn default_turso_stores_are_independent() {
     init_valtron();
-    let a = TursoStorage::default();
-    let b = TursoStorage::default();
+    let a = Blocking::<TursoStorage>::default();
+    let b = Blocking::<TursoStorage>::default();
 
     a.set("only_in_a", 1_u32).unwrap();
     let in_b: Option<u32> = b.get("only_in_a").unwrap();
@@ -54,7 +55,7 @@ fn default_turso_stores_are_independent() {
 
 #[test]
 fn default_storage_provider_is_in_memory() {
-    let provider = StorageProvider::default();
+    let provider = Blocking::new(StorageProvider::default());
 
     provider.set("k", "v").unwrap();
     let value: Option<String> = provider.get("k").unwrap();

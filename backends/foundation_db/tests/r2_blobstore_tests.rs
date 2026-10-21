@@ -7,10 +7,11 @@
 mod common;
 
 use common::{init_valtron, make_r2_store};
-use foundation_db::BlobStore;
+use foundation_db::{BlobStore, Blocking, R2Store};
 
-fn create_local_r2_store() -> Option<foundation_db::R2Store> {
-    make_r2_store()
+/// `R2Store` is async-only; these tests use its `Blocking` sync view.
+fn create_local_r2_store() -> Option<Blocking<R2Store>> {
+    make_r2_store().map(Blocking::new)
 }
 
 #[test]

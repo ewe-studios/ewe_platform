@@ -1,17 +1,17 @@
 //! D1 storage via wasm-bindgen — calls Cloudflare D1 JS API directly.
 //!
-//! Wraps `D1Database` and implements all storage traits using D1's SQL engine.
-//! Async `*_async` methods are the source of truth (JS Promises);
-//! sync trait methods delegate via `from_future` → `execute`.
+//! Wraps `D1Database` and implements the `Async*` storage traits using D1's SQL
+//! engine. There are no sync impls: on Workers a sync call would have to block
+//! the isolate's only thread waiting on a JS Promise that can then never
+//! resolve. Callers `.await` the async methods.
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
+use foundation_core::valtron::{execute, from_future, StreamIteratorExt, StreamReadyFuture};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore, BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore,
-    SqlRow, StorageItemStream,
+    AsyncRateLimiterStore, DataValue, SqlRow, StorageItemStream,
 };
 use crate::wasm::bindgen::D1Database;
 use base64::{engine::general_purpose::STANDARD, Engine};
@@ -38,21 +38,6 @@ where
             .map_done(|r: Result<T, E>| r.map_err(Into::into))
             .map_pending(|_| ()),
     ))
-}
-
-fn exec_future<T: 'static, E: Into<StorageError> + 'static, F>(
-    future: F,
-) -> StorageResult<T>
-where
-    F: std::future::Future<Output = Result<T, E>> + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
-    let result: Result<Option<T>, StorageError> = collect_one(stream)
-        .map(|r| r.map_err(Into::into))
-        .transpose();
-    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
 }
 
 // ===========================================================================
@@ -89,16 +74,6 @@ impl D1WasmStorage {
 
     fn table_name(&self) -> String {
         format!("{}_kv", self.table_prefix)
-    }
-
-    #[allow(dead_code)]
-    fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
-    }
-
-    #[allow(dead_code)]
-    fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
-        Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
     }
 
     /// Initialize the KV table schema.
@@ -258,54 +233,6 @@ impl D1WasmStorage {
 // ===========================================================================
 // KeyValueStore
 // ===========================================================================
-
-impl KeyValueStore for D1WasmStorage {
-    fn get<'a, V: serde::de::DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> StorageResult<Option<V>> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move { Self::do_get_async(&this.db, &this.table_prefix, &key).await })
-    }
-
-    fn set<V: serde::Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        value: V,
-    ) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            Self::do_set_async(&this.db, &this.table_prefix, &key, value).await
-        })
-    }
-
-    fn delete(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(
-            async move { Self::do_delete_async(&this.db, &this.table_prefix, &key).await },
-        )
-    }
-
-    fn exists(&self, key: &str) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(
-            async move { Self::do_exists_async(&this.db, &this.table_prefix, &key).await },
-        )
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let this = self.clone();
-        let prefix = prefix.map(String::from);
-        let keys = exec_future(async move {
-            Self::do_list_keys_async(&this.db, &this.table_prefix, prefix.as_deref()).await
-        })?;
-        Ok(Self::stream_many(keys))
-    }
-}
 
 impl D1WasmStorage {
     /// Get a value by key from D1.
@@ -521,39 +448,6 @@ impl D1WasmStorage {
 // QueryStore
 // ===========================================================================
 
-impl QueryStore for D1WasmStorage {
-    fn query(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        let this = self.clone();
-        let sql = sql.to_string();
-        let params = params.to_vec();
-        let rows = exec_future(async move {
-            Self::do_query_rows_async(&this.db, &sql, &params).await
-        })?;
-        Ok(Self::stream_many(rows))
-    }
-
-    fn execute(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> StorageResult<u64> {
-        let this = self.clone();
-        let sql = sql.to_string();
-        let params = params.to_vec();
-        exec_future(async move { Self::do_execute_async(&this.db, &sql, &params).await })
-    }
-
-    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let sql = sql.to_string();
-        exec_future(async move { Self::do_execute_batch_async(&this.db, &sql).await })
-    }
-}
-
 impl D1WasmStorage {
     /// Execute a SQL query and return rows as `Vec<SqlRow>`.
     pub async fn query_async(
@@ -636,33 +530,6 @@ impl AsyncQueryStore for D1WasmStorage {
 // ===========================================================================
 // RateLimiterStore
 // ===========================================================================
-
-impl RateLimiterStore for D1WasmStorage {
-    fn check_rate_limit(
-        &self,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            Self::do_check_rate_limit_async(&this.db, &key, max_count, window_seconds).await
-        })
-    }
-
-    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move { Self::do_record_rate_limit_async(&this.db, &key).await })
-    }
-
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move { Self::do_reset_rate_limit_async(&this.db, &key).await })
-    }
-}
 
 impl D1WasmStorage {
     /// Check if a rate limit key is allowed.
@@ -794,41 +661,6 @@ impl AsyncRateLimiterStore for D1WasmStorage {
 // ===========================================================================
 // BlobStore
 // ===========================================================================
-
-impl BlobStore for D1WasmStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        let data = data.to_vec();
-        exec_future(async move {
-            Self::do_put_blob_async(&this.db, &this.table_prefix, &key, &data).await
-        })
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(
-            async move { Self::do_get_blob_async(&this.db, &this.table_prefix, &key).await },
-        )
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            Self::do_delete_blob_async(&this.db, &this.table_prefix, &key).await
-        })
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            Self::do_blob_exists_async(&this.db, &this.table_prefix, &key).await
-        })
-    }
-}
 
 impl D1WasmStorage {
     /// Put a blob into D1 (base64-encoded in the KV table).

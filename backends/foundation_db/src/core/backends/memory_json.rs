@@ -11,7 +11,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncRateLimiterStore,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
+    AsyncRateLimiterStore,
     BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use foundation_core::valtron::Stream;
@@ -49,6 +50,13 @@ impl Default for MemoryJsonStore {
     }
 }
 
+/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
+/// and reached from sync code through `foundation_db::Blocking`): this store
+/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
+/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
+/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
+/// this impl goes once it moves to the `Async*` traits
+/// (`docs/bug-backlog.md`, foundation_ai).
 impl KeyValueStore for MemoryJsonStore {
     fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.lock()?;
@@ -92,6 +100,13 @@ impl KeyValueStore for MemoryJsonStore {
     }
 }
 
+/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
+/// and reached from sync code through `foundation_db::Blocking`): this store
+/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
+/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
+/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
+/// this impl goes once it moves to the `Async*` traits
+/// (`docs/bug-backlog.md`, foundation_ai).
 impl QueryStore for MemoryJsonStore {
     fn query(
         &self,
@@ -120,6 +135,13 @@ impl QueryStore for MemoryJsonStore {
     }
 }
 
+/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
+/// and reached from sync code through `foundation_db::Blocking`): this store
+/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
+/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
+/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
+/// this impl goes once it moves to the `Async*` traits
+/// (`docs/bug-backlog.md`, foundation_ai).
 impl RateLimiterStore for MemoryJsonStore {
     fn check_rate_limit(
         &self,
@@ -190,6 +212,13 @@ impl RateLimiterStore for MemoryJsonStore {
     }
 }
 
+/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
+/// and reached from sync code through `foundation_db::Blocking`): this store
+/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
+/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
+/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
+/// this impl goes once it moves to the `Async*` traits
+/// (`docs/bug-backlog.md`, foundation_ai).
 impl BlobStore for MemoryJsonStore {
     fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         // Store binary data as base64 JSON string
@@ -365,5 +394,32 @@ impl AsyncRateLimiterStore for MemoryJsonStore {
         let mut data = self.lock()?;
         data.remove(&rate_key);
         Ok(())
+    }
+}
+
+/// Async mirror of the sync [`QueryStore`] impl above: `MemoryJsonStore` has no SQL
+/// engine, so every query method fails with `StorageError::Generic`.
+#[async_trait::async_trait]
+impl AsyncQueryStore for MemoryJsonStore {
+    async fn query_async(
+        &self,
+        _sql: &str,
+        _params: &[DataValue],
+    ) -> StorageResult<AsyncQueryStream> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for MemoryJsonStore".to_string(),
+        ))
+    }
+
+    async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for MemoryJsonStore".to_string(),
+        ))
+    }
+
+    async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for MemoryJsonStore".to_string(),
+        ))
     }
 }

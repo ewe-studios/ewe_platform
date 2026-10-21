@@ -35,6 +35,29 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   can't exist. Pure in-memory backends never wait, so keeping their sync impls
   is safe until the dependent moves to the async traits.
 
+## `Blocking<S>` design notes (foundation_db)
+
+- `.block()` needs a `'static` future, but the async store methods borrow
+  `&self` and `&str`. The adapter holds the store in an `Arc` and moves owned
+  copies of the arguments into each future.
+- The document scans return `AsyncStorageItemStream<'_, V>`, which borrows the
+  store. To give the sync iterator a `'static` stream, one generator owns the
+  `Arc`, opens the scan and drains it. It yields an "opened" or "open failed"
+  event first, so the sync trait still reports open errors as `Err`.
+- Poll once with a no-op waker before going to the executor. The in-memory
+  stores are ready at once, so they need no pool and never tie up a worker.
+  Only a future that is really `Pending` goes to valtron.
+- `.block()` panics when no pool is running (`block_on_future` `expect`s). The
+  adapter uses `sync_collect_one(from_future(..))` instead, the same path but
+  returning an error, which becomes a `StorageError`.
+- Turso's `query_async` is lazy: a bad statement errors on the first row
+  poll, not when the query opens. Tests must look for the error as the first
+  stream item.
+- Dead end: gating `Blocking` on `not(target_family = "wasm")` would also break
+  foundation_ai's wasm gate. The CI run is `--no-default-features` on wasm32,
+  but foundation_netio's `wasm-fetch` turns on `foundation_core/js-wasmbindgen`
+  there. Only foundation_core can evaluate the real gate.
+
 ## Pool teardown in tests
 
 - `shutdown_within` detaches workers stuck inside a task. They are threads in

@@ -37,13 +37,33 @@ it. What master has, checked against the source:
 
 ### foundation_db: async-only stores (branch `db/async-stores`, PR not open yet)
 
-- Every backend that does I/O (Turso, libsql, D1, R2, JSON files, Cloudflare
-  D1/KV/R2 Worker stores) implements only the `Async*` store traits. Sync
-  callers go through one native-only `Blocking<S>` adapter, gated by a
-  `foundation_core` macro that expands only where `.block()` exists.
-- The pure in-memory backends (`MemoryStorage`, `MemoryJsonStore`,
-  `MemoryDocumentStore`) keep their sync impls for now (see learnings).
-- Was stopped once by an API usage limit; work is being resumed.
+Done (committed):
+- `foundation_core`: `valtron::BLOCKING_BOUNDARY` + `blocking_boundary!` macro
+  (expands only where `.block()` exists), with a compile-time probe that fails
+  the build if the macro and the blocking helpers ever disagree.
+- `foundation_db`:
+  - `Blocking<S>` adapter (`src/blocking.rs`): sync `KeyValueStore`,
+    `BlobStore`, `QueryStore`, `RateLimiterStore`, `DocumentStore` (and so
+    `StorageCleanup`) over the `Async*` traits.
+  - Sync impls deleted from Turso, libsql, D1, R2, `JsonFileStorage`,
+    `StorageProvider` and the Cloudflare D1/KV/R2 Worker stores. Every
+    `exec_future` / `wrap_async_value` helper is gone.
+  - New async impls: `AsyncQueryStore` + `AsyncRateLimiterStore` for
+    `JsonFileStorage`, `AsyncQueryStore` for `KVWasmStorage`, `MemoryStorage`
+    and `MemoryJsonStore`.
+  - One SQL document store: `SqlDocumentStore<Q: AsyncQueryStore>`
+    (`AsyncSqlDocumentStore` removed).
+  - Turso/libsql constructors, `init_schema`/`init_kv`/`migrate` and
+    `StorageProvider::new` are `async fn`. `D1Store::init_kv` is async too.
+  - `wasm-bindgen-bindings` turns on `foundation_core/js-wasmbindgen`, so
+    `Blocking` is absent whenever the Cloudflare bindings are built
+    (compile-time asserted in `lib.rs`).
+- `cargo test --profile uat -p foundation_db`: all pass, including the new
+  `blocking_tests` (no pool) and `blocking_executor_tests` (pool, Pending
+  futures/streams, Turso, `StorageCleanup`).
+
+Left: callers in the other crates, docs + bug backlog, and the `ci.py` runs
+per touched crate.
 
 ## Next
 

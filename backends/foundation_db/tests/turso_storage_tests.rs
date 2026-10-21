@@ -1,6 +1,7 @@
 //! Turso storage backend integration tests.
 
-use foundation_db::{DataValue, EncryptionKey, KeyValueStore, QueryStore, TursoStorage};
+use foundation_core::valtron::BlockingFutureExt;
+use foundation_db::{Blocking, DataValue, EncryptionKey, KeyValueStore, QueryStore, TursoStorage};
 use std::sync::Mutex;
 use tempfile::TempDir;
 
@@ -16,6 +17,35 @@ fn init_valtron() {
     }
 }
 
+/// Open a store (async constructor) and wrap it in the sync view.
+fn open(url: &str, key: Option<EncryptionKey>) -> Blocking<TursoStorage> {
+    let url = url.to_owned();
+    Blocking::new(
+        async move { TursoStorage::with_encryption(&url, key).await }
+            .block()
+            .unwrap(),
+    )
+}
+
+fn init_schema(storage: &Blocking<TursoStorage>) {
+    let storage = storage.shared();
+    async move { storage.init_schema().await }.block().unwrap();
+}
+
+fn migrate(storage: &Blocking<TursoStorage>, migrations: &[(&str, &str)]) {
+    let storage = storage.shared();
+    let owned: Vec<(String, String)> = migrations
+        .iter()
+        .map(|(id, sql)| ((*id).to_owned(), (*sql).to_owned()))
+        .collect();
+    async move {
+        let refs: Vec<(&str, &str)> = owned.iter().map(|(i, q)| (i.as_str(), q.as_str())).collect();
+        storage.migrate(&refs).await
+    }
+    .block()
+    .unwrap();
+}
+
 #[test]
 fn test_turso_storage_basic() {
     init_valtron();
@@ -23,8 +53,8 @@ fn test_turso_storage_basic() {
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = TursoStorage::new(url).unwrap();
-    storage.init_schema().unwrap();
+    let storage = open(url, None);
+    init_schema(&storage);
 
     storage
         .set::<String>("test_key", "test_value".to_string())
@@ -53,8 +83,8 @@ fn test_turso_storage_encryption() {
     let url = db_path.to_str().unwrap();
 
     let key = EncryptionKey::generate();
-    let storage = TursoStorage::with_encryption(url, Some(key.clone())).unwrap();
-    storage.init_schema().unwrap();
+    let storage = open(url, Some(key.clone()));
+    init_schema(&storage);
 
     let secret_value = "sensitive_data_12345".to_string();
     storage.set("secret_key", secret_value.clone()).unwrap();
@@ -94,14 +124,14 @@ fn test_turso_storage_encryption_wrong_key() {
     let url = db_path.to_str().unwrap();
 
     let key1 = EncryptionKey::generate();
-    let storage1 = TursoStorage::with_encryption(url, Some(key1.clone())).unwrap();
-    storage1.init_schema().unwrap();
+    let storage1 = open(url, Some(key1.clone()));
+    init_schema(&storage1);
 
     let secret_value = "sensitive_data".to_string();
     storage1.set("secret_key", secret_value.clone()).unwrap();
 
     let key2 = EncryptionKey::generate();
-    let storage2 = TursoStorage::with_encryption(url, Some(key2.clone())).unwrap();
+    let storage2 = open(url, Some(key2.clone()));
 
     let result = storage2.get::<String>("secret_key");
     assert!(
@@ -117,8 +147,8 @@ fn test_turso_storage_list_keys() {
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = TursoStorage::new(url).unwrap();
-    storage.init_schema().unwrap();
+    let storage = open(url, None);
+    init_schema(&storage);
 
     storage
         .set::<String>("prefix:key1", "value1".to_string())
@@ -158,7 +188,7 @@ fn test_turso_storage_migrations() {
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = TursoStorage::new(url).unwrap();
+    let storage = open(url, None);
 
     let migrations = &[
         (
@@ -171,7 +201,7 @@ fn test_turso_storage_migrations() {
         ),
     ];
 
-    storage.migrate(migrations).unwrap();
+    migrate(&storage, migrations);
 
     let users_exist = !storage
         .query(
@@ -226,8 +256,8 @@ fn test_social_login_tables_functional() {
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = TursoStorage::new(url).unwrap();
-    storage.init_schema().unwrap();
+    let storage = open(url, None);
+    init_schema(&storage);
 
     // Insert a provider row (mirrors ProviderService::create's columns).
     storage

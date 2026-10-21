@@ -5,7 +5,8 @@
 //! end-to-end, not just against the in-memory backend.
 
 use foundation_db::traits::{DocumentStore, PromotableDocument};
-use foundation_db::{SqlDocumentStore, TursoStorage};
+use foundation_core::valtron::BlockingFutureExt;
+use foundation_db::{Blocking, SqlDocumentStore, TursoStorage};
 use std::sync::Mutex;
 use tempfile::TempDir;
 
@@ -24,13 +25,19 @@ fn init_valtron() {
 /// Uses the real `init_schema` → `MigrationRunner` path (not a hand-written
 /// schema), so this also proves migrations 020/021 actually apply the
 /// `documents` table and its promoted columns end-to-end.
-fn make_store() -> (TempDir, SqlDocumentStore<TursoStorage>) {
+/// The store is async-only; the tests drive it through the `Blocking` sync view.
+fn make_store() -> (TempDir, Blocking<SqlDocumentStore<TursoStorage>>) {
     init_valtron();
     let dir = TempDir::new().unwrap();
-    let url = dir.path().join("docs.db");
-    let storage = TursoStorage::new(url.to_str().unwrap()).unwrap();
-    storage.init_schema().unwrap();
-    (dir, SqlDocumentStore::new(storage))
+    let url = dir.path().join("docs.db").to_str().unwrap().to_owned();
+    let storage = async move {
+        let storage = TursoStorage::new(&url).await?;
+        storage.init_schema().await?;
+        Ok::<_, foundation_db::StorageError>(storage)
+    }
+    .block()
+    .unwrap();
+    (dir, Blocking::new(SqlDocumentStore::new(storage)))
 }
 
 /// A record that promotes `record_type`/`summary` from its content.
@@ -140,17 +147,19 @@ fn migration_runner_applies_all_then_is_idempotent() {
     use foundation_db::{MigrationRunner, MIGRATIONS};
     init_valtron();
     let dir = TempDir::new().unwrap();
-    let url = dir.path().join("migrate.db");
-    let storage = TursoStorage::new(url.to_str().unwrap()).unwrap();
+    let url = dir.path().join("migrate.db").to_str().unwrap().to_owned();
+    let storage = async move { TursoStorage::new(&url).await }.block().unwrap();
+    // The sync runner takes a sync `QueryStore`: the store's `Blocking` view.
+    let sync_view = Blocking::new(storage.clone());
 
     // First run applies every migration; second run applies none.
-    let applied = MigrationRunner::new(MIGRATIONS).run(&storage).unwrap();
+    let applied = MigrationRunner::new(MIGRATIONS).run(&sync_view).unwrap();
     assert_eq!(applied, MIGRATIONS.len(), "first run applies all migrations");
-    let reapplied = MigrationRunner::new(MIGRATIONS).run(&storage).unwrap();
+    let reapplied = MigrationRunner::new(MIGRATIONS).run(&sync_view).unwrap();
     assert_eq!(reapplied, 0, "re-run is a no-op (tracked in _migrations)");
 
     // The documents table + promoted columns from 020/021 are usable.
-    let docs = SqlDocumentStore::new(storage);
+    let docs = Blocking::new(SqlDocumentStore::new(storage));
     docs.append("k", serde_json::json!({"n": 1})).unwrap();
     assert_eq!(docs.scan_documents("k", 10).unwrap().len(), 1);
 }

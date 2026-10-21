@@ -33,8 +33,12 @@ fn init_valtron() {
 /// plus a handle to the blob store so tests can assert on offload directly.
 fn make_store() -> (D1R2DocumentStore<TursoStorage, MemoryStorage>, MemoryStorage) {
     init_valtron();
-    let turso = TursoStorage::new(":memory:").unwrap();
-    turso.init_schema().unwrap();
+    let turso = futures_lite::future::block_on(async {
+        let turso = TursoStorage::new(":memory:").await?;
+        turso.init_schema().await?;
+        Ok::<_, foundation_db::StorageError>(turso)
+    })
+    .unwrap();
     let blobs = MemoryStorage::new();
     let store = D1R2DocumentStore::new(turso, blobs.clone());
     (store, blobs)

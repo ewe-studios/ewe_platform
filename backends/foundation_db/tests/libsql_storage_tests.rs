@@ -1,7 +1,21 @@
 //! libsql storage backend integration tests.
 #![cfg(feature = "libsql")]
 
-use foundation_db::{KeyValueStore, LibsqlStore, QueryStore};
+use foundation_db::{Blocking, KeyValueStore, LibsqlStore};
+
+// NOTE: the functions below carry no `#[test]` (they never run; libsql needs a
+// tokio runtime). Tracked in docs/bug-backlog.md (foundation_db).
+
+/// Open + init a KV store (async constructors) and wrap it in the sync view.
+fn open(url: &str) -> Blocking<LibsqlStore> {
+    let storage = futures_lite::future::block_on(async {
+        let storage = LibsqlStore::new_kv(url, None).await?;
+        storage.init_kv().await?;
+        Ok::<_, foundation_db::StorageError>(storage)
+    })
+    .unwrap();
+    Blocking::new(storage)
+}
 use tempfile::TempDir;
 
 /// Initialize the Valtron executor for tests.
@@ -9,14 +23,14 @@ fn init_valtron() {
     foundation_core::valtron::single::initialize_pool(42);
 }
 
+#[allow(dead_code)]
 fn test_libsql_storage_basic() {
     init_valtron();
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = LibsqlStore::new_kv(url, None).unwrap();
-    storage.init_kv().unwrap();
+    let storage = open(url);
 
     storage.set::<String>("test_key", "test_value".to_string()).unwrap();
 
@@ -35,14 +49,14 @@ fn test_libsql_storage_basic() {
     assert!(!deleted);
 }
 
+#[allow(dead_code)]
 fn test_libsql_storage_list_keys() {
     init_valtron();
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = LibsqlStore::new_kv(url, None).unwrap();
-    storage.init_kv().unwrap();
+    let storage = open(url);
 
     storage.set::<String>("prefix:key1", "value1".to_string()).unwrap();
     storage.set::<String>("prefix:key2", "value2".to_string()).unwrap();

@@ -185,6 +185,13 @@ fn rows_to_async<V: DeserializeOwned + Send + 'static>(
     Box::pin(futures_lite::stream::iter(items))
 }
 
+/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
+/// and reached from sync code through `foundation_db::Blocking`): this store
+/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
+/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
+/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
+/// this impl goes once it moves to the `Async*` traits
+/// (`docs/bug-backlog.md`, foundation_ai).
 impl DocumentStore for MemoryDocumentStore {
     fn append<V: Serialize + Send + 'static>(
         &self,

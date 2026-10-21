@@ -11,9 +11,10 @@
 //!   - `LibsqlStore::new_state()` — StateStore (table: `{project}_{stage}_resources`)
 //!   - `LibsqlStore::new_state_remote()` — StateStore with Turso remote sync
 //!
-//! Async is primary. Sync methods wrap async via Valtron:
-//! - `run_future_iter` for !Send streams (query, list_keys)
-//! - `from_future` + `execute` for single-value operations
+//! The KV/query/rate-limit/blob side implements only the `Async*` storage
+//! traits (sync callers wrap the store in `foundation_db::Blocking`), and the
+//! constructors are `async fn`s. `StateStore` is still a sync, valtron-stream
+//! trait: its methods schedule their futures on the valtron executor.
 
 use std::path::Path;
 use std::sync::Arc;
@@ -21,7 +22,7 @@ use std::sync::Arc;
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{
-    collect_one, execute, from_future, run_future_iter, ShortCircuit, Stream, StreamIteratorExt,
+    execute, from_future, run_future_iter, BlockingFutureExt, Stream, StreamIteratorExt,
     ThreadedValue,
 };
 use futures_core::Stream as AsyncStream;
@@ -29,23 +30,6 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::{StorageError, StorageResult};
-
-/// One-shot blocking bridge for initialization and migrations.
-fn exec_future<T: Send + 'static, E: Into<StorageError> + Send + 'static, F>(
-    future: F,
-) -> StorageResult<T>
-where
-    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
-    F::Output: Send + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
-    let result: Result<Option<T>, StorageError> = collect_one(stream)
-        .map(|r| r.map_err(Into::into))
-        .transpose();
-    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
-}
 
 /// Schedule a future, returning a boxed stream.
 fn schedule_future<T: Send + 'static, E: Into<StorageError> + Send + 'static, F>(
@@ -67,9 +51,8 @@ where
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{ResourceState, StateStatus};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncListStreamIterator,
-    AsyncQueryStream, AsyncQueryStreamIterator, AsyncQueryStore, AsyncRateLimiterStore,
-    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStream, AsyncQueryStore,
+    AsyncRateLimiterStore, DataValue, SqlRow, StorageItemStream,
 };
 use crate::native::rows_stream::LibsqlRowsIterator;
 
@@ -192,13 +175,20 @@ pub struct LibsqlStore {
 /// If the in-memory database can't be opened or migrated, which only happens
 /// when the executor isn't available or `SQLite` itself fails.
 impl Default for LibsqlStore {
+    // `Default` is synchronous, so this is a sync boundary: it waits for the
+    // async constructor and migrations with valtron's `.block()`.
     fn default() -> Self {
-        let store = Self::new_kv(":memory:", None)
-            .expect("LibsqlStore::default: failed to open an in-memory database");
-        crate::core::schema::MigrationRunner::new(crate::core::schema::MIGRATIONS)
-            .run(&store)
-            .expect("LibsqlStore::default: failed to migrate the in-memory database");
-        store
+        async {
+            let store = Self::new_kv(":memory:", None)
+                .await
+                .expect("LibsqlStore::default: failed to open an in-memory database");
+            crate::core::schema::MigrationRunner::new(crate::core::schema::MIGRATIONS)
+                .run_async(&store)
+                .await
+                .expect("LibsqlStore::default: failed to migrate the in-memory database");
+            store
+        }
+        .block()
     }
 }
 
@@ -210,9 +200,8 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database connection fails.
-    pub fn new_kv(db_path: &str, encryption_key: Option<EncryptionKey>) -> StorageResult<Self> {
-        let path = db_path.to_string();
-        let db = exec_future(async move { libsql::Builder::new_local(&path).build().await })?;
+    pub async fn new_kv(db_path: &str, encryption_key: Option<EncryptionKey>) -> StorageResult<Self> {
+        let db = libsql::Builder::new_local(db_path).build().await?;
         let conn = db.connect().map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
@@ -230,17 +219,16 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database cannot be opened.
-    pub fn new_state(db_path: &str, project: &str, stage: &str) -> StorageResult<Self> {
+    pub async fn new_state(db_path: &str, project: &str, stage: &str) -> StorageResult<Self> {
         if let Some(parent) = Path::new(db_path).parent() {
             std::fs::create_dir_all(parent)?;
         }
-        let path = db_path.to_string();
         let table_name = format!(
             "{}_{}_resources",
             project.replace(['-', ' '], "_"),
             stage.replace(['-', ' '], "_"),
         );
-        let db = exec_future(async move { libsql::Builder::new_local(&path).build().await })?;
+        let db = libsql::Builder::new_local(db_path).build().await?;
         let conn = db.connect().map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
@@ -256,7 +244,7 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the remote connection fails.
-    pub fn new_state_remote(
+    pub async fn new_state_remote(
         local_path: &str,
         turso_url: &str,
         auth_token: &str,
@@ -274,9 +262,7 @@ impl LibsqlStore {
             project.replace(['-', ' '], "_"),
             stage.replace(['-', ' '], "_"),
         );
-        let db = exec_future(async move {
-            libsql::Builder::new_remote_replica(path, url, token).build().await
-        })?;
+        let db = libsql::Builder::new_remote_replica(path, url, token).build().await?;
         let conn = db.connect().map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
@@ -288,10 +274,14 @@ impl LibsqlStore {
     // ========== Environment constructors ==========
 
     /// KV store from environment. Uses `DEPLOYMENT_STATE_DB` or default path.
-    pub fn from_env_kv() -> StorageResult<Self> {
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database cannot be opened.
+    pub async fn from_env_kv() -> StorageResult<Self> {
         let path = std::env::var("DEPLOYMENT_STATE_DB")
             .unwrap_or_else(|_| ".deployment/state.db".to_string());
-        Self::new_kv(&path, None)
+        Self::new_kv(&path, None).await
     }
 
     /// StateStore from environment.
@@ -301,7 +291,11 @@ impl LibsqlStore {
     ///   2. `LIBSQL_TURSO_URL` + `LIBSQL_TURSO_TOKEN` → embedded replica
     ///   3. `LIBSQL_LOCAL_PATH` or `DEPLOYMENT_STATE_DB` → local SQLite
     ///   4. Default: `{project_dir}/.deployment/state.db` → local SQLite
-    pub fn from_env_state(project_dir: &Path, project: &str, stage: &str) -> StorageResult<Self> {
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database cannot be opened.
+    pub async fn from_env_state(project_dir: &Path, project: &str, stage: &str) -> StorageResult<Self> {
         // Remote Turso
         if let (Ok(url), Ok(token)) = (
             std::env::var("TURSO_DATABASE_URL"),
@@ -309,7 +303,7 @@ impl LibsqlStore {
         ) {
             let local = std::env::var("TURSO_LOCAL_REPLICA")
                 .unwrap_or_else(|_| ".deployment/turso_replica.db".to_string());
-            return Self::new_state_remote(&local, &url, &token, project, stage);
+            return Self::new_state_remote(&local, &url, &token, project, stage).await;
         }
 
         // Embedded replica via libsql env
@@ -319,14 +313,14 @@ impl LibsqlStore {
         ) {
             let local = std::env::var("LIBSQL_LOCAL_PATH")
                 .unwrap_or_else(|_| ".deployment/libsql.db".to_string());
-            return Self::new_state_remote(&local, &url, &token, project, stage);
+            return Self::new_state_remote(&local, &url, &token, project, stage).await;
         }
 
         // Local-only
         let path = std::env::var("LIBSQL_LOCAL_PATH")
             .or_else(|_| std::env::var("DEPLOYMENT_STATE_DB"))
             .unwrap_or_else(|_| format!("{}/.deployment/state.db", project_dir.display()));
-        Self::new_state(&path, project, stage)
+        Self::new_state(&path, project, stage).await
     }
 
     // ========== Shared helpers ==========
@@ -392,25 +386,14 @@ impl LibsqlStore {
         }
     }
 
-    fn wrap_value<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
-    }
-
-    fn wrap_vec<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
-        Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
-    }
-
-    fn wrap_value_state<T: Send + 'static>(val: T) -> StateStoreStream<T> {
-        Box::new(std::iter::once(ThreadedValue::Value(Ok(val))))
-    }
-
-    fn wrap_vec_state<T: Send + 'static>(vals: Vec<T>) -> StateStoreStream<T> {
-        Box::new(vals.into_iter().map(|v| ThreadedValue::Value(Ok(v))))
-    }
-
     // ========== KV init ==========
 
-    pub fn init_kv(&self) -> StorageResult<()> {
+    /// Create the `kv_store` table if it does not exist.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the statement fails.
+    pub async fn init_kv(&self) -> StorageResult<()> {
         let schema_sql = r"
             CREATE TABLE IF NOT EXISTS kv_store (
                 key TEXT PRIMARY KEY,
@@ -420,8 +403,7 @@ impl LibsqlStore {
             );
             CREATE INDEX IF NOT EXISTS idx_kv_store_key ON kv_store(key);
         ";
-        let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(schema_sql).await })?;
+        self.conn.execute_batch(schema_sql).await?;
         Ok(())
     }
 
@@ -712,192 +694,6 @@ impl LibsqlStore {
             .is_some();
         Ok(exists)
     }
-
-    /// Helper: wrap an async result into a `StorageItemStream` via `from_future`.
-    fn wrap_async<T: Send + 'static>(
-        future: impl std::future::Future<Output = StorageResult<T>> + Send + 'static,
-    ) -> StorageResult<StorageItemStream<'static, T>> {
-        use foundation_core::valtron::execute;
-
-        let task = from_future(future);
-        let stream = execute(task, None)
-            .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-
-        Ok(Box::new(
-            stream
-                .map_circuit(|item| match item {
-                    Stream::Next(result) => match result {
-                        Ok(v) => ShortCircuit::Continue(Stream::Next(Ok(v))),
-                        Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(e))),
-                    },
-                    _ => ShortCircuit::Continue(Stream::Ignore),
-                })
-                .map_pending(|_| ()),
-        ))
-    }
-
-    /// Helper: wrap an async result into a direct value via valtron.
-    fn wrap_async_value<T: Send + 'static>(
-        future: impl std::future::Future<Output = StorageResult<T>> + Send + 'static,
-    ) -> StorageResult<T> {
-        use foundation_core::valtron::{execute, collect_one};
-
-        let task = from_future(future);
-        let stream = execute(task, None)
-            .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-
-        collect_one(stream)
-            .transpose()
-            .map_err(|e| StorageError::Backend(format!("Execution failed: {e}")))?
-            .ok_or_else(|| StorageError::Backend("No result from async operation".to_string()))
-    }
-}
-
-// ===========================================================================
-// KeyValueStore
-// ===========================================================================
-
-impl KeyValueStore for LibsqlStore {
-    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move { storage.get_async_internal::<V>(&key).await })
-    }
-
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move { storage.set_async_internal(&key, value).await })
-    }
-
-    fn delete(&self, key: &str) -> StorageResult<()> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move { storage.delete_async_internal(&key).await })
-    }
-
-    fn exists(&self, key: &str) -> StorageResult<bool> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move { storage.exists_async_internal(&key).await })
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let this = self.clone();
-        let prefix = prefix.map(String::from);
-
-        let iter = run_future_iter(move || async move {
-            let stream = this.list_keys_async(prefix.as_deref()).await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            Ok::<_, StorageError>(AsyncListStreamIterator::new(stream))
-        }, None, None)
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let stream = iter.map(|tv| match tv {
-            ThreadedValue::Value(result) => Stream::Next(result),
-            ThreadedValue::Waiting => Stream::Pending(()),
-        });
-        Ok(Box::new(stream))
-    }
-}
-
-// ===========================================================================
-// QueryStore
-// ===========================================================================
-
-impl QueryStore for LibsqlStore {
-    fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        let this = self.clone();
-        let sql = sql.to_string();
-        let params = params.to_vec();
-
-        let iter = run_future_iter(move || async move {
-            let stream = this.query_async(&sql, &params).await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            Ok::<_, StorageError>(AsyncQueryStreamIterator::new(stream))
-        }, None, None)
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let stream = iter.map(|tv| match tv {
-            ThreadedValue::Value(result) => Stream::Next(result),
-            ThreadedValue::Waiting => Stream::Pending(()),
-        });
-        Ok(Box::new(stream))
-    }
-
-    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
-        let sql = sql.to_string();
-        let storage = self.clone();
-        let params = params.to_vec();
-        Self::wrap_async_value(async move { storage.execute_async_internal(&sql, &params).await })
-    }
-
-    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
-        let sql = sql.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move { storage.execute_batch_async_internal(&sql).await })
-    }
-}
-
-// ===========================================================================
-// RateLimiterStore
-// ===========================================================================
-
-impl RateLimiterStore for LibsqlStore {
-    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.check_rate_limit_async_internal(&key, max_count, window_seconds).await
-        })
-    }
-
-    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.record_rate_limit_async_internal(&key).await
-        })
-    }
-
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.reset_rate_limit_async_internal(&key).await
-        })
-    }
-}
-
-// ===========================================================================
-// BlobStore
-// ===========================================================================
-
-impl BlobStore for LibsqlStore {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let key = key.to_string();
-        let data = data.to_vec();
-        let storage = self.clone();
-        Self::wrap_async_value(async move { storage.put_blob_async_internal(&key, &data).await })
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move { storage.get_blob_async_internal(&key).await })
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move { storage.delete_blob_async_internal(&key).await })
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move { storage.blob_exists_async_internal(&key).await })
-    }
 }
 
 // ===========================================================================
@@ -910,7 +706,10 @@ impl StateStore for LibsqlStore {
         let table_sql = state_create_table_sql(table);
         let index_sql = state_create_indexes_sql(table);
         let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(&format!("{table_sql}\n{index_sql}")).await })?;
+        // `StateStore` is still a sync trait (not part of the async-only storage
+        // migration yet), so `init` is a sync boundary over the async libsql call.
+        async move { conn.execute_batch(&format!("{table_sql}\n{index_sql}")).await }
+            .block()?;
         Ok(())
     }
 
@@ -1111,9 +910,11 @@ impl StateStore for LibsqlStore {
         if let LibsqlMode::StateRemote { .. } = &self.mode {
             if let Some(ref db) = self.db {
                 let db = Arc::clone(db);
-                exec_future(async move {
+                // Sync boundary: `StateStore::sync_remote` is a sync method.
+                async move {
                     db.sync().await.map(|_| ()).map_err(|e| StorageError::Backend(format!("sync failed: {e}")))
-                })?;
+                }
+                .block()?;
             }
         }
         Ok(())

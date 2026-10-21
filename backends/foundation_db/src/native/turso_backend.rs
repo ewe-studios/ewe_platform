@@ -1,46 +1,22 @@
 //! Turso storage backend implementation.
 //!
-//! All business logic lives in async methods. Sync methods wrap async via
-//! Valtron's `run_future_iter` (for !Send streams) or `from_future` (for
-//! single-value operations). Multi-row queries return `AsyncQueryStream`
-//! for true row-by-row async iteration.
+//! `TursoStorage` implements only the `Async*` storage traits: every operation
+//! is a native `async fn`, and multi-row queries return an `AsyncQueryStream`
+//! pulled row by row. Sync callers wrap the store in `foundation_db::Blocking`.
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
-use crate::core::errors::StorageResult;
+use crate::core::errors::{StorageError, StorageResult};
+use crate::core::storage_provider::{
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
+    AsyncRateLimiterStore, DataValue, SqlRow,
+};
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::{
-    collect_one, execute, from_future, run_future_iter, ShortCircuit, Stream, StreamIteratorExt,
-    ThreadedValue,
-};
+use foundation_core::valtron::BlockingFutureExt;
 use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 use turso::Builder;
-
-use crate::core::errors::StorageError;
-
-/// One-shot blocking bridge for initialization and migrations.
-fn exec_future<T, E, F>(future: F) -> StorageResult<T>
-where
-    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
-    F::Output: Send + 'static,
-    T: Send + 'static,
-    E: Into<StorageError> + Send + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
-    let result: Result<Option<T>, StorageError> = collect_one(stream)
-        .map(|r| r.map_err(Into::into))
-        .transpose();
-    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
-}
-use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncListStreamIterator,
-    AsyncQueryStream, AsyncQueryStreamIterator, AsyncQueryStore, AsyncRateLimiterStore,
-    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
-};
 
 /// Turso storage backend with optional encryption support.
 ///
@@ -56,7 +32,9 @@ pub struct TursoStorage {
 /// …): nothing is persisted, so it suits tests and throwaway sessions. Use
 /// [`TursoStorage::new`] with a file path for a store that survives restarts.
 ///
-/// Like `new`, this runs on the valtron executor.
+/// `Default` is a synchronous trait, so this is a sync boundary: it waits for
+/// [`TursoStorage::new`] and [`TursoStorage::init_schema`] on the valtron
+/// executor with `.block()`. In async code, call those two directly instead.
 ///
 /// # Panics
 ///
@@ -64,12 +42,17 @@ pub struct TursoStorage {
 /// when the executor isn't available or `SQLite` itself fails.
 impl Default for TursoStorage {
     fn default() -> Self {
-        let storage = Self::new(":memory:")
-            .expect("TursoStorage::default: failed to open an in-memory database");
-        storage
-            .init_schema()
-            .expect("TursoStorage::default: failed to migrate the in-memory database");
-        storage
+        async {
+            let storage = Self::new(":memory:")
+                .await
+                .expect("TursoStorage::default: failed to open an in-memory database");
+            storage
+                .init_schema()
+                .await
+                .expect("TursoStorage::default: failed to migrate the in-memory database");
+            storage
+        }
+        .block()
     }
 }
 
@@ -79,8 +62,8 @@ impl TursoStorage {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database connection fails.
-    pub fn new(url: &str) -> StorageResult<Self> {
-        Self::with_encryption(url, None)
+    pub async fn new(url: &str) -> StorageResult<Self> {
+        Self::with_encryption(url, None).await
     }
 
     /// Create a new Turso storage connection with optional encryption.
@@ -91,13 +74,11 @@ impl TursoStorage {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database connection fails.
-    pub fn with_encryption(
+    pub async fn with_encryption(
         url: &str,
         encryption_key: Option<EncryptionKey>,
     ) -> StorageResult<Self> {
-        let url = url.to_string();
-        let db: turso::Database =
-            exec_future(async move { Builder::new_local(&url).build().await })?;
+        let db: turso::Database = Builder::new_local(url).build().await?;
         let conn = db
             .connect()
             .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
@@ -112,13 +93,15 @@ impl TursoStorage {
     /// # Errors
     ///
     /// Returns a `StorageError` if schema creation fails.
-    pub fn init_schema(&self) -> StorageResult<()> {
+    pub async fn init_schema(&self) -> StorageResult<()> {
         // Apply the full canonical migration set (kv_store via 001 … documents +
         // promoted columns via 020/021). Previously this hardcoded only
         // `kv_store`/`_migrations`, so every other table — including `documents`
         // — was never created on the native sync path. The runner is idempotent
         // (each migration is `IF NOT EXISTS` and tracked in `_migrations`).
-        crate::core::schema::MigrationRunner::new(crate::core::schema::MIGRATIONS).run(self)?;
+        crate::core::schema::MigrationRunner::new(crate::core::schema::MIGRATIONS)
+            .run_async(self)
+            .await?;
         Ok(())
     }
 
@@ -127,41 +110,33 @@ impl TursoStorage {
     /// # Errors
     ///
     /// Returns a `StorageError` if migration execution fails.
-    pub fn migrate(&self, migrations: &[(&str, &str)]) -> StorageResult<()> {
-        let conn = Arc::clone(&self.conn);
-        exec_future(async move {
-            conn.execute_batch(
+    pub async fn migrate(&self, migrations: &[(&str, &str)]) -> StorageResult<()> {
+        self.conn
+            .execute_batch(
                 "CREATE TABLE IF NOT EXISTS _migrations (
                     id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
                     applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
                 )",
             )
-            .await
-        })?;
+            .await?;
 
         for (id, sql) in migrations {
-            let id = id.to_string();
-            let sql = sql.to_string();
-            let conn = Arc::clone(&self.conn);
-            let _applied: bool = exec_future(async move {
-                let mut stmt = conn
-                    .prepare("SELECT 1 FROM _migrations WHERE id = ?")
-                    .await?;
-                let mut rows = stmt.query([id.clone()]).await?;
-                let exists = rows.next().await?.is_some();
-                if exists {
-                    Ok::<_, turso::Error>(false)
-                } else {
-                    conn.execute_batch(&sql).await?;
-                    conn.execute(
+            let mut stmt = self
+                .conn
+                .prepare("SELECT 1 FROM _migrations WHERE id = ?")
+                .await?;
+            let mut rows = stmt.query([(*id).to_string()]).await?;
+            let exists = rows.next().await?.is_some();
+            if !exists {
+                self.conn.execute_batch(sql).await?;
+                self.conn
+                    .execute(
                         "INSERT INTO _migrations (id, name) VALUES (?, ?)",
-                        [id.clone(), id],
+                        [(*id).to_string(), (*id).to_string()],
                     )
                     .await?;
-                    Ok::<_, turso::Error>(true)
-                }
-            })?;
+            }
         }
 
         Ok(())
@@ -515,10 +490,7 @@ impl TursoStorage {
     /// the stream is polled. This function just constructs and returns the
     /// generator state machine.
     ///
-    /// Callers use the stream in two ways:
-    /// - **Async** (`query_async`): wraps it in `AsyncQueryStream`, caller polls directly
-    /// - **Sync** (`query`): sends it through `run_future_iter`'s worker thread,
-    ///   where `block_on` polls each row on demand
+    /// `query_async` wraps it in an `AsyncQueryStream` that the caller polls.
     fn query_rows_stream(
         conn: Arc<turso::Connection>,
         sql: String,
@@ -550,9 +522,7 @@ impl TursoStorage {
     /// Same pattern as `query_rows_stream`: sync function returning a lazy stream.
     /// The `.await` calls inside are deferred until the stream is polled.
     ///
-    /// Used by:
-    /// - `list_keys_async` (async) — wraps in `AsyncListStream`
-    /// - `list_keys` (sync) — bridges via `run_future_iter` + `AsyncListStreamIterator`
+    /// `list_keys_async` wraps it in an `AsyncListStream`.
     fn list_keys_stream(
         conn: Arc<turso::Connection>,
         sql: String,
@@ -594,214 +564,6 @@ impl TursoStorage {
         conn.execute_batch(&sql)
             .await
             .map_err(|e| StorageError::Backend(e.to_string()))
-    }
-
-    /// Helper: wrap an async result into a `StorageItemStream` via `from_future`.
-#[allow(dead_code)]
-    fn wrap_async<T: Send + 'static>(
-        future: impl std::future::Future<Output = StorageResult<T>> + Send + 'static,
-    ) -> StorageResult<StorageItemStream<'static, T>> {
-        use foundation_core::valtron::execute;
-
-        let task = from_future(future);
-        let stream = execute(task, None)
-            .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-
-        Ok(Box::new(
-            stream
-                .map_circuit(|item| match item {
-                    Stream::Next(result) => match result {
-                        Ok(v) => ShortCircuit::Continue(Stream::Next(Ok(v))),
-                        Err(e) => {
-                            ShortCircuit::ReturnAndStop(Stream::Next(Err(e)))
-                        }
-                    },
-                    _ => ShortCircuit::Continue(Stream::Ignore),
-                })
-                .map_pending(|_| ()),
-        ))
-    }
-
-    /// Helper: wrap an async result into a direct value via valtron.
-    fn wrap_async_value<T: Send + 'static>(
-        future: impl std::future::Future<Output = StorageResult<T>> + Send + 'static,
-    ) -> StorageResult<T> {
-        use foundation_core::valtron::{execute, collect_one};
-
-        let task = from_future(future);
-        let stream = execute(task, None)
-            .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-
-        collect_one(stream)
-            .transpose()
-            .map_err(|e| StorageError::Backend(format!("Execution failed: {e}")))?
-            .ok_or_else(|| StorageError::Backend("No result from async operation".to_string()))
-    }
-}
-
-impl KeyValueStore for TursoStorage {
-    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.get_async_internal::<V>(&key).await
-        })
-    }
-
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.set_async_internal(&key, value).await
-        })
-    }
-
-    fn delete(&self, key: &str) -> StorageResult<()> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.delete_async_internal(&key).await
-        })
-    }
-
-    fn exists(&self, key: &str) -> StorageResult<bool> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.exists_async_internal(&key).await
-        })
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let this = self.clone();
-        let prefix = prefix.map(String::from);
-
-        let iter = run_future_iter(move || async move {
-            let stream = this.list_keys_async(prefix.as_deref()).await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            Ok::<_, StorageError>(AsyncListStreamIterator::new(stream))
-        }, None, None)
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let stream = iter.map(|threaded_value| match threaded_value {
-            ThreadedValue::Value(result) => Stream::Next(result),
-            ThreadedValue::Waiting => Stream::Pending(()),
-        });
-
-        Ok(Box::new(stream))
-    }
-}
-
-impl QueryStore for TursoStorage {
-    fn query(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        let this = self.clone();
-        let sql = sql.to_string();
-        let params = params.to_vec();
-
-        let iter = run_future_iter(move || async move {
-            let stream = this.query_async(&sql, &params).await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            Ok::<_, StorageError>(AsyncQueryStreamIterator::new(stream))
-        }, None, None)
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let stream = iter.map(|threaded_value| match threaded_value {
-            ThreadedValue::Value(result) => Stream::Next(result),
-            ThreadedValue::Waiting => Stream::Pending(()),
-        });
-
-        Ok(Box::new(stream))
-    }
-
-    fn execute(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> StorageResult<u64> {
-        let sql = sql.to_string();
-        let storage = self.clone();
-        let params = params.to_vec();
-        Self::wrap_async_value(async move {
-            storage.execute_async_internal(&sql, &params).await
-        })
-    }
-
-    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
-        let sql = sql.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.execute_batch_async_internal(&sql).await
-        })
-    }
-}
-
-impl RateLimiterStore for TursoStorage {
-    fn check_rate_limit(
-        &self,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> StorageResult<bool> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.check_rate_limit_async_internal(&key, max_count, window_seconds).await
-        })
-    }
-
-    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.record_rate_limit_async_internal(&key).await
-        })
-    }
-
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.reset_rate_limit_async_internal(&key).await
-        })
-    }
-}
-
-impl BlobStore for TursoStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let key = key.to_string();
-        let data = data.to_vec();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.put_blob_async_internal(&key, &data).await
-        })
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.get_blob_async_internal(&key).await
-        })
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.delete_blob_async_internal(&key).await
-        })
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let key = key.to_string();
-        let storage = self.clone();
-        Self::wrap_async_value(async move {
-            storage.blob_exists_async_internal(&key).await
-        })
     }
 }
 
