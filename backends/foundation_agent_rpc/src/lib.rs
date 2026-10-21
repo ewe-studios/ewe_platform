@@ -36,6 +36,8 @@ pub use error::{AgentRpcError, AgentRpcResult};
 pub use instance::{
     InstanceConfig, InstanceHandle, InstanceMeta, InstanceRegistry, RegistryConfig, TurnGuard,
 };
+#[cfg(feature = "gguf")]
+pub use model::GgufDevice;
 pub use model::{ModelHandle, ModelSource};
 pub use server::{AgentRpcServer, AgentRpcServerBuilder, RunningServer};
 pub use service::{agent_router, AgentRpcService, TurnEventStream};

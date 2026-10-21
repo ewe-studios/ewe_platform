@@ -175,7 +175,9 @@ fn load_candle(
 ) -> foundation_agent_rpc::AgentRpcResult<foundation_ai::backends::candle::CandleModels> {
     use foundation_ai::backends::candle::CandleBackend;
     use foundation_ai::types::{ModelId, ModelProvider, ModelSpec};
-    let foundation_agent_rpc::ModelSource::Candle { name, dir } = source;
+    let foundation_agent_rpc::ModelSource::Candle { name, dir } = source else {
+        panic!("load_candle is only called with a Candle source, got {source:?}");
+    };
     CandleBackend::cpu()
         .get_model_by_spec(ModelSpec {
             name: name.clone(),

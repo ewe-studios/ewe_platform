@@ -573,12 +573,20 @@ the isolate.
 - **`from_router(name, model_id, router)`** serves any router (cloud providers,
   `MockModelProvider` in tests). `MockModel` is not `Clone`, so it cannot go
   through `PreloadedProvider`.
-- **GGUF:** there is no `ModelSource::Gguf` arm: the llama.cpp backend cannot be
-  compiled in this environment, and writing an arm that was never built would be
-  an untested stub. A GGUF `LlamaModels` (a cheap `Arc` clone) is served with
-  `ModelHandle::load_with`/`from_model`; the `gguf` feature enables
-  `foundation_ai/llamacpp`. Adding the arm is tracked with the llama.cpp
-  concurrency check in backlog §10.
+- **GGUF:** `ModelSource::Gguf { name, path, device }` (feature `gguf`) loads a
+  `.gguf` file once through `LlamaBackends::load_model`. Each llama.cpp
+  generation copies the shared `Arc<LlamaModel>` under a brief lock and builds
+  its own context (KV cache), so sessions do not interfere:
+  `tests/gguf_share_tests.rs` pins it on the tiny GGUF fixture (interleaved
+  streams and two OS threads match their solo greedy output).
+  - An earlier note here said llama.cpp "cannot be compiled in this
+    environment". Wrong: the agent worked in a **git worktree**, and worktrees do
+    not initialize submodules, so `tools/llama.cpp` was empty. Run
+    `git submodule update --init tools/llama.cpp` in a fresh worktree; the CPU
+    build works.
+  - Loading a missing GGUF used to panic (a `debug_assert!` in
+    `infrastructure_llama_cpp`'s `load_from_file`); it now returns
+    `LlamaModelLoadError::FileNotFound`.
 
 ## 01 T4 (2026-10-20) — `InstanceRegistry`
 

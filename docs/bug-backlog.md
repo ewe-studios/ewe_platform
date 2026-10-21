@@ -241,14 +241,6 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   without the `tools/llama.cpp` sources (`llama.h` not found). Likely fix: move
   the llama.cpp error-conversion tests behind `required-features = ["llamacpp"]`
   and take the type from the normal (optional) dependency instead.
-- **llama.cpp backend concurrency not verified.** Spec 65 F1/T1 proved one
-  loaded *candle* model serves concurrent sessions without cross-talk; the
-  `LlamaModels` path was not exercised (no llama.cpp build in that run). Run the
-  same interleaving check (`foundation_agent_rpc/tests/model_share_tests.rs`)
-  against the GGUF fixture under the `gguf` feature, and add a
-  `ModelSource::Gguf` arm to `foundation_agent_rpc/src/model.rs` (today GGUF
-  models go through `ModelHandle::load_with`).
-
 ## Paused
 
 - Windows/macOS VM images (#69).

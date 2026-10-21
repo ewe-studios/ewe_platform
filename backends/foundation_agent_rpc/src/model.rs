@@ -15,7 +15,7 @@
 //! keeps no loader, so nothing downstream can trigger a reload. Spec 65 F1/T1
 //! proved concurrent generations on one candle model do not interfere.
 
-#[cfg(feature = "candle")]
+#[cfg(any(feature = "candle", feature = "gguf"))]
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -35,6 +35,29 @@ pub enum ModelSource {
         /// The model directory.
         dir: PathBuf,
     },
+    /// A GGUF model file run on llama.cpp.
+    #[cfg(feature = "gguf")]
+    Gguf {
+        /// Name clients address the model by.
+        name: String,
+        /// The `.gguf` file.
+        path: PathBuf,
+        /// Where llama.cpp runs it.
+        device: GgufDevice,
+    },
+}
+
+/// The llama.cpp backend a [`ModelSource::Gguf`] model runs on.
+#[cfg(feature = "gguf")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum GgufDevice {
+    /// CPU only (works everywhere llama.cpp builds).
+    #[default]
+    Cpu,
+    /// CUDA or Vulkan, when llama.cpp was built with them.
+    Gpu,
+    /// Apple Metal.
+    Metal,
 }
 
 impl ModelSource {
@@ -45,6 +68,24 @@ impl ModelSource {
         ModelSource::Candle {
             name: name.into(),
             dir: dir.into(),
+        }
+    }
+
+    /// A GGUF model file served under `name`, on the CPU.
+    #[cfg(feature = "gguf")]
+    #[must_use]
+    pub fn gguf(name: impl Into<String>, path: impl Into<PathBuf>) -> Self {
+        Self::gguf_on(name, path, GgufDevice::Cpu)
+    }
+
+    /// A GGUF model file served under `name`, on `device`.
+    #[cfg(feature = "gguf")]
+    #[must_use]
+    pub fn gguf_on(name: impl Into<String>, path: impl Into<PathBuf>, device: GgufDevice) -> Self {
+        ModelSource::Gguf {
+            name: name.into(),
+            path: path.into(),
+            device,
         }
     }
 }
@@ -91,13 +132,20 @@ impl ModelHandle {
                 let dir = dir.clone();
                 Self::load_with(name.clone(), move || load_candle(&name, &dir))
             }
+            #[cfg(feature = "gguf")]
+            ModelSource::Gguf { name, path, device } => {
+                let name = name.clone();
+                let path = path.clone();
+                let device = *device;
+                Self::load_with(name.clone(), move || load_gguf(&name, &path, device))
+            }
         }
     }
 
     /// Run `loader` exactly once and serve what it returns.
     ///
-    /// For backends without a [`ModelSource`] variant (e.g. a GGUF
-    /// `LlamaModels`): the loader runs here, never again.
+    /// For backends without a [`ModelSource`] variant, or a custom load: the
+    /// loader runs here, never again.
     ///
     /// # Errors
     /// Whatever `loader` returns.
@@ -187,4 +235,35 @@ fn load_candle(
     CandleBackend::cpu()
         .get_model_by_spec(spec)
         .map_err(|e| AgentRpcError::ModelLoad(format!("{name} from {}: {e}", dir.display())).into())
+}
+
+/// Load a GGUF file with llama.cpp. Each generation on the returned model
+/// builds its own llama.cpp context (and KV cache) from the shared weights, so
+/// sessions do not interfere (pinned by `tests/gguf_share_tests.rs`).
+#[cfg(feature = "gguf")]
+fn load_gguf(
+    name: &str,
+    path: &std::path::Path,
+    device: GgufDevice,
+) -> AgentRpcResult<foundation_ai::backends::llamacpp::LlamaModels> {
+    use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
+    use foundation_ai::types::ModelSpec;
+
+    let backend = match device {
+        GgufDevice::Cpu => LlamaBackends::LLamaCPU,
+        GgufDevice::Gpu => LlamaBackends::LLamaGPU,
+        GgufDevice::Metal => LlamaBackends::LLamaMetal,
+    };
+    let spec = ModelSpec {
+        name: name.to_string(),
+        id: ModelId::Name(name.to_string(), None),
+        devices: None,
+        model_location: Some(path.to_path_buf()),
+        lora_location: None,
+    };
+    backend
+        .load_model(spec, &LlamaBackendConfig::default())
+        .map_err(|e| {
+            AgentRpcError::ModelLoad(format!("{name} from {}: {e}", path.display())).into()
+        })
 }
