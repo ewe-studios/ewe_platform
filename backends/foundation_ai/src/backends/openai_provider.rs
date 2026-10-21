@@ -370,35 +370,127 @@ impl OpenAIProvider {
         }
     }
 
+    /// The `GET models/{name}` request for [`Self::fetch_model_info`].
+    fn model_info_request(&self, model_name: &str) -> GenerationResult<PreparedRequest> {
+        let url = self.build_url(&format!("models/{model_name}"));
+        self.build_prepared_request(&url, "")
+    }
+
+    /// Fetch a model's metadata (`GET models/{name}`) without blocking.
+    ///
+    /// Uses [`HttpClient::send_async`], so on wasm it yields to the JS event loop
+    /// while the `fetch` is in flight. On success the result also replaces the
+    /// cached entry, so later [`ModelProvider::get_model`] calls and
+    /// [`OpenAIModel::info`] see it.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when no HTTP client is configured, the request fails, the
+    /// vendor answers with a non-2xx status, or the body is not a model object.
+    pub async fn fetch_model_info(&self, model_name: &str) -> GenerationResult<OpenAIModelInfo> {
+        let client = self
+            .http_client
+            .clone()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
+        let req = self.model_info_request(model_name)?;
+        let info = fetch_model_info_with(client, req).await?;
+        self.models_cache
+            .lock()
+            .expect("model cache poisoned")
+            .insert(model_name.to_string(), info.clone());
+        Ok(info)
+    }
+
     /// Best-effort `GET models/{name}` metadata lookup (native).
     #[cfg(not(target_family = "wasm"))]
     fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
         let url = self.build_url(&format!("models/{model_name}"));
         let result: Result<OpenAIModelResponse, _> = self.execute_request(&url, "");
         match result {
-            Ok(resp) => OpenAIModelInfo {
-                id: resp.id,
-                object: resp.object,
-                owned_by: resp.owned_by.unwrap_or_default(),
-                created: resp.created.unwrap_or(0),
-            },
+            Ok(resp) => OpenAIModelInfo::from(resp),
             Err(_) => Self::fallback_model_info(model_name),
         }
     }
 
-    /// Wasm: no metadata lookup.
+    /// Wasm: answer with placeholder metadata now and look the model up in the
+    /// background.
     ///
-    /// WHY: `get_model` is synchronous and runs inside the agent task, so a
-    /// lookup has to go through the sync `HttpClient::send`, which on wasm is
-    /// `block_on_collect` — a nested executor loop that never yields to the JS
-    /// event loop, so the `fetch` never resolves and the isolate freezes on the
-    /// first turn (spec 65 feature 06 T5). The metadata is optional (a failed
-    /// lookup already falls back to [`Self::fallback_model_info`]), so wasm
-    /// uses the fallback directly.
+    /// WHY: `get_model` is synchronous and runs inside the agent task. A sync
+    /// lookup would go through `HttpClient::send`, which cannot wait for a
+    /// `fetch` on wasm without freezing the isolate (spec 65 feature 06 T5). So
+    /// the lookup runs as its own valtron task over [`HttpClient::send_async`]:
+    /// it yields to the JS event loop while in flight and, once it resolves,
+    /// replaces the cached placeholder, which [`OpenAIModel::info`] then reports.
     #[cfg(target_family = "wasm")]
     fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
+        self.spawn_model_info_lookup(model_name);
         Self::fallback_model_info(model_name)
     }
+
+    /// Schedule [`fetch_model_info_with`] on the valtron executor; its result
+    /// lands in the shared model cache. Failures leave the placeholder in place
+    /// (the metadata is optional) and are logged.
+    #[cfg(target_family = "wasm")]
+    fn spawn_model_info_lookup(&self, model_name: &str) {
+        let Some(client) = self.http_client.clone() else {
+            return;
+        };
+        let req = match self.model_info_request(model_name) {
+            Ok(req) => req,
+            Err(e) => {
+                tracing::warn!(model = model_name, error = %e, "model metadata lookup not started");
+                return;
+            }
+        };
+        let cache = Arc::clone(&self.models_cache);
+        let name = model_name.to_string();
+        let lookup = async move {
+            match fetch_model_info_with(client, req).await {
+                Ok(info) => {
+                    cache
+                        .lock()
+                        .expect("model cache poisoned")
+                        .insert(name, info);
+                }
+                Err(e) => {
+                    tracing::debug!(model = %name, error = %e, "model metadata lookup failed; keeping placeholder");
+                }
+            }
+        };
+        if let Err(e) =
+            foundation_core::valtron::send(foundation_core::valtron::from_future(lookup))
+        {
+            tracing::warn!(model = model_name, error = %e, "could not schedule model metadata lookup");
+        }
+    }
+}
+
+/// Perform a `GET models/{name}` request over [`HttpClient::send_async`].
+///
+/// Owns its inputs so it can run as a detached task. The body is a small JSON
+/// object needed whole to parse it, so it is read in full after the status check.
+async fn fetch_model_info_with(
+    client: Arc<dyn HttpClient>,
+    req: PreparedRequest,
+) -> GenerationResult<OpenAIModelInfo> {
+    let response = client
+        .send_async(req)
+        .await
+        .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
+    let (status, _headers, body) = response.into_parts();
+    let status_code: usize = status.into();
+    let body_text = collect_strings_from_send_safe(body)
+        .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
+    if !(200..=299).contains(&status_code) {
+        let detail = parse_openai_error(&body_text).unwrap_or(body_text);
+        return Err(GenerationError::Backend(format_http_error(
+            status_code,
+            &detail,
+        )));
+    }
+    let resp: OpenAIModelResponse = serde_json::from_str(&body_text)
+        .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
+    Ok(OpenAIModelInfo::from(resp))
 }
 
 impl ModelProvider for OpenAIProvider {
@@ -465,14 +557,14 @@ impl ModelProvider for OpenAIProvider {
         let model_name = model_id_to_string(&model_id);
 
         let cache = self.models_cache.lock().expect("model cache poisoned");
-        if let Some(info) = cache.get(&model_name) {
+        if cache.contains_key(&model_name) {
             return Ok(OpenAIModel {
                 config: self.config.clone(),
                 model_id: model_id.clone(),
                 model_name: model_name.clone(),
                 api_key: self.api_key.clone(),
                 http_client: self.http_client.clone(),
-                info: info.clone(),
+                models_cache: Arc::clone(&self.models_cache),
                 pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
                 cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
             });
@@ -490,7 +582,7 @@ impl ModelProvider for OpenAIProvider {
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
-            info,
+            models_cache: Arc::clone(&self.models_cache),
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
             cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
         })
@@ -552,13 +644,26 @@ pub struct OpenAIModel {
     model_name: String,
     api_key: Option<ConfidentialText>,
     http_client: Option<Arc<dyn HttpClient>>,
-    #[allow(dead_code)]
-    info: OpenAIModelInfo,
+    /// The provider's model-metadata cache, shared so [`OpenAIModel::info`]
+    /// reports a lookup that completes after this model was handed out.
+    models_cache: Arc<std::sync::Mutex<HashMap<String, OpenAIModelInfo>>>,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
 impl OpenAIModel {
+    /// This model's metadata: the vendor's `models/{name}` answer once a lookup
+    /// has completed, otherwise a placeholder carrying just the model id.
+    #[must_use]
+    pub fn info(&self) -> OpenAIModelInfo {
+        self.models_cache
+            .lock()
+            .expect("model cache poisoned")
+            .get(&self.model_name)
+            .cloned()
+            .unwrap_or_else(|| OpenAIProvider::fallback_model_info(&self.model_name))
+    }
+
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
@@ -1647,6 +1752,17 @@ pub struct OpenAIModelInfo {
     pub object: String,
     pub owned_by: String,
     pub created: u64,
+}
+
+impl From<OpenAIModelResponse> for OpenAIModelInfo {
+    fn from(resp: OpenAIModelResponse) -> Self {
+        Self {
+            id: resp.id,
+            object: resp.object,
+            owned_by: resp.owned_by.unwrap_or_default(),
+            created: resp.created.unwrap_or(0),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
