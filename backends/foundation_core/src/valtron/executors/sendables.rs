@@ -337,6 +337,9 @@ where
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
 {
+    if !multi::is_pool_initialized() {
+        return Err("valtron pool not initialized (call initialize_pool or use #[valtron])".into());
+    }
     tracing::debug!("Executing as a multi-threaded stream in no-wasm");
 
     // Schedule task and get iterator with defaults
@@ -419,6 +422,9 @@ where
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
 {
+    if !multi::is_pool_initialized() {
+        return Err("valtron pool not initialized (call initialize_pool or use #[valtron])".into());
+    }
     tracing::debug!("Executing as a multi-threaded stream in no-wasm");
 
     // Schedule task and get iterator

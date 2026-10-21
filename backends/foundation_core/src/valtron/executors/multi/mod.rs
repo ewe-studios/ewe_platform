@@ -205,6 +205,15 @@ impl LocalPoolHandle {
     }
 }
 
+/// Whether a pool is running (see [`get_pool`], which panics when not).
+#[must_use]
+pub fn is_pool_initialized() -> bool {
+    REGISTRY
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .is_some()
+}
+
 /// [`get_pool`] returns a handle for spawning tasks.
 ///
 /// # Panics
