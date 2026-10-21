@@ -2,8 +2,9 @@
 //! (the shared `backends::model_info` path `OpenAIProvider` also uses):
 //! - `fetch_model_info` is a non-blocking `GET models/{name}` whose result a
 //!   model handed out earlier sees through `info()`;
-//! - native `get_model` looks the model up synchronously (a `GET`, not a
-//!   `POST` — the Responses provider used to POST it and always fell back);
+//! - `get_model` never waits on the network: it returns placeholder metadata
+//!   at once and the lookup runs in the background (it used to block natively,
+//!   which hung whenever the server did not answer);
 //! - Anthropic's default URLs are `/v1/...`, with `anthropic-version` as a
 //!   header, and its `created_at` (RFC 3339) becomes Unix seconds.
 
@@ -138,16 +139,6 @@ fn anthropic_model_sees_a_later_lookup() {
 }
 
 #[test]
-fn anthropic_native_get_model_looks_the_model_up() {
-    let client = RecordingClient::new(Status::OK, CLAUDE_JSON);
-    let model = anthropic(&client)
-        .get_model(ModelId::Name(CLAUDE.to_string(), None))
-        .expect("model");
-    assert_eq!(model.info().created, 1_739_923_200);
-    assert_eq!(client.last().0, SimpleMethod::GET);
-}
-
-#[test]
 fn anthropic_urls_use_v1_and_follow_a_proxy_endpoint() {
     let config = AnthropicConfig::default();
     assert_eq!(config.build_url("messages"), "https://api.anthropic.com/v1/messages");
@@ -179,18 +170,6 @@ fn responses(client: &Arc<RecordingClient>) -> ResponsesProvider {
 }
 
 #[test]
-fn responses_get_model_looks_the_model_up_with_a_get() {
-    let client = RecordingClient::new(Status::OK, GPT_JSON);
-    let model = responses(&client)
-        .get_model(ModelId::Name(GPT.to_string(), None))
-        .expect("model");
-    let (method, url, _) = client.last();
-    assert_eq!(method, SimpleMethod::GET, "a lookup, not a POST");
-    assert!(url.ends_with(&format!("models/{GPT}")), "{url}");
-    assert_eq!(model.info().owned_by, "acme");
-}
-
-#[test]
 fn responses_fetch_model_info_updates_earlier_models() {
     let failing = RecordingClient::new(Status::NotFound, r#"{"error":{"message":"nope"}}"#);
     let provider = responses(&failing);
@@ -212,4 +191,66 @@ fn rfc3339_times_convert_to_unix_seconds() {
     for bad in ["", "2025-02-19", "2025-13-01T00:00:00Z", "2025-02-19T00:00:00", "1969-12-31T23:59:59Z"] {
         assert_eq!(rfc3339_to_unix(bad), None, "{bad:?}");
     }
+}
+
+/// A client whose requests never complete.
+struct NeverAnswers;
+
+#[async_trait]
+impl HttpClient for NeverAnswers {
+    async fn send_async(
+        &self,
+        _req: PreparedRequest,
+    ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+        std::future::pending().await
+    }
+
+    async fn send_sse_async(
+        &self,
+        _req: PreparedRequest,
+    ) -> Result<BoxedSseFutureStream, HttpClientError> {
+        std::future::pending().await
+    }
+
+    fn send(&self, _req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+        loop {
+            std::thread::park();
+        }
+    }
+
+    fn send_sse(&self, _req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
+        loop {
+            std::thread::park();
+        }
+    }
+
+    fn open_exchange(&self, _req: PreparedRequest) -> HttpExchangeClientTask {
+        unimplemented!("open_exchange is not exercised by the model-info tests")
+    }
+}
+
+/// `get_model` returns placeholder metadata at once even when the models
+/// endpoint never answers (each provider).
+#[test]
+fn get_model_never_waits_on_the_network() {
+    let client: Arc<dyn HttpClient> = Arc::new(NeverAnswers);
+
+    let model = AnthropicMessagesProvider::with_http_client(Arc::clone(&client))
+        .create(Some(AnthropicConfig::api_key("sk-test")))
+        .expect("provider")
+        .get_model(ModelId::Name(CLAUDE.to_string(), None))
+        .expect("model");
+    assert_eq!(model.info().id, CLAUDE);
+
+    let model = ResponsesProvider::with_http_client(Arc::clone(&client))
+        .create(None)
+        .expect("provider")
+        .get_model(ModelId::Name(GPT.to_string(), None))
+        .expect("model");
+    assert_eq!(model.info().id, GPT);
+
+    let model = foundation_ai::backends::openai_provider::OpenAIProvider::with_http_client(client)
+        .get_model(ModelId::Name(GPT.to_string(), None))
+        .expect("model");
+    assert_eq!(model.info().id, GPT);
 }
