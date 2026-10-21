@@ -209,33 +209,6 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
   - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
   - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
 
-## 10. Workspace / process
-
-- **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
-  - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
-- **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
-- **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
-  compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target
-  wasm32-unknown-unknown`). The runtime suites (`foundation_core/integration/wasm_tests`
-  via `wasm-testbed deno`/`web`, the bindgen-deno path, `cf-cloud-provider` under
-  miniflare) are local mise tasks, and `integration/wasm_tests` is a standalone
-  crate outside the root workspace, so not even its compile is gated. That is how
-  the feature 06 T5 isolate freeze shipped behind green CI, and how the
-  `wasm-embedded-js` testbed stopped building (deno_v8 had no JS engine selected)
-  unnoticed. Add a CI job that runs `mise run test:wasm-testbed:deno` (embedded
-  Deno; no browser needed) and `mise run test:wasm-bindgen:deno`.
-- **`wasm-testbed` warns on `Command::Bindgen(args)`** (`foundation_testbed/src/bin/wasm-testbed.rs:37`):
-  `args` is unused unless the `wasm-bindgen-test` feature is on (e.g. under
-  `--no-default-features --features wasm-embedded-js`). Gate the binding with the
-  same `cfg` as its use, or prefix it with `_` in the other arm.
-- **Running a wasm mise task installs every tool in `mise.toml`.** `mise exec`/`mise run`
-  first installs all pinned tools (bacon, cargo-nextest, cargo-audit, python…),
-  building several from source. On a small disk that fills it, and where the
-  GitHub attestation API is blocked the python install fails, so
-  `test:wasm-bindgen:deno` cannot start even though it only needs deno and
-  wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
-  task invoke the two binaries via `mise which`.
-
 ## 10. foundation_ai
 
 - **Non-streaming wasm `generate` is unsupported.** The providers' sync
@@ -383,6 +356,33 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `EntityId::from_str(id).map_err(..)` calls map an error type that can't
   occur (`Infallible`), so the compiler warns on each `map_err`. Fix: drop the
   `map_err` (or use `EntityId::new`) so the build is warning-free.
+
+## 16. Workspace / process
+
+- **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
+  - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
+- **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
+- **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
+  compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target
+  wasm32-unknown-unknown`). The runtime suites (`foundation_core/integration/wasm_tests`
+  via `wasm-testbed deno`/`web`, the bindgen-deno path, `cf-cloud-provider` under
+  miniflare) are local mise tasks, and `integration/wasm_tests` is a standalone
+  crate outside the root workspace, so not even its compile is gated. That is how
+  the feature 06 T5 isolate freeze shipped behind green CI, and how the
+  `wasm-embedded-js` testbed stopped building (deno_v8 had no JS engine selected)
+  unnoticed. Add a CI job that runs `mise run test:wasm-testbed:deno` (embedded
+  Deno; no browser needed) and `mise run test:wasm-bindgen:deno`.
+- **`wasm-testbed` warns on `Command::Bindgen(args)`** (`foundation_testbed/src/bin/wasm-testbed.rs:37`):
+  `args` is unused unless the `wasm-bindgen-test` feature is on (e.g. under
+  `--no-default-features --features wasm-embedded-js`). Gate the binding with the
+  same `cfg` as its use, or prefix it with `_` in the other arm.
+- **Running a wasm mise task installs every tool in `mise.toml`.** `mise exec`/`mise run`
+  first installs all pinned tools (bacon, cargo-nextest, cargo-audit, python…),
+  building several from source. On a small disk that fills it, and where the
+  GitHub attestation API is blocked the python install fails, so
+  `test:wasm-bindgen:deno` cannot start even though it only needs deno and
+  wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
+  task invoke the two binaries via `mise which`.
 
 ## Paused
 
