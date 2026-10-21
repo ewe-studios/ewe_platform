@@ -622,6 +622,13 @@ pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// analogue). Same `seed`/`threads` rules as `#[valtron]`: `threads = N` →
 /// `Some(N)`, absent → `None`; `seed` absent → random. Also exported as
 /// `foundation_core::valtron::valtron_test`.
+///
+/// `timeout = ms` (any `u64` expression, so a suite can read it from its own
+/// config) fails the test once the body runs longer than `ms`. The pool is then
+/// torn down with a deadline, `shutdown_grace = ms` (default
+/// `foundation_core::valtron::DEFAULT_TEST_SHUTDOWN_GRACE`): workers still
+/// blocked after it are detached, so a hung test fails in bounded time and
+/// releases the process-wide pool gate for the tests queued behind it.
 #[proc_macro_attribute]
 pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron_test(attr.into(), item.into()).into()

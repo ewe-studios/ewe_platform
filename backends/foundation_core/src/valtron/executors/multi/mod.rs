@@ -529,6 +529,46 @@ impl PoolGuard {
         }
     }
 
+    /// [`Self::shutdown`] with a deadline for the task workers.
+    ///
+    /// WHY: `shutdown` waits for every worker to reach its kill check, so a
+    /// worker stuck inside a task (blocked in a syscall, or deadlocked) makes it
+    /// wait forever, and the process-wide lifecycle gate is never released. A
+    /// test harness that has already given up on a hung test needs the pool torn
+    /// down in bounded time so the next pool user can start.
+    ///
+    /// WHAT: returns `true` if every worker stopped within `timeout`, `false` if
+    /// some were detached still busy (see [`ThreadRegistry::shutdown_within`]).
+    /// Either way the global registries are cleared, and dropping the guard
+    /// afterwards releases the lifecycle gate without waiting again. Idempotent:
+    /// a second call, or a call after `shutdown`, returns `true`.
+    #[must_use]
+    pub fn shutdown_within(&self, timeout: std::time::Duration) -> bool {
+        if self
+            .shut_down
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::Relaxed)
+            .is_err()
+        {
+            return true;
+        }
+        if let Some(ref bg) = self.bg_registry {
+            if let ShutdownOutcome::TimedOut {
+                abandoned_jobs,
+                busy_workers,
+            } = bg.shutdown()
+            {
+                tracing::warn!(
+                    abandoned_jobs,
+                    busy_workers,
+                    "PoolGuard::shutdown_within() - background shutdown timed out"
+                );
+            }
+        }
+        let stopped = self.registry.shutdown_within(timeout);
+        clear_global_registries();
+        stopped
+    }
+
     /// Get the `WaitGroup` for this pool.
     #[must_use]
     pub fn waitgroup(&self) -> &WaitGroup {
@@ -1471,6 +1511,38 @@ impl ThreadRegistry {
         // Clear all remaining thread entries from the registry
         self.registry.clear();
         self.kill_latch.signal_all();
+    }
+
+    /// [`Self::shutdown`], but wait at most `timeout` for the workers to stop.
+    ///
+    /// Returns `true` when every worker stopped and was joined. Returns `false`
+    /// when some worker was still busy at the deadline: a worker blocked inside
+    /// a task (a blocking syscall, a deadlock) never reaches the kill check.
+    /// Those workers are detached rather than joined. They keep the registry
+    /// alive through their `Arc` and exit on their own if their task returns,
+    /// because the kill signal is already set.
+    #[must_use]
+    pub fn shutdown_within(&self, timeout: std::time::Duration) -> bool {
+        self.kill_signal.turn_on();
+        self.interrupt_all_yielders();
+        self.latch.signal_all();
+        let stopped = self.waitgroup.wait_timeout(timeout);
+        if stopped {
+            self.join_all_threads();
+        } else {
+            let detached = {
+                let mut map = self.thread_handles.write().unwrap_or_else(|p| p.into_inner());
+                std::mem::take(&mut *map).len()
+            };
+            tracing::error!(
+                detached,
+                timeout_ms = timeout.as_millis(),
+                "valtron pool: workers still busy at the shutdown deadline; detaching them"
+            );
+        }
+        self.registry.clear();
+        self.kill_latch.signal_all();
+        stopped
     }
 
     /// Join all thread handles.
