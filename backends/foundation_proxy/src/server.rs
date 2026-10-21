@@ -294,32 +294,71 @@ impl ProxyServer {
     /// The accept loop stops taking connections, drains in-flight requests
     /// within the server's grace window, and returns; probe threads exit at
     /// their next checkpoint.
+    ///
+    /// This blocks the calling thread until the drain ends. Async code running
+    /// on a valtron worker must use [`shutdown_async`](Self::shutdown_async)
+    /// instead (see there for why).
     pub fn shutdown(mut self) {
+        (self.begin_teardown())();
+    }
+
+    /// Async twin of [`shutdown`](Self::shutdown): signal shutdown, then await
+    /// the server and probe threads without blocking the calling worker.
+    ///
+    /// WHY: the proxy's connections are valtron tasks, and a task parked on a
+    /// worker is only resumed by that worker. A caller that blocks its worker in
+    /// `join` while the accept loop waits for those connections to drain strands
+    /// any connection parked on the same worker, so the drain runs its full
+    /// grace window (30 s by default) or, with no grace, never ends. The joins
+    /// therefore run on their own thread, and this future parks on a pipe until
+    /// that thread reports they are done.
+    pub async fn shutdown_async(mut self) {
+        let teardown = self.begin_teardown();
+        let (done_tx, done_rx) = foundation_core::valtron::Pipe::<()>::with_depth(1);
+        let spawned = std::thread::Builder::new()
+            .name("proxy-shutdown".to_string())
+            .spawn(move || {
+                teardown();
+                done_tx.close();
+            });
+        match spawned {
+            // `None` is the close above: the joins are done.
+            Ok(_) => while done_rx.receive().await.is_some() {},
+            Err(e) => {
+                // The closure (and the joins it owns) never ran; the server
+                // thread still exits on the shutdown signal set above.
+                tracing::error!(err = %e, "could not spawn the proxy shutdown thread");
+            }
+        }
+    }
+
+    /// Set the shutdown signal and take the parts that must be joined, as one
+    /// closure. Running it blocks until the accept loop has drained and the
+    /// control-socket and probe threads have exited.
+    fn begin_teardown(&mut self) -> impl FnOnce() + Send + 'static {
         self.shutdown.turn_on();
-        if let Some(control) = self.control.take() {
-            control.shutdown();
-        }
-        if let Some(handle) = self.server_thread.take() {
-            let _ = handle.join();
-        }
-        for monitor in self.health.drain(..) {
-            monitor.join();
+        let control = self.control.take();
+        let server_thread = self.server_thread.take();
+        let health: Vec<HealthMonitor> = std::mem::take(&mut self.health);
+        move || {
+            if let Some(control) = control {
+                control.shutdown();
+            }
+            if let Some(handle) = server_thread {
+                if handle.join().is_err() {
+                    tracing::error!("proxy server thread panicked");
+                }
+            }
+            for monitor in health {
+                monitor.join();
+            }
         }
     }
 }
 
 impl Drop for ProxyServer {
     fn drop(&mut self) {
-        self.shutdown.turn_on();
-        if let Some(control) = self.control.take() {
-            control.shutdown();
-        }
-        if let Some(handle) = self.server_thread.take() {
-            let _ = handle.join();
-        }
-        for monitor in self.health.drain(..) {
-            monitor.join();
-        }
+        (self.begin_teardown())();
     }
 }
 

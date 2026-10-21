@@ -506,7 +506,7 @@ async fn h2_grpc_forward_no_downgrade() {
     let payload = b"h2-grpc-no-downgrade-payload".to_vec();
     let (status, body, _trailers) = h2_grpc_request(proxy_port, GRPC_PATH, &payload).await;
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(status, Status::OK, "gRPC through the H2 backend must be 200 OK");
@@ -546,7 +546,7 @@ async fn h2_grpc_trailers_relayed() {
     let payload = b"h2-grpc-trailers-payload".to_vec();
     let (status, _body, trailers) = h2_grpc_request(proxy_port, GRPC_PATH, &payload).await;
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     assert_eq!(status, Status::OK, "gRPC response must be 200 OK");
@@ -645,7 +645,7 @@ async fn h2_grpc_streams_without_buffering() {
         .and_then(|v| v.first())
         .map(|s| s.as_str());
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     let mut full = Vec::from(first.as_ref());
