@@ -46,6 +46,18 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
   aborted. A cancelled client call should send `RST_STREAM` (or half-close) so
   the server observes the abort. Surfaced by spec 63 T13 — its e2e test drives a
   raw `RST_STREAM` because the typed client cannot.
+- **`H2Transport::open` still dials with a blocking `connect_timeout`.**
+  `native/transport/h2.rs`. The h2 handshake now runs in the pump (it used to
+  block the worker in `read(2)` and deadlocked the pool, see
+  `fix/proxy-e2e-hang`), but the TCP dial still blocks the calling worker for up
+  to `connect_timeout` (10 s) against a slow or black-holed remote peer. Likely
+  fix: a non-blocking `connect` (`socket2`, `EINPROGRESS`) finished in a
+  `PumpPhase::Connecting` that waits for writability.
+- **`H2Pump` polls on a fixed 10 ms timer (rule 8).** `POLL_DELAY` in
+  `native/transport/h2.rs` is a hard-coded const, and every `WouldBlock`
+  returns `TaskStatus::Delayed(POLL_DELAY)` instead of parking on socket
+  readiness. Likely fix: park on fd readiness (as `conn_io.rs` does) and keep any
+  fallback delay on `H2Transport` config.
 
 ## 2. foundation_netio
 
@@ -104,6 +116,25 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
 
 ## 4. foundation_core / valtron
 
+- **A parked task is pinned to the worker that parked it.** `executors/local.rs`
+  keeps a worker's parked and delayed tasks in its thread-local `local_tasks` /
+  `sleepers` (`State::Depends` → `Sleepable::Readiness`). Only that worker
+  re-polls them, and no other worker can steal them. So any worker that blocks
+  inside a task (a blocking syscall, a sync `join`, `block_on_future` from a
+  worker) strands every task parked on it until the block ends. Seen in:
+  - `foundation_proxy` `rpc_proxy_e2e_tests` (fixed on `fix/proxy-e2e-hang` by
+    removing the blocking calls): `H2Transport::open` blocked all four workers
+    waiting for SETTINGS that only pool tasks could send (permanent deadlock);
+    and an async test calling the blocking `ProxyServer::shutdown` stranded three
+    proxy connection tasks parked on its worker, so the drain ran its full 30 s
+    grace;
+  - spec 65 F1 (agent-rpc over HTTP/1.1, §1 "HTTP/1.1 RPC holds a worker");
+  - probably the `sleep_async` timer that fails to fire under contention (below).
+
+  Likely fix: when a parked task's readiness fires, hand it back to the global
+  queue (or let idle workers steal from a busy worker's ready set) instead of
+  waiting for its home worker. Until then, never block a worker: no sync I/O,
+  `join` or `block_on_future` inside async code that runs on the pool.
 - **Cross-thread wakes don't wake an idle single-threaded executor.** The native idle wait is a `park_timeout` that nothing unparks, so tasks woken from another thread still poll at up to 100 ms.
 - **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`, `DEFAULT_YIELD_WAIT_TIME` (4 s), `BACK_OFF_*`, and `ThreadedIterFuture`'s queue size of 16 and its 10 ms sleep.
 - **`ThreadedIterFuture` (multi) busy-polls.**
@@ -189,6 +220,22 @@ Last refreshed: 2026-10-20, after PR #96. In flight on branches:
   - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer can fail to fire (see §4) and `H2Transport`'s pump parks on the socket read with no read timeout.
   - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
   - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
+- **`ProxyServer` teardown blocks the caller.** `server.rs` `shutdown` and
+  `Drop` `join` the server thread, which waits up to the drain grace (30 s) for
+  in-flight connections. Called from async code on a valtron worker, that join
+  strands proxy connection tasks parked on the same worker (§4), so the drain
+  always runs its full grace. `shutdown_async` (added on `fix/proxy-e2e-hang`)
+  joins on its own thread, and the async tests use it, but `Drop` still blocks.
+  `drain_complete` also blocks, polling with a hard-coded 50 ms
+  `thread::sleep` **(rule 8)**. Likely fix: make `Drop` hand the joins to a
+  thread instead of waiting, give `drain_complete` an async twin that parks on a
+  drain signal, and move the poll interval to config.
+- **Issue #110 is not root-caused.** `rpc_proxy_e2e_tests`
+  `connect_server_stream_via_h2_proxy` intermittently sees an upstream reset after
+  the first frame. That leg (h2 front end → HTTP/1.1 upstream via
+  `NativeHttpClient` on a feeder thread) does not use `H2Transport`, so the
+  handshake fix on `fix/proxy-e2e-hang` is not known to cover it. It did not
+  reproduce in 210 suite runs while that fix was tested.
 
 ## 10. Workspace / process
 
