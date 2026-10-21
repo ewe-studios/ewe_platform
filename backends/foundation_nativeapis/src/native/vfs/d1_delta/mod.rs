@@ -2,7 +2,8 @@
 
 //! Cloudflare D1 edge SQLite DeltaStore.
 //!
-//! Uses foundation_db's `D1Store` (`BlobStore` + `KeyValueStore`) for HTTP transport.
+//! Uses foundation_db's `D1Store` for HTTP transport, through its sync
+//! `Blocking` view (`BlobStore` + `KeyValueStore`): the VFS traits are sync.
 //!
 //! Storage layout:
 //! - `vfs/data/{path}` — file content via BlobStore
@@ -15,8 +16,8 @@ pub mod types;
 
 pub use types::{D1ChunkRef, D1FileMeta, D1FsConfig};
 
-use foundation_core::valtron::collect_one;
-use foundation_db::core::storage_provider::{AsyncBlobStore, BlobStore, KeyValueStore};
+use foundation_db::core::storage_provider::{BlobStore, KeyValueStore};
+use foundation_db::Blocking;
 use foundation_db::D1Store;
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
@@ -27,7 +28,9 @@ use crate::shared::vfs::types::{
 
 /// D1Delta — Cloudflare D1 edge SQLite DeltaStore.
 pub struct D1Delta {
-    store: D1Store,
+    /// The async-only `D1Store` behind its sync `Blocking` view (the VFS traits
+    /// are synchronous).
+    store: Blocking<D1Store>,
 }
 
 impl D1Delta {
@@ -41,7 +44,7 @@ impl D1Delta {
         let database_id = std::env::var("CF_D1_DATABASE_ID").map_err(|e| VfsError::Backend {
             message: format!("CF_D1_DATABASE_ID not set: {e}"),
         })?;
-        let store = D1Store::new_kv(&api_token, &account_id, &database_id, "vfs");
+        let store = Blocking::new(D1Store::new_kv(&api_token, &account_id, &database_id, "vfs"));
         Ok(Self { store })
     }
 
@@ -51,8 +54,8 @@ impl D1Delta {
 
     pub fn new_with_base_url(api_token: &str, account_id: &str, database_id: &str, base_url: Option<&str>) -> VfsResult<Self> {
         let store = match base_url {
-            Some(url) => D1Store::new_kv_with_base_url(api_token, account_id, database_id, "vfs", url),
-            None => D1Store::new_kv(api_token, account_id, database_id, "vfs"),
+            Some(url) => Blocking::new(D1Store::new_kv_with_base_url(api_token, account_id, database_id, "vfs", url)),
+            None => Blocking::new(D1Store::new_kv(api_token, account_id, database_id, "vfs")),
         };
         Ok(Self { store })
     }
@@ -71,17 +74,12 @@ impl D1Delta {
         let bytes = serde_json::to_vec(meta).map_err(|e| VfsError::Backend {
             message: format!("meta serialize: {e}"),
         })?;
-        let stream = self
-            .store
-            .put_blob(&Self::meta_key(path), &bytes)
-            .map_err(serr)?;
-        collect_one(stream);
+        self.store.put_blob(&Self::meta_key(path), &bytes).map_err(serr)?;
         Ok(())
     }
 
     fn get_meta(&self, path: &str) -> VfsResult<Option<VfsMetadata>> {
-        let stream = self.store.get_blob(&Self::meta_key(path)).map_err(serr)?;
-        let data: Option<Vec<u8>> = collect_blob(stream)?;
+        let data: Option<Vec<u8>> = self.store.get_blob(&Self::meta_key(path)).map_err(serr)?;
         match data {
             Some(bytes) => Ok(Some(serde_json::from_slice(&bytes).map_err(|e| {
                 VfsError::Backend {
@@ -132,8 +130,7 @@ impl crate::shared::vfs::traits::VfsFile for D1File {
         drop(c);
         let key = D1Delta::data_key(&self.path);
         let data = { self.content.read().unwrap().clone() };
-        let stream = self.delta.store.put_blob(&key, &data).map_err(serr)?;
-        collect_one(stream);
+        self.delta.store.put_blob(&key, &data).map_err(serr)?;
         Ok(n)
     }
     fn sync_data(&self) -> VfsResult<()> {
@@ -354,11 +351,7 @@ impl VfsFileSystem for D1Delta {
         }
     }
     fn create(&self, path: &str, _mode: u32) -> VfsResult<Self::File> {
-        let s = self
-            .store
-            .put_blob(&Self::data_key(path), &[])
-            .map_err(serr)?;
-        drain_ok(s)?;
+        self.store.put_blob(&Self::data_key(path), &[]).map_err(serr)?;
         self.store_meta(path, &new_meta(path, 0, VfsFileType::Regular))?;
         Ok(D1File {
             content: std::sync::Arc::new(std::sync::RwLock::new(Vec::new())),
@@ -371,8 +364,7 @@ impl VfsFileSystem for D1Delta {
         self.store_meta(path, &new_meta(path, 0, VfsFileType::Directory))
     }
     fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
-        let s = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
-        let data: Option<Vec<u8>> = collect_blob(s)?;
+        let data: Option<Vec<u8>> = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
         Ok(D1File {
             content: std::sync::Arc::new(std::sync::RwLock::new(data.unwrap_or_default())),
             delta: self.clone_arc(),
@@ -397,8 +389,7 @@ impl VfsFileSystem for D1Delta {
         if let Some(m) = self.get_meta(&path)? {
             return Ok(m);
         }
-        let s = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
-        let d: Option<Vec<u8>> = collect_blob(s)?;
+        let d: Option<Vec<u8>> = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
         match d {
             Some(c) => Ok(new_meta(path, c.len() as u64, VfsFileType::Regular)),
             None => Err(VfsError::Backend {
@@ -414,18 +405,12 @@ impl VfsFileSystem for D1Delta {
         if self.get_meta(&path)?.is_some() {
             return Ok(true);
         }
-        let s = self
-            .store
-            .blob_exists(&Self::data_key(path))
-            .map_err(serr)?;
-        if collect_bool(s).unwrap_or(false) {
+        if self.store.blob_exists(&Self::data_key(path)).map_err(serr)? {
             return Ok(true);
         }
-        let s = self
-            .store
+        self.store
             .blob_exists(&Self::meta_key(path))
-            .map_err(serr)?;
-        Ok(collect_bool(s).unwrap_or(false))
+            .map_err(|e| serr(e).into())
     }
     fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
         if let Some(mut m) = self.get_meta(&path)? {
@@ -451,38 +436,23 @@ impl VfsFileSystem for D1Delta {
         .into())
     }
     fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
-        let s = self.store.get_blob(&Self::data_key(from)).map_err(serr)?;
-        let d: Option<Vec<u8>> = collect_blob(s)?;
+        let d: Option<Vec<u8>> = self.store.get_blob(&Self::data_key(from)).map_err(serr)?;
         if let Some(d) = d {
-            let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?;
-            drain_ok(s)?;
+            self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?;
         }
         if let Some(m) = self.get_meta(from)? {
             self.store_meta(to, &m)?;
         }
-        let s = self
-            .store
-            .delete_blob(&Self::data_key(from))
-            .map_err(serr)?;
-        drain_ok(s)?;
-        let s = self
-            .store
-            .delete_blob(&Self::meta_key(from))
-            .map_err(serr)?;
-        drain_ok(s)?;
+        self.store.delete_blob(&Self::data_key(from)).map_err(serr)?;
+        self.store.delete_blob(&Self::meta_key(from)).map_err(serr)?;
         Ok(())
     }
     fn remove(&self, path: &str) -> VfsResult<()> {
-        let s = self
-            .store
-            .put_blob(&Self::whiteout_key(path), b"1")
-            .map_err(serr)?;
-        drain_ok(s)?;
+        self.store.put_blob(&Self::whiteout_key(path), b"1").map_err(serr)?;
         Ok(())
     }
     fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
-        let s = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
-        let d: Option<Vec<u8>> = collect_blob(s)?;
+        let d: Option<Vec<u8>> = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
         d.ok_or_else(|| {
             VfsError::Backend {
                 message: format!("not found: {path}"),
@@ -491,11 +461,7 @@ impl VfsFileSystem for D1Delta {
         })
     }
     fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
-        let s = self
-            .store
-            .put_blob(&Self::data_key(path), data)
-            .map_err(serr)?;
-        drain_ok(s)?;
+        self.store.put_blob(&Self::data_key(path), data).map_err(serr)?;
         let mut m = self
             .get_meta(path)?
             .unwrap_or_else(|| new_meta(path, data.len() as u64, VfsFileType::Regular));
@@ -519,11 +485,9 @@ impl VfsFileSystem for D1Delta {
         .into())
     }
     fn copy(&self, from: &str, to: &str) -> VfsResult<()> {
-        let s = self.store.get_blob(&Self::data_key(from)).map_err(serr)?;
-        let d: Option<Vec<u8>> = collect_blob(s)?;
+        let d: Option<Vec<u8>> = self.store.get_blob(&Self::data_key(from)).map_err(serr)?;
         if let Some(d) = d {
-            let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?;
-            drain_ok(s)?;
+            self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?;
         }
         if let Some(m) = self.get_meta(from)? {
             self.store_meta(to, &m)?;
@@ -564,8 +528,7 @@ impl DeltaStore for D1Delta {
         }
     }
     fn remove_whiteout(&self, path: &str) -> VfsResult<()> {
-        let s = self.store.delete(&Self::whiteout_key(path)).map_err(serr)?;
-        drain_ok(s)?;
+        self.store.delete(&Self::whiteout_key(path)).map_err(serr)?;
         Ok(())
     }
     fn list_whiteouts(&self, _dir: &str) -> VfsResult<Vec<(String, u64)>> {
@@ -609,40 +572,9 @@ fn path_hash(path: &str) -> u64 {
     h.finish()
 }
 fn whiteout_exists(d: &D1Delta, p: &str) -> VfsResult<bool> {
-    let s = d.store.exists(&D1Delta::whiteout_key(p)).map_err(serr)?;
-    Ok(collect_bool(s).unwrap_or(false))
-}
-fn drain_ok(stream: impl Iterator<Item = foundation_core::valtron::Stream<Result<(), foundation_db::StorageError>, ()>>) -> VfsResult<()> {
-    match collect_one(stream) {
-        Some(Ok(())) => Ok(()),
-        Some(Err(e)) => Err(serr(e).into()),
-        None => Ok(()),
-    }
-}
-fn collect_bool(
-    stream: impl Iterator<
-        Item = foundation_core::valtron::Stream<Result<bool, foundation_db::StorageError>, ()>,
-    >,
-) -> VfsResult<bool> {
-    match collect_one(stream) {
-        Some(Ok(b)) => Ok(b),
-        Some(Err(e)) => Err(serr(e).into()),
-        None => Ok(false),
-    }
-}
-fn collect_blob(
-    stream: impl Iterator<
-        Item = foundation_core::valtron::Stream<
-            Result<Option<Vec<u8>>, foundation_db::StorageError>,
-            (),
-        >,
-    >,
-) -> VfsResult<Option<Vec<u8>>> {
-    match collect_one(stream) {
-        Some(Ok(data)) => Ok(data),
-        Some(Err(e)) => Err(serr(e).into()),
-        None => Ok(None),
-    }
+    d.store
+        .exists(&D1Delta::whiteout_key(p))
+        .map_err(|e| serr(e).into())
 }
 fn serr(e: foundation_db::StorageError) -> VfsError {
     VfsError::Backend {
