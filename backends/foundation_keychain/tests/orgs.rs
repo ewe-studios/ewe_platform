@@ -34,8 +34,9 @@ where
 fn fresh_ctx() -> (KeychainContext, TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("keychain_test.db");
-    let provider = StorageProvider::new(StorageBackend::Turso {
-        url: db_path.to_str().unwrap().to_string(),
+    let provider = foundation_core::valtron::BlockingFutureExt::block({
+        let url = db_path.to_str().unwrap().to_string();
+        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })
     .expect("init turso");
     let db: Arc<dyn AsyncQueryStore> = Arc::new(provider);

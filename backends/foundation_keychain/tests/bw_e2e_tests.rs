@@ -102,8 +102,9 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     // into the crate directory on every run.
     let db_dir = tempfile::tempdir().expect("tempdir");
     let db_path = db_dir.path().join("bw_e2e.db");
-    let p = StorageProvider::new(StorageBackend::Turso {
-        url: db_path.to_str().expect("utf-8 temp path").to_string(),
+    let p = foundation_core::valtron::BlockingFutureExt::block({
+        let url = db_path.to_str().expect("utf-8 temp path").to_string();
+        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })
     .expect("db");
     let store: Arc<dyn AsyncQueryStore> = Arc::new(p);
