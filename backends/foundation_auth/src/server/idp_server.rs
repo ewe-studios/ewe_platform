@@ -7,9 +7,11 @@ use foundation_http::SimpleMethod;
 use super::config::IdpConfig;
 use super::handlers::ServeAdapter;
 use super::storage::HandlerStorage;
-use foundation_db::{KeyValueStore, MemoryStorage};
+use foundation_db::{Blocking, KeyValueStore, MemoryStorage};
 
-pub struct IdpServer<KV: KeyValueStore + 'static = MemoryStorage> {
+/// The default store is the in-memory one, reached through `Blocking` like
+/// every async-only store the (still sync) server services use.
+pub struct IdpServer<KV: KeyValueStore + 'static = Blocking<MemoryStorage>> {
     config: IdpConfig,
     storage: Arc<HandlerStorage<KV>>,
 }

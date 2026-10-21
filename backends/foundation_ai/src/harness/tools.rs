@@ -19,12 +19,16 @@
 
 use std::sync::Arc;
 
-use foundation_db::traits::DocumentStore;
+use foundation_db::traits::AsyncDocumentStore;
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 
 use crate::agentic::memory::MemoryHierarchy;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{ToolCallManager, ToolImpl};
+use crate::agentic::tools::agent::AgentTool;
+use crate::agentic::tools::files::{BashTool, EditTool, ReadTool, WriteTool};
+use crate::agentic::tools::memory::MemoryTool;
+use crate::agentic::tools::search::SearchContextTool;
 use crate::agentic::toolshed::{tool_fn, ToolConstructor, ToolShedError};
 use crate::agentic::UserId;
 use crate::types::routable_provider::ProviderRouter;
@@ -150,7 +154,6 @@ impl ToolPreset {
     /// File tools: `read`, `write`, `edit` over a VFS filesystem.
     #[must_use]
     pub fn files<F: AsyncVfsFileSystem + 'static>(fs: Arc<F>) -> Self {
-        use crate::agentic::tools::files::{EditTool, ReadTool, WriteTool};
         Self::from_tools(vec![
             Arc::new(ReadTool::new(Arc::clone(&fs) as Arc<_>)),
             Arc::new(WriteTool::new(Arc::clone(&fs) as Arc<_>)),
@@ -161,7 +164,6 @@ impl ToolPreset {
     /// Shell tool: `bash`.
     #[must_use]
     pub fn shell() -> Self {
-        use crate::agentic::tools::files::BashTool;
         Self::from_tools(vec![Arc::new(BashTool::new())])
     }
 
@@ -172,9 +174,8 @@ impl ToolPreset {
     pub fn memory<M, D>(hierarchy: Arc<MemoryHierarchy<M, D>>) -> Self
     where
         M: MemoryStore + 'static,
-        D: DocumentStore + 'static,
+        D: AsyncDocumentStore + 'static,
     {
-        use crate::agentic::tools::memory::MemoryTool;
         Self::from_tools(vec![Arc::new(MemoryTool::new(hierarchy))])
     }
 
@@ -195,10 +196,9 @@ impl ToolPreset {
         child_tools: Vec<Arc<dyn ToolImpl>>,
     ) -> Self
     where
-        D: DocumentStore + Default + 'static,
+        D: AsyncDocumentStore + Default + 'static,
         M: MemoryStore + Default + 'static,
     {
-        use crate::agentic::tools::agent::AgentTool;
         Self::from_tools(vec![Arc::new(AgentTool::<D, M>::new(
             router,
             depth,
@@ -218,7 +218,6 @@ impl ToolPreset {
     /// constructor that reads the session's context provider.
     #[must_use]
     pub fn search_context() -> Self {
-        use crate::agentic::tools::search::SearchContextTool;
         Self::from_constructors(vec![tool_fn("search_context", |s| {
             Arc::new(SearchContextTool::new(Arc::clone(&s.context))) as Arc<dyn ToolImpl>
         })])
@@ -227,7 +226,6 @@ impl ToolPreset {
     /// The `memory` tool over the session's own memory hierarchy.
     #[must_use]
     pub fn session_memory() -> Self {
-        use crate::agentic::tools::memory::MemoryTool;
         Self::from_constructors(vec![tool_fn("memory", |s| {
             Arc::new(MemoryTool::from_shared(Arc::clone(&s.memory))) as Arc<dyn ToolImpl>
         })])

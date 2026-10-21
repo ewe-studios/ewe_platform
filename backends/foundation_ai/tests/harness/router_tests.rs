@@ -18,6 +18,7 @@
 //! client + cache dir but download nothing until `get_model`, so we point them
 //! at a throwaway cache dir and exercise routing only.
 
+use foundation_core::valtron::valtron_test;
 use foundation_ai::agentic::AgenticError;
 use foundation_ai::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
 use foundation_ai::harness::{
@@ -236,8 +237,8 @@ fn gemma_preset_rejects_unknown_model() {
     );
 }
 
-#[test]
-fn preset_session_bridge_builds_offline() {
+#[valtron_test]
+async fn preset_session_bridge_builds_offline() {
     use foundation_ai::agentic::{AgentSession, KvMemoryStore};
     use foundation_ai::types::SessionId;
     use foundation_db::{MemoryDocumentStore, MemoryStorage};
@@ -251,7 +252,7 @@ fn preset_session_bridge_builds_offline() {
         .into_agent_builder()
         .with_session_id(sid.clone());
     let session: AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> =
-        builder.build().expect("session builds");
+        builder.build().await.expect("session builds");
     assert_eq!(*session.session_id(), sid);
 }
 
@@ -259,19 +260,20 @@ fn preset_session_bridge_builds_offline() {
 // Every preset constructor bridges into an AgentSession offline, with the
 // preset's models wired.
 
-#[test]
-fn all_presets_build_sessions_offline() {
+#[valtron_test]
+async fn all_presets_build_sessions_offline() {
     use foundation_ai::agentic::{AgentSession, ModelSelection};
 
-    fn session(preset: RouterPreset) -> AgentSession {
-        preset.into_agent_builder().build().expect("session builds")
+    async fn session(preset: RouterPreset) -> AgentSession {
+        preset.into_agent_builder().build().await.expect("session builds")
     }
 
     // GGUF-backed presets (throwaway configs → no download at construction).
     let glm = session(
         RouterPreset::glm52_gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
             .expect("glm52_gemma builds"),
-    );
+    )
+    .await;
     assert_eq!(
         *glm.models(),
         ModelSelection::new(named(Glm52::MODEL_ID)).with_memory(named(Gemma4E2b::MODEL_ID))
@@ -279,29 +281,31 @@ fn all_presets_build_sessions_offline() {
     let qwen = session(
         RouterPreset::qwen36_gemma(Some(throwaway_gguf_config()), Some(throwaway_gguf_config()))
             .expect("qwen36_gemma builds"),
-    );
+    )
+    .await;
     assert_eq!(qwen.models().primary, named(Qwen36::MODEL_ID));
 
     // Cloud presets (dummy key; no network at construction).
-    let claude = session(RouterPreset::claude("test-key").expect("claude builds"));
+    let claude = session(RouterPreset::claude("test-key").expect("claude builds")).await;
     assert_eq!(
         *claude.models(),
         ModelSelection::new(CLAUDE_OPUS).with_memory(CLAUDE_SONNET)
     );
-    let chat = session(RouterPreset::openai_chat("test-key").expect("openai_chat builds"));
+    let chat = session(RouterPreset::openai_chat("test-key").expect("openai_chat builds")).await;
     assert_eq!(chat.models().primary, named(OPENAI_GPT4O));
     let responses =
-        session(RouterPreset::openai_responses("test-key").expect("openai_responses builds"));
+        session(RouterPreset::openai_responses("test-key").expect("openai_responses builds")).await;
     assert_eq!(responses.models().memory, Some(named(OPENAI_GPT4O_MINI)));
 }
 
 #[cfg(feature = "candle")]
-#[test]
-fn candle_llama_preset_builds_a_session_offline() {
+#[valtron_test]
+async fn candle_llama_preset_builds_a_session_offline() {
     let session = RouterPreset::candle_llama("HuggingFaceTB/SmolLM2-135M", None)
         .expect("candle_llama builds")
         .into_agent_builder()
         .build()
+        .await
         .expect("session builds");
     assert_eq!(
         session.models().primary,
@@ -310,8 +314,8 @@ fn candle_llama_preset_builds_a_session_offline() {
     assert_eq!(session.models().memory, None);
 }
 
-#[test]
-fn a_mix_without_a_primary_model_does_not_build_a_session() {
+#[valtron_test]
+async fn a_mix_without_a_primary_model_does_not_build_a_session() {
     use foundation_ai::agentic::AgenticError;
 
     let preset = RouterMix::new()
@@ -324,6 +328,7 @@ fn a_mix_without_a_primary_model_does_not_build_a_session() {
     let err = preset
         .into_agent_builder()
         .build()
+        .await
         .err()
         .expect("no primary model, no session");
     assert_eq!(

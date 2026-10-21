@@ -16,7 +16,7 @@ use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::agentic::toolshed::ContextSearch;
 use crate::types::{Args, Tool, ToolArguments, ToolDefinition};
-use foundation_db::traits::DocumentStore;
+use foundation_db::traits::AsyncDocumentStore;
 use foundation_nativeapis::{VfsFileSystem, VfsSearchMatch, VfsSearcher};
 
 // ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ impl SearchContextTool {
     }
 }
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<ContextProvider<D, M>>
+impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> From<ContextProvider<D, M>>
     for Arc<dyn ContextSearch>
 {
     fn from(context: ContextProvider<D, M>) -> Self {
@@ -203,7 +203,14 @@ impl ToolImpl for SearchContextTool {
         // A negative or non-numeric `k` is an argument error, not a huge usize.
         let k = args.opt_usize("k")?.unwrap_or(10);
 
-        let hits = self.context.search(&query, mode, k).await;
+        let hits = self
+            .context
+            .search(&query, mode, k)
+            .await
+            .map_err(|e| ToolError::Execution {
+                tool: "search_context".into(),
+                reason: format!("reading the session's history and memory failed: {e}"),
+            })?;
         let json = serde_json::to_string(&hits).map_err(|e| ToolError::Execution {
             tool: "search_context".into(),
             reason: format!("serializing the hits failed: {e}"),

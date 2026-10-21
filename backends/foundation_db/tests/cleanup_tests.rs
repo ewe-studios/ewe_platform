@@ -1,6 +1,6 @@
 //! Cleanup operations tests.
 
-use foundation_db::{CleanupStats, MemoryStorage, StorageCleanup};
+use foundation_db::{Blocking, CleanupStats, MemoryStorage, StorageCleanup};
 
 /// Initialize the Valtron executor for tests.
 fn init_valtron() {
@@ -53,9 +53,10 @@ fn test_cleanup_stats_default() {
 #[test]
 fn test_run_full_cleanup_on_empty_storage() {
     init_valtron();
-    let storage = MemoryStorage::new();
+    // `StorageCleanup` is a sync trait; the in-memory store reaches it through
+    // `Blocking`, like every other async-only store.
+    let storage = Blocking::new(MemoryStorage::new());
 
-    // Cleanup should succeed even on empty storage
     let result = storage.run_full_cleanup();
 
     // Memory storage doesn't have the tables, so this should error

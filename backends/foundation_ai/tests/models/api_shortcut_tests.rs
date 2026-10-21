@@ -1,6 +1,7 @@
 //! Proposal 15, Tier 2 shortcuts: message constructors, string model ids,
 //! router conversions and API-key config constructors. All offline.
 
+use foundation_core::valtron::valtron_test;
 use foundation_ai::types::{MessageRole, Messages, TextContent, UserModelContent};
 
 fn text_and_role(message: &Messages) -> (String, MessageRole) {
@@ -110,8 +111,8 @@ fn anthropic_name() -> String {
         .to_string()
 }
 
-#[test]
-fn router_builder_takes_providers_directly() {
+#[valtron_test]
+async fn router_builder_takes_providers_directly() {
     use foundation_ai::types::{ProviderRouter, RoutingRule};
 
     let router = ProviderRouter::builder()
@@ -135,13 +136,14 @@ fn openai_name() -> String {
         .to_string()
 }
 
-#[test]
-fn agent_session_builder_takes_a_provider() {
+#[valtron_test]
+async fn agent_session_builder_takes_a_provider() {
     use foundation_ai::agentic::AgentSession;
 
     let session = AgentSession::builder(anthropic())
         .with_model("claude-sonnet-4-6")
         .build()
+        .await
         .expect("a session over a bare provider builds");
     assert!(session
         .router()

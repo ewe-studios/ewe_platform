@@ -78,29 +78,31 @@ fn store_creds(env: &JsValue) {
 }
 
 /// Build (or reuse) the Workers-AI-backed session for this isolate.
-fn get_or_build_session() -> Result<AgentSession, String> {
-    SESSION.with(|cell| {
-        if let Some(s) = cell.borrow().as_ref() {
-            return Ok(s.clone());
-        }
-        let creds = CREDS
-            .with(|c| c.borrow().clone())
-            .ok_or_else(|| "no credentials stored".to_string())?;
-        let mut config = WorkersAiConfig::api_token(creds.api_token).with_account_id(creds.account_id);
-        if let Some(base_url) = creds.base_url {
-            config = config.with_base_url(base_url);
-        }
-        let provider = WorkersAiProvider::with_http_client(Arc::new(FetchHttpClient::new()))
-            .create(Some(config))
-            .map_err(|e| e.to_string())?;
-        let session = AgentSession::builder(provider)
-            .with_model(ModelId::from(creds.model.as_str()))
-            .with_system_prompt(SYSTEM_PROMPT)
-            .build()
-            .map_err(|e| e.to_string())?;
-        *cell.borrow_mut() = Some(session.clone());
-        Ok(session)
-    })
+///
+/// Building is async (`AgentSessionBuilder::build`), so the cell is not
+/// borrowed across it; if another request stored a session meanwhile, that
+/// one is kept and reused.
+async fn get_or_build_session() -> Result<AgentSession, String> {
+    if let Some(session) = SESSION.with(|cell| cell.borrow().clone()) {
+        return Ok(session);
+    }
+    let creds = CREDS
+        .with(|c| c.borrow().clone())
+        .ok_or_else(|| "no credentials stored".to_string())?;
+    let mut config = WorkersAiConfig::api_token(creds.api_token).with_account_id(creds.account_id);
+    if let Some(base_url) = creds.base_url {
+        config = config.with_base_url(base_url);
+    }
+    let provider = WorkersAiProvider::with_http_client(Arc::new(FetchHttpClient::new()))
+        .create(Some(config))
+        .map_err(|e| e.to_string())?;
+    let session = AgentSession::builder(provider)
+        .with_model(ModelId::from(creds.model.as_str()))
+        .with_system_prompt(SYSTEM_PROMPT)
+        .build()
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(SESSION.with(|cell| cell.borrow_mut().get_or_insert(session).clone()))
 }
 
 /// Run one agentic turn and return the accumulated assistant text.
@@ -110,7 +112,8 @@ async fn run_prompt(prompt: &str) -> Result<String, String> {
     }
     // `ask` waits by parking, yielding to the JS event loop while the
     // Workers AI fetch is in flight; snapshot/delta chunks are already joined.
-    let answer = get_or_build_session()?
+    let answer = get_or_build_session()
+        .await?
         .ask(prompt.to_string())
         .await
         .map_err(|e| e.to_string())?;

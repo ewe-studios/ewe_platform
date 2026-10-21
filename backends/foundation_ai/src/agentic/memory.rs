@@ -22,7 +22,7 @@ use crate::agentic::memory_coordinator::MemoryCoordinator;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::types::{MemoryFact, ModelId, SessionId, SessionRecord};
 use foundation_compact::SystemTime;
-use foundation_db::traits::DocumentStore;
+use foundation_db::traits::AsyncDocumentStore;
 use foundation_db::StorageResult;
 
 use super::memory_store::MemoryStore;
@@ -148,7 +148,7 @@ struct MemoryInner<M, D> {
     is_generating: AtomicBool,
 }
 
-impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
+impl<M: MemoryStore, D: AsyncDocumentStore> MemoryHierarchy<M, D> {
     #[must_use]
     pub fn new(
         session_id: SessionId,

@@ -19,7 +19,8 @@ use crate::agentic::token_ledger::TokenLedger;
 use crate::types::{
     MessageRole, Messages, SessionId, SessionRecord, TextContent, UserModelContent,
 };
-use foundation_db::traits::DocumentStore;
+use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::StorageResult;
 use serde::{Deserialize, Serialize};
 
 // ---------------------------------------------------------------------------
@@ -65,7 +66,7 @@ pub struct KnowledgeHit {
 /// WHAT: System prompt (optional), ordered message list, and a rough token
 /// estimate for the assembled payload.
 ///
-/// HOW: Built by `ContextProvider::assemble_from_memory` in Decision 03
+/// HOW: Built by `ContextProvider::assemble` in Decision 03
 /// order. The `token_estimate` is a heuristic (character count / 4); the
 /// agent loop feeds it to budget checks and context-pressure injection.
 #[derive(Debug, Clone)]
@@ -147,7 +148,7 @@ impl<D, M> Clone for ContextProvider<D, M> {
     }
 }
 
-impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
+impl<D: AsyncDocumentStore, M: MemoryStore> ContextProvider<D, M> {
     #[must_use]
     pub fn new(
         session_id: SessionId,
@@ -189,15 +190,36 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
     /// 4. Observations (only if newer than latest reflection — INCON-03)
     /// 5. Recent raw messages
     /// 6. Semantic recall (fills remaining budget — deferred to F31 wiring)
-    pub async fn assemble(&self) -> AgentContext {
-        let memory = self.hydrate_memory().await;
-        self.assemble_from_memory(&memory)
+    ///
+    /// # Errors
+    /// Returns the store error when the memory tiers or the recent messages
+    /// cannot be read (including a failed flush of the message buffer).
+    pub async fn assemble(&self) -> StorageResult<AgentContext> {
+        let memory = self.memory_store.hydrate_async(&self.session_id).await?;
+        self.assemble_from_memory(&memory).await
     }
 
-    /// Build context from a pre-hydrated `SessionMemory` — synchronous,
-    /// suitable for the `AgentLoop`'s `TaskIterator::next_status` (F19).
+    /// Build context from a pre-hydrated `SessionMemory`; reads the recent
+    /// messages from the message log.
+    ///
+    /// # Errors
+    /// Returns the store error when the recent messages cannot be read.
+    pub async fn assemble_from_memory(&self, memory: &SessionMemory) -> StorageResult<AgentContext> {
+        let recent = self
+            .message_api
+            .recent(self.config.recent_message_count)
+            .await?;
+        Ok(self.assemble_from_parts(memory, recent))
+    }
+
+    /// Build context from a pre-hydrated `SessionMemory` and the recent
+    /// records (newest-first, as `MessageApi::recent` returns them). No I/O.
     #[must_use]
-    pub fn assemble_from_memory(&self, memory: &SessionMemory) -> AgentContext {
+    pub fn assemble_from_parts(
+        &self,
+        memory: &SessionMemory,
+        recent: Vec<SessionRecord>,
+    ) -> AgentContext {
         let mut messages = Vec::new();
         let mut token_estimate: u64 = 0;
 
@@ -236,12 +258,10 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
         // 4. Recent raw messages, oldest first. `recent()` returns the newest N
         //    newest-first; models need them in conversation order (and a tool
         //    result must follow the call it answers).
-        if let Ok(recent) = self.message_api.recent(self.config.recent_message_count) {
-            for record in recent.into_iter().rev() {
-                if let SessionRecord::Conversation { message } = record {
-                    token_estimate += estimate_tokens(&message);
-                    messages.push(message);
-                }
+        for record in recent.into_iter().rev() {
+            if let SessionRecord::Conversation { message } = record {
+                token_estimate += estimate_tokens(&message);
+                messages.push(message);
             }
         }
 
@@ -254,14 +274,6 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
         }
     }
 
-    /// Hydrate memory from the `MemoryStore` fast path.
-    async fn hydrate_memory(&self) -> SessionMemory {
-        self.memory_store
-            .hydrate_async(&self.session_id)
-            .await
-            .unwrap_or_default()
-    }
-
     #[must_use]
     pub fn session_id(&self) -> &SessionId {
         &self.session_id
@@ -272,7 +284,7 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
         &self.message_api
     }
 
-    /// The memory store (for sync hydrate in F19).
+    /// The memory store.
     #[must_use]
     pub fn memory_store(&self) -> &Arc<M> {
         &self.memory_store
@@ -301,20 +313,40 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
     /// Returns up to `k` hits ranked by relevance. The actual vector search
     /// backends are wired in F31; until then this performs keyword matching
     /// over assembled context as a functional placeholder.
-    pub async fn search(&self, query: &str, mode: SearchMode, k: usize) -> Vec<KnowledgeHit> {
-        let memory = self.hydrate_memory().await;
-        self.search_from_memory(query, mode, k, &memory)
+    ///
+    /// # Errors
+    /// Returns the store error when the memory tiers or the recent messages
+    /// cannot be read.
+    pub async fn search(
+        &self,
+        query: &str,
+        mode: SearchMode,
+        k: usize,
+    ) -> StorageResult<Vec<KnowledgeHit>> {
+        let memory = self.memory_store.hydrate_async(&self.session_id).await?;
+        self.search_from_memory(query, mode, k, &memory).await
     }
 
-    /// Synchronous search over pre-hydrated memory.
-    #[must_use]
-    pub fn search_from_memory(
+    /// Search over pre-hydrated memory; reads the recent messages from the
+    /// message log when `mode` searches them.
+    ///
+    /// # Errors
+    /// Returns the store error when the recent messages cannot be read.
+    pub async fn search_from_memory(
         &self,
         query: &str,
         mode: SearchMode,
         k: usize,
         memory: &SessionMemory,
-    ) -> Vec<KnowledgeHit> {
+    ) -> StorageResult<Vec<KnowledgeHit>> {
+        let recent = match mode {
+            SearchMode::Memory => Vec::new(),
+            SearchMode::Semantic | SearchMode::Graph | SearchMode::Hybrid => {
+                self.message_api
+                    .recent(self.config.recent_message_count)
+                    .await?
+            }
+        };
         let query_lower = query.to_lowercase();
         let mut hits = Vec::new();
 
@@ -322,8 +354,8 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
             SearchMode::Semantic => {
                 // Real embedding recall when an embedder is wired (F16); else
                 // keyword fallback so a capability-less context still works.
-                if !self.semantic_search_messages(query, &mut hits) {
-                    self.search_messages(&query_lower, &mut hits);
+                if !self.semantic_search_messages(query, &recent, &mut hits) {
+                    Self::search_messages(&query_lower, &recent, &mut hits);
                 }
             }
             SearchMode::Memory => {
@@ -339,14 +371,14 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
                     "SearchMode::Graph is not available (no session knowledge graph); \
                      falling back to hybrid recall"
                 );
-                if !self.semantic_search_messages(query, &mut hits) {
-                    self.search_messages(&query_lower, &mut hits);
+                if !self.semantic_search_messages(query, &recent, &mut hits) {
+                    Self::search_messages(&query_lower, &recent, &mut hits);
                 }
                 Self::search_memory_tiers(&query_lower, memory, &mut hits);
             }
             SearchMode::Hybrid => {
-                if !self.semantic_search_messages(query, &mut hits) {
-                    self.search_messages(&query_lower, &mut hits);
+                if !self.semantic_search_messages(query, &recent, &mut hits) {
+                    Self::search_messages(&query_lower, &recent, &mut hits);
                 }
                 Self::search_memory_tiers(&query_lower, memory, &mut hits);
             }
@@ -354,14 +386,19 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
 
         hits.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
         hits.truncate(k);
-        hits
+        Ok(hits)
     }
 
-    /// Embedding-based recall over recent messages (F16). Embeds the query and
-    /// each candidate message, scoring by cosine similarity. Returns `true` when
-    /// it ran (an embedder is wired and the query embedded); `false` signals the
-    /// caller to fall back to keyword matching.
-    fn semantic_search_messages(&self, query: &str, hits: &mut Vec<KnowledgeHit>) -> bool {
+    /// Embedding-based recall over the recent messages (F16). Embeds the query
+    /// and each candidate message, scoring by cosine similarity. Returns `true`
+    /// when it ran (an embedder is wired and the query embedded); `false`
+    /// signals the caller to fall back to keyword matching.
+    fn semantic_search_messages(
+        &self,
+        query: &str,
+        recent: &[SessionRecord],
+        hits: &mut Vec<KnowledgeHit>,
+    ) -> bool {
         let Some(embedder) = &self.embedder else {
             return false;
         };
@@ -373,11 +410,8 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
             }
         };
 
-        let Ok(recent) = self.message_api.recent(self.config.recent_message_count) else {
-            return true; // embedder ran; nothing to search over
-        };
         for record in recent {
-            if let SessionRecord::Conversation { ref message } = record {
+            if let SessionRecord::Conversation { message } = record {
                 let text = extract_message_text(message);
                 if text.trim().is_empty() {
                     continue;
@@ -399,19 +433,17 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
         true
     }
 
-    fn search_messages(&self, query_lower: &str, hits: &mut Vec<KnowledgeHit>) {
-        if let Ok(recent) = self.message_api.recent(self.config.recent_message_count) {
-            for record in recent {
-                if let SessionRecord::Conversation { ref message } = record {
-                    let text = extract_message_text(message);
-                    if let Some(score) = keyword_score(&text, query_lower) {
-                        hits.push(KnowledgeHit {
-                            source: "message".into(),
-                            score,
-                            content: text,
-                            record_ref: None,
-                        });
-                    }
+    fn search_messages(query_lower: &str, recent: &[SessionRecord], hits: &mut Vec<KnowledgeHit>) {
+        for record in recent {
+            if let SessionRecord::Conversation { message } = record {
+                let text = extract_message_text(message);
+                if let Some(score) = keyword_score(&text, query_lower) {
+                    hits.push(KnowledgeHit {
+                        source: "message".into(),
+                        score,
+                        content: text,
+                        record_ref: None,
+                    });
                 }
             }
         }

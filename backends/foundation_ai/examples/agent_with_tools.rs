@@ -86,7 +86,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .into_agent_builder()
         .with_system_prompt("You are a helpful assistant with a few custom tools.")
         .with_toolshed(ToolShed::new().tool(GreetTool).tool(count_letters))
-        .build()?;
+        .build()
+        .await?;
 
     // 2. What the model can reach through `shed`, and what it is offered now
     //    (just `shed` until `shed` returns a tool).
@@ -119,6 +120,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         }
     }
 
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }

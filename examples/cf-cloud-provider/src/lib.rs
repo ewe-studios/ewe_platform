@@ -52,34 +52,37 @@ async fn chat(env: &worker::Env, req: &web_sys::Request) -> Result<web_sys::Resp
     if prompt.trim().is_empty() {
         return Ok(respond(400, "text/plain; charset=utf-8", "send a prompt"));
     }
-    let turn = session(env)?
+    let turn = session(env)
+        .await?
         .run_turn_stream(prompt)
         .map_err(|e| e.to_string())?;
     sse_response(turn.into_text_stream()).map_err(|e| format!("{e:?}"))
 }
 
 /// The isolate's session, built on first use.
-fn session(env: &worker::Env) -> Result<AgentSession, String> {
-    SESSION.with(|slot| {
-        if let Some(session) = slot.borrow().as_ref() {
-            return Ok(session.clone());
-        }
-        let mut config = OpenAIConfig::openrouter(setting(env, "OPENROUTER_API_KEY").unwrap_or_default());
-        if let Some(base_url) = setting(env, "OPENROUTER_BASE_URL") {
-            config = config.with_base_url(base_url);
-        }
-        let provider = OpenAIProvider::with_http_client(Arc::new(FetchHttpClient::new()))
-            .create(Some(config))
-            .map_err(|e| e.to_string())?;
-        let model = setting(env, "MODEL").unwrap_or_else(|| DEFAULT_MODEL.to_string());
-        let session = AgentSession::builder(provider)
-            .with_model(ModelId::from(model))
-            .with_system_prompt(SYSTEM_PROMPT)
-            .build()
-            .map_err(|e| e.to_string())?;
-        *slot.borrow_mut() = Some(session.clone());
-        Ok(session)
-    })
+///
+/// Building is async (`AgentSessionBuilder::build`), so the slot is not
+/// borrowed across it; if another request stored a session meanwhile, that
+/// one is kept and reused.
+async fn session(env: &worker::Env) -> Result<AgentSession, String> {
+    if let Some(session) = SESSION.with(|slot| slot.borrow().clone()) {
+        return Ok(session);
+    }
+    let mut config = OpenAIConfig::openrouter(setting(env, "OPENROUTER_API_KEY").unwrap_or_default());
+    if let Some(base_url) = setting(env, "OPENROUTER_BASE_URL") {
+        config = config.with_base_url(base_url);
+    }
+    let provider = OpenAIProvider::with_http_client(Arc::new(FetchHttpClient::new()))
+        .create(Some(config))
+        .map_err(|e| e.to_string())?;
+    let model = setting(env, "MODEL").unwrap_or_else(|| DEFAULT_MODEL.to_string());
+    let session = AgentSession::builder(provider)
+        .with_model(ModelId::from(model))
+        .with_system_prompt(SYSTEM_PROMPT)
+        .build()
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(SESSION.with(|slot| slot.borrow_mut().get_or_insert(session).clone()))
 }
 
 /// A non-empty secret or var named `name`.

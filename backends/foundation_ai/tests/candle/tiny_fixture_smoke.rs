@@ -379,6 +379,7 @@ async fn agent_session_run_turn_through_candle_fixture() {
             .with_memory_config(MemoryConfig::default())
             .with_error_policy(ErrorPolicy::new())
             .build()
+            .await
             .expect("session builds");
 
     let records = session
@@ -439,6 +440,7 @@ async fn candle_session_handles_multiple_turns() {
             .with_memory_config(MemoryConfig::default())
             .with_error_policy(ErrorPolicy::new())
             .build()
+            .await
             .expect("session builds");
 
     let msg = |t: &str| Messages::User {
@@ -455,7 +457,7 @@ async fn candle_session_handles_multiple_turns() {
     assert!(has_conv(&first) && has_conv(&second), "both turns must produce conversation records");
 
     // The user prompts from both turns must be in history (continuity).
-    let history = session.message_api().all().expect("history");
+    let history = session.message_api().all().await.expect("history");
     let user_turns = history.iter().filter(|r| matches!(r, SessionRecord::Conversation { message: Messages::User { .. } })).count();
     assert!(user_turns >= 2, "both user turns must be persisted for continuity: {user_turns}");
 }
@@ -594,7 +596,7 @@ async fn cost_accounting_is_per_session() {
         .expect("loads");
     let model_id = ModelId::Name("tiny".into(), None);
 
-    let build = || -> AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> {
+    let build = async || -> AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> {
         AgentSession::builder(PreloadedProvider::new(model.clone(), model_id.clone()).into_router())
             .with_system_prompt("You are a helpful assistant.")
             .with_model(model_id.clone())
@@ -606,11 +608,12 @@ async fn cost_accounting_is_per_session() {
             .with_memory_config(MemoryConfig::default())
             .with_error_policy(ErrorPolicy::new())
             .build()
+            .await
             .expect("builds")
     };
 
-    let s1 = build();
-    let s2 = build();
+    let s1 = build().await;
+    let s2 = build().await;
 
     let msg = Messages::User {
         id: foundation_compact::ids::new_scru128(),

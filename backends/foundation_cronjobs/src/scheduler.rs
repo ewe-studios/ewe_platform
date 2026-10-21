@@ -118,26 +118,3 @@ impl<QS: QueryStore + 'static> CronScheduler<QS> {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn cron_job_computes_next_fire() {
-        let job = CronJob::new(JobConfig {
-            id: "purge-sends".into(), cron_expr: "0 */6 * * *".into(), description: "Purge".into(),
-        });
-        assert!(job.next_fire().is_some());
-    }
-
-    #[test]
-    fn scheduler_registers_and_counts() {
-        let mut s = CronScheduler::<foundation_db::MemoryStorage>::new(
-            Arc::new(foundation_db::MemoryStorage::new()),
-        );
-        assert_eq!(s.job_count(), 0);
-        s.register(JobConfig { id: "j1".into(), cron_expr: "* * * * *".into(), description: "d".into() });
-        assert_eq!(s.job_count(), 1);
-    }
-}

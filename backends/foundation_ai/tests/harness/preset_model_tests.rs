@@ -8,6 +8,7 @@
 //! HOW: cloud presets and `RouterMix` over Anthropic providers construct
 //! offline, so every check here builds a real session without network.
 
+use foundation_core::valtron::valtron_test;
 use foundation_ai::agentic::{AgentSession, AgenticError};
 use foundation_ai::backends::anthropic_messages_provider::AnthropicMessagesProvider;
 use foundation_ai::harness::{RouterMix, RouterPreset, CLAUDE_OPUS, CLAUDE_SONNET};
@@ -24,12 +25,13 @@ fn assert_no_model_set(err: &foundation_errstacks::ErrorTrace<AgenticError>) {
     );
 }
 
-#[test]
-fn preset_models_reach_the_session_without_with_model() {
+#[valtron_test]
+async fn preset_models_reach_the_session_without_with_model() {
     let preset = RouterPreset::claude("test-key").expect("preset builds");
 
     let session = AgentSession::builder(preset)
         .build()
+        .await
         .expect("the preset's primary model is enough to build");
 
     let models = session.models();
@@ -38,20 +40,21 @@ fn preset_models_reach_the_session_without_with_model() {
     assert_eq!(models.fallbacks, Vec::<ModelId>::new());
 }
 
-#[test]
-fn into_agent_builder_carries_the_same_models_as_builder() {
+#[valtron_test]
+async fn into_agent_builder_carries_the_same_models_as_builder() {
     let session = RouterPreset::claude("test-key")
         .expect("preset builds")
         .into_agent_builder()
         .build()
+        .await
         .expect("session builds");
 
     assert_eq!(session.models().primary, named(CLAUDE_OPUS));
     assert_eq!(session.models().memory, Some(named(CLAUDE_SONNET)));
 }
 
-#[test]
-fn preset_fallback_models_reach_the_session() {
+#[valtron_test]
+async fn preset_fallback_models_reach_the_session() {
     let preset = RouterMix::new()
         .primary(AnthropicMessagesProvider::api_key("k"), "main-model")
         .fallback(AnthropicMessagesProvider::api_key("k"), "fallback-a")
@@ -60,6 +63,7 @@ fn preset_fallback_models_reach_the_session() {
 
     let session = AgentSession::builder(preset)
         .build()
+        .await
         .expect("session builds");
 
     assert_eq!(session.models().primary, named("main-model"));
@@ -70,8 +74,8 @@ fn preset_fallback_models_reach_the_session() {
     assert_eq!(session.models().memory, None);
 }
 
-#[test]
-fn with_model_overrides_the_preset_models() {
+#[valtron_test]
+async fn with_model_overrides_the_preset_models() {
     let preset = RouterPreset::claude("test-key").expect("preset builds");
 
     let session = AgentSession::builder(preset)
@@ -79,6 +83,7 @@ fn with_model_overrides_the_preset_models() {
         .with_memory_model("memory-override")
         .with_fallback_models(["fallback-override"])
         .build()
+        .await
         .expect("session builds");
 
     assert_eq!(session.models().primary, named(CLAUDE_SONNET));
@@ -86,8 +91,8 @@ fn with_model_overrides_the_preset_models() {
     assert_eq!(session.models().fallbacks, vec![named("fallback-override")]);
 }
 
-#[test]
-fn build_fails_when_neither_preset_nor_builder_sets_a_model() {
+#[valtron_test]
+async fn build_fails_when_neither_preset_nor_builder_sets_a_model() {
     // A mix with no primary carries no primary model into the session.
     let preset = RouterMix::new()
         .memory(AnthropicMessagesProvider::api_key("k"), "memory-only")
@@ -96,21 +101,24 @@ fn build_fails_when_neither_preset_nor_builder_sets_a_model() {
 
     let err = AgentSession::builder(preset)
         .build()
+        .await
         .err()
         .expect("no primary model anywhere must not build");
     assert_no_model_set(&err);
 }
 
-#[test]
-fn bare_router_and_provider_carry_no_model() {
+#[valtron_test]
+async fn bare_router_and_provider_carry_no_model() {
     let err = AgentSession::builder(ProviderRouter::builder().build())
         .build()
+        .await
         .err()
         .expect("a bare router sets no model");
     assert_no_model_set(&err);
 
     let err = AgentSession::builder(AnthropicMessagesProvider::api_key("k"))
         .build()
+        .await
         .err()
         .expect("a bare provider sets no model");
     assert_no_model_set(&err);
@@ -119,6 +127,7 @@ fn bare_router_and_provider_carry_no_model() {
     let session = AgentSession::builder(AnthropicMessagesProvider::api_key("k"))
         .with_model(CLAUDE_OPUS)
         .build()
+        .await
         .expect("with_model supplies the missing model");
     assert_eq!(session.models().primary, named(CLAUDE_OPUS));
 }

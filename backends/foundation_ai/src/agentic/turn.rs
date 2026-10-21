@@ -22,12 +22,16 @@
 //! turn. `Err` from the session methods means the turn never started.
 
 use std::collections::VecDeque;
+use std::future::poll_fn;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
-use foundation_core::valtron::{DrivenStreamIterator, Stream, StreamSpread};
-use foundation_db::traits::DocumentStore;
+use foundation_core::valtron::{DrivenStreamIterator, Stream, StreamIteratorExt, StreamSpread};
+use foundation_db::traits::AsyncDocumentStore;
 use foundation_errstacks::{ErrorTrace, StructuredErrorTrace};
+use futures_lite::Stream as AsyncStream;
 
-use crate::agentic::agent_loop::AgentLoop;
+use crate::agentic::agent_loop::{join_text_chunks, AgentLoop};
 use crate::agentic::errors::AgenticError;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::progress::AgentProgress;
@@ -79,10 +83,10 @@ pub(crate) type RawTurnItems<D, M> = foundation_compact::SendWrapper<
 /// The next raw item of `items`.
 async fn next_item<D, M>(items: &mut RawTurnItems<D, M>) -> Option<Stream<SessionRecord, AgentProgress>>
 where
-    D: DocumentStore + 'static,
+    D: AsyncDocumentStore + 'static,
     M: MemoryStore + 'static,
 {
-    std::future::poll_fn(|cx| futures_lite::Stream::poll_next(std::pin::Pin::new(&mut **items), cx)).await
+    poll_fn(|cx| AsyncStream::poll_next(Pin::new(&mut **items), cx)).await
 }
 
 // ---------------------------------------------------------------------------
@@ -121,7 +125,7 @@ impl Turn {
     /// and stop at the first `FailedAction`, keeping what came before it.
     pub(crate) async fn collect<D, M>(stream: TurnStream<D, M>) -> Self
     where
-        D: DocumentStore + 'static,
+        D: AsyncDocumentStore + 'static,
         M: MemoryStore + 'static,
     {
         let mut items = stream.into_raw_items();
@@ -341,7 +345,7 @@ impl TurnText {
     fn flush(&mut self) {
         let pieces: Vec<&str> = self.run.iter().map(String::as_str).collect();
         self.done
-            .push_str(&crate::agentic::agent_loop::join_text_chunks(&pieces));
+            .push_str(&join_text_chunks(&pieces));
         self.run.clear();
     }
 
@@ -360,7 +364,7 @@ impl Answer {
     /// Collect the assistant text of a turn from the raw stream.
     pub(crate) async fn collect<D, M>(stream: TurnStream<D, M>) -> Self
     where
-        D: DocumentStore + 'static,
+        D: AsyncDocumentStore + 'static,
         M: MemoryStore + 'static,
     {
         let mut items = stream.into_raw_items();
@@ -547,10 +551,10 @@ impl TurnEvent {
 /// ```
 pub struct TurnStream<D, M>(foundation_compact::SendWrapper<DrivenStreamIterator<AgentLoop<D, M>>>)
 where
-    D: DocumentStore + 'static,
+    D: AsyncDocumentStore + 'static,
     M: MemoryStore + 'static;
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
+impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
     pub(crate) fn new(inner: DrivenStreamIterator<AgentLoop<D, M>>) -> Self {
         Self(foundation_compact::SendWrapper::new(inner))
     }
@@ -587,7 +591,6 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
 
     /// The raw items as an async stream that parks while the loop waits.
     pub(crate) fn into_raw_items(self) -> RawTurnItems<D, M> {
-        use foundation_core::valtron::StreamIteratorExt;
         foundation_compact::SendWrapper::new(self.into_inner().into_future_stream())
     }
 
@@ -626,7 +629,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
 /// See [`TurnStream::into_text_stream`].
 pub struct TurnTextStream<D, M>
 where
-    D: DocumentStore + 'static,
+    D: AsyncDocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     events: TurnEvents<D, M>,
@@ -637,7 +640,7 @@ where
 
 impl<D, M> TurnTextStream<D, M>
 where
-    D: DocumentStore + 'static,
+    D: AsyncDocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     /// The new text `event` adds, if any.
@@ -663,33 +666,33 @@ where
     }
 }
 
-impl<D, M> futures_lite::Stream for TurnTextStream<D, M>
+impl<D, M> AsyncStream for TurnTextStream<D, M>
 where
-    D: DocumentStore + 'static,
+    D: AsyncDocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     type Item = String;
 
     fn poll_next(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Option<String>> {
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<String>> {
         let this = self.get_mut();
         loop {
-            match std::pin::Pin::new(&mut this.events).poll_next(cx) {
-                std::task::Poll::Ready(Some(event)) => {
+            match Pin::new(&mut this.events).poll_next(cx) {
+                Poll::Ready(Some(event)) => {
                     if let Some(text) = this.new_text(event) {
-                        return std::task::Poll::Ready(Some(text));
+                        return Poll::Ready(Some(text));
                     }
                 }
-                std::task::Poll::Ready(None) => return std::task::Poll::Ready(None),
-                std::task::Poll::Pending => return std::task::Poll::Pending,
+                Poll::Ready(None) => return Poll::Ready(None),
+                Poll::Pending => return Poll::Pending,
             }
         }
     }
 }
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnStream<D, M> {
+impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnStream<D, M> {
     type Item = Stream<SessionRecord, AgentProgress>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -697,7 +700,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnStre
     }
 }
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<D, M>>
+impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<D, M>>
     for DrivenStreamIterator<AgentLoop<D, M>>
 {
     fn from(stream: TurnStream<D, M>) -> Self {
@@ -708,7 +711,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<D, M>
 /// The async stream [`TurnStream::events`] returns.
 pub struct TurnEvents<D, M>
 where
-    D: DocumentStore + 'static,
+    D: AsyncDocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     items: RawTurnItems<D, M>,
@@ -716,16 +719,15 @@ where
     finished: bool,
 }
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> futures_lite::Stream
+impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AsyncStream
     for TurnEvents<D, M>
 {
     type Item = TurnEvent;
 
     fn poll_next(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Option<TurnEvent>> {
-        use std::task::Poll;
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<TurnEvent>> {
         let this = self.get_mut();
         loop {
             if this.finished {
@@ -739,7 +741,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> futures_lite::Stream
                 }
                 return Poll::Ready(Some(event));
             }
-            match futures_lite::Stream::poll_next(std::pin::Pin::new(&mut *this.items), cx) {
+            match AsyncStream::poll_next(Pin::new(&mut *this.items), cx) {
                 Poll::Ready(Some(item)) => {
                     for flat in flatten(item) {
                         let event = match flat {

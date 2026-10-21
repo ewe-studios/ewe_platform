@@ -95,13 +95,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let agent = RouterPreset::claude(&api_key)?
         .into_agent_builder()
         .with_system_prompt("You are a helpful assistant.")
-        .build()?;
+        .build().await?;
 
     // `ask` returns the assistant's text (or the text produced before a failure).
     let answer = agent.ask("Explain Rust ownership in two sentences.")?;
     println!("{}", answer.text());
 
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }
 ```
@@ -116,7 +116,7 @@ use foundation_ai::harness::RouterPreset;
 let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
 let agent = AgentSession::builder(preset)
     .with_system_prompt("You are a helpful assistant.")
-    .build()?;
+    .build().await?;
 ```
 
 Prefer the raw `Model` trait, a different provider, or a manual `ProviderRouter`?
@@ -200,8 +200,11 @@ gated `candle-cuda` / `cuda` suites.
 
 ## Design notes
 
-- **Sync API, threaded execution.** No tokio, no async-trait on the hot path;
-  the streaming APIs are `StreamIterator`s driven on the Valtron pool.
+- **Async API, Valtron execution.** No tokio. Sessions are async (`build`,
+  `run_turn`, `ask`, `end` return futures) and use their stores through the
+  async `foundation_db` traits; the streaming APIs are `StreamIterator`s
+  driven on the Valtron pool. Sync callers wrap them with
+  `valtron::block_on_future` at their boundary.
 - **Provider parity.** Tool calling, streaming, and cost tracking behave the
   same across providers; differences are confined to per-provider formatters.
 - **VFS-backed tools.** File tools go through `AsyncVfsFileSystem`, so the same

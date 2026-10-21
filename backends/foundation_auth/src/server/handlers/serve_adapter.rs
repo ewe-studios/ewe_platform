@@ -13,7 +13,7 @@ use foundation_errstacks::ErrorTrace;
 
 use super::super::config::IdpConfig;
 use super::super::storage::HandlerStorage;
-use foundation_db::MemoryStorage;
+use foundation_db::{Blocking, MemoryStorage};
 use super::core::{HandlerResponse, IdpError, IdpHandlerCore};
 
 /// Write JSON response with optional extra headers.
@@ -177,12 +177,12 @@ impl ServeFactory for ServeAdapter {
             .get::<IdpConfig>()
             .expect("IdpConfig must be in ContextBag");
         let storage = bag
-            .get::<HandlerStorage<MemoryStorage>>()
+            .get::<HandlerStorage<Blocking<MemoryStorage>>>()
             .unwrap_or_else(|| {
                 // Fallback for tests that don't have storage set up yet
                 Arc::new(HandlerStorage::new(
                     Arc::new(NoOpStore),
-                    MemoryStorage::new(),
+                    Blocking::new(MemoryStorage::new()),
                 ))
             });
         Self {

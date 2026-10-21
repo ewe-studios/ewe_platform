@@ -52,9 +52,9 @@ store.set("k", "v")?;          // waits on the valtron executor
   async code, call the `Async*` traits.
 
 The pure in-memory stores (`MemoryStorage`, `MemoryJsonStore`,
-`MemoryDocumentStore`) still implement the sync traits directly as well. They
-never wait, so this is safe everywhere. It is temporary: those impls go once
-foundation_ai's `AgentSession` moves to the async traits.
+`MemoryDocumentStore`) are async-only too: their futures are ready at once.
+Sync callers use `Blocking<MemoryStorage>` and the like, which polls once
+before involving the executor, so it needs no valtron pool for them.
 
 ## 2. BlobStore
 

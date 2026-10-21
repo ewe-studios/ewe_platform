@@ -31,7 +31,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")
-        .build()?;
+        .build()
+        .await?;
 
     println!("Asking GLM 5.2 (local GGUF)...");
     // Stream the answer as it is generated.
@@ -53,6 +54,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     assert!(!answer.is_empty(), "Expected a generation but got none");
     println!("GLM 5.2 responded!");
 
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }

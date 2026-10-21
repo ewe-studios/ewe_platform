@@ -5,17 +5,16 @@
 //! suitable for non-sensitive data and easier to inspect/debug.
 
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use serde::{de::DeserializeOwned, Serialize};
 
+use super::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore,
-    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    AsyncRateLimiterStore, DataValue,
 };
-use foundation_core::valtron::Stream;
 
 /// In-memory JSON key-value store.
 ///
@@ -33,221 +32,16 @@ impl MemoryJsonStore {
         }
     }
 
-    fn lock(&self) -> Result<std::sync::MutexGuard<'_, HashMap<String, String>>, StorageError> {
+    fn lock(&self) -> Result<MutexGuard<'_, HashMap<String, String>>, StorageError> {
         self.data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))
-    }
-
-    fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
-        Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
     }
 }
 
 impl Default for MemoryJsonStore {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
-/// and reached from sync code through `foundation_db::Blocking`): this store
-/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
-/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
-/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
-/// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, `foundation_ai` section).
-impl KeyValueStore for MemoryJsonStore {
-    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
-        let data = self.lock()?;
-        match data.get(key) {
-            Some(json) => {
-                let value: V =
-                    serde_json::from_str(json).map_err(|e| StorageError::Serialization(e.to_string()))?;
-                Ok(Some(value))
-            }
-            None => Ok(None),
-        }
-    }
-
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
-        let json = serde_json::to_string(&value)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        let mut data = self.lock()?;
-        data.insert(key.to_string(), json);
-        Ok(())
-    }
-
-    fn delete(&self, key: &str) -> StorageResult<()> {
-        let mut data = self.lock()?;
-        data.remove(key);
-        Ok(())
-    }
-
-    fn exists(&self, key: &str) -> StorageResult<bool> {
-        let data = self.lock()?;
-        Ok(data.contains_key(key))
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let data = self.lock()?;
-        let keys: Vec<String> = data
-            .keys()
-            .filter(|k| prefix.is_none_or(|p| k.starts_with(p)))
-            .cloned()
-            .collect();
-        Ok(Self::stream_many(keys))
-    }
-}
-
-/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
-/// and reached from sync code through `foundation_db::Blocking`): this store
-/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
-/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
-/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
-/// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, `foundation_ai` section).
-impl QueryStore for MemoryJsonStore {
-    fn query(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        Err(StorageError::Generic(
-            "QueryStore not supported for MemoryJsonStore".to_string(),
-        ))
-    }
-
-    fn execute(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<u64> {
-        Err(StorageError::Generic(
-            "QueryStore not supported for MemoryJsonStore".to_string(),
-        ))
-    }
-
-    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
-        Err(StorageError::Generic(
-            "QueryStore not supported for MemoryJsonStore".to_string(),
-        ))
-    }
-}
-
-/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
-/// and reached from sync code through `foundation_db::Blocking`): this store
-/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
-/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
-/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
-/// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, `foundation_ai` section).
-impl RateLimiterStore for MemoryJsonStore {
-    fn check_rate_limit(
-        &self,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> StorageResult<bool> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        let rate_key = format!("_rate_limit:{key}");
-        let data = self.lock()?;
-        let allowed = match data.get(&rate_key) {
-            Some(json) => {
-                #[derive(serde::Deserialize)]
-                struct Entry {
-                    count: u32,
-                    window_start: u64,
-                }
-                let entry: Entry = serde_json::from_str(json)
-                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                if entry.window_start < now - window_seconds {
-                    true
-                } else {
-                    entry.count < max_count
-                }
-            }
-            None => true,
-        };
-        Ok(allowed)
-    }
-
-    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        let rate_key = format!("_rate_limit:{key}");
-        let mut data = self.lock()?;
-        let new_count = if let Some(json) = data.get(&rate_key) {
-            #[derive(serde::Serialize, serde::Deserialize)]
-            struct Entry {
-                count: u32,
-                window_start: u64,
-            }
-            let mut entry: Entry = serde_json::from_str(json)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            entry.count += 1;
-            entry.window_start = now;
-            let new_json = serde_json::to_string(&entry)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            data.insert(rate_key, new_json);
-            entry.count
-        } else {
-            let entry = serde_json::json!({ "count": 1, "window_start": now }).to_string();
-            data.insert(rate_key, entry);
-            1
-        };
-        Ok(new_count)
-    }
-
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
-        let rate_key = format!("_rate_limit:{key}");
-        let mut data = self.lock()?;
-        data.remove(&rate_key);
-        Ok(())
-    }
-}
-
-/// Kept as a direct sync impl, unlike every I/O backend (which is async-only
-/// and reached from sync code through `foundation_db::Blocking`): this store
-/// does no I/O, so a sync call never waits and is safe on JS-hosted wasm. It is
-/// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
-/// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
-/// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, `foundation_ai` section).
-impl BlobStore for MemoryJsonStore {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        // Store binary data as base64 JSON string
-        let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data);
-        let json = serde_json::json!({ "type": "blob", "data": encoded }).to_string();
-        let mut store = self.lock()?;
-        store.insert(key.to_string(), json);
-        Ok(())
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let data = self.lock()?;
-        let result = data.get(key).and_then(|json| {
-            let wrapper: serde_json::Value = serde_json::from_str(json).ok()?;
-            let encoded = wrapper.get("data").and_then(|v| v.as_str())?;
-            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded).ok()
-        });
-        Ok(result)
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let mut data = self.lock()?;
-        data.remove(key);
-        Ok(())
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let data = self.lock()?;
-        Ok(data.contains_key(key))
     }
 }
 
@@ -312,12 +106,22 @@ impl AsyncBlobStore for MemoryJsonStore {
 
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let data = self.lock()?;
-        let result = data.get(key).and_then(|json| {
-            let wrapper: serde_json::Value = serde_json::from_str(json).ok()?;
-            let encoded = wrapper.get("data").and_then(|v| v.as_str())?;
-            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded).ok()
-        });
-        Ok(result)
+        let Some(json) = data.get(key) else {
+            return Ok(None);
+        };
+        // A value that is not a blob written by `put_blob_async` is an error,
+        // not a missing blob.
+        let wrapper: serde_json::Value = serde_json::from_str(json)
+            .map_err(|e| StorageError::Deserialization(format!("blob {key}: {e}")))?;
+        let encoded = wrapper
+            .get("data")
+            .and_then(serde_json::Value::as_str)
+            .ok_or_else(|| {
+                StorageError::Deserialization(format!("blob {key}: no base64 `data` field"))
+            })?;
+        base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded)
+            .map(Some)
+            .map_err(|e| StorageError::Deserialization(format!("blob {key}: {e}")))
     }
 
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
@@ -340,10 +144,7 @@ impl AsyncRateLimiterStore for MemoryJsonStore {
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+        let now = unix_now_secs()?;
         let rate_key = format!("_rate_limit:{key}");
         let data = self.lock()?;
         let allowed = match data.get(&rate_key) {
@@ -352,7 +153,7 @@ impl AsyncRateLimiterStore for MemoryJsonStore {
                 struct Entry { count: u32, window_start: u64 }
                 let entry: Entry = serde_json::from_str(json)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                if entry.window_start < now - window_seconds {
+                if entry.window_start < now.saturating_sub(window_seconds) {
                     true
                 } else {
                     entry.count < max_count
@@ -364,10 +165,7 @@ impl AsyncRateLimiterStore for MemoryJsonStore {
     }
 
     async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+        let now = unix_now_secs()?;
         let rate_key = format!("_rate_limit:{key}");
         let mut data = self.lock()?;
         let new_count = if let Some(json) = data.get(&rate_key) {
@@ -397,8 +195,8 @@ impl AsyncRateLimiterStore for MemoryJsonStore {
     }
 }
 
-/// Async mirror of the sync [`QueryStore`] impl above: `MemoryJsonStore` has no SQL
-/// engine, so every query method fails with `StorageError::Generic`.
+/// `MemoryJsonStore` has no SQL engine, so every query method fails with
+/// `StorageError::Generic`.
 #[async_trait::async_trait]
 impl AsyncQueryStore for MemoryJsonStore {
     async fn query_async(

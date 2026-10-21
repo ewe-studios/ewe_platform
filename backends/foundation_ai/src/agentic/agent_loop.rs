@@ -13,14 +13,17 @@
 //! F16 context, F15 memory, F17 loop detection, F02 circuit breaker). The
 //! loop orchestrates — it owns no logic beyond sequencing.
 
+use core::future::Future;
+use core::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use foundation_core::valtron::{
-    CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, Stream, TaskIterator,
-    park_on, TaskStatus,
+    drive_iterator, CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, FutureTask,
+    Stream, StreamSpread, TaskIterator, park_on, TaskStatus,
 };
-use foundation_db::traits::DocumentStore;
+use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::{StorageError, StorageResult};
 
 use crate::agentic::access::{AllowAllAccess, SessionAccessProvider};
 use crate::agentic::context::{AgentContext, ContextProvider};
@@ -149,21 +152,63 @@ type ToolDrivenIterator = DrivenTaskIterator<
     >,
 >;
 
+/// A store operation the loop awaits: context assembly or a message-log
+/// flush. Polled in place by the loop's `next_status`, so a store that is
+/// waiting on I/O parks the loop's task instead of blocking its thread.
+type StoreFuture<T> = Pin<Box<dyn Future<Output = StorageResult<T>> + Send>>;
+
+/// The valtron task form of a [`StoreFuture`].
+pub type StoreTask<T> = FutureTask<StoreFuture<T>>;
+
+/// What polling a [`StoreTask`] once produced.
+enum StorePoll<T> {
+    /// The store operation finished.
+    Done(StorageResult<T>),
+    /// Not yet: return this status so the executor parks or re-polls the loop.
+    Waiting(TaskStatus<SessionRecord, AgentProgress>),
+}
+
+/// Poll a store operation once, translating the future task's status into
+/// the loop's.
+fn poll_store<T: Send + 'static>(task: &mut StoreTask<T>, ctx: Ctx) -> StorePoll<T> {
+    match task.next_status(ctx) {
+        Some(TaskStatus::Ready(result)) => StorePoll::Done(result),
+        Some(TaskStatus::Depends(readiness)) => StorePoll::Waiting(TaskStatus::Depends(readiness)),
+        Some(TaskStatus::Delayed(delay)) => StorePoll::Waiting(TaskStatus::Delayed(delay)),
+        Some(TaskStatus::Wait) => StorePoll::Waiting(TaskStatus::Wait),
+        Some(
+            TaskStatus::Init
+            | TaskStatus::Ignore
+            | TaskStatus::Pending(())
+            | TaskStatus::Spawn(_)
+            | TaskStatus::Spread(_),
+        ) => StorePoll::Waiting(TaskStatus::Ignore),
+        // A `FutureTask` ends only after yielding its output, and the loop
+        // drops each task once it is `Done`, so this is never polled again.
+        None => StorePoll::Done(Err(StorageError::Generic(
+            "store task polled after it finished".into(),
+        ))),
+    }
+}
+
 // ---------------------------------------------------------------------------
 // AgentLoopState
 
 /// The state machine driving the orchestrator.
 ///
-/// WHY: The agent loop is a non-blocking `TaskIterator` — it cannot park on
-/// async I/O. A flat enum encodes every suspension point so `next_status`
-/// can resume exactly where it left off without a call stack.
+/// WHY: The agent loop is a non-blocking `TaskIterator`. A flat enum encodes
+/// every suspension point so `next_status` can resume exactly where it left
+/// off without a call stack. Async work (model streams, tool futures, store
+/// calls) is held in the state and polled from `next_status`; while it waits,
+/// the loop's task parks on it rather than blocking a thread.
 ///
-/// WHAT: Ten states forming two nested loops. The *outer* loop
-/// (`OuterBoundary`) drains follow-up messages; the *inner* loop
-/// (`InnerAssemble → InnerGenerate → InnerToolCalls → InnerExecuting →
-/// InnerEmitResults`) runs one model turn + tool execution cycle.
-/// `OutputProcessing` fires memory triggers; `Ending` emits a summary;
-/// `Done` is terminal.
+/// WHAT: Two nested loops. The *outer* loop (`OuterBoundary`) drains
+/// follow-up messages; the *inner* loop (`InnerAssemble → InnerAssembling →
+/// InnerGenerate → InnerToolCalls → InnerExecuting → InnerEmitResults`) runs
+/// one model turn + tool execution cycle. `OutputProcessing` fires memory
+/// triggers. `Flushing` writes the message log out (at the buffer's flush
+/// threshold, and when the turn ends); `Ending` starts the final flush and
+/// `Summarizing` emits the summary; `Done` is terminal.
 ///
 /// HOW: Each variant carries the state needed to resume — stream handles,
 /// partial results, indices. `next_status` pattern-matches the current
@@ -174,8 +219,11 @@ pub enum AgentLoopState {
     Initializing,
     /// Check `FollowUpQueue` for continuation; if empty, go to Ending.
     OuterBoundary,
-    /// Run input processors, assemble context, generate.
+    /// Run input processors, then start assembling the context.
     InnerAssemble,
+    /// Context assembly in progress — awaits the stores (flush the message
+    /// log, hydrate memory, read recent messages), then starts generation.
+    InnerAssembling { task: StoreTask<AgentContext> },
     /// Model generation in progress — pump the stream step-wise.
     InnerGenerate {
         stream: crate::types::ModelStreamBox,
@@ -195,8 +243,16 @@ pub enum AgentLoopState {
     InnerEmitResults { results: Vec<Messages>, idx: usize },
     /// Output processing — fire memory triggers, persist.
     OutputProcessing,
-    /// Emit the final Summary record and end.
+    /// The message buffer reached its flush threshold (or the turn is
+    /// ending): await the flush, then resume `then`.
+    Flushing {
+        task: StoreTask<usize>,
+        then: Box<AgentLoopState>,
+    },
+    /// Start the end of the turn: flush the message log, then summarize.
     Ending,
+    /// Emit the final Summary record and end.
+    Summarizing,
     /// Terminal state.
     Done,
 }
@@ -214,12 +270,15 @@ impl AgentLoopState {
             Self::Initializing => "Initializing",
             Self::OuterBoundary => "OuterBoundary",
             Self::InnerAssemble => "InnerAssemble",
+            Self::InnerAssembling { .. } => "InnerAssembling",
             Self::InnerGenerate { .. } => "InnerGenerate",
             Self::InnerToolCalls { .. } => "InnerToolCalls",
             Self::InnerExecuting { .. } => "InnerExecuting",
             Self::InnerEmitResults { .. } => "InnerEmitResults",
             Self::OutputProcessing => "OutputProcessing",
+            Self::Flushing { .. } => "Flushing",
             Self::Ending => "Ending",
+            Self::Summarizing => "Summarizing",
             Self::Done => "Done",
         }
     }
@@ -535,7 +594,7 @@ fn vacuous_answer_redirect() -> Messages {
     }
 }
 
-impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
+impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
     #[allow(clippy::too_many_arguments)]
     #[must_use]
     pub fn new(
@@ -611,12 +670,15 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             AgentLoopState::Initializing => "initializing",
             AgentLoopState::OuterBoundary => "outer_boundary",
             AgentLoopState::InnerAssemble => "inner_assemble",
+            AgentLoopState::InnerAssembling { .. } => "inner_assembling",
             AgentLoopState::InnerGenerate { .. } => "inner_generate",
             AgentLoopState::InnerToolCalls { .. } => "inner_tool_calls",
             AgentLoopState::InnerExecuting { .. } => "inner_executing",
             AgentLoopState::InnerEmitResults { .. } => "inner_emit_results",
             AgentLoopState::OutputProcessing => "output_processing",
+            AgentLoopState::Flushing { .. } => "flushing",
             AgentLoopState::Ending => "ending",
+            AgentLoopState::Summarizing => "summarizing",
             AgentLoopState::Done => "done",
         }
     }
@@ -696,6 +758,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_inner_assemble(
         &mut self,
+        ctx: Ctx,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
         // Honor a hard abort mid-turn (before starting another generation).
         if self.queues.is_aborted() {
@@ -725,6 +788,48 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             );
         }
 
+        // Assemble the context from the stores (this flushes the message log
+        // first, so everything appended so far is included).
+        let context_provider = self.context_provider.clone();
+        let assembly: StoreFuture<AgentContext> =
+            Box::pin(async move { context_provider.assemble().await });
+        self.state = AgentLoopState::InnerAssembling {
+            task: FutureTask::new(assembly),
+        };
+        // Poll at once: a store that is ready (in-memory) adds no extra step.
+        self.transition_inner_assembling(ctx)
+    }
+
+    fn transition_inner_assembling(
+        &mut self,
+        ctx: Ctx,
+    ) -> TaskStatus<SessionRecord, AgentProgress> {
+        let actual = self.state.variant_name();
+        let AgentLoopState::InnerAssembling { task } = &mut self.state else {
+            panic!("transition_inner_assembling requires AgentLoopState::InnerAssembling, found {actual}")
+        };
+        match poll_store(task, ctx) {
+            StorePoll::Waiting(status) => status,
+            StorePoll::Done(Ok(context)) => self.generate(context),
+            StorePoll::Done(Err(error)) => {
+                // The model must not run on a context missing the session's
+                // history; the turn fails with the store's error.
+                self.state = AgentLoopState::Ending;
+                TaskStatus::Ready(
+                    AgenticError::MessageStore(format!(
+                        "assembling the context for session {}: {error}",
+                        self.session_id
+                    ))
+                    .into_failed_action(),
+                )
+            }
+        }
+    }
+
+    /// Start the model generation over an assembled context.
+    fn generate(&mut self, mut ctx: AgentContext) -> TaskStatus<SessionRecord, AgentProgress> {
+        self.state = AgentLoopState::InnerAssemble;
+
         // Attempt to get the model from the router.
         let model = match self.router.get_model(&self.current_model) {
             Ok(m) => m,
@@ -734,14 +839,6 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                 return self.handle_error(err);
             }
         };
-
-        // Hydrate memory synchronously and assemble context.
-        let memory = self
-            .context_provider
-            .memory_store()
-            .hydrate_sync(&self.session_id)
-            .unwrap_or_default();
-        let mut ctx = self.context_provider.assemble_from_memory(&memory);
 
         // Preflight compression: when the assembled context exceeds the
         // compression threshold of the budget, shrink it BEFORE sending — drop
@@ -879,7 +976,6 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                 TaskStatus::Delayed(d)
             }
             Stream::Spread(items) => {
-                use foundation_core::valtron::StreamSpread;
                 for s in &items {
                     if let StreamSpread::Done(SessionRecord::Conversation { ref message }) = s {
                         collected.push(message.clone());
@@ -1315,7 +1411,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             let signal = Arc::new(AtomicBool::new(false));
             cancel_signals.push(Arc::clone(&signal));
             let task = CancellableFutureTask::new(fut, signal);
-            active = Some(foundation_core::valtron::drive_iterator(task, ctx.clone()));
+            active = Some(drive_iterator(task, ctx.clone()));
         }
 
         // Poll the driven iterator.
@@ -1458,7 +1554,98 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         }
     }
 
-    fn transition_ending(
+    /// A task that flushes the message log.
+    fn flush_task(&self) -> StoreTask<usize> {
+        let message_api = self.message_api.clone();
+        let flush: StoreFuture<usize> = Box::pin(async move { message_api.flush().await });
+        FutureTask::new(flush)
+    }
+
+    /// Whether the loop may stop to flush the message log before running the
+    /// current state. Not while a flush or assembly (which flushes) is
+    /// already in flight, nor once the turn is ending (`Ending` flushes).
+    fn can_flush_before(&self) -> bool {
+        !matches!(
+            self.state,
+            AgentLoopState::InnerAssembling { .. }
+                | AgentLoopState::Flushing { .. }
+                | AgentLoopState::Ending
+                | AgentLoopState::Summarizing
+                | AgentLoopState::Done
+        )
+    }
+
+    /// Poll the flush. When it is done, carry straight on with the state it
+    /// interrupted (a ready store adds no extra scheduling step).
+    fn transition_flushing(
+        &mut self,
+        ctx: Ctx,
+    ) -> Option<TaskStatus<SessionRecord, AgentProgress>> {
+        let actual = self.state.variant_name();
+        let AgentLoopState::Flushing { task, .. } = &mut self.state else {
+            panic!("transition_flushing requires AgentLoopState::Flushing, found {actual}")
+        };
+        match poll_store(task, ctx.clone()) {
+            StorePoll::Waiting(status) => Some(status),
+            StorePoll::Done(result) => {
+                let previous = std::mem::replace(&mut self.state, AgentLoopState::Done);
+                let AgentLoopState::Flushing { then, .. } = previous else {
+                    unreachable!("matched AgentLoopState::Flushing above")
+                };
+                match result {
+                    Ok(_) => {
+                        self.state = *then;
+                        self.dispatch(ctx)
+                    }
+                    Err(error) => {
+                        // The unwritten records stay buffered (`end()` retries
+                        // them); the turn stops and reports the failure.
+                        self.state = AgentLoopState::Summarizing;
+                        Some(TaskStatus::Ready(
+                            AgenticError::MessageStore(format!(
+                                "flushing the message log of session {}: {error}",
+                                self.session_id
+                            ))
+                            .into_failed_action(),
+                        ))
+                    }
+                }
+            }
+        }
+    }
+
+    fn transition_ending(&mut self, ctx: Ctx) -> Option<TaskStatus<SessionRecord, AgentProgress>> {
+        // Persist the turn's records before reporting it finished.
+        self.state = AgentLoopState::Flushing {
+            task: self.flush_task(),
+            then: Box::new(AgentLoopState::Summarizing),
+        };
+        self.transition_flushing(ctx)
+    }
+
+    /// Run one step of the current state.
+    fn dispatch(&mut self, ctx: Ctx) -> Option<TaskStatus<SessionRecord, AgentProgress>> {
+        match &self.state {
+            AgentLoopState::Initializing => {
+                self.state = AgentLoopState::OuterBoundary;
+                Some(TaskStatus::Init)
+            }
+            AgentLoopState::OuterBoundary => Some(self.transition_outer_boundary()),
+            AgentLoopState::InnerAssemble => Some(self.transition_inner_assemble(ctx)),
+            AgentLoopState::InnerAssembling { .. } => Some(self.transition_inner_assembling(ctx)),
+            AgentLoopState::InnerGenerate { .. } => Some(self.transition_inner_generate()),
+            AgentLoopState::InnerToolCalls { .. } => Some(self.transition_inner_tool_calls()),
+            AgentLoopState::InnerExecuting { .. } => Some(self.transition_inner_executing(ctx)),
+            AgentLoopState::InnerEmitResults { .. } => Some(self.transition_inner_emit_results()),
+            AgentLoopState::OutputProcessing => Some(self.transition_output_processing()),
+            AgentLoopState::Flushing { .. } => self.transition_flushing(ctx),
+            AgentLoopState::Ending => self.transition_ending(ctx),
+            AgentLoopState::Summarizing => Some(self.transition_summarizing()),
+            AgentLoopState::Done => None,
+        }
+    }
+
+    fn transition_summarizing(
         &mut self,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
         let snapshot = self.ledger.snapshot();
@@ -1579,27 +1766,22 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
 impl<D, M> TaskIterator for AgentLoop<D, M>
 where
-    D: DocumentStore + 'static,
+    D: AsyncDocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     type Ready = SessionRecord;
     type Pending = AgentProgress;
 
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
-        match &self.state {
-            AgentLoopState::Initializing => {
-                self.state = AgentLoopState::OuterBoundary;
-                Some(TaskStatus::Init)
-            }
-            AgentLoopState::OuterBoundary => Some(self.transition_outer_boundary()),
-            AgentLoopState::InnerAssemble => Some(self.transition_inner_assemble()),
-            AgentLoopState::InnerGenerate { .. } => Some(self.transition_inner_generate()),
-            AgentLoopState::InnerToolCalls { .. } => Some(self.transition_inner_tool_calls()),
-            AgentLoopState::InnerExecuting { .. } => Some(self.transition_inner_executing(ctx.clone())),
-            AgentLoopState::InnerEmitResults { .. } => Some(self.transition_inner_emit_results()),
-            AgentLoopState::OutputProcessing => Some(self.transition_output_processing()),
-            AgentLoopState::Ending => Some(self.transition_ending()),
-            AgentLoopState::Done => None,
+        // Keep the message buffer bounded: once it reaches the flush
+        // threshold, await a flush before doing anything else.
+        if self.message_api.needs_flush() && self.can_flush_before() {
+            let then = std::mem::replace(&mut self.state, AgentLoopState::Done);
+            self.state = AgentLoopState::Flushing {
+                task: self.flush_task(),
+                then: Box::new(then),
+            };
         }
+        self.dispatch(ctx)
     }
 }

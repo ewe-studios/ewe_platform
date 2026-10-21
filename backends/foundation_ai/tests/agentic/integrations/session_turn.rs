@@ -28,7 +28,7 @@ use foundation_ai::harness::{Gemma4E2b, RouterMix};
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, SessionRecord, TextContent, UserModelContent,
 };
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{block_on_future, valtron_test};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type TestSession = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
@@ -87,7 +87,7 @@ fn greeting_interaction() -> foundation_ai::types::ModelInteraction {
 
 /// Build the session exactly the way `answerme-agent` does, so a break here is a
 /// break in the shipped app path.
-fn gemma_session() -> TestSession {
+async fn gemma_session() -> TestSession {
     let provider = Gemma4E2b::q4_k_m(Some(gguf_config())).expect("provider builds");
     let model_id = ModelId::Name(Gemma4E2b::MODEL_ID.to_string(), None);
 
@@ -103,6 +103,7 @@ fn gemma_session() -> TestSession {
         .with_memory_config(MemoryConfig::default())
         .with_error_policy(ErrorPolicy::new())
         .build()
+        .await
         .expect("session builds")
 }
 
@@ -209,7 +210,7 @@ fn provider_stream_yields_text() {
 /// A single turn must reach the model and come back with an assistant message.
 #[valtron_test]
 async fn run_turn_returns_an_assistant_reply() {
-    let session = gemma_session();
+    let session = gemma_session().await;
 
     let records = session
         .run_turn(user_msg("Reply with a single short greeting.")).await
@@ -243,7 +244,7 @@ async fn run_turn_returns_an_assistant_reply() {
 /// the returned records.
 #[valtron_test]
 async fn run_turn_persists_the_user_prompt() {
-    let session = gemma_session();
+    let session = gemma_session().await;
 
     session
         .run_turn(user_msg("Reply with a single short greeting.")).await
@@ -293,11 +294,12 @@ fn concurrent_agents_share_one_model_safely() {
     let handles: Vec<_> = (0..2)
         .map(|agent| {
             thread::spawn(move || {
-                let session = gemma_session();
+                // A plain OS thread is a sync boundary: block on the async calls.
+                let session = block_on_future(gemma_session());
                 let mut replies = Vec::new();
                 for turn in 0..3 {
                     // A plain OS thread: the sync adapter drives the async turn.
-                    let records = foundation_core::valtron::block_on_future(
+                    let records = block_on_future(
                         session.run_turn(user_msg("Reply with a single short greeting.")),
                     )
                     .unwrap_or_else(|e| {
@@ -331,7 +333,7 @@ fn concurrent_agents_share_one_model_safely() {
 /// turn answers, and loading happens once.
 #[valtron_test]
 async fn second_turn_answers_and_reuses_the_loaded_model() {
-    let session = gemma_session();
+    let session = gemma_session().await;
 
     let first = session
         .run_turn(user_msg("Reply with a single short greeting.")).await

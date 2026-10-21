@@ -20,7 +20,7 @@
 use std::sync::Arc;
 
 use foundation_core::valtron::execute;
-use foundation_db::traits::DocumentStore;
+use foundation_db::traits::AsyncDocumentStore;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_errstacks::ErrorTrace;
 
@@ -31,7 +31,7 @@ use crate::agentic::errors::{AgenticError, UserId};
 use crate::agentic::memory::{MemoryConfig, MemoryHierarchy};
 use crate::agentic::memory_coordinator::MemoryCoordinator;
 use crate::agentic::memory_store::{KvMemoryStore, MemoryStore};
-use crate::agentic::message_api::MessageApi;
+use crate::agentic::message_api::{MessageApi, MessageApiConfig};
 use crate::agentic::steering::SteeringQueues;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::agentic::tool_impl::ToolCallManager;
@@ -54,7 +54,7 @@ use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord};
 ///
 /// WHAT: Arc-wrapped `SessionInner` — cheaply clonable, shareable across
 /// threads. Exposes `run_turn_stream` (primary), `run_turn` (convenience),
-/// `steer` / `follow_up` (inject steering messages), and `end` (synchronous
+/// `steer` / `follow_up` (inject steering messages), and `end` (async
 /// teardown).
 ///
 /// HOW: Built via `AgentSession::builder(router)`. `build()` wires
@@ -131,6 +131,7 @@ pub struct AgentSessionBuilder<D = MemoryDocumentStore, M = KvMemoryStore<Memory
     config: AgentConfig,
     context_config: ContextConfig,
     memory_config: MemoryConfig,
+    message_config: MessageApiConfig,
     /// Optional embedding capability for real semantic recall (F16).
     embedder: Option<(Arc<dyn crate::agentic::embedding::EmbeddingProvider>, String)>,
 }
@@ -170,7 +171,7 @@ impl AgentSession {
     }
 }
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
+impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// The old two-argument builder: a session id plus default-constructed
     /// stores of the turbofished types.
     #[deprecated(
@@ -200,7 +201,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     }
 }
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D, M> {
+impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D, M> {
     fn new(router: ProviderRouter, doc_store: D, memory_store: M) -> Self {
         Self {
             session_id: SessionId::new(),
@@ -219,6 +220,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             config: AgentConfig::default(),
             context_config: ContextConfig::default(),
             memory_config: MemoryConfig::default(),
+            message_config: MessageApiConfig::default(),
             embedder: None,
         }
     }
@@ -243,6 +245,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             config: self.config,
             context_config: self.context_config,
             memory_config: self.memory_config,
+            message_config: self.message_config,
             embedder: self.embedder,
         }
     }
@@ -273,7 +276,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 
     /// Keep the session's message log in `store`. Changes the builder's type.
     #[must_use]
-    pub fn with_doc_store<D2: DocumentStore + 'static>(
+    pub fn with_doc_store<D2: AsyncDocumentStore + 'static>(
         self,
         store: D2,
     ) -> AgentSessionBuilder<D2, M> {
@@ -380,6 +383,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         self
     }
 
+    /// Limits of the session's message log: the write buffer's flush
+    /// threshold and the subscriber channel capacity
+    /// (default [`MessageApiConfig::default`]).
+    #[must_use]
+    pub fn with_message_config(mut self, config: MessageApiConfig) -> Self {
+        self.message_config = config;
+        self
+    }
+
     /// Wire components, run preflight, return the session.
     ///
     /// Every component shares one document store and one memory store: the
@@ -393,12 +405,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
     /// Preflight checks (OD-20-2): (1) access provider permits session + model,
     /// (2) budget is retrieved and applied to the ledger. If any check fails,
     /// no valtron task is scheduled.
+    ///
+    /// Async because [`resume`](Self::resume) reads the document store to
+    /// check that the session exists.
     /// # Errors
     /// Returns [`AgenticError::Session`] (`"no model set"`) if neither the
     /// preset passed to [`AgentSession::builder`] nor
     /// [`with_model`](Self::with_model) set a primary model, and
     /// [`ErrorTrace<AgenticError>`] if preflight checks fail.
-    pub fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
+    pub async fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
         // A session runs on a model the caller chose; there is no silent
         // empty-name default.
         let Some(primary) = self.model else {
@@ -424,11 +439,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         let memory_store = Arc::new(self.memory_store);
 
         let ledger = TokenLedger::new();
-        let message_api = MessageApi::from_shared(session_id.clone(), Arc::clone(&doc_store));
+        let message_api = MessageApi::shared_with_config(
+            session_id.clone(),
+            Arc::clone(&doc_store),
+            self.message_config,
+        );
 
         // `resume(id)`: the session must already exist in the stores.
         if self.require_existing {
-            let existing = message_api.recent(1).map_err(|e| {
+            let existing = message_api.recent(1).await.map_err(|e| {
                 ErrorTrace::new(AgenticError::MessageStore(format!(
                     "reading session {session_id} to resume it: {e}"
                 )))
@@ -504,7 +523,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 // ---------------------------------------------------------------------------
 // Preflight
 
-impl<D: DocumentStore, M: MemoryStore> SessionInner<D, M> {
+impl<D: AsyncDocumentStore, M: MemoryStore> SessionInner<D, M> {
     fn preflight(&self) -> Result<(), ErrorTrace<AgenticError>> {
         if !self
             .access
@@ -540,7 +559,7 @@ impl<D: DocumentStore, M: MemoryStore> SessionInner<D, M> {
 // ---------------------------------------------------------------------------
 // Lifecycle
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
+impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     #[must_use]
     pub fn session_id(&self) -> &SessionId {
         &self.inner.session_id
@@ -704,16 +723,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         self.inner.queues.abort();
     }
 
-    /// Synchronous teardown (Decision 01): drain the steering queues into the
-    /// message log, flush the log to the document store, reset the cancel
-    /// signal.
+    /// Teardown (Decision 01): drain the steering queues into the message
+    /// log, flush the log to the document store, reset the cancel signal.
     ///
     /// Every step runs even when an earlier one fails, so a failed flush still
     /// resets the cancel signal; the first error is returned. A record the
     /// store refused stays buffered, so calling `end()` again retries it.
     /// # Errors
     /// [`AgenticError::MessageStore`] when the document store fails a write.
-    pub fn end(&self) -> Result<(), ErrorTrace<AgenticError>> {
+    pub async fn end(&self) -> Result<(), ErrorTrace<AgenticError>> {
         let priority_msgs = self.inner.queues.drain_priority();
         let follow_up_msgs = self.inner.queues.drain_follow_up();
         for msg in priority_msgs.into_iter().chain(follow_up_msgs) {
@@ -724,7 +742,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
                 .append(SessionRecord::Conversation { message: msg });
         }
 
-        let flushed = self.inner.message_api.flush().map_err(|e| {
+        let flushed = self.inner.message_api.flush().await.map_err(|e| {
             ErrorTrace::new(AgenticError::MessageStore(format!(
                 "ending session {}: flushing the message log: {e}",
                 self.inner.session_id
