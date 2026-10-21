@@ -4,6 +4,22 @@ _Updated: 2026-10-21_
 
 ## Status: In progress
 
+## The async-storage stream (overall plan and status)
+
+_Recorded 2026-10-21._ Goal: async all the way, with sync only at real boundaries, so the same code runs natively and on Cloudflare Workers (where nothing may block).
+
+| Step | PR / branch | State |
+|---|---|---|
+| valtron async-first API (`.block()` / `.blocking()` native-only, `blocking_boundary!`) | #130 | ✅ merged |
+| foundation_db: I/O-backed stores async-only; `Blocking<S>` for sync callers | #131 | ✅ merged |
+| foundation_ai: `AgentSession` on the `Async*` traits; in-memory stores async-only; `build()` / `end()` async | #132 | ✅ merged |
+| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` | 🔧 in progress (started: foundation_auth) |
+
+**After this stream:** spec 65's agent-rpc review round 2 on PR #126. The plan is recorded in `specifications/65-agent-rpc-serving-system/progress.md`: pluggable traits for bare metal / Docker / Workers, auth moving into foundation_auth with a `CaStore` trait, and a `ClientAuth` provider built on our signed JSON secret (not a JWT).
+
+Also still open here: confirm whether F02 (the readiness-source seam) exists, then correct the three features' front matter.
+
+
 The feature front matter still says `pending`; the code on master is ahead of
 it. What master has, checked against the source:
 
@@ -32,8 +48,6 @@ it. What master has, checked against the source:
 - Fixes found on the way: `foundation_connectrpc` runs the `H2Transport`
   handshake in the pump, not in `open()`; `foundation_proxy` gained
   `ProxyServer::shutdown_async` so async tests stop blocking workers.
-
-## In progress
 
 ### foundation_db: async-only stores (PR #131, merged)
 
@@ -105,7 +119,7 @@ Extra checks:
 
 Merged as PR #131 (merge commit `c84382913`).
 
-### foundation_ai on the async store traits (branch `ai/async-stores`, PR not open yet)
+### foundation_ai on the async store traits (PR #132, merged)
 
 Done (committed and pushed):
 - foundation_ai: `MessageApi`, `KvMemoryStore`, `MemoryCoordinator`,
@@ -147,6 +161,15 @@ Checks (`scripts/ci/ci.py run <crate> --step build --step clippy --step test --s
 
 Extra: `examples/cf-agent-loop` and `examples/cf-cloud-provider` build for
 wasm32 (separate target dir, deleted after).
+
+## In progress
+
+### Remaining sync storage callers (branch `db/async-callers`)
+
+Backlog §11, crate by crate: foundation_auth, foundation_cedar,
+foundation_vectors, foundation_cronjobs, `MigrationRunner` / `StorageCleanup`,
+other users; then an async `StateStore`, no blocking `Default`, and deleting
+the sync storage traits.
 
 ## Next
 
