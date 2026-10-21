@@ -322,7 +322,7 @@ fn test_sync_collect_one_multi_value_returns_first() {
 }
 
 // ---------------------------------------------------------------------------
-// next_values / block_on_stream — lazy sync iteration at the boundary
+// next_values / run_stream_iter — lazy sync iteration at the boundary
 // ---------------------------------------------------------------------------
 
 /// `next_values` yields each `Next` (and each `Done` inside a `Spread`) in
@@ -349,21 +349,21 @@ fn next_values_yields_values_in_order_and_skips_control_states() {
     assert_eq!(values, vec![1, 2, 3, 4]);
 }
 
-/// `block_on_stream` lets synchronous code `for`-loop over an async stream;
+/// `run_stream_iter` lets synchronous code `for`-loop over an async stream;
 /// it ends with the stream.
 #[valtron_test]
-fn block_on_stream_iterates_an_async_stream_from_sync_code() {
-    use foundation_core::valtron::block_on_stream;
+fn run_stream_iter_iterates_an_async_stream_from_sync_code() {
+    use foundation_core::valtron::run_stream_iter;
 
     let mut seen = Vec::new();
-    for value in block_on_stream(futures_lite::stream::iter(vec![10u32, 20, 30]))
+    for value in run_stream_iter(futures_lite::stream::iter(vec![10u32, 20, 30]))
         .expect("scheduled")
     {
         seen.push(value);
     }
     assert_eq!(seen, vec![10, 20, 30]);
 
-    let empty: Vec<u32> = block_on_stream(futures_lite::stream::empty::<u32>())
+    let empty: Vec<u32> = run_stream_iter(futures_lite::stream::empty::<u32>())
         .expect("scheduled")
         .collect();
     assert!(empty.is_empty());
@@ -372,8 +372,8 @@ fn block_on_stream_iterates_an_async_stream_from_sync_code() {
 /// Items that are not ready yet are waited for (the stream returns `Pending`
 /// and wakes later), not dropped or spun on.
 #[valtron_test]
-fn block_on_stream_waits_for_items_that_arrive_later() {
-    use foundation_core::valtron::block_on_stream;
+fn run_stream_iter_waits_for_items_that_arrive_later() {
+    use foundation_core::valtron::run_stream_iter;
     use std::sync::mpsc;
     use std::time::Duration;
 
@@ -400,7 +400,7 @@ fn block_on_stream_waits_for_items_that_arrive_later() {
         .await;
         next.map(|v| (v, rx))
     });
-    let values: Vec<u32> = block_on_stream(stream).expect("scheduled").collect();
+    let values: Vec<u32> = run_stream_iter(stream).expect("scheduled").collect();
     producer.join().expect("producer");
     assert_eq!(values, vec![0, 1, 2]);
 }

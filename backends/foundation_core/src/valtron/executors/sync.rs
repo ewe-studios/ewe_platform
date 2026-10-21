@@ -12,7 +12,7 @@ use crate::valtron::{Stream, StreamSpread};
 ///
 /// HOW: Pulls the underlying iterator, which blocks or drives the executor
 /// between items exactly as [`collect_result`] relies on. Use it on a stream
-/// from `execute(..)` (or via `block_on_stream` for an async stream), at
+/// from `execute(..)` (or via `run_stream_iter` for an async stream), at
 /// **sync boundaries only** — on single-threaded wasm a synchronous loop can
 /// never let the event loop deliver the I/O it waits on.
 ///
@@ -31,7 +31,7 @@ where
     }
 }
 
-/// The iterator `block_on_stream` returns: an async stream's items, ending
+/// The iterator `run_stream_iter` returns: an async stream's items, ending
 /// with the stream. (Its task reports each item as `Some(item)` and the end
 /// as `None`.)
 pub struct StreamValues<T, I> {

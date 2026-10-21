@@ -394,49 +394,24 @@ impl OpenAIProvider {
         Ok(info)
     }
 
-    /// Best-effort `GET models/{name}` metadata lookup (native).
-    #[cfg(not(target_family = "wasm"))]
+    /// Placeholder metadata now; the `GET models/{name}` lookup runs in the
+    /// background ([`model_info::spawn_lookup`]) and replaces it in the shared
+    /// cache, which [`OpenAIModel::info`] reads. `get_model` therefore never
+    /// blocks on the network, on any target.
     fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
-        let url = self.build_url(&format!("models/{model_name}"));
-        let result: Result<OpenAIModelResponse, _> = self.execute_request(&url, "");
-        match result {
-            Ok(resp) => OpenAIModelInfo::from(resp),
-            Err(_) => Self::fallback_model_info(model_name),
-        }
-    }
-
-    /// Wasm: answer with placeholder metadata now and look the model up in the
-    /// background.
-    ///
-    /// WHY: `get_model` is synchronous and runs inside the agent task. A sync
-    /// lookup would go through `HttpClient::send`, which cannot wait for a
-    /// `fetch` on wasm without freezing the isolate (spec 65 feature 06 T5). So
-    /// the lookup runs as its own valtron task over [`HttpClient::send_async`]:
-    /// it yields to the JS event loop while in flight and, once it resolves,
-    /// replaces the cached placeholder, which [`OpenAIModel::info`] then reports.
-    #[cfg(target_family = "wasm")]
-    fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
-        self.spawn_model_info_lookup(model_name);
-        Self::fallback_model_info(model_name)
-    }
-
-    /// Look `model_name` up as its own valtron task (see
-    /// [`model_info::spawn_lookup`]).
-    #[cfg(target_family = "wasm")]
-    fn spawn_model_info_lookup(&self, model_name: &str) {
-        let Some(client) = self.http_client.clone() else {
-            return;
-        };
-        match self.model_info_request(model_name) {
-            Ok(req) => model_info::spawn_lookup(
-                Arc::clone(&self.models_cache),
-                model_name.to_string(),
-                fetch_model_info_with(client, req),
-            ),
-            Err(e) => {
-                tracing::warn!(model = model_name, error = %e, "model metadata lookup not started");
+        if let Some(client) = self.http_client.clone() {
+            match self.model_info_request(model_name) {
+                Ok(req) => model_info::spawn_lookup(
+                    Arc::clone(&self.models_cache),
+                    model_name.to_string(),
+                    fetch_model_info_with(client, req),
+                ),
+                Err(e) => {
+                    tracing::warn!(model = model_name, error = %e, "model metadata lookup not started");
+                }
             }
         }
+        Self::fallback_model_info(model_name)
     }
 }
 
