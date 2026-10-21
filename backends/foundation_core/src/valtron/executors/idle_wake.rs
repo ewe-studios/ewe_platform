@@ -27,7 +27,9 @@ static NEXT_ID: AtomicU64 = AtomicU64::new(0);
 static SLEEPING: Mutex<Vec<(u64, Interrupt)>> = Mutex::new(Vec::new());
 
 thread_local! {
-    static SEEN: Cell<u64> = const { Cell::new(0) };
+    /// The resume count this thread has accounted for; `u64::MAX` = never
+    /// slept yet (its first sleep starts from the current count).
+    static SEEN: Cell<u64> = const { Cell::new(u64::MAX) };
 }
 
 /// Wake every sleeping executor thread: a parked task may be ready.
@@ -48,7 +50,8 @@ pub fn resume_idle() {
 /// since it last slept. `interrupt` must make `sleep` return early.
 pub fn park_idle(interrupt: Interrupt, sleep: impl FnOnce()) {
     let now = RESUMES.load(Ordering::SeqCst);
-    if SEEN.with(Cell::get) != now {
+    let seen = SEEN.with(Cell::get);
+    if seen != u64::MAX && seen != now {
         // A wake arrived while this thread was working: re-check first.
         SEEN.with(|s| s.set(now));
         return;

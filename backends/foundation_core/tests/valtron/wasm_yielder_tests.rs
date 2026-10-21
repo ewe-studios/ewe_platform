@@ -147,13 +147,17 @@ fn single_threaded_runs_counter_to_completion() {
 fn nothreadcontroller_uses_spin_waiter() {
     let controller = NoThreadController::new();
 
-    let start = Instant::now();
-    controller.yield_for(Duration::from_millis(10));
-    let elapsed = start.elapsed();
-
-    // Should take some time (not return immediately like before)
-    // But timing is approximate due to spin-loop nature
-    assert!(elapsed >= Duration::from_micros(100));
+    // Should take some time (not return immediately like before). A resume
+    // from another test's executor may legitimately cut one wait short, so
+    // require that some attempt really waited.
+    assert!(
+        (0..10).any(|_| {
+            let start = Instant::now();
+            controller.yield_for(Duration::from_millis(10));
+            start.elapsed() >= Duration::from_micros(100)
+        }),
+        "yield_for never waited"
+    );
 }
 
 #[test]
@@ -166,8 +170,14 @@ fn nothreadcontroller_is_cloneable() {
 #[test]
 fn nothreadcontroller_has_default() {
     let controller = NoThreadController::default();
-    let start = Instant::now();
-    controller.yield_for(Duration::from_millis(5));
-    let elapsed = start.elapsed();
-    assert!(elapsed >= Duration::from_micros(50));
+    // See `nothreadcontroller_uses_spin_waiter`: a parallel resume may cut one
+    // wait short.
+    assert!(
+        (0..10).any(|_| {
+            let start = Instant::now();
+            controller.yield_for(Duration::from_millis(5));
+            start.elapsed() >= Duration::from_micros(50)
+        }),
+        "yield_for never waited"
+    );
 }
