@@ -4700,7 +4700,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "wasm-bindgen",
- "wasm-bindgen-test",
  "zeroize",
 ]
 
@@ -5472,6 +5471,7 @@ dependencies = [
  "derive_more",
  "foundation_browser",
  "foundation_codegen",
+ "foundation_compact",
  "foundation_core",
  "foundation_deployment_platform",
  "foundation_errstacks",

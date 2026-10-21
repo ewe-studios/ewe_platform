@@ -104,7 +104,14 @@ wasm-runs = ["--no-default-features"]
 # default `multi`), which meant the single-threaded executor was never tested.
 runs = ["", "multi"]
 wasm = "enforce"
-wasm-runs = ["--no-default-features --features std"]
+# The plain wasm build plus both JS backends: `js-foundation-wasm` is the owned
+# path (foundation_compact's `host-abi` time/entropy, no wasm-bindgen glue),
+# `js-wasmbindgen` the one Workers run.
+wasm-runs = [
+  "--no-default-features --features std",
+  "--no-default-features --features std,js-foundation-wasm",
+  "--no-default-features --features std,js-wasmbindgen",
+]
 
 [packages.foundation_jsonschema]
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
@@ -188,7 +195,9 @@ wasm-runs = [""]
 
 [packages.foundation_compact]
 wasm = "enforce"
-wasm-runs = [""]
+# Defaults use the wasm-bindgen time/entropy backend; the second run is the
+# owned path's `host-abi` backend.
+wasm-runs = ["", "--no-default-features --features std,host-abi"]
 
 [packages.foundation_arrow]
 wasm = "enforce"

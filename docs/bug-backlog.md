@@ -125,16 +125,6 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
-- **The owned wasm path imports wasm-bindgen glue.** `foundation_compact`
-  (`Cargo.toml`: `wasm-bindgen`/`js-sys` unconditionally on
-  `wasm32-unknown-unknown`; `src/wasm/{instant,system_time}.rs`,
-  `src/entropy/backends/wasm_js.rs`) makes every foundation_core wasm build import
-  `__wbindgen_placeholder__`, so a `js-foundation-wasm` module (the zero
-  wasm-bindgen path) cannot be instantiated by `foundation-wasm.js`: all of
-  `foundation_core/integration/wasm_tests` fails at load (spec 68). Give
-  compact a feature-selected backend that reads time/entropy through host ABI
-  imports implemented by `foundation-wasm.js`, and use it under `js-foundation-wasm`.
-
 - **`SpinWaiter`** (foundation_nostd, still used on wasm) rounds sub-millisecond waits down to zero, and its spin calibration is arbitrary.
 - **Unused import** at `foundation_wasm/src/capability.rs:24` on wasm32.
 - **Interval callbacks run under the registry lock.** `host_runtime.rs`
@@ -193,6 +183,17 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   `wasm-embedded-js` testbed stopped building (deno_v8 had no JS engine selected)
   unnoticed. Add a CI job that runs `mise run test:wasm-testbed:deno` (embedded
   Deno; no browser needed) and `mise run test:wasm-bindgen:deno`.
+- **`wasm-testbed` warns on `Command::Bindgen(args)`** (`foundation_testbed/src/bin/wasm-testbed.rs:37`):
+  `args` is unused unless the `wasm-bindgen-test` feature is on (e.g. under
+  `--no-default-features --features wasm-embedded-js`). Gate the binding with the
+  same `cfg` as its use, or prefix it with `_` in the other arm.
+- **Running a wasm mise task installs every tool in `mise.toml`.** `mise exec`/`mise run`
+  first installs all pinned tools (bacon, cargo-nextest, cargo-audit, python…),
+  building several from source. On a small disk that fills it, and where the
+  GitHub attestation API is blocked the python install fails, so
+  `test:wasm-bindgen:deno` cannot start even though it only needs deno and
+  wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
+  task invoke the two binaries via `mise which`.
 
 ## 10. foundation_ai
 

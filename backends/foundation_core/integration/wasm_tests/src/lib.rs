@@ -370,3 +370,57 @@ async fn scheduled_callback_can_reschedule() {
     WaitUntil::new(move || f.load(Ordering::Relaxed) == 2).await;
     assert_eq!(fired.load(Ordering::Relaxed), 2);
 }
+
+/// foundation_compact's `host-abi` clock: `Instant` advances across real host
+/// turns, and `SystemTime` agrees with the host's `Date.now()`. Before the
+/// backend existed, any `Instant::now()` in an owned module imported
+/// wasm-bindgen glue and the module could not even be instantiated.
+#[wasm_test]
+async fn host_abi_clock_advances_and_matches_wall_clock() {
+    use foundation_compact::{Instant, SystemTime, UNIX_EPOCH};
+
+    let wall_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("after the epoch")
+        .as_secs_f64()
+        * 1000.0;
+    let host_ms = now_ms();
+    assert!(
+        (wall_ms - host_ms).abs() < 5_000.0,
+        "SystemTime ({wall_ms} ms) should match Date.now() ({host_ms} ms)"
+    );
+
+    let start = Instant::now();
+    WaitUntil::new(move || start.elapsed() >= Duration::from_millis(5)).await;
+    assert!(Instant::now() >= start, "Instant is monotonic");
+}
+
+/// foundation_compact's `host-abi` entropy fills a buffer larger than Web
+/// Crypto's 65536-byte per-call limit: every 64 KiB chunk, including the short
+/// tail, must be written (the host splits the request).
+#[wasm_test]
+fn host_abi_entropy_fills_past_the_web_crypto_limit() {
+    const CHUNK: usize = 65_536;
+    let mut buf = vec![0u8; 3 * CHUNK + 1_000];
+    foundation_compact::entropy::fill(&mut buf).expect("host has Web Crypto");
+    for (i, chunk) in buf.chunks(CHUNK).enumerate() {
+        assert!(
+            chunk.iter().any(|&b| b != 0),
+            "chunk {i} ({} bytes) was left zeroed",
+            chunk.len()
+        );
+    }
+}
+
+/// The thread RNG seeds from host-ABI entropy and produces values.
+#[wasm_test]
+fn host_abi_entropy_seeds_the_thread_rng() {
+    use foundation_compact::rng::Rng;
+
+    let mut rng = foundation_compact::rng::rng();
+    let draws: Vec<u64> = (0..4).map(|_| rng.next_u64()).collect();
+    assert!(
+        draws.windows(2).any(|w| w[0] != w[1]),
+        "seeded RNG should not repeat: {draws:?}"
+    );
+}
