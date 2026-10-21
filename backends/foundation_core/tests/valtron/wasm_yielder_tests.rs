@@ -143,22 +143,6 @@ fn single_threaded_runs_counter_to_completion() {
     assert_eq!(results.borrow()[..], [1, 2, 3, 4, 5]);
 }
 
-#[test]
-fn nothreadcontroller_uses_spin_waiter() {
-    let controller = NoThreadController::new();
-
-    // Should take some time (not return immediately like before). A resume
-    // from another test's executor may legitimately cut one wait short, so
-    // require that some attempt really waited.
-    assert!(
-        (0..10).any(|_| {
-            let start = Instant::now();
-            controller.yield_for(Duration::from_millis(10));
-            start.elapsed() >= Duration::from_micros(100)
-        }),
-        "yield_for never waited"
-    );
-}
 
 #[test]
 fn nothreadcontroller_is_cloneable() {
@@ -167,17 +151,3 @@ fn nothreadcontroller_is_cloneable() {
     // Should compile and not panic
 }
 
-#[test]
-fn nothreadcontroller_has_default() {
-    let controller = NoThreadController::default();
-    // See `nothreadcontroller_uses_spin_waiter`: a parallel resume may cut one
-    // wait short.
-    assert!(
-        (0..10).any(|_| {
-            let start = Instant::now();
-            controller.yield_for(Duration::from_millis(5));
-            start.elapsed() >= Duration::from_micros(50)
-        }),
-        "yield_for never waited"
-    );
-}

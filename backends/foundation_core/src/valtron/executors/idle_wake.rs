@@ -11,10 +11,16 @@
 //! `request_executor_resume` by `WakeSignal` and by every bridged future's
 //! waker — runs the registered interrupts.
 //!
-//! HOW: a global resume counter closes the race where a wake lands between the
-//! executor's "nothing runnable" check and its sleep: the sleep is skipped when
-//! a resume happened since this thread last slept. Spurious wakes are harmless —
-//! the executor re-checks its work and sleeps again.
+//! HOW: a sleeping thread is in [`SLEEPING`] only while it sleeps, so a wake
+//! interrupts exactly the threads asleep at that moment. A wake can also land
+//! between the executor's "nothing runnable" check and its registration: each
+//! executor loop iteration calls [`checking`] before it looks for work, and
+//! [`park_idle`] skips the sleep if a wake arrived since then. Only wakes in
+//! that short window skip a sleep, so unrelated wake traffic elsewhere in the
+//! process cannot spin an idle executor. (An earlier version skipped the sleep
+//! for any wake since the thread's last sleep; under heavy traffic that
+//! skipped nearly every sleep.) Spurious wakes are harmless: the executor
+//! re-checks its work and sleeps again.
 
 use std::cell::Cell;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -22,15 +28,23 @@ use std::sync::{Arc, Mutex, PoisonError};
 
 type Interrupt = Arc<dyn Fn() + Send + Sync>;
 
-static RESUMES: AtomicU64 = AtomicU64::new(0);
 static NEXT_ID: AtomicU64 = AtomicU64::new(0);
-static SLEEPING: Mutex<Vec<(u64, Interrupt)>> = Mutex::new(Vec::new());
+static RESUMES: AtomicU64 = AtomicU64::new(0);
+
+/// Not checking: a sleep without a preceding [`checking`] never skips.
+const NOT_CHECKING: u64 = u64::MAX;
 
 thread_local! {
-    /// The resume count this thread has accounted for; `u64::MAX` = never
-    /// slept yet (its first sleep starts from the current count).
-    static SEEN: Cell<u64> = const { Cell::new(u64::MAX) };
+    /// The resume count when this thread's executor began its current check.
+    static CHECKED_AT: Cell<u64> = const { Cell::new(NOT_CHECKING) };
 }
+
+/// The executor loop is about to look for work: a wake from now on must not
+/// be lost if the loop then decides to sleep.
+pub fn checking() {
+    CHECKED_AT.with(|c| c.set(RESUMES.load(Ordering::SeqCst)));
+}
+static SLEEPING: Mutex<Vec<(u64, Interrupt)>> = Mutex::new(Vec::new());
 
 /// Wake every sleeping executor thread: a parked task may be ready.
 pub fn resume_idle() {
@@ -46,28 +60,22 @@ pub fn resume_idle() {
     }
 }
 
-/// Sleep the calling executor thread with `sleep`, unless a resume happened
-/// since it last slept. `interrupt` must make `sleep` return early.
+/// Sleep the calling executor thread with `sleep`; a wake meanwhile
+/// ([`resume_idle`]) runs `interrupt`, which must make `sleep` return early.
 pub fn park_idle(interrupt: Interrupt, sleep: impl FnOnce()) {
-    let now = RESUMES.load(Ordering::SeqCst);
-    let seen = SEEN.with(Cell::get);
-    if seen != u64::MAX && seen != now {
-        // A wake arrived while this thread was working: re-check first.
-        SEEN.with(|s| s.set(now));
-        return;
-    }
+    let checked_at = CHECKED_AT.with(|c| c.replace(NOT_CHECKING));
     let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
     SLEEPING
         .lock()
         .unwrap_or_else(PoisonError::into_inner)
         .push((id, interrupt));
-    // A resume between the check above and the registration would be lost.
-    if RESUMES.load(Ordering::SeqCst) == now {
+    // Registered: any later wake interrupts the sleep. A wake between the
+    // check and the registration would be lost, so skip the sleep for it.
+    if checked_at == NOT_CHECKING || RESUMES.load(Ordering::SeqCst) == checked_at {
         sleep();
     }
     SLEEPING
         .lock()
         .unwrap_or_else(PoisonError::into_inner)
         .retain(|(entry, _)| *entry != id);
-    SEEN.with(|s| s.set(RESUMES.load(Ordering::SeqCst)));
 }

@@ -2651,6 +2651,8 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         S: Fn(ProgressIndicator) -> bool,
     {
         loop {
+            #[cfg(not(target_family = "wasm"))]
+            crate::valtron::executors::idle_wake::checking();
             // Check kill_signal if provided, otherwise continue
             if let Some(ref kill_signal) = self.kill_signal {
                 if kill_signal.probe() {
@@ -2780,6 +2782,8 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     #[inline]
     pub fn block_until_finished(&self) {
         'main_loop: loop {
+            #[cfg(not(target_family = "wasm"))]
+            crate::valtron::executors::idle_wake::checking();
             for _ in 0..200 {
                 let progress = self.run_once();
 
@@ -2866,6 +2870,8 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             .expect("Calling LocalThreadExecutor::block_on requires kill_signal to be provided for termination");
 
         loop {
+            #[cfg(not(target_family = "wasm"))]
+            crate::valtron::executors::idle_wake::checking();
             if kill_signal.probe() {
                 return;
             }
