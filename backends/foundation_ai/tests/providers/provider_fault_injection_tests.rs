@@ -625,11 +625,15 @@ fn an_embedding_marker_routes_to_the_embeddings_endpoint() {
     // Capture the path so we can prove it went to /embeddings, not
     // /chat/completions — sending an embedding request to chat would return
     // prose where the caller expects a vector.
-    let seen = Arc::new(std::sync::Mutex::new(String::new()));
+    //
+    // Every path is kept: the provider may also fetch model info
+    // (`/v1/models/..`) in the background, and that request can land after
+    // the embedding one, so checking only the last path was flaky.
+    let seen = Arc::new(std::sync::Mutex::new(Vec::<String>::new()));
     let recorder = Arc::clone(&seen);
 
     let server = TestHttpServer::with_response(move |req| {
-        *recorder.lock().unwrap() = format!("{:?}", req.path.url);
+        recorder.lock().unwrap().push(format!("{:?}", req.path.url));
         response(200, "OK", "application/json", EMBEDDING_BODY)
     });
 
@@ -638,10 +642,14 @@ fn an_embedding_marker_routes_to_the_embeddings_endpoint() {
         .generate(embedding_interaction(&["embed me"]), None)
         .expect("an embedding request must succeed");
 
-    let path = seen.lock().unwrap().clone();
+    let paths = seen.lock().unwrap().clone();
     assert!(
-        path.contains("embeddings"),
-        "the request must go to the embeddings endpoint, got: {path}"
+        paths.iter().any(|path| path.contains("embeddings")),
+        "the request must go to the embeddings endpoint, got: {paths:?}"
+    );
+    assert!(
+        !paths.iter().any(|path| path.contains("chat/completions")),
+        "an embedding request must not go to chat: {paths:?}"
     );
     assert!(!out.is_empty(), "an embedding response must yield a message");
 }
