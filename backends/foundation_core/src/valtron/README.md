@@ -430,10 +430,10 @@ Notes:
   chain). This is exactly why tests and shared code should use the unified
   API: `single::spawn()` panics with "Thread pool not initialized" when the
   unified `initialize_pool` actually brought up the multi pool.
-- wasm32 builds of this workspace need `--profile uat` or
-  `CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm` (the dev profile's Cranelift backend
-  also cannot initiate panic unwinding — panic-in-task tests abort under dev
-  but pass under uat).
+- Under mise, `dev` builds use Cranelift (mise's `[env]`), which can't
+  target wasm32 and can't initiate panic unwinding (panic-in-task tests abort
+  under it). Use `--profile uat`, or unset `CARGO_PROFILE_DEV_CODEGEN_BACKEND`;
+  plain `cargo` outside mise builds `dev` with LLVM.
 
 ---
 

@@ -12,6 +12,13 @@
 
 [env]
 CARGO_TERM_COLOR = "always"
+# Dev builds on Cranelift (fast compiles; needs the pinned nightly and its
+# rustc-codegen-cranelift component). Kept out of Cargo.toml/.cargo/config.toml
+# because `codegen-backend` is nightly-only and releases build on stable.
+# `uat` stays on LLVM (Cranelift can't do catch_unwind or coverage).
+CARGO_UNSTABLE_CODEGEN_BACKEND = "true"
+CARGO_PROFILE_DEV_CODEGEN_BACKEND = "cranelift"
+CARGO_PROFILE_UAT_CODEGEN_BACKEND = "llvm"
 PROJECT_ROOT = "{{config_root}}"
 TOOLS_DIR = "{{config_root}}/tools"
 DEPOT_DIR = "{{env.TOOLS_DIR}}/depot_tools"
