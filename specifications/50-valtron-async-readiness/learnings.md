@@ -85,6 +85,33 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   OpenSSL 3 symbols are missing. Use `server-test` to run the auth server
   suite.
 
+## Moving a sync state machine onto async stores (foundation_ai PR 2)
+
+- A valtron `TaskIterator` can await a store without becoming a future: keep
+  a `FutureTask<Pin<Box<dyn Future + Send>>>` in the state and call its
+  `next_status` from the loop's own. `Ready` is the result; `Depends` /
+  `Ignore` / `Delayed` pass straight back to the executor, so a waiting store
+  parks the task.
+- Poll the new future in the same step that creates it. In-memory stores are
+  ready at once, so the loop's step sequence (and every test that steps it)
+  stays the same.
+- A write-behind buffer whose flush is now async needs an owner that awaits
+  it. `append` only buffers; the loop flushes at a configured threshold
+  (checked before each step), at every context assembly and when the turn
+  ends. Re-dispatch the interrupted state after the flush without
+  re-checking the threshold, or a flush that finds another one running loops
+  forever.
+- On wasm, `AsyncStorageItemStream` is `!Send`. Holding one across an
+  `.await` inside an `async_trait` (`Send`) method fails only in the wasm
+  build: wrap both the stream and each `next()` future in
+  `foundation_compact::SendWrapper`. Native builds never show this, so
+  build `examples/cf-agent-loop` for wasm32 after touching store code.
+- Turning a sync `build()` async ripples into every helper that builds a
+  session. Scripted `.await` insertion is fine for the call sites, but check
+  each converted test: closures (`.map(|n| ... .await)`) and tests that drive
+  a stream synchronously must be rewritten by hand, and a test that awaits
+  nothing must stay `#[test]`.
+
 ## Pool teardown in tests
 
 - `shutdown_within` detaches workers stuck inside a task. They are threads in
