@@ -89,7 +89,7 @@ Checks (`scripts/ci/ci.py run <crate> --step build --step clippy --step test --s
 | foundation_auth | pass |
 | foundation_nativeapis | pass |
 | foundation_keychain | pass |
-| foundation_ai | running |
+| foundation_ai | pass. Steps run one at a time with `target/uat` wiped in between, for disk: `build`, `clippy`, the two `test` runs (`testing`; `--no-default-features --features testing`) as the exact `cargo test` commands ci.py issues, then `wasm`. |
 
 Extra checks:
 - foundation_ai `--no-default-features --features multi,testing --test
@@ -103,7 +103,7 @@ Extra checks:
   - foundation_keychain;
   - `examples/cf-login-app` and `examples/cf-agent-loop`.
 
-Left: the foundation_ai CI run; then report back (no PR).
+Left: nothing for PR 1. The branch is pushed; the coordinator opens the PR.
 
 ## Next
 

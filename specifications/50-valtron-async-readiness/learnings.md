@@ -96,5 +96,10 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
 - Local CI (`scripts/ci/ci.py run <crate> ...`) can exhaust the session's
   disk. Run one crate at a time and prune old `target/uat/build/*/` hashes
   between crates; keep logs inside the repo's target dir.
+- `ci.py run foundation_ai` with all steps needs more than 14 GB free:
+  `build` with llamacpp + candle leaves ~14 GB in `target/uat`, then `clippy`
+  adds more. Run the steps one at a time and `rm -rf target/uat` between them;
+  pruning old hashes mid-run isn't safe in the `build/<crate>/<hash>/` layout,
+  where each hash is a live unit.
 - Long agent runs can be stopped by usage limits. Commit at stable points so a
   stop loses nothing.
