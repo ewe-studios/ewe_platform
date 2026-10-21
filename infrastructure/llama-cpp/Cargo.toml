@@ -35,6 +35,8 @@ vulkan = ["infrastructure_llama_bindings/vulkan"]
 openmp = ["infrastructure_llama_bindings/openmp"]
 dynamic-link = ["infrastructure_llama_bindings/dynamic-link"]
 cuda-no-vmm = ["cuda", "infrastructure_llama_bindings/cuda-no-vmm"]
+# CUDA without NCCL (on by default when libnccl is found).
+cuda-no-nccl = ["cuda", "infrastructure_llama_bindings/cuda-no-nccl"]
 # Only has an impact on Android.
 android-shared-stdcxx = ["infrastructure_llama_bindings/shared-stdcxx"]
 system-ggml = ["infrastructure_llama_bindings/system-ggml"]
