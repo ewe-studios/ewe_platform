@@ -191,7 +191,7 @@ fn rows_to_async<V: DeserializeOwned + Send + 'static>(
 /// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
 /// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
 /// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, foundation_ai).
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl DocumentStore for MemoryDocumentStore {
     fn append<V: Serialize + Send + 'static>(
         &self,

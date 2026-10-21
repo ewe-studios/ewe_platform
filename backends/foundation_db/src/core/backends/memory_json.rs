@@ -56,7 +56,7 @@ impl Default for MemoryJsonStore {
 /// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
 /// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
 /// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, foundation_ai).
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl KeyValueStore for MemoryJsonStore {
     fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.lock()?;
@@ -106,7 +106,7 @@ impl KeyValueStore for MemoryJsonStore {
 /// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
 /// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
 /// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, foundation_ai).
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl QueryStore for MemoryJsonStore {
     fn query(
         &self,
@@ -141,7 +141,7 @@ impl QueryStore for MemoryJsonStore {
 /// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
 /// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
 /// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, foundation_ai).
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl RateLimiterStore for MemoryJsonStore {
     fn check_rate_limit(
         &self,
@@ -218,7 +218,7 @@ impl RateLimiterStore for MemoryJsonStore {
 /// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
 /// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
 /// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, foundation_ai).
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl BlobStore for MemoryJsonStore {
     fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         // Store binary data as base64 JSON string

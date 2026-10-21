@@ -45,7 +45,7 @@ impl Default for MemoryStorage {
 /// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
 /// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
 /// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, foundation_ai).
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl KeyValueStore for MemoryStorage {
     fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self
@@ -118,7 +118,7 @@ impl KeyValueStore for MemoryStorage {
 /// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
 /// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
 /// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, foundation_ai).
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl QueryStore for MemoryStorage {
     fn query(
         &self,
@@ -158,7 +158,7 @@ struct RateLimitEntry {
 /// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
 /// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
 /// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, foundation_ai).
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl RateLimiterStore for MemoryStorage {
     fn check_rate_limit(
         &self,
@@ -253,7 +253,7 @@ impl RateLimiterStore for MemoryStorage {
 /// temporary — `foundation_ai`'s `AgentSession` still runs on the sync storage
 /// traits (including on Cloudflare Workers, see `examples/cf-agent-loop`), and
 /// this impl goes once it moves to the `Async*` traits
-/// (`docs/bug-backlog.md`, foundation_ai).
+/// (`docs/bug-backlog.md`, `foundation_ai` section).
 impl BlobStore for MemoryStorage {
     fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let mut storage = self
