@@ -5,6 +5,7 @@ use foundation_auth::shared::credential_store::{
 };
 use foundation_auth::shared::oauth_token::OAuthToken;
 use foundation_db::{StorageBackend, StorageProvider};
+use foundation_core::valtron::BlockingFutureExt;
 use std::sync::Mutex;
 
 /// Shared Valtron pool guard — initialized once and reused across all tests
@@ -22,7 +23,9 @@ fn sqlite_store() -> (CredentialStorage, tempfile::TempDir) {
     init_valtron();
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("auth.sqlite");
-    let store = CredentialStorage::turso(db_path.to_str().expect("non-utf8 tempdir path"))
+    let url = db_path.to_str().expect("non-utf8 tempdir path").to_owned();
+    let store = async move { CredentialStorage::turso(&url).await }
+        .block()
         .expect("init turso credential storage");
     (store, dir)
 }
@@ -120,10 +123,10 @@ fn credential_storage_wraps_arbitrary_provider() {
     init_valtron();
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("wrap.sqlite");
-    let provider = StorageProvider::new(StorageBackend::Turso {
-        url: db_path.to_string_lossy().into_owned(),
-    })
-    .expect("init turso provider");
+    let url = db_path.to_string_lossy().into_owned();
+    let provider = async move { StorageProvider::new(StorageBackend::Turso { url }).await }
+        .block()
+        .expect("init turso provider");
     let store = CredentialStorage::new(provider);
     let _ = store.set("k", "v").unwrap();
     let got: String = store.get("k").unwrap().unwrap();

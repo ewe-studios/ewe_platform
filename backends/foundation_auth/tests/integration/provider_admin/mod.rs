@@ -13,17 +13,14 @@ use foundation_auth::server::handlers::provider_admin::{
 use foundation_auth::server::models::provider::{ProviderType, UpstreamProvider};
 use foundation_auth::server::services::provider_service::{ProviderCrypto, ProviderService};
 use foundation_core::valtron::valtron_test;
-use foundation_db::{QueryStore, StorageBackend, StorageProvider};
+use foundation_db::{Blocking, StorageProvider};
 use tempfile::TempDir;
 
-fn make_service() -> (ProviderService<StorageProvider>, TempDir) {
+fn make_service() -> (ProviderService<Blocking<StorageProvider>>, TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("admin_test.db");
     let store = Arc::new(
-        StorageProvider::new(StorageBackend::Turso {
-            url: db_path.to_str().unwrap().to_string(),
-        })
-        .expect("init turso"),
+        super::turso_provider(db_path.to_str().unwrap().to_string()),
     );
     let crypto = ProviderCrypto::from_passphrase("test-key", "default");
     (ProviderService::new(store, crypto), dir)

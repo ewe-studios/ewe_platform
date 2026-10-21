@@ -1,23 +1,20 @@
 //! Credential store backed by `D1WasmStorage`.
 //!
-//! WHY: `SessionManager<S: CredentialStore>` requires the sync `CredentialStore`
-//! trait. `D1WasmStorage` implements sync `KeyValueStore` methods that route
-//! through valtron iterators (`schedule_future` → `drive_non_send_iterator`).
-//! With `JSThreadYielder` active, the valtron executor yields to the JS event
-//! loop during waits, so these sync calls work correctly instead of deadlocking.
+//! WHY: `SessionManager`'s async methods need an `AsyncCredentialStore`; this
+//! is a shareable (`Arc`) handle to one over Cloudflare D1.
 //!
-//! WHAT: Wraps `Arc<D1WasmStorage>` and iterates valtron streams into plain
-//! `Result` values, implementing `CredentialStore`.
+//! WHAT: Wraps `Arc<D1WasmStorage>` and implements only `AsyncCredentialStore`.
+//! There is no sync `CredentialStore` impl: a sync call would have to block the
+//! Worker's event loop while D1's Promise can only resolve on that same loop.
 
 use std::sync::Arc;
 
-use foundation_core::valtron::Stream;
-use foundation_db::{D1WasmStorage, KeyValueStore, StorageError};
+use foundation_db::D1WasmStorage;
 use serde::{Deserialize, Serialize};
 
-use crate::shared::credential_store::{AsyncCredentialStore, CredentialStore, CredentialStoreError};
+use crate::shared::credential_store::{AsyncCredentialStore, CredentialStoreError};
 
-/// Credential store backed by D1 via valtron-sync iterators.
+/// Async credential store backed by D1.
 pub struct D1CredentialStore {
     storage: Arc<D1WasmStorage>,
 }
@@ -28,89 +25,13 @@ impl D1CredentialStore {
     }
 }
 
-fn drain_next<V>(stream: Result<impl Iterator<Item = Stream<Result<V, StorageError>, ()>>, StorageError>) -> Result<Option<V>, CredentialStoreError> {
-    let stream = stream.map_err(CredentialStoreError::Storage)?;
-    for item in stream {
-        if let Stream::Next(result) = item {
-            return result.map(Some).map_err(CredentialStoreError::Storage);
-        }
-    }
-    Ok(None)
-}
-
-fn drain_unit(stream: Result<impl Iterator<Item = Stream<Result<(), StorageError>, ()>>, StorageError>) -> Result<(), CredentialStoreError> {
-    let stream = stream.map_err(CredentialStoreError::Storage)?;
-    for item in stream {
-        if let Stream::Next(result) = item {
-            return result.map_err(CredentialStoreError::Storage);
-        }
-    }
-    Err(CredentialStoreError::Generic("Stream ended without result".to_string()))
-}
-
-fn drain_bool(stream: Result<impl Iterator<Item = Stream<Result<bool, StorageError>, ()>>, StorageError>) -> Result<bool, CredentialStoreError> {
-    let stream = stream.map_err(CredentialStoreError::Storage)?;
-    for item in stream {
-        if let Stream::Next(result) = item {
-            return result.map_err(CredentialStoreError::Storage);
-        }
-    }
-    Err(CredentialStoreError::Generic("Stream ended without result".to_string()))
-}
-
-fn drain_collect<V>(stream: Result<impl Iterator<Item = Stream<Result<V, StorageError>, ()>>, StorageError>) -> Result<Vec<V>, CredentialStoreError> {
-    let stream = stream.map_err(CredentialStoreError::Storage)?;
-    let mut results = Vec::new();
-    for item in stream {
-        if let Stream::Next(Ok(v)) = item {
-            results.push(v);
-        } else if let Stream::Next(Err(e)) = item {
-            return Err(CredentialStoreError::Storage(e));
-        }
-    }
-    Ok(results)
-}
-
-impl CredentialStore for D1CredentialStore {
-    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> Result<Option<V>, CredentialStoreError> {
-        drain_next(self.storage.get(key)).map(Option::flatten)
-    }
-
-    fn set<V: Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        value: V,
-    ) -> Result<(), CredentialStoreError> {
-        let stream = self.storage.set(key, value);
-        drain_unit(stream)
-    }
-
-    fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        let stream = self.storage.delete(key);
-        drain_unit(stream)
-    }
-
-    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        let stream = self.storage.exists(key);
-        drain_bool(stream)
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        let stream = self.storage.list_keys(prefix);
-        drain_collect(stream)
-    }
-}
-
 #[async_trait::async_trait(?Send)]
 impl AsyncCredentialStore for D1CredentialStore {
     async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
         &self,
         key: &str,
     ) -> Result<Option<V>, CredentialStoreError> {
-        self.storage.get_async(key).await
+        AsyncCredentialStore::get_async(self.storage.as_ref(), key).await
     }
 
     async fn set_async<V: Serialize + Send + 'static>(
@@ -118,19 +39,19 @@ impl AsyncCredentialStore for D1CredentialStore {
         key: &str,
         value: V,
     ) -> Result<(), CredentialStoreError> {
-        self.storage.set_async(key, value).await
+        AsyncCredentialStore::set_async(self.storage.as_ref(), key, value).await
     }
 
     async fn delete_async(&self, key: &str) -> Result<(), CredentialStoreError> {
-        self.storage.delete_async(key).await
+        AsyncCredentialStore::delete_async(self.storage.as_ref(), key).await
     }
 
     async fn exists_async(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        self.storage.exists_async(key).await
+        AsyncCredentialStore::exists_async(self.storage.as_ref(), key).await
     }
 
     async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        self.storage.list_keys_async(prefix).await
+        AsyncCredentialStore::list_keys_async(self.storage.as_ref(), prefix).await
     }
 }
 

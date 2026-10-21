@@ -98,7 +98,7 @@ pub struct SessionManager<S> {
     signer: Arc<Mutex<TokenSigner>>,
 }
 
-impl<S: CredentialStore> SessionManager<S> {
+impl<S> SessionManager<S> {
     /// Borrow the underlying credential store.
     #[must_use]
     pub fn store(&self) -> &S {
@@ -124,6 +124,48 @@ impl<S: CredentialStore> SessionManager<S> {
         })
     }
 
+    fn get_cached_session(_token: &str) -> Option<SessionDataCache> {
+        None
+    }
+
+    #[allow(clippy::cast_sign_loss)]
+    fn make_cookies(&self, token: &str, user_id: &str) -> Result<Vec<Cookie>, SessionError> {
+        let mut cookies = Vec::new();
+
+        let token_cookie = Cookie::new(&self.config.token_cookie_name, token)
+            .path("/")
+            .max_age(std::time::Duration::from_secs(
+                self.config.max_session_age.num_seconds() as u64,
+            ))
+            .http_only(true)
+            .same_site(SameSite::Lax);
+        cookies.push(token_cookie);
+
+        let cache = SessionDataCache {
+            user_id: user_id.to_string(),
+            expires_at: (Utc::now() + Duration::minutes(5)).timestamp(),
+        };
+        let cache_json = serde_json::to_string(&cache)
+            .map_err(|e| SessionError::Serialization(e.to_string()))?;
+        let data_cookie = Cookie::new(&self.config.data_cookie_name, &cache_json)
+            .path("/")
+            .max_age(std::time::Duration::from_secs(300));
+        cookies.push(data_cookie);
+
+        if !self.config.sliding_expiration {
+            let dont_remember = Cookie::new(&self.config.dont_remember_cookie_name, "1").path("/");
+            cookies.push(dont_remember);
+        }
+
+        Ok(cookies)
+    }
+}
+
+// ============================================================================
+// Sync methods — over the sync `CredentialStore`.
+// ============================================================================
+
+impl<S: CredentialStore> SessionManager<S> {
     /// Create a new session for a user.
     ///
     /// # Errors
@@ -304,50 +346,15 @@ impl<S: CredentialStore> SessionManager<S> {
         }
         Ok(())
     }
-
-    fn get_cached_session(_token: &str) -> Option<SessionDataCache> {
-        None
-    }
-
-    #[allow(clippy::cast_sign_loss)]
-    fn make_cookies(&self, token: &str, user_id: &str) -> Result<Vec<Cookie>, SessionError> {
-        let mut cookies = Vec::new();
-
-        let token_cookie = Cookie::new(&self.config.token_cookie_name, token)
-            .path("/")
-            .max_age(std::time::Duration::from_secs(
-                self.config.max_session_age.num_seconds() as u64,
-            ))
-            .http_only(true)
-            .same_site(SameSite::Lax);
-        cookies.push(token_cookie);
-
-        let cache = SessionDataCache {
-            user_id: user_id.to_string(),
-            expires_at: (Utc::now() + Duration::minutes(5)).timestamp(),
-        };
-        let cache_json = serde_json::to_string(&cache)
-            .map_err(|e| SessionError::Serialization(e.to_string()))?;
-        let data_cookie = Cookie::new(&self.config.data_cookie_name, &cache_json)
-            .path("/")
-            .max_age(std::time::Duration::from_secs(300));
-        cookies.push(data_cookie);
-
-        if !self.config.sliding_expiration {
-            let dont_remember = Cookie::new(&self.config.dont_remember_cookie_name, "1").path("/");
-            cookies.push(dont_remember);
-        }
-
-        Ok(cookies)
-    }
 }
 
 // ============================================================================
-// Async methods — require `S: AsyncCredentialStore` in addition to `CredentialStore`.
+// Async methods — over `AsyncCredentialStore` only (all a JS-hosted wasm
+// store offers).
 // These call `*_async` store methods instead of draining sync iterators.
 // ============================================================================
 
-impl<S: CredentialStore + AsyncCredentialStore> SessionManager<S> {
+impl<S: AsyncCredentialStore> SessionManager<S> {
     /// Create a new session for a user (async).
     pub async fn create_session_async(
         &self,

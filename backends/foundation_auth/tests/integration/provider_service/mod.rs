@@ -12,7 +12,7 @@ use foundation_auth::server::models::provider::{
 };
 use foundation_auth::server::services::provider_service::{ProviderCrypto, ProviderService};
 use foundation_core::valtron::valtron_test;
-use foundation_db::{QueryStore, StorageBackend, StorageProvider};
+use foundation_db::{Blocking, StorageProvider};
 use tempfile::TempDir;
 
 /// Build a real Turso-backed query store with all migrations applied.
@@ -21,19 +21,16 @@ use tempfile::TempDir;
 /// open, so the directory must outlive the store. The caller binds the guard
 /// for the test's duration; when it drops at end of test, the temp dir (and
 /// DB file) are removed — no leak.
-fn make_store() -> (Arc<StorageProvider>, TempDir) {
+fn make_store() -> (Arc<Blocking<StorageProvider>>, TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("provider_test.db");
-    let provider = StorageProvider::new(StorageBackend::Turso {
-        url: db_path.to_str().unwrap().to_string(),
-    })
-    .expect("init turso");
+    let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
     (Arc::new(provider), dir)
 }
 
 /// Build a service over a fresh store. The returned `TempDir` must be held for
 /// the test's lifetime (bind it, e.g. `let (svc, _tmp) = make_service();`).
-fn make_service() -> (ProviderService<StorageProvider>, TempDir) {
+fn make_service() -> (ProviderService<Blocking<StorageProvider>>, TempDir) {
     let (store, dir) = make_store();
     let crypto = ProviderCrypto::from_passphrase("test-passphrase-abc123", "default");
     (ProviderService::new(store, crypto), dir)

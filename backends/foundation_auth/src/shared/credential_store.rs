@@ -2,14 +2,19 @@
 //!
 //! `foundation_db` already selects the backend (Turso, libsql, D1, R2, JSON
 //! file, in-memory) through `StorageBackend`. There is no reason to expose
-//! one credential-store wrapper per backend — the wrapper only needs to
-//! drain Valtron streams into sync `Result`s. A single [`CredentialStorage`]
-//! therefore covers every backend `foundation_db` supports.
+//! one credential-store wrapper per backend: a single [`CredentialStorage`]
+//! covers every backend `foundation_db` supports.
+//!
+//! `StorageProvider` implements only the async storage traits.
+//! [`AsyncCredentialStore`] maps onto them directly. The sync
+//! [`CredentialStore`] impl goes through `foundation_db::Blocking`, so it
+//! exists only where valtron can block (not on JS-hosted wasm).
 
-use foundation_core::valtron::Stream;
+use std::sync::Arc;
+
 #[cfg(feature = "turso")]
 use foundation_db::StorageBackend;
-use foundation_db::{core::AsyncKeyValueStore, KeyValueStore, StorageError, StorageProvider};
+use foundation_db::{core::AsyncKeyValueStore, StorageError, StorageProvider};
 use serde::{Deserialize, Serialize};
 
 use crate::shared::oauth_token::OAuthToken;
@@ -129,14 +134,16 @@ impl std::error::Error for CredentialStoreError {}
 /// the underlying [`StorageProvider`] is constructed. This type just adapts
 /// its streaming API to the synchronous [`CredentialStore`] trait.
 pub struct CredentialStorage {
-    storage: StorageProvider,
+    storage: Arc<StorageProvider>,
 }
 
 impl CredentialStorage {
     /// Wrap an existing [`StorageProvider`].
     #[must_use]
     pub fn new(storage: StorageProvider) -> Self {
-        Self { storage }
+        Self {
+            storage: Arc::new(storage),
+        }
     }
 
     /// Build credential storage against a Turso database URL.
@@ -146,20 +153,19 @@ impl CredentialStorage {
     /// Returns [`CredentialStoreError`] if the Turso backend cannot be
     /// initialized.
     #[cfg(feature = "turso")]
-    pub fn turso(url: &str) -> Result<Self, CredentialStoreError> {
+    pub async fn turso(url: &str) -> Result<Self, CredentialStoreError> {
         let storage = StorageProvider::new(StorageBackend::Turso {
             url: url.to_string(),
-        })?;
-        Ok(Self { storage })
+        })
+        .await?;
+        Ok(Self::new(storage))
     }
 
     /// Build in-memory credential storage. Intended for tests and local
     /// development.
     #[must_use]
     pub fn memory() -> Self {
-        Self {
-            storage: StorageProvider::memory(),
-        }
+        Self::new(StorageProvider::memory())
     }
 
     /// Borrow the underlying [`StorageProvider`].
@@ -169,52 +175,69 @@ impl CredentialStorage {
     }
 }
 
-impl CredentialStore for CredentialStorage {
-    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> Result<Option<V>, CredentialStoreError> {
-        self.storage.get(key).map_err(|e| match e {
-            StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
-            other => CredentialStoreError::Storage(other),
-        })
+// The sync API waits on the async provider through `foundation_db::Blocking`,
+// so it only exists where valtron can block (not on JS-hosted wasm, where
+// callers use `AsyncCredentialStore`).
+foundation_core::blocking_boundary! {
+    impl CredentialStorage {
+        fn blocking(&self) -> foundation_db::Blocking<StorageProvider> {
+            foundation_db::Blocking::from_arc(Arc::clone(&self.storage))
+        }
     }
 
-    fn set<V: Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        value: V,
-    ) -> Result<(), CredentialStoreError> {
-        self.storage
-            .set(key, value)
-            .map_err(CredentialStoreError::Storage)
-    }
-
-    fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        self.storage
-            .delete(key)
-            .map_err(CredentialStoreError::Storage)
-    }
-
-    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        self.storage
-            .exists(key)
-            .map_err(CredentialStoreError::Storage)
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        let stream = self
-            .storage
-            .list_keys(prefix)
-            .map_err(CredentialStoreError::Storage)?;
-
-        stream
-            .flat_map(|stream_item| match stream_item {
-                Stream::Next(Ok(result)) => vec![Ok(result)],
-                Stream::Next(Err(e)) => vec![Err(CredentialStoreError::Storage(e))],
-                _ => vec![],
+    impl CredentialStore for CredentialStorage {
+        fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
+            &self,
+            key: &str,
+        ) -> Result<Option<V>, CredentialStoreError> {
+            use foundation_db::KeyValueStore;
+            self.blocking().get(key).map_err(|e| match e {
+                StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
+                other => CredentialStoreError::Storage(other),
             })
-            .collect::<Result<Vec<_>, _>>()
+        }
+
+        fn set<V: Serialize + Send + 'static>(
+            &self,
+            key: &str,
+            value: V,
+        ) -> Result<(), CredentialStoreError> {
+            use foundation_db::KeyValueStore;
+            self.blocking()
+                .set(key, value)
+                .map_err(CredentialStoreError::Storage)
+        }
+
+        fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
+            use foundation_db::KeyValueStore;
+            self.blocking()
+                .delete(key)
+                .map_err(CredentialStoreError::Storage)
+        }
+
+        fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
+            use foundation_db::KeyValueStore;
+            self.blocking()
+                .exists(key)
+                .map_err(CredentialStoreError::Storage)
+        }
+
+        fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+            use foundation_core::valtron::Stream;
+            use foundation_db::KeyValueStore;
+            let store = self.blocking();
+            let stream = store
+                .list_keys(prefix)
+                .map_err(CredentialStoreError::Storage)?;
+
+            stream
+                .filter_map(|stream_item| match stream_item {
+                    Stream::Next(Ok(result)) => Some(Ok(result)),
+                    Stream::Next(Err(e)) => Some(Err(CredentialStoreError::Storage(e))),
+                    _ => None,
+                })
+                .collect::<Result<Vec<_>, _>>()
+        }
     }
 }
 
