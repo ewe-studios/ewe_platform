@@ -337,6 +337,9 @@ where
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
 {
+    if !multi::is_pool_initialized() {
+        return Err("valtron pool not initialized (call initialize_pool or use #[valtron])".into());
+    }
     tracing::debug!("Executing as a multi-threaded stream in no-wasm");
 
     // Schedule task and get iterator with defaults
@@ -419,6 +422,9 @@ where
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
 {
+    if !multi::is_pool_initialized() {
+        return Err("valtron pool not initialized (call initialize_pool or use #[valtron])".into());
+    }
     tracing::debug!("Executing as a multi-threaded stream in no-wasm");
 
     // Schedule task and get iterator
@@ -797,6 +803,16 @@ where
 /// # Panics
 /// Panics if the future never yields a result — only possible if the pool was not
 /// initialized or was torn down before completion (a setup bug).
+/// [`block_on_future`], for valtron's own macros (via `valtron::__private`).
+#[doc(hidden)]
+pub fn block_on_future_unchecked<F>(future: F) -> F::Output
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    block_on_future(future)
+}
+
 pub fn block_on_future<F>(future: F) -> F::Output
 where
     F: Future + Send + 'static,
@@ -2144,4 +2160,48 @@ where
     pub fn on_next_mut(t: Task, f: F) -> Self {
         OnNext::new(t, FnMutReady::new(f))
     }
+}
+
+/// `.block()` on any future: [`block_on_future`] as a method — the sync
+/// boundary for an async-first API (`let answer = session.ask(q).block()?;`).
+pub trait BlockingFutureExt: Future + Send + Sized + 'static
+where
+    Self::Output: Send + 'static,
+{
+    /// Wait for the future on the calling thread and return its output.
+    fn block(self) -> Self::Output {
+        block_on_future(self)
+    }
+}
+
+impl<F> BlockingFutureExt for F
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+}
+
+/// `.blocking()?` on any async stream: [`run_stream_iter`] as a method — a
+/// plain `Iterator` to `for`-loop or `collect()` at a sync boundary.
+pub trait BlockingStreamExt: futures_core::Stream + Send + Sized + 'static
+where
+    Self::Item: Send + 'static,
+{
+    /// Iterate the stream on the calling thread.
+    ///
+    /// # Errors
+    /// When the stream cannot be scheduled (e.g. the pool is not initialized).
+    fn blocking(
+        self,
+    ) -> GenericResult<crate::valtron::StreamValues<Self::Item, DrivenStreamIterator<StreamTask<Self>>>>
+    {
+        run_stream_iter(self)
+    }
+}
+
+impl<S> BlockingStreamExt for S
+where
+    S: futures_core::Stream + Send + 'static,
+    S::Item: Send + 'static,
+{
 }

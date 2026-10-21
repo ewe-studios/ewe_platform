@@ -101,6 +101,23 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
 
 ## 4. foundation_core / valtron
 
+- **`StreamIteratorExt::collect` shadows `Iterator::collect`.** Any iterator
+  whose items are `Stream<D, P>` gets two `collect` methods, so a plain
+  `.collect()` into a `Vec` is ambiguous (`streams/{sendable,non_sendable}.rs`).
+  Likely fix: rename the valtron one (e.g. `collect_stream`), keeping the old
+  name deprecated.
+- **A stream's first empty pull still blocks once.**
+  `NotifyQueueStreamIterator::next` stops blocking only after a consumer
+  registers a wake, so the first pull on an empty queue by `.values()` /
+  `TaskStatus::from_stream` still waits `max_spins` timed waits
+  (`executors/local.rs`). Likely fix: the async conversions register their
+  wake before the first pull.
+- **Wasm storage and OAuth block on their own futures.** `foundation_db`'s
+  `D1WasmStorage` / `KVWasmStorage` / `R2WasmStorage` and
+  `foundation_auth::wasm_bindgen::oauth` implement sync traits with
+  `collect_one(execute(from_future(..)))`, which spins forever in a Worker.
+  Fix (next PR): make the stores async-only; sync callers use `.block()`.
+
 - **Cross-thread wakes don't wake an idle single-threaded executor.** The native idle wait is a `park_timeout` that nothing unparks, so tasks woken from another thread still poll at up to 100 ms.
 - **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`, `DEFAULT_YIELD_WAIT_TIME` (4 s), `BACK_OFF_*`, and `ThreadedIterFuture`'s queue size of 16 and its 10 ms sleep.
 - **`ThreadedIterFuture` (multi) busy-polls.**

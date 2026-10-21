@@ -428,3 +428,90 @@ async fn h2_pump_closes_the_body_pipe_at_end_of_stream() {
 
     shutdown.turn_on();
 }
+
+/// `open()` must not block its worker on the h2 handshake.
+///
+/// WHY: `H2Transport::open` used to run the h2 handshake inline, blocking the
+/// calling worker in `read(2)` until the server's SETTINGS arrived. Callers are
+/// async code on valtron workers, and an in-process server's connections are
+/// valtron tasks on the same pool. Once every worker sat in `open()` waiting for
+/// SETTINGS, no worker was left to run the server tasks that send them, and the
+/// pool deadlocked for good. This hung `foundation_proxy`'s e2e suite in CI
+/// (all four workers parked in `h2.rs` `open` → `read`).
+///
+/// WHAT: many more concurrent calls than workers, each its own valtron task,
+/// against a server on the same small pool, must all complete.
+///
+/// HOW: 3 threads (2 task workers) and 8 calls spawned with `execute`, so every
+/// worker picks up a client task before any server connection task exists. With
+/// the blocking handshake this deadlocks every time and the `timeout` fails the
+/// test; with the handshake in the pump every call completes.
+#[valtron_test(threads = 3, timeout = 20_000)]
+async fn more_concurrent_calls_than_workers_do_not_deadlock_the_handshake() {
+    use foundation_core::valtron::{execute, from_future, StreamIteratorExt};
+
+    let (addr, shutdown) = start_h2_server();
+
+    let streams: Vec<_> = (0..8)
+        .map(|i| {
+            let client = client_for(&addr, UNARY);
+            let call = async move {
+                client
+                    .unary(ctx(), Request::new(Msg::of(format!("c{i}"))))
+                    .await
+                    .map(|resp| resp.msg.text)
+                    .map_err(|e| e.to_string())
+            };
+            execute(from_future(call), None).expect("schedule call")
+        })
+        .collect();
+
+    let mut got = Vec::new();
+    for stream in streams {
+        let (result, _rest) = stream
+            .into_ready_future()
+            .await
+            .expect("call task yields its result");
+        got.push(result.expect("unary call"));
+    }
+    shutdown.turn_on();
+
+    let want: Vec<String> = (0..8).map(|i| format!("echo:c{i}")).collect();
+    assert_eq!(got, want);
+}
+
+/// A peer that accepts the connection but never sends SETTINGS must fail the
+/// call at the handshake timeout, not hang it.
+///
+/// WHY: the handshake used to have no deadline at all (only the TCP dial had
+/// one). With the handshake moved into the pump it gets
+/// `H2Transport::with_handshake_timeout`, surfaced on the response head.
+///
+/// HOW: a bound listener that never accepts still completes the TCP handshake
+/// in the kernel, so the dial succeeds and the h2 preface goes unanswered.
+#[valtron_test(timeout = 20_000)]
+async fn handshake_timeout_fails_a_call_to_a_silent_peer() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr").to_string();
+
+    let transport: Arc<dyn Transport> =
+        Arc::new(H2Transport::new().with_handshake_timeout(Duration::from_millis(200)));
+    let client: Client<Msg, Msg> = Client::new(
+        transport,
+        &format!("http://{addr}{UNARY}"),
+        codecs(),
+        ClientOptions::new().with_codec("json"),
+    )
+    .expect("build client");
+
+    let start = std::time::Instant::now();
+    let result = client.unary(ctx(), Request::new(Msg::of("silent"))).await;
+    let took = start.elapsed();
+    drop(listener);
+
+    assert!(result.is_err(), "a silent peer must fail the call");
+    assert!(
+        took < Duration::from_secs(5),
+        "the call must fail near the 200 ms handshake timeout, took {took:?}"
+    );
+}

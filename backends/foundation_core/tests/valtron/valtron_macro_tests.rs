@@ -214,3 +214,27 @@ fn panicking_task_closes_channel_and_unblocks_caller() {
         "panicking task should unblock the caller with Err, got {result:?}"
     );
 }
+
+/// WHY: a `#[valtron_test(timeout = ..)]` whose body hangs with a pool worker
+/// blocked (a deadlock, a blocking syscall) used to hang forever: the timeout
+/// fired, but unwinding dropped the `PoolGuard`, which waited for that worker
+/// to stop. The pool gate stayed shut, so every later test queued behind it.
+/// That is how one hung e2e test ran into CI's 60-minute job timeout.
+///
+/// WHAT: the timeout must fail the test in bounded time even though the
+/// worker never comes back.
+///
+/// HOW: the async body blocks the worker that polls it. With a 300 ms timeout
+/// and a 200 ms shutdown grace the test must panic with the timeout message
+/// (the stuck worker is detached), not hang.
+#[valtron_test(threads = 3, timeout = 300, shutdown_grace = 200)]
+#[should_panic(expected = "timeout: the test took")]
+#[cfg_attr(
+    cranelift_backend,
+    ignore = "cranelift does not support panic unwinding: should_panic cannot be observed"
+)]
+async fn hung_body_fails_at_its_timeout_instead_of_hanging() {
+    // Stands in for a deadlocked task: the worker polling this body never
+    // returns to the executor. The detached worker ends with the process.
+    std::thread::sleep(Duration::from_secs(3600));
+}

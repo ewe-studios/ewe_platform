@@ -170,8 +170,9 @@ async fn depends_on_wake_signal_parks_then_resumes() {
 
     wake();
 
-    match poll_once(&mut stream) {
-        Poll::Ready(Some(7)) => {}
-        other => panic!("after the wake the task must resume with its value, got {other:?}"),
-    }
+    // The worker resumes the task on the wake; await its value rather than
+    // poll once, which raced the worker (and only passed while `next()`
+    // blocked until the value arrived).
+    let resumed = std::future::poll_fn(|cx| Pin::new(&mut stream).poll_next(cx)).await;
+    assert_eq!(resumed, Some(7), "after the wake the task must resume with its value");
 }

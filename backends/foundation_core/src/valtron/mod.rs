@@ -27,6 +27,14 @@ pub mod multi_iterator;
 // returned PoolGuard until the wrapped fn exits (tokio-main style).
 pub use foundation_macros::{task, timeout, valtron, valtron_test};
 
+/// Default `shutdown_grace` for `#[valtron_test(timeout = ..)]`: after a test
+/// times out, how long its pool gets for the workers to stop before the stuck
+/// ones are detached (`PoolGuard::shutdown_within`) and the next test can take
+/// the pool. 5 s: a healthy pool tears down in milliseconds, so this only ever
+/// runs out for workers that are truly stuck.
+/// Override per test with `#[valtron_test(timeout = .., shutdown_grace = ms)]`.
+pub const DEFAULT_TEST_SHUTDOWN_GRACE: core::time::Duration = core::time::Duration::from_secs(5);
+
 pub use branches::*;
 #[cfg(feature = "std")]
 pub use ctx::*;
@@ -43,6 +51,12 @@ pub use streams::*;
 pub use task::*;
 pub use types::*;
 pub use wake::*;
+
+/// Support for valtron's macros. Not public API.
+#[doc(hidden)]
+pub mod __private {
+    pub use super::executors::block_on_future_unchecked as block_on_future;
+}
 
 // `futures_lite::StreamExt` — `.next().await`, `.collect::<Vec<_>>().await`,
 // `.for_each(..).await`, … on the `futures_core::Stream` bridges returned by

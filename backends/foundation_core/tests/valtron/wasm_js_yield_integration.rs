@@ -39,6 +39,9 @@ use wasm_bindgen_test::wasm_bindgen_test;
 #[wasm_bindgen_test]
 fn js_yield_returns_immediately() {
     let yielder = JSThreadYielder::new();
+    // Warm up: the first call on a fresh instance pays one-off costs (JIT,
+    // first host-time read) that can exceed the bound on a busy runner.
+    let _ = yielder.yield_for(Duration::from_millis(100));
     let start = Instant::now();
 
     // Ask to "wait" for 100ms

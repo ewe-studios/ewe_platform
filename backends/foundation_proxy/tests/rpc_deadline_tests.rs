@@ -204,7 +204,7 @@ async fn connect_deadline_is_observed_at_grpc_backend() {
         .await
         .expect("connect unary");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
     let ms: u128 = resp.msg.text.parse().expect("backend deadline millis");
@@ -373,6 +373,6 @@ async fn cancelled_connect_stream_tears_down_grpc_backend() {
     reset_tx.send(()).expect("grant the reset");
     assert_cancelled_within(&ctx, Duration::from_secs(5));
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 }

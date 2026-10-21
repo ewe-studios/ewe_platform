@@ -66,7 +66,13 @@ impl ProcessController for NoThreadController {
         self.waiter.wait(dur);
 
         #[cfg(not(target_family = "wasm"))]
-        std::thread::park_timeout(dur);
+        {
+            let thread = std::thread::current();
+            crate::valtron::executors::idle_wake::park_idle(
+                std::sync::Arc::new(move || thread.unpark()),
+                || std::thread::park_timeout(dur),
+            );
+        }
     }
 }
 

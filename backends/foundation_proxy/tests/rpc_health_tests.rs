@@ -264,6 +264,6 @@ async fn grpc_health_gate_excludes_and_restores_backend() {
     .await;
     assert!(readmitted, "backend must be readmitted when SERVING again");
 
-    proxy.shutdown();
+    proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 }

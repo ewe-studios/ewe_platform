@@ -411,7 +411,7 @@ fn docker_container_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2
             #vis fn #fn_name() #fn_output {
                 fn #inner_fn(#inputs) #fn_output #body
 
-                let __docker_group = match #core::valtron::block_on_future(#startup) {
+                let __docker_group = match #core::valtron::__private::block_on_future(#startup) {
                     ::core::option::Option::Some(g) => g,
                     ::core::option::Option::None => return,
                 };
