@@ -1,6 +1,15 @@
 use std::sync::{Arc, Mutex};
 
-use foundation_db::TursoStorage;
+use foundation_core::valtron::BlockingFutureExt;
+use foundation_db::{Blocking, TursoStorage};
+
+/// Open a Turso store (async constructor) as the sync `QueryStore` the
+/// vector store is generic over.
+fn open_turso(url: &str) -> Arc<Blocking<TursoStorage>> {
+    let url = url.to_owned();
+    let storage = async move { TursoStorage::new(&url).await }.block().unwrap();
+    Arc::new(Blocking::new(storage))
+}
 use foundation_vectors::SqlVectorStore;
 use foundation_vectors::store::{
     VectorEntry, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
@@ -18,11 +27,11 @@ fn init_valtron() {
     }
 }
 
-fn make_store() -> (TempDir, SqlVectorStore<TursoStorage>) {
+fn make_store() -> (TempDir, SqlVectorStore<Blocking<TursoStorage>>) {
     init_valtron();
     let dir = TempDir::new().unwrap();
     let db_path = dir.path().join("vectors.db");
-    let storage = Arc::new(TursoStorage::new(db_path.to_str().unwrap()).unwrap());
+    let storage = open_turso(db_path.to_str().unwrap());
     let config = VectorStoreConfig::new(3, DistanceMetric::Cosine);
     let store = SqlVectorStore::new(storage, config).unwrap();
     (dir, store)
@@ -166,14 +175,14 @@ fn persistence_across_reopen() {
     let config = VectorStoreConfig::new(3, DistanceMetric::Cosine);
 
     {
-        let storage = Arc::new(TursoStorage::new(url).unwrap());
+        let storage = open_turso(url);
         let store = SqlVectorStore::new(storage, config.clone()).unwrap();
         store.insert(NS, entry("p1", vec![1.0, 0.0, 0.0])).unwrap();
         store.insert(NS, entry("p2", vec![0.0, 1.0, 0.0])).unwrap();
     }
 
     {
-        let storage = Arc::new(TursoStorage::new(url).unwrap());
+        let storage = open_turso(url);
         let store = SqlVectorStore::new(storage, config).unwrap();
         assert_eq!(store.len(NS), 2);
         let got = store.get(NS, "p1").unwrap().unwrap();
