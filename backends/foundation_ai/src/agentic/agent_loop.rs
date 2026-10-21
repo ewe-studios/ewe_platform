@@ -18,7 +18,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{
     CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, Stream, TaskIterator,
-    TaskStatus, WakeResult, WakeSignal,
+    park_on, TaskStatus,
 };
 use foundation_db::traits::DocumentStore;
 
@@ -868,22 +868,11 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                 TaskStatus::Ignore
             }
             Stream::Wait => {
-                // No token yet: the model stream is waiting on I/O (e.g. the lazy
-                // wasm SSE fetch, or the next SSE chunk). Park on the stream's
-                // readiness instead of asking to be re-polled: `Wait` keeps the
-                // task active, so the executor re-polls it in a loop (a timer
-                // loop on wasm that never lets the isolate idle). The wake
-                // callback flips the signal and asks the executor host to run
-                // again once data arrives.
-                let signal = WakeSignal::new();
-                let parked = matches!(stream.wake(signal.callback()), WakeResult::Successful);
+                // No token yet (the model stream is waiting on I/O): park until
+                // it has one rather than being re-polled in a loop.
+                let status = park_on(&mut *stream);
                 self.state = AgentLoopState::InnerGenerate { stream, collected };
-                if parked {
-                    TaskStatus::Depends(Arc::new(signal))
-                } else {
-                    // The stream cannot signal readiness: fall back to a re-poll.
-                    TaskStatus::Wait
-                }
+                status
             }
             Stream::Delayed(d) => {
                 self.state = AgentLoopState::InnerGenerate { stream, collected };

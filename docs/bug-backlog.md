@@ -235,6 +235,20 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   work. Likely fix: an async `generate` seam (e.g. `generate_async`) over
   `send_async`, or route wasm `generate` through the lazy `send_sse`/`stream`
   machinery and collect its result async.
+- **The `agent` tool busy-loops on `Stream::Wait`.**
+  `src/agentic/tools/agent.rs` (~l. 492) drains a sub-agent's stream
+  synchronously and `continue`s on `Init | Ignore | Wait | Delayed`, so a
+  sub-agent waiting on I/O spins the caller's thread (and on wasm never yields
+  to the event loop, so the I/O can never complete). Likely fix: drive the
+  sub-agent as its own task and park on it (`valtron::park_on`), or report
+  `Working` and return on `Wait` the way it already does on `Pending`.
+- **HTTP providers read whole error bodies.** Every provider's non-2xx path
+  (`openai_provider`, `openai_responses_provider`,
+  `anthropic_messages_provider`, `backends::model_info`) collects the full
+  body to extract the vendor message. Likely fix: read at most a configured
+  number of bytes (a field on each provider config, default 64 KiB like Go
+  `net/http`'s error-drain limit) before parsing.
+
 ## Paused
 
 - Windows/macOS VM images (#69).

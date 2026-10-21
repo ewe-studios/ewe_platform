@@ -1787,10 +1787,10 @@ pub type BoxModel = Box<dyn Model>;
 /// Reduces repetition and silences `clippy::type_complexity`.
 ///
 /// It is a [`WakeableStream`]: when the model stream yields `Stream::Wait`
-/// (no token yet, e.g. the wasm SSE fetch still in flight) the agent loop
-/// registers a readiness callback and parks on `TaskStatus::Depends` instead of
-/// re-polling. Streams that cannot signal readiness keep the default `wake`
-/// (`WakeResult::NotSupported`) and the loop falls back to `TaskStatus::Wait`.
+/// (no token yet, e.g. the wasm SSE fetch still in flight) the agent loop parks
+/// on it with `valtron::park_on` instead of re-polling. Streams that cannot
+/// signal readiness keep the default `wake` (`WakeResult::NotSupported`), and
+/// `park_on` falls back to `TaskStatus::Wait`.
 pub type ModelStreamBox = Box<
     dyn WakeableStream<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send,
 >;

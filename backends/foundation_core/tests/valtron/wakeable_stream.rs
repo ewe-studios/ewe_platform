@@ -73,3 +73,27 @@ fn combinator_wake_forward_and_default_split() {
     let mut collected = StreamIteratorExt::collect(iterator);
     assert_eq!(collected.wake(Box::new(|| {})), WakeResult::NotSupported);
 }
+
+/// `park_on` parks a task on a waking stream (`Depends` on a signal that turns
+/// ready on the next push) and falls back to `Wait` for a stream that cannot
+/// signal readiness.
+#[test]
+fn park_on_depends_on_a_waking_stream_and_waits_otherwise() {
+    use foundation_core::valtron::{park_on, EventReadiness, TaskStatus};
+
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let mut iterator = NotifyQueueStreamIterator::new(queue.clone(), 5, Duration::from_micros(50));
+    let status: TaskStatus<usize, ()> = park_on(&mut iterator);
+    let TaskStatus::Depends(signal) = status else {
+        panic!("a waking stream parks on Depends");
+    };
+    assert!(!signal.is_ready(None), "not ready before any data");
+    queue.push(Stream::Next(1usize)).unwrap();
+    assert!(signal.is_ready(None), "the push flips the signal");
+
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let mut buffered =
+        StreamIteratorExt::collect(NotifyQueueStreamIterator::new(queue, 5, Duration::from_micros(50)));
+    let status: TaskStatus<(), ()> = park_on(&mut buffered);
+    assert!(matches!(status, TaskStatus::Wait), "no readiness signal: re-poll");
+}

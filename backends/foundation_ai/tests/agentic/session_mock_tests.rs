@@ -597,3 +597,40 @@ mod raw_stream_access {
         assert_eq!(texts(mapped), vec!["converted".to_string()]);
     }
 }
+
+// ---------------------------------------------------------------------------
+// TurnStream::into_text_stream — the async text-only view a chat UI streams
+
+/// Deltas (local backends) arrive whole; the turn's text adds up once.
+#[valtron_test]
+async fn text_stream_yields_deltas_once() {
+    use futures_lite::StreamExt;
+
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("Hel"), mock_text("lo")]);
+    let pieces: Vec<String> = session_with(mock)
+        .run_turn_stream("hi")
+        .expect("turn runs")
+        .into_text_stream()
+        .collect()
+        .await;
+    assert_eq!(pieces.concat(), "Hello", "{pieces:?}");
+    assert!(pieces.iter().all(|p| !p.is_empty()));
+}
+
+/// Snapshots (HTTP backends re-send the text so far) yield only what is new.
+#[valtron_test]
+async fn text_stream_turns_snapshots_into_new_text() {
+    use futures_lite::StreamExt;
+
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("Hel"), mock_text("Hello"), mock_text("Hello!")]);
+    let pieces: Vec<String> = session_with(mock)
+        .run_turn_stream("hi")
+        .expect("turn runs")
+        .into_text_stream()
+        .collect()
+        .await;
+    assert_eq!(pieces.concat(), "Hello!", "{pieces:?}");
+    assert_eq!(pieces.first().map(String::as_str), Some("Hel"));
+}

@@ -575,6 +575,92 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
             finished: false,
         }
     }
+
+    /// The assistant's text as an async stream of the **new** text only —
+    /// what a chat UI appends. Waiting parks on the model stream (no
+    /// polling), so it works inside a Worker's request handler.
+    ///
+    /// Each chunk follows the turn's text rule ([`Turn::text`]): a chunk that
+    /// extends the text shown so far is a snapshot (the HTTP backends) and
+    /// only its new suffix is yielded; any other chunk is a delta (the local
+    /// backends) and is yielded whole. Empty chunks are skipped.
+    #[must_use]
+    pub fn into_text_stream(self) -> TurnTextStream<D, M> {
+        use foundation_core::valtron::StreamIteratorExt;
+        TurnTextStream {
+            records: self.into_inner().into_next_stream(),
+            shown: String::new(),
+        }
+    }
+}
+
+/// See [`TurnStream::into_text_stream`].
+pub struct TurnTextStream<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    records: foundation_core::valtron::StreamNextStream<DrivenStreamIterator<AgentLoop<D, M>>>,
+    /// The text of the current run of text chunks shown so far (reset by any
+    /// other record, e.g. a tool call, as [`TurnText`] does).
+    shown: String,
+}
+
+impl<D, M> TurnTextStream<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    /// The new text `record` adds, if any.
+    fn new_text(&mut self, record: &SessionRecord) -> Option<String> {
+        let SessionRecord::Conversation {
+            message:
+                Messages::Assistant {
+                    content: ModelOutput::Text(t),
+                    ..
+                },
+        } = record
+        else {
+            self.shown.clear();
+            return None;
+        };
+        let chunk = t.content.as_str();
+        let new = if !self.shown.is_empty() && chunk.starts_with(self.shown.as_str()) {
+            let suffix = chunk[self.shown.len()..].to_string();
+            self.shown = chunk.to_string();
+            suffix
+        } else {
+            self.shown.push_str(chunk);
+            chunk.to_string()
+        };
+        (!new.is_empty()).then_some(new)
+    }
+}
+
+impl<D, M> futures_lite::Stream for TurnTextStream<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    type Item = String;
+
+    fn poll_next(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Option<String>> {
+        let this = self.get_mut();
+        loop {
+            match std::pin::Pin::new(&mut this.records).poll_next(cx) {
+                std::task::Poll::Ready(Some(record)) => {
+                    if let Some(text) = this.new_text(&record) {
+                        return std::task::Poll::Ready(Some(text));
+                    }
+                }
+                std::task::Poll::Ready(None) => return std::task::Poll::Ready(None),
+                std::task::Poll::Pending => return std::task::Poll::Pending,
+            }
+        }
+    }
 }
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnStream<D, M> {

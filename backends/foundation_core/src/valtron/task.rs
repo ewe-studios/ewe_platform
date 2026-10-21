@@ -123,6 +123,34 @@ impl EventReadiness for WakeSignal {
     }
 }
 
+/// The status a task returns when the stream it is draining has no item yet
+/// (`Stream::Wait`): park until the stream signals readiness.
+///
+/// Registers a [`WakeSignal`] on `stream` and returns
+/// [`TaskStatus::Depends`] on it, so the executor stops polling the task until
+/// the stream has an item (or closes) and then resumes it. A stream that
+/// cannot signal readiness ([`WakeResult::NotSupported`]) gets
+/// [`TaskStatus::Wait`], the plain re-poll.
+///
+/// ```ignore
+/// match stream.next() {
+///     Some(Stream::Wait) => park_on(&mut stream),
+///     // ...
+/// }
+/// ```
+///
+/// [`WakeResult::NotSupported`]: crate::valtron::WakeResult::NotSupported
+pub fn park_on<S, D, P>(stream: &mut S) -> TaskStatus<D, P>
+where
+    S: crate::valtron::WakeableStream + ?Sized,
+{
+    let signal = WakeSignal::new();
+    match stream.wake(signal.callback()) {
+        crate::valtron::WakeResult::Successful => TaskStatus::Depends(Arc::new(signal)),
+        crate::valtron::WakeResult::NotSupported => TaskStatus::Wait,
+    }
+}
+
 /// A readiness signal backed by a `ConcurrentQueue<T>`.
 ///
 /// The task considers itself ready when the queue is **non-empty** — i.e.,
