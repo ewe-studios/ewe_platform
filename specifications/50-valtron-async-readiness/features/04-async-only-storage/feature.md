@@ -243,12 +243,23 @@ Handlers:
   → `async fn …<QS: AsyncQueryStore + ?Sized + 'static>`.
 - `IdpServer<KV: KeyValueStore + 'static = Blocking<MemoryStorage>>` →
   `IdpServer<KV: AsyncKeyValueStore + Clone + 'static = MemoryStorage>`.
-  `http_app` stores the `HandlerStorage` **value** in the `ContextBag` (the bag
-  wraps values in its own `Arc` and keys by `TypeId`; storing a pre-made `Arc`
-  made `bag.get::<HandlerStorage<_>>()` miss, so every request fell back to the
-  empty `NoOpStore` — the likely cause of the 17 failing IdP tests).
-- `ServeAdapter::create` looks up `HandlerStorage<MemoryStorage>`; the
-  fallback `NoOpStore` implements `AsyncQueryStore` (empty stream, 0 rows).
+  `http_app` stores `Arc<HandlerStorage<KV>>` in the `ContextBag`.
+- `ServeAdapter` → `ServeAdapter<KV: AsyncKeyValueStore + Clone = MemoryStorage>`;
+  `create` looks up `Arc<HandlerStorage<KV>>` (what `IdpServer` and the tests
+  store; the old lookup of `HandlerStorage<_>` always missed, because the bag
+  keys by exact type) and panics if it is absent, like the `IdpConfig` lookup.
+  The silent empty `NoOpStore` fallback is deleted.
+- **The 17 failing IdP tests (backlog §12) are fixed here.** Two causes,
+  found while converting: (1) `run_sync` mapped every handler `IdpError`
+  into `Internal` (500), so each 4xx came back as 500; (2) the server hands
+  request bodies over as a lazy stream (`SendSafeBody::Stream`/`ChunkedStream`)
+  and the handlers read only `Text`/`Bytes`, so every form/JSON body looked
+  empty. `ServeAdapter::serve` now reads the body bounded by the new
+  `IdpConfig::max_request_body_bytes` (default 1 MiB, nginx's
+  `client_max_body_size`; over the limit → `413`, new
+  `IdpError::PayloadTooLarge`), and `run_sync` returns the handler's own
+  error. Two e2e tests asserted responses that contradict spec 48 (reset is
+  `202`, registration returns `id`) and are corrected.
 - **Sync boundary that stays:** `foundation_http`'s `Serve::serve` is a sync
   trait. `ServeAdapter::serve` already runs the async `dispatch` on valtron
   (`execute` + `collect_one`); that stays, unchanged.
@@ -603,10 +614,8 @@ foundation_deployment & deployables: `Deployable::store()` returns a
   - `[packages.foundation_nativeapis] runs = ["", "vfs-native,vfs-d1,vfs-r2"]`
     (merged with any existing entries; the D1/R2 tests skip without the
     emulator);
-  - `[packages.foundation_auth] runs = ["", "server-test"]` **only if** the
-    server-test suite passes after §3.1 (the `ContextBag` fix is expected to
-    cure the 17 IdP failures). If it can't pass, no run is added and the
-    reason stays in backlog §12.
+  - `[packages.foundation_auth] runs = ["", "server-test"]` — the suite
+    passes after T1 (138/138).
   - An examples job is out of scope here (it needs its own workflow); it stays
     in the backlog.
 - New backlog entries recorded while surveying (not fixed here):
@@ -724,8 +733,8 @@ Examples (each in its own `CARGO_TARGET_DIR`, deleted afterwards):
 (`cargo build --target wasm32-unknown-unknown`).
 
 Known pre-existing failures (not caused by this feature):
-- foundation_auth `server-test`: 17 IdP HTTP tests fail on master (backlog
-  §12) — expected to be fixed by the `ContextBag` storage lookup in T1;
+- foundation_auth `server-test`: 17 IdP HTTP tests failed on master (backlog
+  §12) — fixed in T1 (body reading and error mapping, §3.1);
 - `--features server-native` doesn't link on this host (OpenSSL 3 symbols).
 
 ## 9. Risks and open questions

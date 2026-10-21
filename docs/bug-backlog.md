@@ -260,9 +260,6 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **Sync storage callers still go through `Blocking`.** Each should move to the
   `Async*` traits, one crate at a time, before the sync traits are deleted:
-  - `foundation_auth` server services/handlers, generic over sync
-    `QueryStore`/`KeyValueStore` and run inside HTTP handler tasks (their
-    default store is now `Blocking<MemoryStorage>`);
   - `foundation_cedar` `KvPolicyStore`/`SqlPolicyStore`;
   - `foundation_vectors` `SqlVectorStore`/`LibsqlVectorStore`;
   - `foundation_cronjobs` `CronScheduler`;
@@ -306,12 +303,22 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 12. foundation_auth
 
-- **17 IdP HTTP integration tests fail, on master too.** `tests/integration/e2e`
-  (8) and `tests/integration/idp_server` (9) get non-success responses
-  (e.g. `introspect_returns_inactive_for_unknown_token`: `response.is_success()`
-  is false). CI never runs them: the test target needs `server-test`, which
-  `ci/packages.toml` doesn't enable. Fix: find why the handlers fail, then add a
-  `server-test` run.
+- **`PowService` checks leading zero bits against a byte count.**
+  `verify_solution` (`src/server/services/pow_service.rs`) compares
+  `count_leading_zero_bytes(&hash)` — which counts *bits* — with
+  `difficulty / 8`, so a difficulty of 22 bits only needs 2 zero bits. Its
+  `solve_validity_secs` field is never read either. Fix: compare bits with
+  `difficulty`, rename the helper, and either enforce the solve window or
+  drop the field (update the tests, which solve at difficulty 8).
+- **`register` answers a duplicate email with `200 {"error": "user_exists"}`**
+  (`src/server/handlers/core.rs`); spec 48 F03 says `409`. Fix: return
+  `IdpError::Conflict`.
+- **`header_name_eq` compares header names through `Debug` formatting**
+  (`src/server/handlers/core.rs`), so it depends on `SimpleHeader`'s `Debug`
+  output. Fix: compare with the header's canonical name.
+- **IdP integer columns are cast with `as`** (`interval_secs`, `counter`,
+  `failed_login_attempts` in `src/server/storage.rs`): a negative or oversized
+  value wraps silently. Fix: `u32::try_from` and report a `Parse` error.
 - **`--features server-native` tests don't link here.** `webauthn-rs` needs
   OpenSSL 3 symbols (`EVP_Q_digest`, `OPENSSL_sk_*`) that the build host
   doesn't provide. Fix: vendor OpenSSL (`openssl/vendored`) or document the

@@ -13,7 +13,7 @@ _Recorded 2026-10-21._ Goal: async all the way, with sync only at real boundarie
 | valtron async-first API (`.block()` / `.blocking()` native-only, `blocking_boundary!`) | #130 | ✅ merged |
 | foundation_db: I/O-backed stores async-only; `Blocking<S>` for sync callers | #131 | ✅ merged |
 | foundation_ai: `AgentSession` on the `Async*` traits; in-memory stores async-only; `build()` / `end()` async | #132 | ✅ merged |
-| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` | 🔧 in progress (started: foundation_auth) |
+| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` (draft PR #133, spec 50 F04) | 🔧 in progress: T1 done |
 
 **After this stream:** spec 65's agent-rpc review round 2 on PR #126. The plan is recorded in `specifications/65-agent-rpc-serving-system/progress.md`: pluggable traits for bare metal / Docker / Workers, auth moving into foundation_auth with a `CaStore` trait, and a `ClientAuth` provider built on our signed JSON secret (not a JWT).
 
@@ -164,12 +164,16 @@ wasm32 (separate target dir, deleted after).
 
 ## In progress
 
-### Remaining sync storage callers (branch `db/async-callers`)
+### Remaining sync storage callers (branch `db/async-callers`, draft PR #133)
 
-Backlog §11, crate by crate: foundation_auth, foundation_cedar,
-foundation_vectors, foundation_cronjobs, `MigrationRunner` / `StorageCleanup`,
-other users; then an async `StateStore`, no blocking `Default`, and deleting
-the sync storage traits.
+Plan: `features/04-async-only-storage/feature.md` (tasks T1–T14). Backlog §11,
+crate by crate, then an async `StateStore`, no blocking `Default`, and
+deleting the sync storage traits.
+
+| Task | State | Checks |
+|------|-------|--------|
+| T1 foundation_auth IdP server on the async traits | done | `ci.py run foundation_auth` (build, clippy, test, wasm): pass. `cargo test --features server-test`: 138 pass, 0 fail (the 17 IdP failures are fixed: bodies were never read, and handler errors became 500) |
+| T2–T14 | pending | |
 
 ## Next
 

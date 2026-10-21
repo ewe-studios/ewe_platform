@@ -117,6 +117,25 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   sync callers wrap (`run_turn`, `ask`, `end`) return
   `impl Future + 'static` and clone the `Arc`-backed handle into it.
 
+## Async-only callers (F04, `db/async-callers`)
+
+- A failing test suite that "fails on master too" still deserves a look
+  before it is filed away. The 17 foundation_auth IdP failures had two plain
+  causes: the sync `Serve` adapter turned every handler error into a 500,
+  and the handlers read only `Text`/`Bytes` bodies while the server hands
+  over a lazy `Stream`. A debug print of the 500's message found both.
+- `ContextBag::store(value)` keys by the value's exact type and wraps it in
+  its own `Arc`. Storing an `Arc<T>` means looking up `Arc<T>` (and getting
+  `Arc<Arc<T>>` back); a lookup of `T` silently misses. Prefer a panic on a
+  missing entry over an empty fallback store, which hides the mistake.
+- A thread-local RNG (`foundation_compact::rng::rng()`) is `!Send`; holding
+  it across an `.await` makes the whole handler future `!Send`. Fill the
+  bytes in a statement of their own before the first await.
+- `#[valtron_test]` takes `async fn` (F03), so converting a test module to
+  async is mechanical: add `.await` to the converted calls and mark only the
+  fns that now await as `async`. A small script that matches parentheses
+  does the first part reliably.
+
 ## Pool teardown in tests
 
 - `shutdown_within` detaches workers stuck inside a task. They are threads in

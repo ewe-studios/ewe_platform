@@ -1,19 +1,20 @@
 use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::io::readers::Data;
 use foundation_core::valtron::{collect_one, execute, from_future};
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeError};
 use foundation_http::{SimpleIncomingRequest, RawStream};
 use foundation_netio::shared::http::{
-    Http11, RenderHttp, SimpleHeader, SimpleOutgoingResponse, SendSafeBody,
+    ChunkedData, Http11, RenderHttp, SimpleHeader, SimpleOutgoingResponse, SendSafeBody,
     Status,
 };
 use foundation_errstacks::ErrorTrace;
 
 use super::super::config::IdpConfig;
 use super::super::storage::HandlerStorage;
-use foundation_db::{Blocking, MemoryStorage};
+use foundation_db::{AsyncKeyValueStore, MemoryStorage};
 use super::core::{HandlerResponse, IdpError, IdpHandlerCore};
 
 /// Write JSON response with optional extra headers.
@@ -57,6 +58,7 @@ fn status_code(code: u16) -> Status {
         403 => Status::Forbidden,
         404 => Status::NotFound,
         409 => Status::Conflict,
+        413 => Status::Numbered(413, "Payload Too Large".into()),
         423 => Status::Numbered(423, "Locked".into()),
         429 => Status::TooManyRequests,
         500 => Status::InternalServerError,
@@ -64,18 +66,34 @@ fn status_code(code: u16) -> Status {
     }
 }
 
-pub struct ServeAdapter {
-    core: Arc<IdpHandlerCore>,
+/// Serves the IdP routes over the handlers in [`IdpHandlerCore`].
+///
+/// `KV` is the cache type of the [`HandlerStorage`] the app's `ContextBag`
+/// holds (as `Arc<HandlerStorage<KV>>`, which is how [`IdpServer::http_app`]
+/// stores it).
+///
+/// [`IdpServer::http_app`]: crate::server::IdpServer::http_app
+pub struct ServeAdapter<KV: AsyncKeyValueStore + Clone + 'static = MemoryStorage> {
+    core: Arc<IdpHandlerCore<KV>>,
 }
 
-impl Serve for ServeAdapter {
+impl<KV: AsyncKeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
+        mut req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let result = run_sync(self.core.clone(), req);
+        // The handlers parse whole form/JSON bodies, so read the (lazily
+        // streamed) body here, bounded by the configured limit.
+        let limit = self.core.config().max_request_body_bytes;
+        let result = match read_body_bounded(req.body.take(), limit) {
+            Ok(bytes) => {
+                req.body = Some(SendSafeBody::Bytes(bytes));
+                run_sync(self.core.clone(), req)
+            }
+            Err(e) => Err(e),
+        };
 
         match result {
             Ok(HandlerResponse { status, body, headers }) => {
@@ -157,6 +175,16 @@ impl Serve for ServeAdapter {
                     Err(e) => ConnectionResult::Close(Some(e)),
                 }
             }
+            Err(IdpError::PayloadTooLarge(limit)) => {
+                let err = serde_json::json!({
+                    "error": "payload_too_large",
+                    "error_description": format!("Request body larger than {limit} bytes"),
+                });
+                match json_with_headers(&mut conn, 413, &err, &[]) {
+                    Ok(()) => ConnectionResult::Close(None),
+                    Err(e) => ConnectionResult::Close(Some(e)),
+                }
+            }
             Err(IdpError::Internal(msg)) => {
                 let err = serde_json::json!({
                     "error": "server_error",
@@ -171,53 +199,32 @@ impl Serve for ServeAdapter {
     }
 }
 
-impl ServeFactory for ServeAdapter {
+impl<KV: AsyncKeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
+    /// # Panics
+    ///
+    /// If the `ContextBag` holds no `IdpConfig` or no `Arc<HandlerStorage<KV>>`
+    /// (a misconfigured app; serving without storage would answer every
+    /// request as if the database were empty).
     fn create(bag: &ContextBag) -> Self {
         let config = bag
             .get::<IdpConfig>()
             .expect("IdpConfig must be in ContextBag");
+        // The bag keys values by type and wraps each in its own `Arc`, so the
+        // stored `Arc<HandlerStorage<KV>>` comes back as `Arc<Arc<…>>`.
         let storage = bag
-            .get::<HandlerStorage<Blocking<MemoryStorage>>>()
-            .unwrap_or_else(|| {
-                // Fallback for tests that don't have storage set up yet
-                Arc::new(HandlerStorage::new(
-                    Arc::new(NoOpStore),
-                    Blocking::new(MemoryStorage::new()),
-                ))
-            });
+            .get::<Arc<HandlerStorage<KV>>>()
+            .map(|stored| Arc::clone(&*stored))
+            .expect("Arc<HandlerStorage<KV>> must be in ContextBag");
         Self {
             core: Arc::new(IdpHandlerCore::new(config, storage)),
         }
     }
 }
 
-// No-op QueryStore for test fallback
-struct NoOpStore;
-impl foundation_db::core::storage_provider::QueryStore for NoOpStore {
-    fn query(
-        &self,
-        _sql: &str,
-        _params: &[foundation_db::core::storage_provider::DataValue],
-    ) -> Result<foundation_db::core::storage_provider::StorageItemStream<'_, foundation_db::core::storage_provider::SqlRow>, foundation_db::core::errors::StorageError> {
-        Ok(Box::new(std::iter::empty()))
-    }
-    fn execute(
-        &self,
-        _sql: &str,
-        _params: &[foundation_db::core::storage_provider::DataValue],
-    ) -> Result<u64, foundation_db::core::errors::StorageError> {
-        Ok(0)
-    }
-    fn execute_batch(
-        &self,
-        _sql: &str,
-    ) -> Result<(), foundation_db::core::errors::StorageError> {
-        Ok(())
-    }
-}
-
-fn run_sync(
-    core: Arc<IdpHandlerCore>,
+/// `Serve::serve` is sync (`foundation_http`'s trait), so this is a sync
+/// boundary: it runs the async dispatch on valtron and waits for its result.
+fn run_sync<KV: AsyncKeyValueStore + Clone + 'static>(
+    core: Arc<IdpHandlerCore<KV>>,
     req: SimpleIncomingRequest,
 ) -> Result<HandlerResponse, IdpError> {
     let task = from_future(async move {
@@ -226,7 +233,50 @@ fn run_sync(
     });
     let stream = execute(task, None)
         .map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;
-    collect_one(stream)
-        .ok_or_else(|| IdpError::Internal("future produced no result".into()))?
-        .map_err(|e| IdpError::Internal(format!("valtron: {e}")))
+    // The handler's own `IdpError` is the response; only a missing result is
+    // an executor failure.
+    collect_one(stream).ok_or_else(|| IdpError::Internal("future produced no result".into()))?
+}
+
+/// Read a request body into memory, refusing more than `limit` bytes.
+///
+/// IdP bodies are small forms and JSON documents the handlers parse whole.
+/// The streamed variants are read chunk by chunk and abandoned as soon as the
+/// limit is passed.
+fn read_body_bounded(body: Option<SendSafeBody>, limit: usize) -> Result<Vec<u8>, IdpError> {
+    fn push(buf: &mut Vec<u8>, chunk: &[u8], limit: usize) -> Result<(), IdpError> {
+        if buf.len() + chunk.len() > limit {
+            return Err(IdpError::PayloadTooLarge(limit));
+        }
+        buf.extend_from_slice(chunk);
+        Ok(())
+    }
+    let read_err = |e: &dyn std::fmt::Display| IdpError::BadRequest(format!("failed to read request body: {e}"));
+
+    let mut buf = Vec::new();
+    match body {
+        None | Some(SendSafeBody::None) => {}
+        Some(SendSafeBody::Text(t)) => push(&mut buf, t.as_bytes(), limit)?,
+        Some(SendSafeBody::Bytes(b)) => push(&mut buf, &b, limit)?,
+        Some(SendSafeBody::Stream(mut iter)) => {
+            for item in iter.take().into_iter().flatten() {
+                match item.map_err(|e| read_err(&e))? {
+                    Data::Bytes(bytes) => push(&mut buf, &bytes, limit)?,
+                    Data::Retry => {}
+                }
+            }
+        }
+        Some(SendSafeBody::ChunkedStream(mut iter)) => {
+            for item in iter.take().into_iter().flatten() {
+                match item.map_err(|e| read_err(&e))? {
+                    ChunkedData::Data(bytes, _) => push(&mut buf, &bytes, limit)?,
+                    ChunkedData::Trailers(_) | ChunkedData::DataEnded => {}
+                }
+            }
+        }
+        Some(SendSafeBody::LineFeedStream(_) | SendSafeBody::SseStream(_)) => {
+            return Err(IdpError::BadRequest("unsupported request body encoding".into()));
+        }
+    }
+    Ok(buf)
 }

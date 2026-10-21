@@ -9,12 +9,13 @@
 //! find-existing-link → create-new-user → auto-link-by-email (trusted providers
 //! only) → manual-link-request (when email exists but auto-linking is disabled).
 //!
-//! HOW: Uses `foundation_db::QueryStore` via `UserService` for user CRUD and a
+//! HOW: Uses `foundation_db::AsyncQueryStore` for user CRUD and a
 //! `UserProviderLink` table (migration 025) for upstream-to-local mappings.
 
 use std::sync::Arc;
 
-use foundation_db::{QueryStore, DataValue};
+use foundation_db::{AsyncQueryStore, AsyncQueryStream, DataValue, SqlRow, StorageResult};
+use futures_lite::StreamExt;
 
 use crate::server::models::provider::UpstreamProvider;
 use crate::shared::upstream_client::UpstreamProfile;
@@ -96,17 +97,17 @@ impl ProvisioningResult {
 
 /// Service that provisions local users from upstream social login profiles.
 ///
-/// Uses `foundation_db::QueryStore` directly — no custom traits needed.
+/// Uses `foundation_db::AsyncQueryStore` directly — no custom traits needed.
 /// The `user_provider_links` table (migration 025) stores the mapping from
 /// `(provider_id, upstream_subject)` → `user_id`.
-pub struct ProvisioningService<QS: QueryStore + 'static> {
+pub struct ProvisioningService<QS: AsyncQueryStore + ?Sized + 'static> {
     query_store: Arc<QS>,
     /// Whether trusted providers with verified email claims can auto-link
     /// to existing local users by email.
     auto_link_by_email: bool,
 }
 
-impl<QS: QueryStore + 'static> ProvisioningService<QS> {
+impl<QS: AsyncQueryStore + ?Sized + 'static> ProvisioningService<QS> {
     /// Create a new provisioning service.
     #[must_use]
     pub fn new(query_store: Arc<QS>) -> Self {
@@ -135,22 +136,22 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
     /// # Errors
     ///
     /// Returns `ProvisioningError` on storage failure or ambiguous match.
-    pub fn provision(
+    pub async fn provision(
         &self,
         provider: &UpstreamProvider,
         profile: &UpstreamProfile,
     ) -> Result<ProvisioningResult, ProvisioningError> {
         // 1. Check for existing provider link
-        if let Some(user_id) = self.find_link(provider, &profile.sub)? {
+        if let Some(user_id) = self.find_link(provider, &profile.sub).await? {
             return Ok(ProvisioningResult::Linked { user_id });
         }
 
         // 2. Try auto-link by verified email
         if self.auto_link_by_email && profile.email_verified {
             if let Some(email) = &profile.email {
-                match self.find_user_by_email(email)? {
+                match self.find_user_by_email(email).await? {
                     Some(user_id) => {
-                        self.create_link(provider, &profile.sub, &user_id)?;
+                        self.create_link(provider, &profile.sub, &user_id).await?;
                         return Ok(ProvisioningResult::Linked { user_id });
                     }
                     None => { /* fall through to create */ }
@@ -159,8 +160,8 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
         }
 
         // 3. Create new local user
-        let user_id = self.create_user(profile)?;
-        self.create_link(provider, &profile.sub, &user_id)?;
+        let user_id = self.create_user(profile).await?;
+        self.create_link(provider, &profile.sub, &user_id).await?;
         Ok(ProvisioningResult::Created {
             user_id,
             email_verified: profile.email_verified,
@@ -169,14 +170,14 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
 
     // ── internal helpers ───────────────────────────────────────────────────
 
-    fn find_link(
+    async fn find_link(
         &self,
         provider: &UpstreamProvider,
         upstream_sub: &str,
     ) -> Result<Option<String>, ProvisioningError> {
         let mut stream = self
             .query_store
-            .query(
+            .query_async(
                 "SELECT user_id FROM user_provider_links \
                  WHERE provider_id = ? AND upstream_subject = ?",
                 &[
@@ -184,68 +185,46 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
                     DataValue::Text(upstream_sub.to_string()),
                 ],
             )
+            .await
             .map_err(|e| ProvisioningError::Storage(e.to_string()))?;
 
-        for item in stream {
-            match item {
-                foundation_core::valtron::Stream::Next(Ok(row)) => {
-                    let id: String = row
-                        .get_by_name("user_id")
-                        .map_err(|e| ProvisioningError::Storage(e.to_string()))?;
-                    return Ok(Some(id));
-                }
-                foundation_core::valtron::Stream::Next(Err(e)) => {
-                    return Err(ProvisioningError::Storage(e.to_string()));
-                }
-                _ => {}
-            }
+        match stream.next().await {
+            Some(row) => Ok(Some(string_column(row, "user_id")?)),
+            None => Ok(None),
         }
-        Ok(None)
     }
 
-    fn find_user_by_email(
+    async fn find_user_by_email(
         &self,
         email: &str,
     ) -> Result<Option<String>, ProvisioningError> {
-        let mut stream = self
+        let stream = self
             .query_store
-            .query(
+            .query_async(
                 "SELECT id FROM users WHERE email = ? AND email_verified = 1 LIMIT 2",
                 &[DataValue::Text(email.to_string())],
             )
+            .await
             .map_err(|e| ProvisioningError::Storage(e.to_string()))?;
 
-        let mut ids = Vec::new();
-        for item in stream {
-            match item {
-                foundation_core::valtron::Stream::Next(Ok(row)) => {
-                    let id: String = row
-                        .get_by_name("id")
-                        .map_err(|e| ProvisioningError::Storage(e.to_string()))?;
-                    ids.push(id);
-                }
-                foundation_core::valtron::Stream::Next(Err(e)) => {
-                    return Err(ProvisioningError::Storage(e.to_string()));
-                }
-                _ => {}
-            }
-        }
+        let ids = string_column_all(stream, "id").await?;
 
-        match ids.len() {
-            0 => Ok(None),
-            1 => Ok(Some(ids.into_iter().next().unwrap())),
-            _ => Err(ProvisioningError::AmbiguousEmail(email.to_string())),
+        let mut ids = ids.into_iter();
+        match (ids.next(), ids.next()) {
+            (None, _) => Ok(None),
+            (Some(id), None) => Ok(Some(id)),
+            (Some(_), Some(_)) => Err(ProvisioningError::AmbiguousEmail(email.to_string())),
         }
     }
 
-    fn create_link(
+    async fn create_link(
         &self,
         provider: &UpstreamProvider,
         upstream_sub: &str,
         user_id: &str,
     ) -> Result<(), ProvisioningError> {
         self.query_store
-            .execute(
+            .execute_async(
                 "INSERT OR IGNORE INTO user_provider_links \
                  (id, provider_id, upstream_subject, user_id) VALUES (?, ?, ?, ?)",
                 &[
@@ -255,11 +234,12 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
                     DataValue::Text(user_id.to_string()),
                 ],
             )
+            .await
             .map_err(|e| ProvisioningError::Storage(e.to_string()))?;
         Ok(())
     }
 
-    fn create_user(
+    async fn create_user(
         &self,
         profile: &UpstreamProfile,
     ) -> Result<String, ProvisioningError> {
@@ -269,7 +249,7 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
         let email_verified = i64::from(profile.email_verified);
 
         self.query_store
-            .execute(
+            .execute_async(
                 "INSERT INTO users (id, email, username, email_verified, created_at, updated_at) \
                  VALUES (?, ?, ?, ?, strftime('%s', 'now') * 1000, strftime('%s', 'now') * 1000)",
                 &[
@@ -279,6 +259,7 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
                     DataValue::Integer(email_verified),
                 ],
             )
+            .await
             .map_err(|e| ProvisioningError::Storage(e.to_string()))?;
         Ok(user_id)
     }
@@ -288,12 +269,12 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
     /// # Errors
     ///
     /// Returns a `ProvisioningError` on storage failure.
-    pub fn link_exists(
+    pub async fn link_exists(
         &self,
         provider: &UpstreamProvider,
         upstream_sub: &str,
     ) -> Result<bool, ProvisioningError> {
-        self.find_link(provider, upstream_sub).map(|r| r.is_some())
+        self.find_link(provider, upstream_sub).await.map(|r| r.is_some())
     }
 
     /// Get all provider links for a local user.
@@ -301,33 +282,41 @@ impl<QS: QueryStore + 'static> ProvisioningService<QS> {
     /// # Errors
     ///
     /// Returns a `ProvisioningError` on storage failure.
-    pub fn get_user_links(
+    pub async fn get_user_links(
         &self,
         user_id: &str,
     ) -> Result<Vec<String>, ProvisioningError> {
-        let mut stream = self
+        let stream = self
             .query_store
-            .query(
+            .query_async(
                 "SELECT provider_id FROM user_provider_links WHERE user_id = ?",
                 &[DataValue::Text(user_id.to_string())],
             )
+            .await
             .map_err(|e| ProvisioningError::Storage(e.to_string()))?;
 
-        let mut providers = Vec::new();
-        for item in stream {
-            match item {
-                foundation_core::valtron::Stream::Next(Ok(row)) => {
-                    let pid: String = row
-                        .get_by_name("provider_id")
-                        .map_err(|e| ProvisioningError::Storage(e.to_string()))?;
-                    providers.push(pid);
-                }
-                foundation_core::valtron::Stream::Next(Err(e)) => {
-                    return Err(ProvisioningError::Storage(e.to_string()));
-                }
-                _ => {}
-            }
-        }
-        Ok(providers)
+        string_column_all(stream, "provider_id").await
     }
+}
+
+/// Read one text column from a row result.
+fn string_column(
+    row: StorageResult<SqlRow>,
+    column: &str,
+) -> Result<String, ProvisioningError> {
+    row.and_then(|row| row.get_by_name(column))
+        .map_err(|e| ProvisioningError::Storage(e.to_string()))
+}
+
+/// Read one text column from every row. Callers bound the row count (a
+/// `LIMIT`, or one user's provider links).
+async fn string_column_all(
+    mut stream: AsyncQueryStream,
+    column: &str,
+) -> Result<Vec<String>, ProvisioningError> {
+    let mut out = Vec::new();
+    while let Some(row) = stream.next().await {
+        out.push(string_column(row, column)?);
+    }
+    Ok(out)
 }

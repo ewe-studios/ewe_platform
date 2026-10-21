@@ -7,7 +7,7 @@
 //! deactivate, POST set secret. Extended discovery document includes the
 //! `providers_supported` field listing available upstream providers.
 //!
-//! HOW: Free functions taking `ProviderService<impl QueryStore>` + JSON bodies.
+//! HOW: Async free functions taking `ProviderService<impl AsyncQueryStore>` + JSON bodies.
 //! Registered as routes by `IdpServer::register_routes`.
 
 use serde::{Deserialize, Serialize};
@@ -17,7 +17,7 @@ use foundation_netio::shared::http::SendSafeBody;
 use super::super::config::IdpConfig;
 use super::super::models::provider::{ProviderType, ProviderUpdate, UpstreamProvider};
 use super::super::services::provider_service::ProviderService;
-use foundation_db::QueryStore;
+use foundation_db::AsyncQueryStore;
 
 use super::core::{HandlerResponse, IdpError};
 
@@ -118,28 +118,28 @@ pub fn extended_discovery(
 }
 
 /// GET /admin/providers
-pub fn list_all<QS: QueryStore + 'static>(
+pub async fn list_all<QS: AsyncQueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
 ) -> Result<HandlerResponse, IdpError> {
-    let providers = svc.list_all().map_err(|e| IdpError::Internal(e.to_string()))?;
+    let providers = svc.list_all().await.map_err(|e| IdpError::Internal(e.to_string()))?;
     let entries: Vec<ProviderEntry> = providers.iter().map(ProviderEntry::from).collect();
     Ok(HandlerResponse::ok(serde_json::json!({ "providers": entries })))
 }
 
 /// GET /admin/providers/{id}
-pub fn get_one<QS: QueryStore + 'static>(
+pub async fn get_one<QS: AsyncQueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
 ) -> Result<HandlerResponse, IdpError> {
     let provider = svc
-        .find_by_id(id)
+        .find_by_id(id).await
         .map_err(|e| IdpError::Internal(e.to_string()))?
         .ok_or_else(|| IdpError::BadRequest("provider not found".into()))?;
-    Ok(HandlerResponse::ok(serde_json::to_value(ProviderEntry::from(&provider)).unwrap()))
+    Ok(HandlerResponse::ok(entry_json(&provider)?))
 }
 
 /// POST /admin/providers
-pub fn create<QS: QueryStore + 'static>(
+pub async fn create<QS: AsyncQueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     body: CreateProviderRequest,
 ) -> Result<HandlerResponse, IdpError> {
@@ -173,17 +173,17 @@ pub fn create<QS: QueryStore + 'static>(
         updated_at: 0,
     };
 
-    let created = svc.create(provider).map_err(|e| IdpError::Internal(e.to_string()))?;
+    let created = svc.create(provider).await.map_err(|e| IdpError::Internal(e.to_string()))?;
     if let Some(secret) = body.client_secret {
-        svc.set_secret(&created.id, &secret)
+        svc.set_secret(&created.id, &secret).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
     }
 
-    Ok(HandlerResponse::ok(serde_json::to_value(ProviderEntry::from(&created)).unwrap()))
+    Ok(HandlerResponse::ok(entry_json(&created)?))
 }
 
 /// PUT /admin/providers/{id}
-pub fn update<QS: QueryStore + 'static>(
+pub async fn update<QS: AsyncQueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
     body: CreateProviderRequest,
@@ -206,28 +206,33 @@ pub fn update<QS: QueryStore + 'static>(
         ..Default::default()
     };
 
-    let updated = svc.update(id, update).map_err(|e| IdpError::Internal(e.to_string()))?;
-    Ok(HandlerResponse::ok(serde_json::to_value(ProviderEntry::from(&updated)).unwrap()))
+    let updated = svc.update(id, update).await.map_err(|e| IdpError::Internal(e.to_string()))?;
+    Ok(HandlerResponse::ok(entry_json(&updated)?))
 }
 
 /// DELETE /admin/providers/{id}
-pub fn delete<QS: QueryStore + 'static>(
+pub async fn delete<QS: AsyncQueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
 ) -> Result<HandlerResponse, IdpError> {
-    svc.delete(id).map_err(|e| IdpError::Internal(e.to_string()))?;
+    svc.delete(id).await.map_err(|e| IdpError::Internal(e.to_string()))?;
     Ok(HandlerResponse::ok(serde_json::json!({ "deleted": id })))
 }
 
 /// POST /admin/providers/{id}/secret
-pub fn set_secret<QS: QueryStore + 'static>(
+pub async fn set_secret<QS: AsyncQueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
     body: SetSecretRequest,
 ) -> Result<HandlerResponse, IdpError> {
-    svc.set_secret(id, &body.secret)
+    svc.set_secret(id, &body.secret).await
         .map_err(|e| IdpError::Internal(e.to_string()))?;
     Ok(HandlerResponse::ok(serde_json::json!({ "ok": true })))
+}
+
+/// A provider's public JSON form.
+fn entry_json(provider: &UpstreamProvider) -> Result<serde_json::Value, IdpError> {
+    serde_json::to_value(ProviderEntry::from(provider)).map_err(|e| IdpError::Internal(e.to_string()))
 }
 
 // ── Admin API body parser ────────────────────────────────────────────────
