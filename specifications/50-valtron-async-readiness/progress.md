@@ -134,7 +134,19 @@ Done (committed and pushed):
 - Docs (foundation_ai README and docs 00–12, foundation_db docs 00/01) and
   the bug backlog are updated.
 
-Checks: see the table below once the CI runs finish.
+Checks (`scripts/ci/ci.py run <crate> --step build --step clippy --step test --step wasm`):
+
+| Crate | Result |
+|-------|--------|
+| foundation_db | pass |
+| foundation_cedar | pass; `--features db` tests (not in CI) pass too |
+| foundation_cronjobs | pass |
+| foundation_auth | pass; `server-test`: 124 pass, the 17 known IdP HTTP failures (backlog §12) |
+| answerme-agent | pass (first run failed: `block_on_future` needs a `'static` future, so `AgentSession::end` now returns one, like `run_turn`) |
+| foundation_ai | pass, steps one at a time with `target/uat` wiped in between: `build`, `clippy`, `test` run 1 (`testing`: one flaky provider test failed once, fixed — it recorded only the last request path), `test` run 2 (`--no-default-features --features testing`), `wasm` |
+
+Extra: `examples/cf-agent-loop` and `examples/cf-cloud-provider` build for
+wasm32 (separate target dir, deleted after).
 
 ## Next
 

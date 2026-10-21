@@ -112,6 +112,11 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   a stream synchronously must be rewritten by hand, and a test that awaits
   nothing must stay `#[test]`.
 
+- An `async fn` method that borrows `&self` can't be driven by
+  `block_on_future`, which needs a `'static` future. Session methods that
+  sync callers wrap (`run_turn`, `ask`, `end`) return
+  `impl Future + 'static` and clone the `Arc`-backed handle into it.
+
 ## Pool teardown in tests
 
 - `shutdown_within` detaches workers stuck inside a task. They are threads in

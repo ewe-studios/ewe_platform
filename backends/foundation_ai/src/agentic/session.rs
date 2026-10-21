@@ -731,25 +731,34 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, 
     /// store refused stays buffered, so calling `end()` again retries it.
     /// # Errors
     /// [`AgenticError::MessageStore`] when the document store fails a write.
-    pub async fn end(&self) -> Result<(), ErrorTrace<AgenticError>> {
-        let priority_msgs = self.inner.queues.drain_priority();
-        let follow_up_msgs = self.inner.queues.drain_follow_up();
-        for msg in priority_msgs.into_iter().chain(follow_up_msgs) {
-            // Buffers only; the id is not needed here.
-            let _id = self
-                .inner
-                .message_api
-                .append(SessionRecord::Conversation { message: msg });
+    ///
+    /// Async and `'static`, like [`run_turn`](Self::run_turn): the future
+    /// holds its own handle to the session, so a sync caller can drive it
+    /// with `foundation_core::valtron::block_on_future`.
+    pub fn end(
+        &self,
+    ) -> impl std::future::Future<Output = Result<(), ErrorTrace<AgenticError>>> + 'static {
+        let session = self.clone();
+        async move {
+            let inner = &session.inner;
+            let priority_msgs = inner.queues.drain_priority();
+            let follow_up_msgs = inner.queues.drain_follow_up();
+            for msg in priority_msgs.into_iter().chain(follow_up_msgs) {
+                // Buffers only; the id is not needed here.
+                let _id = inner
+                    .message_api
+                    .append(SessionRecord::Conversation { message: msg });
+            }
+
+            let flushed = inner.message_api.flush().await.map_err(|e| {
+                ErrorTrace::new(AgenticError::MessageStore(format!(
+                    "ending session {}: flushing the message log: {e}",
+                    inner.session_id
+                )))
+            });
+
+            inner.queues.reset_cancel();
+            flushed.map(|_| ())
         }
-
-        let flushed = self.inner.message_api.flush().await.map_err(|e| {
-            ErrorTrace::new(AgenticError::MessageStore(format!(
-                "ending session {}: flushing the message log: {e}",
-                self.inner.session_id
-            )))
-        });
-
-        self.inner.queues.reset_cancel();
-        flushed.map(|_| ())
     }
 }
