@@ -750,6 +750,36 @@ where
     collect_one(stream).ok_or_else(|| "sync_collect_one: stream produced no result".into())
 }
 
+/// Iterate an async stream from synchronous code: the sync boundary for an
+/// async-first API (`for event in block_on_stream(turn.events())? { .. }`).
+///
+/// WHY: APIs are written once, async (they wait by parking, so they work on
+/// every target). Sync callers should not need a second API — they wrap the
+/// async one here, the stream counterpart of [`block_on_future`].
+///
+/// WHAT: Schedules `stream` as a valtron task ([`from_stream`]) and returns a
+/// plain `Iterator` over its items ([`next_values`](crate::valtron::next_values)).
+/// Each `next()` waits for the next item the way [`block_on_future`] waits
+/// for its result; the iterator ends when the stream does.
+///
+/// Not for single-threaded wasm request handlers: there, consume the stream
+/// with `.await` so the event loop can deliver its I/O.
+///
+/// # Errors
+///
+/// When the task cannot be scheduled (e.g. the pool is not initialized).
+pub fn block_on_stream<S>(
+    stream: S,
+) -> GenericResult<crate::valtron::StreamValues<S::Item, DrivenStreamIterator<StreamTask<S>>>>
+where
+    S: futures_core::Stream + Send + 'static,
+    S::Item: Send + 'static,
+{
+    Ok(crate::valtron::StreamValues::new(crate::valtron::next_values(
+        execute(from_stream(stream), None)?,
+    )))
+}
+
 /// Block the calling thread until `future` completes, returning its output
 /// (multi-threaded executor variant — Decision 00 Level 3 / feature 00-F3).
 ///

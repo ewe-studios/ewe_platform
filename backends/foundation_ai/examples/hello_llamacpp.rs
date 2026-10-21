@@ -21,9 +21,10 @@
 use foundation_ai::agentic::TurnEvent;
 use foundation_ai::harness::RouterPreset;
 use foundation_core::valtron::valtron;
+use futures_lite::StreamExt;
 
 #[valtron]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // GLM 5.2 (main) + Gemma 4 E2B (memory) via Llama.cpp.
     // None, None = default Q4_K_M quantization, default cache dir, CPU.
     let builder = RouterPreset::glm52_gemma(None, None)?.into_agent_builder();
@@ -35,10 +36,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Asking GLM 5.2 (local GGUF)...");
     // Stream the answer as it is generated.
     let mut answer = String::new();
-    for event in agent
-        .run_turn_stream("Hello! Please say hi back in one sentence.")?
-        .events()
-    {
+    let mut events = agent.run_turn_stream("Hello! Please say hi back in one sentence.")?.events();
+    while let Some(event) = events.next().await {
         match event {
             TurnEvent::Text(delta) => {
                 print!("{delta}");

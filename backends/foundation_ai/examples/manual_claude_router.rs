@@ -18,7 +18,7 @@ use foundation_ai::types::{ModelProviders, ProviderRouter, RoutableProviderBox, 
 use foundation_core::valtron::valtron;
 
 #[valtron]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let api_key = std::env::var("ANTHROPIC_API_KEY")
         .expect("ANTHROPIC_API_KEY must be set");
 
@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // --- Step 5: Run a turn ---
     println!("Sending hello prompt...");
-    let turn = agent.run_turn("Hello! Please say hi back in one sentence.")?;
+    let turn = agent.run_turn("Hello! Please say hi back in one sentence.").await?;
 
     for record in &turn {
         println!("{record:?}");

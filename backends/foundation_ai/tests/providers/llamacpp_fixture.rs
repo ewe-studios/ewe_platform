@@ -109,7 +109,7 @@ fn tiny_gguf_stream_advances() {
 /// in the llama.cpp STREAM, driven by the AgentLoop. This runs that exact path
 /// end to end on every `cargo test` — the loop pumping the real LlamaCppStream.
 #[valtron_test]
-fn agent_session_run_turn_through_gguf() {
+async fn agent_session_run_turn_through_gguf() {
     use foundation_ai::agentic::{
         AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
     };
@@ -143,7 +143,7 @@ fn agent_session_run_turn_through_gguf() {
                 signature: None,
             }),
             signature: None,
-        })
+        }).await
         .expect("a real llama.cpp turn must complete, not error");
 
     assert!(

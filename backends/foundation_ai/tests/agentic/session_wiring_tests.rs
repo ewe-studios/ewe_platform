@@ -200,7 +200,7 @@ where
 }
 
 #[valtron_test]
-fn store_setters_need_no_default_bound() {
+async fn store_setters_need_no_default_bound() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("hello")]);
     let session = build_over_any_stores(
@@ -208,7 +208,7 @@ fn store_setters_need_no_default_bound() {
         MemoryDocumentStore::new(),
         KvMemoryStore::new(MemoryStorage::new()),
     );
-    let records = session.run_turn(user_msg("hi")).expect("turn succeeds");
+    let records = session.run_turn(user_msg("hi")).await.expect("turn succeeds");
     assert!(records.iter().any(|r| matches!(
         r,
         SessionRecord::Conversation {
@@ -218,7 +218,7 @@ fn store_setters_need_no_default_bound() {
 }
 
 #[valtron_test]
-fn memory_tool_writes_reach_the_assembled_context() {
+async fn memory_tool_writes_reach_the_assembled_context() {
     let mut mock = MockModelProvider::new();
     mock.on_nth_call(
         0,
@@ -242,7 +242,7 @@ fn memory_tool_writes_reach_the_assembled_context() {
     activate(&session, &["memory"]);
 
     let records = session
-        .run_turn(user_msg("remember I like tea"))
+        .run_turn(user_msg("remember I like tea")).await
         .expect("turn succeeds");
     assert_eq!(
         tool_results(&records),
@@ -272,7 +272,7 @@ fn memory_tool_writes_reach_the_assembled_context() {
 }
 
 #[valtron_test]
-fn resume_sees_earlier_history() {
+async fn resume_sees_earlier_history() {
     let doc = MemoryDocumentStore::new();
     let mem = KvMemoryStore::new(MemoryStorage::new());
     let id = SessionId::new();
@@ -287,7 +287,7 @@ fn resume_sees_earlier_history() {
         .build()
         .expect("first session builds");
     first
-        .run_turn(user_msg("first question"))
+        .run_turn(user_msg("first question")).await
         .expect("turn succeeds");
     first.end().expect("end succeeds");
 
@@ -333,13 +333,13 @@ fn resume_sees_earlier_history() {
 // Context order and persistence
 
 #[valtron_test]
-fn recent_messages_reach_the_model_oldest_first() {
+async fn recent_messages_reach_the_model_oldest_first() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("ok")]);
     let session = session_with(mock);
 
-    session.run_turn(user_msg("first")).expect("turn 1");
-    session.run_turn(user_msg("second")).expect("turn 2");
+    session.run_turn(user_msg("first")).await.expect("turn 1");
+    session.run_turn(user_msg("second")).await.expect("turn 2");
 
     let memory = session
         .context_provider()
@@ -363,7 +363,7 @@ fn recent_messages_reach_the_model_oldest_first() {
 }
 
 #[valtron_test]
-fn streamed_deltas_are_persisted_as_one_message() {
+async fn streamed_deltas_are_persisted_as_one_message() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![
         mock_text("Hel"),
@@ -372,7 +372,7 @@ fn streamed_deltas_are_persisted_as_one_message() {
     ]);
     let session = session_with(mock);
 
-    session.run_turn(user_msg("hi")).expect("turn succeeds");
+    session.run_turn(user_msg("hi")).await.expect("turn succeeds");
     assert_eq!(
         stored_assistant_texts(&session),
         vec!["Hello, world".to_string()]
@@ -380,7 +380,7 @@ fn streamed_deltas_are_persisted_as_one_message() {
 }
 
 #[valtron_test]
-fn streamed_snapshots_are_persisted_as_one_message() {
+async fn streamed_snapshots_are_persisted_as_one_message() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![
         mock_text("Hel"),
@@ -389,7 +389,7 @@ fn streamed_snapshots_are_persisted_as_one_message() {
     ]);
     let session = session_with(mock);
 
-    session.run_turn(user_msg("hi")).expect("turn succeeds");
+    session.run_turn(user_msg("hi")).await.expect("turn succeeds");
     assert_eq!(
         stored_assistant_texts(&session),
         vec!["Hello, world".to_string()]
@@ -433,7 +433,7 @@ fn duplicate_tool_names_fail_the_build() {
 }
 
 #[valtron_test]
-fn the_model_is_offered_only_shed_until_shed_returns_a_tool() {
+async fn the_model_is_offered_only_shed_until_shed_returns_a_tool() {
     let mut mock = MockModelProvider::new();
     let offered = record_offered(&mut mock);
     mock.on_nth_call(0, vec![shed_call("greet someone")]);
@@ -452,7 +452,7 @@ fn the_model_is_offered_only_shed_until_shed_returns_a_tool() {
     let (tool, seen) = RecordingTool::new();
     let session = session_with_tools(mock, ToolShed::new().tool(tool));
     let records = session
-        .run_turn(user_msg("greet Ada"))
+        .run_turn(user_msg("greet Ada")).await
         .expect("turn succeeds");
 
     let offered = offered.lock().unwrap().clone();
@@ -475,7 +475,7 @@ fn the_model_is_offered_only_shed_until_shed_returns_a_tool() {
 }
 
 #[valtron_test]
-fn calling_a_tool_before_shed_returns_it_is_a_tool_error() {
+async fn calling_a_tool_before_shed_returns_it_is_a_tool_error() {
     let mut mock = MockModelProvider::new();
     mock.on_nth_call(
         0,
@@ -492,7 +492,7 @@ fn calling_a_tool_before_shed_returns_it_is_a_tool_error() {
     let (tool, seen) = RecordingTool::new();
     let session = session_with_tools(mock, ToolShed::new().tool(tool));
     let records = session
-        .run_turn(user_msg("greet Ada"))
+        .run_turn(user_msg("greet Ada")).await
         .expect("turn succeeds");
 
     let results = tool_results(&records);
@@ -509,13 +509,13 @@ fn calling_a_tool_before_shed_returns_it_is_a_tool_error() {
 }
 
 #[valtron_test]
-fn a_tool_less_session_declares_no_tools() {
+async fn a_tool_less_session_declares_no_tools() {
     let mut mock = MockModelProvider::new();
     let offered = record_offered(&mut mock);
     mock.on_any(vec![mock_text("hi")]);
 
     let session = session_with(mock);
-    session.run_turn(user_msg("hi")).expect("turn succeeds");
+    session.run_turn(user_msg("hi")).await.expect("turn succeeds");
     assert_eq!(offered.lock().unwrap()[0], Vec::<String>::new());
 }
 
@@ -629,7 +629,7 @@ fn session_dependent_tools_are_built_from_the_session() {
 }
 
 #[valtron_test]
-fn text_protocol_tool_calls_run_the_tool() {
+async fn text_protocol_tool_calls_run_the_tool() {
     let mut mock = MockModelProvider::new();
     // A local model's streamed tokens spelling out a text-protocol call.
     mock.on_nth_call(
@@ -646,7 +646,7 @@ fn text_protocol_tool_calls_run_the_tool() {
     activate(&session, &["greet"]);
 
     let records = session
-        .run_turn(user_msg("greet Ada"))
+        .run_turn(user_msg("greet Ada")).await
         .expect("turn succeeds");
 
     assert_eq!(tool_results(&records), vec![("greet".to_string(), None)]);
@@ -661,7 +661,7 @@ fn text_protocol_tool_calls_run_the_tool() {
 }
 
 #[valtron_test]
-fn arguments_violating_the_schema_are_rejected_before_execution() {
+async fn arguments_violating_the_schema_are_rejected_before_execution() {
     let mut mock = MockModelProvider::new();
     mock.on_nth_call(0, vec![mock_tool_call("greet", ToolArguments::new())]);
     mock.on_any(vec![mock_text("sorry")]);
@@ -670,7 +670,7 @@ fn arguments_violating_the_schema_are_rejected_before_execution() {
     let session = session_with_tools(mock, ToolShed::new().tool(tool));
     activate(&session, &["greet"]);
 
-    let records = session.run_turn(user_msg("greet")).expect("turn succeeds");
+    let records = session.run_turn(user_msg("greet")).await.expect("turn succeeds");
     let results = tool_results(&records);
     assert_eq!(results.len(), 1);
     assert!(
@@ -725,7 +725,7 @@ fn session_with_access(mock: MockModelProvider, access: Arc<ScriptedAccess>) -> 
 }
 
 #[valtron_test]
-fn denied_tools_do_not_run() {
+async fn denied_tools_do_not_run() {
     let mut mock = MockModelProvider::new();
     mock.on_nth_call(
         0,
@@ -750,7 +750,7 @@ fn denied_tools_do_not_run() {
     activate(&session, &["greet"]);
 
     let records = session
-        .run_turn(user_msg("greet Ada"))
+        .run_turn(user_msg("greet Ada")).await
         .expect("turn succeeds");
     let results = tool_results(&records);
     assert!(
@@ -767,7 +767,7 @@ fn denied_tools_do_not_run() {
 }
 
 #[valtron_test]
-fn refused_spend_ends_the_turn() {
+async fn refused_spend_ends_the_turn() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("never sent")]);
     let access = Arc::new(ScriptedAccess {
@@ -777,14 +777,14 @@ fn refused_spend_ends_the_turn() {
     });
     let session = session_with_access(mock, access);
 
-    let turn = session.run_turn(user_msg("hi")).expect("the turn started");
+    let turn = session.run_turn(user_msg("hi")).await.expect("the turn started");
     let err = turn.failure().expect("spend refused");
     assert!(err.to_string().contains("budget exceeded"), "{err}");
     assert!(turn.text().is_empty(), "nothing was generated");
 }
 
 #[valtron_test]
-fn usage_is_reported_to_the_access_provider() {
+async fn usage_is_reported_to_the_access_provider() {
     let usage = UsageReport {
         input: 7.0,
         output: 5.0,
@@ -802,6 +802,6 @@ fn usage_is_reported_to_the_access_provider() {
     });
     let session = session_with_access(mock, Arc::clone(&access));
 
-    session.run_turn(user_msg("hi")).expect("turn succeeds");
+    session.run_turn(user_msg("hi")).await.expect("turn succeeds");
     assert_eq!(access.recorded.load(Ordering::Relaxed), 12);
 }
