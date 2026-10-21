@@ -7,12 +7,14 @@
 //!
 //! | Module | Role |
 //! |---|---|
-//! | [`auth`] | bootstrap token, CA, mTLS config, `BootstrapService` (enrollment) |
+//! | [`auth`] | CA, mTLS config, `BootstrapService` (enrollment), client-cert verification |
 //! | [`bootstrap`] | the base64 / QR bootstrap payload |
-//! | [`client`] | enroll with a token, then a typed client over mutual TLS |
+//! | [`client`] | enroll with a signed secret, then a typed client over mutual TLS |
 //! | [`error`] | [`AgentRpcError`] — the single error type + wire status mapping |
 //! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle |
 //! | [`proto`] | generated wire types + service stubs (`proto/`) |
+//! | [`secret`] | signing key + signed, expiring bootstrap secrets |
+//! | [`trust`] | trusted-client store (`foundation_db` SQL; SQLite by default) |
 //! | [`server`] | [`AgentRpcServer`] — builder, listener, graceful shutdown |
 //! | [`service`] | [`AgentRpcService`] — the generated `AgentService` over the registry |
 //! | [`instance`] | [`InstanceRegistry`] — named instances over the shared models |
@@ -29,8 +31,10 @@ pub mod error;
 pub mod instance;
 pub mod model;
 pub mod proto;
+pub mod secret;
 pub mod server;
 pub mod service;
+pub mod trust;
 
 pub use error::{AgentRpcError, AgentRpcResult};
 pub use instance::{

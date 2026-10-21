@@ -130,6 +130,8 @@ message TurnDone {
 }
 
 message EnrollRequest {
+  // A signed bootstrap secret (base64url JSON: v, alg, public_key, secret,
+  // valid_from, valid_until, signature), as carried by BootstrapPayload.token.
   string token = 1;
   // Recorded as the certificate's common name.
   string client_name = 2;
@@ -151,6 +153,7 @@ message BootstrapPayload {
   string bootstrap_addr = 3;
   // Lowercase hex SHA-256 of the server certificate (DER).
   string tls_fingerprint_sha256 = 4;
+  // The signed, time-boxed bootstrap secret (see EnrollRequest.token).
   string token = 5;
   Capabilities capabilities = 6;
 }

@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "Per-machine agent RPC model server: load a model once, serve named agent instances over Connect/gRPC/gRPC-Web with token-bootstrapped mTLS"
+description = "Per-machine agent RPC model server: load a model once, serve named agent instances over Connect/gRPC/gRPC-Web with signed-secret-bootstrapped mTLS"
 keywords = ["agent", "rpc", "connectrpc", "grpc", "foundation"]
 
 [dependencies]
@@ -15,18 +15,22 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 # Local model backends stay opt-in (`candle` default, `gguf` adds llama.cpp):
 # the agentic layer, providers and `PreloadedProvider` need neither.
 foundation_ai = { path = "../foundation_ai", version = "0.0.2", default-features = false, features = ["multi"] }
-foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
+# Trusted-client store: any foundation_db SQL backend; `turso` = the embedded
+# SQLite default (`TrustedClientStore::open_sqlite`).
+foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false, features = ["turso"] }
 # RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.3" }
 # The listener (h1 + h2c, TLS) and the client/TLS plumbing.
 foundation_http = { path = "../foundation_http", version = "0.0.3", features = ["multi", "ssl"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["ssl", "multi"] }
-# Entropy for bootstrap tokens (the cross-platform substrate).
+# Entropy for bootstrap secrets (the cross-platform substrate).
 foundation_compact = { path = "../foundation_compact", version = "0.2.2" }
 # Client auth: CA + client/server certificates (ring backend, as
 # foundation_proxy), mutual-TLS server configs, fingerprints, secret hygiene.
 rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
 rustls = { version = "0.23", default-features = false, features = ["std", "ring", "tls12"] }
+# Ed25519 / RSA-PSS signatures over bootstrap secrets (same ring as rustls).
+ring = "0.17"
 sha2 = "0.10"
 base64 = "0.22"
 zeroize = "1"
@@ -57,6 +61,8 @@ tracing-subscriber = { workspace = true }
 # `testing`: MockModelProvider + message builders for deterministic server tests.
 foundation_ai = { path = "../foundation_ai", version = "0.0.2", default-features = false, features = ["multi", "testing"] }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
+# State directories (CA, signing key, trusted-client DB) per test.
+tempfile = "3"
 
 [features]
 default = ["candle"]
@@ -99,6 +105,14 @@ path = "tests/auth_tests.rs"
 [[test]]
 name = "auth_log_tests"
 path = "tests/auth_log_tests.rs"
+
+[[test]]
+name = "secret_tests"
+path = "tests/secret_tests.rs"
+
+[[test]]
+name = "trust_tests"
+path = "tests/trust_tests.rs"
 
 [[test]]
 name = "bootstrap_tests"

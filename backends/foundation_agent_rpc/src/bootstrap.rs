@@ -4,14 +4,17 @@
 //! show it as a QR code) and the client connects with no manual configuration.
 //!
 //! WHAT: [`BootstrapPayload`] (the generated `ewe.agent_rpc.v1.BootstrapPayload`:
-//! agent address, bootstrap address, server certificate fingerprint, token,
-//! capabilities), [`encode`]/[`decode`] (protobuf → base64url, unpadded),
+//! agent address, bootstrap address, server certificate fingerprint, signed
+//! bootstrap secret, capabilities), [`encode`]/[`decode`] (protobuf → base64url, unpadded),
 //! [`qr_text`]/[`qr_svg`] (the same string as a QR code), and
 //! [`EncodedPayload`] (the encoded string with a redacting `Debug`).
 //!
 //! HOW: protobuf keeps the payload small (a QR code's capacity is the limit)
 //! and versioned; base64url keeps it safe in URLs, shells and QR alphanumerics.
-//! The payload contains the bootstrap token, so it is a secret: emitted to the
+//! The `token` field holds the shared form of a
+//! [`SignedSecret`](crate::secret::SignedSecret) (base64url JSON: public key,
+//! signature, random secret, validity window). The payload is therefore a
+//! secret until that window closes or the secret is used: emitted to the
 //! operator, never logged, never written to disk by this crate.
 
 use base64::Engine;
@@ -35,7 +38,7 @@ pub fn encode(payload: &BootstrapPayload) -> String {
 ///
 /// # Errors
 /// [`AgentRpcError::Codec`] for invalid base64, invalid protobuf, an unknown
-/// version, or a payload missing its addresses, fingerprint or token.
+/// version, or a payload missing its addresses, fingerprint or secret.
 pub fn decode(encoded: &str) -> AgentRpcResult<BootstrapPayload> {
     let codec = |what: String| -> foundation_errstacks::ErrorTrace<AgentRpcError> {
         AgentRpcError::Codec(format!("bootstrap payload: {what}")).into()

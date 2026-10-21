@@ -70,6 +70,47 @@ secret**, and persists enrolled clients:
    `foundation_db`'s SQL storage (SQLite by default; any foundation_db SQL
    backend). The server consults the store on connect; clients can be revoked.
 
+**State at pause (WIP commit on `65-f01-agent-rpc`):** code written and
+`cargo build` clean; the new/updated tests are written but **not yet run**
+(the run was interrupted by a full disk, then work paused for #124 review).
+Next agent: run `cargo test --profile uat -p foundation_agent_rpc --test
+secret_tests --test trust_tests --test auth_tests --test bootstrap_tests
+--test auth_log_tests --test error_tests` (with `PROTOC` set) and fix what
+fails; then `-p foundation_db --test turso_storage_tests` (passed: 7/7).
+
+What landed:
+- `src/secret.rs` — `SigningKey` (ring; Ed25519 generated, operator RSA
+  PKCS#8 accepted), `SigningKeyConfig` (env `EWE_AGENT_RPC_SIGNING_KEY` =
+  inline PEM or path, else `<state>/bootstrap-signing-key.pem`, generated
+  0600 when missing; corrupt file = error, never overwritten),
+  `SignedSecret` (base64url JSON `{v, alg, public_key, secret, valid_from,
+  valid_until, signature}`; signature over a domain-separated,
+  length-prefixed encoding, not the JSON), `BootstrapSecrets` (issue /
+  verify; default validity 24 h = kubeadm token TTL).
+- `src/trust.rs` — `TrustedClientStore` over any `foundation_db`
+  `AsyncQueryStore` (`open_sqlite` = Turso/SQLite): clients table +
+  per-secret use counts (single statement upsert, pruned after expiry);
+  in-memory index for the sync TLS verifier.
+- `src/auth.rs` — `BootstrapToken` removed; `MtlsConfig::new(ca, secrets,
+  trusted)` / `from_state_dir(dir).await` (CA persisted as
+  `ca-cert.pem`/`ca-key.pem`); async `EnrollmentService::enroll_client`
+  (verify → sign CSR → spend use → record); `TrustedClientVerifier` wraps
+  WebPKI and refuses certs not in the store / revoked / expired, writing
+  last-seen in the background via `valtron::send`.
+- `src/server.rs` — secure mode is `with_mtls(config)` alone;
+  `RunningServer::bootstrap_payload()` issues a fresh secret.
+- `src/client.rs` — `connect_with_payload` checks signature + window locally.
+- `foundation_db` — async `TursoStorage::open` (no block-on inside tasks).
+- Tests: `secret_tests`, `trust_tests` (new); `auth_tests`,
+  `bootstrap_tests`, `auth_log_tests` rewritten. RSA fixture in
+  `tests/fixtures/test-only-rsa-signing-key.pem`.
+
+Known gaps to record in `docs/bug-backlog.md` when resuming: the server
+certificate is regenerated on every `serve`, so outstanding payloads stop
+working after a restart (pinned fingerprint changes) — persist the server
+identity in the state dir; revocation refuses new handshakes but does not
+drop live keep-alive connections.
+
 ## Feature 00 — foundation (`worktree-65-agent-rpc-serving-system`)
 
 | Task | Status |

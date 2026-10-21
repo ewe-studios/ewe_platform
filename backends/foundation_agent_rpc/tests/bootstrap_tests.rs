@@ -1,10 +1,10 @@
 //! T9 — the bootstrap payload: base64 + QR, and a client that connects from
 //! the payload alone.
 
-use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_agent_rpc::auth::{BootstrapToken, CertificateAuthority, MtlsConfig};
+use foundation_agent_rpc::auth::MtlsConfig;
+use foundation_agent_rpc::secret::{SignedSecret, SigningKeyConfig};
 use foundation_agent_rpc::bootstrap::{self, BootstrapPayload};
 use foundation_agent_rpc::client::connect_with_payload;
 use foundation_agent_rpc::proto::v1::{ChatRequest, CreateInstanceRequest, HealthRequest};
@@ -91,22 +91,33 @@ fn the_payload_is_redacted_when_printed() {
 async fn a_client_connects_from_the_payload_alone() {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("hello via payload")]);
-    let token = BootstrapToken::generate().expect("token");
-    let ca = Arc::new(CertificateAuthority::generate("payload test CA").expect("ca"));
+    let dir = tempfile::tempdir().expect("tempdir");
+    let config = MtlsConfig::from_state_dir_with(
+        dir.path(),
+        &SigningKeyConfig::in_state_dir(dir.path()).without_env_var(),
+    )
+    .await
+    .expect("state");
     let server = AgentRpcServer::builder()
         .with_model(ModelHandle::from_router("mock", "mock", mock.into_router()))
-        .with_bootstrap_token(token.clone())
-        .with_mtls(MtlsConfig::new(ca))
+        .with_mtls(config)
         .build()
         .expect("server")
         .serve("127.0.0.1:0")
         .expect("serves");
 
-    let payload = server.bootstrap_payload(&token).expect("payload");
+    let payload = server
+        .bootstrap_payload_for(Duration::from_secs(600))
+        .expect("payload");
     let caps = payload.capabilities.as_option().expect("capabilities");
     assert_eq!(caps.models, vec!["mock"]);
     assert_eq!(caps.auth_mode, "mtls");
+    let secret = SignedSecret::decode(&payload.token).expect("a signed secret");
+    assert!(secret.verify_self_signed());
+    assert_eq!(secret.valid_until() - secret.valid_from(), 600);
     let encoded = bootstrap::encode(&payload);
+    // The whole payload — addresses, pin, signed secret — still fits a QR code.
+    bootstrap::qr_text(&encoded).expect("QR");
 
     let (client, _identity) = connect_with_payload(&encoded, "phone")
         .await
@@ -145,4 +156,42 @@ async fn a_client_connects_from_the_payload_alone() {
     assert_eq!(reply.text, "hello via payload");
 
     server.graceful_shutdown().expect("shutdown");
+}
+
+#[valtron_test(threads = 4)]
+async fn the_client_checks_the_secret_before_dialling() {
+    use foundation_agent_rpc::secret::{BootstrapSecrets, SigningKey};
+    use std::time::SystemTime;
+
+    let secrets = BootstrapSecrets::new(SigningKey::generate().expect("key"));
+    let past = SystemTime::now() - Duration::from_secs(600);
+    let mut payload = sample();
+    // Unroutable addresses: a network attempt would fail differently.
+    payload.addr = "127.0.0.1:1".into();
+    payload.bootstrap_addr = "127.0.0.1:1".into();
+
+    payload.token = secrets
+        .issue_window(past, past + Duration::from_secs(60))
+        .expect("issue")
+        .encode()
+        .to_string();
+    let err = connect_with_payload(&bootstrap::encode(&payload), "phone")
+        .await
+        .expect_err("expired");
+    assert_eq!(
+        err.current_context().code(),
+        foundation_connectrpc::Code::Unauthenticated
+    );
+    assert!(err.current_context().to_string().contains("validity window"), "{err:?}");
+
+    let good = secrets.issue().expect("issue").encode().to_string();
+    payload.token = format!("{}AA", &good[..good.len() - 2]);
+    let err = connect_with_payload(&bootstrap::encode(&payload), "phone")
+        .await
+        .expect_err("corrupted");
+    assert_eq!(
+        err.current_context().code(),
+        foundation_connectrpc::Code::InvalidArgument,
+        "{err:?}"
+    );
 }

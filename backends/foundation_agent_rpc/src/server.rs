@@ -10,8 +10,9 @@
 //! HOW: the agent listener serves HTTP/1.1 (Connect, gRPC-Web) and h2c (gRPC,
 //! Connect) via `foundation_http`'s `ServerApp::Both`, every `AgentService`
 //! procedure routed to the connectrpc handler from [`agent_router`]. With auth
-//! (`with_bootstrap_token` + `with_mtls`) it is a mutual-TLS listener, and a
-//! second, server-auth TLS listener serves only `BootstrapService/Enroll`.
+//! (`with_mtls`) it is a mutual-TLS listener, and a second, server-auth TLS
+//! listener serves only `BootstrapService/Enroll`; clients enroll with a
+//! signed bootstrap secret from [`RunningServer::bootstrap_payload`].
 //! Without auth (`insecure_plaintext`) there is one plaintext listener.
 //! Each serve loop runs on its own thread; handlers run on the valtron pool, so
 //! the caller must have one running (≥ 8 workers — see LEARNINGS 01 T6).
@@ -19,6 +20,7 @@
 use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
 use std::thread::JoinHandle;
+use std::time::Duration;
 
 use foundation_connectrpc::{ConnectRpcServe, ConnectRpcServeH2, Router};
 use foundation_core::synca::OnSignal;
@@ -27,7 +29,7 @@ use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::{HttpApp, ServerApp};
 use foundation_http::shared::serve::Serve;
 
-use crate::auth::{tls_listeners, BootstrapToken, EnrollmentService, MtlsConfig};
+use crate::auth::{tls_listeners, EnrollmentService, MtlsConfig};
 use crate::bootstrap::{BootstrapPayload, PAYLOAD_VERSION};
 use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::instance::{InstanceRegistry, RegistryConfig};
@@ -37,6 +39,7 @@ use crate::proto::v1::bootstrap_service::{
     procedure as bootstrap_procedure, register_bootstrap_service,
 };
 use crate::proto::v1::Capabilities;
+use crate::secret::SignedSecret;
 use crate::service::{agent_router, AgentRpcService};
 
 /// Every `AgentService` procedure path the agent listener routes.
@@ -54,7 +57,7 @@ const AGENT_PROCEDURES: [&str; 6] = [
 enum Auth {
     /// No TLS, no client auth — loopback development and tests only.
     InsecurePlaintext,
-    /// Bootstrap token → client certificate → mutual TLS.
+    /// Signed bootstrap secret → client certificate → mutual TLS.
     Mtls {
         config: MtlsConfig,
         enrollment: Arc<EnrollmentService>,
@@ -67,7 +70,6 @@ pub struct AgentRpcServerBuilder {
     registry: RegistryConfig,
     http: Option<ServerConfig>,
     insecure: bool,
-    token: Option<BootstrapToken>,
     mtls: Option<MtlsConfig>,
 }
 
@@ -77,7 +79,7 @@ impl std::fmt::Debug for AgentRpcServerBuilder {
             .field("models", &self.models)
             .field("registry", &self.registry)
             .field("insecure", &self.insecure)
-            .field("token", &self.token)
+            .field("mtls", &self.mtls.is_some())
             .finish_non_exhaustive()
     }
 }
@@ -106,14 +108,8 @@ impl AgentRpcServerBuilder {
         self
     }
 
-    /// The secret clients present once to enroll. Requires [`with_mtls`](Self::with_mtls).
-    #[must_use]
-    pub fn with_bootstrap_token(mut self, token: BootstrapToken) -> Self {
-        self.token = Some(token);
-        self
-    }
-
-    /// Mutual TLS on the agent listener. Requires a bootstrap token.
+    /// Mutual TLS on the agent listener, with enrollment by signed bootstrap
+    /// secret (see [`MtlsConfig::from_state_dir`]).
     #[must_use]
     pub fn with_mtls(mut self, config: MtlsConfig) -> Self {
         self.mtls = Some(config);
@@ -131,31 +127,24 @@ impl AgentRpcServerBuilder {
     /// Validate and assemble the server.
     ///
     /// # Errors
-    /// [`AgentRpcError::Config`] when auth is not chosen (or half-chosen, or
-    /// both secure and insecure), no model was added, or two models share a
-    /// name.
+    /// [`AgentRpcError::Config`] when auth is not chosen (or both secure and
+    /// insecure), no model was added, or two models share a name.
     pub fn build(self) -> AgentRpcResult<AgentRpcServer> {
-        let auth = match (self.insecure, self.token, self.mtls) {
-            (true, None, None) => Auth::InsecurePlaintext,
-            (false, Some(token), Some(config)) => Auth::Mtls {
-                enrollment: Arc::new(EnrollmentService::new(token, &config)),
+        let auth = match (self.insecure, self.mtls) {
+            (true, None) => Auth::InsecurePlaintext,
+            (false, Some(config)) => Auth::Mtls {
+                enrollment: Arc::new(EnrollmentService::new(&config)),
                 config,
             },
-            (true, _, _) => {
+            (true, Some(_)) => {
                 return Err(AgentRpcError::Config(
-                    "insecure_plaintext cannot be combined with a token or mTLS".into(),
+                    "insecure_plaintext cannot be combined with mTLS".into(),
                 )
                 .into())
             }
-            (false, Some(_), None) | (false, None, Some(_)) => {
+            (false, None) => {
                 return Err(AgentRpcError::Config(
-                    "secure mode needs both with_bootstrap_token and with_mtls".into(),
-                )
-                .into())
-            }
-            (false, None, None) => {
-                return Err(AgentRpcError::Config(
-                    "choose client auth explicitly (with_bootstrap_token + with_mtls, or insecure_plaintext for local use)"
+                    "choose client auth explicitly (with_mtls, or insecure_plaintext for local use)"
                         .into(),
                 )
                 .into())
@@ -195,7 +184,6 @@ impl AgentRpcServer {
             registry: RegistryConfig::default(),
             http: None,
             insecure: false,
-            token: None,
             mtls: None,
         }
     }
@@ -206,7 +194,8 @@ impl AgentRpcServer {
         &self.service
     }
 
-    /// The enrollment service (secure mode only) — e.g. to rotate the token.
+    /// The enrollment service (secure mode only) — issue secrets, list or
+    /// revoke clients.
     #[must_use]
     pub fn enrollment(&self) -> Option<&Arc<EnrollmentService>> {
         match &self.auth {
@@ -245,6 +234,7 @@ impl AgentRpcServer {
                     models,
                     bootstrap_addr: None,
                     tls: None,
+                    enrollment: None,
                     shutdown,
                     threads: vec![thread],
                 })
@@ -285,6 +275,7 @@ impl AgentRpcServer {
                         fingerprint_sha256: tls.fingerprint_sha256,
                         ca_cert_pem: config.ca().ca_cert_pem().to_string(),
                     }),
+                    enrollment: Some(enrollment),
                     shutdown,
                     threads,
                 })
@@ -305,6 +296,7 @@ pub struct RunningServer {
     models: Vec<String>,
     bootstrap_addr: Option<SocketAddr>,
     tls: Option<TlsInfo>,
+    enrollment: Option<Arc<EnrollmentService>>,
     shutdown: Arc<OnSignal>,
     threads: Vec<JoinHandle<()>>,
 }
@@ -358,14 +350,48 @@ impl RunningServer {
         self.tls.as_ref().map(|t| t.ca_cert_pem.as_str())
     }
 
+    /// The enrollment service (secure mode only).
+    #[must_use]
+    pub fn enrollment(&self) -> Option<&Arc<EnrollmentService>> {
+        self.enrollment.as_ref()
+    }
+
     /// The payload a client needs to connect: addresses, the server
-    /// certificate fingerprint, `token`, and capabilities. Encode it with
-    /// [`crate::bootstrap::encode`] (or show [`crate::bootstrap::qr_text`]).
-    /// It contains the token: hand it to the operator only.
+    /// certificate fingerprint, a **newly issued** signed bootstrap secret
+    /// (valid for the signer's default validity, single use by default), and
+    /// capabilities. Encode it with [`crate::bootstrap::encode`] (or show
+    /// [`crate::bootstrap::qr_text`]). It contains the secret: hand it to the
+    /// operator only.
     ///
     /// # Errors
-    /// [`AgentRpcError::Config`] for a plaintext server (nothing to bootstrap).
-    pub fn bootstrap_payload(&self, token: &BootstrapToken) -> AgentRpcResult<BootstrapPayload> {
+    /// [`AgentRpcError::Config`] for a plaintext server (nothing to bootstrap)
+    /// or when the secret cannot be issued.
+    pub fn bootstrap_payload(&self) -> AgentRpcResult<BootstrapPayload> {
+        let enrollment = self.secure_enrollment()?;
+        self.payload_with(&enrollment.issue_secret()?)
+    }
+
+    /// [`bootstrap_payload`](Self::bootstrap_payload) with a secret valid for
+    /// `validity`.
+    ///
+    /// # Errors
+    /// As [`bootstrap_payload`](Self::bootstrap_payload).
+    pub fn bootstrap_payload_for(&self, validity: Duration) -> AgentRpcResult<BootstrapPayload> {
+        let enrollment = self.secure_enrollment()?;
+        self.payload_with(&enrollment.issue_secret_for(validity)?)
+    }
+
+    fn secure_enrollment(&self) -> AgentRpcResult<&Arc<EnrollmentService>> {
+        self.enrollment.as_ref().ok_or_else(|| {
+            AgentRpcError::Config("a plaintext server has no bootstrap payload".into()).into()
+        })
+    }
+
+    /// The payload carrying an already issued `secret`.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::Config`] for a plaintext server.
+    pub fn payload_with(&self, secret: &SignedSecret) -> AgentRpcResult<BootstrapPayload> {
         let (Some(tls), Some(bootstrap_addr)) = (&self.tls, self.bootstrap_addr) else {
             return Err(AgentRpcError::Config(
                 "a plaintext server has no bootstrap payload".into(),
@@ -377,7 +403,7 @@ impl RunningServer {
             addr: self.addr.to_string(),
             bootstrap_addr: bootstrap_addr.to_string(),
             tls_fingerprint_sha256: tls.fingerprint_sha256.clone(),
-            token: token.expose_secret().to_string(),
+            token: secret.encode().to_string(),
             capabilities: Capabilities {
                 // One listener serves all three (h1: Connect, gRPC-Web; h2: gRPC).
                 protocols: vec!["connect".into(), "grpc".into(), "grpc-web".into()],

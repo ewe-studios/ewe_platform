@@ -50,6 +50,9 @@ pub enum AgentRpcError {
     /// The server or a request is misconfigured.
     #[display("invalid configuration: {_0}")]
     Config(#[error(not(source))] String),
+    /// The trusted-client store (SQL) failed.
+    #[display("storage error: {_0}")]
+    Storage(#[error(not(source))] String),
     /// Network / TLS transport failure.
     #[display("transport error: {_0}")]
     Transport(#[error(not(source))] String),
@@ -66,7 +69,9 @@ impl AgentRpcError {
     #[must_use]
     pub fn code(&self) -> Code {
         match self {
-            AgentRpcError::ModelLoad(_) | AgentRpcError::Inference(_) => Code::Internal,
+            AgentRpcError::ModelLoad(_)
+            | AgentRpcError::Inference(_)
+            | AgentRpcError::Storage(_) => Code::Internal,
             AgentRpcError::ModelNotFound(_) | AgentRpcError::InstanceNotFound(_) => Code::NotFound,
             AgentRpcError::Auth(_) => Code::Unauthenticated,
             AgentRpcError::InstanceExists(_) => Code::AlreadyExists,

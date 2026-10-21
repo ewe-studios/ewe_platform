@@ -1,10 +1,11 @@
-//! The client side of agent-rpc's auth: enroll with a token, then call over
-//! mutual TLS.
+//! The client side of agent-rpc's auth: enroll with a signed bootstrap
+//! secret, then call over mutual TLS.
 //!
-//! WHY: a CLI/SDK should go from "an operator gave me a token" to "a typed,
-//! authenticated `AgentServiceClient`" with no manual certificate handling.
+//! WHY: a CLI/SDK should go from "an operator gave me a payload / QR code" to
+//! "a typed, authenticated `AgentServiceClient`" with no manual certificate
+//! handling.
 //!
-//! WHAT: [`generate_csr`] (key stays local), [`enroll`] (token + CSR over a
+//! WHAT: [`generate_csr`] (key stays local), [`enroll`] (secret + CSR over a
 //! TLS connection pinned to the server's certificate fingerprint),
 //! [`ClientIdentity`] (what enrollment yields), and [`connect_mtls`] (the
 //! generated `AgentServiceClient` over HTTP/1.1 mutual TLS — Connect by
@@ -12,10 +13,13 @@
 //!
 //! HOW: before enrollment the client has no CA, so the bootstrap connection
 //! trusts exactly one server certificate: the one whose SHA-256 the operator
-//! handed over with the token. Signatures are still verified by rustls.
+//! handed over with the secret. Signatures are still verified by rustls.
+//! [`connect_with_payload`] also checks the secret's own signature and
+//! validity window locally, so a truncated or expired secret fails before any
+//! network call.
 
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use foundation_connectrpc::{ClientOptions, Ctx, H1Transport, Request, Transport};
 use foundation_errstacks::ErrorTrace;
@@ -32,6 +36,7 @@ use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::proto::v1::agent_service::AgentServiceClient;
 use crate::proto::v1::bootstrap_service::BootstrapServiceClient;
 use crate::proto::v1::EnrollRequest;
+use crate::secret::{unix_secs, SignedSecret};
 
 /// A client's certificate, private key and the CA that issued it.
 #[derive(Clone)]
@@ -75,15 +80,17 @@ pub fn generate_csr(client_name: &str) -> AgentRpcResult<(Zeroizing<String>, Str
 
 /// Enroll with the bootstrap listener at `bootstrap_url` (`https://host:port`),
 /// trusting only the server certificate whose SHA-256 is `fingerprint_sha256`.
+/// `secret` is the shared form of a [`crate::secret::SignedSecret`].
 ///
 /// # Errors
-/// The server's status (e.g. `unauthenticated` for a bad or spent token), or
+/// The server's status (e.g. `unauthenticated` for a forged, expired or spent
+/// secret), or
 /// [`AgentRpcError::Transport`]/[`AgentRpcError::Config`] mapped into a
 /// `ConnectError` for local failures.
 pub async fn enroll(
     bootstrap_url: &str,
     fingerprint_sha256: &str,
-    token: &str,
+    secret: &str,
     client_name: &str,
 ) -> foundation_connectrpc::ConnectResult<ClientIdentity> {
     let (key_pem, csr_pem) = generate_csr(client_name).map_err(|e| e.current_context().clone())?;
@@ -99,7 +106,7 @@ pub async fn enroll(
         .enroll(
             Ctx::background().with_deadline(Duration::from_secs(30)),
             Request::new(EnrollRequest {
-                token: token.to_string(),
+                token: secret.to_string(),
                 client_name: client_name.to_string(),
                 csr_pem,
                 ..Default::default()
@@ -116,17 +123,30 @@ pub async fn enroll(
 
 /// Connect from an encoded bootstrap payload alone: decode it, enroll as
 /// `client_name` (pinned to the payload's fingerprint), and return a mutual-TLS
-/// client plus the identity (keep it to reconnect without the token).
+/// client plus the identity (keep it to reconnect without a secret).
 ///
 /// # Errors
-/// `invalid_argument` for a malformed payload; enrollment errors as in
-/// [`enroll`]; `failed_precondition` for unusable certificate material.
+/// `invalid_argument` for a malformed payload or secret (bad signature
+/// included); `unauthenticated` for a secret outside its validity window by
+/// this machine's clock; enrollment errors as in [`enroll`];
+/// `failed_precondition` for unusable certificate material.
 pub async fn connect_with_payload(
     encoded_payload: &str,
     client_name: &str,
 ) -> foundation_connectrpc::ConnectResult<(AgentServiceClient, ClientIdentity)> {
     let payload =
         crate::bootstrap::decode(encoded_payload).map_err(|e| e.current_context().clone())?;
+    let secret = SignedSecret::decode(&payload.token).map_err(|e| e.current_context().clone())?;
+    if !secret.verify_self_signed() {
+        return Err(AgentRpcError::Codec("bootstrap secret signature is invalid".into()).into());
+    }
+    if !secret.is_valid_at(unix_secs(SystemTime::now())) {
+        return Err(AgentRpcError::Auth(
+            "bootstrap secret is outside its validity window (expired, or this clock is off)"
+                .into(),
+        )
+        .into());
+    }
     let identity = enroll(
         &format!("https://{}", payload.bootstrap_addr),
         &payload.tls_fingerprint_sha256,
