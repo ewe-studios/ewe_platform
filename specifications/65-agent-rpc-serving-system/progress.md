@@ -1,6 +1,6 @@
 # Spec 65 Progress: Agent RPC Serving System
 
-_Last updated: 2026-10-21. Read this first, then `LEARNINGS.md` ("Handoff guide"
+_Last updated: 2026-10-21 (review round 2 recorded). Read this first, then `LEARNINGS.md` ("Handoff guide"
 at the top) before touching code._
 
 ## Status at a glance
@@ -8,7 +8,7 @@ at the top) before touching code._
 | Feature | State | Where |
 |---|---|---|
 | 00 — foundation (wasm / Workers readiness) | 🔧 6/7 (T7 open) | PR #124 |
-| 01 — agent-rpc model server | ✅ 10/10 + GGUF; 🔧 bootstrap-secret redesign in progress | PR #126 |
+| 01 — agent-rpc model server | ✅ 10/10 + GGUF; ⏸ owner review round 2 open (paused, see below) | PR #126 |
 | 02 — manifest installer | ⏳ 0/9 | — |
 | 03 — proxy registration | ⏳ 0/8 | — |
 | 04 — registrar sidecar | ⏳ 0/7 | — |
@@ -29,6 +29,10 @@ master
   stable releases #127 included). Review asks addressed: async model-metadata
   lookup on wasm (`4eedff5e0`), runtime timer disposal (`47792e61e`).
 - **#126** targets #124's branch. When #124 merges, retarget #126 to master.
+- _2026-10-21 update:_ #124 has merged; #126 now targets master and is
+  **conflicted** (`foundation_ai/src/agentic/turn.rs`, `docs/bug-backlog.md`)
+  after #130 (valtron async-first), #131 (async-only foundation_db stores) and
+  #132 (foundation_ai on the async store traits) landed.
 - Landed on master already: #123 (release-PR job on a branch), #127 (releases on
   stable; Cranelift only via mise env), #128 (llama.cpp CUDA links NCCL).
 
@@ -111,6 +115,87 @@ working after a restart (pinned fingerprint changes) — persist the server
 identity in the state dir; revocation refuses new handshakes but does not
 drop live keep-alive connections.
 
+## Feature 01 — owner review round 2 (paused until the async-storage stream is done)
+
+_Recorded 2026-10-21._ The owner asked to finish the async-storage migration
+(spec 50: #130, #131, #132 merged; `db/async-callers` in progress) before
+coming back to agent-rpc. The plan below is agreed and ready to start. Answers
+to the first four review questions are in the PR comment
+https://github.com/ewe-studios/ewe_platform/pull/126#issuecomment-6316012815.
+
+**Guiding direction (owner):** use traits so everything is pluggable, giving
+one RPC surface that runs on bare metal, Docker and Cloudflare Workers.
+
+Work, in order:
+1. **Merge master** into `65-f01-agent-rpc` (merge commit, no rebase) and adapt
+   to the async APIs. These include async `StorageProvider::new`/Turso
+   constructors, `Blocking<S>` only at sync boundaries, async
+   `AgentSessionBuilder::build()` / `AgentSession::end()`, and whatever
+   `db/async-callers` changes once it lands.
+2. **`mark_seen` out of the TLS verifier.** `TrustedClientVerifier` stays a pure
+   sync check, since rustls's trait is sync and the check reads the in-memory
+   index. Last-seen is recorded with `.await` in the async connection path after
+   the handshake, from the peer certificate, and errors are propagated.
+3. **Auth moves into `foundation_auth`, built on `foundation_db`** (owner, review
+   on `auth.rs` L142):
+   - the CA and CSR issuance;
+   - `SigningKey` / `SignedSecret` / `BootstrapSecrets`;
+   - the trusted-client store;
+   - the mTLS verifier.
+   
+   agent-rpc keeps only its wiring (enrollment service, listeners).
+4. **A `CaStore` provider trait** (owner, `auth.rs` L213). It loads or generates,
+   then persists, the CA and signing key through any backend: filesystem,
+   memory, JSON files, Turso/libsql, D1/KV/R2. One generic impl goes over
+   foundation_db's async traits, plus a filesystem impl for `from_state_dir`.
+   Encrypt private keys at rest.
+5. **A pluggable `ClientAuth` provider** replacing the `Auth` enum. Handlers see
+   only `AuthInfo`, and it reuses `foundation_connectrpc`'s `AuthFunc` /
+   `AuthzInterceptor` where they fit. Providers:
+   - **Signed secret (default)**, from env with no filesystem. This is **our signed
+     JSON format, not a JWT.** `SignedSecret` is base64url JSON
+     `{v, alg, public_key, secret, valid_from, valid_until, signature}`, with the
+     signature over a domain-separated, length-prefixed encoding. Together with
+     `BootstrapPayload` (`addr`, `bootstrap_addr`, `tls_fingerprint_sha256`,
+     `token`), it carries the start/end window, the signature, endpoint info, and
+     the public key the other side verifies with. Keep the wire format
+     backward-compatible.
+     - Split verify (public key only) from sign (private key), so a host such
+       as a Worker can verify with just the public key.
+     - Verify the signature, the window, and single use via the store.
+   - **mTLS + trusted-client store** (TLS layer, native).
+   - JWT via foundation_auth: optional extra, never the default.
+   - Insecure plaintext: loopback/dev only.
+6. **Core/host split.** A transport-agnostic core holds:
+   - the service on connectrpc's `Router`;
+   - an `InstanceRegistry` trait;
+   - model access behind a provider trait;
+   - `ClientAuth`.
+   
+   The native host (TCP/TLS listeners, local models, Turso) sits on top. The
+   Workers host isn't built in this PR; it gets a new feature doc under
+   `features/`, covering:
+   - a fetch entry into the same `Router`, speaking Connect and gRPC-Web (not
+     full gRPC, which needs trailers);
+   - remote model providers;
+   - one Durable Object per instance;
+   - D1;
+   - `ClientAuth` via the signed secret (public key from config), JWT, or
+     Cloudflare mTLS (`request.cf.tlsClientAuth`);
+   - how a URL-based host fills `BootstrapPayload`'s endpoint fields.
+7. **Model capabilities + instance kind** (owner, proto L52):
+   - a `GetCapabilities` RPC returning the supported kinds (`API`, `CANDLE`,
+     `GGUF`, with room for `VIDEO` / `AUDIO`; zero = `UNSPECIFIED`) and their
+     devices;
+   - the create-instance request carries kind and device, validated against
+     capabilities, with a Connect error for unsupported kinds.
+8. **Candle device** (owner, `model.rs` L61): `ModelSource::Candle` gets a
+   CPU / CUDA / Metal choice like `GgufDevice`, feature-gated.
+
+Also open from the earlier review: the Postgres question. foundation_db has no
+Postgres backend; the trusted-client SQL is portable except for `?`
+placeholders. It's unscheduled.
+
 ## Feature 00 — foundation (`worktree-65-agent-rpc-serving-system`)
 
 | Task | Status |
@@ -158,8 +243,8 @@ busy-looping) and their fixes are in LEARNINGS "06 T5".
 
 ## Next steps (in order)
 
-1. Finish the bootstrap-secret redesign on #126 (above), then get #124 and #126
-   merged (retarget #126 to master after #124).
+1. After the async-storage stream (spec 50) is done: work through "Feature 01 —
+   owner review round 2" above on #126, then get #126 green and merged.
 2. Features 02 → 05 in dependency order (02 and 03 independent; 04 needs 02 + 03;
    05 needs 00 + 01).
 3. F00 T7 when credentials exist.
