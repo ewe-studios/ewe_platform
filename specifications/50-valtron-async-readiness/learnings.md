@@ -58,6 +58,33 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   but foundation_netio's `wasm-fetch` turns on `foundation_core/js-wasmbindgen`
   there. Only foundation_core can evaluate the real gate.
 
+## Converting callers (foundation_db PR 1)
+
+- Feature-gated code nobody builds rots. Three places didn't compile, or had
+  tests that never ran, before this change:
+  - foundation_nativeapis `vfs-native,vfs-d1,vfs-r2` (written against an old
+    streaming storage API);
+  - `examples/cf-login-app` (its manifest inherited workspace fields while
+    excluded from the workspace);
+  - two foundation_db libsql tests with no `#[test]`.
+
+  `cargo check --tests` with default features misses all of these. Grep for
+  the changed APIs, then build every feature set that uses them.
+- Before blaming your change for a failure, run the same test on the base
+  commit. A temporary `git worktree` at the base, sharing the target dir
+  (`CARGO_TARGET_DIR`), keeps the rebuild small. That is how the 17 failing
+  foundation_auth IdP tests were shown to fail on master too.
+- `SessionManager<S>` put every method under `impl<S: CredentialStore>`, so its
+  async methods needed the sync trait for no reason. Moving the store-free
+  helpers into an unbounded `impl<S>` let the async half run on JS wasm with
+  only `AsyncCredentialStore`. Look for over-bounded impl blocks like this
+  when a sync trait goes away on a target.
+- libsql runs fine on valtron. The old comment saying it needs tokio was wrong;
+  the vector-store and libsql KV tests pass on a valtron pool.
+- On this host, `--features server-native` (webauthn-rs) tests don't link:
+  OpenSSL 3 symbols are missing. Use `server-test` to run the auth server
+  suite.
+
 ## Pool teardown in tests
 
 - `shutdown_within` detaches workers stuck inside a task. They are threads in
