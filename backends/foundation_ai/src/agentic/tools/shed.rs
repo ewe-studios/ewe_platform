@@ -86,7 +86,7 @@ pub fn shed_definition() -> Tool {
 
 /// A registry change that waits for the next async search.
 enum PendingChange {
-    Index(Tool),
+    Index(Box<Tool>),
     Remove,
 }
 
@@ -229,7 +229,7 @@ impl ToolDiscovery {
         self.pending
             .lock()
             .expect("discovery queue poisoned")
-            .insert(name, PendingChange::Index(tool.clone()));
+            .insert(name, PendingChange::Index(Box::new(tool.clone())));
     }
 
     /// Queue the removal of `name` from the index. Sync, for

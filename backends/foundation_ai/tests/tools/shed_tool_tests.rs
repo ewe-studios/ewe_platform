@@ -374,7 +374,7 @@ async fn with_defaults_searches_through_discovery() {
     // The fixed-vector embedder ranks every tool equally, so only embedding
     // search can return grep_tool for a query sharing no word with it.
     let hits = mgr.search_tools("zzz", 5).await.unwrap();
-    assert!(hits.index_failures.is_empty());
+    assert_eq!(hits.index_failures, Vec::new());
     assert_eq!(
         hits.tools.iter().map(|h| h.name.as_str()).collect::<Vec<_>>(),
         vec!["grep_tool"]
@@ -488,8 +488,8 @@ async fn deregister_removes_the_tool_from_the_index() {
 
     mgr.deregister("grep_tool");
     let after = mgr.search_tools("zzz", 5).await.unwrap();
-    assert!(after.index_failures.is_empty());
-    assert!(after.tools.is_empty());
+    assert_eq!(after.index_failures, Vec::new());
+    assert_eq!(after.tools.len(), 0);
 }
 
 #[tokio::test]
@@ -501,8 +501,8 @@ async fn register_then_deregister_before_a_search_indexes_nothing() {
     }));
     mgr.deregister("grep_tool");
     let hits = mgr.search_tools("zzz", 5).await.unwrap();
-    assert!(hits.index_failures.is_empty());
-    assert!(hits.tools.is_empty());
+    assert_eq!(hits.index_failures, Vec::new());
+    assert_eq!(hits.tools.len(), 0);
 }
 
 #[tokio::test]
