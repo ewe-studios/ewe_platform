@@ -1,10 +1,13 @@
+#[macro_use]
+mod contract;
+
 use std::sync::Arc;
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::TursoStorage;
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{
-    AsyncVectorStore, VectorEntry, VectorMetadata, VectorStoreConfig, VectorStoreError,
+    VectorStore, VectorEntry, VectorMetadata, VectorStoreConfig, VectorStoreError,
 };
 use foundation_vectors::vector::Vector;
 use foundation_vectors::SqlVectorStore;
@@ -18,6 +21,8 @@ async fn make_store() -> (TempDir, SqlVectorStore<TursoStorage>) {
     let store = SqlVectorStore::new(storage, config).await.unwrap();
     (dir, store)
 }
+
+vector_store_contract!(make_store);
 
 fn entry(id: &str, data: Vec<f32>) -> VectorEntry {
     VectorEntry {
@@ -83,8 +88,8 @@ async fn namespace_isolation() {
         .insert_async("ns_b", entry("v2", vec![0.0, 1.0, 0.0])).await
         .unwrap();
 
-    assert_eq!(store.len_async("ns_a").await, 1);
-    assert_eq!(store.len_async("ns_b").await, 1);
+    assert_eq!(store.len_async("ns_a").await.unwrap(), 1);
+    assert_eq!(store.len_async("ns_b").await.unwrap(), 1);
 
     let results = store.search_async("ns_a", &[1.0, 0.0, 0.0], 10).await.unwrap();
     assert_eq!(results.len(), 1);
@@ -98,9 +103,9 @@ async fn namespace_isolation() {
 async fn delete_entry() {
     let (_dir, store) = make_store().await;
     store.insert_async(NS, entry("a", vec![1.0, 0.0, 0.0])).await.unwrap();
-    assert_eq!(store.len_async(NS).await, 1);
+    assert_eq!(store.len_async(NS).await.unwrap(), 1);
     store.delete_async(NS, "a").await.unwrap();
-    assert_eq!(store.len_async(NS).await, 0);
+    assert_eq!(store.len_async(NS).await.unwrap(), 0);
     assert!(store.get_async(NS, "a").await.unwrap().is_none());
 }
 
@@ -118,13 +123,13 @@ async fn overwrite_on_insert() {
     store.insert_async(NS, entry("a", vec![0.0, 1.0, 0.0])).await.unwrap();
     let got = store.get_async(NS, "a").await.unwrap().unwrap();
     assert_eq!(got.vector.data, vec![0.0, 1.0, 0.0]);
-    assert_eq!(store.len_async(NS).await, 1);
+    assert_eq!(store.len_async(NS).await.unwrap(), 1);
 }
 
 #[valtron_test]
 async fn empty_store() {
     let (_dir, store) = make_store().await;
-    assert_eq!(store.len_async(NS).await, 0);
+    assert_eq!(store.len_async(NS).await.unwrap(), 0);
     let results = store.search_async(NS, &[1.0, 0.0, 0.0], 5).await.unwrap();
     assert_eq!(results.len(), 0);
 }
@@ -165,7 +170,7 @@ async fn persistence_across_reopen() {
     {
         let storage = Arc::new(TursoStorage::new(url).await.unwrap());
         let store = SqlVectorStore::new(storage, config).await.unwrap();
-        assert_eq!(store.len_async(NS).await, 2);
+        assert_eq!(store.len_async(NS).await.unwrap(), 2);
         let got = store.get_async(NS, "p1").await.unwrap().unwrap();
         assert_eq!(got.vector.data, vec![1.0, 0.0, 0.0]);
 
