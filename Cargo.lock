@@ -5010,7 +5010,6 @@ dependencies = [
  "sha2 0.10.9",
  "ssh2",
  "tar",
- "tokio",
  "toml 0.8.23",
  "tracing",
  "tracing-subscriber",
