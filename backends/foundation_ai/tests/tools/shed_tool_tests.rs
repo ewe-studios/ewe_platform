@@ -14,6 +14,7 @@ use foundation_ai::types::{
     RoutableProvider, StopReason, ToolArguments, ToolDeclarations, ToolDefinition, UsageCosting,
     UsageReport,
 };
+use foundation_core::valtron::valtron_test;
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{InMemoryVectorStore, VectorStoreConfig};
 
@@ -163,7 +164,7 @@ fn sample_def(name: &str, desc: &str, category: &str) -> ToolDefinition {
 // ToolDiscovery tests
 // ---------------------------------------------------------------------------
 
-#[tokio::test]
+#[valtron_test]
 async fn index_and_search_finds_tool() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
     let def = sample_def("yaml_parser", "Parse YAML documents into structured data", "parsing");
@@ -175,14 +176,14 @@ async fn index_and_search_finds_tool() {
     assert_eq!(results[0].category, "parsing");
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn search_returns_empty_when_no_tools_indexed() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
     let results = discovery.search("anything", 5).await.unwrap();
     assert!(results.is_empty());
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn multiple_tools_indexed_and_found() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
 
@@ -257,7 +258,7 @@ fn returned_names(result: &ToolCallResult) -> Vec<String> {
     parsed.tools.into_iter().map(|t| t.name).collect()
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn shed_returns_matching_tools_as_json_and_activates_them() {
     let mgr = manager_with(&[
         ("grep_tool", "Search for text patterns in files"),
@@ -289,7 +290,7 @@ async fn shed_returns_matching_tools_as_json_and_activates_them() {
     );
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn shed_respects_the_limit() {
     let mgr = manager_with(&[
         ("tool_a", "First tool"),
@@ -307,7 +308,7 @@ async fn shed_respects_the_limit() {
     assert_eq!(returned_names(&result).len(), 2);
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn shed_missing_description_errors() {
     let mgr = manager_with(&[("tool_a", "First tool")]);
     let err = mgr
@@ -361,7 +362,7 @@ fn deregister_drops_a_tool_from_the_active_set() {
 // ToolCallManager::with_defaults
 // ---------------------------------------------------------------------------
 
-#[tokio::test]
+#[valtron_test]
 async fn with_defaults_searches_through_discovery() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
     let session_id = foundation_ai::types::SessionId::new();
@@ -426,7 +427,7 @@ fn picky_manager() -> ToolCallManager {
     ToolCallManager::with_defaults(foundation_ai::types::SessionId::new(), discovery)
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn a_failed_index_update_is_reported_and_retried() {
     let mgr = picky_manager();
     mgr.register(Arc::new(NamedTool {
@@ -456,7 +457,7 @@ async fn a_failed_index_update_is_reported_and_retried() {
     assert!(by_name.tools.iter().any(|h| h.name == "bad_tool"));
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn shed_reports_index_failures_to_the_model() {
     let mgr = picky_manager();
     mgr.register(Arc::new(NamedTool {
@@ -476,7 +477,7 @@ async fn shed_reports_index_failures_to_the_model() {
     assert_eq!(parsed.index_failures[0].tool, "bad_tool");
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn deregister_removes_the_tool_from_the_index() {
     let mgr = picky_manager();
     mgr.register(Arc::new(NamedTool {
@@ -492,7 +493,7 @@ async fn deregister_removes_the_tool_from_the_index() {
     assert_eq!(after.tools.len(), 0);
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn register_then_deregister_before_a_search_indexes_nothing() {
     let mgr = picky_manager();
     mgr.register(Arc::new(NamedTool {
@@ -505,7 +506,7 @@ async fn register_then_deregister_before_a_search_indexes_nothing() {
     assert_eq!(hits.tools.len(), 0);
 }
 
-#[tokio::test]
+#[valtron_test]
 async fn enable_discovery_returns_an_indexing_error() {
     let mgr = ToolCallManager::new(foundation_ai::types::SessionId::new());
     mgr.register(Arc::new(NamedTool {
