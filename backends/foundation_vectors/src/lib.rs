@@ -62,8 +62,8 @@ pub use ivf::IvfIndex;
 pub use metric::{DistanceMetric, OrderedScore};
 pub use sqrt::SqrtStrategy;
 pub use store::{
-    AsyncVectorStore, InMemoryVectorStore, VectorEntry, VectorMatch, VectorStore,
-    VectorStoreConfig, VectorStoreError,
+    InMemoryVectorStore, VectorEntry, VectorMatch, VectorStore, VectorStoreConfig,
+    VectorStoreError,
 };
 #[cfg(feature = "sql-store")]
 pub use sql_store::SqlVectorStore;

@@ -9,7 +9,7 @@
 //!
 //! WHAT: [`LibsqlVectorStore`] over any [`QueryStore`] whose backend
 //! understands libSQL vector SQL (i.e. `foundation_db::LibsqlStore`).
-//! Implements [`AsyncVectorStore`] with dimension + namespace enforcement.
+//! Implements [`VectorStore`] with dimension + namespace enforcement.
 //!
 //! HOW: vectors live in a `FLOAT32({dim})` column with a `libsql_vector_idx`
 //! index. `vector_top_k('idx', q, k')` is a table-valued function over the
@@ -29,7 +29,7 @@ use futures_lite::StreamExt;
 use crate::flat::TopK;
 use crate::sql_store::count_rows;
 use crate::store::{
-    AsyncVectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
+    VectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
     VectorStoreError,
 };
 use crate::vector::Vector;
@@ -144,7 +144,7 @@ fn parse_vec_str(s: &str) -> Result<Vec<f32>, VectorStoreError> {
 }
 
 #[async_trait::async_trait]
-impl<Q: QueryStore + 'static> AsyncVectorStore for LibsqlVectorStore<Q> {
+impl<Q: QueryStore + 'static> VectorStore for LibsqlVectorStore<Q> {
     async fn insert_async(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(entry.vector.dimension(), entry.vector.is_zero())?;
         let meta = serde_json::to_string(&entry.metadata).map_err(backend_err("encode metadata"))?;
@@ -259,16 +259,13 @@ impl<Q: QueryStore + 'static> AsyncVectorStore for LibsqlVectorStore<Q> {
         }))
     }
 
-    /// The namespace's vector count; a failed count reads as 0 (see
-    /// `SqlVectorStore::len_async`).
-    async fn len_async(&self, namespace: &str) -> usize {
+    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
         count_rows(
             self.backend.as_ref(),
             &format!("SELECT COUNT(*) FROM {TABLE} WHERE namespace = ?"),
             namespace,
         )
         .await
-        .unwrap_or(0)
     }
 
     fn config(&self) -> &VectorStoreConfig {
