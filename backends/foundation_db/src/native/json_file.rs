@@ -278,7 +278,7 @@ impl AsyncRateLimiterStore for JsonFileStorage {
         ))
     }
 
-    async fn record_rate_limit_async(&self, _key: &str) -> StorageResult<u32> {
+    async fn record_rate_limit_async(&self, _key: &str, _window_seconds: u64) -> StorageResult<u32> {
         Err(StorageError::Generic(
             "RateLimiterStore not supported for JsonFileStorage".to_string(),
         ))

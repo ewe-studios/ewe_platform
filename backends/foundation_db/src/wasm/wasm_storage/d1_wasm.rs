@@ -9,6 +9,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit;
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
     AsyncRateLimiterStore, DataValue, SqlRow,
@@ -535,111 +536,6 @@ impl AsyncQueryStore for D1WasmStorage {
 // AsyncRateLimiterStore
 // ===========================================================================
 
-impl D1WasmStorage {
-    /// Check if a rate limit key is allowed.
-    pub async fn check_rate_limit_async(
-        &self,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> Result<bool, StorageError> {
-        Self::do_check_rate_limit_async(&self.db, key, max_count, window_seconds).await
-    }
-
-    async fn do_check_rate_limit_async(
-        db: &Arc<D1Database>,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> Result<bool, StorageError> {
-        // Ensure table exists
-        let create_table = r"
-            CREATE TABLE IF NOT EXISTS rate_limits (
-                key TEXT PRIMARY KEY,
-                count INTEGER NOT NULL,
-                window_start INTEGER NOT NULL
-            )
-        ";
-        do_execute_sql(db, create_table, &[]).await?;
-
-        // Use D1's strftime for consistent time
-        let sql = "SELECT count, window_start FROM rate_limits WHERE key = ?";
-        let row = do_query_first(db, sql, &[DataValue::Text(key.to_string())]).await?;
-
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        let window_start = now.saturating_sub(window_seconds);
-
-        let allowed = match row {
-            Some(obj) => {
-                let count = Self::get_num_field(&obj, "count").unwrap_or(0.0) as u32;
-                let stored_window = Self::get_num_field(&obj, "window_start").unwrap_or(0.0) as u64;
-                if stored_window < window_start {
-                    true
-                } else {
-                    count < max_count
-                }
-            }
-            None => true,
-        };
-
-        Ok(allowed)
-    }
-
-    /// Record a rate-limited action.
-    pub async fn record_rate_limit_async(&self, key: &str) -> Result<u32, StorageError> {
-        Self::do_record_rate_limit_async(&self.db, key).await
-    }
-
-    async fn do_record_rate_limit_async(
-        db: &Arc<D1Database>,
-        key: &str,
-    ) -> Result<u32, StorageError> {
-        let sql = r"
-            INSERT INTO rate_limits (key, count, window_start)
-            VALUES (?, 1, strftime('%s', 'now'))
-            ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start
-        ";
-
-        do_execute_sql(db, sql, &[DataValue::Text(key.to_string())]).await?;
-
-        // Read back the count
-        let row = do_query_first(
-            db,
-            "SELECT count FROM rate_limits WHERE key = ?",
-            &[DataValue::Text(key.to_string())],
-        )
-        .await?;
-
-        let count = row
-            .as_ref()
-            .and_then(|obj| Self::get_num_field(obj, "count"))
-            .map(|f| f as u32)
-            .unwrap_or(1);
-
-        Ok(count)
-    }
-
-    /// Reset a rate limit key.
-    pub async fn reset_rate_limit_async(&self, key: &str) -> Result<(), StorageError> {
-        Self::do_reset_rate_limit_async(&self.db, key).await
-    }
-
-    async fn do_reset_rate_limit_async(
-        db: &Arc<D1Database>,
-        key: &str,
-    ) -> Result<(), StorageError> {
-        do_execute_sql(
-            db,
-            "DELETE FROM rate_limits WHERE key = ?",
-            &[DataValue::Text(key.to_string())],
-        )
-        .await
-    }
-}
-
 #[async_trait::async_trait]
 impl AsyncRateLimiterStore for D1WasmStorage {
     async fn check_rate_limit_async(
@@ -648,17 +544,15 @@ impl AsyncRateLimiterStore for D1WasmStorage {
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        foundation_compact::SendWrapper::new(async move {
-            self.check_rate_limit_async(key, max_count, window_seconds).await
-        }).await
+        foundation_compact::SendWrapper::new(rate_limit::sql_check(self, key, max_count, window_seconds)).await
     }
 
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        foundation_compact::SendWrapper::new(async move { self.record_rate_limit_async(key).await }).await
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+        foundation_compact::SendWrapper::new(rate_limit::sql_record(self, key, window_seconds)).await
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
-        foundation_compact::SendWrapper::new(async move { self.reset_rate_limit_async(key).await }).await
+        foundation_compact::SendWrapper::new(rate_limit::sql_reset(self, key)).await
     }
 }
 

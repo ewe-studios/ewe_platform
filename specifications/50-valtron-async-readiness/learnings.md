@@ -157,6 +157,21 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
 - To commit one task while the next one's edits are already in the tree,
   stage an exact file version without touching the worktree:
   `git hash-object -w <file>` then `git update-index --cacheinfo`.
+- A shared rule beats per-backend copies. The rate limiter's window bug was
+  in all eight implementations (memory, KV, Turso, libsql, D1 REST, D1
+  Workers), each with its own SQL or arithmetic. Putting the rule in one
+  place (`core/rate_limit.rs`, generic over `AsyncQueryStore`) fixed them
+  together and made one test file cover every local backend.
+- Test against the migrated schema, not only a fresh table. The SQL rate
+  limiter created its own `rate_limits` shape on demand and had only ever run
+  against that; on a migrated database (migration 014, different columns)
+  every record failed. `TursoStorage::in_memory()` (migrated) caught it.
+- `std::time::SystemTime::now()` panics on wasm32-unknown-unknown; crate code
+  that can run in a Worker reads the clock through `foundation_compact`
+  (`unix_now_secs` in foundation_db).
+- When a disk fills mid-build, `ci.py`'s failure is a link error or a
+  "failed to write fingerprint", not a test failure. Read the error before
+  assuming the code broke, free space, and rerun the step.
 
 ## Pool teardown in tests
 

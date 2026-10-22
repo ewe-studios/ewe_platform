@@ -5,34 +5,25 @@ you've never touched `foundation_db`'s storage traits.
 
 ---
 
-## 1. Two traits, on purpose: `QueryStore` vs `AsyncQueryStore`
+## 1. One trait, async: `AsyncQueryStore`
 
-`foundation_db` deliberately keeps **separate sync and async traits** for SQL
-access instead of one trait with a runtime flag:
+SQL access is a single async trait:
 
 ```rust
-trait QueryStore {                     // synchronous
-    fn query(&self, sql, params) -> StorageResult<StorageItemStream<'_, SqlRow>>;
-    fn execute(&self, sql, params) -> StorageResult<u64>;
-}
-#[async_trait(?Send)]
-trait AsyncQueryStore {                 // asynchronous
+#[async_trait]
+trait AsyncQueryStore {
     async fn query_async(&self, sql, params) -> StorageResult<AsyncQueryStream>;
     async fn execute_async(&self, sql, params) -> StorageResult<u64>;
+    async fn execute_batch_async(&self, sql) -> StorageResult<()>;
 }
 ```
 
-Why two? Because the *environment* dictates which is usable:
-
-- **Native** (Turso/Libsql on a real OS) can block a thread, so a sync API is
-  natural and ergonomic.
-- **Serverless / wasm** (Cloudflare D1) is **Promise-based and single-threaded** —
-  you physically cannot block; you must `.await`. A sync call there would deadlock
-  the event loop.
-
-A single "maybe-async" trait would force every caller to pick the wrong half on
-some target. Separate traits with an `_async` suffix let each environment use the
-shape that actually works (this is the project's standing rule — see F06 OD-06-7).
+Why async only? Because serverless/wasm (Cloudflare D1) is **Promise-based and
+single-threaded**: you physically cannot block; you must `.await`. A blocking
+call there would deadlock the event loop. Native backends (Turso/libsql) run
+the same async code; a native program that must be sync waits once, at its
+entry point. (Until spec 50 F04 there was also a sync `QueryStore` twin; it is
+gone. The `_async` suffixes go in a follow-up rename.)
 
 One layer up, **`AsyncDocumentStore`** is the document store trait;
 `SqlDocumentStore<Q: AsyncQueryStore>` implements it for any SQL backend.
@@ -75,20 +66,18 @@ Two stream types express this, one per world:
 
 ---
 
-## 3. The house rule: async is the implementation, sync is a boundary view
+## 3. The house rule: async all the way, sync only at the entry point
 
-Backends implement **only** the async traits; the async method holds the real
-logic. A sync caller wraps the store in `Blocking<S>`, which waits on each async
-call through valtron at that one boundary: `Blocking::new(SqlDocumentStore::new(turso))`
-is a sync `DocumentStore`. Streams stay lazy: `Blocking`'s `scan*` iterators pull
-one row per `next()`.
+Backends implement **only** the async traits, and so do their callers: code
+that uses a store is itself `async` and `.await`s it. The one place that
+waits is a true sync entry point (a `main`, an OS thread), with valtron's
+`block_on_future` / `.block()` behind `blocking_boundary!`; on JS-hosted wasm
+there is no such place, and everything `.await`s up to the Worker's entry.
+Streams stay lazy end to end: a scan is pulled one row per `.next().await`.
 
-Why this direction? The async impl is the one that *must* exist for serverless
-(where `Blocking` doesn't exist, because blocking would freeze the isolate).
-Making sync a single generic adapter means one source of truth and no per-backend
-sync twins that block on their own futures. The pure in-memory stores
-(`MemoryStorage`, `MemoryJsonStore`, `MemoryDocumentStore`) follow the same
-rule: async impls only, `Blocking` for sync callers.
+The pure in-memory stores (`MemoryStorage`, `MemoryJsonStore`,
+`MemoryDocumentStore`) follow the same rule: async impls only, whose futures
+are ready at once.
 
 ---
 

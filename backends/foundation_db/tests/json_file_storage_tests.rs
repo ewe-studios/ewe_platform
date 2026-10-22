@@ -106,7 +106,7 @@ fn test_json_file_storage_rate_limit_is_unsupported() {
             Err(StorageError::Generic(_))
         ));
         assert!(matches!(
-            storage.record_rate_limit_async("k").await,
+            storage.record_rate_limit_async("k", 60).await,
             Err(StorageError::Generic(_))
         ));
         assert!(matches!(

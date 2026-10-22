@@ -18,6 +18,7 @@ use foundation_netio::shared::http::{SimpleHeader, Status};
 use futures_lite::{stream, StreamExt};
 use serde::{de::DeserializeOwned, Serialize};
 
+use crate::core::rate_limit;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{status_column_value, ResourceState, StateStatus};
@@ -575,41 +576,15 @@ impl AsyncQueryStore for D1Store {
 #[async_trait::async_trait]
 impl AsyncRateLimiterStore for D1Store {
     async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
-        let create_table = r"CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
-        self.execute_sql_async(create_table, &[]).await?;
-        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
-        let window_start = now - window_seconds;
-        let sql = "SELECT count, window_start FROM rate_limits WHERE key = ?";
-        let response = self.execute_sql_async(sql, &[serde_json::Value::String(key.to_string())]).await?;
-        let allowed = match Self::extract_rows(&response).first() {
-            Some(row) => {
-                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-                let count = row.get("count").and_then(serde_json::Value::as_i64).unwrap_or(0) as u32;
-                #[allow(clippy::cast_sign_loss)]
-                let stored = row.get("window_start").and_then(serde_json::Value::as_i64).unwrap_or(0).cast_unsigned();
-                if stored < window_start { true } else { count < max_count }
-            }
-            None => true,
-        };
-        Ok(allowed)
+        rate_limit::sql_check(self, key, max_count, window_seconds).await
     }
 
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
-        let sql = "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start";
-        self.execute_sql_async(sql, &[serde_json::Value::String(key.to_string()), serde_json::Value::Number(serde_json::Number::from(now))]).await?;
-        let response = self.execute_sql_async("SELECT count FROM rate_limits WHERE key = ?", &[serde_json::Value::String(key.to_string())]).await?;
-        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-        let count = Self::extract_rows(&response).first()
-            .and_then(|r| r.get("count")).and_then(serde_json::Value::as_i64)
-            .map_or(1, |c| c as u32);
-        Ok(count)
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+        rate_limit::sql_record(self, key, window_seconds).await
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
-        let sql = "DELETE FROM rate_limits WHERE key = ?";
-        self.execute_sql_async(sql, &[serde_json::Value::String(key.to_string())]).await?;
-        Ok(())
+        rate_limit::sql_reset(self, key).await
     }
 }
 

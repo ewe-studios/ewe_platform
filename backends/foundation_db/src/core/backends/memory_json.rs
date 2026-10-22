@@ -11,6 +11,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use super::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
     AsyncRateLimiterStore, DataValue,
@@ -145,46 +146,30 @@ impl AsyncRateLimiterStore for MemoryJsonStore {
         window_seconds: u64,
     ) -> StorageResult<bool> {
         let now = unix_now_secs()?;
-        let rate_key = format!("_rate_limit:{key}");
         let data = self.lock()?;
-        let allowed = match data.get(&rate_key) {
+        match data.get(&format!("_rate_limit:{key}")) {
             Some(json) => {
-                #[derive(serde::Deserialize)]
-                struct Entry { count: u32, window_start: u64 }
-                let entry: Entry = serde_json::from_str(json)
+                let entry: RateLimitEntry = serde_json::from_str(json)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                if entry.window_start < now.saturating_sub(window_seconds) {
-                    true
-                } else {
-                    entry.count < max_count
-                }
+                Ok(entry.allows(max_count, now, window_seconds))
             }
-            None => true,
-        };
-        Ok(allowed)
+            None => Ok(true),
+        }
     }
 
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
         let now = unix_now_secs()?;
         let rate_key = format!("_rate_limit:{key}");
         let mut data = self.lock()?;
-        let new_count = if let Some(json) = data.get(&rate_key) {
-            #[derive(serde::Serialize, serde::Deserialize)]
-            struct Entry { count: u32, window_start: u64 }
-            let mut entry: Entry = serde_json::from_str(json)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            entry.count += 1;
-            entry.window_start = now;
-            let new_json = serde_json::to_string(&entry)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            data.insert(rate_key, new_json);
-            entry.count
-        } else {
-            let entry = serde_json::json!({ "count": 1, "window_start": now }).to_string();
-            data.insert(rate_key, entry);
-            1
-        };
-        Ok(new_count)
+        let previous = data
+            .get(&rate_key)
+            .map(|json| serde_json::from_str::<RateLimitEntry>(json))
+            .transpose()
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let entry = RateLimitEntry::record(previous, now, window_seconds);
+        let json = serde_json::to_string(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        data.insert(rate_key, json);
+        Ok(entry.count)
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {

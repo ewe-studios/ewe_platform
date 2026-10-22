@@ -692,6 +692,11 @@ foundation_ai: `AgentSession::builder_for` removed; `AgentTool` gains
 foundation_db (T9): `TursoStorage::in_memory()` / `LibsqlStore::in_memory()`
 added in place of the `Default` impls.
 
+foundation_db (T11): `AsyncRateLimiterStore::record_rate_limit_async` takes
+`window_seconds`; `KVWasmStorage::record_rate_limit_async` (inherent) too;
+the inherent `D1WasmStorage::{check,record,reset}_rate_limit_async` are
+removed (use the trait).
+
 foundation_auth (T10): `NativeOAuth::{exchange_code, client_credentials,
 refresh_token}` (the sync wrappers) removed; use the `*_async` methods.
 
@@ -732,6 +737,34 @@ foundation_deployment & deployables: `Deployable::store()` returns a
     passes after T1 (138/138).
   - An examples job is out of scope here (it needs its own workflow); it stays
     in the backlog.
+**As built (T11, T12):**
+
+- The window is not a store setting but an argument: the caller owns the
+  limit and its window (its own config), so
+  `AsyncRateLimiterStore::record_rate_limit_async(key, window_seconds)` now
+  takes the same `window_seconds` as `check_rate_limit_async` (breaking).
+  The rule lives in one place, `core/rate_limit.rs`: `RateLimitEntry` for the
+  in-memory and KV stores, and `sql_check` / `sql_record` / `sql_reset` over
+  any `AsyncQueryStore` for Turso, libsql, D1 REST and D1 Workers (one upsert
+  that restarts or increments the window). The SQL backends had the same
+  busy-window bug as the in-memory ones.
+- The SQL rate limiter wrote `rate_limits (key, count, window_start)`, but
+  migration 014 defines `rate_limits` with `id` and a NOT NULL `window_end`,
+  so on any migrated database recording a hit failed. It now writes the
+  migration's shape (and creates it, if missing, on an unmigrated store).
+- The KV / D1 Workers rate limiters read the clock with
+  `std::time::SystemTime::now()`, which panics on wasm32-unknown-unknown; they
+  use `unix_now_secs` (`foundation_compact`'s clock) now.
+- `tests/rate_limit_window_tests.rs` runs the same checks over
+  `MemoryStorage`, `MemoryJsonStore`, Turso (migrated and not) and libsql,
+  including a key hit inside its window that still resets once it elapses.
+- `worker` is a wasm-only dependency; `foundation_netio` and `async-stream`
+  are native-only. Both `cargo check` runs above have no unused-dependency
+  warning.
+- `ci/packages.toml`: `runs` added for foundation_db (`libsql`),
+  foundation_auth (`server-test`), foundation_vectors (`sql-store`) and
+  foundation_nativeapis (`vfs-native,vfs-d1,vfs-r2`).
+
 - New backlog entries recorded while surveying (not fixed here):
   - foundation_auth `PowService::verify_solution` compares leading zero
     **bits** with `difficulty / 8` (bytes), so the effective difficulty is

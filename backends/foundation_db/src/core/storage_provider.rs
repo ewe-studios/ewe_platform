@@ -328,10 +328,18 @@ pub trait AsyncBlobStore: Send + Sync {
     async fn blob_exists_async(&self, key: &str) -> StorageResult<bool>;
 }
 
-/// Async rate limiter store operations — for wasm backends where the underlying
-/// JS APIs are Promise-based and cannot be called synchronously.
+/// Fixed-window rate limits.
+///
+/// A window lasts `window_seconds`, which the caller takes from its own
+/// configuration and passes to both `check_rate_limit_async` and
+/// `record_rate_limit_async`. Once a key's window has elapsed
+/// (`now - window_start >= window_seconds`) a check allows it again and the
+/// next record starts a new window; inside the window, a record increments
+/// the count and keeps the window's start.
 #[async_trait::async_trait]
 pub trait AsyncRateLimiterStore: Send + Sync {
+    /// Whether one more hit on `key` is allowed: its window has elapsed, or it
+    /// has had fewer than `max_count` hits in the current one.
     async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -339,8 +347,11 @@ pub trait AsyncRateLimiterStore: Send + Sync {
         window_seconds: u64,
     ) -> StorageResult<bool>;
 
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32>;
+    /// Record one hit on `key` and return the count in its current window
+    /// (1 when this hit starts a new window).
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32>;
 
+    /// Forget `key`'s window.
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()>;
 }
 

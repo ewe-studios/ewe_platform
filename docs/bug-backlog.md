@@ -294,28 +294,24 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
   server writes milliseconds for its own rows. Fix: pick one unit per column,
   document it in the migrations, and make cleanup follow it.
-- **The in-memory rate limiters never let a busy window expire.**
-  `record_rate_limit_async` on `MemoryStorage` and `MemoryJsonStore`
-  (`src/core/backends/memory*.rs`) sets `window_start = now` on every call, so
-  a key hit at least once per window stays limited for good, and the count
-  never resets. Fix: start a new window (count 1) only when the old one has
-  expired; otherwise increment and keep `window_start`.
-- **`worker` is an unused dependency natively.** `cargo check -p foundation_db
-  --all-features` warns that `worker` (only used by the Workers bindings) is
-  unused. Fix: make it a wasm-only target dependency, like the other entry
-  above.
-- **Unused dependencies on wasm.** `cargo check --target wasm32` for
-  `--features wasm-bindgen-storage` warns that `async-stream` and
-  `foundation_netio` are unused (both are used only natively). Fix: move them
-  to target-specific dependencies.
-- **No CI build covers several feature sets, and they had rotted:**
-  - foundation_db `libsql` (two libsql tests had no `#[test]`; fixed);
-  - foundation_nativeapis `vfs-native,vfs-d1,vfs-r2` (didn't compile; fixed);
-  - foundation_vectors `sql-store`;
-  - foundation_auth `server-test`;
-  - `examples/cf-login-app` (its manifest couldn't load; fixed).
-
-  Fix: add these runs to `ci/packages.toml` and an examples job.
+- **`KVWasmStorage`'s rate limiter isn't atomic**
+  (`src/wasm/wasm_storage/kv_wasm.rs`): a record reads the entry, then
+  writes it back, so two concurrent hits can count once (and KV is
+  eventually consistent across locations). Fix: use a Durable Object or D1
+  for rate limits on Workers, and document KV as best-effort.
+- **Databases created by the old rate-limit code have the wrong table.**
+  Before F04 T11 a store that wasn't migrated created
+  `rate_limits (key PRIMARY KEY, count, window_start)`; the store now uses the
+  migration 014 shape (`id`, `key UNIQUE`, `count`, `window_start`,
+  `window_end`), which `CREATE TABLE IF NOT EXISTS` won't add to an existing
+  old-shape table. Fix: a migration that rebuilds an old-shape table (rate
+  limit rows are disposable), or drop it on detection.
+- **No CI job builds the example workspaces** (`examples/cf-*`,
+  `apps/answerme-agent`); `examples/cf-login-app`'s manifest had stopped
+  loading unnoticed. Fix: an examples job (wasm32 for `cf-*`). The feature
+  runs that had rotted (foundation_db `libsql`, foundation_nativeapis
+  `vfs-native,vfs-d1,vfs-r2`, foundation_vectors `sql-store`, foundation_auth
+  `server-test`) are in `ci/packages.toml` since F04 T12.
 
 ## 12. foundation_auth
 

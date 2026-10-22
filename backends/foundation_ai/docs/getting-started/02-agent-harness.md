@@ -30,7 +30,7 @@ orchestrates:
 
 It stores its data in two stores, which are type parameters with in-memory
 defaults (`AgentSession` = `AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>`):
-- **`D: DocumentStore`** — stores the message history (conversation log)
+- **`D: AsyncDocumentStore`** — stores the message history (conversation log)
 - **`M: MemoryStore`** — caches the latest memory record per tier per session
 
 ---
@@ -289,20 +289,21 @@ agent.follow_up("Also check the config file.");
 
 ### 5.2. Available Store Backends
 
-`AgentSession<D, M>` keeps its data in a `DocumentStore` (message history) and
-a `MemoryStore` (latest memory per tier via a `KeyValueStore`); both default
-to the in-memory stores.
+`AgentSession<D, M>` keeps its data in an `AsyncDocumentStore` (message
+history) and a `MemoryStore` (latest memory per tier via an
+`AsyncKeyValueStore`); both default to the in-memory stores. SQL stores are
+opened with their async constructors (e.g. `TursoStorage::in_memory().await?`,
+`LibsqlStore::new_kv(path, None).await?`) and passed to the builder.
 
-**DocumentStore backends:**
+**AsyncDocumentStore backends:**
 
 | Type | Backend | Feature |
 |------|---------|---------|
 | `MemoryDocumentStore` | RAM (`Vec<SessionRecord>`) | (always) |
-| `SqlDocumentStore<Q>` | Sync SQL (`QueryStore`) | `turso` / `libsql` |
-| `SqlDocumentStore<Q>` | Async SQL (sync callers: `Blocking<SqlDocumentStore<Q>>`) | `turso` / `libsql` |
+| `SqlDocumentStore<Q>` | Any `AsyncQueryStore` (Turso, libsql, D1) | `turso` / `libsql` / `d1` |
 | `D1R2DocumentStore<Q, B>` | D1 + R2 | `d1` + `r2` |
 
-**KeyValueStore backends (wrap into `KvMemoryStore`):**
+**AsyncKeyValueStore backends (wrap into `KvMemoryStore`):**
 
 | Type | Backend | Feature |
 |------|---------|---------|
@@ -311,7 +312,6 @@ to the in-memory stores.
 | `LibsqlStore` | Local/remote libSQL | `libsql` |
 | `D1Store` | Cloudflare D1 | `d1` |
 | `JsonFileStorage` | Single JSON file | (always) |
-| `R2Store` | Cloudflare R2 objects | `r2` |
 
 See **Doc 00-1** (Getting Started: Providers, §3) for construction details
 and feature flag matrix for every backend.

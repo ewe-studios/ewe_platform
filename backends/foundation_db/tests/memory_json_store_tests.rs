@@ -118,9 +118,9 @@ fn test_memory_json_rate_limit_basic() {
         let allowed: bool = store.check_rate_limit_async("api", 3, 60).await.unwrap();
         assert!(allowed);
 
-        store.record_rate_limit_async("api").await.unwrap();
-        store.record_rate_limit_async("api").await.unwrap();
-        store.record_rate_limit_async("api").await.unwrap();
+        store.record_rate_limit_async("api", 60).await.unwrap();
+        store.record_rate_limit_async("api", 60).await.unwrap();
+        store.record_rate_limit_async("api", 60).await.unwrap();
 
         let allowed: bool = store.check_rate_limit_async("api", 3, 60).await.unwrap();
         assert!(!allowed);
@@ -131,7 +131,7 @@ fn test_memory_json_rate_limit_basic() {
 fn test_memory_json_rate_limit_reset() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        store.record_rate_limit_async("api").await.unwrap();
+        store.record_rate_limit_async("api", 60).await.unwrap();
         store.reset_rate_limit_async("api").await.unwrap();
         let allowed: bool = store.check_rate_limit_async("api", 1, 60).await.unwrap();
         assert!(allowed);

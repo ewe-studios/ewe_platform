@@ -24,6 +24,7 @@ use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
+use crate::core::rate_limit;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::schema::{MigrationRunner, MIGRATIONS};
 
@@ -547,79 +548,6 @@ impl LibsqlStore {
             .map_err(|e| StorageError::Backend(e.to_string()))
     }
 
-    async fn check_rate_limit_async_internal(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
-        let create_table = "CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
-        let conn = Arc::clone(&self.conn);
-        conn.execute_batch(create_table).await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
-        let window_start = now - window_seconds;
-        let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-
-        let opt = conn
-            .prepare("SELECT count, window_start FROM rate_limits WHERE key = ?")
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-            .query([key])
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-            .next()
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        match opt {
-            Some(row) => {
-                let count: i64 = row.get(0).map_err(|e| StorageError::Backend(e.to_string()))?;
-                let stored: i64 = row.get(1).map_err(|e| StorageError::Backend(e.to_string()))?;
-                if stored.cast_unsigned() < window_start { Ok(true) } else { Ok(count < i64::from(max_count)) }
-            }
-            None => Ok(true),
-        }
-    }
-
-    async fn record_rate_limit_async_internal(&self, key: &str) -> StorageResult<u32> {
-        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs().cast_signed();
-        let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-
-        conn.execute(
-            "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start",
-            [key.clone(), now.to_string()],
-        )
-        .await
-        .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let opt = conn
-            .prepare("SELECT count FROM rate_limits WHERE key = ?")
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-            .query([key])
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-            .next()
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        match opt {
-            Some(row) => {
-                let c: i64 = row.get(0).map_err(|e| StorageError::Backend(e.to_string()))?;
-                Ok(u32::try_from(c).unwrap_or(1))
-            }
-            None => Ok(1),
-        }
-    }
-
-    async fn reset_rate_limit_async_internal(&self, key: &str) -> StorageResult<()> {
-        let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-        conn.execute("DELETE FROM rate_limits WHERE key = ?", [key])
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-        Ok(())
-    }
-
     async fn put_blob_async_internal(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let create_table = "CREATE TABLE IF NOT EXISTS blobs (key TEXT PRIMARY KEY, data BLOB NOT NULL, size INTEGER NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))";
         let conn = Arc::clone(&self.conn);
@@ -878,13 +806,13 @@ impl AsyncQueryStore for LibsqlStore {
 #[async_trait::async_trait]
 impl AsyncRateLimiterStore for LibsqlStore {
     async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
-        self.check_rate_limit_async_internal(key, max_count, window_seconds).await
+        rate_limit::sql_check(self, key, max_count, window_seconds).await
     }
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        self.record_rate_limit_async_internal(key).await
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+        rate_limit::sql_record(self, key, window_seconds).await
     }
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
-        self.reset_rate_limit_async_internal(key).await
+        rate_limit::sql_reset(self, key).await
     }
 }
 
