@@ -65,22 +65,18 @@ These sync waits are correct. Each one runs on its own OS thread, not on a valtr
 | Task | What | Done when |
 |---|---|---|
 | T1 | **Vectors:** make every vector store implement `AsyncVectorStore` only (`TurboPufferVectorStore`, `SqliteVecVectorStore`, `FjallVectorStore`, `InMemoryVectorStore`); move the `shed` tool to the async trait; delete the sync `VectorStore`; rename `AsyncVectorStore` to `VectorStore` (and its methods, if task T3 decides so). | No sync vector trait remains; `ci.py run foundation_vectors` and `foundation_ai` pass. |
-| T2 | **VFS:** owner decision needed (section 4). | As decided. |
-| T3 | **Method suffixes:** owner decision needed: drop `_async` from the storage trait methods (`get_async` → `get`, …) or keep them. A rename needs a clash check per type, because some stores have inherent methods with the plain names. | As decided; if "drop", a mechanical PR like #134. |
+| T2 | **VFS:** async-first core (decision 1). Move `TursoDelta`, `SyncLibsqlDelta`, `VfsClient`, `NativeFs`, `DirectoryDelta` and the Fjall stores to the async traits only; keep `SyncFs<A>` as the only sync face for I/O stores; move `OverlayFileSystem`, `ObservableFs`, `search` and `dynfs` to the async traits, with sync wrappers only where a sync consumer needs them. | No I/O-backed type implements a sync VFS trait directly; `ci.py run foundation_nativeapis` and its feature runs pass. |
+| T3 | **Method suffixes:** drop `_async` from the storage trait methods (decision 2). Check each type for inherent methods with the plain names first. | No storage trait method ends in `_async`; workspace, wasm and example builds pass. |
 | T4 | **Records:** `progress.md`, `learnings.md`, the backlog. | Updated in the same PRs. |
 
-## 4. Open questions for the owner
+## 4. Owner decisions (2026-10-22)
 
-1. **VFS scope.** The VFS has a full sync API and a full async API. Options:
-   - (a) **Async-first core, sync only as a bridge.** Every I/O implementation (`TursoDelta`,
-     `SyncLibsqlDelta`, `VfsClient`, `NativeFs`, `DirectoryDelta`, Fjall) implements the async
-     traits only. The sync traits stay only for consumers that must be sync (for example a SQLite
-     VFS, which SQLite calls synchronously), through `SyncFs<A>` at that boundary. Large change.
-   - (b) **Delete the sync VFS traits.** Every consumer moves to async. Largest change; removes
-     the dual API.
-   - (c) **Leave the VFS as it is** and record it as a known sync area.
-   
-   **Recommendation: (a).** It follows the rule (sync only at boundaries) and keeps a sync face
-   where a sync consumer needs one.
-2. **Method suffixes (task T3).** **Recommendation: drop them**, in one mechanical PR after task
-   T1, with a clash check per type.
+1. **VFS scope: async-first core, sync only as a bridge (option a).** Every I/O implementation
+   (`TursoDelta`, `SyncLibsqlDelta`, `VfsClient`, `NativeFs`, `DirectoryDelta`, the Fjall
+   stores) implements the async traits only. The sync traits stay only for consumers that must be
+   sync (for example a SQLite VFS, which SQLite calls synchronously). Those consumers wrap an
+   async VFS in `SyncFs<A>` at that boundary. Memory-only stores may keep both faces.
+2. **Method suffixes: drop them (task T3).** One mechanical PR after task T1: `get_async` → `get`,
+   `query_async` → `query`, and so on, with a clash check per type first.
+
+Order: T1 (vectors), then T2 (VFS), then T3 (method suffixes), then spec 65 feature 07.
