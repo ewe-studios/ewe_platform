@@ -74,5 +74,5 @@ pub use fjall_store::{FjallVectorStore, SharedFjallVectorStore};
 #[cfg(all(feature = "sqlite-vec", not(target_arch = "wasm32")))]
 pub use sqlite_vec_store::SqliteVecVectorStore;
 #[cfg(feature = "turbopuffer")]
-pub use turbopuffer::TurboPufferVectorStore;
+pub use turbopuffer::{TurboPufferLimits, TurboPufferVectorStore};
 pub use vector::Vector;
