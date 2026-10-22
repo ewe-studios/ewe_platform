@@ -320,6 +320,7 @@ This finally delivers the user-facing payoff: `#[valtron_test] async fn …` and
 | [02-readiness-source-seam](features/02-readiness-source-seam/) | `ReadinessSource`/`ReadinessRegistration`/`Interest` traits + optional global registration slot in foundation_core; in-tree test reactor proving the seam (no real reactor) | F01 |
 | [03-async-valtron-macros](features/03-async-valtron-macros/) | `#[valtron]`/`#[valtron_test]` accept `async fn` by wrapping the body as a driven future; sync path unchanged | F01 |
 | [04-async-only-storage](features/04-async-only-storage/) | Every storage caller on the `Async*` traits; async `StateStore`; no blocking `Default`; sync storage traits and `Blocking<S>` deleted (backlog §11) | — (builds on PRs #130–#132) |
+| [05-remaining-sync-twins](features/05-remaining-sync-twins/) | The vector store and the VFS still have sync traits with I/O-backed implementations; drop the storage methods' `_async` suffix (owner to decide); record the sync boundaries that stay | F04 |
 
 ## Success Criteria
 

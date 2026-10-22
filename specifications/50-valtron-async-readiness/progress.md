@@ -2,7 +2,7 @@
 
 _Updated: 2026-10-22_
 
-## Status: async-storage stream complete (pending #134 merge); F02 open
+## Status: storage layer async-only (pending #134 merge); F05 (remaining sync twins) and F02 open
 
 ## The async-storage stream (overall plan and status)
 
@@ -16,15 +16,19 @@ _Recorded 2026-10-21._ Goal: async all the way, with sync only at real boundarie
 | Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | #133 (spec 50 F04) | ✅ merged (`7db6b473a`) |
 | Rename the async storage traits to plain names (`AsyncQueryStore` → `QueryStore`, …); drop `SessionManager`'s `_async` suffixes | #134 (`db/rename-async-traits`) | ✅ done; CI and review (last step of the stream) |
 
-**The stream is complete when #134 merges.** No sync storage trait and no `Blocking<S>` remain;
+**The storage part is complete when #134 merges.** No sync storage trait and no `Blocking<S>` remain;
 sync code exists only at real boundaries (`main`, sync third-party traits), where it waits through
 valtron's `.block()` / `block_on_future` behind `blocking_boundary!`.
+
+**Not yet complete:** a survey on 2026-10-22 found two more sync twins with I/O-backed
+implementations: the vector store (`foundation_vectors`) and the virtual file system
+(`foundation_nativeapis`). Feature 05 tracks them, with two owner decisions.
 
 **After this stream:** spec 65 feature 07 (pluggable agent-rpc) on PR #126. Its full design is in
 `specifications/65-agent-rpc-serving-system/features/07-pluggable-agent-rpc/`, with the owner's
 decisions. Task T0 (merge `master` into #126's branch) starts it.
 
-Still open in this spec: F02 (the readiness-source seam) is **not implemented** (checked 2026-10-22: no `ReadinessSource` trait in `foundation_core/src/valtron`; only an old `Reactor` example in `valtron/docs/thread_looping.md`). See `todo.md`.
+Still open in this spec: F05 (remaining sync twins), and F02 (the readiness-source seam), which is **not implemented** (checked 2026-10-22: no `ReadinessSource` trait in `foundation_core/src/valtron`; only an old `Reactor` example in `valtron/docs/thread_looping.md`). `requirements.md` lists both.
 
 
 The feature front matter still says `pending`; the code on master is ahead of
@@ -200,13 +204,13 @@ Mechanical, names only. 129 files.
 |---|---|
 | Renamed traits | `QueryStore`, `DocumentStore`, `KeyValueStore`, `BlobStore`, `CredentialStore`, `RateLimiterStore`, `AuthStore`, `TosStore`, `StorageCleanup`, `PasskeyStore` (each lost `Async`) |
 | Renamed methods | `SessionManager::{create_session, get_session, revoke_session, revoke_all_sessions, extend_session}` (each lost `_async`) |
-| Kept | `AsyncDeltaStore`, `AsyncVectorStore` (sync `DeltaStore` / `VectorStore` traits still exist); every storage trait method's `_async` suffix (owner did not decide; see `todo.md`) |
+| Kept | `AsyncDeltaStore`, `AsyncVectorStore` (sync `DeltaStore` / `VectorStore` traits still exist); every storage trait method's `_async` suffix (owner did not decide; feature 05 task T3) |
 | Checks | `cargo check --workspace --tests`: pass. wasm32: foundation_db (`wasm`, `wasm-bindgen-storage`), foundation_auth (`wasm`, `wasm,wasm-bindgen-session`, `wasm,wasm-bindgen-oauth`), foundation_ai (`--no-default-features`): pass. Examples `cf-agent-loop`, `cf-cloud-provider`, `cf-login-app` (wasm32) and `apps/answerme-agent` (native): pass |
 
 ## Next
 
-See `todo.md` for the full list. In short:
-
-1. Merge #134. That ends the async-storage stream.
-2. Start spec 65 feature 07 (agent-rpc) with task T0.
-3. Spec 50 leftovers: F02, F01–F03 front matter, the storage method suffixes.
+1. Merge #134.
+2. Feature 05 (remaining sync twins): the vector store first; the VFS and the method suffixes
+   after the owner decides (`features/05-remaining-sync-twins/feature.md` section 4).
+3. Then spec 65 feature 07 (agent-rpc), task T0.
+4. F02 (readiness-source seam) and the F01/F03 front matter.
