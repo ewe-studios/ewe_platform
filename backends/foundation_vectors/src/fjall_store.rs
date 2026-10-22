@@ -6,8 +6,8 @@
 //! itself persisted (`to_bytes`/`load_index`) so a reopened store queries
 //! without a full rebuild.
 //!
-//! WHAT: [`FjallVectorStore`] implements [`VectorStore`] (insert / search /
-//! delete / get / len, dimension + namespace enforcement). Namespaces are
+//! WHAT: [`FjallVectorStore`] implements the async [`VectorStore`] (insert /
+//! search / delete / get / len, dimension + namespace enforcement). Namespaces are
 //! isolated structurally: each lives under its own key prefix in the vector
 //! partition and its own key in the index partition.
 //!
@@ -24,6 +24,15 @@
 //! scanning its vectors. `nprobe == nlist` by default, so search is exact (the
 //! IVF visits every cluster) while still exercising the persisted-index path;
 //! lower `nprobe` trades recall for speed.
+//!
+//! Sync boundary: fjall has only a sync application programming interface
+//! (API). Its reads and writes go to local disk through the operating system
+//! (OS) page cache, and a write appends to a journal without an `fsync`. So the
+//! async methods call fjall inline, and every future is ready on its first
+//! poll. This is the same choice as `FjallDocumentStore` in
+//! `foundation_nativeapis` (spec 50 feature 04). Only [`FjallVectorStore::flush`]
+//! waits for the disk (`fsync`), and it stays a sync method that the caller
+//! runs at a boundary of its choice.
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -43,6 +52,11 @@ const DEFAULT_NLIST: usize = 16;
 
 fn backend_err<E: core::fmt::Display>(ctx: &str) -> impl Fn(E) -> VectorStoreError + '_ {
     move |e| VectorStoreError::Backend(format!("{ctx}: {e}"))
+}
+
+/// The error for a lock that a panicking thread poisoned.
+fn poisoned<T>(_: std::sync::PoisonError<T>) -> VectorStoreError {
+    VectorStoreError::Backend("fjall vector store lock poisoned".into())
 }
 
 /// Live, in-memory state for one namespace.
@@ -158,13 +172,13 @@ impl FjallVectorStore {
         f: impl FnOnce(&dyn VectorIndex) -> Result<T, VectorStoreError>,
     ) -> Result<T, VectorStoreError> {
         {
-            let guard = self.namespaces.read().unwrap();
+            let guard = self.namespaces.read().map_err(poisoned)?;
             if let Some(state) = guard.get(namespace) {
                 return f(state.index.as_ref());
             }
         }
         let index = self.load_or_rebuild(namespace)?;
-        let mut guard = self.namespaces.write().unwrap();
+        let mut guard = self.namespaces.write().map_err(poisoned)?;
         let state = guard
             .entry(namespace.to_string())
             .or_insert(NamespaceState { index, dirty: false });
@@ -191,16 +205,18 @@ impl FjallVectorStore {
         namespace: &str,
         f: impl FnOnce(&dyn VectorIndex) -> Result<(), VectorStoreError>,
     ) -> Result<(), VectorStoreError> {
-        let mut guard = self.namespaces.write().unwrap();
+        let mut guard = self.namespaces.write().map_err(poisoned)?;
         if !guard.contains_key(namespace) {
             drop(guard);
             let index = self.load_or_rebuild(namespace)?;
-            guard = self.namespaces.write().unwrap();
+            guard = self.namespaces.write().map_err(poisoned)?;
             guard
                 .entry(namespace.to_string())
                 .or_insert(NamespaceState { index, dirty: false });
         }
-        let state = guard.get_mut(namespace).expect("just inserted");
+        let state = guard
+            .get_mut(namespace)
+            .ok_or_else(|| VectorStoreError::Backend("namespace index missing".into()))?;
         f(state.index.as_ref())?;
         state.dirty = true;
         Ok(())
@@ -211,7 +227,7 @@ impl FjallVectorStore {
     /// # Errors
     /// Returns [`VectorStoreError::Backend`] on a fjall write/persist failure.
     pub fn flush(&self) -> Result<(), VectorStoreError> {
-        let mut guard = self.namespaces.write().unwrap();
+        let mut guard = self.namespaces.write().map_err(poisoned)?;
         for (ns, state) in guard.iter_mut() {
             if state.dirty {
                 self.indexes
@@ -227,12 +243,17 @@ impl FjallVectorStore {
     }
 }
 
+#[async_trait::async_trait]
 impl VectorStore for FjallVectorStore {
-    fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
+    async fn insert_async(
+        &self,
+        namespace: &str,
+        entry: VectorEntry,
+    ) -> Result<(), VectorStoreError> {
         self.validate(entry.vector.dimension(), entry.vector.is_zero())?;
         let key = Self::vec_key(namespace, &entry.id);
         self.vectors
-            .insert(&key, encode_entry(&entry))
+            .insert(&key, encode_entry(&entry)?)
             .map_err(backend_err("insert vector"))?;
         let id = entry.id.clone();
         let data = entry.vector.data.clone();
@@ -241,8 +262,15 @@ impl VectorStore for FjallVectorStore {
         })
     }
 
-    fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
         let key = Self::vec_key(namespace, id);
+        if !self
+            .vectors
+            .contains_key(&key)
+            .map_err(backend_err("look up vector"))?
+        {
+            return Err(VectorStoreError::NotFound { id: id.to_string() });
+        }
         self.vectors
             .remove(&key)
             .map_err(backend_err("delete vector"))?;
@@ -251,7 +279,7 @@ impl VectorStore for FjallVectorStore {
         })
     }
 
-    fn search(
+    async fn search_async(
         &self,
         namespace: &str,
         query: &[f32],
@@ -263,7 +291,11 @@ impl VectorStore for FjallVectorStore {
         })
     }
 
-    fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
+    async fn get_async(
+        &self,
+        namespace: &str,
+        id: &str,
+    ) -> Result<Option<VectorEntry>, VectorStoreError> {
         let key = Self::vec_key(namespace, id);
         match self.vectors.get(&key).map_err(backend_err("get vector"))? {
             Some(val) => {
@@ -275,11 +307,13 @@ impl VectorStore for FjallVectorStore {
         }
     }
 
-    fn len(&self, namespace: &str) -> usize {
-        self.vectors
-            .prefix(Self::ns_prefix(namespace))
-            .filter(|kv| kv.is_ok())
-            .count()
+    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
+        let mut count = 0;
+        for kv in self.vectors.prefix(Self::ns_prefix(namespace)) {
+            kv.map_err(backend_err("count vectors"))?;
+            count += 1;
+        }
+        Ok(count)
     }
 
     fn config(&self) -> &VectorStoreConfig {
@@ -288,16 +322,17 @@ impl VectorStore for FjallVectorStore {
 }
 
 /// `[vec_len u32][vec f32 LE…][meta_json…]`. The id lives in the fjall key.
-fn encode_entry(entry: &VectorEntry) -> Vec<u8> {
+fn encode_entry(entry: &VectorEntry) -> Result<Vec<u8>, VectorStoreError> {
     let dim = entry.vector.data.len();
-    let meta = serde_json::to_string(&entry.metadata).unwrap_or_else(|_| "{}".to_string());
+    let dim_u32 = u32::try_from(dim).map_err(backend_err("vector dimension"))?;
+    let meta = serde_json::to_string(&entry.metadata).map_err(backend_err("encode metadata"))?;
     let mut buf = Vec::with_capacity(4 + dim * 4 + meta.len());
-    buf.extend_from_slice(&(dim as u32).to_le_bytes());
+    buf.extend_from_slice(&dim_u32.to_le_bytes());
     for f in &entry.vector.data {
         buf.extend_from_slice(&f.to_le_bytes());
     }
     buf.extend_from_slice(meta.as_bytes());
-    buf
+    Ok(buf)
 }
 
 fn decode_entry(bytes: &[u8]) -> Result<VectorEntry, VectorStoreError> {
@@ -313,7 +348,8 @@ fn decode_entry(bytes: &[u8]) -> Result<VectorEntry, VectorStoreError> {
     for chunk in bytes[4..vec_end].chunks_exact(4) {
         data.push(f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]));
     }
-    let metadata: VectorMetadata = serde_json::from_slice(&bytes[vec_end..]).unwrap_or_default();
+    let metadata: VectorMetadata =
+        serde_json::from_slice(&bytes[vec_end..]).map_err(backend_err("decode metadata"))?;
     Ok(VectorEntry {
         id: String::new(),
         vector: Vector::new(data),
@@ -330,10 +366,6 @@ fn id_from_key(key: &[u8], namespace: &str) -> String {
         String::new()
     }
 }
-
-// Allow `Arc<FjallVectorStore>` to be shared; fjall handles are internally synced.
-unsafe impl Send for FjallVectorStore {}
-unsafe impl Sync for FjallVectorStore {}
 
 /// Convenience: a thread-safe handle to a [`FjallVectorStore`].
 pub type SharedFjallVectorStore = Arc<FjallVectorStore>;

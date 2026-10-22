@@ -209,3 +209,34 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   summary job then reports the cancelled run as a failure. Only the run on the newest commit counts.
 - **Agents can stop on account spend or rate limits.** Commit and push at every stable point, so
   a stop loses nothing; the owner prefers everything pushed.
+
+## Feature 05 task T1: vector stores async-only
+
+- **A sync trait hides wrong answers.** The sync `TurboPufferVectorStore::len` always returned
+  0, and `get` searched with a zero vector and kept the first row. The SQLite-vec `get` always
+  returned `None`, and its insert added a second row for an existing id. Fjall's `delete` of an
+  unknown id was `Ok`. A shared contract test (`tests/contract`) found these differences at once.
+  Each store now runs the same checks.
+- **Write the contract before you convert the stores.** Then each store conversion has a clear
+  "done" check, and a store that cannot obey a rule must say so (for example, `Unsupported` for
+  the dot-product metric on `TurboPuffer` and SQLite-vec).
+- **A macro that defines a macro cannot reuse `$name` metavariables.** The outer
+  `macro_rules!` reads the inner `$name:ident` as its own. Write each generated test out in full
+  in the outer macro.
+- **Check the external API before you keep an adapter.** The `TurboPuffer` adapter used
+  `/v1/vectors/...`, which the current official client no longer has. The documentation site was
+  blocked here, but the Python client on PyPI (Python Package Index) has typed request and
+  response definitions. Those were enough to move to the v2 API.
+- **A sync registry can feed an async index through a queue.** `ToolCallManager::register`
+  has about 20 sync callers. Instead of making them all async, `register` queues the index change
+  (last change per tool name wins, so the queue is bounded by the tool count). The async search
+  applies the queue first and returns the failures in `ShedResult::index_failures`. The caller
+  and the model see each failure; the log is not the only record.
+- **Disk:** a test run of `foundation_vectors` with all store features links about eleven test
+  binaries, each with Turso and libSQL. With debug information they filled the disk.
+  `CARGO_PROFILE_DEV_DEBUG=0 CARGO_PROFILE_TEST_DEBUG=0` keeps the same checks. In the
+  `build/<crate>/<hash>/` layout, removing hash directories older than the current run is safe
+  between runs.
+- **A new worktree has no submodules.** `foundation_ai` builds `llama.cpp` from the
+  `tools/llama.cpp` submodule. Run `git submodule update --init tools/llama.cpp` in a new
+  worktree before you build it.

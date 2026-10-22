@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use foundation_ai::agentic::internals::{
-    NoopColdCache, ShedResult, ToolDiscovery, WholeTextChunker,
+    CacheStats, EmbeddingError, EmbeddingVector, NoopColdCache, ShedResult, ToolDiscovery,
+    WholeTextChunker,
 };
 use foundation_ai::agentic::tool_impl::{
     ToolCallManager, ToolCallRequest, ToolCallResult, ToolError, ToolImpl,
@@ -162,40 +163,41 @@ fn sample_def(name: &str, desc: &str, category: &str) -> ToolDefinition {
 // ToolDiscovery tests
 // ---------------------------------------------------------------------------
 
-#[test]
-fn index_and_search_finds_tool() {
+#[tokio::test]
+async fn index_and_search_finds_tool() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
     let def = sample_def("yaml_parser", "Parse YAML documents into structured data", "parsing");
-    discovery.index(&def).unwrap();
+    discovery.index(&def).await.unwrap();
 
-    let results = discovery.search("parse YAML", 5).unwrap();
+    let results = discovery.search("parse YAML", 5).await.unwrap();
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].name, "yaml_parser");
     assert_eq!(results[0].category, "parsing");
 }
 
-#[test]
-fn search_returns_empty_when_no_tools_indexed() {
+#[tokio::test]
+async fn search_returns_empty_when_no_tools_indexed() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
-    let results = discovery.search("anything", 5).unwrap();
+    let results = discovery.search("anything", 5).await.unwrap();
     assert!(results.is_empty());
 }
 
-#[test]
-fn multiple_tools_indexed_and_found() {
+#[tokio::test]
+async fn multiple_tools_indexed_and_found() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
 
-    discovery
-        .index(&sample_def("tool_a", "First tool", "general"))
-        .unwrap();
-    discovery
-        .index(&sample_def("tool_b", "Second tool", "general"))
-        .unwrap();
-    discovery
-        .index(&sample_def("tool_c", "Third tool", "general"))
-        .unwrap();
+    for (name, description) in [
+        ("tool_a", "First tool"),
+        ("tool_b", "Second tool"),
+        ("tool_c", "Third tool"),
+    ] {
+        discovery
+            .index(&sample_def(name, description, "general"))
+            .await
+            .unwrap();
+    }
 
-    let results = discovery.search("any tool", 10).unwrap();
+    let results = discovery.search("any tool", 10).await.unwrap();
     assert_eq!(results.len(), 3);
 }
 
@@ -359,8 +361,8 @@ fn deregister_drops_a_tool_from_the_active_set() {
 // ToolCallManager::with_defaults
 // ---------------------------------------------------------------------------
 
-#[test]
-fn with_defaults_searches_through_discovery() {
+#[tokio::test]
+async fn with_defaults_searches_through_discovery() {
     let discovery = make_discovery(3, vec![1.0, 0.0, 0.0]);
     let session_id = foundation_ai::types::SessionId::new();
     let mgr = ToolCallManager::with_defaults(session_id, discovery);
@@ -371,15 +373,151 @@ fn with_defaults_searches_through_discovery() {
 
     // The fixed-vector embedder ranks every tool equally, so only embedding
     // search can return grep_tool for a query sharing no word with it.
-    let hits = mgr.search_tools("zzz", 5).unwrap();
+    let hits = mgr.search_tools("zzz", 5).await.unwrap();
+    assert_eq!(hits.index_failures, Vec::new());
     assert_eq!(
-        hits.iter().map(|h| h.name.as_str()).collect::<Vec<_>>(),
+        hits.tools.iter().map(|h| h.name.as_str()).collect::<Vec<_>>(),
         vec!["grep_tool"]
     );
     assert!(
         mgr.get("shed").is_none(),
         "shed is built in, not registered"
     );
+}
+
+/// An embedder that fails for any text that contains "broken", and embeds
+/// everything else as the same unit vector.
+struct PickyEmbedder;
+
+impl EmbeddingProvider for PickyEmbedder {
+    fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+        if text.contains("broken") {
+            return Err(EmbeddingError::ModelNotFound(model_id.to_string()));
+        }
+        Ok(EmbeddingVector {
+            dimensions: 3,
+            data: vec![1.0, 0.0, 0.0],
+            model_id: model_id.to_string(),
+        })
+    }
+
+    fn embed_batch(
+        &self,
+        texts: &[String],
+        model_id: &str,
+    ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
+        texts.iter().map(|t| self.embed(t, model_id)).collect()
+    }
+
+    fn register_model(&self, _model_id: &str, _dimensions: u16) {}
+
+    fn cache_stats(&self) -> CacheStats {
+        CacheStats::default()
+    }
+
+    fn clear_cache(&self) {}
+}
+
+fn picky_manager() -> ToolCallManager {
+    let discovery = Arc::new(ToolDiscovery::in_memory(
+        Arc::new(PickyEmbedder),
+        "picky".into(),
+    ));
+    ToolCallManager::with_defaults(foundation_ai::types::SessionId::new(), discovery)
+}
+
+#[tokio::test]
+async fn a_failed_index_update_is_reported_and_retried() {
+    let mgr = picky_manager();
+    mgr.register(Arc::new(NamedTool {
+        name: "good_tool",
+        description: "Works fine",
+    }));
+    mgr.register(Arc::new(NamedTool {
+        name: "bad_tool",
+        description: "A broken description",
+    }));
+
+    let first = mgr.search_tools("zzz", 5).await.unwrap();
+    assert_eq!(first.index_failures.len(), 1);
+    assert_eq!(first.index_failures[0].tool, "bad_tool");
+    assert_eq!(
+        first.tools.iter().map(|h| h.name.as_str()).collect::<Vec<_>>(),
+        vec!["good_tool"],
+        "only the indexed tool is found by embedding"
+    );
+
+    // The failed update stays queued, so the next search reports it again.
+    let second = mgr.search_tools("zzz", 5).await.unwrap();
+    assert_eq!(second.index_failures.len(), 1);
+
+    // The tool is still found by name and description.
+    let by_name = mgr.search_tools("description", 5).await.unwrap();
+    assert!(by_name.tools.iter().any(|h| h.name == "bad_tool"));
+}
+
+#[tokio::test]
+async fn shed_reports_index_failures_to_the_model() {
+    let mgr = picky_manager();
+    mgr.register(Arc::new(NamedTool {
+        name: "bad_tool",
+        description: "A broken description",
+    }));
+    let args = ToolArguments::from_iter([(
+        "description".to_string(),
+        serde_json::Value::String("anything".into()),
+    )]);
+    let result = mgr.execute_one(&shed_request(args)).await.unwrap();
+    let foundation_ai::types::UserModelContent::Text(tc) = &result.content else {
+        panic!("expected text content");
+    };
+    let parsed: ShedResult = serde_json::from_str(&tc.content).unwrap();
+    assert_eq!(parsed.index_failures.len(), 1);
+    assert_eq!(parsed.index_failures[0].tool, "bad_tool");
+}
+
+#[tokio::test]
+async fn deregister_removes_the_tool_from_the_index() {
+    let mgr = picky_manager();
+    mgr.register(Arc::new(NamedTool {
+        name: "grep_tool",
+        description: "Search for text patterns in files",
+    }));
+    let before = mgr.search_tools("zzz", 5).await.unwrap();
+    assert_eq!(before.tools.len(), 1);
+
+    mgr.deregister("grep_tool");
+    let after = mgr.search_tools("zzz", 5).await.unwrap();
+    assert_eq!(after.index_failures, Vec::new());
+    assert_eq!(after.tools.len(), 0);
+}
+
+#[tokio::test]
+async fn register_then_deregister_before_a_search_indexes_nothing() {
+    let mgr = picky_manager();
+    mgr.register(Arc::new(NamedTool {
+        name: "grep_tool",
+        description: "Search for text patterns in files",
+    }));
+    mgr.deregister("grep_tool");
+    let hits = mgr.search_tools("zzz", 5).await.unwrap();
+    assert_eq!(hits.index_failures, Vec::new());
+    assert_eq!(hits.tools.len(), 0);
+}
+
+#[tokio::test]
+async fn enable_discovery_returns_an_indexing_error() {
+    let mgr = ToolCallManager::new(foundation_ai::types::SessionId::new());
+    mgr.register(Arc::new(NamedTool {
+        name: "bad_tool",
+        description: "A broken description",
+    }));
+    let discovery = Arc::new(ToolDiscovery::in_memory(
+        Arc::new(PickyEmbedder),
+        "picky".into(),
+    ));
+    let err = mgr.enable_discovery(discovery).await.unwrap_err();
+    assert!(matches!(err, ToolError::Execution { .. }), "{err:?}");
 }
 
 // ---------------------------------------------------------------------------

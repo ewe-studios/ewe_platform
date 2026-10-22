@@ -100,12 +100,13 @@ tool in the session's `ToolShed` with `ToolDiscovery::in_memory(embedder,
 model)`, and the built-in `shed` meta-tool searches by embedding (filling up
 with name/description matches). `ToolDiscovery::new(vector_store, embedder,
 model)` uses a vector store you provide; `ToolCallManager::enable_discovery`
-attaches one to a manager.
+(async) attaches one to a manager and indexes its tools. Tools registered
+later are indexed by the next `shed` search (see doc 04).
 
 ## 5. Storing vectors yourself
 
 `VectorStore`, `VectorEntry` and `VectorMatch` live in `foundation_vectors`.
-To index your own documents, embed with the provider and insert the
+The trait is async (`insert_async`, `search_async`, …). To index your own documents, embed with the provider and insert the
 `EmbeddingVector::data` into your store; see that crate's docs for the exact
 API and distance metrics.
 

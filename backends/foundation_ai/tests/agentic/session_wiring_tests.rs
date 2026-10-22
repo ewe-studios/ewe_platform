@@ -576,7 +576,9 @@ async fn shed_searches_by_embedding_when_the_session_has_an_embedder() {
     let hits = session
         .tool_manager()
         .search_tools("salute somebody", 5)
-        .expect("search runs");
+        .await
+        .expect("search runs")
+        .tools;
     assert_eq!(
         hits.iter().map(|h| h.name.as_str()).collect::<Vec<_>>(),
         vec!["greet"]
@@ -591,7 +593,11 @@ async fn shed_matches_names_and_descriptions_without_an_embedder() {
     let session = session_with_tools(mock, ToolShed::new().tool(tool)).await;
 
     let mgr = session.tool_manager();
-    let by_description = mgr.search_tools("someone by name", 5).expect("search runs");
+    let by_description = mgr
+        .search_tools("someone by name", 5)
+        .await
+        .expect("search runs")
+        .tools;
     assert_eq!(by_description.len(), 1);
     assert_eq!(by_description[0].name, "greet");
     assert!(
@@ -600,7 +606,9 @@ async fn shed_matches_names_and_descriptions_without_an_embedder() {
     );
     assert!(mgr
         .search_tools("salute somebody", 5)
+        .await
         .expect("search runs")
+        .tools
         .is_empty());
 }
 
