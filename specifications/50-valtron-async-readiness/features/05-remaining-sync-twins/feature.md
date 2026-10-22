@@ -12,10 +12,10 @@ created: 2026-10-22
 last_updated: 2026-10-22
 author: "Main Agent"
 tasks:
-  completed: 1
-  uncompleted: 3
+  completed: 2
+  uncompleted: 2
   total: 4
-  completion_percentage: 25
+  completion_percentage: 50
 ---
 
 # Remaining Sync Twins
@@ -26,6 +26,7 @@ are._
 **Abbreviations in this file.** input/output (I/O); virtual file system (VFS); inter-process
 communication (IPC); Hypertext Transfer Protocol version 1.1 (HTTP/1.1); operating system (OS);
 pull request (PR); application programming interface (API); Structured Query Language (SQL);
+Network File System (NFS); Filesystem in Userspace (FUSE); Network File System version 3 (NFSv3);
 AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE standard
 ASD-STE100.
 
@@ -65,9 +66,9 @@ These sync waits are correct. Each one runs on its own OS thread, not on a valtr
 | Task | What | Done when | State |
 |---|---|---|---|
 | T1 | **Vectors:** make every vector store implement `AsyncVectorStore` only (`TurboPufferVectorStore`, `SqliteVecVectorStore`, `FjallVectorStore`, `InMemoryVectorStore`); move the `shed` tool to the async trait; delete the sync `VectorStore`; rename `AsyncVectorStore` to `VectorStore` (and its methods, if task T3 decides so). | No sync vector trait remains; `ci.py run foundation_vectors` and `foundation_ai` pass. | Done (branch `db/async-vectors`); see section 5 |
-| T2 | **VFS:** async-first core (decision 1). Move `TursoDelta`, `SyncLibsqlDelta`, `VfsClient`, `NativeFs`, `DirectoryDelta` and the Fjall stores to the async traits only; keep `SyncFs<A>` as the only sync face for I/O stores; move `OverlayFileSystem`, `ObservableFs`, `search` and `dynfs` to the async traits, with sync wrappers only where a sync consumer needs them. | No I/O-backed type implements a sync VFS trait directly; `ci.py run foundation_nativeapis` and its feature runs pass. | Open |
+| T2 | **VFS:** async-first core (decision 1). Move `TursoDelta`, `SyncLibsqlDelta`, `VfsClient`, `NativeFs`, `DirectoryDelta` and the Fjall stores to the async traits only; keep `SyncFs<A>` as the only sync face for I/O stores; move `OverlayFileSystem`, `ObservableFs`, `search` and `dynfs` to the async traits, with sync wrappers only where a sync consumer needs them. | No I/O-backed type implements a sync VFS trait directly; `ci.py run foundation_nativeapis` and its feature runs pass. | Done (branch `nativeapis/async-vfs`), except `TursoDelta` (open decision); see section 6 |
 | T3 | **Method suffixes:** drop `_async` from the storage trait methods (decision 2). Check each type for inherent methods with the plain names first. | No storage trait method ends in `_async`; workspace, wasm and example builds pass. | Open |
-| T4 | **Records:** `progress.md`, `learnings.md`, the backlog. | Updated in the same PRs. | Updated for T1 |
+| T4 | **Records:** `progress.md`, `learnings.md`, the backlog. | Updated in the same PRs. | Updated for T1 and T2 |
 
 ## 4. Owner decisions (2026-10-22)
 
@@ -117,3 +118,69 @@ loads the extension with sync calls, once. Both are in the backlog.
 | `ci.py run foundation_ai`, steps one at a time (build, clippy, test, wasm) | pass; test 2745 pass, 0 fail |
 | `cargo check --workspace --tests` | pass |
 | `apps/`, `examples/` | no use of the changed APIs |
+
+## 6. Task T2 result (virtual file system)
+
+**What changed, per type:**
+
+| Type | Before | After |
+|---|---|---|
+| `NativeFs` (and its file, seekable file, directory) | sync traits | async traits only; `std::fs` calls inline (see the backlog) |
+| `DirectoryDelta`, `FilteredDirectory` | sync traits (`scaffold_impl`) | async traits only, written out |
+| `VfsClient`, `RemoteFile`, `RemoteSeekableFile`, `RemoteDirectory` | sync traits | async traits only |
+| `VfsDaemon` | served a sync VFS | serves an `AsyncVfsFileSystem`; `dispatch` is `async`; new sync `release` for close requests |
+| `VfsTransport` | sync `request` | `async fn request` and a sync `release` (for `Drop`) |
+| `LibsqlDelta` | async traits; constructors blocked through `exec_async` | constructors and `sync_remote` are `async` |
+| `SyncLibsqlDelta`, `SyncSqliteDirectory`, `SyncSeekableSqliteFile`, `SyncLibsqlDeltaGeneric`, `LibsqlDelta::into_sync` | sync wrappers | deleted; use `SyncFs<LibsqlDelta>` |
+| `OverlayFileSystem`, `OverlayDirectory`, `OverlayFile`, `OverlaySeekableFile` | sync traits over sync layers | async traits over async layers; new `from_arcs` |
+| `ObservableFs`, `ObservableFile`, `ObservableSeekableFile` | sync traits | async traits |
+| `VfsSearcher`, `InCodeVfsSearcher` and the factories | sync `search` over `VfsFileSystem` | `async fn search` over `AsyncVfsFileSystem` |
+| `VfsNfs` | `VfsFileSystem` | `AsyncVfsFileSystem` (the NFS server is async) |
+| `VfsTask`, `VfsTaskBuilder` | `ObservableFs<F: VfsFileSystem>` | `F: AsyncVfsFileSystem` |
+| `AsyncVfsFileSystem` | no inode methods | `inode_async`, `path_by_inode_async`, `stat_by_inode_async` (defaults) |
+| `SyncFs` | inode methods approximated or unsupported; whole-file helpers through the defaults | delegates every method, including the inode and whole-file methods, to the async store |
+| `exec_async` | always went to a valtron pool | polls once on the calling thread first; new `poll_once` |
+| `DynFs` | sync | stays sync (its only users, the shim and ptrace, are sync boundaries); new `DynFs::from_async` |
+| `foundation_ai` `FileSearch` | sync `search` | `async fn search`; `SearchFileTool::from_vfs` / `native` take an `AsyncVfsFileSystem` |
+
+**Sync boundaries that stay (they wrap an async VFS in `SyncFs`):** the
+`LD_PRELOAD` shim (libc calls), the ptrace tracer (syscall stops), the FUSE
+adapter (`fuser` calls back synchronously), `run_daemon_loop` (a thread on
+the sync IPC bus) and example `main` functions.
+
+**Stores that keep the sync face:** `MemoryFs` and `MemoryDelta` (both
+faces, decision 1), and `InodeFs` / `InodeDelta`. The survey called these
+"Fjall stores", but they keep everything in memory and do no I/O; they keep
+only the sync face (see the backlog).
+
+**Not done:** `TursoDelta` still has its sync trait impls. It has never
+compiled (83 errors when its module is built). The owner must decide: delete
+it (`LibsqlDelta` with `TursoRemoteConfig` already covers a Turso cloud
+database), or rebuild it on `libsql` behind the async traits. The
+recommendation is to delete it. `FjallDocumentStore` still uses the sync VFS
+traits (it is a consumer, not a store); see the backlog.
+
+**Breaking application programming interface (API) changes:**
+
+| Crate | Change |
+|---|---|
+| `foundation_nativeapis` | `NativeFs`, `DirectoryDelta`, `VfsClient`, `OverlayFileSystem`, `ObservableFs` no longer implement the sync VFS traits. Use the async traits, or `SyncFs::new(..)` at a sync boundary. |
+| `foundation_nativeapis` | `SyncLibsqlDelta` and its types are deleted. `LibsqlDelta::{new, with_config, in_memory, with_turso_replica, sync_remote}` are `async`. |
+| `foundation_nativeapis` | `VfsTransport::request` is `async`; new required method `release`. `VfsClient::new` is `async`. `VfsDaemon::dispatch` is `async`. `run_daemon_loop` takes `&Arc<VfsDaemon<F>>`. |
+| `foundation_nativeapis` | `VfsSearcher::search` is `async`; `InCodeVfsSearcher`, `vfs_searcher` and `native_vfs_searcher` take an `AsyncVfsFileSystem`. |
+| `foundation_nativeapis` | `VfsNfs<F>`, `OverlayFileSystem<B, D>`, `ObservableFs<F>`, `VfsTask::from_observable` need the async traits. `OverlayFileSystem::new` keeps its signature. |
+| `foundation_ai` | `FileSearch::search` is `async`. |
+
+**Bugs fixed in T2 (each has a test):**
+
+| Bug | Test |
+|---|---|
+| `NativeFs` mapped a path with `..` to the root, so `remove("/a/..")` aimed at the root. | `native_vfs::dot_dot_paths_are_refused_not_mapped_to_root` |
+| A `NativeFs` directory handle joined names without the root checks (`open_directory("..")` left the root). | `native_vfs::directory_handles_cannot_leave_the_root` |
+| `DirectoryDelta` hid `.wh.*` sentinels only in the top directory. | `dir_delta_vfs::subdirectories_hide_whiteout_sentinels` |
+| `OverlayDirectory` held raw pointers to the layers (a dangling pointer after the overlay was dropped). | `vfs_async::overlay::directory_handle_outlives_the_overlay` |
+| `create_file` on an overlay directory handle of a base-only directory failed (no delta parents). | `vfs_async::overlay::create_file_in_a_base_only_directory` |
+| NFS `remove` and `rename` ignored the directory id. | `nfs_vfs::test_nfs_remove_and_rename_in_subdirectory` |
+| A remote directory handle joined an absolute path to its own path. | `vfs_async::ipc::directory_handles_accept_absolute_paths` |
+| `ClientTransport` sent under one lock and received under another, so two concurrent requests could swap responses. | none (needs the IPC bus); one lock now covers both |
+| `vfs-sqlite` did not compile (`scru128` was not a dependency). | the `valtron_vfs` SQLite tests build and run again |
