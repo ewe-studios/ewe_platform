@@ -7,11 +7,11 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{execute, from_future, StreamIteratorExt, StreamReadyFuture};
+use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore, DataValue, SqlRow, StorageItemStream,
+    AsyncRateLimiterStore, DataValue, SqlRow,
 };
 use crate::wasm::bindgen::D1Database;
 use base64::{engine::general_purpose::STANDARD, Engine};
@@ -24,9 +24,13 @@ use foundation_compact::SendWrapper;
 // Inline valtron helpers (no async_utils — use valtron directly)
 // ===========================================================================
 
+/// The valtron stream `schedule_future` returns: one `Stream::Next` with the
+/// future's result.
+type ValtronResultStream<T> = Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>>>;
+
 fn schedule_future<T: 'static, E: Into<StorageError> + 'static, F>(
     future: F,
-) -> StorageResult<StorageItemStream<'static, T>>
+) -> StorageResult<ValtronResultStream<T>>
 where
     F: std::future::Future<Output = Result<T, E>> + 'static,
 {
@@ -231,7 +235,7 @@ impl D1WasmStorage {
 }
 
 // ===========================================================================
-// KeyValueStore
+// AsyncKeyValueStore
 // ===========================================================================
 
 impl D1WasmStorage {
@@ -445,7 +449,7 @@ impl D1WasmStorage {
 }
 
 // ===========================================================================
-// QueryStore
+// AsyncQueryStore
 // ===========================================================================
 
 impl D1WasmStorage {
@@ -528,7 +532,7 @@ impl AsyncQueryStore for D1WasmStorage {
 }
 
 // ===========================================================================
-// RateLimiterStore
+// AsyncRateLimiterStore
 // ===========================================================================
 
 impl D1WasmStorage {
@@ -659,7 +663,7 @@ impl AsyncRateLimiterStore for D1WasmStorage {
 }
 
 // ===========================================================================
-// BlobStore
+// AsyncBlobStore
 // ===========================================================================
 
 impl D1WasmStorage {

@@ -2,7 +2,7 @@
 //!
 //! Uses `std::sync::Mutex` for thread-safe access. It implements only the
 //! `Async*` store traits, like every other store; its futures resolve at once
-//! (there is no I/O). Sync callers go through `foundation_db::Blocking`.
+//! (there is no I/O).
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};

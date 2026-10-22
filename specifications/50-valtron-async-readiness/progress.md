@@ -13,7 +13,7 @@ _Recorded 2026-10-21._ Goal: async all the way, with sync only at real boundarie
 | valtron async-first API (`.block()` / `.blocking()` native-only, `blocking_boundary!`) | #130 | ✅ merged |
 | foundation_db: I/O-backed stores async-only; `Blocking<S>` for sync callers | #131 | ✅ merged |
 | foundation_ai: `AgentSession` on the `Async*` traits; in-memory stores async-only; `build()` / `end()` async | #132 | ✅ merged |
-| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` (draft PR #133, spec 50 F04) | 🔧 in progress: T1–T9 done |
+| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` (draft PR #133, spec 50 F04) | 🔧 in progress: T1–T10 done |
 
 **After this stream:** spec 65's agent-rpc review round 2 on PR #126. The plan is recorded in `specifications/65-agent-rpc-serving-system/progress.md`: pluggable traits for bare metal / Docker / Workers, auth moving into foundation_auth with a `CaStore` trait, and a `ClientAuth` provider built on our signed JSON secret (not a JWT).
 
@@ -181,7 +181,8 @@ deleting the sync storage traits.
 | T7 foundation_nativeapis off the sync traits | done | `ci.py run foundation_nativeapis`: pass; `--features vfs-native,vfs-d1,vfs-r2,vfs-fjall`: `blob_delta_vfs` 12 new tests (the delta over the in-memory blob store, async and through `SyncFs`), `fjall_document_store` 19, `d1_delta_vfs` 9, `r2_delta_vfs` 9 (the D1/R2 integration tests skip without the emulator) |
 | T8 async `StateStore` and its callers (deployment crates, proxy) | done | `ci.py run` (build, clippy, test, wasm): foundation_db, foundation_deployment, foundation_deployment_docker, foundation_deployment_hetzner, foundation_proxy: all pass. New: `libsql_state_store_tests` 5 (first libsql state coverage), `r2_state_store_tests` 6 (in-process R2 mock, paged listings), `NamespacedStore::set` namespace test. Bugs fixed on the way: libsql/D1 state `init` was a SQL syntax error, libsql/D1 `find_by_status` never matched, R2 `find_by_*` didn't filter and listing read one page only, `NamespacedStore::set` wrote outside its namespace |
 | T9 agent tool store factory; `builder_for` and the blocking `Default`s removed | done | `ci.py run foundation_ai` build, clippy, wasm: pass; test: 2730 pass, 0 fail (a first run failed to link with the disk full; rerun clean). New agent-tool tests: a factory builds stores per `start`, a failing factory fails `start`. foundation_db `default_stores_tests` 5 (now over `in_memory()`), `libsql_document_store_tests` (now a real libsql run). `examples/cf-agent-loop`, `examples/cf-cloud-provider` wasm32: build |
-| T10–T13 | pending | |
+| T10 sync storage traits and `Blocking<S>` deleted | done | `cargo check --workspace --tests`: pass; `ci.py run` (build, clippy, test, wasm): foundation_db, foundation_auth pass; foundation_db wasm32 `--features wasm-bindgen-storage`: builds. Ten foundation_db test files moved off `Blocking` onto the async traits. Examples: `cf-agent-loop`, `cf-cloud-provider`, `cf-login-app` (wasm32) and `apps/answerme-agent` (native): build |
+| T11–T13 | pending | |
 
 ## Next
 

@@ -6,8 +6,7 @@
 //! incorrectly: `"mem-10" < "mem-2"`). This matches the SQL backend (F06 Part 0).
 //!
 //! It implements only [`AsyncDocumentStore`], like every other store; its
-//! futures resolve at once (there is no I/O). Sync callers go through
-//! `foundation_db::Blocking`. The read/write logic lives in private helpers
+//! futures resolve at once (there is no I/O). The read/write logic lives in private helpers
 //! (`put`, `collect_rows`, `remove_*`, `count_rows`).
 
 use crate::core::errors::{StorageError, StorageResult};

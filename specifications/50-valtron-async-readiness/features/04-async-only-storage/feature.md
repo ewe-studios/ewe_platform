@@ -586,6 +586,17 @@ Once §3.1–§3.9 land, nothing in the workspace uses `Blocking<S>`:
 foundation_auth (§3.1/§3.2), cedar/cronjobs/vectors tests (§3.3–§3.5),
 nativeapis (§3.7). It is deleted with the sync traits (§4).
 
+**As built (T10):** deleted `Blocking`, `blocking.rs`, `HAS_BLOCKING` and its
+asserts, the five sync traits, `StorageItemStream`, `PasskeyStore` /
+`TosStore` / `AuthStore`, and `blocking_tests` / `blocking_executor_tests`.
+Two non-storage users of `StorageItemStream` had to move: foundation_auth's
+`NativeOAuth` sync `exchange_code` / `client_credentials` / `refresh_token`
+wrappers (no callers; deleted, the `*_async` methods remain) and
+`D1WasmStorage`'s private `schedule_future` (now a local alias). The other
+ten foundation_db tests that went through `Blocking` now await the stores
+(`#[valtron_test] async fn`); the libsql document-store test became a real
+run over `LibsqlStore::in_memory()`.
+
 ## 4. Deleting the sync traits
 
 Order (each step compiles the whole workspace before the next):
@@ -675,7 +686,18 @@ traits (sync via `SyncFs`); `FjallDocumentStore` implements
 `AsyncDocumentStore` (not `DocumentStore`).
 
 foundation_ai: `AgentSession::builder_for` removed; `AgentTool` gains
-`with_store_factory`; `SessionStoreFactory`, `DefaultStores` added.
+`with_store_factory`; `SessionStoreFactory`, `StoreFuture`, `DefaultStores`,
+`register_agent_tool_with_stores`, `ToolPreset::agent_with_stores` added.
+
+foundation_db (T9): `TursoStorage::in_memory()` / `LibsqlStore::in_memory()`
+added in place of the `Default` impls.
+
+foundation_auth (T10): `NativeOAuth::{exchange_code, client_credentials,
+refresh_token}` (the sync wrappers) removed; use the `*_async` methods.
+
+foundation_proxy (T8): `ProxyServer::start`, `ProxyConfig::start`,
+`ProxyStateStore::{load, save, save_backend_state, save_tls_cert}`,
+`ProxyState::persist_backend_state` are `async`.
 
 foundation_deployment & deployables: `Deployable::store()` returns a
 `NamespacedStore` whose helpers are async.

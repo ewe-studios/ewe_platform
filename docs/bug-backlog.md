@@ -267,9 +267,6 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
-- **The sync storage traits and `Blocking` still exist.** Every caller now
-  uses the `Async*` traits or `StateStore` (F04 T1–T9); what remains is
-  deleting the sync traits (T10).
 - **`StateStore::set` ignores its `resource_id`.** Every backend (file,
   libsql, D1, R2) keys the write by `state.id`, so `set("a", &state_b)` writes
   `b` (`src/core/state/*.rs`, `src/native/{libsql_store,d1_kvstore,r2_blobstore}.rs`).

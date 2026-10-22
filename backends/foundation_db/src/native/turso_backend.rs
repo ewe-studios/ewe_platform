@@ -2,7 +2,7 @@
 //!
 //! `TursoStorage` implements only the `Async*` storage traits: every operation
 //! is a native `async fn`, and multi-row queries return an `AsyncQueryStream`
-//! pulled row by row. Sync callers wrap the store in `foundation_db::Blocking`.
+//! pulled row by row.
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::{StorageError, StorageResult};

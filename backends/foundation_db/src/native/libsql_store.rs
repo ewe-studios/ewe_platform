@@ -12,8 +12,7 @@
 //!   - `LibsqlStore::new_state_remote()` — StateStore with Turso remote sync
 //!
 //! The KV/query/rate-limit/blob side implements only the `Async*` storage
-//! traits (sync callers wrap the store in `foundation_db::Blocking`), and the
-//! constructors are `async fn`s. Its `StateStore` impl is async too: queries
+//! traits, and the constructors are `async fn`s. Its `StateStore` impl is async too: queries
 //! stream their rows as they are pulled.
 
 use std::path::Path;

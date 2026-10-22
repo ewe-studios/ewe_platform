@@ -5,7 +5,7 @@
 //!
 //! WHAT: `D1Store` implements the `Async*` storage traits (KV, query, rate
 //! limiting, blobs) and `StateStore` via `NativeHttpClient` calls to the D1
-//! HTTP API. Sync storage callers wrap it in `foundation_db::Blocking`.
+//! HTTP API.
 //!
 //! HOW: Different constructors for different usage modes:
 //!   - `D1Store::new()` / `D1Store::new_kv()` — KV/query/rate-limit/blob store (table: `{prefix}_kv`)

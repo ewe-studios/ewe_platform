@@ -44,7 +44,7 @@ impl KVWasmStorage {
 }
 
 // ===========================================================================
-// KeyValueStore
+// AsyncKeyValueStore
 // ===========================================================================
 
 impl KVWasmStorage {
@@ -188,7 +188,7 @@ impl AsyncKeyValueStore for KVWasmStorage {
 }
 
 // ===========================================================================
-// QueryStore (not supported for KV)
+// AsyncQueryStore (not supported for KV)
 // ===========================================================================
 
 /// Workers KV has no SQL engine: every query method fails with
@@ -219,7 +219,7 @@ impl AsyncQueryStore for KVWasmStorage {
 }
 
 // ===========================================================================
-// RateLimiterStore
+// AsyncRateLimiterStore
 // ===========================================================================
 
 impl KVWasmStorage {
@@ -360,7 +360,7 @@ impl AsyncRateLimiterStore for KVWasmStorage {
 }
 
 // ===========================================================================
-// BlobStore (KV stores strings, so blobs are base64-encoded)
+// AsyncBlobStore (KV stores strings, so blobs are base64-encoded)
 // ===========================================================================
 
 impl KVWasmStorage {

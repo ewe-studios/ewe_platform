@@ -34,13 +34,13 @@ A single "maybe-async" trait would force every caller to pick the wrong half on
 some target. Separate traits with an `_async` suffix let each environment use the
 shape that actually works (this is the project's standing rule — see F06 OD-06-7).
 
-The same split exists one layer up for documents: **`DocumentStore`** (sync) and
-**`AsyncDocumentStore`** (async). `SqlDocumentStore<Q: AsyncQueryStore>` is the
-document store for any SQL backend.
+One layer up, **`AsyncDocumentStore`** is the document store trait;
+`SqlDocumentStore<Q: AsyncQueryStore>` implements it for any SQL backend.
 
-Backends implement only the async traits. The sync traits are a **view** for sync
-callers: `foundation_db::Blocking<S>` implements each one over the matching async
-trait (native and non-JS wasm only; see `00-storage-traits.md`).
+Backends implement only the async traits, and there are no sync twins (the
+old sync traits and the `Blocking<S>` wrapper were removed in spec 50 F04).
+Sync code awaits at its entry point with `block_on_future` / `.block()`
+behind `blocking_boundary!` (see `00-storage-traits.md`).
 
 ---
 

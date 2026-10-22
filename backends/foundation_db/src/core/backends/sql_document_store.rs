@@ -143,8 +143,7 @@ pub(crate) mod sql {
 ///
 /// It implements only [`AsyncDocumentStore`]. Multi-item reads return an
 /// [`AsyncStorageItemStream`] pulled one item at a time with `.next().await`,
-/// never a `Vec`, so unbounded scans can't OOM (F06 OD-06-8). Sync callers
-/// wrap it in `foundation_db::Blocking`.
+/// never a `Vec`, so unbounded scans can't OOM (F06 OD-06-8).
 pub struct SqlDocumentStore<Q> {
     query_store: Q,
     table: String,

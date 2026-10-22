@@ -149,7 +149,7 @@ impl JsonFileStorage {
 // ===========================================================================
 // Async trait implementations — the only storage traits this backend
 // implements. The file I/O is synchronous `std::fs`, so it runs directly in
-// the async bodies; sync callers wrap the store in `foundation_db::Blocking`.
+// the async bodies.
 // ===========================================================================
 
 #[async_trait::async_trait]

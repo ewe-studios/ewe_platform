@@ -2,8 +2,7 @@
 //!
 //! This is the central export of `foundation_db`. It wraps all available
 //! backends behind feature gates and implements the `Async*` storage traits
-//! over whichever one is selected. Sync callers wrap it in
-//! `foundation_db::Blocking`.
+//! over whichever one is selected.
 
 use serde::{de::DeserializeOwned, Serialize};
 
