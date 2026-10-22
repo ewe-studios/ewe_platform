@@ -195,6 +195,8 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 
 - **`wait_for_stdout`:** re-reads the whole log on every poll, misses a message split across frames, and scans stderr too.
 - **`docker_container_macro_supports_async_functions`** fails instead of skipping when no Docker daemon is running.
+- **Docker-gated tests check only that the socket file exists.** `docker_available()` in `tests/container_integration.rs`, `tests/ssh_backend_tests.rs`, `tests/runner_integration_tests.rs` and `tests/image_build_integration.rs` returns true when `/var/run/docker.sock` exists, also when no daemon listens on it. Then `--ignored` runs fail with "Docker daemon not reachable" instead of skipping. Fix: add one shared test helper that connects with `DockerClient::connect_with_defaults` and pings the daemon, and use it in all Docker-gated tests (foundation_proxy has the same helper, see §9).
+- **Vagrant box lookup runs a `curl` subprocess** (`src/import/mod.rs`, near line 512). The comment says this avoids "tokio runtime conflicts", but no tokio runtime is used now. The subprocess needs `curl` installed and returns no structured errors. Fix: use the valtron-based HTTP client from `foundation_netio` with a bounded, streamed read of the JSON response, and remove the comment.
 - **Inline tests remain** in `docker/wireguard.rs` (rule 7).
 - **Warnings:**
   - deprecated `SimpleHttpClient`, used in `wait_for.rs` and in `foundation_deployment/src/provider_client.rs`;
@@ -222,6 +224,10 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
   change one entry and save it back. Two admin commands at once can each save
   over the other's change. Fix: serialise the read-modify-write behind a
   mutex in `ProxyStateStore` (or store each backend's state as its own record).
+- **Docker-gated tests check only that the socket file exists**
+  (`tests/proxy_integration_tests.rs`, `docker_available()`). When the socket
+  exists but no daemon listens on it, the `--ignored` runs fail instead of
+  skipping. Fix: use a shared helper that pings the daemon (see §7).
 - **The `mut` on `h3_local_addr` warns without the `h3` feature**
   (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
   expression instead of assigning inside the `cfg` block.
@@ -485,6 +491,16 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   (`SqlVectorStore::search_async`): memory is bounded (`TopK`), but time is
   O(n·d) per query. Expected for the portable fallback; large namespaces
   should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
+
+## 18. foundation_testbed
+
+- **The embedded JavaScript runner uses a tokio runtime** (`src/wasm/embedded_js.rs`, `tokio_runtime()`, and the optional `tokio` dependency behind `wasm-embedded-js` in `Cargo.toml`). The event loop and timers of `deno_core` (`reactor_tokio.rs`) need a tokio runtime, and `deno_websocket` uses tokio for its TCP connection. This is the only tokio runtime in `backends` outside the cross-runtime tests of valtron. The project rule is "valtron always". Options:
+  - keep it as a documented third-party boundary: a current-thread runtime, local to this module and behind the feature flag;
+  - or drive the event loop of `deno_core` another way (poll `JsRuntime::poll_event_loop` from a valtron task with a valtron timer), if `deno_core` lets us replace its reactor.
+
+## 19. Apps (tokio and axum)
+
+- **The apps still use tokio and axum, not valtron and `foundation_http`.** This is `bin/platform` (and its templates `api-app`, `static-html-app`, `web-app`), `examples/devbinary`, `examples/web/wello`, `examples/todo`, `crates/channels` and `crates/domain`: tokio/axum servers and tokio tests. `crates/channels` also has inline `#[cfg(test)]` modules (`src/broadcast.rs`, `src/mspc.rs`, `src/executor.rs`), which go against rule 7. Tracked in [#137](https://github.com/ewe-studios/ewe_platform/issues/137).
 
 ## Paused
 
