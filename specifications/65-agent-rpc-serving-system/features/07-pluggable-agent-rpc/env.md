@@ -831,7 +831,7 @@ checks it (see [deterministic-simulation-testing.md](./deterministic-simulation-
 Core code gets the `Env` in one of three ways. Use the first one that fits.
 
 1. **A constructor argument.** The host reads the `Env` from the root `Ctx` once. It passes the `Env` to each constructor, for example `AgentRpcCore::builder(env)`. The object keeps it. This is the normal way for structs with state, such as services, stores and verifiers.
-2. **The task `Ctx`.** Code inside `TaskIterator::next_status(ctx)` or a `#[task]` function calls `Env::from_ctx(&ctx)`. Example: the agent loop of `foundation_ai` (task T23).
+2. **The task `Ctx`.** Code inside `TaskIterator::next_status(ctx)` or a `#[task]` function calls `Env::from_ctx(&ctx)`. Example: the agent loop of `foundation_ai` (task T12).
 3. **`Env::current()`.** Code in an `async fn` with no `Env` field calls it, at an edge only (for example the first line of a handler). Do not call it in a loop.
 
 If the `Env` is missing, the code returns the error. It maps to `AgentRpcError::Config` and
@@ -908,7 +908,7 @@ What the code does: `fork` copies the type map, so the new `Env` is private to `
 ### 7.1 Native host
 
 ```rust
-// host wiring: the native agent-rpc binary (src/bin/agent-rpc.rs, task T14)
+// host wiring: the native agent-rpc binary (src/bin/agent-rpc.rs, task T17)
 use foundation_core::env::Env;
 use foundation_core::valtron::{initialize_pool_with_config, PoolConfig};
 
@@ -931,7 +931,7 @@ server, and blocks once at the end. The pool installs `env` into its root `Ctx`.
 ### 7.2 Worker host
 
 ```rust
-// examples/cf-agent-rpc/src/lib.rs (task T20): the Worker entry.
+// examples/cf-agent-rpc/src/lib.rs (task T21): the Worker entry.
 use foundation_core::env::Env;
 use foundation_core::valtron::single::{initialize_pool_with, root_ctx, SingleConfig};
 use foundation_core::valtron::with_ctx;
@@ -960,7 +960,7 @@ engine. Each request runs inside `with_ctx`, so `Env::current()` works inside it
 ### 7.3 DST harness
 
 ```rust
-// foundation_core/src/valtron/sim.rs (feature "testing", task T17)
+// foundation_core/src/valtron/sim.rs (feature "testing", task T18)
 pub struct SimRuntime {
     pub clock: Arc<SimClock>,
     pub entropy: Arc<SeededEntropy>,
@@ -1024,13 +1024,13 @@ arguments.
 
 | Side effect | Trait (crate) | Real implementations | Test implementations |
 |---|---|---|---|
-| Network, client side | `Transport` (`foundation_connectrpc`, exists) | `H1Transport`, `H2Transport` (native); `FetchTransport` (wasm, task T18); `DoStubTransport` (Worker to DO, task T20) | `MemTransport` (task T17) |
-| Network, server side | `ConnectRpcHandler::dispatch_to(bag, request, body, sink, hooks)` (`foundation_connectrpc`, exists) | `ConnectRpcServe` (native HTTP/1.1), `ConnectRpcServeH2`; `FetchServe` (wasm, task T18) | `MemNetwork` calls `dispatch_to` directly (task T17) |
+| Network, client side | `Transport` (`foundation_connectrpc`, exists) | `H1Transport`, `H2Transport` (native); `FetchTransport` (wasm, task T19); `DoStubTransport` (Worker to DO, task T21) | `MemTransport` (task T18) |
+| Network, server side | `ConnectRpcHandler::dispatch_to(bag, request, body, sink, hooks)` (`foundation_connectrpc`, exists) | `ConnectRpcServe` (native HTTP/1.1), `ConnectRpcServeH2`; `FetchServe` (wasm, task T19) | `MemNetwork` calls `dispatch_to` directly (task T18) |
 | Listener | owned by each host: `foundation_http::native::server::HttpServer` (native); the Cloudflare runtime (Worker) | — | none: DST has no sockets |
-| Storage | `AsyncKeyValueStore`, `AsyncQueryStore`, `AsyncBlobStore`, `AsyncDocumentStore` (`foundation_db`, exist) | Turso, libsql, D1, KV, R2, JSON file | `MemoryStorage`, `MemoryDocumentStore`, and the `Faulty*` wrappers (task T17) |
+| Storage | `AsyncKeyValueStore`, `AsyncQueryStore`, `AsyncBlobStore`, `AsyncDocumentStore` (`foundation_db`, exist) | Turso, libsql, D1, KV, R2, JSON file | `MemoryStorage`, `MemoryDocumentStore`, and the `Faulty*` wrappers (task T18) |
 | Key material | `KeyStore` (`foundation_auth::keystore`, new) | `FsKeyStore`, `DbKeyStore<K>`, `EnvKeyStore` | `MemoryKeyStore` |
 | Trusted clients | `TrustStore` (`foundation_auth::trust`, new) | `SqlTrustStore<Q>`, `KvTrustStore<K>` | `MemoryTrustStore` |
-| Model inference | `ModelCatalog` (`foundation_agent_rpc::core::model`, new) | `LocalCatalog` (native), `RemoteCatalog` (Worker) | `ScriptedCatalog` (task T17) |
+| Model inference | `ModelCatalog` (`foundation_agent_rpc::core::model`, new) | `LocalCatalog` (native), `RemoteCatalog` (Worker) | `ScriptedCatalog` (task T18) |
 
 ## 10. Generics, `Arc<dyn …>` or one bundle
 

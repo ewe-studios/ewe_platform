@@ -16,7 +16,8 @@ Durable Object (DO); WebAssembly (wasm); Structured Query Language (SQL); key-va
 (KV); input/output (I/O); deterministic simulation testing (DST); Request for Comments (RFC);
 application programming interface (API); central processing unit (CPU); Hypertext Transfer
 Protocol (HTTP); additional authenticated data (AAD), the context bytes that AEAD binds to a
-sealed blob; Representational State Transfer (REST); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
+sealed blob; Representational State Transfer (REST); Domain Name System (DNS); Internet
+Protocol (IP); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
 STE standard ASD-STE100.
 D1 and R2 are names of Cloudflare products (a SQL database and an object store), not
 abbreviations.
@@ -77,6 +78,7 @@ backends/foundation_auth/src/
     ├── jwt.rs            JwtAuth
     ├── cloudflare.rs     CfTlsClientAuth, CfMtlsAuth
     ├── insecure.rs       InsecureNoAuth
+    ├── forwarded.rs      ForwardedPrincipalAuth (inside a Durable Object)
     └── any_of.rs         AnyOf
 ```
 
@@ -1038,9 +1040,9 @@ Only one key wins, and both processes use it.
 
 ```mermaid
 sequenceDiagram
-    participant A as "Process A"
-    participant B as "Process B"
-    participant S as "KeyStore (shared, atomic create)"
+    participant A as Process A
+    participant B as Process B
+    participant S as KeyStore (shared, atomic create)
     A->>S: get("ca")
     S-->>A: none
     B->>S: get("ca")
@@ -1062,7 +1064,7 @@ sequenceDiagram
 | Native, one process (default) | `FsKeyStore` in the state directory | `FsKeyStore` | `SqlTrustStore<TursoStorage>` in the state directory |
 | Native, several replicas | `DbKeyStore<LibsqlStore>` or `DbKeyStore<D1Store>`, sealed | same | `SqlTrustStore` on the same database |
 | Worker, verify only | `EnvKeyStore` (public key from the var `AGENT_RPC_SECRET_PUBLIC_KEYS`) | none (Cloudflare terminates TLS) | `SqlTrustStore<D1WasmStorage>` |
-| DST | `MemoryKeyStore` | `MemoryKeyStore` (native DST only) | `MemoryTrustStore` or `SqlTrustStore<TursoStorage>` on a temporary file |
+| DST | `MemoryKeyStore` | `MemoryKeyStore` (native DST only) | `MemoryTrustStore`. The `turso` feature of `foundation_db` turns on valtron `multi`, so Turso cannot be in the single-threaded DST build. The `SqlTrustStore` contract tests run in the normal test build. |
 
 ### 4.6 The legacy files of today
 
@@ -1072,7 +1074,7 @@ A state directory of today holds `ca-cert.pem`, `ca-key.pem`,
 1. `FsKeyStore::get("ca")` reads `keys/ca.json`. If that file is absent and both legacy CA files exist, it returns a record built from them (`revision = 1`, `Plaintext`). If only one of them exists, it returns `Corrupt` (as today).
 2. `FsKeyStore::get("secret-signing")` reads `keys/secret-signing.json`, else the legacy `bootstrap-signing-key.pem`.
 3. The environment variable `EWE_AGENT_RPC_SIGNING_KEY` (inline PEM or a path) still overrides the signing key. The native host reads it into an `EnvKeyStore` that it puts in front of the `FsKeyStore`.
-4. `agent-rpc keys migrate` (a sub-command of the native binary, task T14) writes `keys/*.json`. It seals the keys when a KEK is set. It then renames each legacy file to `*.pem.migrated`. It never deletes a key.
+4. `agent-rpc keys migrate` (a sub-command of the native binary, task T17) writes `keys/*.json`. It seals the keys when a KEK is set. It then renames each legacy file to `*.pem.migrated`. It never deletes a key.
 5. `trusted-clients.db` keeps its tables. `SqlTrustStore` adds one new table (section 6.2).
 
 ## 5. The CA and certificates (`foundation_auth::pki`, native)
@@ -1208,6 +1210,25 @@ every payload stops working after a restart. We fix this:
 3. `renew_before` is one third of the lifetime (30 days of 90). This is when certbot renews a 90-day certificate.
 4. Otherwise it makes a new certificate and replaces the record. The operator must hand out new payloads then. The host logs the new fingerprint.
 5. Enrolled clients do not need the pin. They trust the CA, so a renewal does not affect them.
+
+```rust
+// foundation_auth/src/pki/identity.rs
+/// The configuration of the server certificate (rule 8).
+#[derive(Debug, Clone)]
+pub struct ServerIdentityConfig {
+    /// DNS names and IP addresses in the certificate. Default: "localhost",
+    /// "127.0.0.1" and the host of the bind address (as today).
+    pub names: Vec<String>,
+    /// Default 90 days: the lifetime of a Let's Encrypt certificate.
+    pub lifetime: Duration,
+    /// Make a new certificate when less than this time is left. Default
+    /// `lifetime / 3` (30 days of 90), when certbot renews.
+    pub renew_before: Duration,
+}
+```
+
+What the code does: it holds the three values that steps 1 to 4 use. The host reads them
+from its configuration.
 
 ## 6. Trusted clients (`foundation_auth::trust`)
 
@@ -1599,7 +1620,7 @@ no code fills it today. Task T4 fills it:
 use core::future::Future;
 use core::pin::Pin;
 
-use foundation_netio::netcap::ConnectionContext;
+use foundation_netio::shared::context::ConnectionContext;
 use foundation_netio::shared::http::{Extensions, SimpleHeaders};
 
 use crate::AuthContext;
@@ -1868,7 +1889,7 @@ impl ClientAuth for MtlsAuth {
 `MtlsAuth` runs on every call, not only at the handshake. So a revocation stops the next
 call on a live keep-alive connection. This closes the gap "revocation does not drop live
 keep-alive connections" from the progress notes. A turn that already runs continues to its
-end. `TurnLimits::max_turn_duration` bounds that time.
+end. `TurnLimits::max_duration` bounds that time.
 
 ```rust
 // foundation_auth/src/client_auth/cloudflare.rs
@@ -1932,7 +1953,7 @@ pub struct InsecureNoAuth {
 Native host with enrollment and mTLS (the default, the same behavior as today):
 
 ```rust
-// host::native::security (task T14)
+// host::native::security (task T17)
 let trust = TrustedClients::open(Arc::new(sql_trust), env.clone(), TrustConfig::native_default()).await?;
 let auth: Arc<dyn ClientAuth> = Arc::new(MtlsAuth::new(Arc::clone(&trust), env.clone()));
 let router = core.router(Arc::clone(&auth));      // adds ClientAuthInterceptor
@@ -1950,7 +1971,7 @@ let auth: Arc<dyn ClientAuth> = Arc::new(AnyOf(vec![
 Worker (public key from configuration, D1 trust store, optional Cloudflare mTLS):
 
 ```rust
-// host::worker::config (task T20)
+// host::worker::config (task T21)
 let keys = EnvKeyStore::from_worker(&bindings)?;                  // AGENT_RPC_SECRET_PUBLIC_KEYS
 let verifier = SecretVerifier::new(
     SecretDomain::AGENT_RPC,
@@ -2040,6 +2061,36 @@ impl EnrollmentService {
 }
 ```
 
+```rust
+// foundation_agent_rpc/src/core/config.rs
+/// Enrollment limits (rule 8).
+#[derive(Debug, Clone)]
+pub struct EnrollConfig {
+    /// Default 90 days: the lifetime of a Let's Encrypt certificate (as today).
+    pub client_cert_lifetime: Duration,
+    /// Default 1: an enrollment secret enrolls one client (as today).
+    pub max_enrollments_per_secret: u32,
+    /// `Enroll` calls per peer address. Default 1 per second with a burst
+    /// of 5: the `limit_req` example in the nginx documentation.
+    pub rate: RateLimit,
+    /// Largest CSR in PEM. Default 8 KiB: the size of one nginx
+    /// `large_client_header_buffers` buffer. An RSA 8192-bit CSR is about 3.3 KiB.
+    pub max_csr_bytes: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RateLimit {
+    pub per_second: u32,
+    pub burst: u32,
+}
+```
+
+What the code does: it holds the limits that `enroll` uses. The rate limit is a small token
+bucket in memory, one per peer address, on the `Env` clock. Only a native host enrolls
+clients, so memory is enough. We do not use `foundation_db`'s `AsyncRateLimiterStore`: its
+backends read the global clock (`unix_now_secs()`), so DST could not move their time. That
+is recorded as a bug in `docs/bug-backlog.md`.
+
 If the process stops between step 4 and step 5, the secret is spent and no client is
 recorded. The client then gets an error, and the operator issues a new secret. This is safe:
 it can only refuse a client, it can never accept one twice.
@@ -2050,10 +2101,10 @@ payload, the client checks it, enrolls once, and then calls over mTLS.
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Op as "Operator"
-    participant H as "Native host"
-    participant C as "Client"
-    participant T as "Trust store"
+    participant Op as Operator
+    participant H as Native host
+    participant C as Client
+    participant T as Trust store
     Op->>H: ask for a payload
     H->>H: SecretIssuer.issue (purpose enroll, window from Env clock)
     H-->>Op: BootstrapPayload (addresses, fingerprint, signed secret)
@@ -2091,7 +2142,7 @@ sequenceDiagram
 | A wrong server clock | false acceptance of an expired secret | The window check uses the server clock; operators run time sync. DST tests skew on both sides. |
 | Many enrollment attempts | CPU (CSR checks, signing) | A rate limit per peer address on `Enroll` (`EnrollConfig::rate`, default 1 per second with a burst of 5 — the `limit_req` example in the nginx documentation). Bad secrets fail before the CSR is parsed. |
 | A client sends a false `ewe-forwarded-principal` header to a Worker | another identity in the DO | The Worker deletes every `ewe-forwarded-*` header before auth. The DO is reachable only through the Worker binding. |
-| One client uses another client's instance | sessions and history | Instance names are scoped by owner when `AccessPolicy::OwnerOnly` is set (open question 1 in [feature.md](./feature.md)). |
+| One client uses another client's instance | sessions and history | Instance names are scoped by owner when `ScopePolicy::PerOwner` is set (open question 1 in [feature.md](./feature.md)). |
 | Secrets or keys in logs | all secrets | Redacting `Debug` and `Display` (as today). A log test captures the log output at trace level for the whole flow (`auth_log_tests` moves to the native host tests). |
 
 ### 9.3 Replay protection

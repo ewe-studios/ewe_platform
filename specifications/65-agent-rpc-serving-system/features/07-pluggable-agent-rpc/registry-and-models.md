@@ -68,7 +68,7 @@ impl ModelRequest {
     ///
     /// # Errors
     /// [`AgentRpcError::ModelSelection`].
-    pub fn from_wire(req: &pb::CreateInstanceRequest) -> AgentRpcResult<Self> { todo!("T12") }
+    pub fn from_wire(req: &pb::CreateInstanceRequest) -> AgentRpcResult<Self> { todo!("T13") }
 }
 ```
 
@@ -267,7 +267,7 @@ pub fn select<'e>(
 
 What the code does: `select` is a pure function. It applies the rules of proto.md section 5
 in the same order as the diagram there. The unit tests for every row of that table call it
-directly (task T13).
+directly (task T14).
 
 ### 2.4 Which kinds and devices each build supports
 
@@ -383,7 +383,7 @@ pub trait ModelLoader: Send + Sync + 'static {
 }
 
 impl ModelCatalog for LocalCatalog {
-    fn capabilities(&self) -> ModelCapabilities { todo!("T14") }
+    fn capabilities(&self) -> ModelCapabilities { todo!("T17") }
 
     fn resolve<'a>(&'a self, request: &'a ModelRequest) -> AgentRpcFuture<'a, ModelHandle> {
         Box::pin(async move {
@@ -441,7 +441,7 @@ impl RemoteCatalog {
         models: &[ApiModelConfig],
         secrets: &dyn Fn(&str) -> Option<String>,
         http: Arc<dyn HttpClient>,
-    ) -> AgentRpcResult<Self> { todo!("T20") }
+    ) -> AgentRpcResult<Self> { todo!("T14") }
 }
 ```
 
@@ -492,23 +492,44 @@ pub enum Scope {
     Owner(String),
 }
 
-/// Which scope a call gets, from its `AuthInfo`.
+/// Which scope a call gets, from its `AuthInfo`. (`foundation_auth` has a
+/// different type, `AccessPolicy`, for bearer secrets. This one is about names.)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AccessPolicy {
+pub enum ScopePolicy {
     Shared,
-    OwnerOnly,
+    PerOwner,
 }
 
-impl AccessPolicy {
+impl ScopePolicy {
     #[must_use]
     pub fn scope_for(self, principal: &Principal) -> Scope {
         match self {
-            AccessPolicy::Shared => Scope::Shared,
-            AccessPolicy::OwnerOnly => Scope::Owner(sha256_hex(principal.subject.as_bytes())),
+            ScopePolicy::Shared => Scope::Shared,
+            ScopePolicy::PerOwner => Scope::Owner(sha256_hex(principal.subject.as_bytes())),
         }
     }
+
+    /// The registry caller for one call.
+    #[must_use]
+    pub fn caller(self, principal: Principal) -> Caller {
+        Caller { scope: self.scope_for(&principal), principal }
+    }
+}
+
+/// Who calls the registry. Every registry method takes one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Caller {
+    /// The name space of the call.
+    pub scope: Scope,
+    /// The checked identity. The Durable Object registry forwards it to the
+    /// DO (proto.md section 7). The local registry does not read it.
+    pub principal: Principal,
 }
 ```
+
+What the code does: a handler reads the `Principal` from `AuthInfo`, and the policy turns it
+into a `Caller`. The scope decides which names the caller sees. The principal travels with
+the call, so the Worker can tell the DO who called.
 
 ### 3.2 The trait
 
@@ -554,17 +575,17 @@ pub trait InstanceRegistry: Send + Sync + 'static {
     /// # Errors
     /// `InvalidName`, `InstanceExists`, `InstanceLimit`, `ModelSelection`,
     /// `ModelLoad`, `Inference` (the session could not start).
-    fn create<'a>(&'a self, scope: &'a Scope, spec: InstanceSpec) -> AgentRpcFuture<'a, InstanceInfo>;
+    fn create<'a>(&'a self, caller: &'a Caller, spec: InstanceSpec) -> AgentRpcFuture<'a, InstanceInfo>;
 
     /// # Errors
     /// `InstanceNotFound`.
-    fn get<'a>(&'a self, scope: &'a Scope, name: &'a str) -> AgentRpcFuture<'a, InstanceInfo>;
+    fn get<'a>(&'a self, caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, InstanceInfo>;
 
     /// Instances in name order. `page_size = 0` means the default.
     ///
     /// # Errors
     /// `Codec` for a bad page token.
-    fn list<'a>(&'a self, scope: &'a Scope, page_size: u32, page_token: Option<&'a str>)
+    fn list<'a>(&'a self, caller: &'a Caller, page_size: u32, page_token: Option<&'a str>)
         -> AgentRpcFuture<'a, Page<InstanceInfo>>;
 
     /// Abort a running turn, end the session (flush its history), remove it.
@@ -572,7 +593,7 @@ pub trait InstanceRegistry: Send + Sync + 'static {
     /// # Errors
     /// `InstanceNotFound`; `Inference` when ending the session fails (the
     /// instance is removed either way, as today).
-    fn destroy<'a>(&'a self, scope: &'a Scope, name: &'a str) -> AgentRpcFuture<'a, ()>;
+    fn destroy<'a>(&'a self, caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, ()>;
 
     /// Start one turn. The stream holds the instance's one-turn claim until
     /// it ends or drops. A stream dropped before its last event aborts the
@@ -581,11 +602,11 @@ pub trait InstanceRegistry: Send + Sync + 'static {
     /// # Errors
     /// `InstanceNotFound`; `InstanceBusy` (another turn runs: `ABORTED`);
     /// `Inference` when the turn cannot start.
-    fn start_turn<'a>(&'a self, scope: &'a Scope, name: &'a str, prompt: String)
+    fn start_turn<'a>(&'a self, caller: &'a Caller, name: &'a str, prompt: String)
         -> AgentRpcFuture<'a, TurnEventStream>;
 
-    /// How many instances `scope` holds (for `Health`).
-    fn count<'a>(&'a self, scope: &'a Scope) -> AgentRpcFuture<'a, u64>;
+    /// How many instances the caller's scope holds (for `Health`).
+    fn count<'a>(&'a self, caller: &'a Caller) -> AgentRpcFuture<'a, u64>;
 }
 ```
 
@@ -606,7 +627,9 @@ pub struct RegistryConfig {
     pub default_page_size: u32,
     /// Largest page. Default 100: the GitHub REST API maximum `per_page`.
     pub max_page_size: u32,
-    pub access: AccessPolicy,
+    /// Default `Shared` on the native host (today's behavior) and
+    /// `PerOwner` on the Worker host (open question 1 in feature.md).
+    pub scope_policy: ScopePolicy,
 }
 
 /// Turn limits (rule 8).
@@ -643,48 +666,87 @@ the compare-and-swap cannot race.
 
 ### 3.5 `LocalInstanceRegistry` (native, and inside each Durable Object)
 
-The code of `src/instance.rs` moves here with four changes:
+The code of `src/instance.rs` moves here with five changes:
 
 1. `create` is `async`: `AgentSessionBuilder::build()` is `async` on master.
 2. `destroy` awaits `AgentSession::end()`, which returns a `'static` future on master.
 3. The table key is `(Scope, name)`.
-4. The session ID comes from `env.next_id()`, so DST runs are the same each time.
+4. The session ID comes from `env.next_id()`, so DST runs are the same each time. Today
+   `SessionId::new()` reads a global generator. Task T12 adds `SessionId::from_id(Id)` to
+   `foundation_ai`.
+5. The session stores come from a `SessionStores` value. `AgentSession<D, M>` is generic
+   over its document store `D` and memory store `M`. The native host keeps the memory stores
+   of today. A Durable Object uses its SQLite storage.
 
 ```rust
 // foundation_agent_rpc/src/core/registry/local.rs
-pub struct LocalInstanceRegistry {
+use foundation_ai::agentic::{KvMemoryStore, MemoryStore};
+use foundation_db::{AsyncDocumentStore, MemoryDocumentStore, MemoryStorage};
+
+/// Makes the two stores of a new session.
+pub trait SessionStores: Send + Sync + 'static {
+    type Doc: AsyncDocumentStore + 'static;
+    type Mem: MemoryStore + 'static;
+
+    /// # Errors
+    /// `AgentRpcError::Storage` when the stores cannot open.
+    fn open(&self, session: &SessionId) -> AgentRpcResult<(Self::Doc, Self::Mem)>;
+}
+
+/// The native default: history and memory in process memory, as today.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct InMemoryStores;
+
+impl SessionStores for InMemoryStores {
+    type Doc = MemoryDocumentStore;
+    type Mem = KvMemoryStore<MemoryStorage>;
+
+    fn open(&self, _session: &SessionId) -> AgentRpcResult<(Self::Doc, Self::Mem)> {
+        Ok((MemoryDocumentStore::new(), KvMemoryStore::new(MemoryStorage::new())))
+    }
+}
+
+pub struct LocalInstanceRegistry<S: SessionStores = InMemoryStores> {
     env: Env,
     catalog: Arc<dyn ModelCatalog>,
-    instances: RwLock<BTreeMap<(Scope, String), InstanceHandle>>,
+    stores: S,
+    instances: RwLock<BTreeMap<(Scope, String), InstanceHandle<S::Doc, S::Mem>>>,
     config: RegistryConfig,
     turns: TurnLimits,
 }
 
-impl InstanceRegistry for LocalInstanceRegistry {
-    fn create<'a>(&'a self, scope: &'a Scope, spec: InstanceSpec) -> AgentRpcFuture<'a, InstanceInfo> {
+impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
+    fn create<'a>(&'a self, caller: &'a Caller, spec: InstanceSpec) -> AgentRpcFuture<'a, InstanceInfo> {
         Box::pin(async move {
             validate_name(&spec.name, self.config.max_name_len)?;
             let model = self.catalog.resolve(&spec.model).await?;
             // Build the session outside the lock: it is the only real work,
             // and it never loads the model.
-            let session = AgentSession::builder(model.router())
+            let session_id = SessionId::from_id(self.env.next_id()); // new in task T12
+            let (doc, mem) = self.stores.open(&session_id)?;
+            let mut builder = AgentSession::builder(model.router())
+                .with_doc_store(doc)
+                .with_memory_store(mem)
                 .with_model(model.model_id().clone())
-                .with_session_id(SessionId::from(self.env.next_id()))
-                .with_config(agent_config(&spec))
-                .with_system_prompt_opt(spec.system_prompt.clone())
+                .with_session_id(session_id)
+                .with_config(agent_config(&spec));
+            if let Some(prompt) = &spec.system_prompt {
+                builder = builder.with_system_prompt(prompt.clone());
+            }
+            let session = builder
                 .build()
                 .await
                 .map_err(|e| AgentRpcError::Inference(format!("building session: {e}")))?;
-            self.insert(scope, &spec.name, model, session)   // checks exists + limit under the lock
+            self.insert(&caller.scope, &spec.name, model, session) // checks exists + limit under the lock
         })
     }
 
-    fn start_turn<'a>(&'a self, scope: &'a Scope, name: &'a str, prompt: String)
+    fn start_turn<'a>(&'a self, caller: &'a Caller, name: &'a str, prompt: String)
         -> AgentRpcFuture<'a, TurnEventStream>
     {
         Box::pin(async move {
             check_prompt_size(&prompt, &self.turns)?;
-            let instance = self.find(scope, name)?;
+            let instance = self.find(&caller.scope, name)?;
             let guard = instance.begin_turn()?;                       // InstanceBusy -> ABORTED
             let turn = instance.session().run_turn_stream(prompt)
                 .map_err(|e| AgentRpcError::Inference(e.to_string()))?;
@@ -692,7 +754,7 @@ impl InstanceRegistry for LocalInstanceRegistry {
         })
     }
 
-    // get, list, destroy, count: as today, over the (Scope, name) key.
+    // get, list, destroy, count: as today, over the (caller.scope, name) key.
 }
 ```
 
@@ -774,12 +836,37 @@ pub fn do_name(scope: &Scope, instance: &str) -> String {
     }
 }
 
+/// The Worker side of the registry. It keeps the index in D1 and sends
+/// every instance call to the DO of that instance.
+pub struct DurableObjectRegistry {
+    /// `worker::ObjectNamespace` is `Send + Sync` already (the `worker`
+    /// crate asserts it for single-threaded wasm).
+    namespace: worker::ObjectNamespace,
+    /// The D1 table of section 4.3.
+    index: InstanceIndex<D1WasmStorage>,
+    /// Checks the model request before any DO call (proto.md section 5).
+    catalog: Arc<dyn ModelCatalog>,
+    config: RegistryConfig,
+}
+
 impl DurableObjectRegistry {
-    fn client_for(&self, scope: &Scope, instance: &str) -> AgentRpcResult<AgentServiceClient> {
-        let id = self.namespace.id_from_name(&do_name(scope, instance))
+    #[must_use]
+    pub fn new(
+        namespace: worker::ObjectNamespace,
+        index_db: D1WasmStorage,
+        catalog: Arc<dyn ModelCatalog>,
+        config: RegistryConfig,
+    ) -> Self {
+        Self { namespace, index: InstanceIndex::new(index_db), catalog, config }
+    }
+
+    /// A client for the DO of one instance. The caller's principal goes into
+    /// the `ewe-forwarded-principal` header of each call.
+    fn client_for(&self, caller: &Caller, instance: &str) -> AgentRpcResult<AgentServiceClient> {
+        let id = self.namespace.id_from_name(&do_name(&caller.scope, instance))
             .map_err(|e| AgentRpcError::Transport(format!("DO id: {e}")))?;
         let stub = id.get_stub().map_err(|e| AgentRpcError::Transport(format!("DO stub: {e}")))?;
-        let transport: Arc<dyn Transport> = Arc::new(DoStubTransport::new(stub, self.forwarded_principal.clone()));
+        let transport: Arc<dyn Transport> = Arc::new(DoStubTransport::new(stub, caller.principal.clone()));
         AgentServiceClient::new(transport, "https://instance.do.internal", ClientOptions::new())
             .map_err(|e| AgentRpcError::Config(e.current_context().to_string()).into())
     }
@@ -810,7 +897,7 @@ CREATE TABLE IF NOT EXISTS agent_rpc_instances (
 
 | Operation | Steps | Why this order |
 |---|---|---|
-| `create` | 1. Reserve the index row and check the limit in one statement (below). 2. Call `CreateInstance` on the DO. 3. If the DO fails, delete the row. | The one statement makes the limit check atomic. The delete undoes a failed create. |
+| `create` | 1. Resolve the model with the catalog. 2. Reserve the index row and check the limit in one statement (below). 3. Call `CreateInstance` on the DO with the resolved model name. 4. If the DO fails, delete the row. | A bad model request fails before any write. The one statement makes the limit check atomic. The delete undoes a failed create. |
 | `destroy` | 1. Call `DestroyInstance` on the DO (`NOT_FOUND` counts as done). 2. Delete the row. | A retry after a failure finishes the job. |
 | `list` | `SELECT … WHERE scope = ? AND name > ? ORDER BY name LIMIT ?` | The page token is the last name, base64url. |
 | `get` | Read the row. | No DO call. |
@@ -848,17 +935,17 @@ struct DoHost {
 }
 
 impl AgentInstanceObject {
-    pub fn new(state: worker::State, bindings: worker::Env) -> Self { todo!("T20") }
+    pub fn new(state: worker::State, bindings: worker::Env) -> Self { todo!("T21") }
 
     /// Serve one request from the Worker. The first request after a
     /// restart rebuilds the instance from DO storage (section 4.5).
-    pub async fn fetch(&self, req: worker::Request) -> worker::Result<worker::Response> { todo!("T20") }
+    pub async fn fetch(&self, req: worker::Request) -> worker::Result<worker::Response> { todo!("T21") }
 }
 ```
 
 - The DO serves the normal `AgentService` (see [proto.md](./proto.md) section 7). Its auth provider is `ForwardedPrincipalAuth`. It reads the `ewe-forwarded-principal` header that only the Worker can set.
 - The DO registry is a `LocalInstanceRegistry` with `max_instances = 1`. So the DO code is the native code. Only the stores differ.
-- The session stores are on DO SQLite storage: `SqlDocumentStore<DoSqlStore>` for history and `KvMemoryStore<DoSqlStore>` for memory. `DoSqlStore` is a new `foundation_db` type (task T19). It implements `AsyncQueryStore` and `AsyncKeyValueStore` over `worker::Storage::sql()`.
+- The session stores are on DO SQLite storage: `SqlDocumentStore<DoSqlStore>` for history and `KvMemoryStore<DoSqlStore>` for memory. `DoSqlStore` is a new `foundation_db` type (task T20). It implements `AsyncQueryStore` and `AsyncKeyValueStore` over `worker::Storage::sql()`.
 
 ### 4.5 When Cloudflare removes the DO from memory
 
