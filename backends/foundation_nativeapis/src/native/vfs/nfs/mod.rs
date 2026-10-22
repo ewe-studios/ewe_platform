@@ -1,6 +1,6 @@
 #![cfg(feature = "vfs-nfs")]
 
-//! NFS v3 loopback server exposing any VfsFileSystem as an NFS mount.
+//! NFS v3 loopback server exposing any AsyncVfsFileSystem as an NFS mount.
 //!
 //! Uses the `nfsserve` crate for NFS protocol handling.
 
@@ -10,7 +10,7 @@ use std::sync::{Arc, RwLock};
 use nfsserve::nfs::*;
 use nfsserve::vfs::{NFSFileSystem, VFSCapabilities, ReadDirResult, DirEntry};
 
-use crate::shared::vfs::traits::{VfsFileSystem, VfsFile, VfsDirectory};
+use crate::shared::vfs::async_traits::{AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem};
 use crate::shared::vfs::types::{OpenMode, VfsFileType};
 
 struct IdMapper {
@@ -60,8 +60,16 @@ fn now_ns() -> nfstime3 {
     nfstime3 { seconds: 0, nseconds: 0 }
 }
 
-fn to_fattr3(fs: &impl VfsFileSystem, path: &str, id: u64) -> Result<fattr3, nfsstat3> {
-    let meta = fs.stat(path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+fn child_of(dir_path: &str, name: &str) -> String {
+    if dir_path.ends_with('/') {
+        format!("{dir_path}{name}")
+    } else {
+        format!("{dir_path}/{name}")
+    }
+}
+
+async fn to_fattr3(fs: &impl AsyncVfsFileSystem, path: &str, id: u64) -> Result<fattr3, nfsstat3> {
+    let meta = fs.stat_async(path.to_string()).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
     Ok(fattr3 {
         ftype: to_nfs_ftype(meta.file_type),
         mode: meta.permissions,
@@ -79,20 +87,20 @@ fn to_fattr3(fs: &impl VfsFileSystem, path: &str, id: u64) -> Result<fattr3, nfs
     })
 }
 
-/// VfsNfs — NFS v3 server backed by any VfsFileSystem.
-pub struct VfsNfs<F: VfsFileSystem + 'static> {
+/// VfsNfs — NFS v3 server backed by any AsyncVfsFileSystem.
+pub struct VfsNfs<F: AsyncVfsFileSystem + 'static> {
     fs: F,
     mapper: Arc<IdMapper>,
 }
 
-impl<F: VfsFileSystem> VfsNfs<F> {
+impl<F: AsyncVfsFileSystem> VfsNfs<F> {
     pub fn new(fs: F) -> Self {
         Self { fs, mapper: Arc::new(IdMapper::new()) }
     }
 }
 
 #[async_trait::async_trait]
-impl<F: VfsFileSystem + Send + Sync> NFSFileSystem for VfsNfs<F> {
+impl<F: AsyncVfsFileSystem> NFSFileSystem for VfsNfs<F> {
     fn capabilities(&self) -> VFSCapabilities {
         VFSCapabilities::ReadWrite
     }
@@ -102,8 +110,8 @@ impl<F: VfsFileSystem + Send + Sync> NFSFileSystem for VfsNfs<F> {
     async fn lookup(&self, dirid: fileid3, filename: &filename3) -> Result<fileid3, nfsstat3> {
         let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
         let name = String::from_utf8_lossy(filename).to_string();
-        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
-        if self.fs.exists(&child_path).unwrap_or(false) {
+        let child_path = child_of(&dir_path, &name);
+        if self.fs.exists_async(child_path.clone()).await.unwrap_or(false) {
             let id = self.mapper.get_id(&child_path).unwrap_or_else(|| {
                 let id = self.mapper.next_id();
                 self.mapper.register(&child_path, id);
@@ -117,52 +125,51 @@ impl<F: VfsFileSystem + Send + Sync> NFSFileSystem for VfsNfs<F> {
 
     async fn getattr(&self, id: fileid3) -> Result<fattr3, nfsstat3> {
         let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        to_fattr3(&self.fs, &path, id)
+        to_fattr3(&self.fs, &path, id).await
     }
 
     async fn setattr(&self, id: fileid3, setattr: sattr3) -> Result<fattr3, nfsstat3> {
         let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
         if let set_mode3::mode(m) = setattr.mode {
-            self.fs.chmod(&path, m).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+            self.fs.chmod_async(path.clone(), m).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
         }
-        to_fattr3(&self.fs, &path, id)
+        to_fattr3(&self.fs, &path, id).await
     }
 
     async fn read(&self, id: fileid3, offset: u64, count: u32) -> Result<(Vec<u8>, bool), nfsstat3> {
         let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let file = self.fs.open(&path, OpenMode::Read).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        let size = file.size().map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let file = self.fs.open_async(path.clone(), OpenMode::Read).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let size = file.size_async().await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
         let to_read = std::cmp::min(count as usize, (size.saturating_sub(offset)) as usize);
-        let mut buf = vec![0u8; to_read];
-        file.read_at(&mut buf, offset).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let buf = file.read_at_async(to_read, offset).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
         Ok((buf, offset + to_read as u64 >= size))
     }
 
     async fn write(&self, id: fileid3, offset: u64, data: &[u8]) -> Result<fattr3, nfsstat3> {
         let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let file = self.fs.open(&path, OpenMode::ReadWrite).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        file.write_at(data, offset).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        to_fattr3(&self.fs, &path, id)
+        let file = self.fs.open_async(path.clone(), OpenMode::ReadWrite).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        file.write_at_async(data.to_vec(), offset).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        to_fattr3(&self.fs, &path, id).await
     }
 
     async fn create(&self, dirid: fileid3, filename: &filename3, _attr: sattr3) -> Result<(fileid3, fattr3), nfsstat3> {
         let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
         let name = String::from_utf8_lossy(filename).to_string();
-        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
-        self.fs.create(&child_path, 0o644).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let child_path = child_of(&dir_path, &name);
+        self.fs.create_async(child_path.clone(), 0o644).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
         let id = self.mapper.next_id();
         self.mapper.register(&child_path, id);
-        Ok((id, to_fattr3(&self.fs, &child_path, id)?))
+        Ok((id, to_fattr3(&self.fs, &child_path, id).await?))
     }
 
     async fn create_exclusive(&self, dirid: fileid3, filename: &filename3) -> Result<fileid3, nfsstat3> {
         let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
         let name = String::from_utf8_lossy(filename).to_string();
-        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
-        if self.fs.exists(&child_path).unwrap_or(false) {
+        let child_path = child_of(&dir_path, &name);
+        if self.fs.exists_async(child_path.clone()).await.unwrap_or(false) {
             return Err(nfsstat3::NFS3ERR_EXIST);
         }
-        self.fs.create(&child_path, 0o644).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        self.fs.create_async(child_path.clone(), 0o644).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
         let id = self.mapper.next_id();
         self.mapper.register(&child_path, id);
         Ok(id)
@@ -171,52 +178,54 @@ impl<F: VfsFileSystem + Send + Sync> NFSFileSystem for VfsNfs<F> {
     async fn mkdir(&self, dirid: fileid3, dirname: &filename3) -> Result<(fileid3, fattr3), nfsstat3> {
         let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
         let name = String::from_utf8_lossy(dirname).to_string();
-        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
-        self.fs.mkdir(&child_path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let child_path = child_of(&dir_path, &name);
+        self.fs.mkdir_async(child_path.clone()).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
         let id = self.mapper.next_id();
         self.mapper.register(&child_path, id);
-        Ok((id, to_fattr3(&self.fs, &child_path, id)?))
+        Ok((id, to_fattr3(&self.fs, &child_path, id).await?))
     }
 
     async fn remove(&self, dirid: fileid3, filename: &filename3) -> Result<(), nfsstat3> {
-        let _ = dirid;
+        let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
         let name = String::from_utf8_lossy(filename).to_string();
-        self.fs.remove(&name).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        if let Some(id) = self.mapper.get_id(&name) {
+        let child_path = child_of(&dir_path, &name);
+        self.fs.remove_async(child_path.clone()).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        if let Some(id) = self.mapper.get_id(&child_path) {
             self.mapper.id_to_path.write().unwrap().remove(&id);
         }
-        self.mapper.path_to_id.write().unwrap().remove(&name);
+        self.mapper.path_to_id.write().unwrap().remove(&child_path);
         Ok(())
     }
 
-    async fn rename(&self, from_dirid: fileid3, from_name: &filename3, _to_dirid: fileid3, to_name: &filename3) -> Result<(), nfsstat3> {
-        let _ = from_dirid;
-        let from_name = String::from_utf8_lossy(from_name).to_string();
-        let to_name = String::from_utf8_lossy(to_name).to_string();
-        self.fs.rename(&from_name, &to_name).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        if let Some(id) = self.mapper.get_id(&from_name) {
-            self.mapper.register(&to_name, id);
-            self.mapper.path_to_id.write().unwrap().remove(&from_name);
+    async fn rename(&self, from_dirid: fileid3, from_name: &filename3, to_dirid: fileid3, to_name: &filename3) -> Result<(), nfsstat3> {
+        let from_dir = self.mapper.get_path(from_dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let to_dir = self.mapper.get_path(to_dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let from_path = child_of(&from_dir, &String::from_utf8_lossy(from_name));
+        let to_path = child_of(&to_dir, &String::from_utf8_lossy(to_name));
+        self.fs.rename_async(from_path.clone(), to_path.clone()).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        if let Some(id) = self.mapper.get_id(&from_path) {
+            self.mapper.register(&to_path, id);
+            self.mapper.path_to_id.write().unwrap().remove(&from_path);
         }
         Ok(())
     }
 
     async fn readdir(&self, dirid: fileid3, _start_after: fileid3, max_entries: usize) -> Result<ReadDirResult, nfsstat3> {
         let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let dir = self.fs.open_directory(&dir_path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        let entries = dir.list().map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let dir = self.fs.open_directory_async(dir_path.clone()).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let entries = dir.list_async().await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
 
         let mut result = Vec::new();
         let mut eof = true;
 
         for entry in entries.iter().take(max_entries) {
-            let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, entry.name) } else { format!("{}/{}", dir_path, entry.name) };
+            let child_path = child_of(&dir_path, &entry.name);
             let id = self.mapper.get_id(&child_path).unwrap_or_else(|| {
                 let id = self.mapper.next_id();
                 self.mapper.register(&child_path, id);
                 id
             });
-            let attr = to_fattr3(&self.fs, &child_path, id)?;
+            let attr = to_fattr3(&self.fs, &child_path, id).await?;
             result.push(DirEntry {
                 fileid: id,
                 name: nfsstring(entry.name.clone().into_bytes()),
@@ -234,18 +243,18 @@ impl<F: VfsFileSystem + Send + Sync> NFSFileSystem for VfsNfs<F> {
     async fn symlink(&self, dirid: fileid3, linkname: &filename3, symlink: &nfspath3, _attr: &sattr3) -> Result<(fileid3, fattr3), nfsstat3> {
         let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
         let name = String::from_utf8_lossy(linkname).to_string();
-        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
+        let child_path = child_of(&dir_path, &name);
         let target = String::from_utf8_lossy(symlink).to_string();
-        self.fs.symlink(&target, &child_path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        self.fs.symlink_async(target.clone(), child_path.clone()).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
         let id = self.mapper.next_id();
         self.mapper.register(&child_path, id);
-        let attr = to_fattr3(&self.fs, &child_path, id)?;
+        let attr = to_fattr3(&self.fs, &child_path, id).await?;
         Ok((id, attr))
     }
 
     async fn readlink(&self, id: fileid3) -> Result<nfspath3, nfsstat3> {
         let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let target = self.fs.readlink(&path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let target = self.fs.readlink_async(path.clone()).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
         Ok(target.into_bytes().into())
     }
 
@@ -279,7 +288,7 @@ impl<F: VfsFileSystem + Send + Sync> NFSFileSystem for VfsNfs<F> {
         let path_str = String::from_utf8_lossy(path).to_string();
         if let Some(id) = self.mapper.get_id(&path_str) {
             Ok(id)
-        } else if self.fs.exists(&path_str).unwrap_or(false) {
+        } else if self.fs.exists_async(path_str.clone()).await.unwrap_or(false) {
             let id = self.mapper.next_id();
             self.mapper.register(&path_str, id);
             Ok(id)
