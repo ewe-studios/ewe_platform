@@ -68,7 +68,7 @@ mod shim_exports {
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
                 return VfsRuntime {
-                    fs: DynFs::new(Arc::new(overlay)),
+                    fs: DynFs::from_async(overlay),
                     guard: None,
                 };
             }};
@@ -79,7 +79,7 @@ mod shim_exports {
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
                 VfsRuntime {
-                    fs: DynFs::new(Arc::new(overlay)),
+                    fs: DynFs::from_async(overlay),
                     guard: None,
                 }
             }
@@ -88,22 +88,22 @@ mod shim_exports {
                 {
                     // Initialize valtron pool for async-through-sync execution
                     let guard = initialize_pool(42, Some(4));
-                    use crate::native::vfs::libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
+                    use crate::native::vfs::libsql_delta::LibsqlDelta;
+                    use crate::shared::vfs::exec_async::exec_async;
                     let path = CONFIG.delta_path.clone().unwrap_or_else(|| {
                         let dir = std::env::temp_dir();
                         dir.join("vfs-delta.db").to_string_lossy().to_string()
                     });
-                    let async_delta = match LibsqlDelta::new(&path) {
+                    let delta = match exec_async(async move { LibsqlDelta::new(&path).await }) {
                         Ok(d) => d,
                         Err(e) => {
                             drop(guard);
                             mem_fallback!(format!("sqlite delta failed: {e}"))
                         }
                     };
-                    let delta = SyncLibsqlDelta::new(async_delta);
                     let overlay = OverlayFileSystem::new(base, delta);
                     VfsRuntime {
-                        fs: DynFs::new(Arc::new(overlay)),
+                        fs: DynFs::from_async(overlay),
                         guard: Some(guard),
                     }
                 }
@@ -128,7 +128,7 @@ mod shim_exports {
                     };
                     let overlay = OverlayFileSystem::new(base, delta);
                     VfsRuntime {
-                        fs: DynFs::new(Arc::new(overlay)),
+                        fs: DynFs::from_async(overlay),
                         guard: Some(guard),
                     }
                 }
@@ -147,7 +147,7 @@ mod shim_exports {
                 };
                 let overlay = OverlayFileSystem::new(base, delta);
                 VfsRuntime {
-                    fs: DynFs::new(Arc::new(overlay)),
+                    fs: DynFs::from_async(overlay),
                     guard: None,
                 }
             }
@@ -155,13 +155,13 @@ mod shim_exports {
                 tracing::warn!("[vfs-shim] D1Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
-                VfsRuntime { fs: DynFs::new(Arc::new(overlay)), guard: None }
+                VfsRuntime { fs: DynFs::from_async(overlay), guard: None }
             }
             super::config::DeltaBackend::R2 => {
                 tracing::warn!("[vfs-shim] R2Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
-                VfsRuntime { fs: DynFs::new(Arc::new(overlay)), guard: None }
+                VfsRuntime { fs: DynFs::from_async(overlay), guard: None }
             }
         }
     });
