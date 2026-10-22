@@ -1,6 +1,6 @@
-//! Native DiskANN `VectorStore` over libSQL's built-in vector index (F29).
+//! Native `DiskANN` `VectorStore` over libSQL's built-in vector index (F29).
 //!
-//! WHY: libSQL ships a native **DiskANN** ANN index (`libsql_vector_idx` +
+//! WHY: libSQL ships a native **`DiskANN`** ANN index (`libsql_vector_idx` +
 //! `vector_top_k`), so nearest-neighbour search is sub-linear on the database
 //! side instead of a full scan. This is the fast native path; the generic
 //! [`super::sql_store::SqlVectorStore`] is the portable full-scan fallback for

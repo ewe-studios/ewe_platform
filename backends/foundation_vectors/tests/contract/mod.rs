@@ -93,13 +93,13 @@ pub async fn search_ranks_best_first(store: &dyn VectorStore) {
 
     let all = store.search_async(NS, &[1.0, 0.0, 0.0], 10).await.unwrap();
     assert_eq!(ids(&all), vec!["x", "z", "y"]);
-    assert!(store.search_async(NS, &[1.0, 0.0, 0.0], 0).await.unwrap().is_empty());
+    assert_eq!(store.search_async(NS, &[1.0, 0.0, 0.0], 0).await.unwrap(), Vec::new());
 }
 
 /// A namespace with no entries reads as empty, not as an error.
 pub async fn unknown_namespace_is_empty(store: &dyn VectorStore) {
     let ns = "never_written";
-    assert!(store.search_async(ns, &[1.0, 0.0, 0.0], 5).await.unwrap().is_empty());
+    assert_eq!(store.search_async(ns, &[1.0, 0.0, 0.0], 5).await.unwrap(), Vec::new());
     assert!(store.get_async(ns, "a").await.unwrap().is_none());
     assert_eq!(store.len_async(ns).await.unwrap(), 0);
     assert!(store.is_empty_async(ns).await.unwrap());

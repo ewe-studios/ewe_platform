@@ -11,6 +11,13 @@
 //! The shared contract runs against it, plus checks of the request shapes,
 //! the error paths and the body limits.
 
+// The mock server is test scaffolding: it favours plain code over these lints.
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::too_many_lines,
+    clippy::type_complexity
+)]
+
 #[macro_use]
 mod contract;
 

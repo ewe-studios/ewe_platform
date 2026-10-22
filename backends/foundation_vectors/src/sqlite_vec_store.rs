@@ -55,7 +55,7 @@ fn vec_blob(v: &[f32]) -> Vec<u8> {
 
 /// Decode a vec0 `float[{dim}]` blob (f32 LE) back to floats.
 fn blob_vec(b: &[u8]) -> Result<Vec<f32>, VectorStoreError> {
-    if b.len() % 4 != 0 {
+    if !b.len().is_multiple_of(4) {
         return Err(VectorStoreError::Backend(format!(
             "embedding blob length {} is not a multiple of 4",
             b.len()
