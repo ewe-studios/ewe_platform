@@ -27,7 +27,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use foundation_core::valtron::{DrivenStreamIterator, Stream, StreamIteratorExt, StreamSpread};
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_errstacks::{ErrorTrace, StructuredErrorTrace};
 use futures_lite::Stream as AsyncStream;
 
@@ -83,7 +83,7 @@ pub(crate) type RawTurnItems<D, M> = foundation_compact::SendWrapper<
 /// The next raw item of `items`.
 async fn next_item<D, M>(items: &mut RawTurnItems<D, M>) -> Option<Stream<SessionRecord, AgentProgress>>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     poll_fn(|cx| AsyncStream::poll_next(Pin::new(&mut **items), cx)).await
@@ -125,7 +125,7 @@ impl Turn {
     /// and stop at the first `FailedAction`, keeping what came before it.
     pub(crate) async fn collect<D, M>(stream: TurnStream<D, M>) -> Self
     where
-        D: AsyncDocumentStore + 'static,
+        D: DocumentStore + 'static,
         M: MemoryStore + 'static,
     {
         let mut items = stream.into_raw_items();
@@ -364,7 +364,7 @@ impl Answer {
     /// Collect the assistant text of a turn from the raw stream.
     pub(crate) async fn collect<D, M>(stream: TurnStream<D, M>) -> Self
     where
-        D: AsyncDocumentStore + 'static,
+        D: DocumentStore + 'static,
         M: MemoryStore + 'static,
     {
         let mut items = stream.into_raw_items();
@@ -551,10 +551,10 @@ impl TurnEvent {
 /// ```
 pub struct TurnStream<D, M>(foundation_compact::SendWrapper<DrivenStreamIterator<AgentLoop<D, M>>>)
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static;
 
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
     pub(crate) fn new(inner: DrivenStreamIterator<AgentLoop<D, M>>) -> Self {
         Self(foundation_compact::SendWrapper::new(inner))
     }
@@ -629,7 +629,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M>
 /// See [`TurnStream::into_text_stream`].
 pub struct TurnTextStream<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     events: TurnEvents<D, M>,
@@ -640,7 +640,7 @@ where
 
 impl<D, M> TurnTextStream<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     /// The new text `event` adds, if any.
@@ -668,7 +668,7 @@ where
 
 impl<D, M> AsyncStream for TurnTextStream<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     type Item = String;
@@ -692,7 +692,7 @@ where
     }
 }
 
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnStream<D, M> {
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnStream<D, M> {
     type Item = Stream<SessionRecord, AgentProgress>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -700,7 +700,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> Iterator for Tur
     }
 }
 
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<D, M>>
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<D, M>>
     for DrivenStreamIterator<AgentLoop<D, M>>
 {
     fn from(stream: TurnStream<D, M>) -> Self {
@@ -711,7 +711,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<
 /// The async stream [`TurnStream::events`] returns.
 pub struct TurnEvents<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     items: RawTurnItems<D, M>,
@@ -719,7 +719,7 @@ where
     finished: bool,
 }
 
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AsyncStream
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AsyncStream
     for TurnEvents<D, M>
 {
     type Item = TurnEvent;

@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::{AsyncQueryStore, DataValue};
+use foundation_db::{QueryStore, DataValue};
 use futures_lite::StreamExt;
 
 use crate::flat::TopK;
@@ -16,12 +16,12 @@ use crate::store::{
 };
 use crate::vector::Vector;
 
-pub struct SqlVectorStore<Q: AsyncQueryStore + 'static> {
+pub struct SqlVectorStore<Q: QueryStore + 'static> {
     backend: Arc<Q>,
     config: VectorStoreConfig,
 }
 
-impl<Q: AsyncQueryStore + 'static> SqlVectorStore<Q> {
+impl<Q: QueryStore + 'static> SqlVectorStore<Q> {
     /// Open a store over `backend`, running the vector migrations.
     ///
     /// # Errors
@@ -76,7 +76,7 @@ fn backend_err<E: core::fmt::Display>(ctx: &'static str) -> impl Fn(E) -> Vector
 }
 
 #[async_trait::async_trait]
-impl<Q: AsyncQueryStore + 'static> AsyncVectorStore for SqlVectorStore<Q> {
+impl<Q: QueryStore + 'static> AsyncVectorStore for SqlVectorStore<Q> {
     async fn insert_async(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(&entry)?;
         let blob = vector_to_blob(&entry.vector);
@@ -194,7 +194,7 @@ impl<Q: AsyncQueryStore + 'static> AsyncVectorStore for SqlVectorStore<Q> {
 }
 
 /// Run a `SELECT COUNT(*) … WHERE namespace = ?` and read the count.
-pub(crate) async fn count_rows<Q: AsyncQueryStore + ?Sized>(
+pub(crate) async fn count_rows<Q: QueryStore + ?Sized>(
     backend: &Q,
     sql: &str,
     namespace: &str,

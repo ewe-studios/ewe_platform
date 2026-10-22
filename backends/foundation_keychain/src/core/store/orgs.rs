@@ -5,7 +5,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -45,7 +45,7 @@ fn map_org(row: &SqlRow) -> AppResult<OrgRow> {
     })
 }
 
-pub async fn insert_org(db: &dyn AsyncQueryStore, row: &OrgRow) -> AppResult<()> {
+pub async fn insert_org(db: &dyn QueryStore, row: &OrgRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO vault_organizations (uuid, name, billing_email, enabled, akey, created_at, updated_at) \
          VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -64,7 +64,7 @@ pub async fn insert_org(db: &dyn AsyncQueryStore, row: &OrgRow) -> AppResult<()>
     Ok(())
 }
 
-pub async fn find_org(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<OrgRow>> {
+pub async fn find_org(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<OrgRow>> {
     let rows = db
         .query_async(
             "SELECT uuid, name, billing_email, enabled, akey, created_at, updated_at \
@@ -79,7 +79,7 @@ pub async fn find_org(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<
     rows.first().map(map_org).transpose()
 }
 
-pub async fn delete_org(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<()> {
+pub async fn delete_org(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     for sql in [
         "DELETE FROM vault_collections WHERE org_uuid = ?",
         "DELETE FROM vault_org_memberships WHERE org_uuid = ?",
@@ -125,7 +125,7 @@ fn map_membership(row: &SqlRow) -> AppResult<MembershipRow> {
     })
 }
 
-pub async fn insert_membership(db: &dyn AsyncQueryStore, row: &MembershipRow) -> AppResult<()> {
+pub async fn insert_membership(db: &dyn QueryStore, row: &MembershipRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO vault_org_memberships \
          (uuid, org_uuid, user_uuid, email, atype, status, akey, created_at, updated_at) \
@@ -147,12 +147,12 @@ pub async fn insert_membership(db: &dyn AsyncQueryStore, row: &MembershipRow) ->
     Ok(())
 }
 
-pub async fn find_membership(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<MembershipRow>> {
+pub async fn find_membership(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<MembershipRow>> {
     query_memberships(db, "WHERE uuid = ?", uuid).await.map(|mut v| v.pop())
 }
 
 pub async fn find_membership_for_user(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     org_uuid: &str,
     user_uuid: &str,
 ) -> AppResult<Option<MembershipRow>> {
@@ -173,21 +173,21 @@ pub async fn find_membership_for_user(
 }
 
 pub async fn find_memberships_by_user(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     user_uuid: &str,
 ) -> AppResult<Vec<MembershipRow>> {
     query_memberships(db, "WHERE user_uuid = ?", user_uuid).await
 }
 
 pub async fn find_memberships_by_org(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     org_uuid: &str,
 ) -> AppResult<Vec<MembershipRow>> {
     query_memberships(db, "WHERE org_uuid = ?", org_uuid).await
 }
 
 async fn query_memberships(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     where_clause: &str,
     value: &str,
 ) -> AppResult<Vec<MembershipRow>> {
@@ -204,7 +204,7 @@ async fn query_memberships(
     rows.iter().map(map_membership).collect()
 }
 
-pub async fn update_membership(db: &dyn AsyncQueryStore, row: &MembershipRow) -> AppResult<()> {
+pub async fn update_membership(db: &dyn QueryStore, row: &MembershipRow) -> AppResult<()> {
     db.execute_async(
         "UPDATE vault_org_memberships SET user_uuid = ?, atype = ?, status = ?, akey = ?, updated_at = ? \
          WHERE uuid = ?",
@@ -222,7 +222,7 @@ pub async fn update_membership(db: &dyn AsyncQueryStore, row: &MembershipRow) ->
     Ok(())
 }
 
-pub async fn delete_membership(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<()> {
+pub async fn delete_membership(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     db.execute_async(
         "DELETE FROM vault_org_memberships WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],
@@ -255,7 +255,7 @@ fn map_collection(row: &SqlRow) -> AppResult<CollectionRow> {
     })
 }
 
-pub async fn insert_collection(db: &dyn AsyncQueryStore, row: &CollectionRow) -> AppResult<()> {
+pub async fn insert_collection(db: &dyn QueryStore, row: &CollectionRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO vault_collections (uuid, org_uuid, name, created_at, updated_at) \
          VALUES (?, ?, ?, ?, ?)",
@@ -273,7 +273,7 @@ pub async fn insert_collection(db: &dyn AsyncQueryStore, row: &CollectionRow) ->
 }
 
 pub async fn find_collections_by_org(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     org_uuid: &str,
 ) -> AppResult<Vec<CollectionRow>> {
     let rows = db
@@ -290,7 +290,7 @@ pub async fn find_collections_by_org(
     rows.iter().map(map_collection).collect()
 }
 
-pub async fn find_collection(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<CollectionRow>> {
+pub async fn find_collection(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<CollectionRow>> {
     let rows = db
         .query_async(
             "SELECT uuid, org_uuid, name, created_at, updated_at FROM vault_collections WHERE uuid = ?",
@@ -304,7 +304,7 @@ pub async fn find_collection(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<
     rows.first().map(map_collection).transpose()
 }
 
-pub async fn delete_collection(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<()> {
+pub async fn delete_collection(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     db.execute_async(
         "DELETE FROM vault_collections WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],

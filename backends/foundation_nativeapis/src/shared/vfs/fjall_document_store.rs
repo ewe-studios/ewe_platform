@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
-use foundation_db::traits::{AsyncDocumentStore, Document, PromotableDocument};
+use foundation_db::traits::{DocumentStore, Document, PromotableDocument};
 use foundation_db::{AsyncStorageItemStream, StorageError, StorageResult};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -630,7 +630,7 @@ fn backend(e: impl std::fmt::Display) -> StorageError {
 /// The fjall operations are local and synchronous; the async impl runs them
 /// inline, so every future is ready on its first poll.
 #[async_trait::async_trait]
-impl<V: VfsFileSystem + Send + Sync> AsyncDocumentStore for FjallDocumentStore<V>
+impl<V: VfsFileSystem + Send + Sync> DocumentStore for FjallDocumentStore<V>
 where
     V::File: Send + Sync,
     V::SeekableFile: Send + Sync,

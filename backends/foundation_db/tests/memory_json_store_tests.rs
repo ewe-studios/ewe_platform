@@ -3,7 +3,7 @@
 //! `futures_lite`'s `block_on`.
 
 use foundation_db::traits::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore,
+    BlobStore, KeyValueStore, QueryStore, RateLimiterStore,
 };
 use foundation_db::{MemoryJsonStore, StorageBackend, StorageError, StorageProvider};
 use futures_lite::future::block_on;
@@ -204,7 +204,7 @@ fn test_memory_json_get_blob_rejects_a_non_blob_value() {
 }
 
 // ============================================================================
-// AsyncQueryStore tests (not supported)
+// QueryStore tests (not supported)
 // ============================================================================
 
 #[test]

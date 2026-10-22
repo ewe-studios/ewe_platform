@@ -7,16 +7,16 @@ use chrono::Utc;
 
 use super::super::models::{TosAcceptance, TosVersion};
 use super::super::storage::{self, HandlerStorage, StorageOpError};
-use foundation_db::AsyncKeyValueStore;
+use foundation_db::KeyValueStore;
 
 /// ToS service — manages ToS versions and user acceptances.
-pub struct TosService<KV: AsyncKeyValueStore> {
+pub struct TosService<KV: KeyValueStore> {
     storage: Arc<HandlerStorage<KV>>,
     /// In-memory ToS versions (in production, loaded from DB).
     versions: Mutex<Vec<TosVersion>>,
 }
 
-impl<KV: AsyncKeyValueStore> TosService<KV> {
+impl<KV: KeyValueStore> TosService<KV> {
     #[must_use]
     pub fn new(storage: Arc<HandlerStorage<KV>>) -> Self {
         Self {

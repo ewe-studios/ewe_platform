@@ -14,8 +14,8 @@ use zeroize::Zeroizing;
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore, DataValue,
+    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
+    RateLimiterStore, DataValue,
 };
 
 /// JSON file storage backend.
@@ -153,7 +153,7 @@ impl JsonFileStorage {
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for JsonFileStorage {
+impl KeyValueStore for JsonFileStorage {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
@@ -206,7 +206,7 @@ impl AsyncKeyValueStore for JsonFileStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for JsonFileStorage {
+impl BlobStore for JsonFileStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let mut storage = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
@@ -239,7 +239,7 @@ impl AsyncBlobStore for JsonFileStorage {
 /// `JsonFileStorage` is a key-value file, not a SQL database: every query
 /// method fails with `StorageError::Generic`.
 #[async_trait::async_trait]
-impl AsyncQueryStore for JsonFileStorage {
+impl QueryStore for JsonFileStorage {
     async fn query_async(
         &self,
         _sql: &str,
@@ -266,7 +266,7 @@ impl AsyncQueryStore for JsonFileStorage {
 /// Rate limiting is not supported by `JsonFileStorage`: every method fails
 /// with `StorageError::Generic`.
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for JsonFileStorage {
+impl RateLimiterStore for JsonFileStorage {
     async fn check_rate_limit_async(
         &self,
         _key: &str,

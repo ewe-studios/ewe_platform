@@ -6,7 +6,7 @@
 
 use chrono::Utc;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use foundation_db::{AsyncKeyValueStore, StorageError};
+use foundation_db::{KeyValueStore, StorageError};
 use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -43,14 +43,14 @@ fn challenge_key(challenge: &str) -> String {
 }
 
 /// Issues and verifies PoW challenges, keeping them in a shared async cache.
-pub struct PowService<KV: AsyncKeyValueStore> {
+pub struct PowService<KV: KeyValueStore> {
     cache: KV,
     difficulty: u32,
     validity_secs: u64,
     solve_validity_secs: u64,
 }
 
-impl<KV: AsyncKeyValueStore> PowService<KV> {
+impl<KV: KeyValueStore> PowService<KV> {
     #[must_use]
     pub fn new(
         cache: KV,

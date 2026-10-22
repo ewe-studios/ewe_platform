@@ -7,7 +7,7 @@
 //! backends without native vectors (the default `turso` crate has only scalar
 //! `vector_distance_*`).
 //!
-//! WHAT: [`LibsqlVectorStore`] over any [`AsyncQueryStore`] whose backend
+//! WHAT: [`LibsqlVectorStore`] over any [`QueryStore`] whose backend
 //! understands libSQL vector SQL (i.e. `foundation_db::LibsqlStore`).
 //! Implements [`AsyncVectorStore`] with dimension + namespace enforcement.
 //!
@@ -23,7 +23,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::{AsyncQueryStore, DataValue};
+use foundation_db::{QueryStore, DataValue};
 use futures_lite::StreamExt;
 
 use crate::flat::TopK;
@@ -52,13 +52,13 @@ impl Default for NamespaceStrategy {
     }
 }
 
-pub struct LibsqlVectorStore<Q: AsyncQueryStore + 'static> {
+pub struct LibsqlVectorStore<Q: QueryStore + 'static> {
     backend: Arc<Q>,
     config: VectorStoreConfig,
     strategy: NamespaceStrategy,
 }
 
-impl<Q: AsyncQueryStore + 'static> LibsqlVectorStore<Q> {
+impl<Q: QueryStore + 'static> LibsqlVectorStore<Q> {
     /// Open a store over `backend`, creating the vector table + `DiskANN` index.
     ///
     /// # Errors
@@ -144,7 +144,7 @@ fn parse_vec_str(s: &str) -> Result<Vec<f32>, VectorStoreError> {
 }
 
 #[async_trait::async_trait]
-impl<Q: AsyncQueryStore + 'static> AsyncVectorStore for LibsqlVectorStore<Q> {
+impl<Q: QueryStore + 'static> AsyncVectorStore for LibsqlVectorStore<Q> {
     async fn insert_async(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(entry.vector.dimension(), entry.vector.is_zero())?;
         let meta = serde_json::to_string(&entry.metadata).map_err(backend_err("encode metadata"))?;

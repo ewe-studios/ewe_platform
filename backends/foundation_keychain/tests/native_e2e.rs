@@ -10,7 +10,7 @@ use std::time::Duration;
 
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
-use foundation_db::core::storage_provider::AsyncQueryStore;
+use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_netio::http::SimpleHttpClient;
@@ -50,7 +50,7 @@ fn start_server() -> TestServer {
         async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })
     .expect("init turso");
-    let db: Arc<dyn AsyncQueryStore> = Arc::new(provider);
+    let db: Arc<dyn QueryStore> = Arc::new(provider);
     let d = Arc::clone(&db);
     drive(async move { apply_schema(d.as_ref()).await }).expect("apply schema");
 

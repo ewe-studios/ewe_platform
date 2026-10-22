@@ -7,7 +7,7 @@
 //! deactivate, POST set secret. Extended discovery document includes the
 //! `providers_supported` field listing available upstream providers.
 //!
-//! HOW: Async free functions taking `ProviderService<impl AsyncQueryStore>` + JSON bodies.
+//! HOW: Async free functions taking `ProviderService<impl QueryStore>` + JSON bodies.
 //! Registered as routes by `IdpServer::register_routes`.
 
 use serde::{Deserialize, Serialize};
@@ -17,7 +17,7 @@ use foundation_netio::shared::http::SendSafeBody;
 use super::super::config::IdpConfig;
 use super::super::models::provider::{ProviderType, ProviderUpdate, UpstreamProvider};
 use super::super::services::provider_service::ProviderService;
-use foundation_db::AsyncQueryStore;
+use foundation_db::QueryStore;
 
 use super::core::{HandlerResponse, IdpError};
 
@@ -118,7 +118,7 @@ pub fn extended_discovery(
 }
 
 /// GET /admin/providers
-pub async fn list_all<QS: AsyncQueryStore + ?Sized + 'static>(
+pub async fn list_all<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
 ) -> Result<HandlerResponse, IdpError> {
     let providers = svc.list_all().await.map_err(|e| IdpError::Internal(e.to_string()))?;
@@ -127,7 +127,7 @@ pub async fn list_all<QS: AsyncQueryStore + ?Sized + 'static>(
 }
 
 /// GET /admin/providers/{id}
-pub async fn get_one<QS: AsyncQueryStore + ?Sized + 'static>(
+pub async fn get_one<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
 ) -> Result<HandlerResponse, IdpError> {
@@ -139,7 +139,7 @@ pub async fn get_one<QS: AsyncQueryStore + ?Sized + 'static>(
 }
 
 /// POST /admin/providers
-pub async fn create<QS: AsyncQueryStore + ?Sized + 'static>(
+pub async fn create<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     body: CreateProviderRequest,
 ) -> Result<HandlerResponse, IdpError> {
@@ -183,7 +183,7 @@ pub async fn create<QS: AsyncQueryStore + ?Sized + 'static>(
 }
 
 /// PUT /admin/providers/{id}
-pub async fn update<QS: AsyncQueryStore + ?Sized + 'static>(
+pub async fn update<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
     body: CreateProviderRequest,
@@ -211,7 +211,7 @@ pub async fn update<QS: AsyncQueryStore + ?Sized + 'static>(
 }
 
 /// DELETE /admin/providers/{id}
-pub async fn delete<QS: AsyncQueryStore + ?Sized + 'static>(
+pub async fn delete<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
 ) -> Result<HandlerResponse, IdpError> {
@@ -220,7 +220,7 @@ pub async fn delete<QS: AsyncQueryStore + ?Sized + 'static>(
 }
 
 /// POST /admin/providers/{id}/secret
-pub async fn set_secret<QS: AsyncQueryStore + ?Sized + 'static>(
+pub async fn set_secret<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
     body: SetSecretRequest,

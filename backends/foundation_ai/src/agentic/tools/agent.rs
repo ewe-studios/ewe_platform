@@ -25,7 +25,7 @@ use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use foundation_core::valtron::Stream;
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
 use serde::{Deserialize, Serialize};
 
@@ -116,7 +116,7 @@ where
 #[allow(dead_code)]
 struct AgentRun<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     /// Opaque delegation id returned to the caller.
@@ -152,7 +152,7 @@ where
 /// The `agent` tool: `start` / `stop` / `pause` / `resume` / `check` / `result`.
 pub struct AgentTool<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     router: ProviderRouter,
@@ -170,7 +170,7 @@ where
 
 impl<D, M> AgentTool<D, M>
 where
-    D: AsyncDocumentStore + Default + 'static,
+    D: DocumentStore + Default + 'static,
     M: MemoryStore + Default + 'static,
 {
     /// Create a new agent tool whose sub-agents get default-constructed stores
@@ -204,7 +204,7 @@ where
 
 impl<D, M> AgentTool<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     /// Create a new agent tool whose sub-agents get their stores from
@@ -614,7 +614,7 @@ where
 #[async_trait]
 impl<D, M> ToolImpl for AgentTool<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     fn definition(&self) -> Tool {
@@ -761,7 +761,7 @@ pub fn register_agent_tool<D, M>(
     user: UserId,
     child_tools: Vec<Arc<dyn ToolImpl>>,
 ) where
-    D: AsyncDocumentStore + Default + 'static,
+    D: DocumentStore + Default + 'static,
     M: MemoryStore + Default + 'static,
 {
     register_agent_tool_with_stores::<D, M>(
@@ -791,7 +791,7 @@ pub fn register_agent_tool_with_stores<D, M>(
     child_tools: Vec<Arc<dyn ToolImpl>>,
     stores: Arc<dyn SessionStoreFactory<D, M>>,
 ) where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     let tool = AgentTool::<D, M>::with_store_factory(

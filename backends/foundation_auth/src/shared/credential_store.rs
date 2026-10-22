@@ -6,7 +6,7 @@
 //! covers every backend `foundation_db` supports.
 //!
 //! `StorageProvider` implements only the async storage traits, and
-//! [`AsyncCredentialStore`] — the only credential trait — maps onto them
+//! [`CredentialStore`] — the only credential trait — maps onto them
 //! directly. Its futures are `Send` natively (so they run on valtron's thread
 //! pool) and `?Send` on wasm, where the D1 bindings hold JS values.
 
@@ -14,7 +14,7 @@ use std::sync::Arc;
 
 #[cfg(feature = "turso")]
 use foundation_db::StorageBackend;
-use foundation_db::{core::AsyncKeyValueStore, StorageError, StorageProvider};
+use foundation_db::{core::KeyValueStore, StorageError, StorageProvider};
 use serde::{Deserialize, Serialize};
 
 use crate::shared::oauth_token::OAuthToken;
@@ -27,7 +27,7 @@ use crate::shared::oauth_token::OAuthToken;
 /// wasm.
 #[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
 #[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
-pub trait AsyncCredentialStore: Sync {
+pub trait CredentialStore: Sync {
     /// Get a credential by key.
     async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
         &self,
@@ -84,7 +84,7 @@ impl std::error::Error for CredentialStoreError {}
 ///
 /// The backend (Turso, libsql, D1, R2, JSON file, in-memory) is chosen when
 /// the underlying [`StorageProvider`] is constructed. This type adapts it to
-/// [`AsyncCredentialStore`].
+/// [`CredentialStore`].
 pub struct CredentialStorage {
     storage: Arc<StorageProvider>,
 }
@@ -129,7 +129,7 @@ impl CredentialStorage {
 
 #[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
 #[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
-impl AsyncCredentialStore for CredentialStorage {
+impl CredentialStore for CredentialStorage {
     async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
         &self,
         key: &str,
@@ -177,7 +177,7 @@ impl AsyncCredentialStore for CredentialStorage {
 /// Helper methods for OAuth token storage.
 #[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
 #[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
-pub trait OAuthTokenStore: AsyncCredentialStore {
+pub trait OAuthTokenStore: CredentialStore {
     /// Store OAuth tokens for a provider.
     ///
     /// # Errors
@@ -273,7 +273,7 @@ impl OAuthState {
 }
 
 // Blanket impl: any credential store picks up the OAuth helpers for free.
-impl<T: AsyncCredentialStore + ?Sized> OAuthTokenStore for T {}
+impl<T: CredentialStore + ?Sized> OAuthTokenStore for T {}
 
 /// Credential wrapper for secure storage.
 #[derive(Debug, Clone, Serialize, Deserialize)]

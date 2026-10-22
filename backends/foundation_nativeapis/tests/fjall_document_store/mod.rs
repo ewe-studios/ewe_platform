@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::traits::{AsyncDocumentStore, PromotableDocument};
+use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_nativeapis::shared::vfs::fjall_fs::InodeFs;
 use foundation_nativeapis::{DurabilityWriteConfig, FjallDocumentStore, MemoryFs, VfsFileSystem};
 

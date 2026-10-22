@@ -26,7 +26,7 @@ neighbor query you must:
    (`flat_top_k`) — compute the distance from the query to every fetched vector and
    keep the best k.
 
-This is exactly what F29's **`SqlVectorStore<Q: AsyncQueryStore>` (an `AsyncVectorStore`)** does, and it's why
+This is exactly what F29's **`SqlVectorStore<Q: QueryStore>` (an `AsyncVectorStore`)** does, and it's why
 the CF D1 vector path needs *no new backend*: `SqlVectorStore` over a D1 query store
 stores vectors in a SQL table and re-ranks with flat search. (D1 is SQLite, so the
 same generic that serves Turso/libSQL serves D1.) The rows are ranked as they

@@ -1,7 +1,7 @@
 //! `MemoryCoordinator` — bridges the latest-memory cache to the audit log (F07).
 //!
 //! WHY: [`MemoryStore`] is a **dumb cache** (latest memory record per tier) and the
-//! append-only document store ([`AsyncDocumentStore`]) is the **source of truth** (every memory record is
+//! append-only document store ([`DocumentStore`]) is the **source of truth** (every memory record is
 //! also appended for replay, Decision 03). Something has to keep them consistent:
 //! the `MemoryCoordinator` (held by `AgentSession`, F20) owns both and is the only
 //! thing that bridges them — `MemoryStore` never wraps `DocumentStore` (OD-07-3).
@@ -20,7 +20,7 @@
 use std::sync::Arc;
 
 use foundation_compact::SendWrapper;
-use foundation_db::traits::{AsyncDocumentStore, PromotableDocument};
+use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_db::StorageResult;
 use futures_lite::StreamExt;
 
@@ -71,14 +71,14 @@ fn tier_ref(memory: &SessionMemory, tier: MemoryTier) -> Option<&SessionRecord> 
 
 /// Owns the latest-memory cache + the audit log and keeps them consistent.
 ///
-/// `M` is any [`MemoryStore`]; `D` is any [`AsyncDocumentStore`] (the audit log). The
+/// `M` is any [`MemoryStore`]; `D` is any [`DocumentStore`] (the audit log). The
 /// audit log uses one collection per session, `session:{session_id}`.
 pub struct MemoryCoordinator<M, D> {
     memory: Arc<M>,
     audit: Arc<D>,
 }
 
-impl<M: MemoryStore, D: AsyncDocumentStore> MemoryCoordinator<M, D> {
+impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     /// Create a coordinator over a cache + an audit `DocumentStore`.
     pub fn new(memory: M, audit: D) -> Self {
         Self::from_shared(Arc::new(memory), Arc::new(audit))

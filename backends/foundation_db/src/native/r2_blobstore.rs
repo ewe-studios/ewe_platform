@@ -3,11 +3,11 @@
 //! WHY: R2 is Cloudflare's S3-compatible object storage - ideal for binary blobs
 //! and JSON resource state.
 //!
-//! WHAT: `R2Store` implements `AsyncBlobStore` and `StateStore` for Cloudflare R2.
+//! WHAT: `R2Store` implements `BlobStore` and `StateStore` for Cloudflare R2.
 //! Every operation is async; listings are paged through R2's cursor.
 //!
 //! HOW: Different constructors for different usage modes:
-//!   - `R2Store::new_blob()` — `AsyncBlobStore` (raw binary, key: `{prefix}/key`)
+//!   - `R2Store::new_blob()` — `BlobStore` (raw binary, key: `{prefix}/key`)
 //!   - `R2Store::new_state()` — `StateStore` (JSON objects, key: `{project}/{stage}/{id}.json`)
 
 use futures_lite::{StreamExt, stream};
@@ -18,7 +18,7 @@ use foundation_netio::shared::http::{SimpleHeader, Status};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::ResourceState;
-use crate::core::storage_provider::AsyncBlobStore;
+use crate::core::storage_provider::BlobStore;
 
 /// Default Cloudflare API base. Tests override via `R2Store::with_base_url`.
 pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
@@ -67,7 +67,7 @@ impl R2Store {
         }
     }
 
-    /// `AsyncBlobStore` from environment.
+    /// `BlobStore` from environment.
     ///
     /// # Errors
     ///
@@ -387,11 +387,11 @@ fn query_escape(value: &str) -> String {
 }
 
 // ===========================================================================
-// AsyncBlobStore
+// BlobStore
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for R2Store {
+impl BlobStore for R2Store {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         self.put_object_async(&self.blob_object_key(key), data, "application/octet-stream").await
     }

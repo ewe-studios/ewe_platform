@@ -23,7 +23,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
 
 use crate::agentic::context::{ContextProvider, KnowledgeHit, SearchMode};
@@ -59,7 +59,7 @@ pub trait ContextSearch: Send + Sync {
 }
 
 #[async_trait]
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> ContextSearch for ContextProvider<D, M> {
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ContextSearch for ContextProvider<D, M> {
     fn session_id(&self) -> &SessionId {
         ContextProvider::session_id(self)
     }
@@ -91,7 +91,7 @@ pub trait MemoryAccess: Send + Sync {
 }
 
 #[async_trait]
-impl<M: MemoryStore + 'static, D: AsyncDocumentStore + 'static> MemoryAccess for MemoryHierarchy<M, D> {
+impl<M: MemoryStore + 'static, D: DocumentStore + 'static> MemoryAccess for MemoryHierarchy<M, D> {
     fn session_id(&self) -> &SessionId {
         MemoryHierarchy::session_id(self)
     }

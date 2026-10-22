@@ -295,7 +295,7 @@ async fn test_logout_with_session_manager() {
     let (session, _) = mgr
         .session_manager()
         .unwrap()
-        .create_session_async("test_user", None, None)
+        .create_session("test_user", None, None)
         .await
         .unwrap();
 
@@ -309,7 +309,7 @@ async fn test_logout_with_session_manager() {
     let revoked = mgr
         .session_manager()
         .unwrap()
-        .revoke_all_sessions_async("test_user")
+        .revoke_all_sessions("test_user")
         .await
         .unwrap();
     assert_eq!(revoked, 0, "logout already revoked session {}", session.id);

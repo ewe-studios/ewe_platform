@@ -22,7 +22,7 @@ it has two properties that dominate every storage decision:
    and stateless; all durable state lives in *bindings* to managed services.
 
 So the canonical storage trait on Workers is the **async** one
-(`AsyncDocumentStore`). There is no synchronous view on Workers at all (§7).
+(`DocumentStore`). There is no synchronous view on Workers at all (§7).
 This is the house rule across the platform: **async holds the real logic; sync
 is a boundary view over it, only where blocking is possible.**
 
@@ -105,10 +105,10 @@ best-effort cache.** Pick the store to the job.
 
 ## 5. `D1R2DocumentStore` — transparent blob offload
 
-Putting D1 and R2 together behind one `AsyncDocumentStore`:
+Putting D1 and R2 together behind one `DocumentStore`:
 
 ```rust
-pub struct D1R2DocumentStore<Q, B> {   // Q: AsyncQueryStore, B: AsyncBlobStore
+pub struct D1R2DocumentStore<Q, B> {   // Q: QueryStore, B: BlobStore
     query_store: Q,   // D1 (the ordered index)
     blob_store: B,    // R2 (large payloads)
     table: String,
@@ -144,7 +144,7 @@ does the heavy lifting.
 ## 6. Why the store is generic (and how we test it)
 
 `D1R2DocumentStore<Q, B>` is **target-agnostic**: it depends only on the
-`AsyncQueryStore` + `AsyncBlobStore` traits, not on any wasm type. That buys two
+`QueryStore` + `BlobStore` traits, not on any wasm type. That buys two
 things:
 
 - **On Cloudflare**, instantiate it as
@@ -172,7 +172,7 @@ is what makes both possible.
 
 Workers force async, and the platform rule is the same everywhere: **storage is
 async, and so is the code that calls it.** Backends implement only the
-`Async*` traits (`AsyncDocumentStore` here); there are no sync storage traits
+`Async*` traits (`DocumentStore` here); there are no sync storage traits
 and no sync wrapper. Code that must be sync (a `main`, an OS thread) is the
 one place that waits, with valtron's `block_on_future` / `.block()` behind
 `blocking_boundary!`.
@@ -205,12 +205,12 @@ only ever serve keyed lookups where eventual consistency is acceptable.
 ## TL;DR
 
 - Workers are async, single-threaded, diskless → the canonical store is
-  `AsyncDocumentStore`; sync wraps it via valtron.
+  `DocumentStore`; sync wraps it via valtron.
 - **D1 = SQLite** → ordered, range-queryable, read-after-write: the backbone.
   Add an `exec()` binding because D1 has no batch DDL.
 - **R2 = object storage** → holds documents over 4 KB; D1 keeps the row + `r2_key`.
 - **KV = eventually-consistent cache** → never a DocumentStore backend; it's the
   F07 MemoryStore cache only.
-- `D1R2DocumentStore<Q, B>` is generic over `AsyncQueryStore` + `AsyncBlobStore`,
+- `D1R2DocumentStore<Q, B>` is generic over `QueryStore` + `BlobStore`,
   so the same code runs on CF bindings, on native REST clients (miniflare tests),
   and on in-memory backends (CI conformance).

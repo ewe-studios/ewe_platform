@@ -1,7 +1,7 @@
 //! `CredentialStorage` tests — Turso backend, async (`#[valtron_test]`).
 
 use foundation_auth::shared::credential_store::{
-    AsyncCredentialStore, CredentialStorage, OAuthTokenStore, StoredCredential,
+    CredentialStore, CredentialStorage, OAuthTokenStore, StoredCredential,
 };
 use foundation_auth::shared::oauth_token::OAuthToken;
 use foundation_db::{StorageBackend, StorageProvider};

@@ -11,6 +11,6 @@ pub mod session;
 #[cfg(feature = "wasm-bindgen-session")]
 pub mod d1_credential_store;
 
-/// AsyncCredentialStore impl for D1WasmStorage (gated behind `wasm-bindgen-session` feature).
+/// CredentialStore impl for D1WasmStorage (gated behind `wasm-bindgen-session` feature).
 #[cfg(feature = "wasm-bindgen-session")]
 pub mod async_credential_store;

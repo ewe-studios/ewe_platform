@@ -24,8 +24,8 @@ use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{status_column_value, ResourceState, StateStatus};
 use crate::core::crypto::ZeroizingString;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStream, AsyncQueryStore,
-    AsyncRateLimiterStore, DataValue, SqlRow,
+    BlobStore, KeyValueStore, AsyncListStream, AsyncQueryStream, QueryStore,
+    RateLimiterStore, DataValue, SqlRow,
 };
 
 /// Default Cloudflare API base. Tests override via `D1Store::with_base_url`.
@@ -456,7 +456,7 @@ const D1_STATE_COLUMNS: &str =
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for D1Store {
+impl KeyValueStore for D1Store {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
         let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
@@ -519,7 +519,7 @@ impl AsyncKeyValueStore for D1Store {
 }
 
 #[async_trait::async_trait]
-impl AsyncQueryStore for D1Store {
+impl QueryStore for D1Store {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
             DataValue::Null => serde_json::Value::Null,
@@ -574,7 +574,7 @@ impl AsyncQueryStore for D1Store {
 }
 
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for D1Store {
+impl RateLimiterStore for D1Store {
     async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         rate_limit::sql_check(self, key, max_count, window_seconds).await
     }
@@ -589,7 +589,7 @@ impl AsyncRateLimiterStore for D1Store {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for D1Store {
+impl BlobStore for D1Store {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = STANDARD.encode(data);
         let json_value = serde_json::json!({ "type": "blob", "encoding": "base64", "data": encoded }).to_string();

@@ -10,7 +10,7 @@ fn main() {
 
     use foundation_core::synca::OnSignal;
     use foundation_core::valtron::{block_on_future, initialize_pool, BlockingFutureExt};
-    use foundation_db::core::storage_provider::AsyncQueryStore;
+    use foundation_db::core::storage_provider::QueryStore;
     use foundation_db::{StorageBackend, StorageProvider};
     use foundation_http::native::server::{HttpServer, ServerConfig};
     use foundation_keychain::core::store::apply_schema;
@@ -28,7 +28,7 @@ fn main() {
         async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })
     .expect("open keychain database");
-    let db: Arc<dyn AsyncQueryStore> = Arc::new(provider);
+    let db: Arc<dyn QueryStore> = Arc::new(provider);
 
     let schema_db = Arc::clone(&db);
     block_on_future(async move { apply_schema(schema_db.as_ref()).await })

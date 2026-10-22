@@ -1,9 +1,9 @@
-//! Async SQL `AsyncDocumentStore` conformance (F22b), against the real Turso
+//! Async SQL `DocumentStore` conformance (F22b), against the real Turso
 //! (`SQLite`) backend — proves `SqlDocumentStore<TursoStorage>` matches the
 //! in-memory + sync-SQL semantics (scru128 ordering, inclusive `scan_from`,
 //! promoted columns) and that scans are pulled lazily via `.next().await`.
 
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_core::valtron::BlockingFutureExt;
 use foundation_db::{SqlDocumentStore, StorageError, TursoStorage};
 use futures_lite::StreamExt;

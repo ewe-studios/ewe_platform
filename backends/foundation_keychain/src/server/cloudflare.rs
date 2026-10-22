@@ -21,7 +21,7 @@
 use std::sync::{Arc, Mutex};
 
 use foundation_auth::shared::jwt::JwtSigningKey;
-use foundation_db::core::storage_provider::AsyncQueryStore;
+use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use worker::{event, Context, Env, Request, Response, Result as WorkerResult};
 
@@ -111,7 +111,7 @@ async fn build_context(env: &Env) -> Result<KeychainContext, String> {
         .await
         .map_err(|e| format!("schema init: {e:?}"))?;
 
-    let store: Arc<dyn AsyncQueryStore> = Arc::new(provider);
+    let store: Arc<dyn QueryStore> = Arc::new(provider);
     apply_schema(store.as_ref())
         .await
         .map_err(|e| format!("vault schema: {e}"))?;

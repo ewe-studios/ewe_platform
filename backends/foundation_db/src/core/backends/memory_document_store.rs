@@ -5,13 +5,13 @@
 //! scan — NOT a separate sequence counter and NOT `"mem-{seq}"` ids (which sort
 //! incorrectly: `"mem-10" < "mem-2"`). This matches the SQL backend (F06 Part 0).
 //!
-//! It implements only [`AsyncDocumentStore`], like every other store; its
+//! It implements only [`DocumentStore`], like every other store; its
 //! futures resolve at once (there is no I/O). The read/write logic lives in private helpers
 //! (`put`, `collect_rows`, `remove_*`, `count_rows`).
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncDocumentStore, AsyncStorageItemStream, Document, PromotableDocument,
+    DocumentStore, AsyncStorageItemStream, Document, PromotableDocument,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
@@ -172,7 +172,7 @@ fn rows_to_async<V: DeserializeOwned + Send + 'static>(
 /// an [`AsyncStorageItemStream`] over a snapshot of the matching rows;
 /// ordering, ids and promoted columns match the SQL backend.
 #[async_trait::async_trait]
-impl AsyncDocumentStore for MemoryDocumentStore {
+impl DocumentStore for MemoryDocumentStore {
     async fn append_async<V: Serialize + Send + 'static>(
         &self,
         key: &str,

@@ -13,8 +13,8 @@ use super::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore, DataValue,
+    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
+    RateLimiterStore, DataValue,
 };
 
 /// In-memory JSON key-value store.
@@ -51,7 +51,7 @@ impl Default for MemoryJsonStore {
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for MemoryJsonStore {
+impl KeyValueStore for MemoryJsonStore {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.lock()?;
         match data.get(key) {
@@ -96,7 +96,7 @@ impl AsyncKeyValueStore for MemoryJsonStore {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for MemoryJsonStore {
+impl BlobStore for MemoryJsonStore {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data);
         let json = serde_json::json!({ "type": "blob", "data": encoded }).to_string();
@@ -138,7 +138,7 @@ impl AsyncBlobStore for MemoryJsonStore {
 }
 
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for MemoryJsonStore {
+impl RateLimiterStore for MemoryJsonStore {
     async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -183,7 +183,7 @@ impl AsyncRateLimiterStore for MemoryJsonStore {
 /// `MemoryJsonStore` has no SQL engine, so every query method fails with
 /// `StorageError::Generic`.
 #[async_trait::async_trait]
-impl AsyncQueryStore for MemoryJsonStore {
+impl QueryStore for MemoryJsonStore {
     async fn query_async(
         &self,
         _sql: &str,

@@ -4,11 +4,11 @@
 //! at rest. The IdP admin API (feature 06) and the social login flow (feature
 //! 04) both go through this service.
 //!
-//! WHAT: `ProviderService<QS>` (storage-backed CRUD over `AsyncQueryStore`) and
+//! WHAT: `ProviderService<QS>` (storage-backed CRUD over `QueryStore`) and
 //! `ProviderCrypto` (ChaCha20-Poly1305 AEAD, key derived from a secret via
 //! Argon2id).
 //!
-//! HOW: `AsyncQueryStore` is the persistence seam (matches the rest of the
+//! HOW: `QueryStore` is the persistence seam (matches the rest of the
 //! IdP server storage layer). Secrets are stored as `nonce || ciphertext` in a
 //! BLOB column. The 32-byte AEAD key is derived once from `PROVIDER_SECRET_KEY`
 //! (or an explicit passphrase) via Argon2id with a fixed context salt, so the
@@ -23,7 +23,7 @@ use chacha20poly1305::{
 use chrono::Utc;
 use foundation_compact::rng::Rng;
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, AsyncQueryStream, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, AsyncQueryStream, DataValue, SqlRow};
 use futures_lite::StreamExt;
 
 use crate::shared::password_hash::argon2id_derive;
@@ -161,12 +161,12 @@ impl ProviderCrypto {
 }
 
 /// Storage-backed CRUD for upstream providers.
-pub struct ProviderService<QS: AsyncQueryStore + ?Sized + 'static> {
+pub struct ProviderService<QS: QueryStore + ?Sized + 'static> {
     query_store: Arc<QS>,
     crypto: ProviderCrypto,
 }
 
-impl<QS: AsyncQueryStore + ?Sized + 'static> ProviderService<QS> {
+impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// Create a service over a query store and a crypto wrapper.
     pub fn new(query_store: Arc<QS>, crypto: ProviderCrypto) -> Self {
         Self {

@@ -21,7 +21,7 @@ use std::sync::Arc;
 use foundation_auth::shared::jwt::{
     JwtAlgorithm, JwtSigningKey, JwtVerifier, JwtVerifierConfig, PublicKeySource,
 };
-use foundation_db::core::storage_provider::AsyncQueryStore;
+use foundation_db::core::storage_provider::QueryStore;
 
 use crate::core::auth::ISSUER;
 
@@ -29,7 +29,7 @@ use crate::core::auth::ISSUER;
 #[derive(Clone)]
 pub struct KeychainContext {
     /// Relational store (Turso on native, D1 on wasm) — the vault's system of record.
-    db: Arc<dyn AsyncQueryStore>,
+    db: Arc<dyn QueryStore>,
     /// Server JWT signing key — mints access/refresh tokens.
     signing_key: Arc<JwtSigningKey>,
     /// Verifier derived from the signing key's public key — checks incoming tokens.
@@ -40,7 +40,7 @@ impl KeychainContext {
     /// Build a context over the given async SQL store with a fresh ephemeral
     /// Ed25519 signing key.
     #[must_use]
-    pub fn new(db: Arc<dyn AsyncQueryStore>) -> Self {
+    pub fn new(db: Arc<dyn QueryStore>) -> Self {
         Self::with_signing_key(db, JwtSigningKey::generate_ed25519())
     }
 
@@ -52,7 +52,7 @@ impl KeychainContext {
     /// this only happens on an internally-inconsistent key and is not reachable
     /// with `JwtSigningKey::generate_ed25519()` or a valid loaded key.
     #[must_use]
-    pub fn with_signing_key(db: Arc<dyn AsyncQueryStore>, signing_key: JwtSigningKey) -> Self {
+    pub fn with_signing_key(db: Arc<dyn QueryStore>, signing_key: JwtSigningKey) -> Self {
         let verifier = build_verifier(&signing_key).expect("derive verifier from signing key");
         Self {
             db,
@@ -63,7 +63,7 @@ impl KeychainContext {
 
     /// The relational store handlers query.
     #[must_use]
-    pub fn db(&self) -> &dyn AsyncQueryStore {
+    pub fn db(&self) -> &dyn QueryStore {
         self.db.as_ref()
     }
 

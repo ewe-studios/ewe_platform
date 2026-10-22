@@ -4,7 +4,7 @@
 //! `Blocking` view and expose async VFS traits that blocked inside async code.
 //! The stores are async-only, so the delta is too: [`BlobDelta`] implements
 //! [`AsyncVfsFileSystem`] and [`AsyncDeltaStore`] by awaiting
-//! [`AsyncBlobStore`]. Sync callers wrap it in
+//! [`BlobStore`]. Sync callers wrap it in
 //! [`SyncFs`](crate::shared::vfs::sync_bridge::SyncFs), the VFS's sync
 //! boundary.
 //!
@@ -25,7 +25,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 use async_trait::async_trait;
-use foundation_db::{AsyncBlobStore, StorageError};
+use foundation_db::{BlobStore, StorageError};
 use foundation_errstacks::ErrorTrace;
 
 use crate::shared::vfs::async_traits::{
@@ -101,12 +101,12 @@ fn new_meta(path: &str, size: u64, file_type: VfsFileType, permissions: u32) -> 
 }
 
 /// A delta store over an async blob store. See the module docs.
-pub struct BlobDelta<S: AsyncBlobStore + 'static> {
+pub struct BlobDelta<S: BlobStore + 'static> {
     store: Arc<S>,
     capabilities: VfsCapabilities,
 }
 
-impl<S: AsyncBlobStore + 'static> Clone for BlobDelta<S> {
+impl<S: BlobStore + 'static> Clone for BlobDelta<S> {
     fn clone(&self) -> Self {
         Self {
             store: Arc::clone(&self.store),
@@ -115,7 +115,7 @@ impl<S: AsyncBlobStore + 'static> Clone for BlobDelta<S> {
     }
 }
 
-impl<S: AsyncBlobStore + 'static> BlobDelta<S> {
+impl<S: BlobStore + 'static> BlobDelta<S> {
     /// A delta over `store`.
     #[must_use]
     pub fn from_store(store: S) -> Self {
@@ -328,14 +328,14 @@ impl<S: AsyncBlobStore + 'static> BlobDelta<S> {
 
 /// A file in a [`BlobDelta`]. Reads and writes go to the store; the seekable
 /// methods keep a cursor.
-pub struct BlobFile<S: AsyncBlobStore + 'static> {
+pub struct BlobFile<S: BlobStore + 'static> {
     path: String,
     mode: OpenMode,
     pos: u64,
     delta: BlobDelta<S>,
 }
 
-impl<S: AsyncBlobStore + 'static> BlobFile<S> {
+impl<S: BlobStore + 'static> BlobFile<S> {
     fn check_writable(&self) -> VfsResult<()> {
         if self.mode == OpenMode::Read {
             return Err(ErrorTrace::new(VfsError::ReadOnly));
@@ -349,7 +349,7 @@ impl<S: AsyncBlobStore + 'static> BlobFile<S> {
 }
 
 #[async_trait]
-impl<S: AsyncBlobStore + 'static> AsyncVfsFile for BlobFile<S> {
+impl<S: BlobStore + 'static> AsyncVfsFile for BlobFile<S> {
     async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
         let data = self.content().await?;
         let start = to_usize(offset)?;
@@ -395,7 +395,7 @@ impl<S: AsyncBlobStore + 'static> AsyncVfsFile for BlobFile<S> {
 }
 
 #[async_trait]
-impl<S: AsyncBlobStore + 'static> AsyncSeekableVfsFile for BlobFile<S> {
+impl<S: BlobStore + 'static> AsyncSeekableVfsFile for BlobFile<S> {
     async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>> {
         let data = self.read_at_async(len, self.pos).await?;
         self.pos += data.len() as u64;
@@ -432,13 +432,13 @@ impl<S: AsyncBlobStore + 'static> AsyncSeekableVfsFile for BlobFile<S> {
 }
 
 /// A directory in a [`BlobDelta`].
-pub struct BlobDirectory<S: AsyncBlobStore + 'static> {
+pub struct BlobDirectory<S: BlobStore + 'static> {
     path: String,
     delta: BlobDelta<S>,
 }
 
 #[async_trait]
-impl<S: AsyncBlobStore + 'static> AsyncVfsDirectory for BlobDirectory<S> {
+impl<S: BlobStore + 'static> AsyncVfsDirectory for BlobDirectory<S> {
     type File = BlobFile<S>;
     type SeekableFile = BlobFile<S>;
 
@@ -518,7 +518,7 @@ impl<S: AsyncBlobStore + 'static> AsyncVfsDirectory for BlobDirectory<S> {
 }
 
 #[async_trait]
-impl<S: AsyncBlobStore + 'static> AsyncVfsFileSystem for BlobDelta<S> {
+impl<S: BlobStore + 'static> AsyncVfsFileSystem for BlobDelta<S> {
     type File = BlobFile<S>;
     type SeekableFile = BlobFile<S>;
     type Directory = BlobDirectory<S>;
@@ -579,7 +579,7 @@ impl<S: AsyncBlobStore + 'static> AsyncVfsFileSystem for BlobDelta<S> {
 }
 
 #[async_trait]
-impl<S: AsyncBlobStore + 'static> AsyncDeltaStore for BlobDelta<S> {
+impl<S: BlobStore + 'static> AsyncDeltaStore for BlobDelta<S> {
     async fn add_whiteout_async(&self, path: String, version: u64) -> VfsResult<()> {
         self.add_whiteout(&path, version).await
     }

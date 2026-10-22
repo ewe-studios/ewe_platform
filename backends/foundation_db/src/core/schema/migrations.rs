@@ -1,12 +1,12 @@
 //! Database migrations for `foundation_db`.
 //!
 //! [`MigrationRunner::run_async`] applies pending migrations over any
-//! [`AsyncQueryStore`] (Turso, libsql, D1, …), recording each in `_migrations`.
+//! [`QueryStore`] (Turso, libsql, D1, …), recording each in `_migrations`.
 
 use futures_lite::StreamExt;
 
 use crate::core::errors::StorageResult;
-use crate::core::storage_provider::{AsyncQueryStore, DataValue};
+use crate::core::storage_provider::{QueryStore, DataValue};
 
 /// A single database migration.
 pub struct Migration {
@@ -156,7 +156,7 @@ impl<'a> MigrationRunner<'a> {
     /// # Errors
     ///
     /// Returns an error if any migration SQL statement fails.
-    pub async fn run_async(&self, store: &dyn AsyncQueryStore) -> StorageResult<usize> {
+    pub async fn run_async(&self, store: &dyn QueryStore) -> StorageResult<usize> {
         // Ensure the migrations tracking table exists
         store.execute_batch_async(
             "CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))"

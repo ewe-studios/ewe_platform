@@ -34,8 +34,8 @@ use crate::core::errors::StorageResult;
 #[allow(unused_imports)] // used only in R2 match arms
 use crate::core::errors::StorageError;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStream, AsyncQueryStore,
-    AsyncRateLimiterStore, DataValue,
+    BlobStore, KeyValueStore, AsyncListStream, AsyncQueryStream, QueryStore,
+    RateLimiterStore, DataValue,
 };
 
 /// Storage backend enumeration for runtime selection.
@@ -250,7 +250,7 @@ impl StorageProvider {
 }
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for StorageProvider {
+impl KeyValueStore for StorageProvider {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
@@ -394,7 +394,7 @@ impl AsyncKeyValueStore for StorageProvider {
 }
 
 #[async_trait::async_trait]
-impl AsyncQueryStore for StorageProvider {
+impl QueryStore for StorageProvider {
     async fn query_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
@@ -505,7 +505,7 @@ impl AsyncQueryStore for StorageProvider {
 }
 
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for StorageProvider {
+impl RateLimiterStore for StorageProvider {
     async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -614,7 +614,7 @@ impl AsyncRateLimiterStore for StorageProvider {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for StorageProvider {
+impl BlobStore for StorageProvider {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]

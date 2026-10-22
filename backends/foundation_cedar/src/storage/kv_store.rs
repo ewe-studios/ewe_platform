@@ -1,16 +1,16 @@
-use foundation_db::AsyncKeyValueStore;
+use foundation_db::KeyValueStore;
 
 use super::traits::PolicyStore;
 use crate::core::errors::CedarError;
 
 /// Policies, schema, entities and version kept under `{namespace}:{key}` in an
 /// async key-value store.
-pub struct KvPolicyStore<'a, S: AsyncKeyValueStore> {
+pub struct KvPolicyStore<'a, S: KeyValueStore> {
     store: &'a S,
     namespace: String,
 }
 
-impl<'a, S: AsyncKeyValueStore> KvPolicyStore<'a, S> {
+impl<'a, S: KeyValueStore> KvPolicyStore<'a, S> {
     #[must_use]
     pub fn new(store: &'a S, namespace: &str) -> Self {
         Self {
@@ -38,7 +38,7 @@ impl<'a, S: AsyncKeyValueStore> KvPolicyStore<'a, S> {
 }
 
 #[async_trait::async_trait]
-impl<S: AsyncKeyValueStore> PolicyStore for KvPolicyStore<'_, S> {
+impl<S: KeyValueStore> PolicyStore for KvPolicyStore<'_, S> {
     async fn load_policies(&self) -> Result<String, CedarError> {
         self.load_required("policies").await
     }
@@ -56,7 +56,7 @@ impl<S: AsyncKeyValueStore> PolicyStore for KvPolicyStore<'_, S> {
     }
 }
 
-impl<S: AsyncKeyValueStore> core::fmt::Debug for KvPolicyStore<'_, S> {
+impl<S: KeyValueStore> core::fmt::Debug for KvPolicyStore<'_, S> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("KvPolicyStore")
             .field("namespace", &self.namespace)

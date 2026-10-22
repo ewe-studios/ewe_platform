@@ -45,13 +45,13 @@ covered by semver.
 ## Architecture
 
 ```
-AgentSession<D: AsyncDocumentStore, M: MemoryStore> (agentic/session.rs)
+AgentSession<D: DocumentStore, M: MemoryStore> (agentic/session.rs)
   │  run_turn / run_turn_stream / steer / follow_up / abort / end / resume
   │
   └─ per turn: AgentLoop  — a Valtron TaskIterator   (agentic/agent_loop.rs)
        ├─ ProviderRouter      ModelId → RoutableProvider → Box<dyn Model>
        ├─ ContextProvider     system prompt + memory tiers + recent messages
-       ├─ MessageApi<D>       append-only session log over an AsyncDocumentStore
+       ├─ MessageApi<D>       append-only session log over an DocumentStore
        ├─ ToolCallManager     tool registry, built from the session's ToolShed; offers `shed` + activated tools
        ├─ MemoryHierarchy     memory tiers + trigger thresholds
        ├─ SteeringQueues      priority / follow-up queues + cancel signal

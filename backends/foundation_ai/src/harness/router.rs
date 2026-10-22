@@ -34,7 +34,7 @@
 //! model id to that name, and remembers which role the model fills. `build()`
 //! folds everything into a [`ProviderRouter`] via its builder.
 
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 
 use crate::agentic::{AgentSession, AgentSessionBuilder, MemoryStore};
 use crate::types::{
@@ -203,7 +203,7 @@ impl RouterPreset {
         memory_store: M,
     ) -> AgentSessionBuilder<D, M>
     where
-        D: AsyncDocumentStore + 'static,
+        D: DocumentStore + 'static,
         M: MemoryStore + 'static,
     {
         self.into_agent_builder()

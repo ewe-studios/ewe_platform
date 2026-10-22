@@ -3,7 +3,7 @@
 //! WHY: Every interaction must be durably recorded, replayable, and observable
 //! in real time — without per-record disk latency stalling the agent loop.
 //!
-//! WHAT: `Arc<MessageInner>` over an [`AsyncDocumentStore`] (F06), a bounded
+//! WHAT: `Arc<MessageInner>` over an [`DocumentStore`] (F06), a bounded
 //! write buffer that the agent loop flushes, and `&self` pub/sub for listeners. Semantic search is optional
 //! (gated behind vector-store/embedding providers; the core append/flush/pub-sub
 //! works without them).
@@ -15,7 +15,7 @@ use concurrent_queue::ConcurrentQueue;
 use foundation_compact::SendWrapper;
 pub use foundation_core::synca::mpp::Receiver;
 use foundation_core::synca::mpp::TrackedBroadcaster;
-use foundation_db::traits::{AsyncDocumentStore, Document};
+use foundation_db::traits::{DocumentStore, Document};
 use foundation_db::{StorageError, StorageResult};
 use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -147,7 +147,7 @@ impl Drop for FlushGuard<'_> {
     }
 }
 
-impl<D: AsyncDocumentStore> MessageInner<D> {
+impl<D: DocumentStore> MessageInner<D> {
     /// Flush all buffered records to the document store.
     ///
     /// On a store error the failing record is kept for the next flush (see
@@ -349,7 +349,7 @@ impl<D> MessageApi<D> {
     }
 }
 
-impl<D: AsyncDocumentStore> MessageApi<D> {
+impl<D: DocumentStore> MessageApi<D> {
     /// Flush all buffered records to the document store now.
     ///
     /// Returns the number written. If another flush is already running this

@@ -1,7 +1,7 @@
 //! Core storage traits and types.
 //!
-//! Every storage trait is async (`AsyncKeyValueStore`, `AsyncBlobStore`,
-//! `AsyncQueryStore`, `AsyncRateLimiterStore`, `AsyncDocumentStore`).
+//! Every storage trait is async (`KeyValueStore`, `BlobStore`,
+//! `QueryStore`, `RateLimiterStore`, `DocumentStore`).
 //! Single values are awaited directly; multi-row results are lazily pulled
 //! async streams ([`AsyncStorageItemStream`], [`AsyncQueryStream`],
 //! [`AsyncListStream`]), never collected into memory by the store. A sync
@@ -201,7 +201,7 @@ impl FromDataValue for bool {
 }
 
 // ===========================================================================
-// Async stream types — returned by AsyncQueryStore and AsyncKeyValueStore
+// Async stream types — returned by QueryStore and KeyValueStore
 // ===========================================================================
 
 /// An async stream of SQL rows from a query.
@@ -278,7 +278,7 @@ impl futures_core::Stream for AsyncListStream {
 /// Async SQL query operations — for wasm backends (D1) where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait]
-pub trait AsyncQueryStore: Send + Sync {
+pub trait QueryStore: Send + Sync {
     /// Execute a query that returns rows as an async stream.
     ///
     /// For Turso/Libsql: yields rows one at a time as they're fetched.
@@ -299,7 +299,7 @@ pub trait AsyncQueryStore: Send + Sync {
 /// Async key-value store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait]
-pub trait AsyncKeyValueStore: Send + Sync {
+pub trait KeyValueStore: Send + Sync {
     async fn get_async<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
@@ -321,7 +321,7 @@ pub trait AsyncKeyValueStore: Send + Sync {
 /// Async blob store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait]
-pub trait AsyncBlobStore: Send + Sync {
+pub trait BlobStore: Send + Sync {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()>;
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()>;
@@ -337,7 +337,7 @@ pub trait AsyncBlobStore: Send + Sync {
 /// next record starts a new window; inside the window, a record increments
 /// the count and keeps the window's start.
 #[async_trait::async_trait]
-pub trait AsyncRateLimiterStore: Send + Sync {
+pub trait RateLimiterStore: Send + Sync {
     /// Whether one more hit on `key` is allowed: its window has elapsed, or it
     /// has had fewer than `max_count` hits in the current one.
     async fn check_rate_limit_async(
@@ -398,7 +398,7 @@ impl Document {
     }
 }
 
-/// A type whose values can populate the `AsyncDocumentStore`'s promoted columns.
+/// A type whose values can populate the `DocumentStore`'s promoted columns.
 ///
 /// WHY: rather than make callers pass `title`/`summary`/`record_type` to every
 /// `append`, a record type implements this once and the store extracts them
@@ -422,7 +422,7 @@ pub trait PromotableDocument {
 /// Async document store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait]
-pub trait AsyncDocumentStore: Send + Sync {
+pub trait DocumentStore: Send + Sync {
     /// Append a document to a collection.
     async fn append_async<V: Serialize + Send + 'static>(
         &self,

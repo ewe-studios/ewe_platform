@@ -23,7 +23,7 @@ use foundation_ai::types::{
     UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_jsonschema::scheme;
 
@@ -190,7 +190,7 @@ async fn stored_assistant_texts(session: &Session) -> Vec<String> {
 /// store.
 async fn build_over_any_stores<D, M>(router: ProviderRouter, doc: D, mem: M) -> AgentSession<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     AgentSession::builder(router)
