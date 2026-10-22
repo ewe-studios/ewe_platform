@@ -13,7 +13,13 @@ certificates; Distinguished Encoding Rules (DER), a binary form; Secure Hash Alg
 Elliptic Curve Digital Signature Algorithm (ECDSA); authenticated encryption with associated
 data (AEAD); key encryption key (KEK); identifier (ID); uniform resource locator (URL);
 Durable Object (DO); WebAssembly (wasm); Structured Query Language (SQL); key-value store
-(KV); input/output (I/O); deterministic simulation testing (DST); Request for Comments (RFC).
+(KV); input/output (I/O); deterministic simulation testing (DST); Request for Comments (RFC);
+application programming interface (API); central processing unit (CPU); Hypertext Transfer
+Protocol (HTTP); additional authenticated data (AAD), the context bytes that AEAD binds to a
+sealed blob; Representational State Transfer (REST); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
+STE standard ASD-STE100.
+D1 and R2 are names of Cloudflare products (a SQL database and an object store), not
+abbreviations.
 The [glossary in feature.md](./feature.md#2-glossary) explains each term.
 
 ## 1. What moves, and why
@@ -2086,7 +2092,7 @@ sequenceDiagram
 | Many enrollment attempts | CPU (CSR checks, signing) | A rate limit per peer address on `Enroll` (`EnrollConfig::rate`, default 1 per second with a burst of 5 — the `limit_req` example in the nginx documentation). Bad secrets fail before the CSR is parsed. |
 | A client sends a false `ewe-forwarded-principal` header to a Worker | another identity in the DO | The Worker deletes every `ewe-forwarded-*` header before auth. The DO is reachable only through the Worker binding. |
 | One client uses another client's instance | sessions and history | Instance names are scoped by owner when `AccessPolicy::OwnerOnly` is set (open question 1 in [feature.md](./feature.md)). |
-| Secrets or keys in logs | all secrets | Redacting `Debug` and `Display` (as today). A log test captures TRACE output for the whole flow (`auth_log_tests` moves to the native host tests). |
+| Secrets or keys in logs | all secrets | Redacting `Debug` and `Display` (as today). A log test captures the log output at trace level for the whole flow (`auth_log_tests` moves to the native host tests). |
 
 ### 9.3 Replay protection
 

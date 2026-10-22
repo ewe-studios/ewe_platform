@@ -11,7 +11,11 @@ Signature Algorithm (ECDSA); Rivest–Shamir–Adleman (RSA), a public-key algor
 Probabilistic Signature Scheme (PSS), a padding mode for RSA signatures; authenticated
 encryption with associated data (AEAD); key encryption key (KEK); application programming
 interface (API); continuous integration (CI); Request for Comments (RFC), an internet
-standard document; Sortable, Clock and Random number based 128-bit ID (scru128). The
+standard document; Sortable, Clock and Random number based 128-bit ID (scru128); Structured
+Query Language (SQL); Hypertext Transfer Protocol (HTTP); JavaScript Object Notation (JSON); JSON Web Token (JWT); key-value
+store (KV); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
+STE standard ASD-STE100. D1 and R2 are names of Cloudflare products (a SQL database and an object store), not
+abbreviations. The
 [glossary in feature.md](./feature.md#2-glossary) explains each term.
 
 ## 1. What a side effect is

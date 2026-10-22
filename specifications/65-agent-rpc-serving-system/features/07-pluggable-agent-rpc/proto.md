@@ -9,10 +9,11 @@ Notation (JSON); Transport Layer Security (TLS); Secure Hash Algorithm with 256 
 (SHA-256); Distinguished Encoding Rules (DER), a binary form of a certificate; Certificate
 Authority (CA); certificate signing request (CSR); Quick Response code (QR code); central
 processing unit (CPU); graphics processing unit (GPU); Compute Unified Device Architecture
-(CUDA), the NVIDIA GPU platform; GPT-Generated Unified Format (GGUF), the model file format
-of llama.cpp; Durable Object (DO); enumeration (enum). gRPC is the name of a Google RPC
+(CUDA), the NVIDIA GPU platform; Generative Pre-trained Transformer (GPT);
+GPT-Generated Unified Format (GGUF), the model file format of llama.cpp; Durable Object (DO); enumeration (enum). gRPC is the name of a Google RPC
 protocol over HTTP/2. gRPC-Web is its variant for browsers. Connect is an RPC protocol that
-works over HTTP/1.1 and HTTP/2. The [glossary in feature.md](./feature.md#2-glossary) explains
+works over HTTP/1.1 and HTTP/2. AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
+STE standard ASD-STE100. The [glossary in feature.md](./feature.md#2-glossary) explains
 each term.
 
 ## 1. What this file covers
