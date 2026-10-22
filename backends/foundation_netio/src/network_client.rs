@@ -155,6 +155,22 @@ impl HttpClientBuilder {
         self
     }
 
+    /// How long the native client waits for the first byte of the response
+    /// after the request is sent (time to first byte).
+    ///
+    /// Default 5 seconds (`TimeoutConfig::default`).
+    /// [`read_timeout`](Self::read_timeout) also sets it (to the read timeout,
+    /// at most 120 seconds), so call this after `read_timeout` to keep a
+    /// different value. On wasm the browser owns the timeouts, so this has no
+    /// effect there.
+    #[must_use]
+    pub fn ttfb_timeout(mut self, timeout: Duration) -> Self {
+        let mut c = *self.config.timeout_calculator.config();
+        c.ttfb_timeout = timeout;
+        self.config.timeout_calculator = TimeoutCalculator::with_config(c);
+        self
+    }
+
     #[must_use]
     pub fn write_timeout(mut self, timeout: Duration) -> Self {
         let mut c = *self.config.timeout_calculator.config();
@@ -292,6 +308,20 @@ impl HttpClientBuilder {
     #[must_use]
     pub fn expect_continue(mut self, enabled: bool) -> Self {
         self.config.expect_continue_enabled = enabled;
+        self
+    }
+
+    /// How long the native client waits for the response head after it sends
+    /// the request headers (`Expect: 100-continue`, or a slow server that
+    /// answers only when its work is done). The native client also uses it as
+    /// the read timeout of a blocking body read.
+    ///
+    /// Default 3 seconds (`ClientConfig::default`). Unlike
+    /// [`read_timeout`](Self::read_timeout), this changes no other timeout.
+    /// On wasm the browser owns the timeouts, so this has no effect there.
+    #[must_use]
+    pub fn expect_continue_timeout(mut self, timeout: Duration) -> Self {
+        self.config = self.config.set_expect_continue_read_timeout(timeout);
         self
     }
 
