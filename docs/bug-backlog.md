@@ -466,17 +466,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **`TurboPufferVectorStore` does not retry HTTP 429.** `TurboPuffer` throttles
   writes with 429 (backpressure). The store reports it as an error. Fix: retry
   with backoff, with the attempts and delays on a config.
-- **The `turbopuffer` and `sql-store` features do not build for wasm32.**
+- **The `sql-store` feature does not build for wasm32.**
   `cargo check --target wasm32-unknown-unknown -p foundation_vectors
-  --features turbopuffer` (or `sql-store`) fails in `foundation_core`
-  (`idle_wake` missing, a `NoopMutex` `PoisonError` mismatch). The crate takes
-  `foundation_netio` with its default features (`multi`, `ssl`, `wire-native`)
-  on every target, and `sql-store` takes `foundation_db` the same way, so
-  `foundation_core/multi` is on for wasm. This was so before spec 50 F05 T1.
-  CI builds only the default features for wasm, so it does not see it. Fix:
-  take `foundation_netio` / `foundation_db` without default features on
-  wasm32, then add `turbopuffer` and `sql-store` to the crate's `wasm-runs`
-  in `ci/packages.toml`.
+  --features sql-store` fails in `foundation_core` (`idle_wake` missing, a
+  `NoopMutex` `PoisonError` mismatch). The crate takes `foundation_db` with
+  its default features on every target, so `foundation_core/multi` is on for
+  wasm. This was so before spec 50 F05 T1. CI builds `sql-store` only for
+  native, so it does not see it. Fix: take `foundation_db` without default
+  features on wasm32, then add `sql-store` to the crate's `wasm-runs` in
+  `ci/packages.toml`.
 - **`hybrid_search` gives the reranker no texts** (`src/fusion.rs`). It calls
   `Reranker::rerank(query, fused, &[])`, so a reranker cannot read the
   candidate documents. Fix: take a text lookup (id → text) as an argument, or
