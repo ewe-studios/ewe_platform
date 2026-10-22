@@ -17,7 +17,7 @@ keywords = ["connectrpc", "codegen", "protoc", "prost", "grpc"]
 [dependencies]
 prost = "0.12"
 prost-types = "0.12"
-prost-build = "0.12"
+prost-build = "0.14"
 
 # protoc plugin (Decision 10 Mode 2): follows the protoc-gen-* convention so
 # protoc auto-discovers it from PATH — just `protoc --connect-ewe_out=. …`.
