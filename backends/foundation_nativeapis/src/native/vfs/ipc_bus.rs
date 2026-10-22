@@ -4,7 +4,7 @@
 /// to provide `VfsTransport` for the VFS client, and a `listen()` loop for the daemon.
 
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
 use async_trait::async_trait;
@@ -68,7 +68,7 @@ impl ClientTransport {
         // Every update keeps the link usable, so a poisoned lock is still used.
         self.inner
             .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .unwrap_or_else(PoisonError::into_inner)
     }
 }
 

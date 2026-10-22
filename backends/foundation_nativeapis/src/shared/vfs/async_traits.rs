@@ -3,6 +3,7 @@
 use std::io::SeekFrom;
 
 use async_trait::async_trait;
+use foundation_errstacks::ErrorTrace;
 
 use super::error::{VfsError, VfsResult};
 use super::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsFileType, VfsMetadata};
@@ -159,7 +160,7 @@ pub trait AsyncVfsFileSystem: Send + Sync {
     /// The default returns [`VfsError::Unsupported`]: a store must keep a
     /// reverse index to answer this.
     async fn path_by_inode_async(&self, ino: u64) -> VfsResult<String> {
-        Err(foundation_errstacks::ErrorTrace::new(VfsError::Unsupported {
+        Err(ErrorTrace::new(VfsError::Unsupported {
             operation: format!("path_by_inode({ino})"),
         }))
     }
@@ -169,7 +170,7 @@ pub trait AsyncVfsFileSystem: Send + Sync {
     /// The default returns [`VfsError::Unsupported`]: a store must keep a
     /// reverse index to answer this.
     async fn stat_by_inode_async(&self, ino: u64) -> VfsResult<VfsMetadata> {
-        Err(foundation_errstacks::ErrorTrace::new(VfsError::Unsupported {
+        Err(ErrorTrace::new(VfsError::Unsupported {
             operation: format!("stat_by_inode({ino})"),
         }))
     }

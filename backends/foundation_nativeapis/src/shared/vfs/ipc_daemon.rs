@@ -8,7 +8,7 @@
 use std::collections::HashMap;
 use std::io::SeekFrom;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 
 use super::async_traits::{AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem};
 use super::ipc_messages::{VfsRequest, VfsResponse};
@@ -41,7 +41,7 @@ pub struct VfsDaemon<F: AsyncVfsFileSystem> {
 fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
     // A panic while a table lock is held leaves the map itself valid (every
     // update is a single insert or remove), so a poisoned lock is still used.
-    m.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
+    m.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
 fn err(e: impl std::fmt::Display) -> VfsResponse {

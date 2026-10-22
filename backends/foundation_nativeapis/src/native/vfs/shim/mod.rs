@@ -37,6 +37,10 @@ mod shim_exports {
     use crate::shared::vfs::memory_delta::MemoryDelta;
     use crate::shared::vfs::overlay_fs::OverlayFileSystem;
     use crate::shared::vfs::types::OpenMode;
+    #[cfg(feature = "vfs-sqlite")]
+    use crate::native::vfs::libsql_delta::LibsqlDelta;
+    #[cfg(feature = "vfs-sqlite")]
+    use crate::shared::vfs::exec_async::exec_async;
 
     use super::config::ShimConfig;
     use super::fd_table::VirtualFdTable;
@@ -88,8 +92,6 @@ mod shim_exports {
                 {
                     // Initialize valtron pool for async-through-sync execution
                     let guard = initialize_pool(42, Some(4));
-                    use crate::native::vfs::libsql_delta::LibsqlDelta;
-                    use crate::shared::vfs::exec_async::exec_async;
                     let path = CONFIG.delta_path.clone().unwrap_or_else(|| {
                         let dir = std::env::temp_dir();
                         dir.join("vfs-delta.db").to_string_lossy().to_string()
