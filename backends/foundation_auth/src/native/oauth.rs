@@ -1,10 +1,9 @@
-//! OAuth 2.0 token exchange using native HTTP client.
+//! OAuth 2.0 token exchange over the platform network client (`DynNetClient`).
 
-use foundation_netio::shared::client::SystemDnsResolver;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
-use foundation_netio::http::FinalizedResponse;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleResponse};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
-type HttpResponse = FinalizedResponse<SendSafeBody, SystemDnsResolver>;
+type HttpResponse = SimpleResponse<SendSafeBody>;
 
 use crate::shared::oauth::{OAuthConfig, OAuthError, OAuthManager, TokenResponse};
 use crate::shared::oauth_token::OAuthToken;
@@ -12,14 +11,24 @@ use crate::shared::oauth_token::OAuthToken;
 /// Native OAuth client: shared OAuth configuration plus async token exchange.
 #[derive(Clone)]
 pub struct NativeOAuth {
+    http: DynNetClient,
     inner: OAuthManager,
 }
 
 impl NativeOAuth {
-    /// Create a new native OAuth client.
+    /// Create a new native OAuth client that uses the platform's default HTTP
+    /// client ([`HttpClientBuilder`]).
     #[must_use]
     pub fn new(config: OAuthConfig) -> Self {
+        Self::with_client(HttpClientBuilder::new().build(), config)
+    }
+
+    /// Create a new native OAuth client that sends its token requests through
+    /// `http` (a shared client, or a test client).
+    #[must_use]
+    pub fn with_client(http: DynNetClient, config: OAuthConfig) -> Self {
         Self {
+            http,
             inner: OAuthManager::new(config),
         }
     }
@@ -31,7 +40,7 @@ impl NativeOAuth {
     }
 
     // ========================================================================
-    // Token exchange (async, over NativeHttpClient::send_async)
+    // Token exchange (async, over the DynNetClient)
     // ========================================================================
 
     /// Exchange an authorization code (with its PKCE verifier) for tokens.
@@ -66,7 +75,7 @@ impl NativeOAuth {
 
         let body = body_parts.join("&");
 
-        let resp = do_post_async(&self.inner.config.token_url, &body).await?;
+        let resp = do_post_async(&self.http, &self.inner.config.token_url, &body).await?;
         parse_token_response(resp).await
     }
 
@@ -106,7 +115,7 @@ impl NativeOAuth {
 
         let body = body_parts.join("&");
 
-        let resp = do_post_async(&self.inner.config.token_url, &body).await?;
+        let resp = do_post_async(&self.http, &self.inner.config.token_url, &body).await?;
         parse_token_response(resp).await
     }
 
@@ -133,7 +142,7 @@ impl NativeOAuth {
 
         let body = body_parts.join("&");
 
-        let resp = do_post_async(&self.inner.config.token_url, &body).await?;
+        let resp = do_post_async(&self.http, &self.inner.config.token_url, &body).await?;
         parse_refresh_response(resp, refresh_token).await
     }
 }
@@ -143,16 +152,18 @@ impl NativeOAuth {
 // ============================================================================
 
 /// Async HTTP POST with form-urlencoded body.
-async fn do_post_async(url: &str, body: &str) -> Result<HttpResponse, OAuthError> {
-    let client = foundation_netio::http::NativeHttpClient::from_system();
-    let response = client
-        .post(url)
+async fn do_post_async(
+    client: &DynNetClient,
+    url: &str,
+    body: &str,
+) -> Result<HttpResponse, OAuthError> {
+    let request = PreparedRequestBuilder::post(url)
         .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
         .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .body_text(body.to_string())
-        .build_client()
-        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-        .send_async()
+        .body_text(body)
+        .build();
+    let response = client
+        .send_async(request)
         .await
         .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
 
@@ -182,7 +193,7 @@ fn error_body_text(body: &SendSafeBody) -> String {
 /// Parse a successful token response into OAuthToken.
 async fn parse_token_response(resp: HttpResponse) -> Result<OAuthToken, OAuthError> {
     let status: usize = resp.get_status().into();
-    if !resp.is_success() {
+    if !(200..=299).contains(&status) {
         let body = error_body_text(resp.get_body_ref());
         return Err(OAuthError::TokenEndpointError {
             status: status as u16,
@@ -210,7 +221,7 @@ async fn parse_refresh_response(
     old_refresh: &str,
 ) -> Result<OAuthToken, OAuthError> {
     let status: usize = resp.get_status().into();
-    if !resp.is_success() {
+    if !(200..=299).contains(&status) {
         let body = error_body_text(resp.get_body_ref());
         return Err(OAuthError::TokenEndpointError {
             status: status as u16,

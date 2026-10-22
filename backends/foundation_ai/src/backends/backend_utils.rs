@@ -1,3 +1,8 @@
+use foundation_netio::shared::client::request::PreparedRequest;
+use foundation_netio::shared::http::{SimpleHeaders, SimpleMethod};
+use foundation_netio::PreparedRequestBuilder;
+
+use crate::errors::{GenerationError, GenerationResult};
 use crate::types::base_types::{CostStatus, ModelId, ToolDeclarations, UsageCosting, UsageReport};
 use crate::types::{Tool, ToolArguments};
 
@@ -29,6 +34,35 @@ pub(crate) fn sleep(duration: std::time::Duration) {
 #[cfg(target_family = "wasm")]
 pub(crate) fn sleep(_duration: std::time::Duration) {
     // Intentionally empty: see the doc comment above.
+}
+
+/// Build a provider request with [`PreparedRequestBuilder`].
+///
+/// The builder sets the `Host` header from `url`. Each of `headers` is then
+/// added. A non-empty `body` is sent as text with its `Content-Length`; the
+/// `Content-Type` in `headers` (for example `application/json`) is kept. An
+/// empty `body` sends no body.
+///
+/// # Errors
+///
+/// [`GenerationError::Backend`] when `url` does not parse.
+pub(crate) fn prepared_request(
+    method: SimpleMethod,
+    url: &str,
+    headers: SimpleHeaders,
+    body: &str,
+) -> GenerationResult<PreparedRequest> {
+    let mut builder = PreparedRequestBuilder::new(method, url)
+        .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+    for (name, values) in headers {
+        for value in values {
+            builder = builder.header(name.clone(), value);
+        }
+    }
+    if !body.is_empty() {
+        builder = builder.body_text(body);
+    }
+    Ok(builder.build())
 }
 
 /// Flatten a `ToolDeclarations` into a flat Vec<Tool> for provider APIs.

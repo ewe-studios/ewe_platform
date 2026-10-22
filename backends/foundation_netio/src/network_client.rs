@@ -24,7 +24,7 @@ use crate::shared::client::http_client::HttpClient;
 use crate::shared::client::ClientConfig;
 // SystemDnsResolver is only used by the native `build()` branch.
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
-use crate::shared::client::SystemDnsResolver;
+use crate::shared::client::{DnsResolver, StaticSocketAddr, SystemDnsResolver};
 use crate::shared::http::timeout::TimeoutCalculator;
 use crate::websocket::shared::connector::WebSocketConnector;
 
@@ -64,6 +64,8 @@ pub struct HttpClientBuilder {
     tls_connector: Option<crate::netcap::ssl::SSLConnector>,
     #[cfg(not(target_family = "wasm"))]
     connector: Option<Arc<dyn crate::native::connection::Connector>>,
+    #[cfg(not(target_family = "wasm"))]
+    resolve_to: Option<std::net::SocketAddr>,
 }
 
 impl Default for HttpClientBuilder {
@@ -88,6 +90,8 @@ impl HttpClientBuilder {
             tls_connector: None,
             #[cfg(not(target_family = "wasm"))]
             connector: None,
+            #[cfg(not(target_family = "wasm"))]
+            resolve_to: None,
         }
     }
 
@@ -126,6 +130,21 @@ impl HttpClientBuilder {
         connector: Arc<dyn crate::native::connection::Connector>,
     ) -> Self {
         self.connector = Some(connector);
+        self
+    }
+
+    /// Resolve every host name to `addr` instead of asking DNS (like curl's
+    /// `--resolve`). The request URL's host still goes into the `Host` header
+    /// and the TLS server name.
+    ///
+    /// WHY: tests and local tools talk to a server on a known socket under the
+    /// host name the server expects (for example `http://testserver/...`).
+    ///
+    /// Native-only: on wasm the browser resolves names.
+    #[cfg(not(target_family = "wasm"))]
+    #[must_use]
+    pub fn resolve_to(mut self, addr: std::net::SocketAddr) -> Self {
+        self.resolve_to = Some(addr);
         self
     }
 
@@ -192,6 +211,24 @@ impl HttpClientBuilder {
     #[must_use]
     pub fn follow_other_redirects_response(mut self, follow: bool) -> Self {
         self.config.redirect.follow_other_redirects_response = follow;
+        self
+    }
+
+    /// Keep the `Authorization` header when a redirect goes to another host
+    /// (default `false`, as Go `net/http`, which drops it across hosts).
+    /// Needed when an API redirects a signed download to its CDN (Hugging
+    /// Face). Native only in effect: on wasm `fetch` owns redirects.
+    #[must_use]
+    pub fn preserve_auth_on_redirect(mut self, preserve: bool) -> Self {
+        self.config.redirect.preserve_auth_on_redirect = preserve;
+        self
+    }
+
+    /// Keep cookies when a redirect goes to another host (default `false`).
+    /// Native only in effect: on wasm `fetch` owns redirects.
+    #[must_use]
+    pub fn preserve_cookies_on_redirect(mut self, preserve: bool) -> Self {
+        self.config.redirect.preserve_cookies_on_redirect = preserve;
         self
     }
 
@@ -389,19 +426,10 @@ impl HttpClientBuilder {
     pub fn build(self) -> DynNetClient {
         #[cfg(all(feature = "multi", not(target_family = "wasm")))]
         {
-            let mut client = crate::http::NativeHttpClient::new(SystemDnsResolver).config(self.config);
-            #[cfg(any(
-                feature = "ssl-rustls",
-                feature = "ssl-openssl",
-                feature = "ssl-native-tls"
-            ))]
-            if let Some(tls) = self.tls_connector {
-                client = client.with_tls_connector(tls);
+            match self.resolve_to {
+                Some(addr) => self.finish_native(StaticSocketAddr::new(addr)),
+                None => self.finish_native(SystemDnsResolver),
             }
-            if let Some(connector) = self.connector {
-                client = client.with_connector(connector);
-            }
-            Arc::new(client)
         }
         #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
         {
@@ -417,5 +445,25 @@ impl HttpClientBuilder {
             let _ = self;
             unimplemented!("HttpClientBuilder::build: no HTTP client backend available")
         }
+    }
+}
+
+#[cfg(all(feature = "multi", not(target_family = "wasm")))]
+impl HttpClientBuilder {
+    /// The native client over `resolver`, with the builder's config, TLS
+    /// connector and transport connector.
+    fn finish_native<R>(self, resolver: R) -> DynNetClient
+    where
+        R: DnsResolver + Clone + Default + Send + Sync + 'static,
+    {
+        let mut client = crate::http::NativeHttpClient::new(resolver).config(self.config);
+        #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
+        if let Some(tls) = self.tls_connector {
+            client = client.with_tls_connector(tls);
+        }
+        if let Some(connector) = self.connector {
+            client = client.with_connector(connector);
+        }
+        Arc::new(client)
     }
 }

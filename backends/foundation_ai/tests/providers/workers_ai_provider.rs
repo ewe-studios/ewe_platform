@@ -18,9 +18,8 @@ use foundation_ai::types::{
 
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::http::NativeHttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::StaticSocketAddr;
 use foundation_testing::http::HttpRequest;
 use foundation_testing::http::{
     HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
@@ -64,8 +63,7 @@ fn setup_provider_and_model(base_url: &str) -> impl Model + use<'_> {
         .unwrap()
         .parse()
         .unwrap();
-    let resolver = StaticSocketAddr::new(addr);
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = WorkersAiConfig::new()
         .with_account_id("test-account")
         .with_base_url(base_url)

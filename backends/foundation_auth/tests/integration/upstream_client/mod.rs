@@ -1,8 +1,8 @@
 //! Integration tests for `UpstreamOidcClient` token exchange + userinfo.
 //!
 //! WHY: F007 made the upstream broker client fully cross-platform by running
-//! `exchange_code` and `fetch_userinfo` over the shared `default_http_client()`
-//! (`Arc<dyn HttpClient>`). These tests drive both async methods end-to-end
+//! `exchange_code` and `fetch_userinfo` over the platform network client
+//! (`DynNetClient`, built with `HttpClientBuilder`). These tests drive both async methods end-to-end
 //! against a real local HTTP server, over the same client wasm/Workers use,
 //! proving the OAuth2 `authorization_code` grant and the userinfo Bearer fetch
 //! actually speak HTTP correctly — not just that the parsing helpers work.

@@ -8,21 +8,24 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::url::Uri;
 use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
-    request::Extensions,
     body_reader::collect_strings_from_send_safe,
-    http_client::{BoxedSseIterator, HttpClient},
+    http_client::BoxedSseIterator,
     request::PreparedRequest,
 };
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
 use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;
 
-use crate::backends::backend_utils::{sleep, tool_arguments_from_str, tool_arguments_from_value};
+use crate::backends::backend_utils::{
+    prepared_request, sleep, tool_arguments_from_str, tool_arguments_from_value,
+};
 use crate::backends::model_info::{self, ModelInfoCache};
 use crate::backends::openai_provider::OpenAIModelInfo;
 use crate::costing::{calculate_cost, CostAccumulator};
@@ -419,7 +422,7 @@ pub struct MessageDeltaDelta {
 pub struct AnthropicMessagesProvider {
     config: AnthropicConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
 }
 
@@ -457,8 +460,12 @@ impl AnthropicMessagesProvider {
         }
     }
 
+    /// A provider that sends its requests through `client` (a shared client,
+    /// or a test client). Without it, `create` builds the default native
+    /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
+    /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
+    pub fn with_http_client(client: DynNetClient) -> Self {
         Self {
             config: AnthropicConfig::default(),
             api_key: None,
@@ -467,8 +474,9 @@ impl AnthropicMessagesProvider {
         }
     }
 
+    /// [`Self::with_http_client`] with a config.
     #[must_use]
-    pub fn with_http_client_and_config(client: Arc<dyn HttpClient>, config: AnthropicConfig) -> Self {
+    pub fn with_http_client_and_config(client: DynNetClient, config: AnthropicConfig) -> Self {
         Self {
             config,
             api_key: None,
@@ -483,17 +491,9 @@ impl AnthropicMessagesProvider {
         let Some(url) = self.config.models_url(model_name) else {
             return Ok(None);
         };
-        let uri = Uri::parse(&url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.config.auth_headers(self.api_key.as_ref());
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        Ok(Some(PreparedRequest {
-            method: SimpleMethod::GET,
-            url: uri,
-            headers,
-            body: SendSafeBody::None,
-            extensions: Extensions::default(),
-        }))
+        prepared_request(SimpleMethod::GET, &url, headers, "").map(Some)
     }
 
     /// Fetch `model_name`'s metadata (`GET /v1/models/{name}`) without
@@ -596,10 +596,11 @@ impl ModelProvider for AnthropicMessagesProvider {
             }
             self.config = cfg;
         }
-
+        // Native only: on wasm the sync `generate` path cannot wait for a
+        // `fetch`, so a wasm caller injects its client (`with_http_client`).
         #[cfg(not(target_family = "wasm"))]
         if self.http_client.is_none() {
-            self.http_client = Some(foundation_netio::http::default_http_client());
+            self.http_client = Some(HttpClientBuilder::new().build());
         }
 
         Ok(self)
@@ -680,7 +681,7 @@ pub struct AnthropicModel {
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
@@ -705,31 +706,15 @@ impl AnthropicModel {
     }
 
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        Ok(PreparedRequest {
-            method: SimpleMethod::POST,
-            url: uri,
-            headers,
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        })
+        prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
     fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
-        Ok(PreparedRequest {
-            method: SimpleMethod::POST,
-            url: uri,
-            headers,
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        })
+        prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
     fn execute_request<T: for<'de> Deserialize<'de> + Send>(

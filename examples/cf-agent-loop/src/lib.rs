@@ -26,7 +26,7 @@ use foundation_http::wasm::cf_conn::{CfConn, CfConnectionResult};
 use foundation_http::wasm::serve_cf::{CfServe, CfServeFactory};
 use foundation_http::wasm::CfHttpAppSingleton;
 use foundation_http::{SendSafeBody, SimpleIncomingRequest};
-use foundation_netio::wasm::client::FetchHttpClient;
+use foundation_netio::HttpClientBuilder;
 
 /// Default Workers AI model.
 const DEFAULT_MODEL: &str = "@cf/meta/llama-3.1-8b-instruct";
@@ -93,7 +93,7 @@ async fn get_or_build_session() -> Result<AgentSession, String> {
     if let Some(base_url) = creds.base_url {
         config = config.with_base_url(base_url);
     }
-    let provider = WorkersAiProvider::with_http_client(Arc::new(FetchHttpClient::new()))
+    let provider = WorkersAiProvider::with_http_client(HttpClientBuilder::new().build())
         .create(Some(config))
         .map_err(|e| e.to_string())?;
     let session = AgentSession::builder(provider)

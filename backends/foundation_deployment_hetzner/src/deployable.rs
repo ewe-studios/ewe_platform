@@ -28,7 +28,6 @@
 use foundation_db::core::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_deployment::traits::{BoxFuture, Deployable};
-use foundation_netio::shared::client::dns::SystemDnsResolver;
 use serde::{Deserialize, Serialize};
 
 use crate::client::HetznerClient;
@@ -329,12 +328,11 @@ impl Deployable for HetznerServer {
     type DestroyOutput = ();
     type Error = HetznerError;
     type Store = FileStateStore;
-    type Resolver = SystemDnsResolver;
 
     fn deploy(
         &self,
         instance_id: usize,
-        client: ProviderClient<Self::Store, Self::Resolver>,
+        client: ProviderClient<Self::Store>,
     ) -> BoxFuture<'static, Result<Self::DeployOutput, Self::Error>> {
         // Hetzner speaks HTTPS with a bearer token, so the client is ours; the
         // ProviderClient is here for the namespaced store (built now — it needs
@@ -550,7 +548,7 @@ impl Deployable for HetznerServer {
     fn destroy(
         &self,
         instance_id: usize,
-        client: ProviderClient<Self::Store, Self::Resolver>,
+        client: ProviderClient<Self::Store>,
     ) -> BoxFuture<'static, Result<Self::DestroyOutput, Self::Error>> {
         let hetzner = self.client.clone();
         let store = self.store(&client);
