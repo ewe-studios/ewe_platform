@@ -18,7 +18,7 @@ for an interactive terminal (TTY); AeroSpace and Defence Industries Association 
 
 ## 1. The decision
 
-The owner decided (open question 3): **a private key is always encrypted when it is stored.**
+The owner decided (decision 3 in [feature.md](./feature.md)): **a private key is always encrypted when it is stored.**
 There is no plain-text mode. This applies on every host and every backend: files, databases,
 D1, KV, R2.
 

@@ -2141,7 +2141,7 @@ sequenceDiagram
 | A wrong server clock | false acceptance of an expired secret | The window check uses the server clock; operators run time sync. DST tests skew on both sides. |
 | Many enrollment attempts | CPU (CSR checks, signing) | A rate limit per peer address on `Enroll` (`EnrollConfig::rate`, default 1 per second with a burst of 5 — the `limit_req` example in the nginx documentation). Bad secrets fail before the CSR is parsed. |
 | A client sends a false `ewe-forwarded-principal` header to a Worker | another identity in the DO | The Worker deletes every `ewe-forwarded-*` header before auth. The DO is reachable only through the Worker binding. |
-| One client uses another client's instance | sessions and history | Instance names are scoped by owner when `ScopePolicy::PerOwner` is set (open question 1 in [feature.md](./feature.md)). |
+| One client uses another client's instance | sessions and history | Instance names are scoped by owner when `ScopePolicy::PerOwner` is set (owner decision 1 in [feature.md](./feature.md)). |
 | Secrets or keys in logs | all secrets | Redacting `Debug` and `Display` (as today). A log test captures the log output at trace level for the whole flow (`auth_log_tests` moves to the native host tests). |
 
 ### 9.3 Replay protection
