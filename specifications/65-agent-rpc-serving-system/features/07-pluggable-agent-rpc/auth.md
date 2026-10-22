@@ -165,6 +165,8 @@ fixed (section 3.8).
 
 ### 3.2 Version 2 (new, additive)
 
+Owner decision 2: the issuer makes **version 2 by default**. The verifier still accepts version 1.
+
 Version 2 adds four fields:
 
 | Field | Type | Meaning |
@@ -719,8 +721,9 @@ pub struct PublicMaterial {
 pub enum StoredPrivateKey {
     /// Encrypted with a KEK (section 4.2). The normal case.
     Sealed(SealedBlob),
-    /// PKCS#8 PEM in clear text. Only `FsKeyStore` with
-    /// `KeyProtection::PlaintextOwnerOnly` writes this (files with mode 0600).
+    /// PKCS#8 PEM in clear text. **Read only**, for the legacy files of
+    /// today (section 4.6). No store writes it (owner decision 3: always
+    /// encrypt at rest). The host seals it at the first start with a KEK.
     Plaintext { pkcs8_pem: SecretText },
     /// The key lives outside the store (a Worker secret, an environment
     /// variable). The record keeps only the name of that place.
@@ -878,18 +881,10 @@ open as record `secret-signing`.
 the nonce from global entropy. Task T1 adds `seal_with(key, nonce, aad, plaintext)` and
 `open_with(key, aad, blob)` next to them. The existing functions stay.
 
-Where the KEK comes from (host configuration):
-
-| Host | KEK source | If absent |
-|---|---|---|
-| Native | `EWE_AGENT_RPC_KEK` (base64url, 32 bytes), else `EWE_AGENT_RPC_KEK_FILE` (a path), else `EWE_AGENT_RPC_KEK_PASSPHRASE` | `FsKeyStore` uses `PlaintextOwnerOnly` (files with mode 0600, as today) and logs one warning at start. A database store refuses to start. |
-| Worker | the Worker secret `AGENT_RPC_KEK` | A Worker that only verifies needs no KEK: it has no private key. |
-| DST | `KekSealer` with a key from `SeededEntropy` | — |
-
-Rule: `DbKeyStore` never stores a plain-text private key. Its constructor takes an
-`Arc<dyn KeySealer>`, so plain text is not possible there. Only `FsKeyStore` has the
-`PlaintextOwnerOnly` choice, because the key files of today are plain text and must keep
-working.
+Where the KEK comes from: [key-protection.md](./key-protection.md). Owner decision 3: a private
+key is **always** encrypted at rest, on every host and every backend. There is no plain-text mode.
+key-protection.md also makes `KeySealer` async (for WebCrypto and remote key management services)
+and replaces the sync trait above.
 
 ### 4.3 Implementations
 
@@ -942,12 +937,13 @@ use std::sync::Arc;
 
 use foundation_core::env::Env;
 
-/// How private keys are kept in a store.
+/// How private keys are kept in a store. Owner decision 3: always sealed.
+/// There is no plain-text variant ([key-protection.md](./key-protection.md)).
 #[derive(Clone)]
 pub enum KeyProtection {
-    Sealed(Arc<dyn KeySealer>),
-    /// `FsKeyStore` only: PEM files with mode 0600.
-    PlaintextOwnerOnly,
+    /// The current sealer, and older sealers that can still open blobs
+    /// sealed before a KEK rotation.
+    Sealed { current: Arc<dyn KeySealer>, previous: Vec<Arc<dyn KeySealer>> },
 }
 
 /// Loads or makes the key material of a host.
@@ -1074,7 +1070,7 @@ A state directory of today holds `ca-cert.pem`, `ca-key.pem`,
 1. `FsKeyStore::get("ca")` reads `keys/ca.json`. If that file is absent and both legacy CA files exist, it returns a record built from them (`revision = 1`, `Plaintext`). If only one of them exists, it returns `Corrupt` (as today).
 2. `FsKeyStore::get("secret-signing")` reads `keys/secret-signing.json`, else the legacy `bootstrap-signing-key.pem`.
 3. The environment variable `EWE_AGENT_RPC_SIGNING_KEY` (inline PEM or a path) still overrides the signing key. The native host reads it into an `EnvKeyStore` that it puts in front of the `FsKeyStore`.
-4. `agent-rpc keys migrate` (a sub-command of the native binary, task T17) writes `keys/*.json`. It seals the keys when a KEK is set. It then renames each legacy file to `*.pem.migrated`. It never deletes a key.
+4. A KEK is required (owner decision 3). At the first start with legacy files, the host seals each key into `keys/*.json`, checks that the sealed record opens, and then removes the plain-text file. `agent-rpc keys migrate` (a sub-command of the native binary, task T17) does the same steps by hand. With no KEK, the host does not start ([key-protection.md](./key-protection.md) section 6).
 5. `trusted-clients.db` keeps its tables. `SqlTrustStore` adds one new table (section 6.2).
 
 ## 5. The CA and certificates (`foundation_auth::pki`, native)
@@ -1354,7 +1350,7 @@ true. The `DELETE` of expired rows moves out of this call into `prune`, which th
 on a timer (`TrustConfig::prune_interval`).
 
 The SQL is portable to Postgres except the `?` placeholders. foundation_db has no Postgres
-backend (open question 7 in [feature.md](./feature.md)).
+backend (owner decision 7 in [feature.md](./feature.md): a separate feature).
 
 ### 6.3 `KvTrustStore<K: AsyncKeyValueStore>`
 
@@ -1612,6 +1608,9 @@ no code fills it today. Task T4 fills it:
 3. The RPC dispatcher already copies `request.connection` into `RequestContext::connection`.
 
 ## 8. Client auth (`foundation_auth::client_auth`)
+
+Owner decision 4: `JwtAuth` ships in this feature, behind the `jwt` feature flag. The default
+provider stays the signed secret (`SignedSecretAuth`), not a JWT.
 
 ### 8.1 The trait
 

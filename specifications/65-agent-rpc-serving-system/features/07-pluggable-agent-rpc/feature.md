@@ -13,8 +13,8 @@ last_updated: 2026-10-22
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 22
-  total: 22
+  uncompleted: 27
+  total: 27
   completion_percentage: 0
 ---
 
@@ -28,7 +28,7 @@ mutual TLS (mTLS); Certificate Authority (CA); certificate signing request (CSR)
 Object (DO); WebAssembly (wasm); JavaScript (JS); identifier (ID); random number generator
 (RNG); deterministic simulation testing (DST); input/output (I/O); key-value store (KV);
 Structured Query Language (SQL); Hypertext Transfer Protocol (HTTP); JavaScript Object
-Notation (JSON); JSON Web Token (JWT); application programming interface (API); central
+Notation (JSON); JSON Web Token (JWT); application programming interface (API); key encryption key (KEK); key management service (KMS); central
 processing unit (CPU); graphics processing unit (GPU); Compute Unified Device Architecture
 (CUDA); GPT-Generated Unified Format (GGUF); continuous integration (CI); pull request (PR);
 AeroSpace and Defence Industries Association of Europe (ASD), the owner of the STE standard
@@ -70,6 +70,8 @@ It does this with three ideas:
 | [`registry-and-models.md`](./registry-and-models.md) | Model catalog, kinds and devices, the instance registry, Durable Objects |
 | [`hosts.md`](./hosts.md) | The native host, the Worker host, the web client, the native client |
 | [`proto.md`](./proto.md) | The wire contract (`agent.proto`) |
+| [`key-protection.md`](./key-protection.md) | Private keys always encrypted at rest: where the KEK comes from on each platform, remote KMS |
+| [`migrations.md`](./migrations.md) | Migrations from code and from numbered directories, with duplicate checks |
 | [`deterministic-simulation-testing.md`](./deterministic-simulation-testing.md) | DST in plain words |
 
 ### 1.3 Goals
@@ -89,7 +91,7 @@ It does this with three ideas:
   memory. It uses remote models only.
 - Full gRPC on a Worker or in a browser. gRPC needs HTTP trailers. A Worker cannot send them
   reliably. Connect and gRPC-Web work.
-- A Postgres backend for `foundation_db` (open question 7).
+- A Postgres backend for `foundation_db` (decision 7: a separate feature).
 - The proxy registration work (features 03 and 04).
 
 ### 1.5 Before you start
@@ -488,6 +490,10 @@ group of section 10.2 can be one PR.
 | T20 | `DoSqlStore`: `foundation_db` storage over a DO's SQL | `foundation_db` | contract tests pass under Miniflare |
 | T21 | Worker host: entry, instance DO, `DurableObjectRegistry`, `DoStubTransport`; `examples/cf-agent-rpc` | `host/worker/*` | the `cf-agent-rpc` Miniflare case passes |
 | T22 | Web client: `WebClient` over `FetchTransport`; `examples/agent-rpc-web` | `client/web.rs` | the web client tests pass in a headless browser |
+| T23 | Key protection: `KekSource`, async `KeySealer`, native and Worker KEK sources, `WebCryptoSealer`, always-encrypt rule, plain-text migration, KEK rotation | `foundation_auth/src/keystore/*`, `host/*/kek.rs` | [key-protection.md](./key-protection.md) section 8 tests pass (except Vault) |
+| T24 | Envelope encryption with a remote KMS: `EnvelopeSealer`, `KmsBackend`; Vault Transit, then AWS KMS and GCP Cloud KMS | `foundation_auth/src/keystore/kms.rs` | sealer contract passes with `FakeKms`; the Vault test passes |
+| T25 | Migration runner: code, embedded and directory sources; number-uniqueness and checksum rules; transactions; `embed_migrations!`; fix migration 023 | `foundation_db/src/core/schema/*`, `foundation_macros` | [migrations.md](./migrations.md) section 5 tests pass |
+| T26 | History archive to R2 on `DestroyInstance` (Worker and native) | `host/worker/object.rs`, `core/archive.rs` | the archive tests pass; a failed upload deletes nothing |
 
 ### 10.1 Order
 
@@ -517,6 +523,11 @@ flowchart LR
     T19 --> T21
     T20 --> T21
     T19 --> T22
+    T7 --> T23 --> T24
+    T6 --> T25
+    T25 --> T9
+    T23 --> T26
+    T21 --> T26
 ```
 
 _The diagram shows which task must finish before another task starts._
@@ -527,34 +538,53 @@ _The diagram shows which task must finish before another task starts._
 |---|---|---|
 | A | T0 | Gets #126 green on current `master` |
 | B | T1, T2 | Side effects and `Env` (cross-crate base) |
-| C | T3, T4, T6 | Small library changes that others need |
-| D | T5, T7, T8, T9, T10, T11 | Auth in `foundation_auth` |
+| C | T3, T4, T6, T25 | Library changes that others need (T25: migration runner) |
+| D | T5, T7, T23, T8, T9, T10, T11 | Auth in `foundation_auth`, with key protection |
 | E | T12, T13, T14, T15, T16 | The transport-agnostic core |
 | F | T17, T18 | Native host and DST |
-| G | T19, T20, T21, T22 | Worker host and web client |
+| G | T19, T20, T21, T22, T26 | Worker host, web client, history archive |
+| H | T24 | Remote KMS backends (can come after the rest) |
 
-## 11. Open questions for the owner
+## 11. Owner decisions (2026-10-22)
 
-Each question has options and a recommendation.
+The owner answered the open questions on 2026-10-22.
 
-1. **Instance name scope on the Worker.** (a) One shared name space, as on native. (b) One
-   name space per caller (`ScopePolicy::PerOwner`). **Recommendation: (b)** on the Worker,
-   because many unrelated clients share one Worker. Keep (a) on native.
-2. **Version 2 signed secrets.** Version 2 adds an audience and a purpose ([auth.md](./auth.md)
-   section 3.2). (a) Issue version 2 by default and still accept version 1. (b) Keep issuing
-   version 1. **Recommendation: (a).**
-3. **Private keys at rest.** (a) Always seal private keys with a key encryption key. (b) Seal
-   only when a key encryption key is configured; warn when it is not. **Recommendation: (b)**
-   for native development, (a) required on shared backends (D1, KV).
-4. **JWT provider.** (a) Ship `JwtAuth` in this feature. (b) Add it later. **Recommendation:
-   (a)**, behind a feature flag, because `foundation_auth` already has the JWT parts.
-5. **History on `DestroyInstance` (Worker).** (a) Delete the DO storage. (b) Archive the
-   history to R2 first. **Recommendation: (a)** now; (b) as a later option.
-6. **Remote model keys on the Worker.** (a) Worker secrets (`wrangler secret put`). (b) A key
-   store entry. **Recommendation: (a)**, the Cloudflare standard.
-7. **Postgres.** foundation_db has no Postgres backend. The trust store SQL is portable except
-   for `?` placeholders. (a) Add a Postgres backend as its own feature. (b) Not now.
-   **Recommendation: (b)** until a deployment needs it.
-8. **Rename timing.** The topic files use the `Async*` storage trait names. (a) Wait for the
-   rename PR to merge, then start. (b) Start now and rename later. **Recommendation: (a)**,
-   because the rename is small and avoids a second pass.
+| # | Question | Decision | Where it is designed |
+|---|---|---|---|
+| 1 | Instance name scope on the Worker | **Per caller** (`ScopePolicy::PerOwner`) on the Worker; shared on native | [registry-and-models.md](./registry-and-models.md) section 3.1 |
+| 2 | Version 2 signed secrets | **Issue version 2 by default**; still accept version 1 | [auth.md](./auth.md) section 3.2 |
+| 3 | Private keys at rest | **Always encrypted, on every host and backend.** No plain-text mode. The KEK comes from the safest source of each platform | [key-protection.md](./key-protection.md) |
+| 4 | JWT provider | **Ship `JwtAuth` in this feature**, behind a feature flag | [auth.md](./auth.md) section 8 |
+| 5 | History on `DestroyInstance` | **Archive to R2**, then delete the DO storage | [hosts.md](./hosts.md) section 5.12 |
+| 6 | Model provider API keys | **Worker secrets or Secrets Store secrets**; never in vars, D1, KV or logs | [hosts.md](./hosts.md) section 5.11 |
+| 7 | Postgres | **Only if it is not too much work.** It is a sizable job (section 11.1), so it is **not part of this feature**. The owner also asked for directory migrations: **yes**, task T25 | [migrations.md](./migrations.md) |
+| 8 | Rename timing | **Wait** for the rename PR (`Async*` to plain names) to merge, then start | section 1.5 |
+
+### 11.1 Why Postgres is a separate feature
+
+`foundation_db` runs on valtron, not on tokio. The common Rust Postgres clients
+(`tokio-postgres`, `sqlx`, and the sync `postgres` crate, which uses tokio inside) need tokio.
+So a Postgres backend needs its own connection code on `foundation_netio`:
+
+- the startup message and SCRAM-SHA-256 password authentication;
+- TLS through `foundation_netio`;
+- the extended query protocol (parse, bind, execute), with `$1` placeholders instead of `?`;
+- type conversion between `DataValue` and Postgres types;
+- row streaming, query cancellation, and a connection pool with limits as configuration.
+
+The `postgres-protocol` crate encodes and decodes the messages and does SCRAM with no runtime,
+so we do not write those parts. The connection state machine, the pool and the type mapping are
+still ours. That is a feature of its own, about the size of the libsql backend plus a protocol
+client. We record it as a separate feature for spec 50 (storage), after this one.
+
+## 12. Open questions for the owner
+
+1. **Migration number ranges.** [migrations.md](./migrations.md) section 3.7 proposes one record
+   table with a number range per crate (`foundation_db` 1 to 999, `foundation_auth` 1000 to 1999,
+   `foundation_agent_rpc` 2000 to 2999). The other choice is one record table per component.
+   **Recommendation: the ranges.**
+2. **Remote KMS order.** [key-protection.md](./key-protection.md) section 4.6 starts with Vault
+   Transit, then AWS KMS, then GCP Cloud KMS. **Recommendation: this order**, unless a deployment
+   needs one of the clouds first.
+3. **Archive on native.** [hosts.md](./hosts.md) section 5.12 gives the native host the same archive
+   step through a `foundation_db` blob store. **Recommendation: yes, default to a local directory.**

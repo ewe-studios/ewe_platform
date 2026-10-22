@@ -807,7 +807,119 @@ is in D1 and the session is in its DO.
 ### 5.10 KV and R2
 
 - **KV** holds the public keys that verify bearer secrets (optional). `DbKeyStore<KVWasmStorage>` reads them through `KeyMaterial::verify_only`. KV is eventually consistent: a new key can take about 60 seconds to reach every location. That is acceptable for adding a key. To stop a key at once, revoke its secrets in D1 ([auth.md](./auth.md), section 9.4). KV never holds the trust store, because it has no atomic write.
-- **R2** is not used in this feature. Open question 5 in [feature.md](./feature.md) asks if `DestroyInstance` should archive the history to R2 first.
+- **R2** holds the archive of each destroyed instance (owner decision 5). Section 5.12 describes it.
+
+### 5.11 Model provider API keys
+
+An **API key** here is the secret that a remote model provider (OpenAI, OpenRouter, Anthropic,
+Workers AI) gives to its customers. The Worker sends it with each model request. Anyone with the
+key can use the account and spend its money. So it is a secret, like the KEK.
+
+Owner decision 6: API keys are **Worker secrets** or **Secrets Store secrets**. They are never in
+`wrangler.toml`, never in a var, never in D1 or KV, and never in a log.
+
+How it works:
+
+1. The operator stores the key: `npx wrangler secret put OPENAI_API_KEY` for one Worker, or adds it
+   to the account's Secrets Store when several Workers share one key.
+2. `AGENT_RPC_MODELS` names the secret for each model, never the key:
+   `{"name":"gpt-4o","provider":"openai","model_id":"gpt-4o","api_key_secret":"OPENAI_API_KEY"}`.
+3. At isolate start, `WorkerHost::new` reads each named secret one time:
+
+```rust
+// foundation_agent_rpc/src/host/worker/secrets.rs (task T21)
+/// Where one secret lives on the Worker.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum SecretRef {
+    /// A per-Worker secret (`wrangler secret put <name>`).
+    WorkerSecret { name: String },
+    /// An account-level Secrets Store binding. Read with `get()`.
+    SecretsStore { binding: String },
+}
+
+/// Read every API key that the model list names. A missing secret stops
+/// the start with an error that names the secret, never a value.
+pub async fn read_api_keys(
+    bindings: &worker::Env,
+    models: &[ApiModelConfig],
+) -> AgentRpcResult<HashMap<String, Zeroizing<String>>> { todo!("T21") }
+```
+
+What the code does: `SecretRef` says where a key lives. `read_api_keys` reads each one, keeps it
+in a `Zeroizing` string, and fails with the secret's name if one is missing. `api_key_secret` in
+`ApiModelConfig` accepts a plain name (a Worker secret, as today) or a `SecretRef` object.
+
+4. `RemoteCatalog::from_config` gets the keys through its `secrets` function and builds each
+   provider client. The key stays in the provider client and goes only into the
+   `Authorization` header of the model request.
+
+The native host uses the same `SecretRef` idea with the native sources of
+[key-protection.md](./key-protection.md) section 3.4: a systemd credential, a secret file, or (last
+choice, with permission) an environment variable.
+
+Rotation: put the new value with the same secret name and redeploy. Cloudflare starts new isolates
+with the new value. Revoke the old key at the provider after the deploy.
+
+### 5.12 History archive in R2
+
+Owner decision 5: `DestroyInstance` **archives** the instance history to R2, then deletes the DO
+storage.
+
+```toml
+# examples/cf-agent-rpc/wrangler.toml (changed, task T26)
+[[r2_buckets]]
+binding = "AGENT_RPC_ARCHIVE"
+bucket_name = "agent-rpc-archive"
+```
+
+Steps inside the instance DO, when it gets `DestroyInstance`:
+
+1. Stop new turns. Abort a running turn.
+2. Stream the history out of DO storage, one record at a time, as JavaScript Object Notation (JSON)
+   lines, compressed with gzip, into an R2 multipart upload. No step holds the whole history in
+   memory (`CLAUDE.md` rule 4).
+3. The object key is `archives/<scope hash>/<instance name>/<destroyed at, UTC>.jsonl.gz`.
+   Metadata on the object: the instance spec, the session ID, the record count, the SHA-256 of the
+   content.
+4. When R2 confirms the upload, end the session and call `storage.delete_all()`.
+5. If the upload fails, the DO keeps its storage and the call fails with `UNAVAILABLE`. A retry
+   starts again at step 1. No history is lost.
+
+```mermaid
+sequenceDiagram
+    participant W as Worker
+    participant D as Instance DO
+    participant R as R2 bucket
+    W->>D: DestroyInstance
+    D->>D: stop turns
+    loop each history record
+        D->>R: upload part (JSON lines, gzip)
+    end
+    D->>R: complete multipart upload
+    R-->>D: done
+    D->>D: end session, delete_all()
+    D-->>W: destroyed
+```
+
+_The diagram shows the archive step. The DO deletes its storage only after R2 confirms the
+archive._
+
+Security: R2 encrypts every object at rest. The archive also holds conversation content, so the
+host seals it with the KEK when one is configured
+([key-protection.md](./key-protection.md)): each object gets its own data key, and the object
+metadata holds the wrapped data key.
+
+Configuration (`WorkerHostConfig::archive`):
+
+| Field | Default | Why |
+|---|---|---|
+| `enabled` | `true` when the `AGENT_RPC_ARCHIVE` binding exists | owner decision 5 |
+| `part_size` | 8 MiB | above the R2 minimum part size of 5 MiB, and the default part size of the AWS command-line tool |
+| `seal_with_kek` | `true` when a KEK is configured | conversations are private data |
+
+Keep or delete archives with R2 lifecycle rules (for example, delete after 90 days). The native
+host has the same step with any `foundation_db` blob store (a directory or R2 over its REST API).
 
 ## 6. The web client
 

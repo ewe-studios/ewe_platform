@@ -884,3 +884,13 @@ the isolate.
   connectrpc's deadline timer use it today. Both move to the injected timer (task T2, T3).
 - **A design agent can stop before it finishes** (the account spend limit stopped it after
   five of eight files). Commit and push each design file as soon as it is written.
+
+- **Cloudflare has no key management service that a Worker can call** (checked 2026-10-22). The
+  best a Worker gets is a Secrets Store or Worker secret, imported as a non-extractable WebCrypto
+  key. WebCrypto in Workers supports AES-GCM `encrypt`/`decrypt`, but `wrapKey` only for AES-CTR,
+  AES-CBC and RSA-OAEP. On Linux bare metal, systemd encrypted credentials sealed to the TPM2 chip
+  are the strongest local choice. Environment variables are the weakest (`/proc/<pid>/environ`
+  keeps the start-up value even after `remove_var`).
+- **foundation_db migration 023 (`023_create_vectors.sql`) is in the directory but not in
+  `MIGRATIONS`,** so it never runs. Nothing checked this. Task T25 adds a test that every file is
+  planned.

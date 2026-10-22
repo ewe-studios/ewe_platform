@@ -14,7 +14,7 @@ at the top) before touching code._
 | 04 — registrar sidecar | ⏳ 0/7 | — |
 | 05 — Cloudflare | ⏳ 0/6 | — |
 | 06 — wasm async streaming | ✅ 5/5 | PR #124 |
-| 07 — pluggable agent-rpc (owner review round 2) | 📐 design done, 0/22 tasks | PR #126 branch |
+| 07 — pluggable agent-rpc (owner review round 2) | 📐 design done, decisions in, 0/27 tasks | PR #126 branch |
 | (spec 68 — valtron wasm runtime tests) | ✅ owned path 10/10, bindgen path 5/5 | PR #124 (#125 merged into it) |
 
 ## Branches and PRs (how the work is stacked)
@@ -215,7 +215,14 @@ The owner's review round 2 on #126 is now a full design in
 - `proto.md`: wire contract changes.
 - `deterministic-simulation-testing.md`: deterministic simulation testing in plain words.
 
-Next: the owner answers the open questions in `feature.md` section 11. Then task T0 (merge
+Owner decisions (2026-10-22), recorded in `feature.md` section 11: per-caller instance scope on
+the Worker; version 2 secrets by default; private keys always encrypted at rest
+(`key-protection.md`); `JwtAuth` ships; destroyed instances are archived to R2; model API keys
+are Worker or Secrets Store secrets; Postgres is a separate later feature; directory migrations
+are task T25 (`migrations.md`); work starts after the rename PR merges. Three small open questions
+remain in `feature.md` section 12.
+
+Next: Then task T0 (merge
 `master` into this branch) starts the work. The plan above ("owner review round 2") is now
 replaced by feature 07.
 

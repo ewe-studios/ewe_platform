@@ -477,6 +477,8 @@ each model, and the load-once rule across many sessions.
 
 ### 3.1 Scope: whose instances a call sees
 
+Owner decision 1: `PerOwner` on the Worker host, `Shared` on the native host.
+
 Today every enrolled client sees every instance. We keep that as the default on the native
 host. A Worker serves many unrelated clients, so it can separate them.
 
@@ -628,7 +630,7 @@ pub struct RegistryConfig {
     /// Largest page. Default 100: the GitHub REST API maximum `per_page`.
     pub max_page_size: u32,
     /// Default `Shared` on the native host (today's behavior) and
-    /// `PerOwner` on the Worker host (open question 1 in feature.md).
+    /// `PerOwner` on the Worker host (owner decision 1 in feature.md).
     pub scope_policy: ScopePolicy,
 }
 
@@ -953,7 +955,7 @@ Cloudflare can remove an idle DO from memory. The storage stays. The DO handles 
 
 1. At `create`, it writes a row `instance_meta` to DO storage: the spec and the session ID.
 2. At the first request after a restart, it reads `instance_meta`. If the row exists, it builds the session again with `AgentSession::builder(router).resume(session_id)` over the same stores. The history is then the same as before.
-3. At `destroy`, it ends the session and deletes the DO storage (`storage.delete_all()`).
+3. At `destroy`, it archives the history to R2, then ends the session and deletes the DO storage (`storage.delete_all()`). [hosts.md](./hosts.md) section 5.12 gives the steps. If the archive fails, nothing is deleted.
 
 Optional: `WorkerHostConfig::instance_idle_ttl` (default `None`). When it is set, the DO sets
 an alarm after each turn and destroys an instance that had no turn for that long.
