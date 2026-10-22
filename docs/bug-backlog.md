@@ -208,6 +208,15 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
   - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer can fail to fire (see §4) and `H2Transport`'s pump parks on the socket read with no read timeout.
   - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
   - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
+- **Backend-state persistence can lose an update.** Each control-socket
+  connection runs on its own thread, and `ProxyStateStore::save_backend_state`
+  / `save_tls_cert` (`src/persistence.rs`) load the whole persisted state,
+  change one entry and save it back. Two admin commands at once can each save
+  over the other's change. Fix: serialise the read-modify-write behind a
+  mutex in `ProxyStateStore` (or store each backend's state as its own record).
+- **The `mut` on `h3_local_addr` warns without the `h3` feature**
+  (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
+  expression instead of assigning inside the `cfg` block.
 
 ## 10. foundation_ai
 
@@ -258,13 +267,31 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
-- **Sync storage callers still go through `Blocking`.** Each should move to the
-  `Async*` traits, one crate at a time, before the sync traits are deleted:
-- **`StateStore` is still a sync trait.** `LibsqlStore`'s `StateStore::init`
-  / `sync_remote` and `native::create_state_store` wait on libsql with
-  `.block()`, and `D1Store`'s `StateStore` impl uses a blocking HTTP call
-  (`execute_sql`). Fix: an async `StateStore` (the deployment crates are its
-  callers).
+- **The sync storage traits and `Blocking` still exist.** Every caller now
+  uses the `Async*` traits or `StateStore` (F04 T1–T8); what remains is the
+  `Default` impls below (T9) and deleting the sync traits (T10).
+- **`StateStore::set` ignores its `resource_id`.** Every backend (file,
+  libsql, D1, R2) keys the write by `state.id`, so `set("a", &state_b)` writes
+  `b` (`src/core/state/*.rs`, `src/native/{libsql_store,d1_kvstore,r2_blobstore}.rs`).
+  `NamespacedStore` now rewrites `state.id` itself (fixed in F04 T8). Fix:
+  drop the parameter, or key by it and set `state.id` from it in one place.
+- **`R2Store` parses the R2 REST JSON by hand** (`src/native/r2_blobstore.rs`).
+  The generated Cloudflare types live in `foundation_deployment_cloudflare`,
+  which depends on `foundation_db`, so they can't be used here (rule 5). Fix:
+  move the generated R2 types to a crate both can depend on. Related:
+  `worker-stub.js` has no object-listing endpoint, so the R2 listing is only
+  tested against the in-process mock in `tests/r2_state_store_tests.rs`, not
+  against the wrangler stub.
+- **R2 state listings hold every matching ID before streaming.** The listing
+  pages through R2's cursor, sorts the IDs, then fetches each state lazily;
+  the ID list itself is in memory. Fine for deployment state; a store with
+  very many resources would want a cursor-driven stream (R2 already returns
+  keys in order).
+- **D1's state `init` sends several statements in one `/query` call**
+  (`src/native/d1_kvstore.rs`). It (and libsql's) was missing the `;` after
+  `CREATE TABLE`, so `init` always failed; fixed in F04 T8 and covered for
+  libsql by `tests/libsql_state_store_tests.rs`, but the D1 path is only
+  exercised by the wrangler integration tests (`CF_INTEGRATION_TEST=1`).
 - **`Default` for `TursoStorage` / `LibsqlStore` blocks.** `Default` is sync,
   so it waits on the async constructor with `.block()`, and panics without a
   valtron pool. It exists for `S: Default` callers: the deprecated
@@ -392,6 +419,12 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 - **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
   - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
+- **`crates/ewe_deployables` doesn't build.** It isn't a workspace member, so
+  nothing compiles it, and it still implements an older `Deployable` shape
+  (sync `TaskIterator`s, sync `store(&client).get_typed(..)`), which no longer
+  exists. Fix: port it to the current async `Deployable` / `StateStore` and
+  add it to the workspace (or delete it if superseded by the per-provider
+  deployment crates).
 - **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
 - **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
   compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target

@@ -3,277 +3,199 @@
 //! WHY: The deployment engine and providers need to read/write resource state
 //! without knowing which storage backend is active.
 //!
-//! WHAT: A trait with methods for CRUD operations on `ResourceState`, plus
-//! listing, counting, and remote sync. All I/O methods return
-//! `StateStoreStream<T>` for lazy, composable evaluation.
+//! WHAT: An async trait for CRUD on `ResourceState`, plus listing, counting
+//! and remote sync. Single values come back directly; multi-row results are
+//! lazily pulled [`StateStoreStream`]s, never collected into memory.
 //!
-//! HOW: SQL backends produce streams from `run_future_iter` (worker thread
-//! owns `!Send` rows). Sync backends produce streams from
-//! `Vec::into_iter().map(...)`. Callers consume at their own boundary.
+//! HOW: Every method is `async`, so a backend that does network I/O (libsql,
+//! D1, R2) awaits it instead of blocking, and the same code runs natively and
+//! on Cloudflare Workers. Callers `.await`; a sync entry point waits through
+//! valtron's `block_on_future` / `.block()` behind `blocking_boundary!`.
 
-use foundation_core::valtron::ThreadedValue;
+use futures_lite::StreamExt;
 
 use super::types::ResourceState;
-use crate::core::errors::StorageError;
+use crate::core::errors::StorageResult;
+use crate::core::storage_provider::AsyncStorageItemStream;
 
-/// Lazy stream of state store results.
-///
-/// SQL backends produce this from `run_future_iter` (channel-bridged worker
-/// thread). Sync backends produce this from `Vec::into_iter().map(...)`.
-/// Boxed because trait methods need a single return type across all backends.
-pub type StateStoreStream<T> = Box<dyn Iterator<Item = ThreadedValue<T, StorageError>> + Send>;
+/// A lazily pulled stream of state results: `Send` natively, `!Send` on wasm,
+/// like every async storage stream.
+pub type StateStoreStream<T> = AsyncStorageItemStream<'static, T>;
 
 /// Persistence backend for deployment resource state.
-///
-/// All I/O methods return `StateStoreStream<T>` for composability and lazy
-/// evaluation. Callers consume streams at their own boundary — the store
-/// never blocks internally (except `init()`, which is one-shot bootstrap).
+#[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
 pub trait StateStore: Send + Sync {
     /// Initialize the store (create tables, directories, etc.).
-    ///
-    /// This is the one exception to the stream pattern: it uses `exec_future`
-    /// (one-shot bootstrap) and returns `Result` directly.
     ///
     /// # Errors
     ///
     /// Returns an error if initialization fails (e.g. directory creation,
     /// table creation, connectivity check).
-    fn init(&self) -> Result<(), StorageError>;
+    async fn init(&self) -> StorageResult<()>;
 
-    /// List all resource IDs. Returns a lazy stream of IDs.
+    /// All resource IDs, as a stream.
     ///
     /// # Errors
     ///
-    /// Returns an error if scheduling or I/O fails.
-    fn list(&self) -> Result<StateStoreStream<String>, StorageError>;
+    /// Returns an error if the query can't start; row errors come through the
+    /// stream.
+    async fn list(&self) -> StorageResult<StateStoreStream<String>>;
 
-    /// Count resources. Returns a stream yielding a single `usize`.
+    /// Number of resources.
     ///
     /// # Errors
     ///
-    /// Returns an error if scheduling or I/O fails.
-    fn count(&self) -> Result<StateStoreStream<usize>, StorageError>;
+    /// Returns an error if the I/O fails.
+    async fn count(&self) -> StorageResult<usize>;
 
-    /// Get state for a single resource.
-    ///
-    /// Stream yields one `Option<ResourceState>`: `Some` if found, `None` if not.
+    /// State for a single resource, `None` if absent.
     ///
     /// # Errors
     ///
-    /// Returns an error if scheduling or I/O fails.
-    fn get(
-        &self,
-        resource_id: &str,
-    ) -> Result<StateStoreStream<Option<ResourceState>>, StorageError>;
+    /// Returns an error if the I/O or decoding fails.
+    async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>>;
 
-    /// Get state for multiple resources. Stream yields one `ResourceState` per match.
+    /// State for each of `ids` that exists.
     ///
     /// # Errors
     ///
-    /// Returns an error if scheduling or I/O fails.
-    fn get_batch(&self, ids: &[&str]) -> Result<StateStoreStream<ResourceState>, StorageError>;
+    /// Returns an error if the query can't start.
+    async fn get_batch(&self, ids: &[&str]) -> StorageResult<StateStoreStream<ResourceState>>;
 
-    /// Get all resource states. Stream yields one `ResourceState` per row.
+    /// Every resource state.
     ///
     /// # Errors
     ///
-    /// Returns an error if scheduling or I/O fails.
-    fn all(&self) -> Result<StateStoreStream<ResourceState>, StorageError>;
+    /// Returns an error if the query can't start.
+    async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>>;
 
-    /// Set (create or update) state. Stream yields `()` on completion.
+    /// Create or update a resource's state.
     ///
     /// # Errors
     ///
-    /// Returns an error if scheduling, serialization, or I/O fails.
-    fn set(
-        &self,
-        resource_id: &str,
-        state: &ResourceState,
-    ) -> Result<StateStoreStream<()>, StorageError>;
+    /// Returns an error if serialization or I/O fails.
+    async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()>;
 
-    /// Delete state. Stream yields `()` on completion.
+    /// Delete a resource's state (absent is not an error).
     ///
     /// # Errors
     ///
-    /// Returns an error if scheduling or I/O fails.
-    fn delete(&self, resource_id: &str) -> Result<StateStoreStream<()>, StorageError>;
+    /// Returns an error if the I/O fails.
+    async fn delete(&self, resource_id: &str) -> StorageResult<()>;
 
-    /// Sync state to a remote location.
-    ///
-    /// No-op for local-only backends (file, sqlite). Used by libsql/Turso
-    /// for explicit sync triggers.
+    /// Sync state to a remote location. No-op for local-only backends (file,
+    /// sqlite); libsql/Turso use it for explicit sync triggers.
     ///
     /// # Errors
     ///
-    /// Returns an error if the sync operation fails.
-    fn sync_remote(&self) -> Result<(), StorageError> {
+    /// Returns an error if the sync fails.
+    async fn sync_remote(&self) -> StorageResult<()> {
         Ok(())
     }
 
-    /// List resource IDs matching the given key prefix.
+    /// Resource IDs starting with `prefix`.
     ///
-    /// Default implementation fetches all IDs and filters in memory.
-    /// SQL backends override with `WHERE id LIKE ?||'%'` for efficiency.
+    /// Default: filters [`list`](Self::list). SQL backends override with
+    /// `WHERE id LIKE ?||'%'`.
     ///
     /// # Errors
     ///
     /// Returns an error if the underlying operation fails.
-    fn list_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<String>, StorageError> {
+    async fn list_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<String>> {
         let prefix = prefix.to_string();
-        let all = self.list()?;
-        Ok(Box::new(all.filter_map(move |item| match item {
-            ThreadedValue::Value(Ok(id)) if id.starts_with(&prefix) => {
-                Some(ThreadedValue::Value(Ok(id)))
-            }
-            ThreadedValue::Value(Ok(_)) => None,
-            ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
-            ThreadedValue::Waiting => None,
+        let all = self.list().await?;
+        Ok(Box::pin(all.filter(move |item| {
+            item.as_ref().map_or(true, |id| id.starts_with(&prefix))
         })))
     }
 
-    /// Count resources matching the given key prefix.
-    ///
-    /// Default implementation calls `list_by_prefix` and counts.
-    /// SQL backends override with `SELECT COUNT(*) WHERE id LIKE ?`.
+    /// Number of resources whose ID starts with `prefix`.
     ///
     /// # Errors
     ///
     /// Returns an error if the underlying operation fails.
-    fn count_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
-        let prefix = prefix.to_string();
-        let mut all = self.list()?;
-        let count = all.try_fold(0usize, |n, item| match item {
-            ThreadedValue::Value(Ok(id)) if id.starts_with(&prefix) => Ok(n + 1),
-            ThreadedValue::Value(Ok(_)) => Ok(n),
-            ThreadedValue::Value(Err(e)) => Err(e),
-            ThreadedValue::Waiting => Ok(n),
-        });
-        Ok(Box::new(std::iter::once(ThreadedValue::Value(count))))
+    async fn count_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
+        let mut ids = self.list_by_prefix(prefix).await?;
+        let mut count = 0;
+        while let Some(id) = ids.next().await {
+            id?;
+            count += 1;
+        }
+        Ok(count)
     }
 
-    /// Get all resource states matching the given key prefix.
-    ///
-    /// Default implementation fetches all rows and filters in memory.
-    /// SQL backends override with `WHERE id LIKE ?||'%'`.
+    /// Resource states whose ID starts with `prefix`.
     ///
     /// # Errors
     ///
     /// Returns an error if the underlying operation fails.
-    fn all_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
+    async fn all_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<ResourceState>> {
         let prefix = prefix.to_string();
-        let all = self.all()?;
-        Ok(Box::new(all.filter_map(move |item| match item {
-            ThreadedValue::Value(Ok(state)) if state.id.starts_with(&prefix) => {
-                Some(ThreadedValue::Value(Ok(state)))
-            }
-            ThreadedValue::Value(Ok(_)) => None,
-            ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
-            ThreadedValue::Waiting => None,
+        let all = self.all().await?;
+        Ok(Box::pin(all.filter(move |item| {
+            item.as_ref().map_or(true, |state| state.id.starts_with(&prefix))
         })))
     }
 
-    /// Find all resources with the given kind.
-    ///
-    /// Default implementation fetches all rows and filters by `kind`.
-    /// SQL backends override with `WHERE kind = ?`.
+    /// Resource states with the given `kind`.
     ///
     /// # Errors
     ///
     /// Returns an error if the underlying operation fails.
-    fn find_by_kind(&self, kind: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
+    async fn find_by_kind(&self, kind: &str) -> StorageResult<StateStoreStream<ResourceState>> {
         let kind = kind.to_string();
-        let all = self.all()?;
-        Ok(Box::new(all.filter_map(move |item| match item {
-            ThreadedValue::Value(Ok(state)) if state.kind == kind => {
-                Some(ThreadedValue::Value(Ok(state)))
-            }
-            ThreadedValue::Value(Ok(_)) => None,
-            ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
-            ThreadedValue::Waiting => None,
+        let all = self.all().await?;
+        Ok(Box::pin(all.filter(move |item| {
+            item.as_ref().map_or(true, |state| state.kind == kind)
         })))
     }
 
-    /// Find all resources with the given status (string representation).
-    ///
-    /// Default implementation fetches all rows and filters by serialized status.
-    /// SQL backends override with `WHERE status = ?`.
+    /// Resource states with the given status (its string form).
     ///
     /// # Errors
     ///
     /// Returns an error if the underlying operation fails.
-    fn find_by_status(
-        &self,
-        status: &str,
-    ) -> Result<StateStoreStream<ResourceState>, StorageError> {
+    async fn find_by_status(&self, status: &str) -> StorageResult<StateStoreStream<ResourceState>> {
         let status = status.to_string();
-        let all = self.all()?;
-        Ok(Box::new(all.filter_map(move |item| match item {
-            ThreadedValue::Value(Ok(state)) => {
-                let status_str = state.status.to_string();
-                if status_str == status {
-                    Some(ThreadedValue::Value(Ok(state)))
-                } else {
-                    None
-                }
-            }
-            ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
-            ThreadedValue::Waiting => None,
+        let all = self.all().await?;
+        Ok(Box::pin(all.filter(move |item| {
+            item.as_ref().map_or(true, |state| state.status.to_string() == status)
         })))
     }
 
-    /// Find all resources with the given provider.
-    ///
-    /// Default implementation fetches all rows and filters by `provider`.
-    /// SQL backends override with `WHERE provider = ?`.
+    /// Resource states from the given provider.
     ///
     /// # Errors
     ///
     /// Returns an error if the underlying operation fails.
-    fn find_by_provider(
-        &self,
-        provider: &str,
-    ) -> Result<StateStoreStream<ResourceState>, StorageError> {
+    async fn find_by_provider(&self, provider: &str) -> StorageResult<StateStoreStream<ResourceState>> {
         let provider = provider.to_string();
-        let all = self.all()?;
-        Ok(Box::new(all.filter_map(move |item| match item {
-            ThreadedValue::Value(Ok(state)) if state.provider == provider => {
-                Some(ThreadedValue::Value(Ok(state)))
-            }
-            ThreadedValue::Value(Ok(_)) => None,
-            ThreadedValue::Value(Err(e)) => Some(ThreadedValue::Value(Err(e))),
-            ThreadedValue::Waiting => None,
+        let all = self.all().await?;
+        Ok(Box::pin(all.filter(move |item| {
+            item.as_ref().map_or(true, |state| state.provider == provider)
         })))
     }
 
-    /// Delete all resources matching the given key prefix.
+    /// Delete every resource whose ID starts with `prefix`; returns how many.
     ///
-    /// Returns a stream yielding the count of deleted items.
-    /// Default implementation lists by prefix, deletes each individually.
-    /// SQL backends override with `DELETE WHERE id LIKE ?||'%'`.
+    /// Default: lists the matching IDs, then deletes each. SQL backends
+    /// override with `DELETE … WHERE id LIKE ?||'%'`.
     ///
     /// # Errors
     ///
     /// Returns an error if any underlying operation fails.
-    fn delete_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
-        let ids: Vec<String> = self
-            .list_by_prefix(prefix)?
-            .filter_map(|item| match item {
-                ThreadedValue::Value(Ok(id)) => Some(Ok(id)),
-                ThreadedValue::Value(Err(e)) => Some(Err(e)),
-                ThreadedValue::Waiting => None,
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let mut count = 0;
-        for id in &ids {
-            let stream = self.delete(id)?;
-            for item in stream {
-                if let ThreadedValue::Value(Err(e)) = item {
-                    return Err(e);
-                }
-            }
-            count += 1;
+    async fn delete_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
+        // Collect the IDs first: deleting while a listing is open would mutate
+        // what the listing reads.
+        let mut ids = Vec::new();
+        let mut stream = self.list_by_prefix(prefix).await?;
+        while let Some(id) = stream.next().await {
+            ids.push(id?);
         }
-        Ok(Box::new(std::iter::once(ThreadedValue::Value(Ok(count)))))
+        for id in &ids {
+            self.delete(id).await?;
+        }
+        Ok(ids.len())
     }
 }

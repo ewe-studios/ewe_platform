@@ -108,9 +108,7 @@ fn parse_response(raw: &[u8]) -> RawResponse {
 async fn start_proxy(services: Vec<ServiceConfig>) -> ProxyServer {
     let mut config = ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0");
     config.services = services;
-    // `ProxyServer::start` is synchronous (it spawns its own threads); it is not
-    // a future, so there is nothing to await.
-    config.start().expect("start proxy")
+    config.start().await.expect("start proxy")
 }
 
 fn backend_url(handle: &ContainerHandle, container_port: u16) -> String {

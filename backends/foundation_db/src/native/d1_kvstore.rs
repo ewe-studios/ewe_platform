@@ -12,16 +12,15 @@
 //!   - `D1Store::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::ThreadedValue;
 use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_string_async};
 use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
-use futures_lite::stream;
+use foundation_netio::shared::http::{SimpleHeader, Status};
+use futures_lite::{stream, StreamExt};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::traits::{StateStore, StateStoreStream};
-use crate::core::state::types::{ResourceState, StateStatus};
+use crate::core::state::types::{status_column_value, ResourceState, StateStatus};
 use crate::core::crypto::ZeroizingString;
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStream, AsyncQueryStore,
@@ -157,6 +156,11 @@ impl D1Store {
     }
 
     /// KV store from environment.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageError::Connection`] if a required environment
+    /// variable is unset.
     pub fn from_env() -> Result<Self, StorageError> {
         let db_id = std::env::var("DEPLOYMENT_D1_DATABASE_ID").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_D1_DATABASE_ID must be set".to_string())
@@ -200,6 +204,11 @@ impl D1Store {
     }
 
     /// `StateStore` from environment.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageError::Connection`] if a required environment
+    /// variable is unset.
     pub fn from_env_state(project: &str, stage: &str) -> Result<Self, StorageError> {
         let db_id = std::env::var("DEPLOYMENT_D1_DATABASE_ID").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_D1_DATABASE_ID must be set".to_string())
@@ -223,34 +232,8 @@ impl D1Store {
         format!("Bearer {}", self.api_token.as_str())
     }
 
-    fn execute_sql(&self, sql: &str, params: &[serde_json::Value]) -> Result<serde_json::Value, StorageError> {
-        let body = serde_json::json!({ "sql": sql, "params": params });
-        let response = self
-            .client
-            .post(&self.query_url())
-            .map_err(|e| StorageError::Backend(format!("D1 request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header())
-            .header(SimpleHeader::CONTENT_TYPE, "application/json")
-            .body_text(body.to_string())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("D1 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("D1 request failed: {e}")))?;
-        if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("D1 query failed with status {}", response.get_status())));
-        }
-        let text = match response.get_body_ref() {
-            SendSafeBody::Text(s) => s.clone(),
-            SendSafeBody::Bytes(b) => String::from_utf8(b.clone())
-                .map_err(|e| StorageError::Backend(format!("D1 response not UTF-8: {e}")))?,
-            _ => return Err(StorageError::Backend("D1: empty response body".to_string())),
-        };
-        serde_json::from_str(&text)
-            .map_err(|e| StorageError::Serialization(format!("D1 response parse failed: {e}")))
-    }
-
-    /// Async version of `execute_sql`. Uses `NativeHttpClient::send_async()`
-    /// to perform the HTTP request without blocking.
+    /// Run a SQL statement through the D1 HTTP API (`send_async`, no
+    /// blocking) and return the parsed JSON response.
     async fn execute_sql_async(&self, sql: &str, params: &[serde_json::Value]) -> Result<serde_json::Value, StorageError> {
         let body = serde_json::json!({ "sql": sql, "params": params });
         let response = self
@@ -301,12 +284,36 @@ impl D1Store {
         }
     }
 
-    fn wrap_value_state<T: Send + 'static>(val: T) -> StateStoreStream<T> {
-        Box::new(std::iter::once(ThreadedValue::Value(Ok(val))))
+    /// The D1 API returns a query's rows in one JSON body; stream them,
+    /// decoding each row as it is pulled.
+    fn state_rows(response: &serde_json::Value) -> StateStoreStream<ResourceState> {
+        Box::pin(stream::iter(Self::extract_rows(response)).map(|row| parse_d1_row(&row)))
     }
 
-    fn wrap_vec_state<T: Send + 'static>(vals: Vec<T>) -> StateStoreStream<T> {
-        Box::new(vals.into_iter().map(|v| ThreadedValue::Value(Ok(v))))
+    fn id_rows(response: &serde_json::Value) -> StateStoreStream<String> {
+        Box::pin(stream::iter(Self::extract_rows(response)).map(|row| {
+            row.get("id")
+                .and_then(serde_json::Value::as_str)
+                .map(String::from)
+                .ok_or_else(|| StorageError::SqlConversion("missing id field".to_string()))
+        }))
+    }
+
+    fn count_row(response: &serde_json::Value) -> StorageResult<usize> {
+        let rows = Self::extract_rows(response);
+        let Some(row) = rows.first() else {
+            return Ok(0);
+        };
+        let n = row
+            .get("cnt")
+            .and_then(serde_json::Value::as_u64)
+            .ok_or_else(|| StorageError::SqlConversion("missing cnt field".to_string()))?;
+        usize::try_from(n).map_err(|e| StorageError::SqlConversion(format!("count: {e}")))
+    }
+
+    async fn state_query(&self, sql: &str, params: &[serde_json::Value]) -> StorageResult<StateStoreStream<ResourceState>> {
+        let response = self.execute_sql_async(sql, params).await?;
+        Ok(Self::state_rows(&response))
     }
 
     // ========== KV init ==========
@@ -330,156 +337,118 @@ impl D1Store {
 // StateStore
 // ===========================================================================
 
+#[async_trait::async_trait]
 impl StateStore for D1Store {
-    fn init(&self) -> Result<(), StorageError> {
+    async fn init(&self) -> StorageResult<()> {
         let table = self.state_table();
-        let table_sql = state_create_table_sql(table);
-        let index_sql = state_create_indexes_sql(table);
-        self.execute_sql(&format!("{table_sql}\n{index_sql}"), &[])?;
+        let sql = format!("{};\n{}", state_create_table_sql(table), state_create_indexes_sql(table));
+        self.execute_sql_async(&sql, &[]).await?;
         Ok(())
     }
 
-    fn list(&self) -> Result<StateStoreStream<String>, StorageError> {
+    async fn list(&self) -> StorageResult<StateStoreStream<String>> {
         let sql = format!("SELECT id FROM {} ORDER BY id", self.state_table());
-        let response = self.execute_sql(&sql, &[])?;
-        let ids: Result<Vec<String>, StorageError> = Self::extract_rows(&response)
-            .iter()
-            .map(|row| row.get("id").and_then(serde_json::Value::as_str).map(String::from)
-                .ok_or_else(|| StorageError::SqlConversion("missing id field".to_string())))
-            .collect();
-        Ok(Self::wrap_vec_state(ids?))
+        Ok(Self::id_rows(&self.execute_sql_async(&sql, &[]).await?))
     }
 
-    fn count(&self) -> Result<StateStoreStream<usize>, StorageError> {
+    async fn count(&self) -> StorageResult<usize> {
         let sql = format!("SELECT COUNT(*) as cnt FROM {}", self.state_table());
-        let response = self.execute_sql(&sql, &[])?;
-        let count = Self::extract_rows(&response).first()
-            .and_then(|r| r.get("cnt")).and_then(serde_json::Value::as_u64)
-            .and_then(|cnt| usize::try_from(cnt).ok())
-            .unwrap_or(0);
-        Ok(Self::wrap_value_state(count))
+        Self::count_row(&self.execute_sql_async(&sql, &[]).await?)
     }
 
-    fn get(&self, resource_id: &str) -> Result<StateStoreStream<Option<ResourceState>>, StorageError> {
-        let sql = format!(
-            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id = ?",
-            self.state_table()
-        );
-        let response = self.execute_sql(&sql, &[serde_json::Value::String(resource_id.to_string())])?;
-        match Self::extract_rows(&response).first() {
-            Some(row) => Ok(Self::wrap_value_state(Some(parse_d1_row(row)?))),
-            None => Ok(Self::wrap_value_state(None)),
+    async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>> {
+        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE id = ?", self.state_table());
+        let response = self
+            .execute_sql_async(&sql, &[serde_json::Value::String(resource_id.to_string())])
+            .await?;
+        Self::extract_rows(&response).first().map(parse_d1_row).transpose()
+    }
+
+    async fn get_batch(&self, ids: &[&str]) -> StorageResult<StateStoreStream<ResourceState>> {
+        if ids.is_empty() {
+            return Ok(Box::pin(stream::empty()));
         }
+        let placeholders = vec!["?"; ids.len()].join(",");
+        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE id IN ({placeholders})", self.state_table());
+        let params: Vec<serde_json::Value> =
+            ids.iter().map(|id| serde_json::Value::String((*id).to_string())).collect();
+        self.state_query(&sql, &params).await
     }
 
-    fn get_batch(&self, ids: &[&str]) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        if ids.is_empty() { return Ok(Self::wrap_vec_state(Vec::new())); }
-        let placeholders = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-        let sql = format!(
-            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id IN ({placeholders})",
-            self.state_table()
-        );
-        let params: Vec<serde_json::Value> = ids.iter().map(|id| serde_json::Value::String((*id).to_string())).collect();
-        let response = self.execute_sql(&sql, &params)?;
-        let results: Result<Vec<_>, _> = Self::extract_rows(&response).iter().map(parse_d1_row).collect();
-        Ok(Self::wrap_vec_state(results?))
+    async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>> {
+        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} ORDER BY id", self.state_table());
+        self.state_query(&sql, &[]).await
     }
 
-    fn all(&self) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let sql = format!("SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} ORDER BY id", self.state_table());
-        let response = self.execute_sql(&sql, &[])?;
-        let results: Result<Vec<_>, _> = Self::extract_rows(&response).iter().map(parse_d1_row).collect();
-        Ok(Self::wrap_vec_state(results?))
-    }
-
-    fn set(&self, _resource_id: &str, state: &ResourceState) -> Result<StateStoreStream<()>, StorageError> {
+    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
         let params = state_to_params(state)?;
-        let sql = state_upsert_sql(self.state_table());
-        self.execute_sql(&sql, &params)?;
-        Ok(Self::wrap_value_state(()))
+        self.execute_sql_async(&state_upsert_sql(self.state_table()), &params).await?;
+        Ok(())
     }
 
-    fn delete(&self, resource_id: &str) -> Result<StateStoreStream<()>, StorageError> {
+    async fn delete(&self, resource_id: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE id = ?", self.state_table());
-        self.execute_sql(&sql, &[serde_json::Value::String(resource_id.to_string())])?;
-        Ok(Self::wrap_value_state(()))
+        self.execute_sql_async(&sql, &[serde_json::Value::String(resource_id.to_string())])
+            .await?;
+        Ok(())
     }
 
-    fn list_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<String>, StorageError> {
-        let prefix = escape_like(prefix);
+    async fn list_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<String>> {
         let sql = format!("SELECT id FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id", self.state_table());
-        let response = self.execute_sql(&sql, &[serde_json::Value::String(prefix)])?;
-        let ids: Result<Vec<String>, StorageError> = Self::extract_rows(&response)
-            .iter()
-            .map(|row| row.get("id").and_then(serde_json::Value::as_str).map(String::from)
-                .ok_or_else(|| StorageError::SqlConversion("missing id field".to_string())))
-            .collect();
-        Ok(Self::wrap_vec_state(ids?))
+        let response = self
+            .execute_sql_async(&sql, &[serde_json::Value::String(escape_like(prefix))])
+            .await?;
+        Ok(Self::id_rows(&response))
     }
 
-    fn count_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
-        let prefix = escape_like(prefix);
+    async fn count_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
         let sql = format!("SELECT COUNT(*) as cnt FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'", self.state_table());
-        let response = self.execute_sql(&sql, &[serde_json::Value::String(prefix)])?;
-        let count = Self::extract_rows(&response).first()
-            .and_then(|r| r.get("cnt")).and_then(serde_json::Value::as_u64)
-            .and_then(|cnt| usize::try_from(cnt).ok())
-            .unwrap_or(0);
-        Ok(Self::wrap_value_state(count))
+        let response = self
+            .execute_sql_async(&sql, &[serde_json::Value::String(escape_like(prefix))])
+            .await?;
+        Self::count_row(&response)
     }
 
-    fn all_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let prefix = escape_like(prefix);
+    async fn all_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<ResourceState>> {
         let sql = format!(
-            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id",
+            "SELECT {D1_STATE_COLUMNS} FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id",
             self.state_table()
         );
-        let response = self.execute_sql(&sql, &[serde_json::Value::String(prefix)])?;
-        let results: Result<Vec<_>, _> = Self::extract_rows(&response).iter().map(parse_d1_row).collect();
-        Ok(Self::wrap_vec_state(results?))
+        self.state_query(&sql, &[serde_json::Value::String(escape_like(prefix))]).await
     }
 
-    fn find_by_kind(&self, kind: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let sql = format!(
-            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE kind = ? ORDER BY id",
-            self.state_table()
-        );
-        let response = self.execute_sql(&sql, &[serde_json::Value::String(kind.to_string())])?;
-        let results: Result<Vec<_>, _> = Self::extract_rows(&response).iter().map(parse_d1_row).collect();
-        Ok(Self::wrap_vec_state(results?))
+    async fn find_by_kind(&self, kind: &str) -> StorageResult<StateStoreStream<ResourceState>> {
+        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE kind = ? ORDER BY id", self.state_table());
+        self.state_query(&sql, &[serde_json::Value::String(kind.to_string())]).await
     }
 
-    fn find_by_status(&self, status: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let sql = format!(
-            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE status = ? ORDER BY id",
-            self.state_table()
-        );
-        let response = self.execute_sql(&sql, &[serde_json::Value::String(status.to_string())])?;
-        let results: Result<Vec<_>, _> = Self::extract_rows(&response).iter().map(parse_d1_row).collect();
-        Ok(Self::wrap_vec_state(results?))
+    async fn find_by_status(&self, status: &str) -> StorageResult<StateStoreStream<ResourceState>> {
+        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE status = ? ORDER BY id", self.state_table());
+        let status = status_column_value(status).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.state_query(&sql, &[serde_json::Value::String(status)]).await
     }
 
-    fn find_by_provider(&self, provider: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let sql = format!(
-            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE provider = ? ORDER BY id",
-            self.state_table()
-        );
-        let response = self.execute_sql(&sql, &[serde_json::Value::String(provider.to_string())])?;
-        let results: Result<Vec<_>, _> = Self::extract_rows(&response).iter().map(parse_d1_row).collect();
-        Ok(Self::wrap_vec_state(results?))
+    async fn find_by_provider(&self, provider: &str) -> StorageResult<StateStoreStream<ResourceState>> {
+        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE provider = ? ORDER BY id", self.state_table());
+        self.state_query(&sql, &[serde_json::Value::String(provider.to_string())]).await
     }
 
-    fn delete_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
-        let prefix = escape_like(prefix);
+    async fn delete_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
         let sql = format!("DELETE FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'", self.state_table());
-        let response = self.execute_sql(&sql, &[serde_json::Value::String(prefix)])?;
-        let count = response.pointer("/result/0/meta/rows_written")
+        let response = self
+            .execute_sql_async(&sql, &[serde_json::Value::String(escape_like(prefix))])
+            .await?;
+        let n = response
+            .pointer("/result/0/meta/rows_written")
             .and_then(serde_json::Value::as_u64)
-            .and_then(|n| usize::try_from(n).ok())
-            .unwrap_or(0);
-        Ok(Self::wrap_value_state(count))
+            .ok_or_else(|| StorageError::SqlConversion("missing rows_written".to_string()))?;
+        usize::try_from(n).map_err(|e| StorageError::SqlConversion(format!("rows_written: {e}")))
     }
 }
+
+/// The `ResourceState` columns, in `parse_d1_row`'s order.
+const D1_STATE_COLUMNS: &str =
+    "id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at";
 
 // ===========================================================================
 // Async trait implementations

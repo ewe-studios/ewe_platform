@@ -193,8 +193,8 @@ impl ProxyConfig {
     ///
     /// # Errors
     /// Returns `ProxyError` if validation fails or the listener cannot bind.
-    pub fn start(self) -> Result<crate::server::ProxyServer, ProxyError> {
-        crate::server::ProxyServer::start(self)
+    pub async fn start(self) -> Result<crate::server::ProxyServer, ProxyError> {
+        crate::server::ProxyServer::start(self).await
     }
 }
 

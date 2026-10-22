@@ -507,11 +507,39 @@ Callers:
   control path (`src/control.rs`). Every function on those paths that now
   awaits becomes async up to the process entry point; only that entry point
   (a sync `main` / `ProxyServer::start` called from sync code) waits, with
-  `block_on_future` / `.block()` behind `blocking_boundary!`. The exact
-  boundary is found while implementing T8 and recorded here.
+  `block_on_future` / `.block()` behind `blocking_boundary!`.
+  **As built:** `ProxyServer::start` and `ProxyConfig::start` are
+  `async fn`; nothing in the workspace calls them outside the proxy's own
+  tests (there is no proxy binary yet), so the tests are the entry points and
+  `.await` or `.block()` them. The one sync boundary inside the crate is the
+  control socket: each connection is an OS thread, and `handle_connection`
+  waits on the async `dispatch` with `block_on_future` (imported behind
+  `blocking_boundary!`).
 - Tests: `state_store_tests`, `state_namespaced_tests`, `store_state_task`,
-  the deployable tests, `cloudflare_worker_integration`, proxy
-  `persistence_tests` become async (`#[valtron_test]`).
+  the deployable tests and the proxy tests are async (`#[valtron_test]`).
+  `cloudflare_worker_integration` belongs to `ewe_deployables`, which doesn't
+  build (not a workspace member, old `Deployable` shape; backlog §16), so it
+  was left alone.
+
+**As built (T8), beyond the plan:**
+
+- `R2Store`'s state listing follows R2's `result_info.cursor` across pages
+  (it read only the first page), accepts `result` as the object array (the
+  API's shape) as well as `result.objects`, percent-encodes the query, and
+  maps `/` in an ID prefix to `:` as the keys do. `get_batch` / `all` /
+  `all_by_prefix` fetch each state as the stream is pulled. The R2
+  `find_by_*` overrides returned every state unfiltered; they are gone, so the
+  trait defaults filter.
+- libsql and D1 `find_by_status` compared the `Display` form with the
+  JSON-encoded column and never matched; they now encode the argument the way
+  the column is stored (`status_column_value`).
+- libsql and D1 state `init` was a syntax error (no `;` after `CREATE
+  TABLE`), so it always failed; fixed.
+- `NamespacedStore::set` wrote under the caller's `state.id`, outside the
+  namespace; it now sets the id to the namespaced key.
+- New tests: `tests/libsql_state_store_tests.rs` (first coverage of the libsql
+  state store) and `tests/r2_state_store_tests.rs` (R2 against an in-process
+  mock that pages listings two keys at a time).
 
 ### 3.9 foundation_ai — agent tool store factory; `builder_for`
 

@@ -76,9 +76,9 @@ impl ProxyState {
 
     /// Persist a backend's state change, if a store is attached. Best-effort:
     /// a persistence failure is logged, never propagated to the admin caller.
-    pub fn persist_backend_state(&self, service: &str, url: &str, state: BackendState) {
+    pub async fn persist_backend_state(&self, service: &str, url: &str, state: BackendState) {
         if let Some(store) = &self.store {
-            if let Err(e) = store.save_backend_state(service, url, &state.to_string()) {
+            if let Err(e) = store.save_backend_state(service, url, &state.to_string()).await {
                 tracing::warn!(%service, %url, "failed to persist backend state: {e}");
             }
         }

@@ -8,7 +8,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::time::Duration;
 
-use foundation_core::valtron::initialize_pool;
+use foundation_core::valtron::{initialize_pool, BlockingFutureExt};
 use foundation_proxy::config::ServiceConfig;
 use foundation_proxy::{ProxyConfig, ProxyServer};
 
@@ -45,7 +45,7 @@ fn control_socket_status_and_drain() {
         .bind("127.0.0.1:0")
         .control_socket(&sock)
         .service(svc);
-    let proxy = ProxyServer::start(config).expect("start proxy");
+    let proxy = ProxyServer::start(config).block().expect("start proxy");
 
     // Give the control thread a moment to bind and start accepting.
     std::thread::sleep(Duration::from_millis(200));

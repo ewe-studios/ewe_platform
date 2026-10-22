@@ -43,25 +43,25 @@ impl ProxyStateStore {
     }
 
     /// Load persisted proxy state, if any.
-    pub fn load(&self) -> Result<Option<PersistedProxyState>, StorageError> {
-        let stream = self.store.get(PROXY_STATE_ID)?;
-        for item in stream {
-            match item {
-                foundation_core::valtron::ThreadedValue::Value(Ok(Some(resource))) => {
-                    return serde_json::from_value(resource.output)
-                        .map(Some)
-                        .map_err(|e| StorageError::Serialization(e.to_string()));
-                }
-                foundation_core::valtron::ThreadedValue::Value(Ok(None)) => return Ok(None),
-                foundation_core::valtron::ThreadedValue::Value(Err(e)) => return Err(e),
-                _ => {}
-            }
+    ///
+    /// # Errors
+    ///
+    /// Returns `StorageError` if the state can't be read or decoded.
+    pub async fn load(&self) -> Result<Option<PersistedProxyState>, StorageError> {
+        match self.store.get(PROXY_STATE_ID).await? {
+            Some(resource) => serde_json::from_value(resource.output)
+                .map(Some)
+                .map_err(|e| StorageError::Serialization(e.to_string())),
+            None => Ok(None),
         }
-        Ok(None)
     }
 
     /// Save current proxy state.
-    pub fn save(&self, state: &PersistedProxyState) -> Result<(), StorageError> {
+    ///
+    /// # Errors
+    ///
+    /// Returns `StorageError` if the state can't be encoded or written.
+    pub async fn save(&self, state: &PersistedProxyState) -> Result<(), StorageError> {
         let data = serde_json::to_value(state)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let resource = ResourceState {
@@ -76,27 +76,25 @@ impl ProxyStateStore {
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
         };
-        let stream = self.store.set(PROXY_STATE_ID, &resource)?;
-        for item in stream {
-            if let foundation_core::valtron::ThreadedValue::Value(Err(e)) = item {
-                return Err(e);
-            }
-        }
-        Ok(())
+        self.store.set(PROXY_STATE_ID, &resource).await
     }
 
     /// Set a backend's state string.
-    pub fn save_backend_state(
+    ///
+    /// # Errors
+    ///
+    /// Returns `StorageError` if the state can't be loaded or saved.
+    pub async fn save_backend_state(
         &self,
         service: &str,
         backend_url: &str,
         state: &str,
     ) -> Result<(), StorageError> {
-        let mut persisted = self.load()?.unwrap_or_default();
+        let mut persisted = self.load().await?.unwrap_or_default();
         persisted
             .backend_states
             .insert(format!("{service}/{backend_url}"), state.to_string());
-        self.save(&persisted)
+        self.save(&persisted).await
     }
 
     /// Deterministic hash of proxy config for change detection.
@@ -117,8 +115,12 @@ impl ProxyStateStore {
     }
 
     /// Store TLS certificate data.
-    pub fn save_tls_cert(&self, cert_pem: &str, key_pem: &str) -> Result<(), StorageError> {
-        let mut state = self.load()?.unwrap_or_default();
+    ///
+    /// # Errors
+    ///
+    /// Returns `StorageError` if the state can't be loaded or saved.
+    pub async fn save_tls_cert(&self, cert_pem: &str, key_pem: &str) -> Result<(), StorageError> {
+        let mut state = self.load().await?.unwrap_or_default();
         state.cert_pem = Some(cert_pem.to_string());
         state.key_pem = Some(key_pem.to_string());
         state.cert_renewed_at = Some(
@@ -127,7 +129,7 @@ impl ProxyStateStore {
                 .unwrap_or_default()
                 .as_secs(),
         );
-        self.save(&state)
+        self.save(&state).await
     }
 }
 

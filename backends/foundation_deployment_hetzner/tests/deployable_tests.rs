@@ -127,9 +127,9 @@ fn json(status: u16, body: &str) -> HttpResponse {
 ///
 /// The HTTP client here goes unused — `HetznerServer` carries its own, pointed at
 /// the mock — but the trait requires one.
-fn provider_client(dir: &std::path::Path) -> ProviderClient<FileStateStore, SystemDnsResolver> {
+async fn provider_client(dir: &std::path::Path) -> ProviderClient<FileStateStore, SystemDnsResolver> {
     let store = FileStateStore::new(dir, "ewe-test", "dev");
-    store.init().expect("init state store");
+    store.init().await.expect("init state store");
     ProviderClient::new("ewe-test", "dev", store, NativeHttpClient::default())
 }
 
@@ -195,7 +195,7 @@ async fn a_dying_server_does_not_count_as_alive() {
     });
 
     let deployable = server_for(&mock_server, "web-1");
-    let client = provider_client(&dir);
+    let client = provider_client(&dir).await;
     deployable
         .store(&client)
         .store_typed(
@@ -217,6 +217,7 @@ async fn a_dying_server_does_not_count_as_alive() {
                 }),
             },
         )
+        .await
         .expect("seeds state");
 
     let out = deployable.deploy(0, client.clone()).await.expect("replaces the corpse");
@@ -250,7 +251,7 @@ async fn a_failure_after_create_destroys_the_server_rather_than_stranding_a_bill
     });
 
     let err = server_for(&mock_server, "web-1")
-        .deploy(0, provider_client(&dir))
+        .deploy(0, provider_client(&dir).await)
         .await
         .expect_err("the box never came up");
     assert!(err.to_string().contains("not running"), "{err}");
@@ -281,7 +282,7 @@ async fn keep_on_failure_leaves_the_server_for_inspection() {
 
     let _ = server_for(&mock_server, "web-1")
         .keep_on_failure(true)
-        .deploy(0, provider_client(&dir))
+        .deploy(0, provider_client(&dir).await)
         .await
         .expect_err("still fails");
 
@@ -311,7 +312,7 @@ async fn a_server_with_no_public_ip_is_refused_rather_than_returned() {
     });
 
     let err = server_for(&mock_server, "web-1")
-        .deploy(0, provider_client(&dir))
+        .deploy(0, provider_client(&dir).await)
         .await
         .expect_err("no address");
     assert!(err.to_string().contains("no public IPv4"), "{err}");
@@ -368,7 +369,7 @@ async fn a_create_whose_response_we_cannot_read_still_yields_the_server() {
     });
 
     let out = server_for(&mock_server, "web-1")
-        .deploy(0, provider_client(&dir))
+        .deploy(0, provider_client(&dir).await)
         .await
         .expect("the server exists and carries our label — deploy must adopt it");
 

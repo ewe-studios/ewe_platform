@@ -10,7 +10,7 @@ use std::time::Duration;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use foundation_core::valtron::initialize_pool;
+use foundation_core::valtron::{initialize_pool, BlockingFutureExt};
 use foundation_proxy::config::{ServiceConfig, SslConfig};
 use foundation_proxy::{ProxyConfig, ProxyServer};
 
@@ -150,7 +150,7 @@ fn sticky_cookie_pins_requests_to_one_backend() {
         .backend(&format!("http://127.0.0.1:{pb}"));
     let proxy = ProxyServer::start(
         ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0").service(svc),
-    )
+    ).block()
     .expect("start proxy");
     let addr = proxy.local_addr();
 
@@ -189,7 +189,7 @@ fn draining_returns_503() {
     let svc = ServiceConfig::new("echo", "test.local").backend(&format!("http://127.0.0.1:{pa}"));
     let proxy = ProxyServer::start(
         ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0").service(svc),
-    )
+    ).block()
     .expect("start proxy");
     let addr = proxy.local_addr();
     std::thread::sleep(Duration::from_millis(150));
@@ -221,7 +221,7 @@ fn ssl_redirect_301_to_https() {
             .ssl(SslConfig::static_cert(&cert, &key))
             .redirect_bind("127.0.0.1:0")
             .service(svc),
-    )
+    ).block()
     .expect("start proxy with TLS");
     let redirect_addr = proxy.redirect_local_addr().expect("redirect listener bound");
     std::thread::sleep(Duration::from_millis(150));
@@ -300,7 +300,7 @@ fn websocket_upgrade_relays_and_tunnels_bytes() {
     let svc = ServiceConfig::new("ws", "test.local").backend(&format!("http://127.0.0.1:{pa}"));
     let proxy = ProxyServer::start(
         ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0").service(svc),
-    )
+    ).block()
     .expect("start proxy");
     let addr = proxy.local_addr();
     std::thread::sleep(Duration::from_millis(200));
