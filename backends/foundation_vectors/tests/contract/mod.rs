@@ -148,27 +148,51 @@ pub async fn namespaces_are_isolated(store: &dyn VectorStore) {
 /// Make one `#[valtron_test]` per contract check for the store that
 /// `$make` (an `async fn() -> (guard, store)`) builds.
 macro_rules! vector_store_contract {
-    ($make:path) => {
+    ($make:ident) => {
         mod vector_store_contract {
             use foundation_core::valtron::valtron_test;
 
-            macro_rules! check {
-                ($name:ident) => {
-                    #[valtron_test]
-                    async fn $name() {
-                        let (_guard, store) = super::$make().await;
-                        crate::contract::$name(&store).await;
-                    }
-                };
+            #[valtron_test]
+            async fn insert_then_get_round_trips() {
+                let (_guard, store) = super::$make().await;
+                crate::contract::insert_then_get_round_trips(&store).await;
             }
 
-            check!(insert_then_get_round_trips);
-            check!(insert_replaces_existing_id);
-            check!(invalid_vectors_rejected);
-            check!(search_ranks_best_first);
-            check!(unknown_namespace_is_empty);
-            check!(delete_removes_and_reports_missing);
-            check!(namespaces_are_isolated);
+            #[valtron_test]
+            async fn insert_replaces_existing_id() {
+                let (_guard, store) = super::$make().await;
+                crate::contract::insert_replaces_existing_id(&store).await;
+            }
+
+            #[valtron_test]
+            async fn invalid_vectors_rejected() {
+                let (_guard, store) = super::$make().await;
+                crate::contract::invalid_vectors_rejected(&store).await;
+            }
+
+            #[valtron_test]
+            async fn search_ranks_best_first() {
+                let (_guard, store) = super::$make().await;
+                crate::contract::search_ranks_best_first(&store).await;
+            }
+
+            #[valtron_test]
+            async fn unknown_namespace_is_empty() {
+                let (_guard, store) = super::$make().await;
+                crate::contract::unknown_namespace_is_empty(&store).await;
+            }
+
+            #[valtron_test]
+            async fn delete_removes_and_reports_missing() {
+                let (_guard, store) = super::$make().await;
+                crate::contract::delete_removes_and_reports_missing(&store).await;
+            }
+
+            #[valtron_test]
+            async fn namespaces_are_isolated() {
+                let (_guard, store) = super::$make().await;
+                crate::contract::namespaces_are_isolated(&store).await;
+            }
         }
     };
 }
