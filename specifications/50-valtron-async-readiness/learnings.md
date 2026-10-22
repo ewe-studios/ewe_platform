@@ -195,3 +195,17 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   where each hash is a live unit.
 - Long agent runs can be stopped by usage limits. Commit at stable points so a
   stop loses nothing.
+
+## Renaming after removing the sync traits (PR #134)
+
+- **Check for name clashes before a mechanical rename.** Two `Async*` traits (`AsyncDeltaStore`,
+  `AsyncVectorStore`) still had sync twins in other crates, so the plain names were taken. A grep
+  for `trait|struct|enum <PlainName>` across the workspace found them before any edit.
+- **A word-boundary rename is safe here because no longer identifier contains the old names**
+  (checked first: no `AsyncQueryStoreExt` or similar). Use `\bName\b`.
+- **Check the example workspaces and wasm builds, not only `--workspace`.** `examples/cf-*` and
+  `apps/answerme-agent` are separate workspace roots; `cargo check --workspace` does not see them.
+- **Pushing several small commits in a row cancels the earlier CI runs.** The "Checks passed"
+  summary job then reports the cancelled run as a failure. Only the run on the newest commit counts.
+- **Agents can stop on account spend or rate limits.** Commit and push at every stable point, so
+  a stop loses nothing; the owner prefers everything pushed.
