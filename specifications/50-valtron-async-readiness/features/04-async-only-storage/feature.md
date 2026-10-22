@@ -1,7 +1,7 @@
 ---
 feature: "Async-Only Storage"
 description: "Move every remaining sync storage caller onto the Async* traits, make StateStore async, drop the blocking Default impls, then delete the sync storage traits and Blocking<S>"
-status: "in-progress"
+status: "done"
 priority: "high"
 depends_on: []
 builds_on:

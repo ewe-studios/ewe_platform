@@ -226,13 +226,6 @@ impl D1WasmStorage {
             .ok()
             .and_then(|v| v.as_string())
     }
-
-    /// Extract a number field from a JS object.
-    fn get_num_field(obj: &js_sys::Object, field: &str) -> Option<f64> {
-        js_sys::Reflect::get(obj, &field.into())
-            .ok()
-            .and_then(|v| v.as_f64())
-    }
 }
 
 // ===========================================================================
