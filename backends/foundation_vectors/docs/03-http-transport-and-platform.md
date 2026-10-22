@@ -36,9 +36,10 @@ pub trait HttpClient: Send + Sync {
 
 `TurboPufferVectorStore` holds an **`Arc<dyn HttpClient>`** and never names a
 concrete client. The deployment injects the right one. That single decision is what
-makes the adapter **platform-agnostic** — it builds and runs for both
-`x86_64` and `wasm32-unknown-unknown` (verified: the wasm build of the
-`turbopuffer` feature is clean).
+makes the adapter **platform-agnostic** in its code. Note: today the `turbopuffer`
+feature does not build for `wasm32-unknown-unknown`, because the crate takes
+`foundation_netio` with its native default features. The bug backlog
+(`foundation_vectors`) has the fix.
 
 ```rust
 let store = TurboPufferVectorStore::new(http_client, api_key, config)?;
