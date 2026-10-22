@@ -202,3 +202,44 @@ fn test_nfs_remove_file() {
         async move { nfs.remove(1, &ns("toremove.txt")).await }
     }).unwrap();
 }
+
+/// Bug fix: `remove` and `rename` ignored the directory id and used the bare
+/// name, so they acted on the root (or on nothing) instead of the entry in
+/// that directory.
+#[test]
+#[serial_test::serial]
+fn test_nfs_remove_and_rename_in_subdirectory() {
+    let _guard = init_pool();
+    let nfs = Arc::new(VfsNfs::new(MemoryFs::new()));
+
+    let n = Arc::clone(&nfs);
+    let (sub, _) = run_nfs_async(async move { n.mkdir(1, &ns("sub")).await }).unwrap();
+    let n = Arc::clone(&nfs);
+    run_nfs_async(async move {
+        n.create(sub, &ns("a.txt"), nfsserve::nfs::sattr3::default()).await
+    })
+    .unwrap();
+    let n = Arc::clone(&nfs);
+    run_nfs_async(async move {
+        n.create(sub, &ns("gone.txt"), nfsserve::nfs::sattr3::default()).await
+    })
+    .unwrap();
+
+    let n = Arc::clone(&nfs);
+    run_nfs_async(async move { n.rename(sub, &ns("a.txt"), sub, &ns("b.txt")).await }).unwrap();
+    let n = Arc::clone(&nfs);
+    run_nfs_async(async move { n.remove(sub, &ns("gone.txt")).await }).unwrap();
+
+    let n = Arc::clone(&nfs);
+    assert!(run_nfs_async(async move { n.lookup(sub, &ns("b.txt")).await }).is_ok());
+    let n = Arc::clone(&nfs);
+    assert!(matches!(
+        run_nfs_async(async move { n.lookup(sub, &ns("a.txt")).await }),
+        Err(nfsstat3::NFS3ERR_NOENT)
+    ));
+    let n = Arc::clone(&nfs);
+    assert!(matches!(
+        run_nfs_async(async move { n.lookup(sub, &ns("gone.txt")).await }),
+        Err(nfsstat3::NFS3ERR_NOENT)
+    ));
+}

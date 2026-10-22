@@ -400,6 +400,11 @@ native-windows = ["native", "watcher-windows"]
 workspace = true
 
 [[test]]
+name = "vfs_async"
+path = "tests/vfs_async/mod.rs"
+required-features = ["vfs"]
+
+[[test]]
 name = "vfs_search"
 path = "tests/vfs_search/mod.rs"
 required-features = ["vfs-search"]
