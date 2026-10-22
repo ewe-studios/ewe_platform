@@ -97,7 +97,6 @@ buildkit = ["foundation_deployment_docker/buildkit"]
 all-providers = ["vms", "docker"]
 
 [dev-dependencies]
-tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
 tracing-subscriber = "0.3"
 
 [[bin]]
