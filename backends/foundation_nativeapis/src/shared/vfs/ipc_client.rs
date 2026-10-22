@@ -226,7 +226,16 @@ async fn remote_read_at(
             message: format!("read of {len} bytes is larger than one IPC request allows"),
         })
     })?;
-    match call(transport, VfsRequest::ReadAt { handle, offset, size }).await? {
+    match call(
+        transport,
+        VfsRequest::ReadAt {
+            handle,
+            offset,
+            size,
+        },
+    )
+    .await?
+    {
         VfsResponse::Data(data) => Ok(data),
         _ => Err(unexpected()),
     }
@@ -238,7 +247,16 @@ async fn remote_write_at(
     data: Vec<u8>,
     offset: u64,
 ) -> VfsResult<usize> {
-    match call(transport, VfsRequest::WriteAt { handle, data, offset }).await? {
+    match call(
+        transport,
+        VfsRequest::WriteAt {
+            handle,
+            data,
+            offset,
+        },
+    )
+    .await?
+    {
         VfsResponse::BytesTransferred(n) => Ok(n),
         _ => Err(unexpected()),
     }
@@ -277,7 +295,13 @@ impl AsyncVfsFile for RemoteFile {
     }
 
     async fn sync_data_async(&self) -> VfsResult<()> {
-        call_ok(&*self.transport, VfsRequest::SyncData { handle: self.handle }).await
+        call_ok(
+            &*self.transport,
+            VfsRequest::SyncData {
+                handle: self.handle,
+            },
+        )
+        .await
     }
 
     async fn size_async(&self) -> VfsResult<u64> {
@@ -293,14 +317,21 @@ impl AsyncVfsFile for RemoteFile {
     }
 
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
-        call_metadata(&*self.transport, VfsRequest::FileMetadata { handle: self.handle }).await
+        call_metadata(
+            &*self.transport,
+            VfsRequest::FileMetadata {
+                handle: self.handle,
+            },
+        )
+        .await
     }
 }
 
 impl Drop for RemoteFile {
     fn drop(&mut self) {
-        self.transport
-            .release(VfsRequest::CloseFile { handle: self.handle });
+        self.transport.release(VfsRequest::CloseFile {
+            handle: self.handle,
+        });
     }
 }
 
@@ -361,7 +392,8 @@ impl AsyncSeekableVfsFile for RemoteSeekableFile {
     async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>> {
         let pos = self.position.load(Ordering::Relaxed);
         let data = self.file.read_at_async(len, pos).await?;
-        self.position.fetch_add(data.len() as u64, Ordering::Relaxed);
+        self.position
+            .fetch_add(data.len() as u64, Ordering::Relaxed);
         Ok(data)
     }
 
@@ -408,7 +440,8 @@ impl std::fmt::Debug for RemoteDirectory {
     }
 }
 
-type RemoteDirBox = Box<dyn AsyncVfsDirectory<File = RemoteFile, SeekableFile = RemoteSeekableFile>>;
+type RemoteDirBox =
+    Box<dyn AsyncVfsDirectory<File = RemoteFile, SeekableFile = RemoteSeekableFile>>;
 
 impl RemoteDirectory {
     /// The full path of `relative` in this directory. `"."` is the directory
@@ -451,11 +484,24 @@ impl AsyncVfsDirectory for RemoteDirectory {
     }
 
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
-        call_metadata(&*self.transport, VfsRequest::DirMetadata { handle: self.handle }).await
+        call_metadata(
+            &*self.transport,
+            VfsRequest::DirMetadata {
+                handle: self.handle,
+            },
+        )
+        .await
     }
 
     async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
-        match call(&*self.transport, VfsRequest::DirList { handle: self.handle }).await? {
+        match call(
+            &*self.transport,
+            VfsRequest::DirList {
+                handle: self.handle,
+            },
+        )
+        .await?
+        {
             VfsResponse::DirEntries(entries) => Ok(entries.into_iter().map(Into::into).collect()),
             _ => Err(unexpected()),
         }
@@ -555,8 +601,9 @@ impl AsyncVfsDirectory for RemoteDirectory {
 
 impl Drop for RemoteDirectory {
     fn drop(&mut self) {
-        self.transport
-            .release(VfsRequest::CloseDir { handle: self.handle });
+        self.transport.release(VfsRequest::CloseDir {
+            handle: self.handle,
+        });
     }
 }
 

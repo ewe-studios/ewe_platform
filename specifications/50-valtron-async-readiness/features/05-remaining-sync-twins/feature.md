@@ -184,3 +184,17 @@ traits (it is a consumer, not a store); see the backlog.
 | A remote directory handle joined an absolute path to its own path. | `vfs_async::ipc::directory_handles_accept_absolute_paths` |
 | `ClientTransport` sent under one lock and received under another, so two concurrent requests could swap responses. | none (needs the IPC bus); one lock now covers both |
 | `vfs-sqlite` did not compile (`scru128` was not a dependency). | the `valtron_vfs` SQLite tests build and run again |
+| `VfsNfs` gave the first new entry id 1, the root's id, so the root mapped to that entry. | `nfs_vfs::test_nfs_remove_and_rename_in_subdirectory` (and the old `test_nfs_remove_file`) |
+| `NativeFs::create` returned a `ReadWrite` handle over a write-only host file. | `native_vfs::created_files_can_be_read_back` |
+| `LibsqlDelta::write_file_async` failed for a new file, kept the old chunks on overwrite (UNIQUE constraint), and sent invalid SQL for empty data. | `valtron_vfs::sqlite::sync_libsql_read_file_write_file` |
+
+**Checks (2026-10-22):**
+
+| Check | Result |
+|---|---|
+| `ci.py run foundation_nativeapis --step fmt --step build --step clippy --step test` (runs `""` and `vfs-native,vfs-d1,vfs-r2`; fmt is report-only for this crate; no wasm step) | pass |
+| `cargo check -p foundation_nativeapis --tests --examples --features vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow` | pass |
+| `cargo test -p foundation_nativeapis` with those features (less `vfs-ptrace` and `vfs-arrow`): `native_vfs`, `dir_delta_vfs`, `overlay_vfs`, `observable_vfs`, `vfs_search`, `ipc_vfs`, `valtron_vfs`, `memory_vfs`, `nfs_vfs`, `vfs_async`, `blob_delta_vfs`, `d1_delta_vfs`, `r2_delta_vfs`, `fjall_vfs`, `fjall_document_store` | pass |
+| `cargo check -p foundation_ai --no-default-features --features testing --tests` | pass |
+| `ci.py run foundation_ai`, `cargo test` of `foundation_ai`, `cargo check --workspace --tests` | not run: the disk was full (other sessions built in the shared target at the same time). A grep found no other user of the changed APIs in `apps/`, `examples/`, `bin/`, `backends/` or `infrastructure/`. |
+| `vfs-turso`, `vfs-preload`, `vfs-fuse` | not built: they did not build before this change (see the backlog) |

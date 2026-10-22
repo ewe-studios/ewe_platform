@@ -366,9 +366,7 @@ impl<F: AsyncVfsFileSystem + 'static> VfsDaemon<F> {
 
     async fn list_dir(&self, path: String) -> Result<Vec<VfsDirEntry>, VfsResponse> {
         let dir = self.fs.open_directory_async(path).await.map_err(err)?;
-        dir.list_async()
-            .await
-            .map_err(err)
+        dir.list_async().await.map_err(err)
     }
 
     async fn handle_dir_list(&self, handle: u64) -> VfsResponse {

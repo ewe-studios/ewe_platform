@@ -14,11 +14,11 @@ use std::time::SystemTime;
 use async_trait::async_trait;
 use foundation_errstacks::ErrorTrace;
 
-use crate::shared::vfs::error::{VfsError, VfsResult};
-use crate::shared::vfs::path_utils::normalize_vfs_path as shared_normalize;
 use crate::shared::vfs::async_traits::{
     AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
 };
+use crate::shared::vfs::error::{VfsError, VfsResult};
+use crate::shared::vfs::path_utils::normalize_vfs_path as shared_normalize;
 use crate::shared::vfs::types::{
     Checksum, OpenMode, SeekFrom, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType,
     VfsMetadata,
@@ -35,15 +35,17 @@ pub struct NativeFs {
 impl NativeFs {
     pub fn new(root: impl Into<PathBuf>) -> VfsResult<Self> {
         let root: PathBuf = root.into();
-        let root = root.canonicalize().map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
+        let root = root
+            .canonicalize()
+            .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
         if !root.is_dir() {
             return Err(ErrorTrace::new(VfsError::NotADirectory {
                 path: root.display().to_string(),
             }));
         }
-        Ok(Self { root: Arc::new(root) })
+        Ok(Self {
+            root: Arc::new(root),
+        })
     }
 
     pub fn root(&self) -> &Path {
@@ -377,7 +379,9 @@ impl AsyncVfsFile for SeekableNativeFile {
     }
 
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
-        Ok(fs_metadata_to_vfs(&self.file()?.metadata().map_err(io_err)?))
+        Ok(fs_metadata_to_vfs(
+            &self.file()?.metadata().map_err(io_err)?,
+        ))
     }
 }
 
@@ -460,7 +464,9 @@ impl AsyncVfsDirectory for NativeDirectory {
 
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
         let fs_path = self.resolve(".")?;
-        Ok(fs_metadata_to_vfs(&std::fs::metadata(&fs_path).map_err(io_err)?))
+        Ok(fs_metadata_to_vfs(
+            &std::fs::metadata(&fs_path).map_err(io_err)?,
+        ))
     }
 
     async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
@@ -581,7 +587,9 @@ impl AsyncVfsDirectory for NativeDirectory {
 
     async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
         let fs_path = self.resolve(&path)?;
-        Ok(fs_metadata_to_vfs(&std::fs::metadata(&fs_path).map_err(io_err)?))
+        Ok(fs_metadata_to_vfs(
+            &std::fs::metadata(&fs_path).map_err(io_err)?,
+        ))
     }
 
     async fn exists_async(&self, path: String) -> VfsResult<bool> {
@@ -609,7 +617,9 @@ impl AsyncVfsFileSystem for NativeFs {
 
     async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
         let fs_path = self.resolve_path(&path)?;
-        Ok(fs_metadata_to_vfs(&std::fs::metadata(&fs_path).map_err(io_err)?))
+        Ok(fs_metadata_to_vfs(
+            &std::fs::metadata(&fs_path).map_err(io_err)?,
+        ))
     }
 
     async fn exists_async(&self, path: String) -> VfsResult<bool> {

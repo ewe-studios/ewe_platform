@@ -75,7 +75,12 @@ impl<B: AsyncVfsFileSystem + 'static, D: AsyncDeltaStore + 'static> OverlayCore<
         if self.delta.exists_async(path.to_string()).await? {
             return Ok(true);
         }
-        if self.delta.is_whiteout_async(path.to_string()).await?.is_some() {
+        if self
+            .delta
+            .is_whiteout_async(path.to_string())
+            .await?
+            .is_some()
+        {
             return Ok(false);
         }
         self.base.exists_async(path.to_string()).await
@@ -128,7 +133,10 @@ impl<B: AsyncVfsFileSystem + 'static, D: AsyncDeltaStore + 'static> OverlayCore<
         let data = self.base.read_file_async(from.to_string()).await?;
         let base_meta = self.base.stat_async(from.to_string()).await?;
         self.ensure_parents_of(to).await?;
-        let file = self.delta.create_async(to.to_string(), base_meta.permissions).await?;
+        let file = self
+            .delta
+            .create_async(to.to_string(), base_meta.permissions)
+            .await?;
         if let Err(e) = file.write_at_async(data, 0).await {
             // Remove the partial copy; the write error is the one to report.
             let _ = self.delta.remove_async(to.to_string()).await;
@@ -249,7 +257,9 @@ impl<B: AsyncVfsFileSystem + 'static, D: AsyncDeltaStore + 'static> OverlayCore<
         self.require_absent(&path).await?;
         self.ensure_parents_of(&path).await?;
         self.next_version();
-        Ok(OverlayFile::Delta(self.delta.create_async(path, mode).await?))
+        Ok(OverlayFile::Delta(
+            self.delta.create_async(path, mode).await?,
+        ))
     }
 
     async fn mkdir(&self, path: String) -> VfsResult<()> {
@@ -287,7 +297,10 @@ impl<B: AsyncVfsFileSystem + 'static, D: AsyncDeltaStore + 'static> OverlayCore<
         let mut seen_names = HashSet::new();
 
         if self.in_delta(dir_path).await? {
-            let delta_dir = self.delta.open_directory_async(dir_path.to_string()).await?;
+            let delta_dir = self
+                .delta
+                .open_directory_async(dir_path.to_string())
+                .await?;
             for entry in delta_dir.list_async().await? {
                 seen_names.insert(entry.name.clone());
                 entries.push(entry);
@@ -486,12 +499,12 @@ impl<B: AsyncVfsFileSystem + 'static, D: AsyncDeltaStore + 'static> OverlayDirec
 
 type OverlayDirBox<B, D> = Box<
     dyn AsyncVfsDirectory<
-            File = OverlayFile<<B as AsyncVfsFileSystem>::File, <D as AsyncVfsFileSystem>::File>,
-            SeekableFile = OverlaySeekableFile<
-                <B as AsyncVfsFileSystem>::SeekableFile,
-                <D as AsyncVfsFileSystem>::SeekableFile,
-            >,
+        File = OverlayFile<<B as AsyncVfsFileSystem>::File, <D as AsyncVfsFileSystem>::File>,
+        SeekableFile = OverlaySeekableFile<
+            <B as AsyncVfsFileSystem>::SeekableFile,
+            <D as AsyncVfsFileSystem>::SeekableFile,
         >,
+    >,
 >;
 
 #[async_trait]
@@ -656,7 +669,9 @@ impl<B: AsyncVfsFileSystem + 'static, D: AsyncDeltaStore + 'static> AsyncVfsFile
         path: String,
         mode: OpenMode,
     ) -> VfsResult<Self::SeekableFile> {
-        self.core.open_seekable(normalize_vfs_path(&path)?, mode).await
+        self.core
+            .open_seekable(normalize_vfs_path(&path)?, mode)
+            .await
     }
 
     async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory> {

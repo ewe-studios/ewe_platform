@@ -57,8 +57,13 @@ async fn read_write_and_metadata_round_trip() {
 async fn seek_from_current_and_end() {
     let tmp = TempDir::new("seek");
     let c = client(&tmp).await;
-    c.write_file_async("/s.txt".into(), b"0123456789".to_vec()).await.unwrap();
-    let mut f = c.open_seekable_async("/s.txt".into(), OpenMode::Read).await.unwrap();
+    c.write_file_async("/s.txt".into(), b"0123456789".to_vec())
+        .await
+        .unwrap();
+    let mut f = c
+        .open_seekable_async("/s.txt".into(), OpenMode::Read)
+        .await
+        .unwrap();
 
     assert_eq!(f.seek_async(SeekFrom::Start(2)).await.unwrap(), 2);
     assert_eq!(f.seek_async(SeekFrom::Current(3)).await.unwrap(), 5);
@@ -74,7 +79,9 @@ async fn directory_handles_accept_absolute_paths() {
     let tmp = TempDir::new("abs");
     let c = client(&tmp).await;
     c.mkdir_async("/dir".into()).await.unwrap();
-    c.write_file_async("/top.txt".into(), b"t".to_vec()).await.unwrap();
+    c.write_file_async("/top.txt".into(), b"t".to_vec())
+        .await
+        .unwrap();
 
     let dir = c.open_directory_async("/dir".into()).await.unwrap();
     assert!(dir.exists_async("/top.txt".into()).await.unwrap());

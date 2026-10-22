@@ -20,7 +20,13 @@ async fn directory_handle_outlives_the_overlay() {
     let dir = overlay.open_directory_async("/src".into()).await.unwrap();
     drop(overlay);
 
-    let names: Vec<String> = dir.list_async().await.unwrap().into_iter().map(|e| e.name).collect();
+    let names: Vec<String> = dir
+        .list_async()
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|e| e.name)
+        .collect();
     assert_eq!(names, vec!["deep".to_string(), "main.rs".to_string()]);
     assert!(dir.exists_async("main.rs".into()).await.unwrap());
 }
@@ -30,11 +36,20 @@ async fn directory_handle_outlives_the_overlay() {
 #[valtron_test]
 async fn create_file_in_a_base_only_directory() {
     let overlay = overlay_with_base_dir();
-    let deep = overlay.open_directory_async("/src/deep".into()).await.unwrap();
-    let file = deep.create_file_async("new.rs".into(), 0o644).await.unwrap();
+    let deep = overlay
+        .open_directory_async("/src/deep".into())
+        .await
+        .unwrap();
+    let file = deep
+        .create_file_async("new.rs".into(), 0o644)
+        .await
+        .unwrap();
     drop(file);
 
-    assert!(overlay.exists_async("/src/deep/new.rs".into()).await.unwrap());
+    assert!(overlay
+        .exists_async("/src/deep/new.rs".into())
+        .await
+        .unwrap());
     assert!(overlay.delta().exists("/src/deep/new.rs").unwrap());
     assert!(!overlay.base().exists("/src/deep/new.rs").unwrap());
 }
@@ -46,8 +61,17 @@ async fn copy_on_write_and_whiteout() {
         .write_file_async("/src/main.rs".into(), b"changed".to_vec())
         .await
         .unwrap();
-    assert_eq!(overlay.read_file_async("/src/main.rs".into()).await.unwrap(), b"changed");
-    assert_eq!(overlay.base().read_file("/src/main.rs").unwrap(), b"fn main() {}");
+    assert_eq!(
+        overlay
+            .read_file_async("/src/main.rs".into())
+            .await
+            .unwrap(),
+        b"changed"
+    );
+    assert_eq!(
+        overlay.base().read_file("/src/main.rs").unwrap(),
+        b"fn main() {}"
+    );
 
     overlay.remove_async("/src/main.rs".into()).await.unwrap();
     assert!(!overlay.exists_async("/src/main.rs".into()).await.unwrap());
