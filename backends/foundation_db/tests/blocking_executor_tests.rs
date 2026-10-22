@@ -1,7 +1,7 @@
 //! `Blocking<S>` over stores that really wait: their futures and streams go
 //! `Pending`, so `Blocking` hands them to the valtron executor (initialized
 //! here) and waits. Covers single values, lazily pulled streams, the real
-//! Turso backend, and `StorageCleanup` (a blanket over the sync `QueryStore`).
+//! Turso backend.
 
 use std::pin::Pin;
 use std::sync::Mutex;
@@ -11,7 +11,7 @@ use std::vec::IntoIter;
 use foundation_core::valtron::{initialize_pool, BlockingFutureExt, PoolGuard, Stream};
 use foundation_db::{
     AsyncKeyValueStore, AsyncListStream, Blocking, DataValue, KeyValueStore, MemoryStorage,
-    QueryStore, StorageCleanup, StorageError, StorageItemStream, StorageResult, TursoStorage,
+    QueryStore, StorageError, StorageItemStream, StorageResult, TursoStorage,
 };
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -150,37 +150,4 @@ fn turso_round_trips_through_the_sync_traits() {
     // first item, an `Err`.
     let mut bad = store.query("SELECT * FROM no_such_table", &[]).unwrap();
     assert!(matches!(bad.next(), Some(Stream::Next(Err(_)))));
-}
-
-#[test]
-fn storage_cleanup_runs_over_blocking_turso() {
-    init_valtron();
-    let store = turso();
-
-    // An expired and a live JWT row; cleanup removes only the expired one.
-    store
-        .execute(
-            "INSERT INTO jwt_tokens (id, access_token_encrypted, expires_at) VALUES (?, ?, ?)",
-            &[
-                DataValue::Text("old".into()),
-                DataValue::Text("h1".into()),
-                DataValue::Integer(10),
-            ],
-        )
-        .unwrap();
-    store
-        .execute(
-            "INSERT INTO jwt_tokens (id, access_token_encrypted, expires_at) VALUES (?, ?, ?)",
-            &[
-                DataValue::Text("new".into()),
-                DataValue::Text("h2".into()),
-                DataValue::Integer(i64::MAX),
-            ],
-        )
-        .unwrap();
-
-    assert_eq!(store.cleanup_expired_jwt_tokens(100).unwrap(), 1);
-    let left = collect(store.query("SELECT id FROM jwt_tokens", &[]).unwrap());
-    assert_eq!(left.len(), 1);
-    assert_eq!(left[0].get::<String>(0).unwrap(), "new");
 }

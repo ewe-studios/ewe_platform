@@ -28,7 +28,7 @@ them directly with `.await`.
 
 Sync code wraps the store in **`Blocking<S>`**, which implements each sync trait
 (`KeyValueStore`, `BlobStore`, `QueryStore`, `RateLimiterStore`,
-`DocumentStore`, and so `StorageCleanup`) for `Blocking<S>` wherever `S`
+`DocumentStore`) for `Blocking<S>` wherever `S`
 implements the async one:
 
 ```rust
@@ -192,7 +192,16 @@ pub static MIGRATIONS: &[Migration] = &[
 ];
 
 MigrationRunner::new(MIGRATIONS).run_async(&store).await?;
-// From sync code: MigrationRunner::new(MIGRATIONS).run(&Blocking::new(store))?;
+```
+
+There is no sync runner: a sync entry point awaits `run_async` through
+`block_on_future` / `.block()` behind `blocking_boundary!`.
+
+Expired auth rows are removed with `AsyncStorageCleanup` (implemented for
+every `AsyncQueryStore`), with retention periods from `CleanupConfig`:
+
+```rust
+let stats = store.run_full_cleanup(&CleanupConfig::default()).await?;
 ```
 
 Migrations are idempotent (tracked by `id` in a `_migrations` table). Each

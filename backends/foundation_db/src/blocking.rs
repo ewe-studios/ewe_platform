@@ -9,8 +9,8 @@
 //!
 //! WHAT: [`Blocking<S>`] wraps any async store and implements the matching
 //! sync trait ([`KeyValueStore`], [`BlobStore`], [`QueryStore`],
-//! [`RateLimiterStore`], [`DocumentStore`]; [`StorageCleanup`] follows from
-//! `QueryStore`) by waiting for the async call on the valtron executor:
+//! [`RateLimiterStore`], [`DocumentStore`]) by waiting for the async call on
+//! the valtron executor:
 //!
 //! ```ignore
 //! use foundation_db::{Blocking, KeyValueStore, TursoStorage};
