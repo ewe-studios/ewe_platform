@@ -260,7 +260,6 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **Sync storage callers still go through `Blocking`.** Each should move to the
   `Async*` traits, one crate at a time, before the sync traits are deleted:
-  - `foundation_vectors` `SqlVectorStore`/`LibsqlVectorStore`;
   - `foundation_cronjobs` `CronScheduler`;
   - `MigrationRunner::run` and `StorageCleanup` (keep only `run_async` and an
     async cleanup).
@@ -402,6 +401,17 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `test:wasm-bindgen:deno` cannot start even though it only needs deno and
   wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
   task invoke the two binaries via `mise which`.
+
+## 17. foundation_vectors
+
+- **`AsyncVectorStore::len_async` returns `usize`,** so a backend error can't
+  be reported (`src/store.rs`); the SQL stores count a failure as 0. Fix:
+  return `Result<usize, VectorStoreError>` from `len_async` (and `len`) across
+  every vector store. Owner decision 2026-10-21: recorded, not fixed in F04.
+- **The SQL-backed stores scan a whole namespace per search**
+  (`SqlVectorStore::search_async`): memory is bounded (`TopK`), but time is
+  O(n·d) per query. Expected for the portable fallback; large namespaces
+  should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
 
 ## Paused
 

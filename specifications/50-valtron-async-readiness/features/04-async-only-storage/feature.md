@@ -349,6 +349,13 @@ The two SQL-backed stores move from the sync `VectorStore` to the existing
   keeps the signature and logs). See §9 Q4.
 - Tests: `tests/{sql_vector_store_tests, libsql_vector_store_tests}.rs` await
   the stores directly (no `Blocking`).
+- Search no longer collects the namespace: a new public `TopK` accumulator
+  (`src/flat.rs`; `flat_top_k`/`flat_top_k_owned` now use it) ranks rows as
+  they stream in, O(k) memory.
+- Errors stop being swallowed: metadata encode/decode and libSQL's
+  `vector_extract` parse report `VectorStoreError::Backend` (a bad component
+  used to be dropped, shifting every later dimension).
+- `sql-store` now pulls `futures-lite` instead of `foundation_core`.
 
 ### 3.5 foundation_cronjobs
 

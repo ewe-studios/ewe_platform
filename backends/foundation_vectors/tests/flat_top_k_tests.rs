@@ -117,3 +117,44 @@ fn results_sorted_descending() {
         );
     }
 }
+
+#[test]
+fn top_k_accumulator_matches_flat_top_k() {
+    use foundation_vectors::TopK;
+
+    let query = [1.0_f32, 0.0, 0.0];
+    let data: Vec<(String, Vec<f32>)> = (0..50)
+        .map(|i| {
+            #[allow(clippy::cast_precision_loss)]
+            let x = i as f32 / 50.0;
+            (format!("v{i:02}"), vec![x, 1.0 - x, 0.5])
+        })
+        .collect();
+
+    // Fed one candidate at a time (as a streaming store does)...
+    let mut top = TopK::new(&query, 5, DistanceMetric::Cosine);
+    for (id, v) in &data {
+        top.push(id, v);
+    }
+    let streamed = top.finish();
+
+    // ...the result equals the batch helper's.
+    let batch = flat_top_k(
+        &query,
+        data.iter().map(|(id, v)| (id.as_str(), v.as_slice())),
+        5,
+        DistanceMetric::Cosine,
+    );
+    assert_eq!(streamed.len(), 5);
+    let ids = |m: &[foundation_vectors::store::VectorMatch]| m.iter().map(|x| x.id.clone()).collect::<Vec<_>>();
+    assert_eq!(ids(&streamed), ids(&batch));
+    assert_eq!(streamed[0].id, "v49");
+}
+
+#[test]
+fn top_k_accumulator_with_k_zero_keeps_nothing() {
+    let query = [1.0_f32, 0.0];
+    let mut top = foundation_vectors::TopK::new(&query, 0, DistanceMetric::Cosine);
+    top.push("a", &[1.0, 0.0]);
+    assert_eq!(top.finish(), Vec::new());
+}
