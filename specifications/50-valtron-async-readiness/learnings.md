@@ -136,6 +136,17 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   fns that now await as `async`. A small script that matches parentheses
   does the first part reliably.
 
+- Don't mix pool styles in one test binary. A file whose tests share a static
+  `initialize_pool` guard hangs when one test in it is `#[valtron_test]`
+  (which starts a second pool in the same process): the new
+  `migration_runner_applies_all_then_is_idempotent` hung until it was
+  rewritten to the file's shared-pool style. Convert a whole file to
+  `#[valtron_test]`, or none of it.
+- A sync bridge that a hidden test fallback "rescues" can hide real bugs:
+  the IdP `NoOpStore` fallback, `collect_stream` helpers that drop `Err`
+  items, and `let _ =` on writes all turned up while converting callers.
+  Converting is a good moment to make every error reach the caller.
+
 ## Pool teardown in tests
 
 - `shutdown_within` detaches workers stuck inside a task. They are threads in
@@ -147,6 +158,10 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
 - Local CI (`scripts/ci/ci.py run <crate> ...`) can exhaust the session's
   disk. Run one crate at a time and prune old `target/uat/build/*/` hashes
   between crates; keep logs inside the repo's target dir.
+- `ci.py run foundation_db` with full debuginfo filled ~15 GB (its ~40
+  test binaries each link Turso, libsql and the HTTP stack); the linker then
+  died with a bus error. `CARGO_PROFILE_UAT_DEBUG=0` keeps the same checks
+  and fits easily. Watch free space with a monitor during long runs.
 - `ci.py run foundation_ai` with all steps needs more than 14 GB free:
   `build` with llamacpp + candle leaves ~14 GB in `target/uat`, then `clippy`
   adds more. Run the steps one at a time and `rm -rf target/uat` between them;

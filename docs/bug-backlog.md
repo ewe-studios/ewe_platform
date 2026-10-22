@@ -260,8 +260,6 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **Sync storage callers still go through `Blocking`.** Each should move to the
   `Async*` traits, one crate at a time, before the sync traits are deleted:
-  - `MigrationRunner::run` and `StorageCleanup` (keep only `run_async` and an
-    async cleanup).
 - **`StateStore` is still a sync trait.** `LibsqlStore`'s `StateStore::init`
   / `sync_remote` and `native::create_state_store` wait on libsql with
   `.block()`, and `D1Store`'s `StateStore` impl uses a blocking HTTP call
@@ -275,6 +273,11 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   (`foundation_ai/src/agentic/tools/agent.rs`). Fix: give the agent tool a
   store factory (an async constructor) instead of the `Default` bound, remove
   `builder_for`, then drop these `Default` impls.
+- **Auth tables mix timestamp units.** The `created_at` defaults in the core
+  migrations are milliseconds (`strftime('%s','now') * 1000`), while
+  `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
+  server writes milliseconds for its own rows. Fix: pick one unit per column,
+  document it in the migrations, and make cleanup follow it.
 - **The in-memory rate limiters never let a busy window expire.**
   `record_rate_limit_async` on `MemoryStorage` and `MemoryJsonStore`
   (`src/core/backends/memory*.rs`) sets `window_start = now` on every call, so
@@ -338,16 +341,25 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **`FjallDocumentStore` implements only the sync `DocumentStore`** although it
-  does disk I/O (`src/shared/vfs/fjall_document_store.rs`). Fix: implement
-  `AsyncDocumentStore` (the I/O can run in the async body, like
-  `JsonFileStorage`) and let sync callers use `Blocking`.
-- **The async D1/R2 VFS files block and ignore the write offset.**
-  `AsyncD1File` / `AsyncR2File` (`src/native/vfs/{d1,r2}_delta/mod.rs`) call
-  the sync delta methods, which now wait through `Blocking`, from inside async
-  fns. Their `write_at_async` ignores `offset` (it rewrites the whole file from
-  `data`), and their `mode` field is never read. Fix: async delta methods over
-  the `Async*` stores; honour `offset` and read-only `mode`.
+- **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
+  (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
+  file, its metadata and its whiteout as separate blobs, and a blob store has
+  no key listing: `list_async` and `list_whiteouts_async` return nothing and
+  `reset_async` is unsupported. Fix: keep a per-directory index blob (or use
+  D1's key-value listing, `list_keys_async`, for the D1 delta).
+- **A blob-delta write rewrites the whole file.** Each `write_at_async` reads
+  the blob, splices the bytes in and writes it back, so a large file written
+  in small pieces is O(n²). Fix: chunked storage (the unused
+  `d1_delta::chunking` module sketches it) with a configurable chunk size.
+- **The VFS shim never uses the D1/R2 deltas.** `src/native/vfs/shim/mod.rs`
+  logs "impls pending" and falls back to the memory delta for
+  `DeltaBackend::D1` / `R2`; the deltas now exist (as `SyncFs<D1Delta>` /
+  `SyncFs<R2Delta>` for the sync overlay). Fix: build them from the shim
+  config.
+- **`FjallDocumentStore` scans buffer their rows.** `scan_async`,
+  `scan_all_async` and `scan_from_async` collect the matching rows into a
+  `Vec` before streaming them (`src/shared/vfs/fjall_document_store.rs`);
+  `scan_all_async` is unbounded. Fix: walk the fjall index range lazily.
 
 ## 14. foundation_cronjobs
 

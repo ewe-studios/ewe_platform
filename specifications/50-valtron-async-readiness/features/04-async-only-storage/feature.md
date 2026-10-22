@@ -400,11 +400,29 @@ The two SQL-backed stores move from the sync `VectorStore` to the existing
 - `cleanup_old_rate_limits` takes `now` instead of reading `SystemTime`
   (which panics on `wasm32-unknown-unknown` and `unwrap`s); `run_full_cleanup`
   takes the clock from the wasm-safe helper the in-memory stores use.
+- As built: `cleanup_expired_sessions(now, Option<Duration>)` and
+  `cleanup_old_rate_limits(now, Duration)` take `Duration`s; the other
+  `cleanup_expired_*(before)` take the cutoff. `CleanupConfig`'s fields are
+  `*_retention` (how long an expired row is kept), `session_max_inactive`
+  and `rate_limit_window`.
+- `run_async` checks "already applied" by reading one row instead of
+  collecting the result.
 
 ### 3.7 foundation_nativeapis (`vfs-d1`, `vfs-r2`, `vfs-fjall`)
 
-- `D1Delta { store: Blocking<D1Store> }` → `D1Delta { store: Arc<D1Store> }`;
-  `R2Delta { store: Blocking<R2Store> }` → `R2Delta { store: Arc<R2Store> }`.
+- As built: a new generic `BlobDelta<S: AsyncBlobStore>`
+  (`src/native/vfs/blob_delta.rs`) implements the async VFS traits once;
+  `D1Delta = BlobDelta<D1Store>` and `R2Delta = BlobDelta<R2Store>` are type
+  aliases keeping their `new` / `new_with_base_url` / `from_env`
+  constructors (the generic one is `BlobDelta::from_store`).
+  `AsyncD1File`/`AsyncR2File` and `AsyncD1Directory`/`AsyncR2Directory` become
+  aliases of `BlobFile<_>` / `BlobDirectory<_>`; the sync `D1File`,
+  `D1SeekableFile`, `D1Directory`, `R2File`, … are gone.
+- Behaviour fixes that came with it: writes honour the offset and read-only
+  mode, `truncate` persists, seeking works (the old async seek was a no-op),
+  `get_entry_async` looks the child up, whiteouts are one blob each (D1 used
+  to write a blob and check a KV key), and a removed path that is created
+  again is no longer whited out.
 - The **async** VFS impls (`AsyncVfsFileSystem`, `AsyncDeltaStore`,
   `AsyncVfsFile`, `AsyncVfsDirectory` for `AsyncD1File`/`AsyncR2File`/…)
   become the real implementations, awaiting `AsyncBlobStore` /

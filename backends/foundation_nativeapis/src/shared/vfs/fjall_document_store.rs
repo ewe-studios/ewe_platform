@@ -4,9 +4,8 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::Stream;
-use foundation_db::traits::{Document, DocumentStore, PromotableDocument, StorageItemStream};
-use foundation_db::{StorageError, StorageResult};
+use foundation_db::traits::{AsyncDocumentStore, Document, PromotableDocument};
+use foundation_db::{AsyncStorageItemStream, StorageError, StorageResult};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use super::traits::{VfsDirectory, VfsFile, VfsFileSystem};
@@ -614,24 +613,30 @@ fn limit_opt(limit: usize) -> Option<usize> {
     (limit > 0).then_some(limit)
 }
 
+/// Decode buffered rows into the async stream the trait returns.
 fn rows_to_stream<V: DeserializeOwned + Send + 'static>(
     rows: Vec<NdjsonRow>,
-) -> StorageItemStream<'static, V> {
-    Box::new(rows.into_iter().map(|r| {
-        match serde_json::from_str::<V>(&r.content) {
-            Ok(v) => Stream::Next(Ok(v)),
-            Err(e) => Stream::Next(Err(StorageError::Deserialization(e.to_string()))),
-        }
-    }))
+) -> AsyncStorageItemStream<'static, V> {
+    Box::pin(futures_lite::stream::iter(rows.into_iter().map(|r| {
+        serde_json::from_str::<V>(&r.content)
+            .map_err(|e| StorageError::Deserialization(e.to_string()))
+    })))
 }
 
-impl<V: VfsFileSystem + Send + Sync> DocumentStore for FjallDocumentStore<V>
+fn backend(e: impl std::fmt::Display) -> StorageError {
+    StorageError::Backend(e.to_string())
+}
+
+/// The fjall operations are local and synchronous; the async impl runs them
+/// inline, so every future is ready on its first poll.
+#[async_trait::async_trait]
+impl<V: VfsFileSystem + Send + Sync> AsyncDocumentStore for FjallDocumentStore<V>
 where
     V::File: Send + Sync,
     V::SeekableFile: Send + Sync,
     V::Directory: Send + Sync,
 {
-    fn append<C: Serialize + Send + 'static>(
+    async fn append_async<C: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: C,
@@ -642,7 +647,7 @@ where
         self.put(key, doc_id, content_json, None, None, None)
     }
 
-    fn append_with_id<C: Serialize + Send + 'static>(
+    async fn append_with_id_async<C: Serialize + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -653,7 +658,7 @@ where
         self.put(key, doc_id.to_string(), content_json, None, None, None)
     }
 
-    fn append_promotable<C: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable_async<C: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         content: C,
@@ -665,7 +670,7 @@ where
         self.put(key, doc_id, content_json, t, s, rt)
     }
 
-    fn append_promotable_with_id<C: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable_with_id_async<C: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -677,39 +682,12 @@ where
         self.put(key, doc_id.to_string(), content_json, t, s, rt)
     }
 
-    fn scan<C: DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-        limit: usize,
-    ) -> StorageResult<StorageItemStream<'_, C>> {
-        let rows = self.collect_rows(key, true, None, Some(limit))?;
-        Ok(rows_to_stream(rows))
-    }
-
-    fn scan_all<C: DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> StorageResult<StorageItemStream<'_, C>> {
-        let rows = self.collect_rows(key, false, None, None)?;
-        Ok(rows_to_stream(rows))
-    }
-
-    fn scan_from<C: DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-        from_id: &str,
-        limit: usize,
-    ) -> StorageResult<StorageItemStream<'_, C>> {
-        let rows = self.collect_rows(key, false, Some(from_id), limit_opt(limit))?;
-        Ok(rows_to_stream(rows))
-    }
-
-    fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
         let rows = self.collect_rows(key, true, None, Some(limit))?;
         Ok(rows.iter().map(NdjsonRow::to_document).collect())
     }
 
-    fn scan_documents_from(
+    async fn scan_documents_from_async(
         &self,
         key: &str,
         from_id: &str,
@@ -719,29 +697,101 @@ where
         Ok(rows.iter().map(NdjsonRow::to_document).collect())
     }
 
-    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+    async fn scan_async<C: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        limit: usize,
+    ) -> StorageResult<AsyncStorageItemStream<'_, C>> {
+        let rows = self.collect_rows(key, true, None, Some(limit))?;
+        Ok(rows_to_stream(rows))
+    }
+
+    async fn scan_all_async<C: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<AsyncStorageItemStream<'_, C>> {
+        let rows = self.collect_rows(key, false, None, None)?;
+        Ok(rows_to_stream(rows))
+    }
+
+    async fn scan_from_async<C: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<AsyncStorageItemStream<'_, C>> {
+        let rows = self.collect_rows(key, false, Some(from_id), limit_opt(limit))?;
+        Ok(rows_to_stream(rows))
+    }
+
+    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         let idx_key = Self::composite_key(key, doc_id);
 
-        // Read the index entry to get record_type for secondary cleanup
-        if let Ok(Some(val)) = self.primary.get(&idx_key) {
-            if let Ok(idx) = serde_json::from_slice::<IndexValue>(&val) {
-                if let Ok(row) = self.read_document_at(key, idx.offset, idx.len) {
-                    if let Some(ref rt) = row.record_type {
-                        let type_key = Self::type_composite_key(key, rt, doc_id);
-                        let _ = self.by_type.remove(&type_key);
-                    }
-                }
+        // Read the index entry to get record_type for secondary cleanup.
+        if let Some(val) = self.primary.get(&idx_key).map_err(backend)? {
+            let idx = serde_json::from_slice::<IndexValue>(&val)
+                .map_err(|e| StorageError::Deserialization(e.to_string()))?;
+            let row = self.read_document_at(key, idx.offset, idx.len)?;
+            if let Some(ref rt) = row.record_type {
+                let type_key = Self::type_composite_key(key, rt, doc_id);
+                self.by_type.remove(&type_key).map_err(backend)?;
             }
         }
 
-        self.primary
-            .remove(&idx_key)
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
+        self.primary.remove(&idx_key).map_err(backend)?;
         Ok(())
     }
 
-    fn delete_all(&self, key: &str) -> StorageResult<u64> {
+    async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
+        let prefix = Self::collection_prefix(key);
+        let mut range_end = prefix.clone();
+        if let Some(last) = range_end.last_mut() {
+            *last = last.saturating_add(1);
+        }
+
+        let mut keys_to_remove = Vec::new();
+        for item in self.primary.range(prefix..range_end) {
+            let (k, _) = item.map_err(backend)?;
+            keys_to_remove.push(k.to_vec());
+        }
+
+        let mut count = 0u64;
+        for k in &keys_to_remove {
+            if k.starts_with(HWM_KEY_PREFIX) {
+                continue;
+            }
+            self.primary.remove(k).map_err(backend)?;
+            count += 1;
+        }
+
+        // Clean up by_type secondary entries.
+        let type_prefix = Self::collection_prefix(key);
+        let mut type_end = type_prefix.clone();
+        if let Some(last) = type_end.last_mut() {
+            *last = last.saturating_add(1);
+        }
+        let mut type_keys = Vec::new();
+        for item in self.by_type.range(type_prefix..type_end) {
+            let (k, _) = item.map_err(backend)?;
+            type_keys.push(k.to_vec());
+        }
+        for k in &type_keys {
+            self.by_type.remove(k).map_err(backend)?;
+        }
+
+        // Remove the HWM entry too.
+        self.primary.remove(Self::hwm_key(key)).map_err(backend)?;
+
+        // Reset collection state.
+        self.collections
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("collections lock poisoned: {e}")))?
+            .remove(key);
+
+        Ok(count)
+    }
+
+    async fn count_async(&self, key: &str) -> StorageResult<u64> {
         let prefix = Self::collection_prefix(key);
         let mut range_end = prefix.clone();
         if let Some(last) = range_end.last_mut() {
@@ -749,63 +799,12 @@ where
         }
 
         let mut count = 0u64;
-        let keys_to_remove: Vec<Vec<u8>> = self
-            .primary
-            .range(prefix..range_end)
-            .filter_map(|item| item.ok().map(|(k, _)| k.to_vec()))
-            .collect();
-
-        for k in &keys_to_remove {
-            if k.starts_with(HWM_KEY_PREFIX) {
-                continue;
+        for item in self.primary.range(prefix..range_end) {
+            let (k, _) = item.map_err(backend)?;
+            if !k.starts_with(HWM_KEY_PREFIX) {
+                count += 1;
             }
-            let _ = self.primary.remove(k);
-            count += 1;
         }
-
-        // Clean up by_type secondary entries
-        let type_prefix = Self::collection_prefix(key);
-        let mut type_end = type_prefix.clone();
-        if let Some(last) = type_end.last_mut() {
-            *last = last.saturating_add(1);
-        }
-        let type_keys: Vec<Vec<u8>> = self
-            .by_type
-            .range(type_prefix..type_end)
-            .filter_map(|item| item.ok().map(|(k, _)| k.to_vec()))
-            .collect();
-        for k in &type_keys {
-            let _ = self.by_type.remove(k);
-        }
-
-        // Remove the HWM entry too
-        let hwm_key = Self::hwm_key(key);
-        let _ = self.primary.remove(&hwm_key);
-
-        // Reset collection state
-        let mut map = self.collections.lock().unwrap();
-        map.remove(key);
-
-        Ok(count)
-    }
-
-    fn count(&self, key: &str) -> StorageResult<u64> {
-        let prefix = Self::collection_prefix(key);
-        let mut range_end = prefix.clone();
-        if let Some(last) = range_end.last_mut() {
-            *last = last.saturating_add(1);
-        }
-
-        let count = self
-            .primary
-            .range(prefix..range_end)
-            .filter(|item| {
-                item.as_ref()
-                    .map(|(k, _)| !k.starts_with(HWM_KEY_PREFIX))
-                    .unwrap_or(false)
-            })
-            .count() as u64;
-
         Ok(count)
     }
 }

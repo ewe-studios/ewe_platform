@@ -13,7 +13,7 @@ _Recorded 2026-10-21._ Goal: async all the way, with sync only at real boundarie
 | valtron async-first API (`.block()` / `.blocking()` native-only, `blocking_boundary!`) | #130 | ✅ merged |
 | foundation_db: I/O-backed stores async-only; `Blocking<S>` for sync callers | #131 | ✅ merged |
 | foundation_ai: `AgentSession` on the `Async*` traits; in-memory stores async-only; `build()` / `end()` async | #132 | ✅ merged |
-| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` (draft PR #133, spec 50 F04) | 🔧 in progress: T1–T5 done |
+| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` (draft PR #133, spec 50 F04) | 🔧 in progress: T1–T7 done |
 
 **After this stream:** spec 65's agent-rpc review round 2 on PR #126. The plan is recorded in `specifications/65-agent-rpc-serving-system/progress.md`: pluggable traits for bare metal / Docker / Workers, auth moving into foundation_auth with a `CaStore` trait, and a `ClientAuth` provider built on our signed JSON secret (not a JWT).
 
@@ -177,7 +177,9 @@ deleting the sync storage traits.
 | T3 foundation_cedar async `PolicyStore` | done | `ci.py run foundation_cedar` (fmt, build, clippy, test, wasm): pass; `--features db`: all pass, incl. new `tests/sql_store.rs` (first `SqlPolicyStore` tests, over Turso) |
 | T4 foundation_vectors SQL stores on `AsyncVectorStore` | done | `ci.py run foundation_vectors` (build, clippy, test, wasm): pass; `--features sql-store`: all pass (SQL 11, libsql 5); new `TopK` accumulator: search ranks rows as they stream (O(k) memory) |
 | T5 foundation_cronjobs async `CronScheduler` | done | `ci.py run foundation_cronjobs` (build, clippy, test, wasm): pass; new Turso tests: save/load round trip, a bad row is an error, save without the table is an error |
-| T6–T13 | pending | |
+| T6 `MigrationRunner::run` removed; `AsyncStorageCleanup` + `CleanupConfig` | done | `ci.py run foundation_db` (build, clippy, test, wasm): pass (run with `CARGO_PROFILE_UAT_DEBUG=0`: with debuginfo the ~40 test binaries filled the disk). New cleanup tests over Turso (retention honoured, only expired rows removed) |
+| T7 foundation_nativeapis off the sync traits | done | `ci.py run foundation_nativeapis`: pass; `--features vfs-native,vfs-d1,vfs-r2,vfs-fjall`: `blob_delta_vfs` 12 new tests (the delta over the in-memory blob store, async and through `SyncFs`), `fjall_document_store` 19, `d1_delta_vfs` 9, `r2_delta_vfs` 9 (the D1/R2 integration tests skip without the emulator) |
+| T8–T13 | pending | |
 
 ## Next
 

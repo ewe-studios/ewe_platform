@@ -5207,6 +5207,7 @@ dependencies = [
  "foundation_macros",
  "foundation_nostd",
  "fuser",
+ "futures-lite",
  "hex",
  "io-uring",
  "libc",
