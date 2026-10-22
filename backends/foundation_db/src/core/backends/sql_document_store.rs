@@ -1,20 +1,22 @@
-//! SQL-backed `DocumentStore` implementation.
+//! SQL-backed document store over any [`QueryStore`].
 //!
-//! Documents are stored in a table with columns: `collection_key`, `doc_id`, content, metadata, `created_at`.
-//! This works with `SQLite`, Turso, D1, and any SQL backend via `QueryStore`.
+//! Documents are stored in a table with columns: `collection_key`, `doc_id`,
+//! content, metadata, and the promoted `title`/`summary`/`record_type`
+//! columns. This works with `SQLite`, Turso, libsql and D1.
 //!
-//! The SQL strings + param/row helpers in the [`sql`] module are **shared** with
-//! the async [`super::async_sql_document_store::AsyncSqlDocumentStore`] (F22b) so
-//! the schema and queries never drift between the sync and async backends.
+//! The SQL strings and param/row helpers live in the [`sql`] module so every
+//! SQL-backed store (this one and [`super::d1r2_document_store`]) shares one
+//! schema.
 
-use crate::core::errors::{StorageError, StorageResult};
+use crate::core::errors::StorageResult;
 use crate::core::storage_provider::{
-    Document, DocumentStore, PromotableDocument, SqlRow, StorageItemStream,
+    DocumentStore, QueryStore, AsyncQueryStream, AsyncStorageItemStream, DataValue,
+    Document, PromotableDocument, StorageError,
 };
-use foundation_core::valtron::Stream;
+use futures_lite::StreamExt;
 use serde::{de::DeserializeOwned, Serialize};
 
-/// Shared SQL builders + row/param helpers for the sync + async SQL document stores.
+/// Shared SQL builders + row/param helpers for the SQL document stores.
 pub(crate) mod sql {
     use crate::core::errors::{StorageError, StorageResult};
     use crate::core::storage_provider::{DataValue, Document, SqlRow};
@@ -136,7 +138,12 @@ pub(crate) mod sql {
     }
 }
 
-/// SQL-backed document store that uses [`crate::core::storage_provider::QueryStore`] for persistence.
+/// SQL document store over any [`QueryStore`] backend (Turso, libsql,
+/// native D1, Cloudflare D1 on wasm).
+///
+/// It implements only [`DocumentStore`]. Multi-item reads return an
+/// [`AsyncStorageItemStream`] pulled one item at a time with `.next().await`,
+/// never a `Vec`, so unbounded scans can't OOM (F06 OD-06-8).
 pub struct SqlDocumentStore<Q> {
     query_store: Q,
     table: String,
@@ -152,7 +159,7 @@ impl<Q: Default> Default for SqlDocumentStore<Q> {
 }
 
 impl<Q> SqlDocumentStore<Q> {
-    /// Create a new `SqlDocumentStore` backed by the given `QueryStore`.
+    /// Create a new store backed by the given async query store.
     pub fn new(query_store: Q) -> Self {
         Self {
             query_store,
@@ -168,31 +175,23 @@ impl<Q> SqlDocumentStore<Q> {
     }
 }
 
-impl<Q: crate::core::storage_provider::QueryStore> SqlDocumentStore<Q> {
-    /// Shared INSERT path for `append`/`append_with_id`.
-    fn insert<V: Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        doc_id: String,
-        content: &V,
-    ) -> StorageResult<Document> {
-        self.insert_promoted(key, doc_id, content, None, None, None)
-    }
+/// Map a SQL row stream to a deserialized-`V` async item stream.
+fn map_content<V: DeserializeOwned + 'static>(
+    stream: AsyncQueryStream,
+) -> AsyncStorageItemStream<'static, V> {
+    Box::pin(stream.map(|r| r.and_then(|row| sql::deser_content::<V>(&row))))
+}
 
-    /// INSERT path that also writes the promoted searchable columns
-    /// (`title`/`summary`/`record_type`). The JSON `content` blob stays the
-    /// source of truth; promoted columns are nullable mirrors (F06 Part 2).
-    fn insert_promoted<V: Serialize + Send + 'static>(
+impl<Q: QueryStore> SqlDocumentStore<Q> {
+    async fn insert_row(
         &self,
         key: &str,
         doc_id: String,
-        content: &V,
+        content_json: String,
         title: Option<String>,
         summary: Option<String>,
         record_type: Option<String>,
     ) -> StorageResult<Document> {
-        let content_json = serde_json::to_string(content)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let params = sql::insert_params(
             key,
             &doc_id,
@@ -201,8 +200,9 @@ impl<Q: crate::core::storage_provider::QueryStore> SqlDocumentStore<Q> {
             summary.as_deref(),
             record_type.as_deref(),
         );
-        self.query_store.execute(&sql::insert_sql(&self.table), &params)?;
-
+        self.query_store
+            .execute_async(&sql::insert_sql(&self.table), &params)
+            .await?;
         Ok(Document {
             id: doc_id,
             content: content_json,
@@ -212,147 +212,142 @@ impl<Q: crate::core::storage_provider::QueryStore> SqlDocumentStore<Q> {
             record_type,
         })
     }
-}
 
-/// Deserialize the `content` column (index 0) of a query row into a stream item.
-fn content_to_item<V: DeserializeOwned>(
-    s: Stream<Result<SqlRow, StorageError>, ()>,
-) -> Option<Stream<Result<V, StorageError>, ()>> {
-    match s {
-        Stream::Next(Ok(row)) => Some(Stream::Next(sql::deser_content::<V>(&row))),
-        Stream::Next(Err(e)) => Some(Stream::Next(Err(e))),
-        _ => None,
+    /// Collect a `Document`-returning scan into a `Vec` (bounded reads).
+    async fn collect_documents(
+        &self,
+        from_id: Option<&str>,
+        key: &str,
+        desc: bool,
+        limit: i64,
+    ) -> StorageResult<Vec<Document>> {
+        let stmt = sql::scan_sql(&self.table, sql::DOC_COLUMNS, from_id.is_some(), desc, true);
+        let params = sql::scan_params(key, from_id, Some(limit));
+        let rows = self.query_store.query_async(&stmt, &params).await?.collect_all().await?;
+        rows.iter().map(sql::row_to_document).collect()
     }
 }
 
-/// Collect a [`sql::DOC_COLUMNS`] stream into `Vec<Document>`.
-fn collect_documents(
-    rows: Stream<Result<SqlRow, StorageError>, ()>,
-) -> Option<StorageResult<Document>> {
-    match rows {
-        Stream::Next(Ok(row)) => Some(sql::row_to_document(&row)),
-        Stream::Next(Err(e)) => Some(Err(e)),
-        _ => None,
-    }
-}
-
-impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocumentStore<Q> {
-    fn append<V: Serialize + Send + 'static>(
+#[async_trait::async_trait]
+impl<Q: QueryStore> DocumentStore for SqlDocumentStore<Q> {
+    async fn append_async<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: V,
     ) -> StorageResult<Document> {
         let doc_id = foundation_compact::ids::new_scru128_string();
-        self.insert(key, doc_id, &content)
+        let json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.insert_row(key, doc_id, json, None, None, None).await
     }
 
-    fn append_with_id<V: Serialize + Send + 'static>(
+    async fn append_with_id_async<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
         content: V,
     ) -> StorageResult<Document> {
-        self.insert(key, doc_id.to_string(), &content)
+        let json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.insert_row(key, doc_id.to_string(), json, None, None, None).await
     }
 
-    fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         content: V,
     ) -> StorageResult<Document> {
         let doc_id = foundation_compact::ids::new_scru128_string();
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        self.insert_promoted(key, doc_id, &content, t, s, rt)
+        let json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.insert_row(key, doc_id, json, t, s, rt).await
     }
 
-    fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
         content: V,
     ) -> StorageResult<Document> {
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        self.insert_promoted(key, doc_id.to_string(), &content, t, s, rt)
+        let json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.insert_row(key, doc_id.to_string(), json, t, s, rt).await
     }
 
-    fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
-        let stmt = sql::scan_sql(&self.table, sql::DOC_COLUMNS, false, true, true);
-        let params = sql::scan_params(key, None, Some(sql::limit_to_i64(limit)));
-        let rows = self.query_store.query(&stmt, &params)?;
-        rows.filter_map(collect_documents).collect()
+    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+        self.collect_documents(None, key, true, sql::limit_to_i64(limit)).await
     }
 
-    fn scan_documents_from(
+    async fn scan_documents_from_async(
         &self,
         key: &str,
         from_id: &str,
         limit: usize,
     ) -> StorageResult<Vec<Document>> {
-        let stmt = sql::scan_sql(&self.table, sql::DOC_COLUMNS, true, false, true);
-        let params = sql::scan_params(key, Some(from_id), Some(sql::limit_or_unlimited(limit)));
-        let rows = self.query_store.query(&stmt, &params)?;
-        rows.filter_map(collect_documents).collect()
+        self.collect_documents(Some(from_id), key, false, sql::limit_or_unlimited(limit)).await
     }
 
-    fn scan<V: DeserializeOwned + Send + 'static>(
+    async fn scan_async<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         limit: usize,
-    ) -> StorageResult<StorageItemStream<'_, V>> {
+    ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
         let stmt = sql::scan_sql(&self.table, "content", false, true, true);
         let params = sql::scan_params(key, None, Some(sql::limit_to_i64(limit)));
-        let rows = self.query_store.query(&stmt, &params)?;
-        Ok(Box::new(rows.filter_map(content_to_item::<V>)))
+        Ok(map_content(self.query_store.query_async(&stmt, &params).await?))
     }
 
-    fn scan_all<V: DeserializeOwned + Send + 'static>(
+    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
-    ) -> StorageResult<StorageItemStream<'_, V>> {
+    ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
         let stmt = sql::scan_sql(&self.table, "content", false, false, false);
         let params = sql::scan_params(key, None, None);
-        let rows = self.query_store.query(&stmt, &params)?;
-        Ok(Box::new(rows.filter_map(content_to_item::<V>)))
+        Ok(map_content(self.query_store.query_async(&stmt, &params).await?))
     }
 
-    fn scan_from<V: DeserializeOwned + Send + 'static>(
+    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         from_id: &str,
         limit: usize,
-    ) -> StorageResult<StorageItemStream<'_, V>> {
+    ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
         let stmt = sql::scan_sql(&self.table, "content", true, false, true);
         let params = sql::scan_params(key, Some(from_id), Some(sql::limit_or_unlimited(limit)));
-        let rows = self.query_store.query(&stmt, &params)?;
-        Ok(Box::new(rows.filter_map(content_to_item::<V>)))
+        Ok(map_content(self.query_store.query_async(&stmt, &params).await?))
     }
 
-    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         let params = [
-            crate::core::storage_provider::DataValue::Text(key.to_string()),
-            crate::core::storage_provider::DataValue::Text(doc_id.to_string()),
+            DataValue::Text(key.to_string()),
+            DataValue::Text(doc_id.to_string()),
         ];
-        self.query_store.execute(&sql::delete_sql(&self.table), &params)?;
+        self.query_store.execute_async(&sql::delete_sql(&self.table), &params).await?;
         Ok(())
     }
 
-    fn delete_all(&self, key: &str) -> StorageResult<u64> {
-        let params = [crate::core::storage_provider::DataValue::Text(key.to_string())];
-        self.query_store.execute(&sql::delete_all_sql(&self.table), &params)
+    async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
+        let params = [DataValue::Text(key.to_string())];
+        self.query_store.execute_async(&sql::delete_all_sql(&self.table), &params).await
     }
 
-    fn count(&self, key: &str) -> StorageResult<u64> {
-        let params = [crate::core::storage_provider::DataValue::Text(key.to_string())];
-        let rows = self.query_store.query(&sql::count_sql(&self.table), &params)?;
-        let mut total = 0u64;
-        for s in rows {
-            if let Stream::Next(Ok(row)) = s {
-                // Read by index (0) not alias — robust across backends.
-                if let Ok(n) = row.get::<i64>(0) {
-                    total = u64::try_from(n).unwrap_or(0);
-                }
-            }
-        }
+    async fn count_async(&self, key: &str) -> StorageResult<u64> {
+        let params = [DataValue::Text(key.to_string())];
+        let rows = self
+            .query_store
+            .query_async(&sql::count_sql(&self.table), &params)
+            .await?
+            .collect_all()
+            .await?;
+        // Read by index (0) not name — async backends may not populate column
+        // aliases on the returned row.
+        let total = rows
+            .first()
+            .and_then(|row| row.get::<i64>(0).ok())
+            .and_then(|n| u64::try_from(n).ok())
+            .unwrap_or(0);
         Ok(total)
     }
 }

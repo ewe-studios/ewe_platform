@@ -1,14 +1,14 @@
 //! User persistence (spec-57, F008 Stage 1).
 //!
 //! Ported from OrangeVault `db/queries.rs` (users) onto `foundation_db`'s
-//! `AsyncQueryStore`. The row carries the server-side password verifier
+//! `QueryStore`. The row carries the server-side password verifier
 //! (`password_hash` + `salt` + `password_iterations`), the client KDF params the
 //! prelogin endpoint echoes back, and the `security_stamp` that invalidates
 //! tokens on password change.
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -77,7 +77,7 @@ fn map_row(row: &SqlRow) -> AppResult<UserRow> {
 }
 
 /// Insert a new user.
-pub async fn insert(db: &dyn AsyncQueryStore, row: &UserRow) -> AppResult<()> {
+pub async fn insert(db: &dyn QueryStore, row: &UserRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO vault_accounts \
          (uuid, email, name, password_hash, salt, password_iterations, security_stamp, akey, \
@@ -109,7 +109,7 @@ pub async fn insert(db: &dyn AsyncQueryStore, row: &UserRow) -> AppResult<()> {
 }
 
 async fn find_one(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     where_col: &str,
     value: &str,
 ) -> AppResult<Option<UserRow>> {
@@ -127,18 +127,18 @@ async fn find_one(
 }
 
 /// Find a user by (already-normalized) email.
-pub async fn find_by_email(db: &dyn AsyncQueryStore, email: &str) -> AppResult<Option<UserRow>> {
+pub async fn find_by_email(db: &dyn QueryStore, email: &str) -> AppResult<Option<UserRow>> {
     find_one(db, "email", email).await
 }
 
 /// Find a user by uuid.
-pub async fn find_by_uuid(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<UserRow>> {
+pub async fn find_by_uuid(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<UserRow>> {
     find_one(db, "uuid", uuid).await
 }
 
 /// Update the mutable profile fields (name, master password hint).
 pub async fn update_profile(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     uuid: &str,
     name: &Option<String>,
     hint: &Option<String>,

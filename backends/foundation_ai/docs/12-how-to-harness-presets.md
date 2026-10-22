@@ -25,7 +25,7 @@ use foundation_ai::harness::RouterPreset;
 let agent = RouterPreset::glm52_gemma(None, None)?
     .into_agent_builder()
     .with_system_prompt("You are a helpful assistant.")
-    .build()?;
+    .build().await?;
 ```
 
 `None, None` accept the default GGUF config (Q4_K_M, default cache dir); pass
@@ -42,7 +42,7 @@ use foundation_ai::harness::RouterPreset;
 let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
 let agent = AgentSession::builder(preset)
     .with_system_prompt("You are a helpful assistant.")
-    .build()?;
+    .build().await?;
 ```
 
 The preset's models become the session's models — `AgentSession::builder(preset)`
@@ -243,7 +243,7 @@ let agent = preset
     .with_session_id(session_id)
     .with_system_prompt("…")
     .with_toolshed(ToolShed::new().tools(ToolPreset::shell()))   // Doc 04 §2
-    .build()?;
+    .build().await?;
 ```
 
 ---
@@ -335,7 +335,7 @@ let preset = ToolPreset::files(my_fs) + ToolPreset::shell();
 
 ```rust
 // 1. The normal path — the session's ToolShed:
-let agent = builder.with_toolshed(ToolShed::new().tools(preset)).build()?;
+let agent = builder.with_toolshed(ToolShed::new().tools(preset)).build().await?;
 
 // Ready-made tools only (Err(ToolShedError::NeedsSession) otherwise):
 // 2. Register on an existing ToolCallManager:
@@ -346,10 +346,22 @@ let mgr = preset.into_manager(session_id)?;
 
 // 4. As child tools for the agent tool (F15):
 let child_tools = preset.as_child_tools()?;   // Vec<Arc<dyn ToolImpl>>
-// Doc / Mem: the sub-agents\' store types, e.g. MemoryDocumentStore and
-// KvMemoryStore<MemoryStorage>.
+// Doc / Mem: the sub-agents\' store types. `agent` default-constructs them
+// for each sub-agent, so it suits the in-memory stores (MemoryDocumentStore,
+// KvMemoryStore<MemoryStorage>):
 let agent_tool = ToolPreset::agent::<Doc, Mem>(
     router, 0, 5, model, "/tmp/delegations", user, child_tools,
+);
+
+// Stores that open a database are built by an async factory instead
+// (`SessionStoreFactory`; any `Fn() -> impl Future<Output = StorageResult<(D, M)>>`):
+let agent_tool = ToolPreset::agent_with_stores(
+    router, 0, 5, model, "/tmp/delegations", user, child_tools,
+    Arc::new(|| async {
+        let docs = SqlDocumentStore::new(TursoStorage::in_memory().await?);
+        let memory = KvMemoryStore::new(TursoStorage::in_memory().await?);
+        Ok((docs, memory))
+    }),
 );
 ```
 
@@ -379,7 +391,7 @@ let agent = RouterPreset::claude(&api_key)?
     .into_agent_builder()
     .with_session_id(session_id)
     .with_toolshed(ToolShed::new().tools(ToolPreset::standard(fs)).tools(delegation))
-    .build()?;
+    .build().await?;
 ```
 
 ---

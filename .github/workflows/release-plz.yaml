@@ -129,9 +129,11 @@ jobs:
         with:
           mode: submodule
 
-      - name: Use the pinned toolchain
+      - name: Use the stable release toolchain
+        # Releases build on stable (ci/release-rust-toolchain); the pinned
+        # nightly in rust-toolchain.toml is for development only.
         run: |
-          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          toolchain=$(tr -d '[:space:]' < ci/release-rust-toolchain)
           rustup toolchain install "$toolchain" --profile minimal --no-self-update
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
@@ -219,9 +221,11 @@ jobs:
         with:
           mode: submodule
 
-      - name: Use the pinned toolchain
+      - name: Use the stable release toolchain
+        # Releases build on stable (ci/release-rust-toolchain); the pinned
+        # nightly in rust-toolchain.toml is for development only.
         run: |
-          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          toolchain=$(tr -d '[:space:]' < ci/release-rust-toolchain)
           rustup toolchain install "$toolchain" --profile minimal --no-self-update
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 

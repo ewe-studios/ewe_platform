@@ -1,9 +1,10 @@
 use std::io::Write;
 
 use foundation_cedar::{FilePolicyStore, PolicyStore};
+use foundation_core::valtron::valtron_test;
 
-#[test]
-fn test_file_store_loads_policies() {
+#[valtron_test]
+async fn test_file_store_loads_policies() {
     let dir = std::env::temp_dir().join("cedar_file_store_test");
     let _ = std::fs::create_dir_all(&dir);
 
@@ -17,16 +18,16 @@ fn test_file_store_loads_policies() {
     writeln!(pf, "permit(principal, action, resource);").unwrap();
 
     let store = FilePolicyStore::new(&schema_path, &policy_path);
-    assert!(store.load_schema().unwrap().contains("entity User"));
-    assert!(store.load_policies().unwrap().contains("permit"));
-    assert!(store.load_entities().unwrap().is_none());
-    assert!(!store.version().unwrap().is_empty());
+    assert!(store.load_schema().await.unwrap().contains("entity User"));
+    assert!(store.load_policies().await.unwrap().contains("permit"));
+    assert!(store.load_entities().await.unwrap().is_none());
+    assert!(!store.version().await.unwrap().is_empty());
 
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn test_file_store_with_entities() {
+#[valtron_test]
+async fn test_file_store_with_entities() {
     let dir = std::env::temp_dir().join("cedar_file_store_ent_test");
     let _ = std::fs::create_dir_all(&dir);
 
@@ -39,14 +40,14 @@ fn test_file_store_with_entities() {
     std::fs::write(&entities_path, "[]").unwrap();
 
     let store = FilePolicyStore::new(&schema_path, &policy_path).with_entities(&entities_path);
-    assert_eq!(store.load_entities().unwrap().unwrap(), "[]");
+    assert_eq!(store.load_entities().await.unwrap().unwrap(), "[]");
 
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-#[test]
-fn test_file_store_missing_file() {
+#[valtron_test]
+async fn test_file_store_missing_file() {
     let store = FilePolicyStore::new("/nonexistent/schema", "/nonexistent/policies");
-    assert!(store.load_policies().is_err());
-    assert!(store.load_schema().is_err());
+    assert!(store.load_policies().await.is_err());
+    assert!(store.load_schema().await.is_err());
 }

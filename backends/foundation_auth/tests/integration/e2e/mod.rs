@@ -13,7 +13,7 @@ use foundation_auth::server::config::IdpConfig;
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::idp_server::IdpServer;
 use foundation_core::valtron::valtron_test;
-use foundation_db::{MemoryStorage, StorageBackend, StorageProvider};
+use foundation_db::{QueryStore, MemoryStorage};
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::client::StaticSocketAddr;
 use foundation_netio::http::SimpleHttpClient;
@@ -39,10 +39,8 @@ impl TestIdpServer {
         let dir = tempfile::tempdir().expect("tempdir");
         let db_path = dir.path().join("test_auth.db");
 
-        let provider = StorageProvider::new(StorageBackend::Turso {
-            url: db_path.to_str().unwrap().to_string(),
-        }).expect("init turso");
-        let query_store: Arc<dyn foundation_db::QueryStore> = Arc::new(provider);
+        let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
+        let query_store: Arc<dyn QueryStore> = Arc::new(provider);
         let cache = MemoryStorage::new();
         let storage = Arc::new(HandlerStorage::new(query_store, cache));
 
@@ -193,9 +191,11 @@ fn e2e_user_registration_creates_account() {
     let (status, _, body, _, _) = resp.into_parts();
     let json = parse_json(&read_body(body));
 
-    // With no PoW, registration may require it — either 200 or 400 for missing PoW
+    // With no PoW, registration may require it — either 200 or 400 for missing PoW.
+    // Spec 48 F03: success returns `{"id", "email", "status": "created"}`.
     if status_code(&status) == 200 {
-        assert!(json["user_id"].is_string(), "registration should return user_id");
+        assert!(json["id"].is_string(), "registration should return the new user's id");
+        assert_eq!(json["status"], "created");
     } else {
         assert_eq!(status_code(&status), 400);
     }
@@ -255,9 +255,10 @@ fn e2e_password_reset_request() {
         })).unwrap()
         .build_client().unwrap().send().unwrap();
 
-    // Should not reveal whether user exists (security best practice)
+    // Should not reveal whether user exists (security best practice).
+    // Spec 48 F04: always `202 {"status": "reset_requested"}`.
     let (status, _, _, _, _) = resp.into_parts();
-    assert_eq!(status_code(&status), 200);
+    assert_eq!(status_code(&status), 202);
 }
 
 // ─── User Story 6: ToS Fetch and Accept ─────────────────────────────────────
@@ -454,10 +455,8 @@ fn e2e_errors_follow_oidc_format() {
 fn e2e_issuer_trailing_slash_normalized() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test_auth.db");
-    let provider = StorageProvider::new(StorageBackend::Turso {
-        url: db_path.to_str().unwrap().to_string(),
-    }).expect("init turso");
-    let query_store: Arc<dyn foundation_db::QueryStore> = Arc::new(provider);
+    let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
+    let query_store: Arc<dyn QueryStore> = Arc::new(provider);
     let cache = MemoryStorage::new();
     let storage = Arc::new(HandlerStorage::new(query_store, cache));
 
@@ -525,8 +524,15 @@ fn e2e_jwks_returns_same_key_across_requests() {
 fn e2e_custom_prefix_routes_work() {
     let server = TestIdpServer::start();
     let config = IdpConfig::new("https://auth.example.com".into());
+    let dir = tempfile::tempdir().expect("tempdir");
+    let db_path = dir.path().join("test_auth.db");
+    let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
+    let query_store: Arc<dyn QueryStore> = Arc::new(provider);
+    let storage = Arc::new(HandlerStorage::new(query_store, MemoryStorage::new()));
     let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::new_serve();
     app.ctx.store(config);
+    // The routes' handlers need the storage in the bag (as `IdpServer` stores it).
+    app.ctx.store(storage);
     IdpServer::<MemoryStorage>::register_routes(&mut app, "/auth/v1");
 
     let shutdown = Arc::new(OnSignal::new());

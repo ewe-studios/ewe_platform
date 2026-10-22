@@ -47,6 +47,13 @@
 
 ## Valtron Async Bridge Policy
 
+> **Superseded (spec 50 F04).** Storage is now async all the way: `StateStore`
+> and the storage traits are `async`, and code awaits them. Valtron drives the
+> futures (`FutureTask` inside a `TaskIterator`, `block_on_future` / `.block()`
+> at a true sync boundary behind `blocking_boundary!`). The
+> `run_future_iter` / `exec_future` policy below is kept as history only — see
+> [State Store Model](#state-store-model) for the current API.
+
 > **`run_future_iter` is the default pattern for ALL async operations.**
 >
 > Both `turso` and `libsql` expose async-only APIs. To bridge these into Valtron's
@@ -312,65 +319,54 @@ backends/foundation_deployment/
 
 ### StateStore Trait
 
-All methods that touch async I/O return `StateStoreStream<T>` — a lazy iterator
-backed by `run_future_iter`. Callers pull results on demand; no upfront `Vec`
-allocation. The stream type aliases are defined in `state/types.rs`:
+`StateStore` is an async trait (spec 50 F04): every method is `async`, so a
+backend that does network I/O (libsql, D1, R2) awaits it instead of blocking,
+and the same code runs natively and on Cloudflare Workers. Single values come
+back directly; multi-row results are `StateStoreStream<T>` — lazily pulled
+async streams, never collected into memory. Defined in
+`foundation_db::core::state::traits`:
 
 ```rust
-use foundation_core::valtron::ThreadedValue;
+/// `Send` natively, `!Send` on wasm, like every async storage stream.
+pub type StateStoreStream<T> = AsyncStorageItemStream<'static, T>;
 
-/// Lazy stream of state store results. Backed by `run_future_iter` for SQL/HTTP
-/// backends, or `Vec::into_iter().map(...)` for sync backends (JSON files).
-pub type StateStoreStream<T> = Box<dyn Iterator<Item = ThreadedValue<T, DeploymentError>> + Send>;
-
+#[async_trait]
 pub trait StateStore: Send + Sync {
-    /// Initialize the store (create tables, directories, etc.).
-    /// Uses `exec_future` internally — this is one-shot bootstrap, not a trait query.
-    fn init(&self) -> Result<(), DeploymentError>;
-
-    /// List all resource IDs. Returns a lazy stream.
-    fn list(&self) -> Result<StateStoreStream<String>, DeploymentError>;
-
-    /// Get state for a single resource. Returns a stream yielding 0 or 1 items.
-    fn get(&self, resource_id: &str) -> Result<StateStoreStream<Option<ResourceState>>, DeploymentError>;
-
-    /// Set (create or update) state. Returns a stream signaling completion.
-    fn set(&self, resource_id: &str, state: &ResourceState) -> Result<StateStoreStream<()>, DeploymentError>;
-
-    /// Delete state. Returns a stream signaling completion.
-    fn delete(&self, resource_id: &str) -> Result<StateStoreStream<()>, DeploymentError>;
-
-    /// Get all resource states. Returns a lazy stream of resources.
-    fn all(&self) -> Result<StateStoreStream<ResourceState>, DeploymentError>;
-
-    /// Sync state to a remote location (no-op for FileStateStore).
-    fn sync_remote(&self) -> Result<(), DeploymentError> {
-        Ok(()) // Default: no remote sync
-    }
+    async fn init(&self) -> StorageResult<()>;
+    async fn list(&self) -> StorageResult<StateStoreStream<String>>;
+    async fn count(&self) -> StorageResult<usize>;
+    async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>>;
+    async fn get_batch(&self, ids: &[&str]) -> StorageResult<StateStoreStream<ResourceState>>;
+    async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>>;
+    async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()>;
+    async fn delete(&self, resource_id: &str) -> StorageResult<()>;
+    async fn sync_remote(&self) -> StorageResult<()> { Ok(()) }
+    // Defaults that filter `list`/`all`; SQL backends override them:
+    // list_by_prefix, count_by_prefix, all_by_prefix,
+    // find_by_kind, find_by_status, find_by_provider, delete_by_prefix.
 }
 ```
 
-**Consuming streams at the boundary:**
+**Consuming it:**
 
 ```rust
-use foundation_core::valtron::ThreadedValue;
+use futures_lite::StreamExt;
 
-// Single-value: pull first result
-let state = store.get("my-worker")?
-    .find_map(|v| match v {
-        ThreadedValue::Value(Ok(val)) => Some(val),
-        _ => None,
-    })
-    .flatten(); // Option<Option<ResourceState>> → Option<ResourceState>
+// Single value
+let state: Option<ResourceState> = store.get("my-worker").await?;
 
-// Multi-value: collect lazily
-let ids: Vec<String> = store.list()?
-    .filter_map(|v| match v {
-        ThreadedValue::Value(Ok(id)) => Some(id),
-        ThreadedValue::Value(Err(e)) => { tracing::warn!("stream error: {e}"); None }
-    })
-    .collect();
+// Many values, pulled one at a time
+let mut ids = store.list().await?;
+while let Some(id) = ids.next().await {
+    let id = id?;
+    // ...
+}
 ```
+
+A sync entry point (a `main`, an OS thread) waits on these futures with
+valtron's `block_on_future` / `.block()` behind `blocking_boundary!`; inside a
+valtron `TaskIterator` the write is held as a `FutureTask` and polled (see
+`StoreStateTask`). `create_state_store` is itself `async`.
 
 ### ResourceState
 

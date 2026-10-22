@@ -18,14 +18,18 @@ pub(crate) fn valtron_bindgen(_attr: TokenStream, item: TokenStream) -> TokenStr
     let is_async = fn_item.sig.asyncness.is_some();
     let attrs: Vec<_> = fn_item.attrs.iter().filter(|a| !a.path().is_ident("test")).collect();
 
-    let (inner_def, run_call) = if is_async {
-        (quote! {}, quote! { foundation_core::valtron::block_on_future(async move #block) })
+    // An async body runs as an async `wasm_bindgen_test`: the test runner
+    // drives it on the JS event loop, so its I/O can complete. Blocking on it
+    // (`block_on_future`) would starve that loop, and is not available on
+    // JS-hosted wasm.
+    let (inner_def, run_call, asyncness) = if is_async {
+        (quote! {}, quote! { (async move #block).await }, quote! { async })
     } else {
         let inner = format_ident!("__valtron_body_{fn_name}");
         (quote! {
             #[allow(clippy::items_after_statements)]
             fn #inner() #output #block
-        }, quote! { #inner() })
+        }, quote! { #inner() }, quote! {})
     };
 
     quote! {
@@ -38,7 +42,7 @@ pub(crate) fn valtron_bindgen(_attr: TokenStream, item: TokenStream) -> TokenStr
         #[::wasm_bindgen_test::wasm_bindgen_test]
         #(#attrs)*
         #[allow(non_snake_case)]
-        #vis fn #fn_name() #output {
+        #vis #asyncness fn #fn_name() #output {
             #inner_def
             let __valtron_guard = foundation_core::valtron::initialize_pool(
                 ::std::hash::BuildHasher::hash_one(

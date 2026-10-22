@@ -1,12 +1,12 @@
 //! Folder persistence (spec-57, F008 Stage 1).
 //!
 //! Ported from OrangeVault `db/queries.rs` (folders) onto `foundation_db`'s
-//! `AsyncQueryStore`. The row carries `user_uuid` so the handler layer can
+//! `QueryStore`. The row carries `user_uuid` so the handler layer can
 //! enforce ownership.
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -36,7 +36,7 @@ fn map_row(row: &SqlRow) -> AppResult<FolderRow> {
 }
 
 /// Insert a new folder.
-pub async fn insert(db: &dyn AsyncQueryStore, row: &FolderRow) -> AppResult<()> {
+pub async fn insert(db: &dyn QueryStore, row: &FolderRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO folders (uuid, user_uuid, name, created_at, updated_at) \
          VALUES (?, ?, ?, ?, ?)",
@@ -54,7 +54,7 @@ pub async fn insert(db: &dyn AsyncQueryStore, row: &FolderRow) -> AppResult<()> 
 }
 
 /// All folders owned by a user, ordered by name.
-pub async fn find_by_user(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResult<Vec<FolderRow>> {
+pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<FolderRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {COLUMNS} FROM folders WHERE user_uuid = ? ORDER BY name"),
@@ -69,7 +69,7 @@ pub async fn find_by_user(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResul
 }
 
 /// A single folder by uuid, if it exists.
-pub async fn find(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<FolderRow>> {
+pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<FolderRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {COLUMNS} FROM folders WHERE uuid = ?"),
@@ -85,7 +85,7 @@ pub async fn find(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<Fold
 
 /// Rename a folder and bump its `updated_at`.
 pub async fn update_name(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     uuid: &str,
     name: &str,
     updated_at: DateTime<Utc>,
@@ -104,7 +104,7 @@ pub async fn update_name(
 }
 
 /// Delete a folder by uuid.
-pub async fn delete(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<()> {
+pub async fn delete(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     db.execute_async(
         "DELETE FROM folders WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],

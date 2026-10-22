@@ -9,7 +9,7 @@ How to use it:
 - When you fix one, delete its entry in the PR that fixes it and name the PR in the commit message.
 - Group entries by crate. Mark limits that are still hard-coded constants with **(rule 8)**.
 
-Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In flight on branches:
+Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async store traits; in-memory stores async-only). Before that: 2026-10-21, on `db/async-stores` (foundation_db async-only stores); 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In flight on branches:
 - `fix/connectrpc-cancel-and-limits`: connectrpc §1.
 - `fix/limits-and-core-sweep`: the Docker limits cleanup and the foundation_core leftovers.
 
@@ -115,6 +115,17 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
 
 ## 4. foundation_core / valtron
 
+- **`StreamIteratorExt::collect` shadows `Iterator::collect`.** Any iterator
+  whose items are `Stream<D, P>` gets two `collect` methods, so a plain
+  `.collect()` into a `Vec` is ambiguous (`streams/{sendable,non_sendable}.rs`).
+  Likely fix: rename the valtron one (e.g. `collect_stream`), keeping the old
+  name deprecated.
+- **A stream's first empty pull still blocks once.**
+  `NotifyQueueStreamIterator::next` stops blocking only after a consumer
+  registers a wake, so the first pull on an empty queue by `.values()` /
+  `TaskStatus::from_stream` still waits `max_spins` timed waits
+  (`executors/local.rs`). Likely fix: the async conversions register their
+  wake before the first pull.
 - **Cross-thread wakes don't wake an idle single-threaded executor.** The native idle wait is a `park_timeout` that nothing unparks, so tasks woken from another thread still poll at up to 100 ms.
 - **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`, `DEFAULT_YIELD_WAIT_TIME` (4 s), `BACK_OFF_*`, and `ThreadedIterFuture`'s queue size of 16 and its 10 ms sleep.
 - **`ThreadedIterFuture` (multi) busy-polls.**
@@ -223,11 +234,208 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer can fail to fire (see §4) and `H2Transport`'s pump parks on the socket read with no read timeout.
   - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
   - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
+- **Backend-state persistence can lose an update.** Each control-socket
+  connection runs on its own thread, and `ProxyStateStore::save_backend_state`
+  / `save_tls_cert` (`src/persistence.rs`) load the whole persisted state,
+  change one entry and save it back. Two admin commands at once can each save
+  over the other's change. Fix: serialise the read-modify-write behind a
+  mutex in `ProxyStateStore` (or store each backend's state as its own record).
+- **The `mut` on `h3_local_addr` warns without the `h3` feature**
+  (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
+  expression instead of assigning inside the `cfg` block.
 
-## 10. Workspace / process
+## 10. foundation_ai
+
+- **Non-streaming wasm `generate` is unsupported.** The providers' sync
+  `generate` path calls `HttpClient::send`, which on wasm now returns an error
+  (spec 65 feature 06 T5: a sync send cannot wait for `fetch` without freezing the
+  isolate), and its retry backoff `backend_utils::sleep` is a no-op on wasm (T4).
+  So one-shot generation fails fast on wasm instead of deadlocking, but does not
+  work. Likely fix: an async `generate` seam (e.g. `generate_async`) over
+  `send_async`, or route wasm `generate` through the lazy `send_sse`/`stream`
+  machinery and collect its result async.
+- **The `agent` tool busy-loops on `Stream::Wait`.**
+  `src/agentic/tools/agent.rs` (~l. 492) drains a sub-agent's stream
+  synchronously and `continue`s on `Init | Ignore | Wait | Delayed`, so a
+  sub-agent waiting on I/O spins the caller's thread (and on wasm never yields
+  to the event loop, so the I/O can never complete). Likely fix: drive the
+  sub-agent as its own task and park on it (`valtron::park_on`), or report
+  `Working` and return on `Wait` the way it already does on `Pending`.
+- **HTTP providers read whole error bodies.** Every provider's non-2xx path
+  (`openai_provider`, `openai_responses_provider`,
+  `anthropic_messages_provider`, `backends::model_info`) collects the full
+  body to extract the vendor message. Likely fix: read at most a configured
+  number of bytes (a field on each provider config, default 64 KiB like Go
+  `net/http`'s error-drain limit) before parsing.
+
+- **Embeddings are generated synchronously inside async code.**
+  `EmbeddingProvider::embed` is sync, and `CachedEmbeddingProvider` calls the
+  model's sync `generate` on a cache miss (`src/agentic/embedding.rs`,
+  `embed_single`). `ContextProvider::search` (semantic recall, the
+  `search_context` tool) and the `shed` tool's embedding search call it from
+  async code, so an HTTP embedder blocks the worker, and on wasm the sync
+  `generate` fails (see the first entry). Fix: an async `embed` /
+  `embed_batch` over an async generate, awaited by the callers.
+- **A flush that finds another flush running returns `Ok(0)` at once.**
+  `MessageApi::flush` (`src/agentic/message_api.rs`) guards with an
+  `AtomicBool`; a second caller doesn't wait. The agent loop's `Flushing`
+  state then resumes with the buffer still at the threshold, so it re-enters
+  `Flushing` every step until the other flush (e.g. a concurrent
+  `AgentSession::end`) finishes. Fix: let the second caller await the running
+  flush (an async lock or a completion signal) instead of returning early.
+- **A cancelled flush can write a record twice.** A record stays in
+  `MessageApi`'s `retry` slot until its write returns, so a flush future
+  dropped after the store accepted the write but before it returned writes the
+  record again on the next flush. Fix: make the writes idempotent (upsert on
+  the document id for `append_with_id`, and give memory records a stable id),
+  or clear the slot through a store acknowledgement.
+
+## 11. foundation_db and its sync callers
+
+Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
+- **`StateStore::set` ignores its `resource_id`.** Every backend (file,
+  libsql, D1, R2) keys the write by `state.id`, so `set("a", &state_b)` writes
+  `b` (`src/core/state/*.rs`, `src/native/{libsql_store,d1_kvstore,r2_blobstore}.rs`).
+  `NamespacedStore` now rewrites `state.id` itself (fixed in F04 T8). Fix:
+  drop the parameter, or key by it and set `state.id` from it in one place.
+- **`R2Store` parses the R2 REST JSON by hand** (`src/native/r2_blobstore.rs`).
+  The generated Cloudflare types live in `foundation_deployment_cloudflare`,
+  which depends on `foundation_db`, so they can't be used here (rule 5). Fix:
+  move the generated R2 types to a crate both can depend on. Related:
+  `worker-stub.js` has no object-listing endpoint, so the R2 listing is only
+  tested against the in-process mock in `tests/r2_state_store_tests.rs`, not
+  against the wrangler stub.
+- **R2 state listings hold every matching ID before streaming.** The listing
+  pages through R2's cursor, sorts the IDs, then fetches each state lazily;
+  the ID list itself is in memory. Fine for deployment state; a store with
+  very many resources would want a cursor-driven stream (R2 already returns
+  keys in order).
+- **D1's state `init` sends several statements in one `/query` call**
+  (`src/native/d1_kvstore.rs`). It (and libsql's) was missing the `;` after
+  `CREATE TABLE`, so `init` always failed; fixed in F04 T8 and covered for
+  libsql by `tests/libsql_state_store_tests.rs`, but the D1 path is only
+  exercised by the wrangler integration tests (`CF_INTEGRATION_TEST=1`).
+- **Auth tables mix timestamp units.** The `created_at` defaults in the core
+  migrations are milliseconds (`strftime('%s','now') * 1000`), while
+  `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
+  server writes milliseconds for its own rows. Fix: pick one unit per column,
+  document it in the migrations, and make cleanup follow it.
+- **`KVWasmStorage`'s rate limiter isn't atomic**
+  (`src/wasm/wasm_storage/kv_wasm.rs`): a record reads the entry, then
+  writes it back, so two concurrent hits can count once (and KV is
+  eventually consistent across locations). Fix: use a Durable Object or D1
+  for rate limits on Workers, and document KV as best-effort.
+- **Databases created by the old rate-limit code have the wrong table.**
+  Before F04 T11 a store that wasn't migrated created
+  `rate_limits (key PRIMARY KEY, count, window_start)`; the store now uses the
+  migration 014 shape (`id`, `key UNIQUE`, `count`, `window_start`,
+  `window_end`), which `CREATE TABLE IF NOT EXISTS` won't add to an existing
+  old-shape table. Fix: a migration that rebuilds an old-shape table (rate
+  limit rows are disposable), or drop it on detection.
+- **No CI job builds the example workspaces** (`examples/cf-*`,
+  `apps/answerme-agent`); `examples/cf-login-app`'s manifest had stopped
+  loading unnoticed. Fix: an examples job (wasm32 for `cf-*`). The feature
+  runs that had rotted (foundation_db `libsql`, foundation_nativeapis
+  `vfs-native,vfs-d1,vfs-r2`, foundation_vectors `sql-store`, foundation_auth
+  `server-test`) are in `ci/packages.toml` since F04 T12.
+
+## 12. foundation_auth
+
+- **`PowService` checks leading zero bits against a byte count.**
+  `verify_solution` (`src/server/services/pow_service.rs`) compares
+  `count_leading_zero_bytes(&hash)` — which counts *bits* — with
+  `difficulty / 8`, so a difficulty of 22 bits only needs 2 zero bits. Its
+  `solve_validity_secs` field is never read either. Fix: compare bits with
+  `difficulty`, rename the helper, and either enforce the solve window or
+  drop the field (update the tests, which solve at difficulty 8).
+- **`register` answers a duplicate email with `200 {"error": "user_exists"}`**
+  (`src/server/handlers/core.rs`); spec 48 F03 says `409`. Fix: return
+  `IdpError::Conflict`.
+- **`header_name_eq` compares header names through `Debug` formatting**
+  (`src/server/handlers/core.rs`), so it depends on `SimpleHeader`'s `Debug`
+  output. Fix: compare with the header's canonical name.
+- **IdP integer columns are cast with `as`** (`interval_secs`, `counter`,
+  `failed_login_attempts` in `src/server/storage.rs`): a negative or oversized
+  value wraps silently. Fix: `u32::try_from` and report a `Parse` error.
+- **`--features server-native` tests don't link here.** `webauthn-rs` needs
+  OpenSSL 3 symbols (`EVP_Q_digest`, `OPENSSL_sk_*`) that the build host
+  doesn't provide. Fix: vendor OpenSSL (`openssl/vendored`) or document the
+  system dependency.
+- **Unused dependencies on wasm.** `cargo check --target wasm32-unknown-unknown
+  -p foundation_auth --no-default-features --features wasm` warns that
+  `argon2`, `foundation_errstacks`, `pbkdf2`, `time` and `uuid` are unused
+  there. Fix: make the native-only ones target-specific dependencies (or gate
+  them behind the features that use them).
+- **`foundation_db::wasm::{WasmCredentialStore, session}` duplicate
+  `CredentialStorage`.** Their docs say they exist because the sync
+  `CredentialStore` routed D1 through blocking calls; that trait is gone (spec
+  50 F04), and `CredentialStorage` over a D1 `StorageProvider` already serves
+  `AsyncCredentialStore` on Workers. Fix: fold callers onto
+  `CredentialStorage` and delete the duplicates.
+- **`NativeOAuth` keeps sync twins** (`exchange_code`, `client_credentials`,
+  `refresh_token`) next to the `*_async` methods (`src/native/oauth.rs`),
+  against the async-only API rule. Fix: keep only the async methods (as the
+  wasm client now does) and let callers `.block()`.
+
+## 13. foundation_nativeapis
+
+- **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
+  (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
+  file, its metadata and its whiteout as separate blobs, and a blob store has
+  no key listing: `list_async` and `list_whiteouts_async` return nothing and
+  `reset_async` is unsupported. Fix: keep a per-directory index blob (or use
+  D1's key-value listing, `list_keys_async`, for the D1 delta).
+- **A blob-delta write rewrites the whole file.** Each `write_at_async` reads
+  the blob, splices the bytes in and writes it back, so a large file written
+  in small pieces is O(n²). Fix: chunked storage (the unused
+  `d1_delta::chunking` module sketches it) with a configurable chunk size.
+- **The VFS shim never uses the D1/R2 deltas.** `src/native/vfs/shim/mod.rs`
+  logs "impls pending" and falls back to the memory delta for
+  `DeltaBackend::D1` / `R2`; the deltas now exist (as `SyncFs<D1Delta>` /
+  `SyncFs<R2Delta>` for the sync overlay). Fix: build them from the shim
+  config.
+- **`FjallDocumentStore` scans buffer their rows.** `scan_async`,
+  `scan_all_async` and `scan_from_async` collect the matching rows into a
+  `Vec` before streaming them (`src/shared/vfs/fjall_document_store.rs`);
+  `scan_all_async` is unbounded. Fix: walk the fjall index range lazily.
+
+## 14. foundation_cronjobs
+
+- **`CronJob::next_fire` ignores the cron expression.** It always returns five
+  minutes from now (`src/scheduler.rs`, marked TODO), so every job runs on the
+  same fixed interval. Fix: parse `cron_expr` with a cron crate (`cron` or
+  `saffron`) and compute the real next fire time; reject an invalid
+  expression at `register`.
+- **`CronScheduler` never runs a job.** The crate docs (`src/lib.rs`)
+  describe tasks parked on `Delayed` until each fire time, execution, result
+  recording and missed-job catch-up (`MissedJobPolicy`); none of it exists —
+  the scheduler only registers jobs and saves/loads their state. Fix:
+  implement the run loop (one valtron task per job) and the missed-job
+  policy, or cut the docs down to what exists.
+
+## 15. foundation_cedar
+
+- **`SqlPolicyStore` reads its row once per field.** `load_from_store` calls
+  `load_schema`, `load_policies` and `load_entities`, and each runs the same
+  `SELECT` (`src/storage/sql_store.rs`). Fix: a `load_all` on `PolicyStore`
+  (default: the three calls) that the SQL store overrides with one query.
+- **`derive_more` is an unused dependency** (`cargo` warns). Fix: drop it
+  from `Cargo.toml`.
+- **`unreachable call` warnings in `src/core/request.rs`.** The three
+  `EntityId::from_str(id).map_err(..)` calls map an error type that can't
+  occur (`Infallible`), so the compiler warns on each `map_err`. Fix: drop the
+  `map_err` (or use `EntityId::new`) so the build is warning-free.
+
+## 16. Workspace / process
 
 - **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
   - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
+- **`crates/ewe_deployables` doesn't build.** It isn't a workspace member, so
+  nothing compiles it, and it still implements an older `Deployable` shape
+  (sync `TaskIterator`s, sync `store(&client).get_typed(..)`), which no longer
+  exists. Fix: port it to the current async `Deployable` / `StateStore` and
+  add it to the workspace (or delete it if superseded by the per-provider
+  deployment crates).
 - **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
 - **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
   compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target
@@ -251,26 +459,18 @@ Last refreshed: 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In fli
   wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
   task invoke the two binaries via `mise which`.
 
-## 10. foundation_ai
+## 17. foundation_vectors
 
-- **Non-streaming wasm `generate` is unsupported.** The providers' sync
-  `generate` path calls `HttpClient::send`, which on wasm now returns an error
-  (spec 65 feature 06 T5: a sync send cannot wait for `fetch` without freezing the
-  isolate), and its retry backoff `backend_utils::sleep` is a no-op on wasm (T4).
-  So one-shot generation fails fast on wasm instead of deadlocking, but does not
-  work. Likely fix: an async `generate` seam (e.g. `generate_async`) over
-  `send_async`, or route wasm `generate` through the lazy `send_sse`/`stream`
-  machinery and collect its result async.
-- **Candle usage accounting never accumulates.** `backends/candle.rs`:
-  `CandleUsage::cumulative_cost` and `tokens_generated` are never updated, and
-  `stream()` never records `last_usage`, so `Model::costing()` always reports 0.
-  Likely fix: add each generation's usage in `generate` and at stream end.
-- **The test targets need llama.cpp even for candle-only runs.** The native
-  `[dev-dependencies]` pull `infrastructure_llama_cpp` unconditionally, so
-  `cargo test -p foundation_ai --no-default-features --features candle` fails
-  without the `tools/llama.cpp` sources (`llama.h` not found). Likely fix: move
-  the llama.cpp error-conversion tests behind `required-features = ["llamacpp"]`
-  and take the type from the normal (optional) dependency instead.
+- **`AsyncVectorStore::len_async` returns `usize`,** so a backend error can't
+  be reported (`src/store.rs`); the SQL stores count a failure as 0. Fix:
+  return `Result<usize, VectorStoreError>` from `len_async` (and `len`) across
+  every vector store. Owner decision 2026-10-21: recorded, not fixed in F04.
+- **The SQL-backed stores scan a whole namespace per search**
+  (`SqlVectorStore::search_async`): memory is bounded (`TopK`), but time is
+  O(n·d) per query. Expected for the portable fallback; large namespaces
+  should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
+
+
 ## Paused
 
 - Windows/macOS VM images (#69).

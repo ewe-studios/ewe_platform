@@ -100,3 +100,81 @@ fn multiple_tasks_complete_with_sleeper_aware_yielding() {
     let final_results = results.lock().unwrap();
     assert_eq!(final_results.len(), 5);
 }
+
+/// A task whose single step blocks its worker until released, like a task
+/// stuck in a blocking syscall or a deadlock.
+struct BlockingTask {
+    started: std::sync::mpsc::Sender<()>,
+    release: std::sync::mpsc::Receiver<()>,
+}
+
+impl TaskIterator for BlockingTask {
+    type Ready = ();
+    type Pending = ();
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        let _ = self.started.send(());
+        // Err (sender gone) also ends the wait; either way the task is done.
+        let _ = self.release.recv();
+        None
+    }
+}
+
+/// WHY: `PoolGuard::shutdown` waits for every worker to reach its kill check,
+/// so one worker blocked inside a task makes it wait forever and keeps the
+/// process-wide pool gate shut. `shutdown_within` is the bounded teardown the
+/// `#[valtron_test(timeout = ..)]` harness relies on.
+///
+/// WHAT: with a worker blocked, `shutdown_within` returns `false` within its
+/// deadline, and dropping the guard releases the gate so a new pool can start
+/// and run work.
+///
+/// HOW: block one worker with `BlockingTask`, tear down with a 200 ms deadline,
+/// then bring up a second pool on another thread and require it to finish a
+/// future within 10 s (a hang there means the gate was not released).
+#[test]
+fn shutdown_within_detaches_a_blocked_worker_and_releases_the_pool_gate() {
+    use foundation_core::valtron::{block_on_future, initialize_pool, send};
+
+    let (release_tx, release_rx) = std::sync::mpsc::channel::<()>();
+    let (started_tx, started_rx) = std::sync::mpsc::channel::<()>();
+
+    let guard = initialize_pool(7, Some(3));
+    send(BlockingTask {
+        started: started_tx,
+        release: release_rx,
+    })
+    .expect("schedule the blocking task");
+    started_rx
+        .recv_timeout(Duration::from_secs(10))
+        .expect("the blocking task should start on a worker");
+
+    let start = Instant::now();
+    let stopped = guard.shutdown_within(Duration::from_millis(200));
+    let took = start.elapsed();
+    drop(guard);
+
+    assert!(!stopped, "a blocked worker cannot stop, so shutdown_within must report it");
+    assert!(
+        took < Duration::from_secs(5),
+        "shutdown_within must return near its 200 ms deadline, took {took:?}"
+    );
+
+    // The gate must be free: a fresh pool comes up and runs a future.
+    let (done_tx, done_rx) = std::sync::mpsc::channel();
+    thread::spawn(move || {
+        let guard = initialize_pool(8, Some(3));
+        let value = block_on_future(async { 41 + 1 });
+        drop(guard);
+        let _ = done_tx.send(value);
+    });
+    let value = done_rx.recv_timeout(Duration::from_secs(10));
+
+    // Let the detached worker finish now that the assertions are in.
+    let _ = release_tx.send(());
+
+    assert_eq!(
+        value.expect("a new pool must start after shutdown_within (pool gate released)"),
+        42
+    );
+}

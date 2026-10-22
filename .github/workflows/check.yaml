@@ -46,8 +46,9 @@ env:
   # Smaller target dirs and caches: no incremental state, no debuginfo.
   CARGO_INCREMENTAL: "0"
   CARGO_PROFILE_UAT_DEBUG: "0"
-  # The `dev` profile uses the Cranelift backend (not installed in CI, and it
-  # can't do catch_unwind); `uat` is dev with LLVM — what the test docs use.
+  # `uat` is `dev` on LLVM — what the test docs use. (Locally, mise's env puts
+  # `dev` on Cranelift, which CI does not install and which can't do
+  # catch_unwind.)
   CI_PROFILE: uat
 
 jobs:
@@ -265,9 +266,12 @@ jobs:
         with:
           mode: submodule
 
-      - name: Use the pinned toolchain
+      - name: Use the stable release toolchain
+        # The dry-run packages and builds what a release publishes, so it uses
+        # the release toolchain (stable, ci/release-rust-toolchain). This also
+        # keeps the workspace loadable and buildable on stable.
         run: |
-          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          toolchain=$(tr -d '[:space:]' < ci/release-rust-toolchain)
           rustup toolchain install "$toolchain" --profile minimal --no-self-update
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 

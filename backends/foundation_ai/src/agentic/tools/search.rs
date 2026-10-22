@@ -203,7 +203,14 @@ impl ToolImpl for SearchContextTool {
         // A negative or non-numeric `k` is an argument error, not a huge usize.
         let k = args.opt_usize("k")?.unwrap_or(10);
 
-        let hits = self.context.search(&query, mode, k).await;
+        let hits = self
+            .context
+            .search(&query, mode, k)
+            .await
+            .map_err(|e| ToolError::Execution {
+                tool: "search_context".into(),
+                reason: format!("reading the session's history and memory failed: {e}"),
+            })?;
         let json = serde_json::to_string(&hits).map_err(|e| ToolError::Execution {
             tool: "search_context".into(),
             reason: format!("serializing the hits failed: {e}"),

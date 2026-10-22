@@ -12,7 +12,7 @@ use foundation_auth::server::models::provider::{
 };
 use foundation_auth::server::services::provider_service::{ProviderCrypto, ProviderService};
 use foundation_core::valtron::valtron_test;
-use foundation_db::{QueryStore, StorageBackend, StorageProvider};
+use foundation_db::StorageProvider;
 use tempfile::TempDir;
 
 /// Build a real Turso-backed query store with all migrations applied.
@@ -24,10 +24,7 @@ use tempfile::TempDir;
 fn make_store() -> (Arc<StorageProvider>, TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("provider_test.db");
-    let provider = StorageProvider::new(StorageBackend::Turso {
-        url: db_path.to_str().unwrap().to_string(),
-    })
-    .expect("init turso");
+    let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
     (Arc::new(provider), dir)
 }
 
@@ -64,14 +61,14 @@ fn sample_provider() -> UpstreamProvider {
 // ── Valid input ──────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn create_and_find_round_trips() {
+async fn create_and_find_round_trips() {
     let (svc, _tmp) = make_service();
-    let created = svc.create(sample_provider()).expect("create");
+    let created = svc.create(sample_provider()).await.expect("create");
     assert_eq!(created.id, "google");
     assert!(created.created_at > 0, "created_at should be stamped");
     assert!(created.client_secret_ciphertext.is_none());
 
-    let found = svc.find_by_id("google").expect("find").expect("present");
+    let found = svc.find_by_id("google").await.expect("find").expect("present");
     assert_eq!(found.name, "Google");
     assert_eq!(found.provider_type, ProviderType::Oidc);
     assert_eq!(found.scopes, vec!["openid", "email", "profile"]);
@@ -83,25 +80,25 @@ fn create_and_find_round_trips() {
 }
 
 #[valtron_test]
-fn secret_encrypt_decrypt_round_trips() {
+async fn secret_encrypt_decrypt_round_trips() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_provider()).expect("create");
+    svc.create(sample_provider()).await.expect("create");
 
-    svc.set_secret("google", "GOCSPX-super-secret").expect("set_secret");
+    svc.set_secret("google", "GOCSPX-super-secret").await.expect("set_secret");
 
     // Decrypt returns the original plaintext.
-    let secret = svc.get_secret("google").expect("get_secret");
+    let secret = svc.get_secret("google").await.expect("get_secret");
     assert_eq!(secret, "GOCSPX-super-secret");
 
     // The stored blob is NOT the plaintext (encrypted at rest).
-    let stored = svc.find_by_id("google").unwrap().unwrap();
+    let stored = svc.find_by_id("google").await.unwrap().unwrap();
     let blob = stored.client_secret_ciphertext.expect("ciphertext present");
     assert_ne!(blob.as_slice(), b"GOCSPX-super-secret");
     assert!(blob.len() > "GOCSPX-super-secret".len(), "nonce + tag overhead");
 }
 
 #[valtron_test]
-fn secret_survives_new_service_with_same_passphrase() {
+async fn secret_survives_new_service_with_same_passphrase() {
     // Decrypt must be deterministic across service instances (restart safety):
     // a fresh ProviderCrypto derived from the same passphrase decrypts.
     let (store, _tmp) = make_store();
@@ -110,38 +107,38 @@ fn secret_survives_new_service_with_same_passphrase() {
         store.clone(),
         ProviderCrypto::from_passphrase("shared-passphrase", "default"),
     );
-    svc1.create(sample_provider()).expect("create");
-    svc1.set_secret("google", "the-secret").expect("set_secret");
+    svc1.create(sample_provider()).await.expect("create");
+    svc1.set_secret("google", "the-secret").await.expect("set_secret");
 
     let svc2 = ProviderService::new(
         store,
         ProviderCrypto::from_passphrase("shared-passphrase", "default"),
     );
-    assert_eq!(svc2.get_secret("google").unwrap(), "the-secret");
+    assert_eq!(svc2.get_secret("google").await.unwrap(), "the-secret");
 }
 
 #[valtron_test]
-fn wrong_passphrase_fails_to_decrypt() {
+async fn wrong_passphrase_fails_to_decrypt() {
     let (store, _tmp) = make_store();
     let svc1 = ProviderService::new(
         store.clone(),
         ProviderCrypto::from_passphrase("right-passphrase", "default"),
     );
-    svc1.create(sample_provider()).expect("create");
-    svc1.set_secret("google", "the-secret").expect("set_secret");
+    svc1.create(sample_provider()).await.expect("create");
+    svc1.set_secret("google", "the-secret").await.expect("set_secret");
 
     let svc2 = ProviderService::new(
         store,
         ProviderCrypto::from_passphrase("wrong-passphrase", "default"),
     );
     // AEAD authentication fails with the wrong key.
-    assert!(svc2.get_secret("google").is_err());
+    assert!(svc2.get_secret("google").await.is_err());
 }
 
 #[valtron_test]
-fn update_applies_partial_changes() {
+async fn update_applies_partial_changes() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_provider()).expect("create");
+    svc.create(sample_provider()).await.expect("create");
 
     let updated = svc
         .update(
@@ -152,7 +149,7 @@ fn update_applies_partial_changes() {
                 scopes: Some(vec!["openid".into()]),
                 ..Default::default()
             },
-        )
+        ).await
         .expect("update");
     assert_eq!(updated.name, "Google SSO");
     assert!(!updated.is_active);
@@ -162,9 +159,9 @@ fn update_applies_partial_changes() {
 }
 
 #[valtron_test]
-fn find_active_filters_inactive() {
+async fn find_active_filters_inactive() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_provider()).expect("create google");
+    svc.create(sample_provider()).await.expect("create google");
 
     let mut github = sample_provider();
     github.id = "github".into();
@@ -174,104 +171,104 @@ fn find_active_filters_inactive() {
     github.authorization_url = Some("https://github.com/login/oauth/authorize".into());
     github.token_url = Some("https://github.com/login/oauth/access_token".into());
     github.is_active = false;
-    svc.create(github).expect("create github");
+    svc.create(github).await.expect("create github");
 
-    let active = svc.find_active().expect("find_active");
+    let active = svc.find_active().await.expect("find_active");
     assert_eq!(active.len(), 1, "only google is active");
     assert_eq!(active[0].id, "google");
 }
 
 #[valtron_test]
-fn delete_removes_provider() {
+async fn delete_removes_provider() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_provider()).expect("create");
-    svc.delete("google").expect("delete");
-    assert!(svc.find_by_id("google").unwrap().is_none());
+    svc.create(sample_provider()).await.expect("create");
+    svc.delete("google").await.expect("delete");
+    assert!(svc.find_by_id("google").await.unwrap().is_none());
 }
 
 // ── Invalid input ────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn create_rejects_empty_id() {
+async fn create_rejects_empty_id() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
     p.id = "".into();
-    assert!(svc.create(p).is_err());
+    assert!(svc.create(p).await.is_err());
 }
 
 #[valtron_test]
-fn create_rejects_empty_client_id() {
+async fn create_rejects_empty_client_id() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
     p.client_id = "".into();
-    assert!(svc.create(p).is_err());
+    assert!(svc.create(p).await.is_err());
 }
 
 #[valtron_test]
-fn create_rejects_missing_endpoints() {
+async fn create_rejects_missing_endpoints() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
     p.discovery_url = None;
     p.authorization_url = None;
     p.token_url = None;
     // Neither discovery nor authorize+token → invalid.
-    assert!(svc.create(p).is_err());
+    assert!(svc.create(p).await.is_err());
 }
 
 #[valtron_test]
-fn oauth2_with_only_authorize_url_is_rejected() {
+async fn oauth2_with_only_authorize_url_is_rejected() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
     p.discovery_url = None;
     p.authorization_url = Some("https://example.com/authorize".into());
     p.token_url = None; // missing token url
-    assert!(svc.create(p).is_err());
+    assert!(svc.create(p).await.is_err());
 }
 
 #[valtron_test]
-fn set_secret_on_missing_provider_is_not_found() {
+async fn set_secret_on_missing_provider_is_not_found() {
     let (svc, _tmp) = make_service();
-    assert!(svc.set_secret("nonexistent", "x").is_err());
+    assert!(svc.set_secret("nonexistent", "x").await.is_err());
 }
 
 #[valtron_test]
-fn get_secret_without_set_is_error() {
+async fn get_secret_without_set_is_error() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_provider()).expect("create");
+    svc.create(sample_provider()).await.expect("create");
     // No secret set yet.
-    assert!(svc.get_secret("google").is_err());
+    assert!(svc.get_secret("google").await.is_err());
 }
 
 #[valtron_test]
-fn update_missing_provider_is_not_found() {
+async fn update_missing_provider_is_not_found() {
     let (svc, _tmp) = make_service();
-    let r = svc.update("nope", ProviderUpdate::default());
+    let r = svc.update("nope", ProviderUpdate::default()).await;
     assert!(r.is_err());
 }
 
 // ── Edge cases ───────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn find_missing_returns_none() {
+async fn find_missing_returns_none() {
     let (svc, _tmp) = make_service();
-    assert!(svc.find_by_id("nope").unwrap().is_none());
+    assert!(svc.find_by_id("nope").await.unwrap().is_none());
 }
 
 #[valtron_test]
-fn delete_missing_is_ok() {
+async fn delete_missing_is_ok() {
     let (svc, _tmp) = make_service();
     // Idempotent: deleting a non-existent id succeeds.
-    assert!(svc.delete("nope").is_ok());
+    assert!(svc.delete("nope").await.is_ok());
 }
 
 #[valtron_test]
-fn find_active_empty_when_none() {
+async fn find_active_empty_when_none() {
     let (svc, _tmp) = make_service();
-    assert!(svc.find_active().unwrap().is_empty());
+    assert!(svc.find_active().await.unwrap().is_empty());
 }
 
 #[valtron_test]
-fn oauth2_provider_with_explicit_urls_is_valid() {
+async fn oauth2_provider_with_explicit_urls_is_valid() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
     p.id = "github".into();
@@ -280,6 +277,6 @@ fn oauth2_provider_with_explicit_urls_is_valid() {
     p.authorization_url = Some("https://github.com/login/oauth/authorize".into());
     p.token_url = Some("https://github.com/login/oauth/access_token".into());
     p.userinfo_url = Some("https://api.github.com/user".into());
-    let created = svc.create(p).expect("oauth2 provider with explicit urls is valid");
+    let created = svc.create(p).await.expect("oauth2 provider with explicit urls is valid");
     assert_eq!(created.provider_type, ProviderType::Oauth2);
 }

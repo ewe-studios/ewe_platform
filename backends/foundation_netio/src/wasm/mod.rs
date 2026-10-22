@@ -4,3 +4,6 @@ pub mod netcap;
 
 #[cfg(feature = "wasm-fetch")]
 pub mod client;
+
+#[cfg(feature = "wasm-fetch")]
+pub mod response;

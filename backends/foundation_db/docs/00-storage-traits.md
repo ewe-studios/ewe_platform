@@ -9,62 +9,90 @@ traits.
 ## 1. The trait hierarchy
 
 ```
-BlobStore / AsyncBlobStore          ← raw bytes (R2, S3, filesystem)
-KeyValueStore / AsyncKeyValueStore  ← typed key-value (KV, Redis)
-QueryStore / AsyncQueryStore        ← SQL-like queries (SQLite, D1, Turso)
+BlobStore          ← raw bytes (R2, S3, filesystem)
+KeyValueStore      ← typed key-value (KV, Redis)
+QueryStore         ← SQL-like queries (SQLite, D1, Turso)
+RateLimiterStore   ← fixed-window rate limits
      ↓
-DocumentStore / AsyncDocumentStore  ← structured documents with ordering
+DocumentStore      ← structured documents with ordering
 ```
 
-Each level builds on the one below. `AsyncDocumentStore` needs `AsyncQueryStore`
-for SQL backends and `AsyncBlobStore` for large blobs.
+Each level builds on the one below. `DocumentStore` needs `QueryStore`
+for SQL backends and `BlobStore` for large blobs.
+
+### Async only
+
+Every store implements **only** the `Async*` traits: Turso, libsql, D1, R2,
+`JsonFileStorage`, `StorageProvider`, the Cloudflare D1/KV/R2 Worker stores,
+`SqlDocumentStore`, `D1R2DocumentStore`, and the in-memory stores
+(`MemoryStorage`, `MemoryJsonStore`, `MemoryDocumentStore`, whose futures are
+ready at once). There are no sync storage traits and no sync wrapper (the old
+`KeyValueStore`/`QueryStore`/… traits and `Blocking<S>` were removed in spec 50
+F04).
+
+```rust
+use foundation_db::{KeyValueStore, TursoStorage};
+
+let store = TursoStorage::in_memory().await?;   // or TursoStorage::new("app.db").await? + init_schema()
+store.set_async("k", "v").await?;
+```
+
+- Single values are awaited directly; multi-row results are async streams
+  (`AsyncStorageItemStream`, `AsyncQueryStream`, `AsyncListStream`) pulled one
+  item at a time with `.next().await`.
+- Code that must be sync (a `main`, an OS thread) is the only place that waits:
+  `block_on_future(fut)` / `fut.block()`, imported behind
+  `foundation_core::blocking_boundary!`. That boundary doesn't exist on
+  JS-hosted wasm (Cloudflare Workers, browsers), where blocking would freeze the
+  isolate; there everything `.await`s.
+- Inside a valtron `TaskIterator`, hold the store future as a `FutureTask` and
+  poll it from `next_status` (see `StoreStateTask`).
 
 ## 2. BlobStore
 
 The simplest trait — store and retrieve raw bytes:
 
 ```rust
+#[async_trait]
 trait BlobStore: Send + Sync {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
-    fn delete_blob(&self, key: &str) -> StorageResult<()>;
-    fn blob_exists(&self, key: &str) -> StorageResult<bool>;
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()>;
+    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
+    async fn delete_blob_async(&self, key: &str) -> StorageResult<()>;
+    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool>;
 }
 ```
 
-**Backends**:
-- `MemoryStorage` — in-memory HashMap (tests, dev)
-- `R2WasmStorage` — Cloudflare R2 via wasm-bindgen
-- `JsonFileStorage` — JSON files on disk
+**Backends**: `MemoryStorage`, `JsonFileStorage`, `R2Store` (REST),
+`R2WasmStorage` (Workers binding), `D1WasmStorage`, `KVWasmStorage`.
 
 ## 3. KeyValueStore
 
 Typed key-value with serialization:
 
 ```rust
+#[async_trait]
 trait KeyValueStore: Send + Sync {
-    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>>;
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()>;
-    fn delete(&self, key: &str) -> StorageResult<()>;
-    fn exists(&self, key: &str) -> StorageResult<bool>;
-    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>>;
+    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
+    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
+    async fn delete_async(&self, key: &str) -> StorageResult<()>;
+    async fn exists_async(&self, key: &str) -> StorageResult<bool>;
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream>;
 }
 ```
 
-**Backends**:
-- `MemoryStorage` (also implements this)
-- `KVWasmStorage` — Cloudflare KV via wasm-bindgen
-- `D1WasmStorage` — D1 SQL used as KV table
+**Backends**: `MemoryStorage`, `MemoryJsonStore`, `JsonFileStorage`,
+`TursoStorage`, `LibsqlStore`, `D1Store`, `KVWasmStorage`, `D1WasmStorage`.
 
 ## 4. QueryStore
 
-SQL-like queries with typed parameters and result rows:
+SQL-like queries with typed parameters and streamed result rows:
 
 ```rust
+#[async_trait]
 trait QueryStore: Send + Sync {
-    fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>>;
-    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
-    fn execute_batch(&self, sql: &str) -> StorageResult<()>;
+    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream>;
+    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
+    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()>;
 }
 ```
 
@@ -72,48 +100,34 @@ trait QueryStore: Send + Sync {
 - `Text(String)` — VARCHAR/TEXT
 - `Integer(i64)` — INTEGER
 - `Blob(Vec<u8>)` — BLOB
-- `Float(f64)` — REAL
+- `Real(f64)` — REAL
 - `Null` — NULL
 
-**`SqlRow`** — a result row with positional access:
+**`SqlRow`** — a result row with positional or named access:
 ```rust
 let name: String = row.get(0)?;
-let count: i64 = row.get(1)?;
-let data: Option<String> = row.get(2)?;
+let count: i64 = row.get_by_name("count")?;
 ```
 
-**Backends**:
-- `TursoStorage` — Turso/libSQL embedded SQLite
-- `LibsqlStore` — libSQL with remote sync
-- `D1WasmStorage` — Cloudflare D1 via wasm-bindgen
+Turso and libsql stream rows as they are fetched; D1's REST API returns the
+whole result set, which the stream then yields one row at a time.
 
-## 5. AsyncQueryStore
+**Backends**: `TursoStorage`, `LibsqlStore`, `D1Store`, `D1WasmStorage`.
 
-The async version — the canonical form for wasm/CF Workers:
+## 5. RateLimiterStore
 
-```rust
-#[async_trait]
-trait AsyncQueryStore: Send + Sync {
-    async fn query_async(&self, sql: &str, params: &[DataValue])
-        -> StorageResult<AsyncQueryStream>;
-    async fn execute_async(&self, sql: &str, params: &[DataValue])
-        -> StorageResult<u64>;
-    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()>;
-}
-```
+Fixed-window counters (`check_rate_limit_async`, `record_rate_limit_async`,
+`reset_rate_limit_async`). The window length comes from the caller's
+configuration.
 
-**The `?Send` resolution (F00e)**: `AsyncQueryStore` is a single `Send` async
-trait. On wasm, `!Send` futures (JS Promises) are wrapped in `SendWrapper` to
-satisfy the `Send` bound safely on single-threaded targets.
-
-## 6. DocumentStore / AsyncDocumentStore
+## 6. DocumentStore
 
 The highest-level trait — structured documents with ordering, namespaces, and
 promoted columns:
 
 ```rust
 #[async_trait]
-trait AsyncDocumentStore: Send + Sync {
+trait DocumentStore: Send + Sync {
     async fn append_async<V: Serialize + Send + 'static>(
         &self, key: &str, content: V) -> StorageResult<Document>;
     async fn scan_async<V: DeserializeOwned + Send + 'static>(
@@ -139,7 +153,7 @@ trait AsyncDocumentStore: Send + Sync {
 
 **Backends**:
 - `MemoryDocumentStore` — in-memory (tests)
-- `AsyncSqlDocumentStore<Q>` — generic over any `AsyncQueryStore` (F22b)
+- `SqlDocumentStore<Q>` — generic over any `QueryStore` (F22b)
 - `D1R2DocumentStore<Q, B>` — D1 + R2 with offload (F23)
 - `FjallDocumentStore` — fjall key-value with NDJSON (F22)
 - `VectorStore` implementations use DocumentStore patterns for vector metadata
@@ -154,7 +168,17 @@ pub static MIGRATIONS: &[Migration] = &[
     Migration { id: "002_add_email", name: "...", sql: include_str!("002.sql") },
 ];
 
-MigrationRunner::new(MIGRATIONS).run(&store)?;
+MigrationRunner::new(MIGRATIONS).run_async(&store).await?;
+```
+
+There is no sync runner: a sync entry point awaits `run_async` through
+`block_on_future` / `.block()` behind `blocking_boundary!`.
+
+Expired auth rows are removed with `StorageCleanup` (implemented for
+every `QueryStore`), with retention periods from `CleanupConfig`:
+
+```rust
+let stats = store.run_full_cleanup(&CleanupConfig::default()).await?;
 ```
 
 Migrations are idempotent (tracked by `id` in a `_migrations` table). Each
@@ -163,20 +187,22 @@ feature crate owns its own.
 
 ## 8. The StorageProvider (unified backend)
 
-`StorageProvider` implements all traits simultaneously, routing to the
-appropriate backend:
+`StorageProvider` implements the async KV, query, rate-limit and blob traits,
+routing to the selected backend:
 
 ```rust
-let provider = StorageProvider::new(config)?;
+let provider = StorageProvider::new(config).await?;
 
 // As KeyValueStore
-provider.set("session:123", &session_data)?;
+provider.set_async("session:123", session_data).await?;
 
 // As QueryStore
-let rows = provider.query("SELECT * FROM users WHERE id = ?", &[DataValue::Text("123")])?;
+let rows = provider
+    .query_async("SELECT * FROM users WHERE id = ?", &[DataValue::Text("123".into())])
+    .await?
+    .collect_all()
+    .await?;
 
-// As DocumentStore (via AsyncDocumentStore + valtron bridge)
-let doc = provider.append_async("messages", &message).await?;
 ```
 
 ## 9. Target gating

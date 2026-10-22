@@ -10,6 +10,7 @@
 //! real presets and sessions offline. Explicit configs point the cache at a
 //! per-test temp dir.
 
+use foundation_core::valtron::valtron_test;
 use std::path::PathBuf;
 
 use foundation_ai::agentic::AgentSession;
@@ -183,8 +184,8 @@ fn huggingface_cpu_and_gpu_build_with_none() {
     RouterPreset::huggingface_gpu(Gemma4E2b::MODEL_ID, None).expect("gpu preset builds");
 }
 
-#[test]
-fn hugging_face_preset_model_reaches_the_session() {
+#[valtron_test]
+async fn hugging_face_preset_model_reaches_the_session() {
     let preset = RouterPreset::huggingface_cpu(
         Gemma4E2b::MODEL_ID,
         Some(HuggingFaceGGUFConfig::with_cache_dir(temp_cache("session"))),
@@ -194,6 +195,7 @@ fn hugging_face_preset_model_reaches_the_session() {
     let session = AgentSession::builder(preset)
         .with_system_prompt("You are a helpful assistant.")
         .build()
+        .await
         .expect("session builds without with_model");
 
     assert_eq!(session.models().primary, named(Gemma4E2b::MODEL_ID));

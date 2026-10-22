@@ -1,6 +1,7 @@
 //! Shared auth modules (wasm32-compatible, pure logic).
 
-pub mod auth_manager;   // Feature 08: Auth Manager
+// Feature 08: Auth Manager.
+pub mod auth_manager;
 pub mod auth_state;
 pub mod auth_session;       // Feature 04: Upstream auth session store
 pub mod auth_token;

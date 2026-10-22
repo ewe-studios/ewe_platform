@@ -31,6 +31,66 @@ impl Ord for HeapEntry {
     }
 }
 
+/// A bounded top-k accumulator: feed it candidates one at a time, then take
+/// the best `k`. O(k) memory however many candidates are pushed, so a caller
+/// can rank rows as they stream in instead of collecting them first.
+///
+/// Ties are broken by id ascending for deterministic results. NaN scores are
+/// never selected.
+pub struct TopK<'q> {
+    query: &'q [f32],
+    k: usize,
+    metric: DistanceMetric,
+    heap: BinaryHeap<Reverse<HeapEntry>>,
+}
+
+impl<'q> TopK<'q> {
+    /// An empty accumulator for the `k` best matches of `query`.
+    #[must_use]
+    pub fn new(query: &'q [f32], k: usize, metric: DistanceMetric) -> Self {
+        Self {
+            query,
+            k,
+            metric,
+            heap: BinaryHeap::with_capacity(k.saturating_add(1)),
+        }
+    }
+
+    /// Score one candidate and keep it if it is among the best `k` so far.
+    /// The id is copied only when the candidate is kept.
+    pub fn push(&mut self, id: &str, vec: &[f32]) {
+        if self.k == 0 {
+            return;
+        }
+        let score = self.metric.score(self.query, vec);
+        if score.is_nan() {
+            return;
+        }
+        let score = OrderedScore(score);
+        if self.heap.len() < self.k {
+            self.heap.push(Reverse(HeapEntry { score, id: id.to_string() }));
+        } else if let Some(min) = self.heap.peek() {
+            if score > min.0.score || (score == min.0.score && id < min.0.id.as_str()) {
+                self.heap.pop();
+                self.heap.push(Reverse(HeapEntry { score, id: id.to_string() }));
+            }
+        }
+    }
+
+    /// The kept matches, best first.
+    #[must_use]
+    pub fn finish(self) -> Vec<VectorMatch> {
+        self.heap
+            .into_sorted_vec()
+            .into_iter()
+            .map(|Reverse(e)| VectorMatch {
+                id: e.id,
+                score: e.score.0,
+            })
+            .collect()
+    }
+}
+
 /// Brute-force top-k over borrowed entries. O(n*d) time, O(k) memory.
 ///
 /// Uses a bounded min-heap of size k. Ties are broken by id ascending
@@ -43,43 +103,11 @@ pub fn flat_top_k<'a>(
     k: usize,
     metric: DistanceMetric,
 ) -> Vec<VectorMatch> {
-    if k == 0 {
-        return Vec::new();
-    }
-
-    let mut heap: BinaryHeap<Reverse<HeapEntry>> = BinaryHeap::with_capacity(k + 1);
-
+    let mut top = TopK::new(query, k, metric);
     for (id, vec) in entries {
-        let score = metric.score(query, vec);
-        if score.is_nan() {
-            continue;
-        }
-        let entry = Reverse(HeapEntry {
-            score: OrderedScore(score),
-            id: id.to_string(),
-        });
-
-        if heap.len() < k {
-            heap.push(entry);
-        } else if let Some(min) = heap.peek() {
-            if entry.0.score > min.0.score
-                || (entry.0.score == min.0.score && entry.0.id < min.0.id)
-            {
-                heap.pop();
-                heap.push(entry);
-            }
-        }
+        top.push(id, vec);
     }
-
-    let results: Vec<VectorMatch> = heap
-        .into_sorted_vec()
-        .into_iter()
-        .map(|Reverse(e)| VectorMatch {
-            id: e.id,
-            score: e.score.0,
-        })
-        .collect();
-    results
+    top.finish()
 }
 
 /// Brute-force top-k over owned entries (for fetch-based backends).
@@ -90,41 +118,9 @@ pub fn flat_top_k_owned(
     k: usize,
     metric: DistanceMetric,
 ) -> Vec<VectorMatch> {
-    if k == 0 {
-        return Vec::new();
-    }
-
-    let mut heap: BinaryHeap<Reverse<HeapEntry>> = BinaryHeap::with_capacity(k + 1);
-
+    let mut top = TopK::new(query, k, metric);
     for (id, vec) in entries {
-        let score = metric.score(query, &vec);
-        if score.is_nan() {
-            continue;
-        }
-        let entry = Reverse(HeapEntry {
-            score: OrderedScore(score),
-            id,
-        });
-
-        if heap.len() < k {
-            heap.push(entry);
-        } else if let Some(min) = heap.peek() {
-            if entry.0.score > min.0.score
-                || (entry.0.score == min.0.score && entry.0.id < min.0.id)
-            {
-                heap.pop();
-                heap.push(entry);
-            }
-        }
+        top.push(&id, &vec);
     }
-
-    let results: Vec<VectorMatch> = heap
-        .into_sorted_vec()
-        .into_iter()
-        .map(|Reverse(e)| VectorMatch {
-            id: e.id,
-            score: e.score.0,
-        })
-        .collect();
-    results
+    top.finish()
 }

@@ -189,8 +189,8 @@ fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
         .expect("start cf-cloud-provider under miniflare");
 
     let (status, body) = worker
-        .post("/generate", "What is the capital of France?", PROMPT_TIMEOUT)
-        .expect("POST /generate");
+        .post("/chat", "What is the capital of France?", PROMPT_TIMEOUT)
+        .expect("POST /chat");
     assert_eq!(status, 200, "body: {body}\nworker stderr:\n{}", worker.stderr_tail());
     assert_eq!(
         sse_text(&body),
@@ -199,8 +199,8 @@ fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
     );
     assert_eq!(vendor.requests(), 1, "one prompt must be one model call");
 
-    let (status, _) = worker.get("/").expect("GET / after a generate");
-    assert_eq!(status, 200, "the isolate must keep serving after a generate");
+    let (status, _) = worker.get("/").expect("GET / after a chat turn");
+    assert_eq!(status, 200, "the isolate must keep serving after a chat turn");
 }
 
 /// `cf-agent-loop`: Workers AI via `FetchHttpClient`, reply returned whole.

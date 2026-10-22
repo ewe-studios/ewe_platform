@@ -162,8 +162,12 @@ fn run_impl(
         cmd.arg("--no-default-features");
     }
 
-    // Override dev profile: use LLVM backend (Cranelift doesn't support wasm32).
-    cmd.env("CARGO_PROFILE_DEV_CODEGEN_BACKEND", "llvm")
+    // Cranelift doesn't support wasm32. Drop any `dev` backend override the
+    // caller's environment carries (mise's env puts `dev` on Cranelift), so the
+    // nested build uses the default, LLVM. Removing it (rather than setting
+    // `llvm`) needs no nightly `codegen-backend` opt-in, so it also works on
+    // stable and outside mise.
+    cmd.env_remove("CARGO_PROFILE_DEV_CODEGEN_BACKEND")
         .current_dir(crate_path);
 
     if release {

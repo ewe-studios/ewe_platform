@@ -143,18 +143,6 @@ fn single_threaded_runs_counter_to_completion() {
     assert_eq!(results.borrow()[..], [1, 2, 3, 4, 5]);
 }
 
-#[test]
-fn nothreadcontroller_uses_spin_waiter() {
-    let controller = NoThreadController::new();
-
-    let start = Instant::now();
-    controller.yield_for(Duration::from_millis(10));
-    let elapsed = start.elapsed();
-
-    // Should take some time (not return immediately like before)
-    // But timing is approximate due to spin-loop nature
-    assert!(elapsed >= Duration::from_micros(100));
-}
 
 #[test]
 fn nothreadcontroller_is_cloneable() {
@@ -163,11 +151,3 @@ fn nothreadcontroller_is_cloneable() {
     // Should compile and not panic
 }
 
-#[test]
-fn nothreadcontroller_has_default() {
-    let controller = NoThreadController::default();
-    let start = Instant::now();
-    controller.yield_for(Duration::from_millis(5));
-    let elapsed = start.elapsed();
-    assert!(elapsed >= Duration::from_micros(50));
-}

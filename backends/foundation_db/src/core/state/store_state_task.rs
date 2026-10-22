@@ -10,16 +10,67 @@
 //!   4. Yields the original output
 //!
 //! HOW: Uses explicit `state` enum to track progress through inner task
-//!      reception, state creation, and state store stream polling.
+//!      reception, state creation, and the store write. The write is an
+//!      async `StateStore::set`, held as a `FutureTask` and polled from
+//!      `next_status`: a write that is ready finishes in the same step, and
+//!      one waiting on I/O parks the task (`Depends`) instead of blocking.
 
-use crate::core::errors::StorageError;
+use std::future::Future;
+use std::pin::Pin;
+use std::sync::Arc;
+
+use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::resource_identifier::ResourceIdentifier;
-use crate::core::state::traits::{StateStore, StateStoreStream};
+use crate::core::state::traits::StateStore;
 use crate::core::state::hash::config_hash;
 use crate::core::state::types::{ResourceState, StateStatus};
-use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus, ThreadedValue};
+use foundation_core::valtron::{Ctx, FutureTask, TaskIterator, TaskSpread, TaskStatus};
 use serde::Serialize;
-use std::sync::Arc;
+
+/// The store write a task awaits (`Send` natively; state store futures are
+/// `!Send` on wasm).
+#[cfg(not(target_family = "wasm"))]
+type WriteFuture = Pin<Box<dyn Future<Output = StorageResult<()>> + Send>>;
+#[cfg(target_family = "wasm")]
+type WriteFuture = Pin<Box<dyn Future<Output = StorageResult<()>>>>;
+
+/// The valtron task form of a [`WriteFuture`].
+type StoreWrite = FutureTask<WriteFuture>;
+
+/// Start writing `state` to `store`, as a task the caller polls.
+fn start_write<St: StateStore + 'static>(store: Arc<St>, state: ResourceState) -> StoreWrite {
+    FutureTask::new(Box::pin(async move { store.set(&state.id, &state).await }))
+}
+
+/// What one poll of a [`StoreWrite`] produced.
+enum WritePoll<R, P> {
+    /// The write finished.
+    Done(StorageResult<()>),
+    /// Not yet: return this status so the executor parks or re-polls.
+    Waiting(TaskStatus<R, P>),
+}
+
+/// Poll a store write once, translating its status into the wrapper's.
+fn poll_write<R, P>(write: &mut StoreWrite, ctx: Ctx, waiting: P) -> WritePoll<R, P> {
+    match write.next_status(ctx) {
+        Some(TaskStatus::Ready(result)) => WritePoll::Done(result),
+        Some(TaskStatus::Depends(readiness)) => WritePoll::Waiting(TaskStatus::Depends(readiness)),
+        Some(TaskStatus::Delayed(delay)) => WritePoll::Waiting(TaskStatus::Delayed(delay)),
+        Some(TaskStatus::Wait) => WritePoll::Waiting(TaskStatus::Wait),
+        Some(
+            TaskStatus::Init
+            | TaskStatus::Ignore
+            | TaskStatus::Pending(())
+            | TaskStatus::Spawn(_)
+            | TaskStatus::Spread(_),
+        ) => WritePoll::Waiting(TaskStatus::Pending(waiting)),
+        // A `FutureTask` ends only after yielding its output, and the wrapper
+        // drops the write once it is done, so this is never polled again.
+        None => WritePoll::Done(Err(StorageError::Generic(
+            "state store write polled after it finished".into(),
+        ))),
+    }
+}
 
 /// Provider-specific error wrapper.
 ///
@@ -112,7 +163,7 @@ where
 pub enum StoreStatePending<P> {
     /// Waiting for inner task to produce a result
     WaitingInner(P),
-    /// Waiting for state store stream to finish storing
+    /// Waiting for the state store write to finish
     WaitingStore,
 }
 
@@ -120,7 +171,7 @@ pub enum StoreStatePending<P> {
 enum StoreStatePrecomputed<Inner, St, I, D>
 where
     Inner: TaskIterator,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     D: Serialize + Send + 'static,
 {
@@ -137,7 +188,7 @@ where
     /// Inner task succeeded - storing result
     Storing {
         output: D,
-        stream: StateStoreStream<()>,
+        write: StoreWrite,
     },
     /// Done - no more states
     Done,
@@ -146,7 +197,7 @@ where
 impl<Inner, St, I, D> std::fmt::Debug for StoreStatePrecomputed<Inner, St, I, D>
 where
     Inner: TaskIterator + std::fmt::Debug,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     D: Serialize + Send + 'static,
 {
@@ -180,7 +231,7 @@ where
 pub struct StoreStateTask<Inner, St, I, D>
 where
     Inner: TaskIterator,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     D: Serialize + Send + 'static,
 {
@@ -190,7 +241,7 @@ where
 impl<Inner, St, I, D> StoreStateTask<Inner, St, I, D>
 where
     Inner: TaskIterator,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     D: Serialize + Send + 'static,
 {
@@ -231,7 +282,7 @@ where
 impl<Inner, St, I, D, E, P> TaskIterator for StoreStateTask<Inner, St, I, D>
 where
     Inner: TaskIterator<Ready = Result<D, E>, Pending = P>,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     D: Serialize + Send + 'static,
     P: Clone + Send + 'static,
@@ -252,7 +303,7 @@ where
                 input,
                 environment,
             } => {
-                match inner.next_status(ctx)? {
+                match inner.next_status(ctx.clone())? {
                     TaskStatus::Ready(Ok(output)) => {
                         // Inner task succeeded - build state and call state_store.set()
                         let config_snapshot = match serde_json::to_value(&input) {
@@ -297,17 +348,13 @@ where
                             updated_at: now,
                         };
 
-                        match state_store.set(&resource_id, &state) {
-                            Ok(stream) => {
-                                self.state =
-                                    Some(StoreStatePrecomputed::Storing { output, stream });
-                                Some(TaskStatus::Pending(StoreStatePending::WaitingStore))
-                            }
-                            Err(e) => {
-                                self.state = Some(StoreStatePrecomputed::Done);
-                                Some(TaskStatus::Ready(Err(ProviderError::State(e))))
-                            }
-                        }
+                        // Poll the write in this same step: a ready store
+                        // finishes without an extra round trip.
+                        self.state = Some(StoreStatePrecomputed::Storing {
+                            output,
+                            write: start_write(state_store, state),
+                        });
+                        self.next_status(ctx)
                     }
                     TaskStatus::Ready(Err(e)) => {
                         self.state = Some(StoreStatePrecomputed::Done);
@@ -414,28 +461,19 @@ where
                     }
                 }
             }
-            StoreStatePrecomputed::Storing { output, mut stream } => {
-                // Poll the state store stream
-                match stream.next() {
-                    Some(ThreadedValue::Value(Ok(()))) => {
-                        // Stream yielded success - continue polling
-                        self.state = Some(StoreStatePrecomputed::Storing { output, stream });
-                        Some(TaskStatus::Pending(StoreStatePending::WaitingStore))
+            StoreStatePrecomputed::Storing { output, mut write } => {
+                match poll_write(&mut write, ctx, StoreStatePending::WaitingStore) {
+                    WritePoll::Done(Ok(())) => {
+                        self.state = Some(StoreStatePrecomputed::Done);
+                        Some(TaskStatus::Ready(Ok(output)))
                     }
-                    Some(ThreadedValue::Value(Err(e))) => {
-                        // Stream yielded error
+                    WritePoll::Done(Err(e)) => {
                         self.state = Some(StoreStatePrecomputed::Done);
                         Some(TaskStatus::Ready(Err(ProviderError::State(e))))
                     }
-                    Some(ThreadedValue::Waiting) => {
-                        // Stream is waiting - continue polling
-                        self.state = Some(StoreStatePrecomputed::Storing { output, stream });
-                        Some(TaskStatus::Pending(StoreStatePending::WaitingStore))
-                    }
-                    None => {
-                        // Stream exhausted - storage complete
-                        self.state = Some(StoreStatePrecomputed::Done);
-                        Some(TaskStatus::Ready(Ok(output)))
+                    WritePoll::Waiting(status) => {
+                        self.state = Some(StoreStatePrecomputed::Storing { output, write });
+                        Some(status)
                     }
                 }
             }
@@ -448,7 +486,7 @@ where
 enum StoreStateIdentifierInner<Inner, St, I, O>
 where
     Inner: TaskIterator,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     O: Serialize + Send + 'static,
 {
@@ -462,7 +500,7 @@ where
     /// Inner task succeeded - storing result
     Storing {
         output: O,
-        stream: StateStoreStream<()>,
+        write: StoreWrite,
     },
     /// Done - no more states
     Done,
@@ -471,7 +509,7 @@ where
 impl<Inner, St, I, O> std::fmt::Debug for StoreStateIdentifierInner<Inner, St, I, O>
 where
     Inner: TaskIterator + std::fmt::Debug,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     O: Serialize + Send + 'static,
 {
@@ -499,7 +537,7 @@ where
 pub struct StoreStateIdentifierTask<Inner, St, I, O>
 where
     Inner: TaskIterator,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     O: Serialize + Send + 'static,
 {
@@ -509,7 +547,7 @@ where
 impl<Inner, St, I, O> StoreStateIdentifierTask<Inner, St, I, O>
 where
     Inner: TaskIterator,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     O: Serialize + Send + 'static,
 {
@@ -539,7 +577,7 @@ where
 impl<Inner, St, I, O, E, P> TaskIterator for StoreStateIdentifierTask<Inner, St, I, O>
 where
     Inner: TaskIterator<Ready = Result<O, E>, Pending = P>,
-    St: StateStore,
+    St: StateStore + 'static,
     I: Serialize + Clone + Send + 'static,
     O: Serialize + Send + 'static + ResourceIdentifier<I>,
     P: Clone + Send + 'static,
@@ -557,7 +595,7 @@ where
                 input,
                 environment,
             } => {
-                match inner.next_status(ctx)? {
+                match inner.next_status(ctx.clone())? {
                     TaskStatus::Ready(Ok(output)) => {
                         // Inner task succeeded - compute resource info from output
                         let resource_id = output.generate_resource_id(&input);
@@ -616,17 +654,13 @@ where
                             updated_at: now,
                         };
 
-                        match state_store.set(&state.id, &state) {
-                            Ok(stream) => {
-                                self.state =
-                                    Some(StoreStateIdentifierInner::Storing { output, stream });
-                                Some(TaskStatus::Pending(StoreStatePending::WaitingStore))
-                            }
-                            Err(e) => {
-                                self.state = Some(StoreStateIdentifierInner::Done);
-                                Some(TaskStatus::Ready(Err(ProviderError::State(e))))
-                            }
-                        }
+                        // Poll the write in this same step: a ready store
+                        // finishes without an extra round trip.
+                        self.state = Some(StoreStateIdentifierInner::Storing {
+                            output,
+                            write: start_write(state_store, state),
+                        });
+                        self.next_status(ctx)
                     }
                     TaskStatus::Ready(Err(e)) => {
                         self.state = Some(StoreStateIdentifierInner::Done);
@@ -712,28 +746,19 @@ where
                     }
                 }
             }
-            StoreStateIdentifierInner::Storing { output, mut stream } => {
-                // Poll the state store stream
-                match stream.next() {
-                    Some(ThreadedValue::Value(Ok(()))) => {
-                        // Stream yielded success - continue polling
-                        self.state = Some(StoreStateIdentifierInner::Storing { output, stream });
-                        Some(TaskStatus::Pending(StoreStatePending::WaitingStore))
+            StoreStateIdentifierInner::Storing { output, mut write } => {
+                match poll_write(&mut write, ctx, StoreStatePending::WaitingStore) {
+                    WritePoll::Done(Ok(())) => {
+                        self.state = Some(StoreStateIdentifierInner::Done);
+                        Some(TaskStatus::Ready(Ok(output)))
                     }
-                    Some(ThreadedValue::Value(Err(e))) => {
-                        // Stream yielded error
+                    WritePoll::Done(Err(e)) => {
                         self.state = Some(StoreStateIdentifierInner::Done);
                         Some(TaskStatus::Ready(Err(ProviderError::State(e))))
                     }
-                    Some(ThreadedValue::Waiting) => {
-                        // Stream is waiting - continue polling
-                        self.state = Some(StoreStateIdentifierInner::Storing { output, stream });
-                        Some(TaskStatus::Pending(StoreStatePending::WaitingStore))
-                    }
-                    None => {
-                        // Stream exhausted - storage complete
-                        self.state = Some(StoreStateIdentifierInner::Done);
-                        Some(TaskStatus::Ready(Ok(output)))
+                    WritePoll::Waiting(status) => {
+                        self.state = Some(StoreStateIdentifierInner::Storing { output, write });
+                        Some(status)
                     }
                 }
             }

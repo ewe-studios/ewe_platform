@@ -14,6 +14,7 @@
 //! (`MemoryDocumentStore`, `KvMemoryStore<MemoryStorage>`); cloud preflight
 //! (`AllowAllAccess`, empty toolshed, default budget) needs no network.
 
+use foundation_core::valtron::valtron_test;
 use foundation_ai::harness::{RouterPreset, CLAUDE_OPUS};
 use foundation_ai::types::{ModelId, SessionId};
 
@@ -21,8 +22,8 @@ fn named(id: &str) -> ModelId {
     ModelId::Name(id.to_string(), None)
 }
 
-#[test]
-fn into_agent_builder_builds_session_with_id() {
+#[valtron_test]
+async fn into_agent_builder_builds_session_with_id() {
     let id = SessionId::from_name("harness-bridge-preset");
     let preset = RouterPreset::claude("test-key").expect("router builds");
 
@@ -30,6 +31,7 @@ fn into_agent_builder_builds_session_with_id() {
         .into_agent_builder()
         .with_session_id(id.clone())
         .build()
+        .await
         .expect("session builds from preset");
 
     assert_eq!(*session.session_id(), id);
@@ -37,8 +39,8 @@ fn into_agent_builder_builds_session_with_id() {
     assert!(session.router().resolve(&named(CLAUDE_OPUS)).is_ok());
 }
 
-#[test]
-fn preset_builder_builds_and_accepts_customisation() {
+#[valtron_test]
+async fn preset_builder_builds_and_accepts_customisation() {
     let id = SessionId::from_name("harness-bridge-wrapper");
 
     let session = RouterPreset::claude("test-key")
@@ -47,6 +49,7 @@ fn preset_builder_builds_and_accepts_customisation() {
         .with_session_id(id.clone())
         .with_system_prompt("You are a helpful assistant.")
         .build()
+        .await
         .expect("session builds from the preset");
 
     assert_eq!(*session.session_id(), id);

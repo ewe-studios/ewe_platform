@@ -1,7 +1,7 @@
 //! D1+R2 document store — transparent blob offload (F23).
 //!
-//! `D1R2DocumentStore<Q: AsyncQueryStore, B: AsyncBlobStore>` implements
-//! [`AsyncDocumentStore`] with a SQL backend (`Q`) as the ordered index and a
+//! `D1R2DocumentStore<Q: QueryStore, B: BlobStore>` implements
+//! [`DocumentStore`] with a SQL backend (`Q`) as the ordered index and a
 //! blob backend (`B`) for large document payloads. Documents whose serialized
 //! JSON exceeds the SQLite page size (4 KB) are offloaded to the blob store; the
 //! SQL row keeps the promoted columns plus the blob key (`r2_key`) for
@@ -15,18 +15,18 @@
 //! (`D1Store`+`R2Store`, e.g. against a wrangler/miniflare worker for tests).
 //!
 //! WHAT: `D1R2DocumentStore::new(query_store, blob_store)` over any
-//! [`AsyncQueryStore`] + [`AsyncBlobStore`]. Reuses the F06 `documents` schema
+//! [`QueryStore`] + [`BlobStore`]. Reuses the F06 `documents` schema
 //! plus the migration-022 `r2_key` column.
 //!
 //! HOW: `insert_row` serializes once, offloads to the blob store past the 4 KB
 //! threshold, and writes the row (placeholder `content` + `r2_key` when
 //! offloaded). Reads resolve `r2_key` back through the blob store. Scans go
 //! through the trait's [`AsyncQueryStream`] and `collect_all` for bounded reads,
-//! mirroring [`super::async_sql_document_store::AsyncSqlDocumentStore`].
+//! mirroring [`super::sql_document_store::SqlDocumentStore`].
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncDocumentStore, AsyncQueryStore, AsyncStorageItemStream, DataValue,
+    BlobStore, DocumentStore, QueryStore, AsyncStorageItemStream, DataValue,
     Document, PromotableDocument, SqlRow,
 };
 use serde::{de::DeserializeOwned, Serialize};
@@ -107,7 +107,7 @@ impl<Q, B> D1R2DocumentStore<Q, B> {
     }
 }
 
-impl<Q: AsyncQueryStore, B: AsyncBlobStore> D1R2DocumentStore<Q, B> {
+impl<Q: QueryStore, B: BlobStore> D1R2DocumentStore<Q, B> {
     async fn insert_row(
         &self,
         key: &str,
@@ -248,7 +248,7 @@ impl<Q: AsyncQueryStore, B: AsyncBlobStore> D1R2DocumentStore<Q, B> {
 }
 
 #[async_trait::async_trait]
-impl<Q: AsyncQueryStore, B: AsyncBlobStore> AsyncDocumentStore for D1R2DocumentStore<Q, B> {
+impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
     async fn append_async<V: Serialize + Send + 'static>(
         &self,
         key: &str,

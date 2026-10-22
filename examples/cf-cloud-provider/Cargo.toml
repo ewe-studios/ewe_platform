@@ -3,7 +3,7 @@ name = "cf-cloud-provider"
 version = "0.1.0"
 edition = "2021"
 publish = false
-description = "foundation_ai on Cloudflare Workers, calling OpenRouter via FetchHttpClient (spec 65 T5)"
+description = "foundation_ai on Cloudflare Workers: a chat page streaming OpenRouter replies via FetchHttpClient (spec 65 T5)"
 license = "Apache-2.0"
 
 [lib]
@@ -22,21 +22,7 @@ foundation_netio = { path = "../../backends/foundation_netio", default-features 
 
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-js-sys = "0.3"
-futures = "0.3"
-web-sys = { version = "0.3", features = [
-    "Request",
-    "Response",
-    "Headers",
-    "ResponseInit",
-    "ReadableStream",
-    "ReadableStreamDefaultController",
-    "UnderlyingSource",
-] }
+web-sys = { version = "0.3", features = ["Request", "Response", "ResponseInit", "Headers", "Url"] }
 
 worker = { version = "0.8.3" }
 console_error_panic_hook = "0.1"
-console_log = "1"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-log = "0.4"

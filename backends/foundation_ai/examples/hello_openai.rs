@@ -11,7 +11,7 @@ use foundation_ai::harness::RouterPreset;
 use foundation_core::valtron::valtron;
 
 #[valtron]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let api_key = std::env::var("OPENAI_API_KEY")
         .expect("OPENAI_API_KEY must be set");
 
@@ -20,12 +20,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let agent = builder
         .with_system_prompt("You are a helpful assistant.")
-        .build()?;
+        .build()
+        .await?;
 
     println!("Asking GPT-4o...");
     // `ask` returns just the text: complete, or what was produced before a
     // failure ended the turn.
-    match agent.ask("Hello! Please say hi back in one sentence.")? {
+    match agent.ask("Hello! Please say hi back in one sentence.").await? {
         Answer::Complete(text) => {
             assert!(!text.is_empty(), "Expected a reply but got none");
             println!("{text}\n\nGPT-4o responded!");
@@ -40,6 +41,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }

@@ -1,22 +1,8 @@
-use foundation_core::valtron::Stream;
-use foundation_db::traits::{QueryStore, StorageItemStream};
-use foundation_db::{DataValue, SqlRow};
+use foundation_db::{QueryStore, DataValue, SqlRow};
+use futures_lite::StreamExt;
 
 use super::traits::PolicyStore;
 use crate::core::errors::CedarError;
-
-fn collect_first_row(
-    stream: StorageItemStream<'_, SqlRow>,
-) -> Result<Option<SqlRow>, crate::core::errors::CedarError> {
-    for item in stream {
-        if let Stream::Next(result) = item {
-            return result
-                .map(Some)
-                .map_err(|e| CedarError::PolicyParse(format!("SQL read error: {e}")));
-        }
-    }
-    Ok(None)
-}
 
 pub const CREATE_TABLE_SQL: &str = "\
 CREATE TABLE IF NOT EXISTS cedar_policies (
@@ -27,6 +13,8 @@ CREATE TABLE IF NOT EXISTS cedar_policies (
     version TEXT NOT NULL DEFAULT '1'
 )";
 
+/// Policies, schema, entities and version kept in one `cedar_policies` row
+/// per namespace, read through an async SQL store.
 pub struct SqlPolicyStore<'a> {
     store: &'a dyn QueryStore,
     namespace: String,
@@ -41,59 +29,68 @@ impl<'a> SqlPolicyStore<'a> {
         }
     }
 
-    pub fn ensure_table(&self) -> Result<(), CedarError> {
+    /// Create the `cedar_policies` table if it doesn't exist.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CedarError`] if the statement fails.
+    pub async fn ensure_table(&self) -> Result<(), CedarError> {
         self.store
-            .execute_batch(CREATE_TABLE_SQL)
+            .execute_batch_async(CREATE_TABLE_SQL)
+            .await
             .map_err(|e| CedarError::PolicyParse(format!("SQL table creation failed: {e}")))
     }
 
-    fn load_row(&self) -> Result<SqlRow, CedarError> {
-        let stream = self
+    async fn load_row(&self) -> Result<SqlRow, CedarError> {
+        let mut stream = self
             .store
-            .query(
+            .query_async(
                 "SELECT policy_text, schema_text, entities_json, version FROM cedar_policies WHERE namespace = ?",
                 &[DataValue::Text(self.namespace.clone())],
             )
+            .await
             .map_err(|e| CedarError::PolicyParse(format!("SQL query error: {e}")))?;
 
-        collect_first_row(stream)?.ok_or_else(|| {
-            CedarError::PolicyParse(format!(
+        match stream.next().await {
+            Some(row) => row.map_err(|e| CedarError::PolicyParse(format!("SQL read error: {e}"))),
+            None => Err(CedarError::PolicyParse(format!(
                 "No policies found for namespace '{}'",
                 self.namespace
-            ))
-        })
-    }
-}
-
-impl PolicyStore for SqlPolicyStore<'_> {
-    fn load_policies(&self) -> Result<String, CedarError> {
-        let row = self.load_row()?;
-        row.get_by_name::<String>("policy_text")
-            .map_err(|e| CedarError::PolicyParse(format!("Column read error: {e}")))
-    }
-
-    fn load_schema(&self) -> Result<String, CedarError> {
-        let row = self.load_row()?;
-        row.get_by_name::<String>("schema_text")
-            .map_err(|e| CedarError::PolicyParse(format!("Column read error: {e}")))
-    }
-
-    fn load_entities(&self) -> Result<Option<String>, CedarError> {
-        let row = self.load_row()?;
-        let val: String = row
-            .get_by_name::<String>("entities_json")
-            .map_err(|e| CedarError::PolicyParse(format!("Column read error: {e}")))?;
-        if val.is_empty() {
-            Ok(None)
-        } else {
-            Ok(Some(val))
+            ))),
         }
     }
 
-    fn version(&self) -> Result<String, CedarError> {
-        let row = self.load_row()?;
-        row.get_by_name::<String>("version")
+    async fn load_column(&self, column: &str) -> Result<String, CedarError> {
+        self.load_row()
+            .await?
+            .get_by_name::<String>(column)
             .map_err(|e| CedarError::PolicyParse(format!("Column read error: {e}")))
+    }
+}
+
+#[async_trait::async_trait]
+impl PolicyStore for SqlPolicyStore<'_> {
+    async fn load_policies(&self) -> Result<String, CedarError> {
+        self.load_column("policy_text").await
+    }
+
+    async fn load_schema(&self) -> Result<String, CedarError> {
+        self.load_column("schema_text").await
+    }
+
+    async fn load_entities(&self) -> Result<Option<String>, CedarError> {
+        // `entities_json` is nullable; NULL and the empty string both mean
+        // "no entities".
+        let val: Option<String> = self
+            .load_row()
+            .await?
+            .get_by_name::<Option<String>>("entities_json")
+            .map_err(|e| CedarError::PolicyParse(format!("Column read error: {e}")))?;
+        Ok(val.filter(|v| !v.is_empty()))
+    }
+
+    async fn version(&self) -> Result<String, CedarError> {
+        self.load_column("version").await
     }
 }
 

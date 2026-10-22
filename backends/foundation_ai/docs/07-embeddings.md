@@ -76,7 +76,7 @@ How `embed` works:
 ## 4. Where the agent uses embeddings
 
 **Semantic recall.** Give the session an embedder and
-`ContextProvider::search_from_memory` — what the `search_context` tool calls —
+`ContextProvider::search` — what the `search_context` tool calls —
 ranks prior messages by cosine similarity instead of keyword matching. (Normal
 per-turn context assembly does not use the embedder; it takes the most recent
 messages.)
@@ -88,7 +88,7 @@ let agent = AgentSession::builder(router.clone())
     // search_context, built inside build() from the session's own context
     // provider — so it uses the session's stores and embedder:
     .with_toolshed(ToolShed::new().tools(ToolPreset::search_context()))
-    .build()?;
+    .build().await?;
 ```
 
 Without an embedder, `search_context` falls back to keyword matching.

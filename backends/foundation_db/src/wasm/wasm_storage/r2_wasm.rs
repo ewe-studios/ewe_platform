@@ -1,31 +1,16 @@
 //! R2 storage via wasm-bindgen — calls Cloudflare R2 JS API directly.
 //!
 //! Wraps `R2Bucket` and implements `BlobStore` using R2's object storage.
-//! Async `*_async` methods are the source of truth (JS Promises);
-//! sync trait methods delegate via `schedule_future`.
+//! There is no sync impl: a sync call would block the isolate waiting on a JS
+//! Promise that could then never resolve.
 
 use crate::core::errors::{StorageError, StorageResult};
-use crate::core::storage_provider::{AsyncBlobStore, BlobStore, StorageItemStream};
+use crate::core::storage_provider::BlobStore;
 use crate::wasm::bindgen::{R2Bucket, R2Object};
-use foundation_core::valtron::{collect_one, execute, from_future, Stream};
 use js_sys::{ArrayBuffer, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use foundation_compact::SendWrapper;
-
-/// Drive a future to completion and return its single value.
-fn exec_future<T: 'static, E: Into<StorageError> + 'static, F>(future: F) -> StorageResult<T>
-where
-    F: std::future::Future<Output = Result<T, E>> + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
-    let result: Result<Option<T>, StorageError> = collect_one(stream)
-        .map(|r| r.map_err(Into::into))
-        .transpose();
-    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
-}
 
 // ===========================================================================
 // R2WasmStorage
@@ -53,50 +38,11 @@ impl R2WasmStorage {
         format!("{}/{}", self.prefix, safe_key)
     }
 
-    #[allow(dead_code)]
-    fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
-    }
 }
 
 // ===========================================================================
 // BlobStore
 // ===========================================================================
-
-impl BlobStore for R2WasmStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        let data = data.to_vec();
-        exec_future(async move {
-            this.put_blob_async(&key, &data).await
-        })
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.get_blob_async(&key).await
-        })
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.delete_blob_async(&key).await
-        })
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            this.blob_exists_async(&key).await
-        })
-    }
-}
 
 impl R2WasmStorage {
     /// Put a blob into R2 storage.
@@ -172,7 +118,7 @@ impl R2WasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for R2WasmStorage {
+impl BlobStore for R2WasmStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
     }

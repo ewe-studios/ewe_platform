@@ -4,7 +4,6 @@
 //! patterns — no tokio, no async-trait.
 
 use foundation_compact::SystemTime;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -24,6 +23,8 @@ use serde::{Deserialize, Serialize};
 use foundation_errstacks::ErrorTrace;
 
 use crate::backends::backend_utils::{sleep, tool_arguments_from_str, tool_arguments_from_value};
+use crate::backends::model_info::{self, ModelInfoCache};
+use crate::backends::openai_provider::OpenAIModelInfo;
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
@@ -48,7 +49,7 @@ pub struct AnthropicConfig {
     pub proxy_url: Option<String>,
     pub streaming: bool,
     pub auth: Option<AuthCredential>,
-    /// Override the default `/{api_version}/messages` endpoint path.
+    /// Override the default `/v1/messages` endpoint path.
     /// When set, this path is appended directly to `base_url` (with a `/` separator).
     /// Useful for proxies that expose a different path, e.g. `/v1/messages`.
     pub messages_endpoint: Option<String>,
@@ -150,14 +151,43 @@ impl AnthropicConfig {
             // Custom endpoint: append directly to base_url.
             format!("{}/{}", self.base_url.trim_end_matches('/'), path)
         } else {
-            // Default: /{api_version}/{endpoint}
-            format!(
-                "{}/{}/{}",
-                self.base_url.trim_end_matches('/'),
-                self.api_version,
-                path
-            )
+            // Default: /v1/{endpoint}. `api_version` is the `anthropic-version`
+            // header, not a path segment.
+            format!("{}/v1/{}", self.base_url.trim_end_matches('/'), path)
         }
+    }
+
+    /// `GET models/{model}` for this config: `/v1/models/{model}` by default;
+    /// with a custom messages endpoint ending in `messages` (a proxy), the
+    /// sibling `models/{model}` path. `None` when the endpoint has another
+    /// shape, so no lookup is attempted.
+    #[must_use]
+    pub fn models_url(&self, model: &str) -> Option<String> {
+        let base = self.base_url.trim_end_matches('/');
+        match self.messages_endpoint.as_deref() {
+            None => Some(format!("{base}/v1/models/{model}")),
+            Some(endpoint) => {
+                let prefix = endpoint.trim_start_matches('/').strip_suffix("messages")?;
+                Some(format!("{base}/{prefix}models/{model}"))
+            }
+        }
+    }
+
+    /// Headers every request carries: `x-api-key` (when set) and
+    /// `anthropic-version`.
+    fn auth_headers(&self, api_key: Option<&ConfidentialText>) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
+        if let Some(key) = api_key {
+            headers.insert(
+                SimpleHeader::from("x-api-key".to_string()),
+                vec![key.get().clone()],
+            );
+        }
+        headers.insert(
+            SimpleHeader::from("anthropic-version".to_string()),
+            vec![self.api_version.clone()],
+        );
+        headers
     }
 }
 
@@ -390,8 +420,7 @@ pub struct AnthropicMessagesProvider {
     config: AnthropicConfig,
     api_key: Option<ConfidentialText>,
     http_client: Option<Arc<dyn HttpClient>>,
-    models_cache:
-        Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
+    models_cache: ModelInfoCache,
 }
 
 impl Default for AnthropicMessagesProvider {
@@ -407,7 +436,7 @@ impl AnthropicMessagesProvider {
             config: AnthropicConfig::default(),
             api_key: None,
             http_client: None,
-            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            models_cache: model_info::new_cache(),
         }
     }
 
@@ -424,7 +453,7 @@ impl AnthropicMessagesProvider {
             config,
             api_key: None,
             http_client: None,
-            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            models_cache: model_info::new_cache(),
         }
     }
 
@@ -434,7 +463,7 @@ impl AnthropicMessagesProvider {
             config: AnthropicConfig::default(),
             api_key: None,
             http_client: Some(client),
-            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            models_cache: model_info::new_cache(),
         }
     }
 
@@ -444,7 +473,97 @@ impl AnthropicMessagesProvider {
             config,
             api_key: None,
             http_client: Some(client),
-            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            models_cache: model_info::new_cache(),
+        }
+    }
+
+    /// The `GET models/{name}` request, or `None` when the config's endpoint
+    /// gives no models path ([`AnthropicConfig::models_url`]).
+    fn model_info_request(&self, model_name: &str) -> GenerationResult<Option<PreparedRequest>> {
+        let Some(url) = self.config.models_url(model_name) else {
+            return Ok(None);
+        };
+        let uri = Uri::parse(&url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.config.auth_headers(self.api_key.as_ref());
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        Ok(Some(PreparedRequest {
+            method: SimpleMethod::GET,
+            url: uri,
+            headers,
+            body: SendSafeBody::None,
+            extensions: Extensions::default(),
+        }))
+    }
+
+    /// Fetch `model_name`'s metadata (`GET /v1/models/{name}`) without
+    /// blocking: on wasm it yields to the JS event loop while the `fetch` is in
+    /// flight. On success the result replaces the cached entry, so later
+    /// [`ModelProvider::get_model`] calls and [`AnthropicModel::info`] see it.
+    ///
+    /// # Errors
+    ///
+    /// When no HTTP client is configured, the config has no models path, the
+    /// request fails, the vendor answers non-2xx, or the body is not a model.
+    pub async fn fetch_model_info(&self, model_name: &str) -> GenerationResult<OpenAIModelInfo> {
+        let client = self
+            .http_client
+            .clone()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
+        let req = self.model_info_request(model_name)?.ok_or_else(|| {
+            GenerationError::Generic("this endpoint configuration has no models path".into())
+        })?;
+        let info = model_info::fetch(client, req, parse_anthropic_error, AnthropicModelResponse::into_info)
+            .await?;
+        model_info::store(&self.models_cache, model_name, info.clone());
+        Ok(info)
+    }
+
+    /// Placeholder metadata now; the `GET /v1/models/{name}` lookup runs in
+    /// the background ([`model_info::spawn_lookup`]) and replaces it in the
+    /// shared cache, which [`AnthropicModel::info`] reads. `get_model` never
+    /// blocks on the network, on any target.
+    fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
+        if let (Some(client), Ok(Some(req))) = (&self.http_client, self.model_info_request(model_name)) {
+            model_info::spawn_lookup(
+                Arc::clone(&self.models_cache),
+                model_name.to_string(),
+                model_info::fetch(
+                    Arc::clone(client),
+                    req,
+                    parse_anthropic_error,
+                    AnthropicModelResponse::into_info,
+                ),
+            );
+        }
+        model_info::placeholder(model_name, "anthropic")
+    }
+}
+
+/// `GET /v1/models/{model_id}` response.
+#[derive(Debug, Clone, Deserialize)]
+pub struct AnthropicModelResponse {
+    pub id: String,
+    #[serde(rename = "type", default)]
+    pub object: Option<String>,
+    #[serde(default)]
+    pub display_name: Option<String>,
+    /// RFC 3339 release time.
+    #[serde(default)]
+    pub created_at: Option<String>,
+}
+
+impl AnthropicModelResponse {
+    fn into_info(self) -> OpenAIModelInfo {
+        OpenAIModelInfo {
+            id: self.id,
+            object: self.object.unwrap_or_else(|| String::from("model")),
+            owned_by: String::from("anthropic"),
+            created: self
+                .created_at
+                .as_deref()
+                .and_then(model_info::rfc3339_to_unix)
+                .unwrap_or(0),
         }
     }
 }
@@ -509,32 +628,10 @@ impl ModelProvider for AnthropicMessagesProvider {
     fn get_model(&self, model_id: ModelId) -> ModelProviderResult<Self::Model> {
         let model_name = model_id_to_string(&model_id);
 
-        let cache = self.models_cache.lock().expect("model cache poisoned");
-        if let Some(info) = cache.get(&model_name) {
-            return Ok(AnthropicModel {
-                config: self.config.clone(),
-                model_id: model_id.clone(),
-                model_name: model_name.clone(),
-                api_key: self.api_key.clone(),
-                http_client: self.http_client.clone(),
-                info: info.clone(),
-                pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-                cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
-            });
+        if !model_info::contains(&self.models_cache, &model_name) {
+            let info = self.lookup_model_info(&model_name);
+            model_info::store_if_absent(&self.models_cache, &model_name, info);
         }
-        drop(cache);
-
-        // Anthropic doesn't have a /v1/models endpoint like OpenAI,
-        // so we create a best-effort model info.
-        let info = crate::backends::openai_provider::OpenAIModelInfo {
-            id: model_name.clone(),
-            object: String::from("model"),
-            owned_by: String::from("anthropic"),
-            created: 0,
-        };
-
-        let mut cache = self.models_cache.lock().expect("model cache poisoned");
-        cache.insert(model_name.clone(), info.clone());
 
         Ok(AnthropicModel {
             config: self.config.clone(),
@@ -542,7 +639,7 @@ impl ModelProvider for AnthropicMessagesProvider {
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
-            info,
+            models_cache: Arc::clone(&self.models_cache),
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
             cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
         })
@@ -584,29 +681,25 @@ pub struct AnthropicModel {
     model_name: String,
     api_key: Option<ConfidentialText>,
     http_client: Option<Arc<dyn HttpClient>>,
-    #[allow(dead_code)]
-    info: crate::backends::openai_provider::OpenAIModelInfo,
+    models_cache: ModelInfoCache,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
 impl AnthropicModel {
+    /// This model's metadata: the vendor's `models/{name}` answer once a lookup
+    /// has completed, otherwise a placeholder carrying just the model id.
+    #[must_use]
+    pub fn info(&self) -> OpenAIModelInfo {
+        model_info::cached_or_placeholder(&self.models_cache, &self.model_name, "anthropic")
+    }
+
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
 
     fn auth_headers(&self) -> SimpleHeaders {
-        let mut headers = SimpleHeaders::new();
-        if let Some(key) = &self.api_key {
-            headers.insert(
-                SimpleHeader::from("x-api-key".to_string()),
-                vec![key.get().clone()],
-            );
-        }
-        headers.insert(
-            SimpleHeader::from("anthropic-version".to_string()),
-            vec![self.config.api_version.clone()],
-        );
+        let mut headers = self.config.auth_headers(self.api_key.as_ref());
         headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
         headers
     }

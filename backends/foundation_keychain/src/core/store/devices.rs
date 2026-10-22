@@ -7,7 +7,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -44,7 +44,7 @@ fn map_row(row: &SqlRow) -> AppResult<DeviceRow> {
 
 /// Find a device by (user, client identifier).
 pub async fn find(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     user_uuid: &str,
     identifier: &str,
 ) -> AppResult<Option<DeviceRow>> {
@@ -66,7 +66,7 @@ pub async fn find(
 
 /// Find a device by its refresh-grant `(user, identifier)` from a refresh token.
 pub async fn find_by_user_identifier(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     user_uuid: &str,
     identifier: &str,
 ) -> AppResult<Option<DeviceRow>> {
@@ -74,7 +74,7 @@ pub async fn find_by_user_identifier(
 }
 
 /// Insert a new device.
-pub async fn insert(db: &dyn AsyncQueryStore, row: &DeviceRow) -> AppResult<()> {
+pub async fn insert(db: &dyn QueryStore, row: &DeviceRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO vault_devices \
          (uuid, user_uuid, identifier, name, atype, refresh_token, created_at, updated_at) \
@@ -100,7 +100,7 @@ pub async fn insert(db: &dyn AsyncQueryStore, row: &DeviceRow) -> AppResult<()> 
 
 /// Replace a device's stored refresh token (rotation).
 pub async fn update_refresh_token(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     uuid: &str,
     refresh_token: &str,
     updated_at: DateTime<Utc>,

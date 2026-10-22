@@ -1,58 +1,61 @@
 //! Memory storage backend integration tests.
+//!
+//! `MemoryStorage` implements only the async store traits; its futures are
+//! ready at once, so these tests drive them with `futures_lite`'s `block_on`.
 
-use foundation_db::{KeyValueStore, MemoryStorage};
+use foundation_db::traits::KeyValueStore;
+use foundation_db::MemoryStorage;
+use futures_lite::future::block_on;
 use serde::{Deserialize, Serialize};
 
 #[test]
 fn test_memory_storage_basic() {
-    let storage = MemoryStorage::new();
+    block_on(async {
+        let storage = MemoryStorage::new();
 
-    storage.set("test_key", "test_value").unwrap();
+        storage.set_async("test_key", "test_value").await.unwrap();
 
-    let value: Option<String> = storage.get("test_key").unwrap();
-    assert_eq!(value, Some("test_value".to_string()));
+        let value: Option<String> = storage.get_async("test_key").await.unwrap();
+        assert_eq!(value, Some("test_value".to_string()));
 
-    let exists: bool = storage.exists("test_key").unwrap();
-    assert!(exists);
+        assert!(storage.exists_async("test_key").await.unwrap());
+        assert!(!storage.exists_async("nonexistent").await.unwrap());
 
-    let not_exists: bool = storage.exists("nonexistent").unwrap();
-    assert!(!not_exists);
+        storage.delete_async("test_key").await.unwrap();
 
-    storage.delete("test_key").unwrap();
-
-    let deleted: bool = storage.exists("test_key").unwrap();
-    assert!(!deleted);
+        assert!(!storage.exists_async("test_key").await.unwrap());
+    });
 }
 
 #[test]
 fn test_memory_storage_list_keys() {
-    let storage = MemoryStorage::new();
+    block_on(async {
+        let storage = MemoryStorage::new();
 
-    storage.set("prefix:key1", "value1").unwrap();
-    storage.set("prefix:key2", "value2").unwrap();
-    storage.set("other:key3", "value3").unwrap();
+        storage.set_async("prefix:key1", "value1").await.unwrap();
+        storage.set_async("prefix:key2", "value2").await.unwrap();
+        storage.set_async("other:key3", "value3").await.unwrap();
 
-    let keys: Vec<String> = storage
-        .list_keys(None)
-        .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect();
-    assert_eq!(keys.len(), 3);
+        let keys = storage
+            .list_keys_async(None)
+            .await
+            .unwrap()
+            .collect_all()
+            .await
+            .unwrap();
+        assert_eq!(keys.len(), 3);
 
-    let keys: Vec<String> = storage
-        .list_keys(Some("prefix:"))
-        .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect();
-    assert_eq!(keys.len(), 2);
-    assert!(keys.contains(&"prefix:key1".to_string()));
-    assert!(keys.contains(&"prefix:key2".to_string()));
+        let keys = storage
+            .list_keys_async(Some("prefix:"))
+            .await
+            .unwrap()
+            .collect_all()
+            .await
+            .unwrap();
+        assert_eq!(keys.len(), 2);
+        assert!(keys.contains(&"prefix:key1".to_string()));
+        assert!(keys.contains(&"prefix:key2".to_string()));
+    });
 }
 
 #[test]
@@ -63,15 +66,17 @@ fn test_memory_storage_complex_value() {
         count: u32,
     }
 
-    let storage = MemoryStorage::new();
+    block_on(async {
+        let storage = MemoryStorage::new();
 
-    let data = TestData {
-        name: "test".to_string(),
-        count: 42,
-    };
+        let data = TestData {
+            name: "test".to_string(),
+            count: 42,
+        };
 
-    storage.set("complex", data.clone()).unwrap();
+        storage.set_async("complex", data.clone()).await.unwrap();
 
-    let retrieved: Option<TestData> = storage.get("complex").unwrap();
-    assert_eq!(retrieved, Some(data));
+        let retrieved: Option<TestData> = storage.get_async("complex").await.unwrap();
+        assert_eq!(retrieved, Some(data));
+    });
 }

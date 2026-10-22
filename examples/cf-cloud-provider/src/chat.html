@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent chat</title>
+<style>
+  :root { color-scheme: light dark; --bg: #fafafa; --fg: #1b1b1b; --me: #dbe9ff; --bot: #ececec; --line: #d0d0d0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161616; --fg: #ececec; --me: #1f3b63; --bot: #2a2a2a; --line: #3a3a3a; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; height: 100dvh; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font: 16px/1.45 system-ui, sans-serif; }
+  #log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 75ch; padding: 10px 14px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .me { align-self: flex-end; background: var(--me); }
+  .bot { align-self: flex-start; background: var(--bot); }
+  .bot.error { outline: 1px solid #c33; }
+  form { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+  textarea { flex: 1; resize: none; padding: 10px; font: inherit; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: inherit; }
+  button { padding: 0 18px; font: inherit; border-radius: 8px; border: 0; background: #2f6fde; color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+</style>
+</head>
+<body>
+<div id="log" aria-live="polite"></div>
+<form id="ask">
+  <textarea id="prompt" rows="2" placeholder="Ask something… (Enter to send)" required></textarea>
+  <button id="send">Send</button>
+</form>
+<script>
+const log = document.getElementById('log');
+const form = document.getElementById('ask');
+const input = document.getElementById('prompt');
+const send = document.getElementById('send');
+
+function bubble(text, who) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + who;
+  el.textContent = text;
+  log.append(el);
+  log.scrollTop = log.scrollHeight;
+  return el;
+}
+
+// POST the prompt and append each Server-Sent Event's data to `reply`.
+async function ask(prompt, reply) {
+  const res = await fetch('/chat', { method: 'POST', body: prompt });
+  if (!res.ok) throw new Error(await res.text() || res.statusText);
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += value;
+    let end;
+    while ((end = buffer.indexOf('\n\n')) >= 0) {
+      const event = buffer.slice(0, end);
+      buffer = buffer.slice(end + 2);
+      const data = event.split('\n').filter(l => l.startsWith('data: ')).map(l => l.slice(6)).join('\n');
+      reply.textContent += data;
+      log.scrollTop = log.scrollHeight;
+    }
+  }
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const prompt = input.value.trim();
+  if (!prompt) return;
+  input.value = '';
+  send.disabled = true;
+  bubble(prompt, 'me');
+  const reply = bubble('', 'bot');
+  try {
+    await ask(prompt, reply);
+  } catch (err) {
+    reply.classList.add('error');
+    reply.textContent = String(err.message || err);
+  } finally {
+    send.disabled = false;
+    input.focus();
+  }
+});
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+});
+</script>
+</body>
+</html>

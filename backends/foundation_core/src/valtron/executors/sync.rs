@@ -1,4 +1,95 @@
+use std::collections::VecDeque;
+
 use crate::valtron::{Stream, StreamSpread};
+
+/// WHY: Sync code at a boundary wants to `for`-loop over a valtron stream's
+/// values as they arrive, not wait for all of them ([`collect_result`]) or
+/// only the first ([`collect_one`]).
+///
+/// WHAT: An `Iterator<Item = D>` over a stream's `Next` values (and each
+/// `Done` inside a `Spread`), in order. Control states (`Pending`, `Wait`,
+/// `Delayed`, `Init`, `Ignore`) are consumed, not yielded.
+///
+/// HOW: Pulls the underlying iterator, which blocks or drives the executor
+/// between items exactly as [`collect_result`] relies on. Use it on a stream
+/// from `execute(..)` (or via `run_stream_iter` for an async stream), at
+/// **sync boundaries only** — on single-threaded wasm a synchronous loop can
+/// never let the event loop deliver the I/O it waits on.
+///
+/// ```ignore
+/// for value in next_values(execute(task, None)?) {
+///     println!("{value:?}");
+/// }
+/// ```
+pub fn next_values<D, P, I>(stream: I) -> NextValues<D, I>
+where
+    I: Iterator<Item = Stream<D, P>>,
+{
+    NextValues {
+        stream,
+        spread: VecDeque::new(),
+    }
+}
+
+/// The iterator `run_stream_iter` returns: an async stream's items, ending
+/// with the stream. (Its task reports each item as `Some(item)` and the end
+/// as `None`.)
+pub struct StreamValues<T, I> {
+    values: NextValues<Option<T>, I>,
+}
+
+impl<T, I> StreamValues<T, I> {
+    /// Wrap the values of a `from_stream` task.
+    pub fn new(values: NextValues<Option<T>, I>) -> Self {
+        Self { values }
+    }
+}
+
+impl<T, P, I> Iterator for StreamValues<T, I>
+where
+    I: Iterator<Item = Stream<Option<T>, P>>,
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<T> {
+        self.values.next().flatten()
+    }
+}
+
+/// See [`next_values`].
+pub struct NextValues<D, I> {
+    stream: I,
+    spread: VecDeque<D>,
+}
+
+impl<D, P, I> Iterator for NextValues<D, I>
+where
+    I: Iterator<Item = Stream<D, P>>,
+{
+    type Item = D;
+
+    fn next(&mut self) -> Option<D> {
+        loop {
+            if let Some(value) = self.spread.pop_front() {
+                return Some(value);
+            }
+            match self.stream.next()? {
+                Stream::Next(value) => return Some(value),
+                Stream::Spread(items) => {
+                    self.spread.extend(items.into_iter().filter_map(|item| match item {
+                        StreamSpread::Done(value) => Some(value),
+                        StreamSpread::Pending(_) => None,
+                    }));
+                }
+                Stream::Pending(_)
+                | Stream::Wait
+                | Stream::Delayed(_)
+                | Stream::Init
+                | Stream::Ignore => {}
+            }
+        }
+    }
+}
 
 /// WHY: Callers need a way to drain a Valtron stream at sync boundaries
 /// without losing any `Next` values.

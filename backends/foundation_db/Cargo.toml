@@ -14,12 +14,6 @@ keywords = ["database", "storage", "turso", "foundation"]
 # Multi-threaded support is optional - enable with `multi` feature
 foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["std"] }
 foundation_compact = { path = "../foundation_compact", version = "0.2.2", features = ["crypto-chacha"] }
-# foundation_netio stays available on every target (it has a wasm `fetch`
-# client), but only with the wasm-safe base here. Its default `multi` feature —
-# and the `foundation_core/multi` it pulls — would force the single-threaded CF
-# wasm storage code onto valtron's Send-required path, so `multi` (plus the
-# native-only TLS/socket HTTP features) is added only on native, below.
-foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["standard", "std"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -42,22 +36,24 @@ tracing = "0.1"
 futures-core = "0.3"
 futures-lite = "2"
 async-trait = "0.1"
-async-stream = "0.3"
 
 # Optional wasm-bindgen dependencies
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
 wasm-bindgen-futures = { version = "0.4", optional = true }
 
-# workers-rs interop
+# workers-rs interop (the `workers-rs` feature; wasm-only code).
+[target.'cfg(target_family = "wasm")'.dependencies]
 worker = { version = "0.8.3", optional = true, default-features = false, features = ["d1"] }
 
-# Native adds foundation_netio's full default feature set — `multi` (threaded
-# valtron) plus the TLS/socket HTTP modules (`ssl`, `compression`, `wire-native`)
-# the D1/R2 REST clients in src/native/ use. Unioned with the wasm-safe base
-# above; on wasm only the base applies, so `multi` never reaches the wasm build.
+# Native-only: the D1/R2 REST clients in src/native/ use foundation_netio with
+# its full default set — `multi` (threaded valtron) plus the TLS/socket HTTP
+# modules — and libsql's row streams use async-stream. Neither is used on wasm,
+# where `multi` would also force the single-threaded CF storage code onto
+# valtron's Send-required path.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["ssl", "compression", "wire-native", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["standard", "std", "ssl", "compression", "wire-native", "multi"] }
+async-stream = "0.3"
 
 # Native-only storage backends — excluded on wasm32 to avoid
 # transitive deps (e.g. tracing-appender → symlink) that don't compile.
@@ -85,8 +81,10 @@ multi = ["foundation_core/multi", "foundation_netio/multi"]
 # Wasm compatibility — browser time APIs (entropy via foundation_compact)
 wasm = ["chrono/wasmbind"]
 
-# Wasm-bindgen bridge types for Cloudflare Workers (D1/R2/KV)
-wasm-bindgen-bindings = ["dep:wasm-bindgen", "dep:js-sys"]
+# Wasm-bindgen bridge types for Cloudflare Workers (D1/R2/KV). Turns on
+# valtron's JS backend too: these stores only make progress when the isolate's
+# event loop runs, so valtron must not block there (no `Blocking<S>`).
+wasm-bindgen-bindings = ["dep:wasm-bindgen", "dep:js-sys", "foundation_core/js-wasmbindgen"]
 
 # Wasm-bindgen storage trait implementations (calls CF JS APIs directly)
 wasm-bindgen-storage = ["wasm-bindgen-bindings", "wasm", "dep:wasm-bindgen-futures"]

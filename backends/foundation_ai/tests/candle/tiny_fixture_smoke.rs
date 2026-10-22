@@ -345,7 +345,7 @@ fn tiny_random_gemma2_stream_advances() {
 // exercises the loop AND the real candle stream together, with no download.
 
 #[valtron_test]
-fn agent_session_run_turn_through_candle_fixture() {
+async fn agent_session_run_turn_through_candle_fixture() {
     use foundation_ai::agentic::{
         AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
     };
@@ -379,6 +379,7 @@ fn agent_session_run_turn_through_candle_fixture() {
             .with_memory_config(MemoryConfig::default())
             .with_error_policy(ErrorPolicy::new())
             .build()
+            .await
             .expect("session builds");
 
     let records = session
@@ -390,7 +391,7 @@ fn agent_session_run_turn_through_candle_fixture() {
                 signature: None,
             }),
             signature: None,
-        })
+        }).await
         .expect("a real candle turn must complete, not error");
 
     // Structural (random weights => gibberish): the turn ran end-to-end and did
@@ -408,7 +409,7 @@ fn agent_session_run_turn_through_candle_fixture() {
 /// A second run_turn on the same session must also complete (the loop re-enters
 /// cleanly and the shared model handle keeps working across turns).
 #[valtron_test]
-fn candle_session_handles_multiple_turns() {
+async fn candle_session_handles_multiple_turns() {
     use foundation_ai::agentic::{
         AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
     };
@@ -439,6 +440,7 @@ fn candle_session_handles_multiple_turns() {
             .with_memory_config(MemoryConfig::default())
             .with_error_policy(ErrorPolicy::new())
             .build()
+            .await
             .expect("session builds");
 
     let msg = |t: &str| Messages::User {
@@ -448,14 +450,14 @@ fn candle_session_handles_multiple_turns() {
         signature: None,
     };
 
-    let first = session.run_turn(msg("Hi.")).expect("turn 1");
-    let second = session.run_turn(msg("Again?")).expect("turn 2 must also complete");
+    let first = session.run_turn(msg("Hi.")).await.expect("turn 1");
+    let second = session.run_turn(msg("Again?")).await.expect("turn 2 must also complete");
 
     let has_conv = |r: &[SessionRecord]| r.iter().any(|x| matches!(x, SessionRecord::Conversation { .. }));
     assert!(has_conv(&first) && has_conv(&second), "both turns must produce conversation records");
 
     // The user prompts from both turns must be in history (continuity).
-    let history = session.message_api().all().expect("history");
+    let history = session.message_api().all().await.expect("history");
     let user_turns = history.iter().filter(|r| matches!(r, SessionRecord::Conversation { message: Messages::User { .. } })).count();
     assert!(user_turns >= 2, "both user turns must be persisted for continuity: {user_turns}");
 }
@@ -575,7 +577,7 @@ fn candle_repeat_penalty_changes_output() {
 /// Matrix 2.8 — cost/usage accounting is PER SESSION, not merged across sessions
 /// that share the same underlying model handle.
 #[valtron_test]
-fn cost_accounting_is_per_session() {
+async fn cost_accounting_is_per_session() {
     use foundation_ai::agentic::{
         AgentConfig, AgentSession, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig,
     };
@@ -594,7 +596,7 @@ fn cost_accounting_is_per_session() {
         .expect("loads");
     let model_id = ModelId::Name("tiny".into(), None);
 
-    let build = || -> AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> {
+    let build = async || -> AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>> {
         AgentSession::builder(PreloadedProvider::new(model.clone(), model_id.clone()).into_router())
             .with_system_prompt("You are a helpful assistant.")
             .with_model(model_id.clone())
@@ -606,11 +608,12 @@ fn cost_accounting_is_per_session() {
             .with_memory_config(MemoryConfig::default())
             .with_error_policy(ErrorPolicy::new())
             .build()
+            .await
             .expect("builds")
     };
 
-    let s1 = build();
-    let s2 = build();
+    let s1 = build().await;
+    let s2 = build().await;
 
     let msg = Messages::User {
         id: foundation_compact::ids::new_scru128(),
@@ -619,7 +622,7 @@ fn cost_accounting_is_per_session() {
         signature: None,
     };
     // s1 runs a turn; s2 does not.
-    let _ = s1.run_turn(msg.clone()).expect("s1 turn");
+    let _ = s1.run_turn(msg.clone()).await.expect("s1 turn");
 
     // s1's ledger recorded usage; s2's is untouched — the two share weights but
     // NOT accounting (the docs/fixes/006 share_weights invariant, at the

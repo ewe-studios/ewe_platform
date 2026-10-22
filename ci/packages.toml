@@ -182,6 +182,8 @@ env = { CARGO_BUILD_JOBS = "1" }
 # [packages.foundation_core]).
 
 [packages.foundation_auth]
+# `server-test` runs the IdP server suite (handlers, storage, services).
+runs = ["", "server-test"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
@@ -190,16 +192,30 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_db]
+# `libsql` adds the libsql KV/state/document-store and rate-limit tests.
+runs = ["", "libsql"]
 wasm = "enforce"
-wasm-runs = ["--no-default-features --features wasm"]
+# Plain wasm (no JS host), and with the Cloudflare bindings
+# (`wasm-bindgen-storage` turns on valtron's JS mode).
+wasm-runs = [
+  "--no-default-features --features wasm",
+  "--no-default-features --features wasm-bindgen-storage",
+]
 
 [packages.foundation_netio]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm-fetch"]
 
 [packages.foundation_vectors]
+# `sql-store` adds the SQL / libsql vector stores and their tests.
+runs = ["", "sql-store"]
 wasm = "enforce"
 wasm-runs = [""]
+
+[packages.foundation_nativeapis]
+# The D1/R2 delta VFS tests skip without the local Cloudflare emulator; the
+# blob-delta and native VFS tests always run.
+runs = ["", "vfs-native,vfs-d1,vfs-r2"]
 
 [packages.foundation_compact]
 wasm = "enforce"

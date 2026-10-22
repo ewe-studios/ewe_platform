@@ -15,7 +15,7 @@ use std::sync::{Arc, OnceLock};
 
 use wasm_bindgen::prelude::*;
 
-use foundation_ai::agentic::{AgentSession, Turn};
+use foundation_ai::agentic::AgentSession;
 use foundation_ai::backends::workers_ai::{WorkersAiConfig, WorkersAiProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_core::valtron::{initialize_pool, PoolGuard, StreamIteratorExt};
@@ -78,29 +78,31 @@ fn store_creds(env: &JsValue) {
 }
 
 /// Build (or reuse) the Workers-AI-backed session for this isolate.
-fn get_or_build_session() -> Result<AgentSession, String> {
-    SESSION.with(|cell| {
-        if let Some(s) = cell.borrow().as_ref() {
-            return Ok(s.clone());
-        }
-        let creds = CREDS
-            .with(|c| c.borrow().clone())
-            .ok_or_else(|| "no credentials stored".to_string())?;
-        let mut config = WorkersAiConfig::api_token(creds.api_token).with_account_id(creds.account_id);
-        if let Some(base_url) = creds.base_url {
-            config = config.with_base_url(base_url);
-        }
-        let provider = WorkersAiProvider::with_http_client(Arc::new(FetchHttpClient::new()))
-            .create(Some(config))
-            .map_err(|e| e.to_string())?;
-        let session = AgentSession::builder(provider)
-            .with_model(ModelId::from(creds.model.as_str()))
-            .with_system_prompt(SYSTEM_PROMPT)
-            .build()
-            .map_err(|e| e.to_string())?;
-        *cell.borrow_mut() = Some(session.clone());
-        Ok(session)
-    })
+///
+/// Building is async (`AgentSessionBuilder::build`), so the cell is not
+/// borrowed across it; if another request stored a session meanwhile, that
+/// one is kept and reused.
+async fn get_or_build_session() -> Result<AgentSession, String> {
+    if let Some(session) = SESSION.with(|cell| cell.borrow().clone()) {
+        return Ok(session);
+    }
+    let creds = CREDS
+        .with(|c| c.borrow().clone())
+        .ok_or_else(|| "no credentials stored".to_string())?;
+    let mut config = WorkersAiConfig::api_token(creds.api_token).with_account_id(creds.account_id);
+    if let Some(base_url) = creds.base_url {
+        config = config.with_base_url(base_url);
+    }
+    let provider = WorkersAiProvider::with_http_client(Arc::new(FetchHttpClient::new()))
+        .create(Some(config))
+        .map_err(|e| e.to_string())?;
+    let session = AgentSession::builder(provider)
+        .with_model(ModelId::from(creds.model.as_str()))
+        .with_system_prompt(SYSTEM_PROMPT)
+        .build()
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(SESSION.with(|cell| cell.borrow_mut().get_or_insert(session).clone()))
 }
 
 /// Run one agentic turn and return the accumulated assistant text.
@@ -108,17 +110,14 @@ async fn run_prompt(prompt: &str) -> Result<String, String> {
     if prompt.trim().is_empty() {
         return Ok("Send a prompt in the request body.".to_string());
     }
-    let session = get_or_build_session()?;
-    let turn = session
-        .run_turn_stream(prompt.to_string())
+    // `ask` waits by parking, yielding to the JS event loop while the
+    // Workers AI fetch is in flight; snapshot/delta chunks are already joined.
+    let answer = get_or_build_session()
+        .await?
+        .ask(prompt.to_string())
+        .await
         .map_err(|e| e.to_string())?;
-
-    // `into_collect_future` parks on valtron's Wait/Pending states, yielding to
-    // the JS event loop so the in-flight Workers AI fetch can resolve.
-    let records = turn.into_inner().into_collect_future().await;
-    // Join the way the agent loop does: HTTP backends stream snapshots (each
-    // record re-sends the text so far), so concatenating them repeats the answer.
-    Ok(Turn::text_of_records(&records))
+    answer.into_result().map_err(|e| e.to_string())
 }
 
 // ---------------------------------------------------------------------------

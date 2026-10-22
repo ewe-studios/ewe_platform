@@ -9,22 +9,29 @@
 //! WHAT: [`Turn`] wraps the collected records (`Deref` to `Vec<SessionRecord>`,
 //! so existing code keeps working) plus how the turn ended ([`TurnOutcome`]).
 //! [`Answer`] is the text-only result of `AgentSession::ask`. [`TurnStream`]
-//! is the raw stream iterator plus [`TurnStream::events`], which yields
-//! [`TurnEvent`]s.
+//! is the raw valtron stream (for composing inside valtron tasks) plus its
+//! async views: [`TurnStream::events`] ([`TurnEvent`]s) and
+//! [`TurnStream::into_text_stream`] (new text only).
 //!
-//! HOW: all three follow the same order — the output produced before a failure
-//! first, then the error that ended the turn. `Err` from the session methods
-//! means the turn never started.
+//! HOW: async by default. Every consumer view waits by parking on the model
+//! stream, so the same code runs natively and on wasm (where a synchronous
+//! drain would spin and starve the `fetch` it waits on). Synchronous callers
+//! wrap them with valtron: `block_on_future(session.ask(..))`,
+//! `execute(from_stream(stream.events()))`. All views follow the same order —
+//! the output produced before a failure first, then the error that ended the
+//! turn. `Err` from the session methods means the turn never started.
 
 use std::collections::VecDeque;
+use std::future::poll_fn;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
-use foundation_core::valtron::{
-    DrivenStreamIterator, Stream, StreamSpread, WakeCallback, WakeResult, WakeableStream,
-};
+use foundation_core::valtron::{DrivenStreamIterator, Stream, StreamIteratorExt, StreamSpread};
 use foundation_db::traits::DocumentStore;
 use foundation_errstacks::{ErrorTrace, StructuredErrorTrace};
+use futures_lite::Stream as AsyncStream;
 
-use crate::agentic::agent_loop::AgentLoop;
+use crate::agentic::agent_loop::{join_text_chunks, AgentLoop};
 use crate::agentic::errors::AgenticError;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::progress::AgentProgress;
@@ -67,6 +74,21 @@ fn is_assistant(record: &SessionRecord) -> bool {
     )
 }
 
+/// The raw turn as an async stream: every `Stream<SessionRecord,
+/// AgentProgress>` item, parking (not polling) while the loop waits.
+pub(crate) type RawTurnItems<D, M> = foundation_compact::SendWrapper<
+    foundation_core::valtron::StreamParkingFutureStream<DrivenStreamIterator<AgentLoop<D, M>>>,
+>;
+
+/// The next raw item of `items`.
+async fn next_item<D, M>(items: &mut RawTurnItems<D, M>) -> Option<Stream<SessionRecord, AgentProgress>>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    poll_fn(|cx| AsyncStream::poll_next(Pin::new(&mut **items), cx)).await
+}
+
 // ---------------------------------------------------------------------------
 // Turn
 // ---------------------------------------------------------------------------
@@ -101,12 +123,14 @@ pub struct Turn {
 impl Turn {
     /// Collect a turn from the raw stream: drop withdrawn assistant output,
     /// and stop at the first `FailedAction`, keeping what came before it.
-    pub(crate) fn collect<I>(stream: I) -> Self
+    pub(crate) async fn collect<D, M>(stream: TurnStream<D, M>) -> Self
     where
-        I: Iterator<Item = Stream<SessionRecord, AgentProgress>>,
+        D: DocumentStore + 'static,
+        M: MemoryStore + 'static,
     {
+        let mut items = stream.into_raw_items();
         let mut records = Vec::new();
-        for item in stream {
+        while let Some(item) = next_item(&mut items).await {
             for flat in flatten(item) {
                 let TurnItem::Record(record) = flat else {
                     continue;
@@ -321,7 +345,7 @@ impl TurnText {
     fn flush(&mut self) {
         let pieces: Vec<&str> = self.run.iter().map(String::as_str).collect();
         self.done
-            .push_str(&crate::agentic::agent_loop::join_text_chunks(&pieces));
+            .push_str(&join_text_chunks(&pieces));
         self.run.clear();
     }
 
@@ -338,12 +362,14 @@ impl TurnText {
 
 impl Answer {
     /// Collect the assistant text of a turn from the raw stream.
-    pub(crate) fn collect<I>(stream: I) -> Self
+    pub(crate) async fn collect<D, M>(stream: TurnStream<D, M>) -> Self
     where
-        I: Iterator<Item = Stream<SessionRecord, AgentProgress>>,
+        D: DocumentStore + 'static,
+        M: MemoryStore + 'static,
     {
+        let mut items = stream.into_raw_items();
         let mut text = TurnText::default();
-        for item in stream {
+        while let Some(item) = next_item(&mut items).await {
             for flat in flatten(item) {
                 let TurnItem::Record(record) = flat else {
                     continue;
@@ -512,37 +538,33 @@ impl TurnEvent {
     }
 }
 
-/// A running turn: the raw valtron stream, plus [`events`](Self::events).
+/// A running turn: the raw valtron stream, plus its async views.
 ///
-/// `TurnStream` adds a friendlier view without taking the raw stream away:
-///
-/// - It **is** the raw stream. It implements
+/// - **Consume it async** (every target, wasm included):
+///   [`events`](Self::events) for [`TurnEvent`]s,
+///   [`into_text_stream`](Self::into_text_stream) for new text only, or
+///   `AgentSession::run_turn` / `ask` for the collected result.
+/// - **Compose it inside valtron**: it is the raw stream. It implements
 ///   `Iterator<Item = Stream<SessionRecord, AgentProgress>>`, so valtron's
 ///   blanket impl makes it a [`StreamIterator`](foundation_core::valtron::StreamIterator)
 ///   with `D = SessionRecord`, `P = AgentProgress`, and every
 ///   [`StreamIteratorExt`](foundation_core::valtron::StreamIteratorExt)
-///   combinator (`into_stream_iter`, `map_done`, `map_pending`,
-///   `filter_done`, …) applies to it directly.
-/// - [`inner`](Self::inner) / [`inner_mut`](Self::inner_mut) borrow the
-///   underlying [`DrivenStreamIterator`]; [`into_inner`](Self::into_inner)
-///   (or `DrivenStreamIterator::from(stream)`) hands it over.
-/// - [`events`](Self::events) is the high-level view: [`TurnEvent`]s.
+///   combinator applies. A task that pulls it must park on `Stream::Wait`
+///   (`valtron::park_on`), never loop on it — a synchronous drain spins
+///   forever on wasm.
+/// - [`inner`](Self::inner) / [`into_inner`](Self::into_inner) hand over the
+///   underlying [`DrivenStreamIterator`].
 ///
 /// ```ignore
-/// use foundation_core::valtron::{Stream, StreamIteratorExt};
+/// use futures_lite::StreamExt;
 ///
-/// // Combinators on the turn itself: keep only the assistant text.
-/// let texts: Vec<String> = agent
-///     .run_turn_stream("Hi")?
-///     .map_done(|record| Turn::text_of(&record))
-///     .filter_map(|item| match item {
-///         Stream::Next(text) if !text.is_empty() => Some(text),
-///         _ => None,
-///     })
-///     .collect();
+/// let mut events = agent.run_turn_stream("Hi")?.events();
+/// while let Some(event) = events.next().await {
+///     if let TurnEvent::Text(text) = event { print!("{text}"); }
+/// }
 ///
-/// // Or take the valtron iterator back out.
-/// let mut raw = agent.run_turn_stream("Again")?.into_inner();
+/// // Synchronous code: the same future, driven by valtron.
+/// let answer = foundation_core::valtron::block_on_future(agent.ask("Again"))?;
 /// ```
 pub struct TurnStream<D, M>(foundation_compact::SendWrapper<DrivenStreamIterator<AgentLoop<D, M>>>)
 where
@@ -584,14 +606,105 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
         &mut self.0
     }
 
-    /// The turn as [`TurnEvent`]s: text, tool calls and results, retractions
-    /// and progress as they happen, then one terminal `Done` or `Failed`.
+    /// The raw items as an async stream that parks while the loop waits.
+    pub(crate) fn into_raw_items(self) -> RawTurnItems<D, M> {
+        foundation_compact::SendWrapper::new(self.into_inner().into_future_stream())
+    }
+
+    /// The turn as an async stream of [`TurnEvent`]s: text, tool calls and
+    /// results, retractions and progress as they happen, then one terminal
+    /// `Done` or `Failed`. Waiting parks on the model stream, so it works the
+    /// same on every target (a Worker included). A synchronous caller drives
+    /// it with valtron (`execute(from_stream(events))`, or
+    /// `block_on_future` around a collecting future).
     #[must_use]
     pub fn events(self) -> TurnEvents<D, M> {
         TurnEvents {
-            stream: self,
+            items: self.into_raw_items(),
             pending: VecDeque::new(),
             finished: false,
+        }
+    }
+
+    /// The assistant's text as an async stream of the **new** text only —
+    /// what a chat UI appends.
+    ///
+    /// Each chunk follows the turn's text rule ([`Turn::text`]): a chunk that
+    /// extends the text shown so far is a snapshot (the HTTP backends) and
+    /// only its new suffix is yielded; any other chunk is a delta (the local
+    /// backends) and is yielded whole. Empty chunks are skipped. The stream
+    /// ends with the turn (completed or failed).
+    #[must_use]
+    pub fn into_text_stream(self) -> TurnTextStream<D, M> {
+        TurnTextStream {
+            events: self.events(),
+            shown: String::new(),
+        }
+    }
+}
+
+/// See [`TurnStream::into_text_stream`].
+pub struct TurnTextStream<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    events: TurnEvents<D, M>,
+    /// The text of the current run of text chunks shown so far (reset by any
+    /// other output, e.g. a tool call, as [`TurnText`] does).
+    shown: String,
+}
+
+impl<D, M> TurnTextStream<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    /// The new text `event` adds, if any.
+    fn new_text(&mut self, event: TurnEvent) -> Option<String> {
+        match event {
+            TurnEvent::Text(chunk) => {
+                let new = if !self.shown.is_empty() && chunk.starts_with(self.shown.as_str()) {
+                    let suffix = chunk[self.shown.len()..].to_string();
+                    self.shown = chunk;
+                    suffix
+                } else {
+                    self.shown.push_str(&chunk);
+                    chunk
+                };
+                (!new.is_empty()).then_some(new)
+            }
+            TurnEvent::Progress(_) | TurnEvent::Thinking(_) => None,
+            _ => {
+                self.shown.clear();
+                None
+            }
+        }
+    }
+}
+
+impl<D, M> AsyncStream for TurnTextStream<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    type Item = String;
+
+    fn poll_next(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<String>> {
+        let this = self.get_mut();
+        loop {
+            match Pin::new(&mut this.events).poll_next(cx) {
+                Poll::Ready(Some(event)) => {
+                    if let Some(text) = this.new_text(event) {
+                        return Poll::Ready(Some(text));
+                    }
+                }
+                Poll::Ready(None) => return Poll::Ready(None),
+                Poll::Pending => return Poll::Pending,
+            }
         }
     }
 }
@@ -621,35 +734,55 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<TurnStream<D, M>
     }
 }
 
-/// The iterator [`TurnStream::events`] returns.
+/// The async stream [`TurnStream::events`] returns.
 pub struct TurnEvents<D, M>
 where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
-    stream: TurnStream<D, M>,
+    items: RawTurnItems<D, M>,
     pending: VecDeque<TurnEvent>,
     finished: bool,
 }
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> Iterator for TurnEvents<D, M> {
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AsyncStream
+    for TurnEvents<D, M>
+{
     type Item = TurnEvent;
 
-    fn next(&mut self) -> Option<TurnEvent> {
+    fn poll_next(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<TurnEvent>> {
+        let this = self.get_mut();
         loop {
-            if self.finished {
-                return None;
+            if this.finished {
+                return Poll::Ready(None);
             }
-            if let Some(event) = self.pending.pop_front() {
+            if let Some(event) = this.pending.pop_front() {
                 if event.is_terminal() {
                     // Nothing follows a terminal event.
-                    self.finished = true;
-                    self.pending.clear();
+                    this.finished = true;
+                    this.pending.clear();
                 }
-                return Some(event);
+                return Poll::Ready(Some(event));
             }
-            let item = self.stream.next()?;
-            self.pending.extend(TurnEvent::from_stream_item(item));
+            match AsyncStream::poll_next(Pin::new(&mut *this.items), cx) {
+                Poll::Ready(Some(item)) => {
+                    for flat in flatten(item) {
+                        let event = match flat {
+                            TurnItem::Record(record) => TurnEvent::from_record(*record),
+                            TurnItem::Progress(progress) => Some(TurnEvent::Progress(progress)),
+                        };
+                        this.pending.extend(event);
+                    }
+                }
+                Poll::Ready(None) => {
+                    this.finished = true;
+                    return Poll::Ready(None);
+                }
+                Poll::Pending => return Poll::Pending,
+            }
         }
     }
 }

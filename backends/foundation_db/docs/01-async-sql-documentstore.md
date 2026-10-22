@@ -1,42 +1,37 @@
 # Fundamentals: the async SQL DocumentStore (F22b)
 
-Zero-to-expert on `AsyncSqlDocumentStore` and the ideas behind it. Read this if
+Zero-to-expert on `SqlDocumentStore` and the ideas behind it. Read this if
 you've never touched `foundation_db`'s storage traits.
 
 ---
 
-## 1. Two traits, on purpose: `QueryStore` vs `AsyncQueryStore`
+## 1. One trait, async: `QueryStore`
 
-`foundation_db` deliberately keeps **separate sync and async traits** for SQL
-access instead of one trait with a runtime flag:
+SQL access is a single async trait:
 
 ```rust
-trait QueryStore {                     // synchronous
-    fn query(&self, sql, params) -> StorageResult<StorageItemStream<'_, SqlRow>>;
-    fn execute(&self, sql, params) -> StorageResult<u64>;
-}
-#[async_trait(?Send)]
-trait AsyncQueryStore {                 // asynchronous
+#[async_trait]
+trait QueryStore {
     async fn query_async(&self, sql, params) -> StorageResult<AsyncQueryStream>;
     async fn execute_async(&self, sql, params) -> StorageResult<u64>;
+    async fn execute_batch_async(&self, sql) -> StorageResult<()>;
 }
 ```
 
-Why two? Because the *environment* dictates which is usable:
+Why async only? Because serverless/wasm (Cloudflare D1) is **Promise-based and
+single-threaded**: you physically cannot block; you must `.await`. A blocking
+call there would deadlock the event loop. Native backends (Turso/libsql) run
+the same async code; a native program that must be sync waits once, at its
+entry point. (Until spec 50 F04 there was also a sync `QueryStore` twin; it is
+gone. The `_async` suffixes go in a follow-up rename.)
 
-- **Native** (Turso/Libsql on a real OS) can block a thread, so a sync API is
-  natural and ergonomic.
-- **Serverless / wasm** (Cloudflare D1) is **Promise-based and single-threaded** —
-  you physically cannot block; you must `.await`. A sync call there would deadlock
-  the event loop.
+One layer up, **`DocumentStore`** is the document store trait;
+`SqlDocumentStore<Q: QueryStore>` implements it for any SQL backend.
 
-A single "maybe-async" trait would force every caller to pick the wrong half on
-some target. Separate traits with an `_async` suffix let each environment use the
-shape that actually works (this is the project's standing rule — see F06 OD-06-7).
-
-The same split exists one layer up for documents: **`DocumentStore`** (sync) and
-**`AsyncDocumentStore`** (async). `AsyncSqlDocumentStore<Q: AsyncQueryStore>` is the
-async one for any SQL backend.
+Backends implement only the async traits, and there are no sync twins (the
+old sync traits and the `Blocking<S>` wrapper were removed in spec 50 F04).
+Sync code awaits at its entry point with `block_on_future` / `.block()`
+behind `blocking_boundary!` (see `00-storage-traits.md`).
 
 ---
 
@@ -71,41 +66,36 @@ Two stream types express this, one per world:
 
 ---
 
-## 3. The house rule: async is canonical, sync wraps it via valtron
+## 3. The house rule: async all the way, sync only at the entry point
 
-When a backend has **both** a sync and async impl (Turso, Libsql, D1 all do), the
-**async method holds the real logic** and the **sync method wraps the async one
-through valtron**. The canonical example is `QueryStore::query` (sync) wrapping
-`query_async` (async): it hands the async future to `run_future_iter`, which drives
-it on a worker thread and bridges the resulting async stream back to a sync
-`Iterator` (`AsyncQueryStreamIterator` does the `block_on` per item).
+Backends implement **only** the async traits, and so do their callers: code
+that uses a store is itself `async` and `.await`s it. The one place that
+waits is a true sync entry point (a `main`, an OS thread), with valtron's
+`block_on_future` / `.block()` behind `blocking_boundary!`; on JS-hosted wasm
+there is no such place, and everything `.await`s up to the Worker's entry.
+Streams stay lazy end to end: a scan is pulled one row per `.next().await`.
 
-Why this direction? The async impl is the one that *must* exist for serverless;
-making sync the wrapper means one source of truth and no duplicated SQL/logic.
-(Pure in-memory stores with no I/O — e.g. `MemoryDocumentStore` — are the only
-exception: they share neutral helpers instead, because there's nothing to "drive."
-See F06 OD-06-8.)
-
-`AsyncSqlDocumentStore` is therefore the *real* document logic for SQL; a caller on
-native can use the sync `SqlDocumentStore<Q>` (also generic) when convenient.
+The pure in-memory stores (`MemoryStorage`, `MemoryJsonStore`,
+`MemoryDocumentStore`) follow the same rule: async impls only, whose futures
+are ready at once.
 
 ---
 
 ## 4. Generic over the backend: write the SQL once
 
-`AsyncSqlDocumentStore<Q: AsyncQueryStore>` is generic. It never names Turso, Libsql
+`SqlDocumentStore<Q: QueryStore>` is generic. It never names Turso, Libsql
 or D1 — it only needs "something that can run async SQL." So **one** implementation
 serves every SQL backend:
 
 ```rust
-AsyncSqlDocumentStore::new(turso_storage)   // native
-AsyncSqlDocumentStore::new(libsql_store)    // native
-AsyncSqlDocumentStore::new(d1_wasm_storage) // Cloudflare Workers
+SqlDocumentStore::new(turso_storage)   // native
+SqlDocumentStore::new(libsql_store)    // native
+SqlDocumentStore::new(d1_wasm_storage) // Cloudflare Workers
 ```
 
 The actual SQL strings, parameter lists, and the `SqlRow → Document` projection
-live in **one shared `sql` module** used by *both* the sync `SqlDocumentStore` and
-the async `AsyncSqlDocumentStore`. That's the anti-drift guarantee: the two backends
+live in **one shared `sql` module** used by both SQL document stores (`SqlDocumentStore` and `D1R2DocumentStore`).
+That's the anti-drift guarantee: the two stores
 can never disagree about the schema, ordering, or `scan_from` cursor because they
 are literally building the same statements.
 
@@ -118,7 +108,7 @@ schema (migrations `020`/`021`), the `ORDER BY doc_id` scru128 ordering, the
 inclusive `doc_id >= ?` cursor, and `LIMIT ? (-1 = unlimited)` are identical across
 them. So the conformance suite (in-memory + Turso + Libsql) is the *same* assertions
 parameterized over the backend — and F23's Cloudflare D1 reuses
-`AsyncSqlDocumentStore<D1>` verbatim rather than re-deriving the SQL.
+`SqlDocumentStore<D1>` verbatim rather than re-deriving the SQL.
 
 One portability footgun worth knowing: read `COUNT(*)` by **column index 0**, not by
 the `as cnt` alias — some async backends don't populate column *names* on the
@@ -128,6 +118,6 @@ returned row, only positions.
 
 ## 6. Mental model in one line
 
-> One generic async impl over `AsyncQueryStore`, returning lazily-pulled streams so
+> One generic async impl over `QueryStore`, returning lazily-pulled streams so
 > unbounded scans never OOM; the sync trait wraps it via valtron; the SQL is written
 > once and shared, so every SQLite-family backend behaves identically.

@@ -364,7 +364,7 @@ impl Deployable for HetznerServer {
 
             // 1. What we think we already made.
             let recorded: Option<ServerDeployOutput> = store
-                .get_typed(&key)
+                .get_typed(&key).await
                 .map_err(|e| HetznerError::Transport(format!("load deploy state: {e}")))?;
 
             if let Some(recorded) = &recorded {
@@ -442,7 +442,7 @@ impl Deployable for HetznerServer {
                     let settled = hetzner.await_running(existing.id).await?;
                     let output = HetznerServer::output_for(&settled, &declaration, &identity)?;
                     store
-                        .store_typed(&key, &output)
+                        .store_typed(&key, &output).await
                         .map_err(|e| HetznerError::Transport(format!("persist deploy state: {e}")))?;
                     return Ok(output);
                 }
@@ -510,7 +510,7 @@ impl Deployable for HetznerServer {
                 let settled = hetzner.await_running(created_id).await?;
                 let output = HetznerServer::output_for(&settled, &declaration, &identity)?;
                 store
-                    .store_typed(&key, &output)
+                    .store_typed(&key, &output).await
                     .map_err(|e| HetznerError::Transport(format!("persist deploy state: {e}")))?;
                 Ok::<_, HetznerError>(output)
             }
@@ -538,7 +538,9 @@ impl Deployable for HetznerServer {
                             "could not destroy the server after a failed deploy — IT IS STILL BILLING"
                         );
                     }
-                    let _ = store.remove(&key);
+                    if let Err(clear) = store.remove(&key).await {
+                        tracing::error!(key, error = %clear, "could not clear the failed deploy's state");
+                    }
                     Err(e)
                 }
             }
@@ -558,7 +560,7 @@ impl Deployable for HetznerServer {
         Box::pin(async move {
             let key = instance_id.to_string();
             let recorded: Option<ServerDeployOutput> = store
-                .get_typed(&key)
+                .get_typed(&key).await
                 .map_err(|e| HetznerError::Transport(format!("load deploy state: {e}")))?;
 
             // A record from a completed deploy is AUTHORITATIVE — it says what we
@@ -571,7 +573,7 @@ impl Deployable for HetznerServer {
                 // State clears last: a failed delete above keeps the record, so a
                 // retry still knows what to chase.
                 store
-                    .remove(&key)
+                    .remove(&key).await
                     .map_err(|e| HetznerError::Transport(format!("clear deploy state: {e}")))?;
                 tracing::debug!(id = recorded.id, %name, "destroyed");
                 return Ok(());

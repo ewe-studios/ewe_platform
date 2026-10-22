@@ -7,9 +7,9 @@
 //! `JsFuture::from(promise).await` and yield properly.
 //!
 //! WHAT: Lightweight session management with HMAC-SHA256 signed tokens,
-//! storing sessions via `AsyncCredentialStore`.
+//! storing sessions via `CredentialStore`.
 //!
-//! HOW: Generic over `S: AsyncCredentialStore`, delegates to its `*_async` methods.
+//! HOW: Generic over `S: CredentialStore`, delegates to its `*_async` methods.
 
 use std::sync::Arc;
 
@@ -17,12 +17,12 @@ use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::shared::credential_store::AsyncCredentialStore;
+use crate::shared::credential_store::CredentialStore;
 
 const COOKIE_NAME: &str = "session";
 const DEFAULT_SESSION_DURATION_SECS: i64 = 86_400;
 
-/// Session payload stored via AsyncCredentialStore.
+/// Session payload stored via CredentialStore.
 #[derive(Serialize, Deserialize)]
 pub struct SessionPayload {
     pub id: String,
@@ -31,12 +31,12 @@ pub struct SessionPayload {
 }
 
 /// Async session manager for wasm32.
-pub struct WasmSessionManager<S: AsyncCredentialStore> {
+pub struct WasmSessionManager<S: CredentialStore> {
     store: Arc<S>,
     signing_key: [u8; 32],
 }
 
-impl<S: AsyncCredentialStore> WasmSessionManager<S> {
+impl<S: CredentialStore> WasmSessionManager<S> {
     pub const COOKIE_NAME: &'static str = COOKIE_NAME;
     pub const DEFAULT_SESSION_DURATION_SECS: i64 = DEFAULT_SESSION_DURATION_SECS;
 

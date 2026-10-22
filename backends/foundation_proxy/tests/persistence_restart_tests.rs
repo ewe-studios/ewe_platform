@@ -8,7 +8,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::time::Duration;
 
-use foundation_core::valtron::initialize_pool;
+use foundation_core::valtron::{initialize_pool, BlockingFutureExt};
 use foundation_proxy::config::ServiceConfig;
 use foundation_proxy::{ProxyConfig, ProxyServer};
 
@@ -50,7 +50,7 @@ fn backend_drain_survives_restart() {
 
     // ── Run 1: drain one backend, then shut down. ──
     {
-        let proxy = ProxyServer::start(build_config()).expect("start proxy 1");
+        let proxy = ProxyServer::start(build_config()).block().expect("start proxy 1");
         std::thread::sleep(Duration::from_millis(200));
 
         let resp = rpc(&sock, r#"{"command":"status"}"#);
@@ -66,7 +66,7 @@ fn backend_drain_survives_restart() {
 
     // ── Run 2: fresh proxy, same state dir — the drain must be restored. ──
     {
-        let proxy = ProxyServer::start(build_config()).expect("start proxy 2");
+        let proxy = ProxyServer::start(build_config()).block().expect("start proxy 2");
         std::thread::sleep(Duration::from_millis(200));
 
         let resp = rpc(&sock, r#"{"command":"status"}"#);

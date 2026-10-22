@@ -59,11 +59,6 @@ GLOBAL_PATHS = (
 STEPS = ("fmt", "build", "clippy", "test", "wasm")
 MODES = ("enforce", "report", "off")
 
-# The `dev` profile uses the Cranelift backend, which CI doesn't install. CI
-# builds with `--profile uat`, but cargo invocations nested inside tests (e.g.
-# trybuild compile tests) build their own project with `dev`; point that
-# profile at LLVM too. A value already set in the environment wins.
-NESTED_BUILD_ENV = {"CARGO_PROFILE_DEV_CODEGEN_BACKEND": "llvm"}
 
 
 # ---------------------------------------------------------------------------
@@ -316,7 +311,7 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
     plan = commands(name, s, profile)
     # The package's `env` applies to every step. A value already set in the
     # environment wins, so a bigger machine can still override it locally.
-    env = {**NESTED_BUILD_ENV, **s.env, **os.environ}
+    env = {**s.env, **os.environ}
     if s.env:
         print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(s.env.items())), flush=True)
     failures: list[str] = []

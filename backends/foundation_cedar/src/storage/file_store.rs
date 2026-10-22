@@ -31,23 +31,24 @@ impl FilePolicyStore {
     }
 }
 
+#[async_trait::async_trait]
 impl PolicyStore for FilePolicyStore {
-    fn load_policies(&self) -> Result<String, CedarError> {
+    async fn load_policies(&self) -> Result<String, CedarError> {
         Self::read_file(&self.policy_path)
     }
 
-    fn load_schema(&self) -> Result<String, CedarError> {
+    async fn load_schema(&self) -> Result<String, CedarError> {
         Self::read_file(&self.schema_path)
     }
 
-    fn load_entities(&self) -> Result<Option<String>, CedarError> {
+    async fn load_entities(&self) -> Result<Option<String>, CedarError> {
         match &self.entities_path {
             Some(p) => Self::read_file(p).map(Some),
             None => Ok(None),
         }
     }
 
-    fn version(&self) -> Result<String, CedarError> {
+    async fn version(&self) -> Result<String, CedarError> {
         let meta = std::fs::metadata(&self.policy_path).map_err(|e| {
             CedarError::PolicyParse(format!(
                 "Failed to stat {}: {e}",

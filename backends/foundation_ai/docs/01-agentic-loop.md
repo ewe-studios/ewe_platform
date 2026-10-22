@@ -50,7 +50,7 @@ blocks the executor: each `next_status` call does one step of work and returns.
 let agent = AgentSession::builder(router)
     .with_model("claude-sonnet-4-6")
     .with_system_prompt("You are a coding assistant.")
-    .build()?;
+    .build().await?;
 
 // Streaming — the primary API, as events.
 for event in agent.run_turn_stream("Fix the failing test")?.events() {
@@ -95,12 +95,20 @@ test helpers in `foundation_testing`).
 | `InnerExecuting { .. }` | Checks `SessionAccessProvider::can_use_tool` (a refusal becomes an error result), then runs the call through `ToolCallManager::execute_with_retry` — which validates the arguments against the tool's schema — wrapped in a `CancellableFutureTask`. A priority message cancels in-flight tools. |
 | `InnerEmitResults { .. }` | Emits each `Messages::ToolResult` as a record, persists it, returns to `InnerAssemble`. Enforces `max_inner_iterations`. |
 | `OutputProcessing` | Calls `MemoryHierarchy::check_triggers()`; emits `ProcessingMemory` when a threshold is crossed (see Doc 11 — generation itself is not wired). |
-| `Ending` | Emits `SessionRecord::Summary { message_count, usage }`. |
+| `Flushing { .. }` | Entered before any other state once the message buffer reaches `MessageApiConfig::flush_threshold`, and from `Ending`: awaits `MessageApi::flush`, then resumes. A failed flush ends the turn with a `FailedAction` (`AgenticError::MessageStore`); the unwritten records stay buffered for `AgentSession::end()`. |
+| `Ending` | Starts the final flush of the message log (`Flushing`), then `Summarizing`. |
+| `Summarizing` | Emits `SessionRecord::Summary { message_count, usage }`. |
 | `Done` | Terminal. |
 
 ## 4. Context assembly
 
-`ContextProvider::assemble_from_memory` builds the message list in this order:
+`ContextProvider::assemble` builds the message list in this order. The loop
+awaits it in the `InnerAssembling` state: it flushes the message log, hydrates
+the memory tiers and reads the recent messages through the async store traits,
+so a store waiting on I/O parks the loop's task instead of blocking a thread.
+A store error ends the turn with a `FailedAction` (`AgenticError::MessageStore`)
+rather than sending the model a context missing its history.
+
 
 1. Working memory (if any) as a system-role message
 2. Reflection (if any)
@@ -197,7 +205,7 @@ let policy = ErrorPolicy::customize(|error| match error {
     }
     other => ErrorPolicy::new().classify(other),
 });
-let agent = builder.with_error_policy(policy).build()?;
+let agent = builder.with_error_policy(policy).build().await?;
 ```
 
 A tool that fails normally does **not** reach the policy: its error becomes a

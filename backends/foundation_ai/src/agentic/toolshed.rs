@@ -46,7 +46,16 @@ pub trait ContextSearch: Send + Sync {
     /// The session searched.
     fn session_id(&self) -> &SessionId;
     /// Up to `k` hits for `query`, ranked by relevance.
-    async fn search(&self, query: &str, mode: SearchMode, k: usize) -> Vec<KnowledgeHit>;
+    ///
+    /// # Errors
+    /// Returns the store error when the session's history or memory cannot
+    /// be read.
+    async fn search(
+        &self,
+        query: &str,
+        mode: SearchMode,
+        k: usize,
+    ) -> StorageResult<Vec<KnowledgeHit>>;
 }
 
 #[async_trait]
@@ -55,7 +64,12 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ContextSearch for Con
         ContextProvider::session_id(self)
     }
 
-    async fn search(&self, query: &str, mode: SearchMode, k: usize) -> Vec<KnowledgeHit> {
+    async fn search(
+        &self,
+        query: &str,
+        mode: SearchMode,
+        k: usize,
+    ) -> StorageResult<Vec<KnowledgeHit>> {
         ContextProvider::search(self, query, mode, k).await
     }
 }

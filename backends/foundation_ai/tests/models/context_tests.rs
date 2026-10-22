@@ -90,7 +90,7 @@ fn user_message(text: &str) -> Messages {
 fn empty_context_has_system_prompt_only() {
     use futures_lite::future::block_on;
     let provider = make_provider();
-    let ctx = block_on(provider.assemble());
+    let ctx = block_on(provider.assemble()).expect("assemble");
     assert_eq!(
         ctx.system_prompt.as_deref(),
         Some("You are a helpful assistant.")
@@ -108,7 +108,7 @@ fn working_memory_injected() {
             .set_async(provider.session_id(), &working_record("user likes rust"))
             .await
             .unwrap();
-        let ctx = provider.assemble().await;
+        let ctx = provider.assemble().await.expect("assemble");
         assert_eq!(ctx.messages.len(), 1);
         let text = extract_text(&ctx.messages[0]);
         assert!(text.contains("user likes rust"));
@@ -126,7 +126,7 @@ fn incon03_observation_injected_when_no_reflection() {
             .set_async(provider.session_id(), &obs)
             .await
             .unwrap();
-        let ctx = provider.assemble().await;
+        let ctx = provider.assemble().await.expect("assemble");
         assert_eq!(ctx.messages.len(), 1);
         let text = extract_text(&ctx.messages[0]);
         assert!(text.contains("saw something"));
@@ -152,7 +152,7 @@ fn incon03_observation_suppressed_when_reflection_newer() {
             .set_async(provider.session_id(), &refl)
             .await
             .unwrap();
-        let ctx = provider.assemble().await;
+        let ctx = provider.assemble().await.expect("assemble");
         // Should have reflection but NOT observation (reflection is newer).
         let texts: Vec<String> = ctx.messages.iter().map(|m| extract_text(m)).collect();
         assert!(
@@ -185,7 +185,7 @@ fn incon03_observation_injected_when_newer_than_reflection() {
             .set_async(provider.session_id(), &obs)
             .await
             .unwrap();
-        let ctx = provider.assemble().await;
+        let ctx = provider.assemble().await.expect("assemble");
         let texts: Vec<String> = ctx.messages.iter().map(|m| extract_text(m)).collect();
         assert!(texts.iter().any(|t| t.contains("old reflection")));
         assert!(texts.iter().any(|t| t.contains("newer observation")));
@@ -201,8 +201,8 @@ fn recent_messages_included() {
         let _ = provider
             .message_api()
             .append(SessionRecord::Conversation { message: msg });
-        let _ = provider.message_api().flush();
-        let ctx = provider.assemble().await;
+        provider.message_api().flush().await.expect("flush");
+        let ctx = provider.assemble().await.expect("assemble");
         assert_eq!(ctx.messages.len(), 1);
         let text = extract_text(&ctx.messages[0]);
         assert!(text.contains("hello world"));
@@ -240,9 +240,9 @@ fn assembly_order_is_deterministic() {
         let _ = provider
             .message_api()
             .append(SessionRecord::Conversation { message: msg });
-        let _ = provider.message_api().flush();
+        provider.message_api().flush().await.expect("flush");
 
-        let ctx = provider.assemble().await;
+        let ctx = provider.assemble().await.expect("assemble");
         // Order: working -> reflection -> observation (newer) -> recent messages
         assert_eq!(ctx.messages.len(), 4);
         let texts: Vec<String> = ctx.messages.iter().map(|m| extract_text(m)).collect();

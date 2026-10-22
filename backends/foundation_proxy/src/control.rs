@@ -27,11 +27,14 @@ use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
 use foundation_core::synca::OnSignal;
+// The control connections are OS threads that wait on the async dispatch.
+foundation_core::blocking_boundary! {
+    use foundation_core::valtron::block_on_future;
+}
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::config::BackendState;
-use crate::router::Router;
 use crate::state::ProxyState;
 
 /// RPC request from the CLI.
@@ -126,7 +129,7 @@ impl ControlSocket {
 }
 
 /// Handle one control-socket connection: read → dispatch → respond → close.
-fn handle_connection(mut stream: UnixStream, state: &ProxyState) {
+fn handle_connection(mut stream: UnixStream, state: &Arc<ProxyState>) {
     let mut reader = BufReader::new(stream.try_clone().unwrap_or_else(|_| {
         // If clone fails, create a new unconnected stream (won't happen in practice).
         panic!("control socket clone failed")
@@ -146,12 +149,14 @@ fn handle_connection(mut stream: UnixStream, state: &ProxyState) {
         }
     };
 
-    let result = dispatch(&req, state);
+    // Each control connection runs on its own OS thread (not a valtron
+    // task), so this is a sync boundary: wait for the async dispatch here.
+    let result = block_on_future(dispatch(req, Arc::clone(state)));
     let _ = respond(&mut stream, result.0, result.1, result.2);
 }
 
 /// Route a command to its handler.
-fn dispatch(req: &Request, state: &ProxyState) -> (bool, Option<String>, Option<Value>) {
+async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>, Option<Value>) {
     match req.command.as_str() {
         "list" => {
             let services: Vec<Value> = state
@@ -226,7 +231,7 @@ fn dispatch(req: &Request, state: &ProxyState) -> (bool, Option<String>, Option<
                         b.set_state(target_state);
                         // Persist the change so it survives a restart (F14, no-op
                         // when no store is attached).
-                        state.persist_backend_state(service_name, backend_url, target_state);
+                        state.persist_backend_state(service_name, backend_url, target_state).await;
                         found = true;
                         break;
                     }

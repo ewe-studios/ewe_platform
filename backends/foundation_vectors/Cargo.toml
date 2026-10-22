@@ -19,6 +19,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.6", features = [
 foundation_netio = { path = "../foundation_netio", version = "0.0.4", optional = true }
 foundation_db = { path = "../foundation_db", version = "0.0.4", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.2", optional = true }
+futures-lite = { version = "2", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tree-sitter = { version = "0.26", optional = true }
@@ -45,7 +46,7 @@ foundation_netio = { path = "../foundation_netio" }
 [features]
 code-graph = ["dep:petgraph", "dep:serde_json", "dep:tree-sitter", "dep:tree-sitter-rust", "dep:tree-sitter-javascript", "dep:tree-sitter-typescript", "dep:tree-sitter-python", "dep:tree-sitter-go"]
 code-graph-query = ["dep:petgraph", "dep:serde_json"]
-sql-store = ["dep:serde_json", "dep:foundation_db", "dep:foundation_core"]
+sql-store = ["dep:serde_json", "dep:foundation_db", "dep:futures-lite"]
 turbopuffer = ["dep:serde_json", "dep:foundation_core", "dep:foundation_netio"]
 # Persistent native VectorStore over fjall + a persisted F25 IVF index (F29).
 fjall-store = ["dep:fjall", "dep:serde_json"]
