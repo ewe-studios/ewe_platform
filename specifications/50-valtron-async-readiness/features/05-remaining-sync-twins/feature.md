@@ -66,7 +66,7 @@ These sync waits are correct. Each one runs on its own OS thread, not on a valtr
 | Task | What | Done when | State |
 |---|---|---|---|
 | T1 | **Vectors:** make every vector store implement `AsyncVectorStore` only (`TurboPufferVectorStore`, `SqliteVecVectorStore`, `FjallVectorStore`, `InMemoryVectorStore`); move the `shed` tool to the async trait; delete the sync `VectorStore`; rename `AsyncVectorStore` to `VectorStore` (and its methods, if task T3 decides so). | No sync vector trait remains; `ci.py run foundation_vectors` and `foundation_ai` pass. | Done (branch `db/async-vectors`); see section 5 |
-| T2 | **VFS:** async-first core (decision 1). Move `TursoDelta`, `SyncLibsqlDelta`, `VfsClient`, `NativeFs`, `DirectoryDelta` and the Fjall stores to the async traits only; keep `SyncFs<A>` as the only sync face for I/O stores; move `OverlayFileSystem`, `ObservableFs`, `search` and `dynfs` to the async traits, with sync wrappers only where a sync consumer needs them. | No I/O-backed type implements a sync VFS trait directly; `ci.py run foundation_nativeapis` and its feature runs pass. | Done (branch `nativeapis/async-vfs`), except `TursoDelta` (open decision); see section 6 |
+| T2 | **VFS:** async-first core (decision 1). Move `TursoDelta`, `SyncLibsqlDelta`, `VfsClient`, `NativeFs`, `DirectoryDelta` and the Fjall stores to the async traits only; keep `SyncFs<A>` as the only sync face for I/O stores; move `OverlayFileSystem`, `ObservableFs`, `search` and `dynfs` to the async traits, with sync wrappers only where a sync consumer needs them. | No I/O-backed type implements a sync VFS trait directly; `ci.py run foundation_nativeapis` and its feature runs pass. | Done (branch `nativeapis/async-vfs`); `TursoDelta` deleted (rebuild: ewe-studios/ewe_platform#142); see section 6 |
 | T3 | **Method suffixes:** drop `_async` from the storage trait methods (decision 2). Check each type for inherent methods with the plain names first. | No storage trait method ends in `_async`; workspace, wasm and example builds pass. | Open |
 | T4 | **Records:** `progress.md`, `learnings.md`, the backlog. | Updated in the same PRs. | Updated for T1 and T2 |
 
@@ -153,18 +153,21 @@ faces, decision 1), and `InodeFs` / `InodeDelta`. The survey called these
 "Fjall stores", but they keep everything in memory and do no I/O; they keep
 only the sync face (see the backlog).
 
-**Not done:** `TursoDelta` still has its sync trait impls. It has never
-compiled (83 errors when its module is built). The owner must decide: delete
-it (`LibsqlDelta` with `TursoRemoteConfig` already covers a Turso cloud
-database), or rebuild it on `libsql` behind the async traits. The
-recommendation is to delete it. `FjallDocumentStore` still uses the sync VFS
-traits (it is a consumer, not a store); see the backlog.
+**Deleted:** `TursoDelta` never compiled (83 errors when its module was
+built). By owner decision it is deleted, with its example, the `vfs-turso`
+feature, the `turso` dependency and the shim's `turso` backend. `LibsqlDelta`
+with `TursoRemoteConfig` covers a Turso cloud database. The rebuild on the
+`turso` crate (async-only, local engine) is ewe-studios/ewe_platform#142.
+
+**Not done:** `FjallDocumentStore` still uses the sync VFS traits (it is a
+consumer, not a store); see the backlog.
 
 **Breaking application programming interface (API) changes:**
 
 | Crate | Change |
 |---|---|
 | `foundation_nativeapis` | `NativeFs`, `DirectoryDelta`, `VfsClient`, `OverlayFileSystem`, `ObservableFs` no longer implement the sync VFS traits. Use the async traits, or `SyncFs::new(..)` at a sync boundary. |
+| `foundation_nativeapis` | `TursoDelta`, the `vfs-turso` feature and the shim's `turso` backend (`FOUNDATION_VFS_DELTA=turso`) are deleted (rebuild: ewe-studios/ewe_platform#142). |
 | `foundation_nativeapis` | `SyncLibsqlDelta` and its types are deleted. `LibsqlDelta::{new, with_config, in_memory, with_turso_replica, sync_remote}` are `async`. |
 | `foundation_nativeapis` | `VfsTransport::request` is `async`; new required method `release`. `VfsClient::new` is `async`. `VfsDaemon::dispatch` is `async`. `run_daemon_loop` takes `&Arc<VfsDaemon<F>>`. |
 | `foundation_nativeapis` | `VfsSearcher::search` is `async`; `InCodeVfsSearcher`, `vfs_searcher` and `native_vfs_searcher` take an `AsyncVfsFileSystem`. |
@@ -197,4 +200,4 @@ traits (it is a consumer, not a store); see the backlog.
 | `cargo test -p foundation_nativeapis` with those features (less `vfs-ptrace` and `vfs-arrow`): `native_vfs`, `dir_delta_vfs`, `overlay_vfs`, `observable_vfs`, `vfs_search`, `ipc_vfs`, `valtron_vfs`, `memory_vfs`, `nfs_vfs`, `vfs_async`, `blob_delta_vfs`, `d1_delta_vfs`, `r2_delta_vfs`, `fjall_vfs`, `fjall_document_store` | pass |
 | `cargo check -p foundation_ai --no-default-features --features testing --tests` | pass |
 | `ci.py run foundation_ai`, `cargo test` of `foundation_ai`, `cargo check --workspace --tests` | not run: the disk was full (other sessions built in the shared target at the same time). A grep found no other user of the changed APIs in `apps/`, `examples/`, `bin/`, `backends/` or `infrastructure/`. |
-| `vfs-turso`, `vfs-preload`, `vfs-fuse` | not built: they did not build before this change (see the backlog) |
+| `vfs-preload`, `vfs-fuse` | not built: they did not build before this change (see the backlog) |

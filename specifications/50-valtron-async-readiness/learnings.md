@@ -246,7 +246,7 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
 - **Build every feature of a crate before you change it.** `foundation_nativeapis` CI builds only
   `""` and `vfs-native,vfs-d1,vfs-r2`. A check of each other VFS feature found `vfs-sqlite` broken
   (a missing dependency), `vfs-preload` broken (the `open` symbol), and `TursoDelta` never
-  compiled. Find these first, so a new failure is not taken for your own.
+  compiled (deleted; rebuild is #142). Find these first, so a new failure is not taken for your own.
 - **Poll once before you go to the pool.** `exec_async` now polls the future once on the calling
   thread. Memory, native and Fjall futures are ready at once, so `SyncFs` over them needs no
   valtron pool and uses no worker. This also keeps the sync boundaries (the shim, ptrace, sync

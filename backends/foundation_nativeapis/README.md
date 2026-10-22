@@ -41,7 +41,6 @@ Both subsystems integrate with the valtron executor for async execution — no t
 | `vfs-fuse` | `FuseMount` — FUSE adapter | Linux |
 | `vfs-nfs` | `VfsNfs` — NFS v3 loopback adapter | Linux, macOS |
 | `vfs-ptrace` | `PtraceInterceptor` — syscall interception | Linux |
-| `vfs-turso` | `TursoDelta` — Turso edge SQLite delta store | All |
 | `vfs-d1` | `D1Delta` — Cloudflare D1 delta store | All (via HTTP) |
 | `vfs-r2` | `R2Delta` — Cloudflare R2 delta store | All (via HTTP) |
 | `vfs-ipc` | `VfsDaemon` + `VfsClient` — IPC bus for VFS | All |
@@ -316,7 +315,6 @@ Each has a `README.md` in its directory with full documentation.
 | [`native_fs`](examples/native_fs/) | `vfs-native` | Host filesystem passthrough with path containment |
 | [`sqlite_delta`](examples/sqlite_delta/) | `vfs-sqlite` | SQLite-backed delta store with ACID guarantees |
 | [`vfs_sqlite_delta`](examples/vfs_sqlite_delta/) | `vfs-sqlite` | OverlayFileSystem<NativeFs, LibsqlDelta> end-to-end |
-| [`vfs_turso_delta`](examples/vfs_turso_delta/) | `vfs-turso` | Turso edge SQLite delta store |
 | [`fuse_mount`](examples/fuse_mount/) | `vfs-fuse` | FUSE adapter — mount VFS as Linux mountpoint |
 | [`observable_fs`](examples/observable_fs/) | `vfs` | Audit event decorator — full operation logging |
 | [`sync_async_bridge`](examples/sync_async_bridge/) | `vfs` | SyncFs<A> — valtron-backed sync API for async backends |

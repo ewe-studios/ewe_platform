@@ -25,8 +25,6 @@ pub mod shim;
 #[cfg(feature = "vfs-sqlite")]
 pub mod libsql_delta;
 
-#[cfg(feature = "vfs-turso")]
-pub mod turso_delta;
 
 #[cfg(any(feature = "vfs-d1", feature = "vfs-r2"))]
 pub mod blob_delta;
@@ -52,5 +50,3 @@ pub use ipc_bus::{run_daemon_loop, ClientTransport, DaemonTransport, VFS_BUS_IDE
 #[cfg(feature = "vfs-sqlite")]
 pub use libsql_delta::LibsqlDelta;
 
-#[cfg(feature = "vfs-turso")]
-pub use turso_delta::TursoDelta;

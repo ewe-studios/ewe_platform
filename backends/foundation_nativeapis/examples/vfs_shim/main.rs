@@ -23,7 +23,7 @@
 ///    paths. All writes go to the delta store (memory, sqlite, directory, etc.).
 ///    Restarting clears memory delta; sqlite persists across runs.
 ///
-/// 3. **Cloud-synced deltas** — Use `turso` or `d1` delta stores to share
+/// 3. **Cloud-synced deltas** — Use the `d1` delta store to share
 ///    virtual filesystem state across machines.
 ///
 /// 4. **Object storage as VFS** — Use `r2` to store virtual files in S3-
@@ -274,10 +274,8 @@ int main(int argc, char *argv[]) {
     println!("Environment variables:");
     println!("  FOUNDATION_VFS_PREFIX   — Colon-separated virtual path prefixes (e.g., /virtual)");
     println!("  FOUNDATION_VFS_ROOT     — Base directory for NativeFs overlay (default: .)");
-    println!("  FOUNDATION_VFS_DELTA    — Delta backend (memory|sqlite|turso|dir|d1|r2)");
+    println!("  FOUNDATION_VFS_DELTA    — Delta backend (memory|sqlite|dir|d1|r2)");
     println!("  FOUNDATION_VFS_DELTA_PATH — Path for persistent delta stores");
-    println!("  FOUNDATION_VFS_TURSO_URL — Turso connection URL (for turso delta)");
-    println!("  FOUNDATION_VFS_TURSO_TOKEN — Turso auth token (for turso delta)");
     println!("  FOUNDATION_VFS_D1_ACCOUNT_ID — Cloudflare account ID (for d1 delta)");
     println!("  FOUNDATION_VFS_D1_API_TOKEN — Cloudflare API token (for d1 delta)");
     println!("  FOUNDATION_VFS_D1_DATABASE_ID — D1 database ID (for d1 delta)");

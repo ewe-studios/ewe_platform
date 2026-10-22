@@ -49,7 +49,7 @@ mod shim_exports {
 
     /// VFS runtime — holds the type-erased VFS stack and the valtron pool guard.
     /// The pool guard must be kept alive so worker threads stay running for
-    /// LibsqlDelta/TursoDelta async-through-sync execution.
+    /// LibsqlDelta async-through-sync execution.
     struct VfsRuntime {
         fs: DynFs,
         #[allow(dead_code)]
@@ -59,7 +59,7 @@ mod shim_exports {
     /// Type-erased VFS stack — supports any delta store at runtime.
     ///
     /// The delta backend is selected via `FOUNDATION_VFS_DELTA` env var.
-    /// Supported: `memory` (default), `sqlite`, `turso`, `dir`, `d1`, `r2`.
+    /// Supported: `memory` (default), `sqlite`, `dir`, `d1`, `r2`.
     /// Each falls back to `memory` if the required feature flag is not enabled
     /// or if initialization fails.
     static VFS: Lazy<VfsRuntime> = Lazy::new(|| {
@@ -111,31 +111,6 @@ mod shim_exports {
                 }
                 #[cfg(not(feature = "vfs-sqlite"))]
                 mem_fallback!("vfs-sqlite feature not enabled");
-            }
-            super::config::DeltaBackend::Turso => {
-                #[cfg(feature = "vfs-turso")]
-                {
-                    // Initialize valtron pool for async-through-sync execution
-                    let guard = initialize_pool(42, Some(4));
-                    use crate::native::vfs::turso_delta::TursoDelta;
-                    let url = std::env::var("FOUNDATION_VFS_TURSO_URL")
-                        .unwrap_or_else(|_| "libsql://localhost".to_string());
-                    let token = std::env::var("FOUNDATION_VFS_TURSO_TOKEN").ok();
-                    let delta = match TursoDelta::new(&url, token.as_deref()) {
-                        Ok(d) => d,
-                        Err(e) => {
-                            drop(guard);
-                            mem_fallback!(format!("turso delta failed: {e}"))
-                        }
-                    };
-                    let overlay = OverlayFileSystem::new(base, delta);
-                    VfsRuntime {
-                        fs: DynFs::from_async(overlay),
-                        guard: Some(guard),
-                    }
-                }
-                #[cfg(not(feature = "vfs-turso"))]
-                mem_fallback!("vfs-turso feature not enabled");
             }
             super::config::DeltaBackend::Directory => {
                 use crate::native::vfs::dir_delta::DirectoryDelta;

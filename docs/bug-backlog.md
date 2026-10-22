@@ -381,14 +381,11 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `Vec` before streaming them (`src/shared/vfs/fjall_document_store.rs`);
   `scan_all_async` is unbounded. Fix: walk the fjall index range lazily.
 
-- **`TursoDelta` has never compiled.** `src/native/vfs/turso_delta/` is
-  compiled only with `vfs-native,vfs-turso`, and then fails with 83 errors:
-  it calls `turso::Builder::new_remote` (the `turso` 0.5 crate is local
-  only), imports `libsql` types, and uses a missing `VfsError::Internal`. It
-  still implements the sync VFS traits. `LibsqlDelta` with
-  `TursoRemoteConfig` already covers a Turso cloud database. Fix (owner
-  decision, spec 50 F05 T2): delete `TursoDelta`, its example and the shim's
-  `DeltaBackend::Turso` arm, or rebuild it on `libsql` behind the async traits.
+- **No delta store on the local Turso engine.** `TursoDelta` never compiled and was
+  deleted in spec 50 F05 T2 (with its example, the `vfs-turso` feature and the
+  shim's `turso` backend). A Turso cloud database still works through
+  `LibsqlDelta` with `TursoRemoteConfig`. Fix: rebuild it on the `turso` crate as
+  an async-only store; tracked in ewe-studios/ewe_platform#142.
 - **The `LD_PRELOAD` shim does not compile.** With `vfs-preload`,
   `src/native/vfs/shim/mod.rs` defines `open` with a fixed argument list, and
   the current compiler refuses it ("invalid definition of the runtime `open`
