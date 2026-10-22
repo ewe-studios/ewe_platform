@@ -50,7 +50,7 @@ pub use fuse::{FuseMount, FuseMountOptions};
 pub use ipc_bus::{run_daemon_loop, ClientTransport, DaemonTransport, VFS_BUS_IDENTIFIER};
 
 #[cfg(feature = "vfs-sqlite")]
-pub use libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
+pub use libsql_delta::LibsqlDelta;
 
 #[cfg(feature = "vfs-turso")]
 pub use turso_delta::TursoDelta;

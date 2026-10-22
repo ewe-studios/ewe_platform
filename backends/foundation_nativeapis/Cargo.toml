@@ -353,7 +353,7 @@ vfs-search-fff = ["vfs-search", "dep:fff-search"]
 vfs-native = ["vfs", "dep:foundation_macros", "dep:foundation_nostd"]
 
 # VFS SQLite-backed DeltaStore (libsql)
-vfs-sqlite = ["vfs", "dep:libsql", "dep:blake3"]
+vfs-sqlite = ["vfs", "dep:libsql", "dep:blake3", "dep:foundation_compact"]
 
 # VFS Turso cloud-backed DeltaStore (remote connection, WASM-compatible)
 vfs-turso = ["vfs", "dep:turso", "dep:blake3"]

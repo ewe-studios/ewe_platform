@@ -4,370 +4,21 @@ mod path_resolve;
 mod schema;
 pub mod types;
 
-use std::fmt;
-use std::io::SeekFrom;
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use libsql::{Connection, Database};
 
-use crate::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsDirectory, AsyncVfsFileSystem};
+use crate::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
 use crate::shared::vfs::error::{VfsError, VfsResult};
-use crate::shared::vfs::exec_async::exec_async;
-use crate::shared::vfs::sync_bridge::{SyncFile, SyncFs};
-use crate::shared::vfs::traits::{DeltaStore, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
-use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
+use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsMetadata};
 use foundation_errstacks::ErrorTrace;
 
 use chunking::write_all_chunks_async;
 use file_handle::{SeekableSqliteFile, SqliteDirectory, SqliteFile};
 use path_resolve::{resolve_parent_async, resolve_path_async};
 use types::{next_version_id, pack_version, unpack_version, ChunkConfig, SqliteDentry};
-
-/// Synchronous seekable file handle for LibsqlDelta.
-///
-/// Wraps a bridged `SyncFile<SqliteFile>` for I/O and uses an `Arc<AtomicU64>`
-/// for the cursor — cheap to clone, thread-safe, no `&mut self` needed.
-pub struct SyncSeekableSqliteFile {
-    inner: SyncFile<SqliteFile>,
-    cursor: Arc<AtomicU64>,
-}
-
-impl fmt::Debug for SyncSeekableSqliteFile {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("SyncSeekableSqliteFile")
-            .field("cursor", &self.cursor.load(Ordering::Relaxed))
-            .finish_non_exhaustive()
-    }
-}
-
-impl SyncSeekableSqliteFile {
-    /// Creates a new sync seekable handle from a bridged file with cursor at 0.
-    #[must_use]
-    pub fn new(inner: SyncFile<SqliteFile>) -> Self {
-        Self {
-            inner,
-            cursor: Arc::new(AtomicU64::new(0)),
-        }
-    }
-}
-
-impl VfsFile for SyncSeekableSqliteFile {
-    fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
-        self.inner.read_at(buf, offset)
-    }
-
-    fn write_at(&self, buf: &[u8], offset: u64) -> VfsResult<usize> {
-        self.inner.write_at(buf, offset)
-    }
-
-    fn sync_data(&self) -> VfsResult<()> {
-        self.inner.sync_data()
-    }
-
-    fn size(&self) -> VfsResult<u64> {
-        self.inner.size()
-    }
-
-    fn truncate(&self, size: u64) -> VfsResult<()> {
-        self.inner.truncate(size)
-    }
-
-    fn metadata(&self) -> VfsResult<VfsMetadata> {
-        self.inner.metadata()
-    }
-}
-
-impl SeekableVfsFile for SyncSeekableSqliteFile {
-    fn read(&mut self, buf: &mut [u8]) -> VfsResult<usize> {
-        let pos = self.cursor.load(Ordering::Relaxed);
-        let n = self.inner.read_at(buf, pos)?;
-        self.cursor.store(pos + n as u64, Ordering::Relaxed);
-        Ok(n)
-    }
-
-    fn write(&mut self, buf: &[u8]) -> VfsResult<usize> {
-        let pos = self.cursor.load(Ordering::Relaxed);
-        let n = self.inner.write_at(buf, pos)?;
-        self.cursor.store(pos + n as u64, Ordering::Relaxed);
-        Ok(n)
-    }
-
-    fn seek(&mut self, pos: SeekFrom) -> VfsResult<u64> {
-        let cur = self.cursor.load(Ordering::Relaxed);
-        let new_pos = match pos {
-            SeekFrom::Start(n) => n,
-            SeekFrom::End(n) => {
-                let size = self.inner.size()?;
-                if n >= 0 {
-                    size.saturating_add(n.unsigned_abs())
-                } else {
-                    size.saturating_sub(n.unsigned_abs())
-                }
-            }
-            SeekFrom::Current(n) => {
-                if n >= 0 {
-                    cur.saturating_add(n.unsigned_abs())
-                } else {
-                    cur.saturating_sub(n.unsigned_abs())
-                }
-            }
-        };
-        self.cursor.store(new_pos, Ordering::Relaxed);
-        Ok(new_pos)
-    }
-
-    fn position(&self) -> u64 {
-        self.cursor.load(Ordering::Relaxed)
-    }
-}
-
-/// Synchronous wrapper around [`LibsqlDelta`] with optimized seekable support.
-///
-/// Delegates all `VfsFileSystem` and `DeltaStore` methods to `SyncFs<LibsqlDelta>`
-/// except `open_seekable`, which returns `SyncSeekableSqliteFile` instead of the
-/// generic `LocalSeekableFile`. This gives native seekable performance for libsql
-/// while still using the valtron bridge for all other operations.
-pub struct SyncLibsqlDelta {
-    inner: SyncFs<LibsqlDelta>,
-}
-
-impl fmt::Debug for SyncLibsqlDelta {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("SyncLibsqlDelta").finish_non_exhaustive()
-    }
-}
-
-impl SyncLibsqlDelta {
-    /// Creates a new sync wrapper from an async `LibsqlDelta`.
-    #[must_use]
-    pub fn new(inner: LibsqlDelta) -> Self {
-        Self {
-            inner: SyncFs::new(inner),
-        }
-    }
-
-    /// Creates a new sync wrapper from a pre-existing `Arc<LibsqlDelta>`.
-    #[must_use]
-    pub fn from_arc(inner: Arc<LibsqlDelta>) -> Self {
-        Self {
-            inner: SyncFs::from_arc(inner),
-        }
-    }
-}
-
-/// Synchronous directory wrapper for libsql directories with optimized seekable support.
-///
-/// Stores a boxed async directory and bridges all methods through `exec_async`.
-/// Returns `SyncSeekableSqliteFile` instead of `LocalSeekableFile`.
-pub struct SyncSqliteDirectory {
-    inner: Arc<Box<dyn AsyncVfsDirectory<File = SqliteFile, SeekableFile = SeekableSqliteFile>>>,
-    cached_path: String,
-}
-
-impl fmt::Debug for SyncSqliteDirectory {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("SyncSqliteDirectory")
-            .field("path", &self.cached_path)
-            .finish_non_exhaustive()
-    }
-}
-
-impl SyncSqliteDirectory {
-    fn new(inner: Box<dyn AsyncVfsDirectory<File = SqliteFile, SeekableFile = SeekableSqliteFile>>) -> Self {
-        let cached_path = inner.path();
-        Self { inner: Arc::new(inner), cached_path }
-    }
-}
-
-impl VfsDirectory for SyncSqliteDirectory {
-    type File = SyncFile<SqliteFile>;
-    type SeekableFile = SyncSeekableSqliteFile;
-
-    fn path(&self) -> &str {
-        &self.cached_path
-    }
-
-    fn metadata(&self) -> VfsResult<VfsMetadata> {
-        let inner = self.inner.clone();
-        exec_async(async move { inner.metadata_async().await })
-    }
-
-    fn list(&self) -> VfsResult<Vec<VfsDirEntry>> {
-        let inner = self.inner.clone();
-        exec_async(async move { inner.list_async().await })
-    }
-
-    fn get_entry(&self, name: &str) -> VfsResult<Option<VfsDirEntry>> {
-        let inner = self.inner.clone();
-        let name = name.to_string();
-        exec_async(async move { inner.get_entry_async(name).await })
-    }
-
-    fn create_file(&self, name: &str, mode: u32) -> VfsResult<Self::File> {
-        let inner = self.inner.clone();
-        let name = name.to_string();
-        let file = exec_async(async move { inner.create_file_async(name, mode).await })?;
-        Ok(SyncFile::new(Arc::new(file)))
-    }
-
-    fn create_dir(&self, name: &str) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
-        let inner = self.inner.clone();
-        let name = name.to_string();
-        let dir = exec_async(async move { inner.create_dir_async(name).await })?;
-        Ok(Box::new(SyncSqliteDirectory::new(dir)))
-    }
-
-    fn remove_entry(&self, name: &str) -> VfsResult<()> {
-        let inner = self.inner.clone();
-        let name = name.to_string();
-        exec_async(async move { inner.remove_entry_async(name).await })
-    }
-
-    fn rename_entry(&self, old_name: &str, new_name: &str) -> VfsResult<()> {
-        let inner = self.inner.clone();
-        let old = old_name.to_string();
-        let new = new_name.to_string();
-        exec_async(async move { inner.rename_entry_async(old, new).await })
-    }
-
-    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
-        let inner = self.inner.clone();
-        let path = path.to_string();
-        let file = exec_async(async move { inner.open_async(path, mode).await })?;
-        Ok(SyncFile::new(Arc::new(file)))
-    }
-
-    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
-        let file = self.open(path, mode)?;
-        Ok(SyncSeekableSqliteFile::new(file))
-    }
-
-    fn open_directory(&self, path: &str) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
-        let inner = self.inner.clone();
-        let path = path.to_string();
-        let dir = exec_async(async move { inner.open_directory_async(path).await })?;
-        Ok(Box::new(SyncSqliteDirectory::new(dir)))
-    }
-
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        let inner = self.inner.clone();
-        let path = path.to_string();
-        exec_async(async move { inner.stat_async(path).await })
-    }
-
-    fn exists(&self, path: &str) -> VfsResult<bool> {
-        let inner = self.inner.clone();
-        let path = path.to_string();
-        exec_async(async move { inner.exists_async(path).await })
-    }
-}
-
-impl VfsFileSystem for SyncLibsqlDelta {
-    type File = <SyncFs<LibsqlDelta> as VfsFileSystem>::File;
-    type SeekableFile = SyncSeekableSqliteFile;
-    type Directory = SyncSqliteDirectory;
-
-    fn capabilities(&self) -> VfsCapabilities {
-        self.inner.capabilities()
-    }
-
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        self.inner.stat(path)
-    }
-
-    fn inode(&self, path: &str) -> VfsResult<u64> {
-        self.inner.inode(path)
-    }
-
-    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
-        self.inner.path_by_inode(ino)
-    }
-
-    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
-        self.inner.stat_by_inode(ino)
-    }
-
-    fn exists(&self, path: &str) -> VfsResult<bool> {
-        self.inner.exists(path)
-    }
-
-    fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
-        self.inner.chmod(path, mode)
-    }
-
-    fn symlink(&self, target: &str, link: &str) -> VfsResult<()> {
-        self.inner.symlink(target, link)
-    }
-
-    fn readlink(&self, path: &str) -> VfsResult<String> {
-        self.inner.readlink(path)
-    }
-
-    fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
-        self.inner.rename(from, to)
-    }
-
-    fn remove(&self, path: &str) -> VfsResult<()> {
-        self.inner.remove(path)
-    }
-
-    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
-        self.inner.open(path, mode)
-    }
-
-    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
-        let file = self.inner.open(path, mode)?;
-        Ok(SyncSeekableSqliteFile::new(file))
-    }
-
-    fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
-        let inner = self.inner.inner().clone();
-        let path = path.to_string();
-        let dir = exec_async(async move { inner.open_directory_async(path).await })?;
-        Ok(SyncSqliteDirectory::new(Box::new(dir)))
-    }
-
-    fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> {
-        self.inner.create(path, mode)
-    }
-
-    fn mkdir(&self, path: &str) -> VfsResult<()> {
-        self.inner.mkdir(path)
-    }
-}
-
-impl DeltaStore for SyncLibsqlDelta {
-    fn add_whiteout(&self, path: &str, version: u64) -> VfsResult<()> {
-        self.inner.add_whiteout(path, version)
-    }
-
-    fn is_whiteout(&self, path: &str) -> VfsResult<Option<u64>> {
-        self.inner.is_whiteout(path)
-    }
-
-    fn remove_whiteout(&self, path: &str) -> VfsResult<()> {
-        self.inner.remove_whiteout(path)
-    }
-
-    fn list_whiteouts(&self, dir: &str) -> VfsResult<Vec<(String, u64)>> {
-        self.inner.list_whiteouts(dir)
-    }
-
-    fn flush(&self) -> VfsResult<()> {
-        self.inner.flush()
-    }
-
-    fn reset(&self) -> VfsResult<()> {
-        self.inner.reset()
-    }
-}
-
-/// Legacy type alias — equivalent to `SyncFs<LibsqlDelta>` with generic seekable.
-/// New code should use [`SyncLibsqlDelta`] for optimized seekable support.
-pub type SyncLibsqlDeltaGeneric = SyncFs<LibsqlDelta>;
 
 /// Configuration for creating a [`LibsqlDelta`] instance.
 #[derive(Debug, Clone)]
@@ -398,7 +49,10 @@ impl Default for LibsqlDeltaConfig {
 
 /// SQLite-backed virtual filesystem using `libsql` with delta/overlay support.
 pub struct LibsqlDelta {
-    db: Option<Arc<Database>>,
+    /// The database; kept open for the life of the store.
+    db: Arc<Database>,
+    /// `true` for a Turso remote replica, which `sync_remote` synchronizes.
+    replica: bool,
     conn: Arc<Connection>,
     chunk_config: ChunkConfig,
 }
@@ -406,6 +60,21 @@ pub struct LibsqlDelta {
 /// Convert a [`libsql::Error`] into an [`ErrorTrace<VfsError>`].
 fn err(e: libsql::Error) -> ErrorTrace<VfsError> {
     ErrorTrace::new(types::libsql_err(e))
+}
+
+/// Creates the parent directories of `path` and returns it as UTF-8.
+fn prepare_db_path(path: &Path) -> VfsResult<String> {
+    if let Some(parent) = path.parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
+        }
+    }
+    path.to_str().map(str::to_string).ok_or_else(|| {
+        ErrorTrace::new(VfsError::Backend {
+            message: "database path is not valid UTF-8".into(),
+        })
+    })
 }
 
 impl LibsqlDelta {
@@ -417,48 +86,15 @@ impl LibsqlDelta {
     ///
     /// Returns [`VfsError::Io`] if parent directory creation fails, or
     /// [`VfsError::Backend`] if the path is not valid UTF-8 or the database cannot be opened.
-    pub fn new(db_path: impl AsRef<Path>) -> VfsResult<Self> {
-        let path = db_path.as_ref();
-        if let Some(parent) = path.parent() {
-            if !parent.exists() {
-                std::fs::create_dir_all(parent)
-                    .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
-            }
-        }
-        let path_str = path
-            .to_str()
-            .ok_or_else(|| {
-                ErrorTrace::new(VfsError::Backend {
-                    message: "database path is not valid UTF-8".into(),
-                })
-            })?
-            .to_string();
-        let db = exec_async(async move {
-            libsql::Builder::new_local(&path_str)
-                .build()
-                .await
-                .map_err(err)
-        })?;
-        let conn = db.connect().map_err(err)?;
-        let conn_arc = Arc::new(conn);
-        exec_async({
-            let c = Arc::clone(&conn_arc);
-            async move { c.execute_batch(&schema::CREATE_ALL).await.map_err(err) }
-        })?;
-        exec_async({
-            let c = Arc::clone(&conn_arc);
-            async move {
-                for pragma in schema::PRAGMAS {
-                    c.execute_batch(pragma).await.map_err(err)?;
-                }
-                Ok::<_, ErrorTrace<VfsError>>(())
-            }
-        })?;
-        Ok(Self {
-            db: None,
-            conn: conn_arc,
-            chunk_config: ChunkConfig::default(),
-        })
+    pub async fn new(db_path: impl AsRef<Path>) -> VfsResult<Self> {
+        Self::with_config(
+            db_path,
+            LibsqlDeltaConfig {
+                chunk_config: ChunkConfig::default(),
+                turso_remote: None,
+            },
+        )
+        .await
     }
 
     /// Open or create a database with explicit [`LibsqlDeltaConfig`].
@@ -469,61 +105,28 @@ impl LibsqlDelta {
     ///
     /// Returns [`VfsError::Io`] if parent directory creation fails, or
     /// [`VfsError::Backend`] if the database cannot be opened.
-    pub fn with_config(db_path: impl AsRef<Path>, config: LibsqlDeltaConfig) -> VfsResult<Self> {
-        let path = db_path.as_ref();
-        if let Some(parent) = path.parent() {
-            if !parent.exists() {
-                std::fs::create_dir_all(parent)
-                    .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
-            }
-        }
-        let path_str = path
-            .to_str()
-            .ok_or_else(|| {
-                ErrorTrace::new(VfsError::Backend {
-                    message: "database path is not valid UTF-8".into(),
-                })
-            })?
-            .to_string();
+    pub async fn with_config(
+        db_path: impl AsRef<Path>,
+        config: LibsqlDeltaConfig,
+    ) -> VfsResult<Self> {
+        let path_str = prepare_db_path(db_path.as_ref())?;
         let db = if let Some(ref remote) = config.turso_remote {
-            let url = remote.url.clone();
-            let token = remote.auth_token.clone();
-            let ps = path_str.clone();
-            exec_async(async move {
-                libsql::Builder::new_remote_replica(ps, url, token)
-                    .build()
-                    .await
-                    .map_err(err)
-            })?
+            libsql::Builder::new_remote_replica(
+                path_str,
+                remote.url.clone(),
+                remote.auth_token.clone(),
+            )
+            .build()
+            .await
+            .map_err(err)?
         } else {
-            let ps = path_str;
-            exec_async(async move {
-                libsql::Builder::new_local(&ps)
-                    .build()
-                    .await
-                    .map_err(err)
-            })?
+            libsql::Builder::new_local(&path_str)
+                .build()
+                .await
+                .map_err(err)?
         };
-        let conn = db.connect().map_err(err)?;
-        let conn_arc = Arc::new(conn);
-        exec_async({
-            let c = Arc::clone(&conn_arc);
-            async move { c.execute_batch(&schema::CREATE_ALL).await.map_err(err) }
-        })?;
-        exec_async({
-            let c = Arc::clone(&conn_arc);
-            async move {
-                for pragma in schema::PRAGMAS {
-                    c.execute_batch(pragma).await.map_err(err)?;
-                }
-                Ok::<_, ErrorTrace<VfsError>>(())
-            }
-        })?;
-        Ok(Self {
-            db: Some(Arc::new(db)),
-            conn: conn_arc,
-            chunk_config: config.chunk_config,
-        })
+        let replica = config.turso_remote.is_some();
+        Self::open_db(db, config.chunk_config, true, replica).await
     }
 
     /// Create an in-memory `libsql` database (useful for testing).
@@ -531,23 +134,33 @@ impl LibsqlDelta {
     /// # Errors
     ///
     /// Returns [`VfsError::Backend`] if the database cannot be opened.
-    pub fn in_memory() -> VfsResult<Self> {
-        let db = exec_async(async move {
-            libsql::Builder::new_local(":memory:")
-                .build()
-                .await
-                .map_err(err)
-        })?;
+    pub async fn in_memory() -> VfsResult<Self> {
+        let db = libsql::Builder::new_local(":memory:")
+            .build()
+            .await
+            .map_err(err)?;
+        Self::open_db(db, ChunkConfig::default(), false, false).await
+    }
+
+    /// Connects, creates the schema and, for a file database, sets the pragmas.
+    async fn open_db(
+        db: Database,
+        chunk_config: ChunkConfig,
+        pragmas: bool,
+        replica: bool,
+    ) -> VfsResult<Self> {
         let conn = db.connect().map_err(err)?;
-        let conn_arc = Arc::new(conn);
-        exec_async({
-            let c = Arc::clone(&conn_arc);
-            async move { c.execute_batch(&schema::CREATE_ALL).await.map_err(err) }
-        })?;
+        conn.execute_batch(&schema::CREATE_ALL).await.map_err(err)?;
+        if pragmas {
+            for pragma in schema::PRAGMAS {
+                conn.execute_batch(pragma).await.map_err(err)?;
+            }
+        }
         Ok(Self {
-            db: None,
-            conn: conn_arc,
-            chunk_config: ChunkConfig::default(),
+            db: Arc::new(db),
+            replica,
+            conn: Arc::new(conn),
+            chunk_config,
         })
     }
 
@@ -556,7 +169,7 @@ impl LibsqlDelta {
     /// # Errors
     ///
     /// Returns [`VfsError::Backend`] if the database or remote replica cannot be opened.
-    pub fn with_turso_replica(
+    pub async fn with_turso_replica(
         local_path: impl AsRef<Path>,
         turso_url: &str,
         auth_token: &str,
@@ -568,29 +181,21 @@ impl LibsqlDelta {
                 auth_token: auth_token.to_string(),
             }),
         };
-        Self::with_config(local_path, config)
+        Self::with_config(local_path, config).await
     }
 
     /// Synchronize the local replica with the Turso remote, if configured.
     ///
-    /// No-op when no remote is configured.
+    /// No-op for a database without a remote.
     ///
     /// # Errors
     ///
     /// Returns [`VfsError::Backend`] if the sync operation fails.
-    pub fn sync_remote(&self) -> VfsResult<()> {
-        if let Some(ref db) = self.db {
-            let db = db.clone();
-            exec_async(async move { db.sync().await.map(|_| ()).map_err(err) })?;
+    pub async fn sync_remote(&self) -> VfsResult<()> {
+        if self.replica {
+            self.db.sync().await.map_err(err)?;
         }
         Ok(())
-    }
-
-    /// Consume this instance and wrap it in a synchronous [`SyncLibsqlDelta`] bridge
-    /// with optimized seekable support.
-    #[must_use]
-    pub fn into_sync(self) -> SyncLibsqlDelta {
-        SyncLibsqlDelta::new(self)
     }
 }
 
