@@ -41,40 +41,12 @@ pub struct StoredTosAcceptance {
     pub ip_address: Option<String>,
 }
 
-// ─── Sync Auth Store ─────────────────────────────────────────────────────────
-
-/// Storage operations for WebAuthn passkeys.
-pub trait PasskeyStore {
-    fn store_passkey(&self, passkey: &StoredPasskey) -> Result<(), String>;
-    fn find_passkeys_by_user(&self, user_id: &str) -> Result<Vec<StoredPasskey>, String>;
-    fn find_passkey_by_id(&self, passkey_id: &str) -> Result<Option<StoredPasskey>, String>;
-    fn find_passkey_by_credential_id(&self, credential_id: &[u8]) -> Result<Option<StoredPasskey>, String>;
-    fn update_passkey_counter(&self, passkey_id: &str, counter: u32) -> Result<(), String>;
-    fn update_passkey_name(&self, passkey_id: &str, name: &str) -> Result<(), String>;
-    fn delete_passkey(&self, passkey_id: &str) -> Result<(), String>;
-}
-
-/// Storage operations for Terms of Service acceptances.
-pub trait TosStore {
-    fn store_tos_acceptance(&self, acceptance: &StoredTosAcceptance) -> Result<(), String>;
-    fn find_tos_acceptance(&self, user_id: &str, tos_version: &str) -> Result<Option<StoredTosAcceptance>, String>;
-    fn find_latest_tos_acceptance(&self, user_id: &str) -> Result<Option<StoredTosAcceptance>, String>;
-}
-
-/// Combined trait that provides all auth-related storage operations.
-pub trait AuthStore: PasskeyStore + TosStore {
-    /// Find a user by email (used by passkey login flow).
-    /// Returns (user_id, has_password).
-    fn find_user_by_email(&self, email: &str) -> Result<Option<(String, bool)>, String>;
-}
-
 // ─── Async Auth Store ────────────────────────────────────────────────────────
 
 /// Async storage operations for WebAuthn passkeys.
 ///
-/// Mirrors `PasskeyStore` with `*_async` methods for use with `AsyncQueryStore`
-/// backends (Turso/Libsql, D1). Multi-value methods return streams to avoid
-/// loading all passkeys into memory at once.
+/// For `AsyncQueryStore` backends (Turso/Libsql, D1). Multi-value methods
+/// return streams to avoid loading all passkeys into memory at once.
 #[async_trait::async_trait]
 pub trait AsyncPasskeyStore {
     async fn store_passkey_async(&self, passkey: &StoredPasskey) -> Result<(), String>;

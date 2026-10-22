@@ -11,9 +11,21 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_db::QueryStore;
+use foundation_db::{AsyncQueryStore, DataValue, SqlRow, StorageError};
+use futures_lite::StreamExt;
 
-use crate::storage::{JobState, JobRecord};
+use crate::storage::{JobRecord, JobState};
+
+/// The `cron_jobs` table: one row of persisted state per job.
+pub const CREATE_TABLE_SQL: &str = "\
+CREATE TABLE IF NOT EXISTS cron_jobs (
+    id TEXT PRIMARY KEY,
+    cron_expr TEXT NOT NULL,
+    last_run INTEGER NOT NULL DEFAULT 0,
+    last_status TEXT NOT NULL DEFAULT '',
+    error_count INTEGER NOT NULL DEFAULT 0,
+    next_run INTEGER NOT NULL DEFAULT 0
+)";
 
 // ── Core types ──────────────────────────────────────────────────────────
 
@@ -57,12 +69,15 @@ impl CronJob {
 // ── Scheduler ───────────────────────────────────────────────────────────
 
 /// The cron scheduler — owns registered jobs and drives their lifecycle.
-pub struct CronScheduler<QS: QueryStore + 'static> {
+///
+/// Job state persists in the `cron_jobs` table of an async SQL store; call
+/// [`ensure_table`](Self::ensure_table) once before the first `save`/`load`.
+pub struct CronScheduler<QS: AsyncQueryStore + ?Sized + 'static> {
     jobs: Vec<CronJob>,
     query_store: Arc<QS>,
 }
 
-impl<QS: QueryStore + 'static> CronScheduler<QS> {
+impl<QS: AsyncQueryStore + ?Sized + 'static> CronScheduler<QS> {
     #[must_use]
     pub fn new(query_store: Arc<QS>) -> Self {
         Self { jobs: Vec::new(), query_store }
@@ -75,46 +90,76 @@ impl<QS: QueryStore + 'static> CronScheduler<QS> {
     #[must_use]
     pub fn job_count(&self) -> usize { self.jobs.len() }
 
-    /// Persist all job states.
+    /// The registered jobs, in registration order.
+    #[must_use]
+    pub fn jobs(&self) -> &[CronJob] {
+        &self.jobs
+    }
+
+    /// Create the `cron_jobs` table if it doesn't exist.
+    ///
     /// # Errors
-    /// Returns `StorageError` if the DB write fails.
-    pub fn save(&self) -> Result<(), foundation_db::StorageError> {
+    ///
+    /// Returns `StorageError` if the statement fails.
+    pub async fn ensure_table(&self) -> Result<(), StorageError> {
+        self.query_store.execute_batch_async(CREATE_TABLE_SQL).await
+    }
+
+    /// Persist all job states.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StorageError` if a DB write fails.
+    pub async fn save(&self) -> Result<(), StorageError> {
         for job in &self.jobs {
             let r = JobRecord::from_job(job);
-            self.query_store.execute(
-                "INSERT OR REPLACE INTO cron_jobs (id, cron_expr, last_run, last_status, error_count, next_run) \
-                 VALUES (?, ?, ?, ?, ?, ?)",
-                &[
-                    foundation_db::DataValue::Text(r.id),
-                    foundation_db::DataValue::Text(r.cron_expr),
-                    foundation_db::DataValue::Integer(r.last_run),
-                    foundation_db::DataValue::Text(r.last_status),
-                    foundation_db::DataValue::Integer(r.error_count),
-                    foundation_db::DataValue::Integer(r.next_run),
-                ],
-            )?;
+            self.query_store
+                .execute_async(
+                    "INSERT OR REPLACE INTO cron_jobs (id, cron_expr, last_run, last_status, error_count, next_run) \
+                     VALUES (?, ?, ?, ?, ?, ?)",
+                    &[
+                        DataValue::Text(r.id),
+                        DataValue::Text(r.cron_expr),
+                        DataValue::Integer(r.last_run),
+                        DataValue::Text(r.last_status),
+                        DataValue::Integer(r.error_count),
+                        DataValue::Integer(r.next_run),
+                    ],
+                )
+                .await?;
         }
         Ok(())
     }
 
-    /// Load persisted job states.
+    /// Load persisted job states. A job with no saved row keeps its current
+    /// state.
+    ///
     /// # Errors
-    /// Returns `StorageError` if the DB read fails.
-    pub fn load(&mut self) -> Result<(), foundation_db::StorageError> {
+    ///
+    /// Returns `StorageError` if a DB read fails or a saved row can't be
+    /// decoded (a bad row is reported, not silently reset).
+    pub async fn load(&mut self) -> Result<(), StorageError> {
         for job in &mut self.jobs {
-            let stream = self.query_store.query(
-                "SELECT last_run, last_status, error_count, next_run FROM cron_jobs WHERE id = ?",
-                &[foundation_db::DataValue::Text(job.config.id.clone())],
-            )?;
-            for item in stream {
-                if let foundation_core::valtron::Stream::Next(Ok(row)) = item {
-                    job.state.last_run = row.get_by_name("last_run").unwrap_or(0);
-                    job.state.error_count = row.get_by_name("error_count").unwrap_or(0);
-                    job.state.last_status = row.get_by_name("last_status").unwrap_or_default();
-                    job.state.next_run = row.get_by_name("next_run").unwrap_or(0);
-                }
+            let mut rows = self
+                .query_store
+                .query_async(
+                    "SELECT last_run, last_status, error_count, next_run FROM cron_jobs WHERE id = ?",
+                    &[DataValue::Text(job.config.id.clone())],
+                )
+                .await?;
+            if let Some(row) = rows.next().await {
+                job.state = job_state_from_row(&row?)?;
             }
         }
         Ok(())
     }
+}
+
+fn job_state_from_row(row: &SqlRow) -> Result<JobState, StorageError> {
+    Ok(JobState {
+        last_run: row.get_by_name("last_run")?,
+        last_status: row.get_by_name("last_status")?,
+        error_count: row.get_by_name("error_count")?,
+        next_run: row.get_by_name("next_run")?,
+    })
 }

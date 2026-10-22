@@ -4,20 +4,19 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
 
 use super::super::models::{TosAcceptance, TosVersion};
-use super::super::storage::{HandlerStorage, StorageOpError};
-use foundation_db::KeyValueStore;
+use super::super::storage::{self, HandlerStorage, StorageOpError};
+use foundation_db::AsyncKeyValueStore;
 
 /// ToS service — manages ToS versions and user acceptances.
-pub struct TosService<KV: KeyValueStore> {
+pub struct TosService<KV: AsyncKeyValueStore> {
     storage: Arc<HandlerStorage<KV>>,
     /// In-memory ToS versions (in production, loaded from DB).
     versions: Mutex<Vec<TosVersion>>,
 }
 
-impl<KV: KeyValueStore> TosService<KV> {
+impl<KV: AsyncKeyValueStore> TosService<KV> {
     #[must_use]
     pub fn new(storage: Arc<HandlerStorage<KV>>) -> Self {
         Self {
@@ -34,46 +33,48 @@ impl<KV: KeyValueStore> TosService<KV> {
 
     /// Get the latest ToS version.
     pub fn get_latest(&self) -> Option<TosVersion> {
+        self.latest()
+    }
+
+    /// The latest ToS version, if any is registered.
+    fn latest(&self) -> Option<TosVersion> {
         let versions = self.versions.lock().unwrap();
         versions.iter().max_by_key(|v| v.effective_from).cloned()
     }
 
     /// Check if a user has accepted the latest ToS.
-    pub fn needs_acceptance(&self, user_id: &str) -> bool {
-        let versions = self.versions.lock().unwrap();
-        let latest = match versions.iter().max_by_key(|v| v.effective_from) {
-            Some(v) => v,
-            None => return false,
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the acceptance lookup fails.
+    pub async fn needs_acceptance(&self, user_id: &str) -> Result<bool, StorageOpError> {
+        let Some(latest) = self.latest() else {
+            return Ok(false);
         };
-        match super::super::storage::find_tos_acceptance(
-            self.storage.query_store.as_ref(),
-            user_id,
-            &latest.version,
-        ) {
-            Ok(Some(_)) => false,
-            Ok(None) | Err(_) => true,
-        }
+        let accepted =
+            storage::find_tos_acceptance(self.storage.query_store.as_ref(), user_id, &latest.version)
+                .await?;
+        Ok(accepted.is_none())
     }
 
     /// Record a user's acceptance of the current ToS.
-    pub fn accept(&self, user_id: &str, ip_address: Option<&str>) -> Result<(), StorageOpError> {
-        let versions = self.versions.lock().unwrap();
-        let latest = match versions.iter().max_by_key(|v| v.effective_from) {
-            Some(v) => v,
-            None => return Ok(()),
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the acceptance can't be stored.
+    pub async fn accept(&self, user_id: &str, ip_address: Option<&str>) -> Result<(), StorageOpError> {
+        let Some(latest) = self.latest() else {
+            return Ok(());
         };
 
         let acceptance = TosAcceptance {
             user_id: user_id.to_string(),
-            tos_version: latest.version.clone(),
+            tos_version: latest.version,
             accepted_at: Utc::now().timestamp_millis(),
             ip_address: ip_address.map(|s| s.to_string()),
         };
 
-        super::super::storage::store_tos_acceptance(
-            self.storage.query_store.as_ref(),
-            &acceptance,
-        )
+        storage::store_tos_acceptance(self.storage.query_store.as_ref(), &acceptance).await
     }
 
     /// Generate a ToS acceptance code for the login flow.

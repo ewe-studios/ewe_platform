@@ -1,108 +1,67 @@
 //! Turso storage backend integration tests.
 
-use foundation_core::valtron::BlockingFutureExt;
-use foundation_db::{Blocking, DataValue, EncryptionKey, KeyValueStore, QueryStore, TursoStorage};
-use std::sync::Mutex;
+use foundation_core::valtron::valtron_test;
+use foundation_db::{AsyncKeyValueStore, AsyncQueryStore, DataValue, EncryptionKey, SqlRow, TursoStorage};
 use tempfile::TempDir;
 
-/// Shared Valtron pool guard — initialized once and reused across all tests
-/// to avoid parallel tests interfering with each other's thread pool.
-static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
-
-/// Initialize the Valtron executor for tests.
-fn init_valtron() {
-    let mut guard = POOL_GUARD.lock().unwrap();
-    if guard.is_none() {
-        *guard = Some(foundation_core::valtron::initialize_pool(42, None));
-    }
+async fn open(url: &str, key: Option<EncryptionKey>) -> TursoStorage {
+    TursoStorage::with_encryption(url, key).await.unwrap()
 }
 
-/// Open a store (async constructor) and wrap it in the sync view.
-fn open(url: &str, key: Option<EncryptionKey>) -> Blocking<TursoStorage> {
-    let url = url.to_owned();
-    Blocking::new(
-        async move { TursoStorage::with_encryption(&url, key).await }
-            .block()
-            .unwrap(),
-    )
+async fn init_schema(storage: &TursoStorage) {
+    storage.init_schema().await.unwrap();
 }
 
-fn init_schema(storage: &Blocking<TursoStorage>) {
-    let storage = storage.shared();
-    async move { storage.init_schema().await }.block().unwrap();
+async fn query_rows(storage: &TursoStorage, sql: &str, params: &[DataValue]) -> Vec<SqlRow> {
+    storage.query_async(sql, params).await.unwrap().collect_all().await.unwrap()
 }
 
-fn migrate(storage: &Blocking<TursoStorage>, migrations: &[(&str, &str)]) {
-    let storage = storage.shared();
-    let owned: Vec<(String, String)> = migrations
-        .iter()
-        .map(|(id, sql)| ((*id).to_owned(), (*sql).to_owned()))
-        .collect();
-    async move {
-        let refs: Vec<(&str, &str)> = owned.iter().map(|(i, q)| (i.as_str(), q.as_str())).collect();
-        storage.migrate(&refs).await
-    }
-    .block()
-    .unwrap();
-}
-
-#[test]
-fn test_turso_storage_basic() {
-    init_valtron();
+#[valtron_test]
+async fn test_turso_storage_basic() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = open(url, None);
-    init_schema(&storage);
+    let storage = open(url, None).await;
+    init_schema(&storage).await;
 
     storage
-        .set::<String>("test_key", "test_value".to_string())
+        .set_async("test_key", "test_value".to_string())
+        .await
         .unwrap();
 
-    let value: Option<String> = storage.get("test_key").unwrap();
+    let value: Option<String> = storage.get_async("test_key").await.unwrap();
     assert_eq!(value, Some("test_value".to_string()));
 
-    let exists: bool = storage.exists("test_key").unwrap();
+    let exists: bool = storage.exists_async("test_key").await.unwrap();
     assert!(exists);
 
-    let not_exists: bool = storage.exists("nonexistent").unwrap();
+    let not_exists: bool = storage.exists_async("nonexistent").await.unwrap();
     assert!(!not_exists);
 
-    storage.delete("test_key").unwrap();
+    storage.delete_async("test_key").await.unwrap();
 
-    let deleted: bool = storage.exists("test_key").unwrap();
+    let deleted: bool = storage.exists_async("test_key").await.unwrap();
     assert!(!deleted);
 }
 
-#[test]
-fn test_turso_storage_encryption() {
-    init_valtron();
+#[valtron_test]
+async fn test_turso_storage_encryption() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
     let key = EncryptionKey::generate();
-    let storage = open(url, Some(key.clone()));
-    init_schema(&storage);
+    let storage = open(url, Some(key.clone())).await;
+    init_schema(&storage).await;
 
     let secret_value = "sensitive_data_12345".to_string();
-    storage.set("secret_key", secret_value.clone()).unwrap();
+    storage.set_async("secret_key", secret_value.clone()).await.unwrap();
 
-    let value: Option<String> = storage.get("secret_key").unwrap();
+    let value: Option<String> = storage.get_async("secret_key").await.unwrap();
     assert_eq!(value, Some(secret_value.clone()));
 
-    let raw_result = storage
-        .query(
-            "SELECT value FROM kv_store WHERE key = ?",
-            &[DataValue::Text("secret_key".to_string())],
-        )
-        .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect::<Vec<_>>();
+    let raw_result = query_rows(&storage, "SELECT value FROM kv_store WHERE key = ?", &[DataValue::Text("secret_key".to_string())]).await;
 
     assert!(!raw_result.is_empty(), "Should have a result");
     let stored_value = raw_result[0].get::<String>(0).unwrap();
@@ -116,79 +75,77 @@ fn test_turso_storage_encryption() {
     );
 }
 
-#[test]
-fn test_turso_storage_encryption_wrong_key() {
-    init_valtron();
+#[valtron_test]
+async fn test_turso_storage_encryption_wrong_key() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
     let key1 = EncryptionKey::generate();
-    let storage1 = open(url, Some(key1.clone()));
-    init_schema(&storage1);
+    let storage1 = open(url, Some(key1.clone())).await;
+    init_schema(&storage1).await;
 
     let secret_value = "sensitive_data".to_string();
-    storage1.set("secret_key", secret_value.clone()).unwrap();
+    storage1.set_async("secret_key", secret_value.clone()).await.unwrap();
 
     let key2 = EncryptionKey::generate();
-    let storage2 = open(url, Some(key2.clone()));
+    let storage2 = open(url, Some(key2.clone())).await;
 
-    let result = storage2.get::<String>("secret_key");
+    let result = storage2.get_async::<String>("secret_key").await;
     assert!(
         result.is_err(),
         "Should fail with wrong key, got: {result:?}"
     );
 }
 
-#[test]
-fn test_turso_storage_list_keys() {
-    init_valtron();
+#[valtron_test]
+async fn test_turso_storage_list_keys() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = open(url, None);
-    init_schema(&storage);
+    let storage = open(url, None).await;
+    init_schema(&storage).await;
 
     storage
-        .set::<String>("prefix:key1", "value1".to_string())
+        .set_async("prefix:key1", "value1".to_string())
+        .await
         .unwrap();
     storage
-        .set::<String>("prefix:key2", "value2".to_string())
+        .set_async("prefix:key2", "value2".to_string())
+        .await
         .unwrap();
     storage
-        .set::<String>("other:key3", "value3".to_string())
+        .set_async("other:key3", "value3".to_string())
+        .await
         .unwrap();
 
     let keys: Vec<String> = storage
-        .list_keys(None)
+        .list_keys_async(None)
+        .await
         .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect();
+        .collect_all()
+        .await
+        .unwrap();
     assert_eq!(keys.len(), 3);
 
     let keys: Vec<String> = storage
-        .list_keys(Some("prefix:"))
+        .list_keys_async(Some("prefix:"))
+        .await
         .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect();
+        .collect_all()
+        .await
+        .unwrap();
     assert_eq!(keys.len(), 2);
 }
 
-#[test]
-fn test_turso_storage_migrations() {
-    init_valtron();
+#[valtron_test]
+async fn test_turso_storage_migrations() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = open(url, None);
+    let storage = open(url, None).await;
 
     let migrations = &[
         (
@@ -201,45 +158,15 @@ fn test_turso_storage_migrations() {
         ),
     ];
 
-    migrate(&storage, migrations);
+    storage.migrate(migrations).await.unwrap();
 
-    let users_exist = !storage
-        .query(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'",
-            &[],
-        )
-        .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect::<Vec<_>>()
+    let users_exist = !query_rows(&storage, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'", &[]).await
         .is_empty();
 
-    let sessions_exist = !storage
-        .query(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='sessions'",
-            &[],
-        )
-        .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect::<Vec<_>>()
+    let sessions_exist = !query_rows(&storage, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='sessions'", &[]).await
         .is_empty();
 
-    let migrations_exist = !storage
-        .query(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='_migrations'",
-            &[],
-        )
-        .unwrap()
-        .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
-            _ => vec![],
-        })
-        .collect::<Vec<_>>()
+    let migrations_exist = !query_rows(&storage, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='_migrations'", &[]).await
         .is_empty();
 
     assert!(users_exist, "users table should be accessible");
@@ -249,19 +176,18 @@ fn test_turso_storage_migrations() {
 
 /// Migration 024/025: upstream_providers + user_provider_links tables are
 /// created by init_schema and support real INSERT/SELECT round-trips.
-#[test]
-fn test_social_login_tables_functional() {
-    init_valtron();
+#[valtron_test]
+async fn test_social_login_tables_functional() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
     let url = db_path.to_str().unwrap();
 
-    let storage = open(url, None);
-    init_schema(&storage);
+    let storage = open(url, None).await;
+    init_schema(&storage).await;
 
     // Insert a provider row (mirrors ProviderService::create's columns).
     storage
-        .execute(
+        .execute_async(
             "INSERT INTO upstream_providers \
              (id, name, provider_type, client_id, encryption_key_id, discovery_url, scopes, is_active, mapping_config, created_at, updated_at) \
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -279,20 +205,11 @@ fn test_social_login_tables_functional() {
                 DataValue::Integer(1000),
             ],
         )
+        .await
         .unwrap();
 
     // Read it back.
-    let rows = storage
-        .query(
-            "SELECT name, client_id, is_active FROM upstream_providers WHERE id = ?",
-            &[DataValue::Text("google".into())],
-        )
-        .unwrap()
-        .flat_map(|item| match item {
-            foundation_core::valtron::Stream::Next(Ok(r)) => vec![r],
-            _ => vec![],
-        })
-        .collect::<Vec<_>>();
+    let rows = query_rows(&storage, "SELECT name, client_id, is_active FROM upstream_providers WHERE id = ?", &[DataValue::Text("google".into())]).await;
     assert_eq!(rows.len(), 1, "provider row should be readable");
     assert_eq!(rows[0].get::<String>(0).unwrap(), "Google");
     assert_eq!(rows[0].get::<String>(1).unwrap(), "client-abc");
@@ -300,7 +217,7 @@ fn test_social_login_tables_functional() {
 
     // A user + a link referencing the provider.
     storage
-        .execute(
+        .execute_async(
             "INSERT INTO users (id, email, created_at, updated_at) VALUES (?, ?, ?, ?)",
             &[
                 DataValue::Text("user-1".into()),
@@ -309,9 +226,10 @@ fn test_social_login_tables_functional() {
                 DataValue::Integer(1000),
             ],
         )
+        .await
         .unwrap();
     storage
-        .execute(
+        .execute_async(
             "INSERT INTO user_provider_links \
              (id, user_id, provider_id, upstream_subject, upstream_email, created_at) \
              VALUES (?, ?, ?, ?, ?, ?)",
@@ -324,10 +242,11 @@ fn test_social_login_tables_functional() {
                 DataValue::Integer(1000),
             ],
         )
+        .await
         .unwrap();
 
     // The unique (provider_id, upstream_subject) index must reject a duplicate.
-    let dup = storage.execute(
+    let dup = storage.execute_async(
         "INSERT INTO user_provider_links \
          (id, user_id, provider_id, upstream_subject, created_at) \
          VALUES (?, ?, ?, ?, ?)",
@@ -338,27 +257,17 @@ fn test_social_login_tables_functional() {
             DataValue::Text("google-sub-123".into()),
             DataValue::Integer(1001),
         ],
-    );
+    ).await;
     assert!(
         dup.is_err(),
         "duplicate (provider_id, upstream_subject) must be rejected by unique index"
     );
 
     // Lookup by (provider_id, upstream_subject) returns the linked user.
-    let link_rows = storage
-        .query(
-            "SELECT user_id FROM user_provider_links WHERE provider_id = ? AND upstream_subject = ?",
-            &[
+    let link_rows = query_rows(&storage, "SELECT user_id FROM user_provider_links WHERE provider_id = ? AND upstream_subject = ?", &[
                 DataValue::Text("google".into()),
                 DataValue::Text("google-sub-123".into()),
-            ],
-        )
-        .unwrap()
-        .flat_map(|item| match item {
-            foundation_core::valtron::Stream::Next(Ok(r)) => vec![r],
-            _ => vec![],
-        })
-        .collect::<Vec<_>>();
+            ]).await;
     assert_eq!(link_rows.len(), 1);
     assert_eq!(link_rows[0].get::<String>(0).unwrap(), "user-1");
 }

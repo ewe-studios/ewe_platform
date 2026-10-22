@@ -98,6 +98,24 @@ impl ResourceState {
     }
 }
 
+/// The `status` column value (the status's JSON encoding, as SQL backends
+/// store it) for a status given in its `Display` form — so a SQL
+/// `WHERE status = ?` matches exactly the states the trait's default
+/// `find_by_status` would (`state.status.to_string() == status`).
+///
+/// # Errors
+///
+/// Returns an error if the status can't be encoded.
+#[cfg(all(not(target_family = "wasm"), any(feature = "libsql", feature = "d1")))]
+pub(crate) fn status_column_value(status: &str) -> Result<String, serde_json::Error> {
+    match status.strip_prefix("failed: ") {
+        Some(error) => serde_json::to_string(&StateStatus::Failed {
+            error: error.to_string(),
+        }),
+        None => serde_json::to_string(status),
+    }
+}
+
 impl core::fmt::Display for StateStatus {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {

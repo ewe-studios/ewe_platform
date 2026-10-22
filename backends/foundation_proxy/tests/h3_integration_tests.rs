@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{initialize_pool, Stream};
+use foundation_core::valtron::{initialize_pool, Stream, BlockingFutureExt};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
@@ -174,7 +174,7 @@ fn h3_proxy_forwards_to_http1_backend() {
         .h3_bind("127.0.0.1:0")
         .service(svc);
 
-    let proxy = ProxyServer::start(config).expect("start proxy with H3");
+    let proxy = ProxyServer::start(config).block().expect("start proxy with H3");
     let h3_addr = proxy.h3_local_addr().expect("H3 front end bound");
     std::thread::sleep(ms(300));
 

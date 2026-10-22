@@ -175,7 +175,7 @@ async fn the_server_lifecycle_against_the_real_api() {
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).expect("scratch dir");
     let store = FileStateStore::new(&dir, "ewe-live", "test");
-    store.init().expect("init state store");
+    store.init().await.expect("init state store");
     let provider = ProviderClient::new("ewe-live", "test", store, NativeHttpClient::default());
 
     let deployable = HetznerServer::new(client.clone(), &name)
@@ -203,6 +203,7 @@ async fn the_server_lifecycle_against_the_real_api() {
         let recorded: ServerDeployOutput = deployable
             .store(&provider)
             .get_typed("0")
+            .await
             .map_err(|e| format!("read state: {e}"))?
             .ok_or("deploy recorded nothing")?;
 
@@ -286,6 +287,7 @@ async fn the_server_lifecycle_against_the_real_api() {
         deployable
             .store(&provider)
             .remove("0")
+            .await
             .map_err(|e| format!("drop state: {e}"))?;
         eprintln!("  live: dropped the state record — Hetzner has {} and we have nothing", first.id);
 

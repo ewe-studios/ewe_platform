@@ -20,5 +20,5 @@
 pub mod scheduler;
 pub mod storage;
 
-pub use scheduler::{CronScheduler, CronJob, JobConfig, MissedJobPolicy};
+pub use scheduler::{CronJob, CronScheduler, JobConfig, MissedJobPolicy, CREATE_TABLE_SQL};
 pub use storage::{JobState, JobRecord};

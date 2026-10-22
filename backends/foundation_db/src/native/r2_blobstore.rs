@@ -4,16 +4,16 @@
 //! and JSON resource state.
 //!
 //! WHAT: `R2Store` implements `AsyncBlobStore` and `StateStore` for Cloudflare R2.
-//! Sync blob callers wrap it in `foundation_db::Blocking`.
+//! Every operation is async; listings are paged through R2's cursor.
 //!
 //! HOW: Different constructors for different usage modes:
-//!   - `R2Store::new_blob()` — `BlobStore` (raw binary, key: `{prefix}/key`)
+//!   - `R2Store::new_blob()` — `AsyncBlobStore` (raw binary, key: `{prefix}/key`)
 //!   - `R2Store::new_state()` — `StateStore` (JSON objects, key: `{project}/{stage}/{id}.json`)
 
-use foundation_core::valtron::ThreadedValue;
+use futures_lite::{StreamExt, stream};
 use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_bytes_async, collect_string_async};
 use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::shared::http::{SimpleHeader, Status};
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::traits::{StateStore, StateStoreStream};
@@ -67,7 +67,12 @@ impl R2Store {
         }
     }
 
-    /// `BlobStore` from environment.
+    /// `AsyncBlobStore` from environment.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageError::Connection`] if a required environment
+    /// variable is unset.
     pub fn from_env() -> Result<Self, StorageError> {
         let bucket = std::env::var("DEPLOYMENT_R2_BUCKET").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_R2_BUCKET must be set".to_string())
@@ -105,6 +110,11 @@ impl R2Store {
     }
 
     /// `StateStore` from environment.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageError::Connection`] if a required environment
+    /// variable is unset.
     pub fn from_env_state(project: &str, stage: &str) -> Result<Self, StorageError> {
         let bucket = std::env::var("DEPLOYMENT_R2_BUCKET").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_R2_BUCKET must be set".to_string())
@@ -147,23 +157,6 @@ impl R2Store {
             R2Mode::Blob { bucket, .. } | R2Mode::State { bucket, .. } => (bucket, &self.account_id, &self.base_url),
         };
         format!("{base_url}/accounts/{account_id}/r2/buckets/{bucket}/objects/{key}")
-    }
-
-    fn body_text(body: &SendSafeBody) -> Option<String> {
-        match body {
-            SendSafeBody::Text(s) => Some(s.clone()),
-            SendSafeBody::Bytes(b) => String::from_utf8(b.clone()).ok(),
-            _ => None,
-        }
-    }
-
-
-    fn wrap_value_state<T: Send + 'static>(val: T) -> StateStoreStream<T> {
-        Box::new(std::iter::once(ThreadedValue::Value(Ok(val))))
-    }
-
-    fn wrap_vec_state<T: Send + 'static>(vals: Vec<T>) -> StateStoreStream<T> {
-        Box::new(vals.into_iter().map(|v| ThreadedValue::Value(Ok(v))))
     }
 
     fn bucket(&self) -> &str {
@@ -271,13 +264,25 @@ impl R2Store {
         Ok(response.get_status() == Status::OK)
     }
 
-    /// Async LIST — returns parsed JSON listing response.
-    #[allow(dead_code)]
-    async fn list_objects_async(&self, prefix: &str) -> Result<serde_json::Value, StorageError> {
-        let url = format!(
+    /// Async LIST — one page of the object listing under `prefix`, starting
+    /// at `cursor`. Returns the page's keys and the cursor of the next page
+    /// (`None` on the last page).
+    async fn list_objects_page(
+        &self,
+        prefix: &str,
+        cursor: Option<&str>,
+    ) -> Result<(Vec<String>, Option<String>), StorageError> {
+        let mut url = format!(
             "{}/accounts/{}/r2/buckets/{}/objects?prefix={}",
-            self.base_url, self.account_id, self.bucket(), prefix
+            self.base_url,
+            self.account_id,
+            self.bucket(),
+            query_escape(prefix)
         );
+        if let Some(cursor) = cursor {
+            url.push_str("&cursor=");
+            url.push_str(&query_escape(cursor));
+        }
         let response = self
             .client
             .get(&url)
@@ -296,9 +301,89 @@ impl R2Store {
         let text = collect_string_async(AsyncSendSafeBody::from(body))
             .await
             .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
-        serde_json::from_str(&text)
-            .map_err(|e| StorageError::Serialization(format!("R2 LIST parse failed: {e}")))
+        let parsed: serde_json::Value = serde_json::from_str(&text)
+            .map_err(|e| StorageError::Serialization(format!("R2 LIST parse failed: {e}")))?;
+
+        // The Cloudflare API returns `result` as the object array; older
+        // responses nest it under `result.objects`. Accept both.
+        let objects = parsed
+            .pointer("/result")
+            .and_then(|r| r.as_array().or_else(|| r.get("objects").and_then(serde_json::Value::as_array)))
+            .ok_or_else(|| StorageError::Serialization("R2 LIST: response has no object list".to_string()))?;
+        let keys = objects
+            .iter()
+            .filter_map(|obj| obj.get("key").and_then(serde_json::Value::as_str).map(str::to_string))
+            .collect();
+        let truncated = parsed
+            .pointer("/result_info/is_truncated")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        let next = if truncated {
+            let cursor = parsed
+                .pointer("/result_info/cursor")
+                .and_then(serde_json::Value::as_str)
+                .filter(|c| !c.is_empty())
+                .ok_or_else(|| StorageError::Serialization("R2 LIST: truncated page has no cursor".to_string()))?;
+            Some(cursor.to_string())
+        } else {
+            None
+        };
+        Ok((keys, next))
     }
+
+    /// State IDs whose ID starts with `id_prefix`, sorted, across every page
+    /// of the listing. Only IDs are held, never the state objects.
+    async fn state_ids(&self, id_prefix: &str) -> Result<Vec<String>, StorageError> {
+        let store_prefix = self.state_prefix();
+        let list_prefix = format!("{store_prefix}{}", id_prefix.replace('/', ":"));
+        let mut ids = Vec::new();
+        let mut cursor: Option<String> = None;
+        loop {
+            let (keys, next) = self.list_objects_page(&list_prefix, cursor.as_deref()).await?;
+            ids.extend(keys.iter().filter_map(|key| {
+                key.strip_prefix(&store_prefix)
+                    .and_then(|rest| rest.strip_suffix(".json"))
+                    .map(|id| id.replace(':', "/"))
+            }));
+            match next {
+                Some(c) => cursor = Some(c),
+                None => break,
+            }
+        }
+        ids.sort();
+        Ok(ids)
+    }
+
+    /// A stream that fetches each of `ids` as it is pulled, skipping IDs
+    /// that no longer exist.
+    fn states_for(&self, ids: Vec<String>) -> StateStoreStream<ResourceState> {
+        let store = self.clone();
+        Box::pin(
+            stream::iter(ids)
+                .then(move |id| {
+                    let store = store.clone();
+                    async move { store.get(&id).await }
+                })
+                .filter_map(Result::transpose),
+        )
+    }
+}
+
+/// Percent-encode a query-string value (everything but RFC 3986 unreserved
+/// characters).
+fn query_escape(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b'~') {
+            out.push(char::from(byte));
+        } else {
+            const HEX: &[u8; 16] = b"0123456789ABCDEF";
+            out.push('%');
+            out.push(char::from(HEX[usize::from(byte >> 4)]));
+            out.push(char::from(HEX[usize::from(byte & 0x0F)]));
+        }
+    }
+    out
 }
 
 // ===========================================================================
@@ -328,256 +413,62 @@ impl AsyncBlobStore for R2Store {
 // StateStore
 // ===========================================================================
 
+#[async_trait::async_trait]
 impl StateStore for R2Store {
-    fn init(&self) -> Result<(), StorageError> {
+    async fn init(&self) -> StorageResult<()> {
         // R2 buckets are pre-created — nothing to initialize.
         Ok(())
     }
 
-    fn get(&self, resource_id: &str) -> Result<StateStoreStream<Option<ResourceState>>, StorageError> {
-        let key = self.state_object_key(resource_id);
-        let url = self.object_url(&key);
-        let response = self
-            .client
-            .get(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 GET request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("R2 GET request failed: {e}")))?;
-        if response.get_status() == Status::NotFound {
-            return Ok(Self::wrap_value_state(None));
-        }
-        if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("R2 GET failed with status {}", response.get_status())));
-        }
-        let text = Self::body_text(response.get_body_ref())
-            .ok_or_else(|| StorageError::Backend("R2 GET: empty response body".to_string()))?;
-        let state: ResourceState = serde_json::from_str(&text)
+    async fn list(&self) -> StorageResult<StateStoreStream<String>> {
+        self.list_by_prefix("").await
+    }
+
+    async fn count(&self) -> StorageResult<usize> {
+        Ok(self.state_ids("").await?.len())
+    }
+
+    async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>> {
+        let Some(bytes) = self.get_object_async(&self.state_object_key(resource_id)).await? else {
+            return Ok(None);
+        };
+        let state = serde_json::from_slice(&bytes)
             .map_err(|e| StorageError::Serialization(format!("R2 GET parse failed: {e}")))?;
-        Ok(Self::wrap_value_state(Some(state)))
+        Ok(Some(state))
     }
 
-    fn set(&self, _resource_id: &str, state: &ResourceState) -> Result<StateStoreStream<()>, StorageError> {
-        let key = self.state_object_key(&state.id);
-        let url = self.object_url(&key);
-        let body = serde_json::to_string_pretty(state)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        let response = self
-            .client
-            .put(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 PUT request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .header(SimpleHeader::CONTENT_TYPE, "application/json")
-            .body_text(body)
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("R2 PUT request failed: {e}")))?;
-        let status_code: usize = response.get_status().into();
-        if status_code >= 400 {
-            return Err(StorageError::Backend(format!("R2 PUT failed with status {}", response.get_status())));
-        }
-        Ok(Self::wrap_value_state(()))
+    async fn get_batch(&self, ids: &[&str]) -> StorageResult<StateStoreStream<ResourceState>> {
+        Ok(self.states_for(ids.iter().map(|id| (*id).to_string()).collect()))
     }
 
-    fn delete(&self, resource_id: &str) -> Result<StateStoreStream<()>, StorageError> {
-        let key = self.state_object_key(resource_id);
-        let url = self.object_url(&key);
-        let response = self
-            .client
-            .delete(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 DELETE request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("R2 DELETE request failed: {e}")))?;
-        let status_code: usize = response.get_status().into();
-        if status_code >= 400 && response.get_status() != Status::NotFound {
-            return Err(StorageError::Backend(format!("R2 DELETE failed with status {}", response.get_status())));
-        }
-        Ok(Self::wrap_value_state(()))
+    async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>> {
+        self.all_by_prefix("").await
     }
 
-    fn list(&self) -> Result<StateStoreStream<String>, StorageError> {
-        let prefix = self.state_prefix();
-        let url = format!(
-            "{}/accounts/{}/r2/buckets/{}/objects?prefix={}",
-            self.base_url, self.account_id, self.bucket(), prefix
-        );
-        let response = self
-            .client
-            .get(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 LIST request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("R2 LIST request failed: {e}")))?;
-        if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("R2 LIST failed with status {}", response.get_status())));
-        }
-        let text = Self::body_text(response.get_body_ref())
-            .ok_or_else(|| StorageError::Backend("R2 LIST: empty response body".to_string()))?;
-        let parsed: serde_json::Value = serde_json::from_str(&text)
-            .map_err(|e| StorageError::Serialization(format!("R2 LIST parse failed: {e}")))?;
-        let mut ids = Vec::new();
-        if let Some(objects) = parsed.pointer("/result/objects").and_then(serde_json::Value::as_array) {
-            for obj in objects {
-                if let Some(key) = obj.get("key").and_then(serde_json::Value::as_str) {
-                    if let Some(stripped) = key.strip_prefix(&prefix) {
-                        if let Some(id_part) = stripped.strip_suffix(".json") {
-                            ids.push(id_part.replace(':', "/"));
-                        }
-                    }
-                }
-            }
-        }
-        ids.sort();
-        Ok(Self::wrap_vec_state(ids))
+    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
+        let body = serde_json::to_vec_pretty(state).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.put_object_async(&self.state_object_key(&state.id), &body, "application/json")
+            .await
     }
 
-    fn count(&self) -> Result<StateStoreStream<usize>, StorageError> {
-        let list_stream = self.list()?;
-        let mut count = 0usize;
-        for item in list_stream {
-            match item {
-                ThreadedValue::Value(Ok(_)) => count += 1,
-                ThreadedValue::Value(Err(e)) => return Err(e),
-                ThreadedValue::Waiting => {}
-            }
-        }
-        Ok(Self::wrap_value_state(count))
+    async fn delete(&self, resource_id: &str) -> StorageResult<()> {
+        self.delete_object_async(&self.state_object_key(resource_id)).await
     }
 
-    fn get_batch(&self, ids: &[&str]) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let mut results = Vec::new();
-        for id in ids {
-            let stream = self.get(id)?;
-            for item in stream {
-                match item {
-                    ThreadedValue::Value(Ok(Some(state))) => results.push(state),
-                    ThreadedValue::Value(Ok(None)) => {}
-                    ThreadedValue::Value(Err(e)) => return Err(e),
-                    ThreadedValue::Waiting => {}
-                }
-            }
-        }
-        Ok(Self::wrap_vec_state(results))
+    async fn list_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<String>> {
+        let ids = self.state_ids(prefix).await?;
+        Ok(Box::pin(stream::iter(ids.into_iter().map(Ok))))
     }
 
-    fn all(&self) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let list_stream = self.list()?;
-        let mut ids = Vec::new();
-        for item in list_stream {
-            match item {
-                ThreadedValue::Value(Ok(id)) => ids.push(id),
-                ThreadedValue::Value(Err(e)) => return Err(e),
-                ThreadedValue::Waiting => {}
-            }
-        }
-        let id_refs: Vec<&str> = ids.iter().map(String::as_str).collect();
-        self.get_batch(&id_refs)
+    async fn count_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
+        Ok(self.state_ids(prefix).await?.len())
     }
 
-    fn list_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<String>, StorageError> {
-        let store_prefix = self.state_prefix();
-        let url = format!(
-            "{}/accounts/{}/r2/buckets/{}/objects?prefix={}{}",
-            self.base_url, self.account_id, self.bucket(), store_prefix, prefix
-        );
-        let response = self
-            .client
-            .get(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 LIST request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send()
-            .map_err(|e| StorageError::Backend(format!("R2 LIST request failed: {e}")))?;
-        if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("R2 LIST failed with status {}", response.get_status())));
-        }
-        let text = Self::body_text(response.get_body_ref())
-            .ok_or_else(|| StorageError::Backend("R2 LIST: empty response body".to_string()))?;
-        let parsed: serde_json::Value = serde_json::from_str(&text)
-            .map_err(|e| StorageError::Serialization(format!("R2 LIST parse failed: {e}")))?;
-        let mut ids = Vec::new();
-        if let Some(objects) = parsed.pointer("/result/objects").and_then(serde_json::Value::as_array) {
-            for obj in objects {
-                if let Some(key) = obj.get("key").and_then(serde_json::Value::as_str) {
-                    let rest = key.strip_prefix(&store_prefix).unwrap_or(key);
-                    if let Some(id_part) = rest.strip_suffix(".json") {
-                        ids.push(id_part.replace(':', "/"));
-                    }
-                }
-            }
-        }
-        ids.sort();
-        Ok(Self::wrap_vec_state(ids))
+    async fn all_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<ResourceState>> {
+        let ids = self.state_ids(prefix).await?;
+        Ok(self.states_for(ids))
     }
 
-    fn count_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
-        let stream = self.list_by_prefix(prefix)?;
-        let mut count = 0usize;
-        for item in stream {
-            match item {
-                ThreadedValue::Value(Ok(_)) => count += 1,
-                ThreadedValue::Value(Err(e)) => return Err(e),
-                ThreadedValue::Waiting => {}
-            }
-        }
-        Ok(Self::wrap_value_state(count))
-    }
-
-    fn all_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let list_stream = self.list_by_prefix(prefix)?;
-        let mut ids = Vec::new();
-        for item in list_stream {
-            match item {
-                ThreadedValue::Value(Ok(id)) => ids.push(id),
-                ThreadedValue::Value(Err(e)) => return Err(e),
-                ThreadedValue::Waiting => {}
-            }
-        }
-        let id_refs: Vec<&str> = ids.iter().map(String::as_str).collect();
-        self.get_batch(&id_refs)
-    }
-
-    fn find_by_kind(&self, _kind: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        // R2 has no efficient way to filter by kind without scanning — return all and let caller filter.
-        self.all()
-    }
-
-    fn find_by_status(&self, _status: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        // R2 has no efficient way to filter by status without scanning — return all and let caller filter.
-        self.all()
-    }
-
-    fn find_by_provider(&self, _provider: &str) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        // R2 has no efficient way to filter by provider without scanning — return all and let caller filter.
-        self.all()
-    }
-
-    fn delete_by_prefix(&self, prefix: &str) -> Result<StateStoreStream<usize>, StorageError> {
-        let list_stream = self.list_by_prefix(prefix)?;
-        let mut ids_to_delete = Vec::new();
-        for item in list_stream {
-            match item {
-                ThreadedValue::Value(Ok(id)) => ids_to_delete.push(id),
-                ThreadedValue::Value(Err(e)) => return Err(e),
-                ThreadedValue::Waiting => {}
-            }
-        }
-        for id in &ids_to_delete {
-            for item in self.delete(id)? {
-                if let ThreadedValue::Value(Err(e)) = item {
-                    return Err(e);
-                }
-            }
-        }
-        Ok(Self::wrap_value_state(ids_to_delete.len()))
-    }
+    // `find_by_*` and `delete_by_prefix` use the trait defaults: R2 can't
+    // filter on the server, so they scan `all()` and filter / list then delete.
 }

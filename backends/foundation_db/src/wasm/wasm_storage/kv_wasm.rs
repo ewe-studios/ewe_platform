@@ -5,7 +5,9 @@
 //! reports SQL as unsupported). There are no sync impls: a sync call would
 //! block the isolate waiting on a JS Promise that could then never resolve.
 
+use crate::core::backends::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
     AsyncRateLimiterStore, DataValue,
@@ -44,7 +46,7 @@ impl KVWasmStorage {
 }
 
 // ===========================================================================
-// KeyValueStore
+// AsyncKeyValueStore
 // ===========================================================================
 
 impl KVWasmStorage {
@@ -188,7 +190,7 @@ impl AsyncKeyValueStore for KVWasmStorage {
 }
 
 // ===========================================================================
-// QueryStore (not supported for KV)
+// AsyncQueryStore (not supported for KV)
 // ===========================================================================
 
 /// Workers KV has no SQL engine: every query method fails with
@@ -219,110 +221,55 @@ impl AsyncQueryStore for KVWasmStorage {
 }
 
 // ===========================================================================
-// RateLimiterStore
+// AsyncRateLimiterStore
 // ===========================================================================
 
 impl KVWasmStorage {
-    /// Check if a rate limit key is allowed.
+    /// The stored entry for `key`'s rate limit, if any.
+    async fn rate_limit_entry(&self, rate_key: &str) -> Result<Option<RateLimitEntry>, StorageError> {
+        let promise = self.kv.get(&self.prefixed_key(rate_key));
+        let result = SendWrapper::new(JsFuture::from(promise))
+            .await
+            .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
+        if result.is_null() || result.is_undefined() {
+            return Ok(None);
+        }
+        let json = result.as_string().ok_or_else(|| {
+            StorageError::Serialization("KV rate limit value is not a string".to_string())
+        })?;
+        serde_json::from_str(&json)
+            .map(Some)
+            .map_err(|e| StorageError::Serialization(e.to_string()))
+    }
+
+    /// Check if a rate limit key is allowed (see [`AsyncRateLimiterStore`]).
     pub async fn check_rate_limit_async(
         &self,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> Result<bool, StorageError> {
-        let rate_key = format!("_rate_limit:{key}");
-
-        let promise = self.kv.get(&self.prefixed_key(&rate_key));
-        let result = SendWrapper::new(JsFuture::from(promise))
-            .await
-            .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
-
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-
-        let allowed = if result.is_null() || result.is_undefined() {
-            true
-        } else {
-            let json = result.as_string().ok_or_else(|| {
-                StorageError::Serialization("KV rate limit value is not a string".to_string())
-            })?;
-
-            #[derive(serde::Deserialize)]
-            struct Entry {
-                count: u32,
-                window_start: u64,
-            }
-
-            let entry: Entry = serde_json::from_str(&json)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-
-            if entry.window_start < now.saturating_sub(window_seconds) {
-                true
-            } else {
-                entry.count < max_count
-            }
-        };
-
-        Ok(allowed)
+        let now = unix_now_secs()?;
+        Ok(self
+            .rate_limit_entry(&format!("_rate_limit:{key}"))
+            .await?
+            .is_none_or(|entry| entry.allows(max_count, now, window_seconds)))
     }
 
-    /// Record a rate-limited action.
-    pub async fn record_rate_limit_async(&self, key: &str) -> Result<u32, StorageError> {
+    /// Record a rate-limited action (see [`AsyncRateLimiterStore`]). KV has
+    /// no atomic read-modify-write, so two concurrent records can count once.
+    pub async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> Result<u32, StorageError> {
         let rate_key = format!("_rate_limit:{key}");
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-
-        // Get current entry
-        let promise = self.kv.get(&self.prefixed_key(&rate_key));
-        let result = SendWrapper::new(JsFuture::from(promise))
+        let now = unix_now_secs()?;
+        let previous = self.rate_limit_entry(&rate_key).await?;
+        let entry = RateLimitEntry::record(previous, now, window_seconds);
+        let json = serde_json::to_string(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let value_js = wasm_bindgen::JsValue::from_str(&json);
+        let put_promise = self.kv.put(&self.prefixed_key(&rate_key), &value_js);
+        SendWrapper::new(JsFuture::from(put_promise))
             .await
-            .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
-
-        let new_count = if result.is_null() || result.is_undefined() {
-            1
-        } else {
-            let json = result.as_string().ok_or_else(|| {
-                StorageError::Serialization("KV rate limit value is not a string".to_string())
-            })?;
-
-            #[derive(serde::Deserialize, serde::Serialize)]
-            struct Entry {
-                count: u32,
-                window_start: u64,
-            }
-
-            let mut entry: Entry = serde_json::from_str(&json)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            entry.count += 1;
-            entry.window_start = now;
-
-            // Save updated
-            let new_json = serde_json::to_string(&entry)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            let value_js = wasm_bindgen::JsValue::from_str(&new_json);
-            let put_promise = self.kv.put(&self.prefixed_key(&rate_key), &value_js);
-            SendWrapper::new(JsFuture::from(put_promise))
-                .await
-                .map_err(|e| StorageError::Backend(format!("KV put failed: {e:?}")))?;
-
-            entry.count
-        };
-
-        if new_count == 1 {
-            // First entry — need to save it
-            let entry = serde_json::json!({ "count": 1, "window_start": now }).to_string();
-            let value_js = wasm_bindgen::JsValue::from_str(&entry);
-            let put_promise = self.kv.put(&self.prefixed_key(&rate_key), &value_js);
-            SendWrapper::new(JsFuture::from(put_promise))
-                .await
-                .map_err(|e| StorageError::Backend(format!("KV put failed: {e:?}")))?;
-        }
-
-        Ok(new_count)
+            .map_err(|e| StorageError::Backend(format!("KV put failed: {e:?}")))?;
+        Ok(entry.count)
     }
 
     /// Reset a rate limit key.
@@ -350,8 +297,8 @@ impl AsyncRateLimiterStore for KVWasmStorage {
         }).await
     }
 
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        foundation_compact::SendWrapper::new(async move { self.record_rate_limit_async(key).await }).await
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+        foundation_compact::SendWrapper::new(async move { self.record_rate_limit_async(key, window_seconds).await }).await
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
@@ -360,7 +307,7 @@ impl AsyncRateLimiterStore for KVWasmStorage {
 }
 
 // ===========================================================================
-// BlobStore (KV stores strings, so blobs are base64-encoded)
+// AsyncBlobStore (KV stores strings, so blobs are base64-encoded)
 // ===========================================================================
 
 impl KVWasmStorage {

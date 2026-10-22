@@ -1,12 +1,17 @@
 use super::super::core::errors::CedarError;
 
+/// A source of Cedar policies, schema and entities.
+///
+/// Async because the storage-backed sources (`KvPolicyStore`,
+/// `SqlPolicyStore`) read through the async `foundation_db` stores.
+#[async_trait::async_trait]
 pub trait PolicyStore: core::fmt::Debug + Send + Sync {
-    fn load_policies(&self) -> Result<String, CedarError>;
-    fn load_schema(&self) -> Result<String, CedarError>;
-    fn load_entities(&self) -> Result<Option<String>, CedarError> {
+    async fn load_policies(&self) -> Result<String, CedarError>;
+    async fn load_schema(&self) -> Result<String, CedarError>;
+    async fn load_entities(&self) -> Result<Option<String>, CedarError> {
         Ok(None)
     }
-    fn version(&self) -> Result<String, CedarError>;
+    async fn version(&self) -> Result<String, CedarError>;
 }
 
 pub struct InMemoryPolicyStore {
@@ -40,20 +45,21 @@ impl InMemoryPolicyStore {
     }
 }
 
+#[async_trait::async_trait]
 impl PolicyStore for InMemoryPolicyStore {
-    fn load_policies(&self) -> Result<String, CedarError> {
+    async fn load_policies(&self) -> Result<String, CedarError> {
         Ok(self.policies.clone())
     }
 
-    fn load_schema(&self) -> Result<String, CedarError> {
+    async fn load_schema(&self) -> Result<String, CedarError> {
         Ok(self.schema.clone())
     }
 
-    fn load_entities(&self) -> Result<Option<String>, CedarError> {
+    async fn load_entities(&self) -> Result<Option<String>, CedarError> {
         Ok(self.entities.clone())
     }
 
-    fn version(&self) -> Result<String, CedarError> {
+    async fn version(&self) -> Result<String, CedarError> {
         Ok(self.version.clone())
     }
 }

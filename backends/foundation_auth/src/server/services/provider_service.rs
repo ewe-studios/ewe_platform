@@ -4,11 +4,11 @@
 //! at rest. The IdP admin API (feature 06) and the social login flow (feature
 //! 04) both go through this service.
 //!
-//! WHAT: `ProviderService<QS>` (storage-backed CRUD over `QueryStore`) and
+//! WHAT: `ProviderService<QS>` (storage-backed CRUD over `AsyncQueryStore`) and
 //! `ProviderCrypto` (ChaCha20-Poly1305 AEAD, key derived from a secret via
 //! Argon2id).
 //!
-//! HOW: the sync `QueryStore` is the persistence seam (matches the rest of the
+//! HOW: `AsyncQueryStore` is the persistence seam (matches the rest of the
 //! IdP server storage layer). Secrets are stored as `nonce || ciphertext` in a
 //! BLOB column. The 32-byte AEAD key is derived once from `PROVIDER_SECRET_KEY`
 //! (or an explicit passphrase) via Argon2id with a fixed context salt, so the
@@ -23,8 +23,8 @@ use chacha20poly1305::{
 use chrono::Utc;
 use foundation_compact::rng::Rng;
 
-use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow, StorageItemStream};
-use foundation_core::valtron::Stream;
+use foundation_db::core::storage_provider::{AsyncQueryStore, AsyncQueryStream, DataValue, SqlRow};
+use futures_lite::StreamExt;
 
 use crate::shared::password_hash::argon2id_derive;
 
@@ -161,12 +161,12 @@ impl ProviderCrypto {
 }
 
 /// Storage-backed CRUD for upstream providers.
-pub struct ProviderService<QS: QueryStore + 'static> {
+pub struct ProviderService<QS: AsyncQueryStore + ?Sized + 'static> {
     query_store: Arc<QS>,
     crypto: ProviderCrypto,
 }
 
-impl<QS: QueryStore + 'static> ProviderService<QS> {
+impl<QS: AsyncQueryStore + ?Sized + 'static> ProviderService<QS> {
     /// Create a service over a query store and a crypto wrapper.
     pub fn new(query_store: Arc<QS>, crypto: ProviderCrypto) -> Self {
         Self {
@@ -183,7 +183,7 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
     ///
     /// - `Validation` if `id`/`client_id` is empty or endpoints are missing.
     /// - `Storage` on insert failure (including a duplicate id).
-    pub fn create(&self, mut provider: UpstreamProvider) -> Result<UpstreamProvider> {
+    pub async fn create(&self, mut provider: UpstreamProvider) -> Result<UpstreamProvider> {
         self.validate(&provider)?;
 
         let now = Utc::now().timestamp_millis();
@@ -199,7 +199,7 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
             .map_err(|e| ProviderServiceError::Parse(e.to_string()))?;
 
         self.query_store
-            .execute(
+            .execute_async(
                 "INSERT INTO upstream_providers \
                  (id, name, provider_type, client_id, client_secret_ciphertext, encryption_key_id, \
                   authorization_url, token_url, userinfo_url, discovery_url, scopes, is_active, \
@@ -222,6 +222,7 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
                     DataValue::Integer(provider.updated_at),
                 ],
             )
+            .await
             .map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
 
         Ok(provider)
@@ -232,19 +233,20 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
     /// # Errors
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
-    pub fn find_by_id(&self, id: &str) -> Result<Option<UpstreamProvider>> {
-        let mut stream = self
+    pub async fn find_by_id(&self, id: &str) -> Result<Option<UpstreamProvider>> {
+        let stream = self
             .query_store
-            .query(
+            .query_async(
                 "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
                  encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
                  scopes, is_active, mapping_config, created_at, updated_at \
                  FROM upstream_providers WHERE id = ?",
                 &[DataValue::Text(id.to_string())],
             )
+            .await
             .map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
 
-        match first_row(&mut stream)? {
+        match first_row(stream).await? {
             Some(row) => Ok(Some(parse_provider_row(&row)?)),
             None => Ok(None),
         }
@@ -255,14 +257,15 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
     /// # Errors
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
-    pub fn find_active(&self) -> Result<Vec<UpstreamProvider>> {
-        Self::drain_providers(self.query_store.query(
+    pub async fn find_active(&self) -> Result<Vec<UpstreamProvider>> {
+        let stream = self.query_store.query_async(
             "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
              encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
              scopes, is_active, mapping_config, created_at, updated_at \
              FROM upstream_providers WHERE is_active = 1 ORDER BY id",
             &[],
-        ))
+        ).await;
+        Self::drain_providers(stream).await
     }
 
     /// List all providers (active and inactive), ordered by id.
@@ -270,27 +273,27 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
     /// # Errors
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
-    pub fn list_all(&self) -> Result<Vec<UpstreamProvider>> {
-        Self::drain_providers(self.query_store.query(
+    pub async fn list_all(&self) -> Result<Vec<UpstreamProvider>> {
+        let stream = self.query_store.query_async(
             "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
              encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
              scopes, is_active, mapping_config, created_at, updated_at \
              FROM upstream_providers ORDER BY id",
             &[],
-        ))
+        ).await;
+        Self::drain_providers(stream).await
     }
 
-    fn drain_providers(
-        result: std::result::Result<StorageItemStream<'_, SqlRow>, foundation_db::StorageError>,
+    /// Decode every row. The provider table is a small admin list, needed
+    /// whole for the listing reply.
+    async fn drain_providers(
+        result: std::result::Result<AsyncQueryStream, foundation_db::StorageError>,
     ) -> Result<Vec<UpstreamProvider>> {
-        let stream = result.map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
+        let mut stream = result.map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
         let mut out = Vec::new();
-        for item in stream {
-            match item {
-                Stream::Next(Ok(row)) => out.push(parse_provider_row(&row)?),
-                Stream::Next(Err(e)) => return Err(ProviderServiceError::Storage(e.to_string())),
-                _ => {}
-            }
+        while let Some(item) = stream.next().await {
+            let row = item.map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
+            out.push(parse_provider_row(&row)?);
         }
         Ok(out)
     }
@@ -301,8 +304,8 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
     ///
     /// `NotFound` if the id doesn't exist; `Validation` if the result would be
     /// invalid; `Storage`/`Parse` on failure.
-    pub fn update(&self, id: &str, updates: ProviderUpdate) -> Result<UpstreamProvider> {
-        let mut provider = self.find_by_id(id)?.ok_or(ProviderServiceError::NotFound)?;
+    pub async fn update(&self, id: &str, updates: ProviderUpdate) -> Result<UpstreamProvider> {
+        let mut provider = self.find_by_id(id).await?.ok_or(ProviderServiceError::NotFound)?;
 
         if let Some(v) = updates.name {
             provider.name = v;
@@ -344,7 +347,7 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
             .map_err(|e| ProviderServiceError::Parse(e.to_string()))?;
 
         self.query_store
-            .execute(
+            .execute_async(
                 "UPDATE upstream_providers SET name = ?, provider_type = ?, client_id = ?, \
                  authorization_url = ?, token_url = ?, userinfo_url = ?, discovery_url = ?, \
                  scopes = ?, is_active = ?, mapping_config = ?, updated_at = ? WHERE id = ?",
@@ -363,6 +366,7 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
                     DataValue::Text(provider.id.clone()),
                 ],
             )
+            .await
             .map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
 
         Ok(provider)
@@ -373,12 +377,13 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
     /// # Errors
     ///
     /// `Storage` on failure.
-    pub fn delete(&self, id: &str) -> Result<()> {
+    pub async fn delete(&self, id: &str) -> Result<()> {
         self.query_store
-            .execute(
+            .execute_async(
                 "DELETE FROM upstream_providers WHERE id = ?",
                 &[DataValue::Text(id.to_string())],
             )
+            .await
             .map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
         Ok(())
     }
@@ -388,15 +393,15 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
     /// # Errors
     ///
     /// `NotFound` if the id doesn't exist; `Crypto`/`Storage` on failure.
-    pub fn set_secret(&self, id: &str, plaintext_secret: &str) -> Result<()> {
+    pub async fn set_secret(&self, id: &str, plaintext_secret: &str) -> Result<()> {
         // Ensure the provider exists first (so we return NotFound, not a silent
         // no-op update).
-        if self.find_by_id(id)?.is_none() {
+        if self.find_by_id(id).await?.is_none() {
             return Err(ProviderServiceError::NotFound);
         }
         let ciphertext = self.crypto.encrypt(plaintext_secret.as_bytes())?;
         self.query_store
-            .execute(
+            .execute_async(
                 "UPDATE upstream_providers SET client_secret_ciphertext = ?, encryption_key_id = ?, \
                  updated_at = ? WHERE id = ?",
                 &[
@@ -406,6 +411,7 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
                     DataValue::Text(id.to_string()),
                 ],
             )
+            .await
             .map_err(|e| ProviderServiceError::Storage(e.to_string()))?;
         Ok(())
     }
@@ -417,8 +423,8 @@ impl<QS: QueryStore + 'static> ProviderService<QS> {
     ///
     /// `NotFound` if the id doesn't exist; `Validation` if no secret is set;
     /// `Crypto` if decryption fails.
-    pub fn get_secret(&self, id: &str) -> Result<String> {
-        let provider = self.find_by_id(id)?.ok_or(ProviderServiceError::NotFound)?;
+    pub async fn get_secret(&self, id: &str) -> Result<String> {
+        let provider = self.find_by_id(id).await?.ok_or(ProviderServiceError::NotFound)?;
         let blob = provider
             .client_secret_ciphertext
             .ok_or_else(|| ProviderServiceError::Validation("no secret set".into()))?;
@@ -451,18 +457,13 @@ fn opt_text(val: &Option<String>) -> DataValue {
     }
 }
 
-/// Pull the first row from a lazy query stream (skipping readiness markers).
-fn first_row(
-    stream: &mut foundation_db::core::storage_provider::StorageItemStream<'_, SqlRow>,
-) -> Result<Option<SqlRow>> {
-    for item in stream {
-        match item {
-            Stream::Next(Ok(row)) => return Ok(Some(row)),
-            Stream::Next(Err(e)) => return Err(ProviderServiceError::Storage(e.to_string())),
-            _ => {}
-        }
+/// Pull the first row from a lazy query stream.
+async fn first_row(mut stream: AsyncQueryStream) -> Result<Option<SqlRow>> {
+    match stream.next().await {
+        Some(Ok(row)) => Ok(Some(row)),
+        Some(Err(e)) => Err(ProviderServiceError::Storage(e.to_string())),
+        None => Ok(None),
     }
-    Ok(None)
 }
 
 /// Decode a full provider row from the SELECT column order used above.

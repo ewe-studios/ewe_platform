@@ -1,8 +1,24 @@
 # Spec 50 Progress: Valtron Async Readiness
 
-_Updated: 2026-10-21_
+_Updated: 2026-10-22_
 
 ## Status: In progress
+
+## The async-storage stream (overall plan and status)
+
+_Recorded 2026-10-21._ Goal: async all the way, with sync only at real boundaries, so the same code runs natively and on Cloudflare Workers (where nothing may block).
+
+| Step | PR / branch | State |
+|---|---|---|
+| valtron async-first API (`.block()` / `.blocking()` native-only, `blocking_boundary!`) | #130 | ✅ merged |
+| foundation_db: I/O-backed stores async-only; `Blocking<S>` for sync callers | #131 | ✅ merged |
+| foundation_ai: `AgentSession` on the `Async*` traits; in-memory stores async-only; `build()` / `end()` async | #132 | ✅ merged |
+| Remaining sync callers (foundation_auth server, cedar, vectors, cronjobs, `MigrationRunner`, `StorageCleanup`), async `StateStore`, no blocking `Default`, then delete the sync storage traits; backlog §11 fixes and CI runs | `db/async-callers` (PR #133, spec 50 F04) | ✅ done (T1–T13); in review |
+
+**After this stream:** spec 65's agent-rpc review round 2 on PR #126. The plan is recorded in `specifications/65-agent-rpc-serving-system/progress.md`: pluggable traits for bare metal / Docker / Workers, auth moving into foundation_auth with a `CaStore` trait, and a `ClientAuth` provider built on our signed JSON secret (not a JWT).
+
+Also still open here: confirm whether F02 (the readiness-source seam) exists, then correct the three features' front matter.
+
 
 The feature front matter still says `pending`; the code on master is ahead of
 it. What master has, checked against the source:
@@ -32,8 +48,6 @@ it. What master has, checked against the source:
 - Fixes found on the way: `foundation_connectrpc` runs the `H2Transport`
   handshake in the pump, not in `open()`; `foundation_proxy` gained
   `ProxyServer::shutdown_async` so async tests stop blocking workers.
-
-## In progress
 
 ### foundation_db: async-only stores (PR #131, merged)
 
@@ -105,7 +119,7 @@ Extra checks:
 
 Merged as PR #131 (merge commit `c84382913`).
 
-### foundation_ai on the async store traits (branch `ai/async-stores`, PR not open yet)
+### foundation_ai on the async store traits (PR #132, merged)
 
 Done (committed and pushed):
 - foundation_ai: `MessageApi`, `KvMemoryStore`, `MemoryCoordinator`,
@@ -148,10 +162,35 @@ Checks (`scripts/ci/ci.py run <crate> --step build --step clippy --step test --s
 Extra: `examples/cf-agent-loop` and `examples/cf-cloud-provider` build for
 wasm32 (separate target dir, deleted after).
 
+## In progress
+
+### Remaining sync storage callers (branch `db/async-callers`, draft PR #133)
+
+Plan: `features/04-async-only-storage/feature.md` (tasks T1–T14). Backlog §11,
+crate by crate, then an async `StateStore`, no blocking `Default`, and
+deleting the sync storage traits.
+
+| Task | State | Checks |
+|------|-------|--------|
+| T1 foundation_auth IdP server on the async traits | done | `ci.py run foundation_auth` (build, clippy, test, wasm): pass. `cargo test --features server-test`: 138 pass, 0 fail (the 17 IdP failures are fixed: bodies were never read, and handler errors became 500) |
+| T2 foundation_auth credential/session layer async-only | done | `cargo test -p foundation_auth`: pass (22 AuthManager tests moved to `tests/`); `--features server-test`: 138 pass; wasm `wasm`, `wasm,wasm-bindgen-session`, `wasm,wasm-bindgen-oauth`: build; `examples/cf-login-app` wasm32: builds |
+| T3 foundation_cedar async `PolicyStore` | done | `ci.py run foundation_cedar` (fmt, build, clippy, test, wasm): pass; `--features db`: all pass, incl. new `tests/sql_store.rs` (first `SqlPolicyStore` tests, over Turso) |
+| T4 foundation_vectors SQL stores on `AsyncVectorStore` | done | `ci.py run foundation_vectors` (build, clippy, test, wasm): pass; `--features sql-store`: all pass (SQL 11, libsql 5); new `TopK` accumulator: search ranks rows as they stream (O(k) memory) |
+| T5 foundation_cronjobs async `CronScheduler` | done | `ci.py run foundation_cronjobs` (build, clippy, test, wasm): pass; new Turso tests: save/load round trip, a bad row is an error, save without the table is an error |
+| T6 `MigrationRunner::run` removed; `AsyncStorageCleanup` + `CleanupConfig` | done | `ci.py run foundation_db` (build, clippy, test, wasm): pass (run with `CARGO_PROFILE_UAT_DEBUG=0`: with debuginfo the ~40 test binaries filled the disk). New cleanup tests over Turso (retention honoured, only expired rows removed) |
+| T7 foundation_nativeapis off the sync traits | done | `ci.py run foundation_nativeapis`: pass; `--features vfs-native,vfs-d1,vfs-r2,vfs-fjall`: `blob_delta_vfs` 12 new tests (the delta over the in-memory blob store, async and through `SyncFs`), `fjall_document_store` 19, `d1_delta_vfs` 9, `r2_delta_vfs` 9 (the D1/R2 integration tests skip without the emulator) |
+| T8 async `StateStore` and its callers (deployment crates, proxy) | done | `ci.py run` (build, clippy, test, wasm): foundation_db, foundation_deployment, foundation_deployment_docker, foundation_deployment_hetzner, foundation_proxy: all pass. New: `libsql_state_store_tests` 5 (first libsql state coverage), `r2_state_store_tests` 6 (in-process R2 mock, paged listings), `NamespacedStore::set` namespace test. Bugs fixed on the way: libsql/D1 state `init` was a SQL syntax error, libsql/D1 `find_by_status` never matched, R2 `find_by_*` didn't filter and listing read one page only, `NamespacedStore::set` wrote outside its namespace |
+| T9 agent tool store factory; `builder_for` and the blocking `Default`s removed | done | `ci.py run foundation_ai` build, clippy, wasm: pass; test: 2730 pass, 0 fail (a first run failed to link with the disk full; rerun clean). New agent-tool tests: a factory builds stores per `start`, a failing factory fails `start`. foundation_db `default_stores_tests` 5 (now over `in_memory()`), `libsql_document_store_tests` (now a real libsql run). `examples/cf-agent-loop`, `examples/cf-cloud-provider` wasm32: build |
+| T10 sync storage traits and `Blocking<S>` deleted | done | `cargo check --workspace --tests`: pass; `ci.py run` (build, clippy, test, wasm): foundation_db, foundation_auth pass; foundation_db wasm32 `--features wasm-bindgen-storage`: builds. Ten foundation_db test files moved off `Blocking` onto the async traits. Examples: `cf-agent-loop`, `cf-cloud-provider`, `cf-login-app` (wasm32) and `apps/answerme-agent` (native): build |
+| T11 §11 small items: rate-limit window, target-specific dependencies | done | Shared fixed-window logic in `core/rate_limit.rs` (a busy key now resets when its window ends; every SQL backend uses the migration-014 table); `tests/rate_limit_window_tests.rs`. `worker` wasm-only, `async-stream` and the full `foundation_netio` native-only. `cargo check -p foundation_db --all-features` clean; wasm32 `--features wasm-bindgen-storage`: no foundation_db warnings (removed the dead `get_num_field`) |
+| T12 CI runs in `ci/packages.toml` | done | New runs: foundation_auth `server-test`, foundation_db `libsql`, foundation_vectors `sql-store`, foundation_nativeapis `vfs-native,vfs-d1,vfs-r2`. GitHub CI on the T11 commit (all runs): pass |
+| T13 docs and records | done | foundation_db / foundation_auth / foundation_ai docs; `docs/bug-backlog.md` §11 (fixed entries removed, new ones added); `learnings.md`; F04 status `done` |
+| T14 `Async*` → plain-name rename | moved out | Follow-up PR after #133 merges (owner decision) |
+
 ## Next
 
-- Remove the sync storage traits once the other sync callers have moved.
-- The other sync storage callers (backlog §11): foundation_auth server
-  services, foundation_cedar, foundation_vectors, foundation_cronjobs,
-  `MigrationRunner::run`, `StorageCleanup`; and an async `StateStore`.
-- Confirm F02's state and update all three features' front matter.
+- After #133 merges: the mechanical `Async*` → plain-name rename PR (plus
+  dropping `SessionManager`'s `_async` suffixes).
+- Then spec 65's agent-rpc review round 2 on #126 (plan in spec 65's
+  `progress.md`).
+- Confirm F02's state and update F01–F03's front matter.

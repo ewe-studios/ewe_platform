@@ -14,7 +14,7 @@ The VectorStore backend set is built in three features:
 
 - **F28 — in-memory** (`InMemoryVectorStore`): the trait + a RAM backend. Covers
   tests and small workloads.
-- **F29 — native persistent** (`SqlVectorStore<Q: QueryStore>`, Turso/libSQL/
+- **F29 — native persistent** (`SqlVectorStore<Q: AsyncQueryStore>` (an `AsyncVectorStore`), Turso/libSQL/
   SQLite, fjall): durable local stores.
 - **F30 — this feature: Cloudflare + external managed.** Serverless/edge and
   large managed deployments.

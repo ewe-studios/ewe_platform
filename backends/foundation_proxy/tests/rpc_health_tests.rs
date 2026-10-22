@@ -218,7 +218,7 @@ where
 async fn grpc_health_gate_excludes_and_restores_backend() {
     let serving = Arc::new(AtomicBool::new(true));
     let (backend_port, backend_shutdown) = start_health_gated_backend(Arc::clone(&serving));
-    let proxy = ProxyServer::start(proxy_config_grpc_health(backend_port)).expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config_grpc_health(backend_port)).await.expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, UNARY);

@@ -117,6 +117,62 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   sync callers wrap (`run_turn`, `ask`, `end`) return
   `impl Future + 'static` and clone the `Arc`-backed handle into it.
 
+## Async-only callers (F04, `db/async-callers`)
+
+- A failing test suite that "fails on master too" still deserves a look
+  before it is filed away. The 17 foundation_auth IdP failures had two plain
+  causes: the sync `Serve` adapter turned every handler error into a 500,
+  and the handlers read only `Text`/`Bytes` bodies while the server hands
+  over a lazy `Stream`. A debug print of the 500's message found both.
+- `ContextBag::store(value)` keys by the value's exact type and wraps it in
+  its own `Arc`. Storing an `Arc<T>` means looking up `Arc<T>` (and getting
+  `Arc<Arc<T>>` back); a lookup of `T` silently misses. Prefer a panic on a
+  missing entry over an empty fallback store, which hides the mistake.
+- A thread-local RNG (`foundation_compact::rng::rng()`) is `!Send`; holding
+  it across an `.await` makes the whole handler future `!Send`. Fill the
+  bytes in a statement of their own before the first await.
+- `#[valtron_test]` takes `async fn` (F03), so converting a test module to
+  async is mechanical: add `.await` to the converted calls and mark only the
+  fns that now await as `async`. A small script that matches parentheses
+  does the first part reliably.
+
+- Don't mix pool styles in one test binary. A file whose tests share a static
+  `initialize_pool` guard hangs when one test in it is `#[valtron_test]`
+  (which starts a second pool in the same process): the new
+  `migration_runner_applies_all_then_is_idempotent` hung until it was
+  rewritten to the file's shared-pool style. Convert a whole file to
+  `#[valtron_test]`, or none of it.
+- A sync bridge that a hidden test fallback "rescues" can hide real bugs:
+  the IdP `NoOpStore` fallback, `collect_stream` helpers that drop `Err`
+  items, and `let _ =` on writes all turned up while converting callers.
+  Converting is a good moment to make every error reach the caller.
+- Code nothing exercises has usually rotted. The libsql/D1 state stores had
+  never had a test: their `init` was a SQL syntax error and `find_by_status`
+  could never match. R2's listing read one page and ignored filters. Adding
+  the first behavioural test of a backend is worth it even when the task is
+  "only make it async".
+- An in-process mock HTTP server (`TcpListener` on a thread) is enough to
+  test a REST-backed store, but it must answer `Expect: 100-continue` (the
+  netio client sends it on bodies and otherwise waits 3s per request).
+- To commit one task while the next one's edits are already in the tree,
+  stage an exact file version without touching the worktree:
+  `git hash-object -w <file>` then `git update-index --cacheinfo`.
+- A shared rule beats per-backend copies. The rate limiter's window bug was
+  in all eight implementations (memory, KV, Turso, libsql, D1 REST, D1
+  Workers), each with its own SQL or arithmetic. Putting the rule in one
+  place (`core/rate_limit.rs`, generic over `AsyncQueryStore`) fixed them
+  together and made one test file cover every local backend.
+- Test against the migrated schema, not only a fresh table. The SQL rate
+  limiter created its own `rate_limits` shape on demand and had only ever run
+  against that; on a migrated database (migration 014, different columns)
+  every record failed. `TursoStorage::in_memory()` (migrated) caught it.
+- `std::time::SystemTime::now()` panics on wasm32-unknown-unknown; crate code
+  that can run in a Worker reads the clock through `foundation_compact`
+  (`unix_now_secs` in foundation_db).
+- When a disk fills mid-build, `ci.py`'s failure is a link error or a
+  "failed to write fingerprint", not a test failure. Read the error before
+  assuming the code broke, free space, and rerun the step.
+
 ## Pool teardown in tests
 
 - `shutdown_within` detaches workers stuck inside a task. They are threads in
@@ -128,6 +184,10 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
 - Local CI (`scripts/ci/ci.py run <crate> ...`) can exhaust the session's
   disk. Run one crate at a time and prune old `target/uat/build/*/` hashes
   between crates; keep logs inside the repo's target dir.
+- `ci.py run foundation_db` with full debuginfo filled ~15 GB (its ~40
+  test binaries each link Turso, libsql and the HTTP stack); the linker then
+  died with a bus error. `CARGO_PROFILE_UAT_DEBUG=0` keeps the same checks
+  and fits easily. Watch free space with a monitor during long runs.
 - `ci.py run foundation_ai` with all steps needs more than 14 GB free:
   `build` with llamacpp + candle leaves ~14 GB in `target/uat`, then `clippy`
   adds more. Run the steps one at a time and `rm -rf target/uat` between them;

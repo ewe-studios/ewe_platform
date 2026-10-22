@@ -72,19 +72,18 @@ pub const BLOCKING_BOUNDARY: bool = !cfg!(all(
 ///
 /// WHY: `.block()` / `.blocking()` are absent on JS-hosted wasm, and the
 /// choice is made by foundation_core's features, not the dependent crate's.
-/// A crate that offers a sync wrapper over an async API (e.g.
-/// `foundation_db::Blocking`) wraps it in this macro so the wrapper exists
-/// exactly where valtron can block.
+/// A sync entry point that waits on async code (a `main`, an OS thread)
+/// imports its blocking helpers inside this macro so they exist exactly
+/// where valtron can block.
 ///
 /// ```ignore
 /// foundation_core::blocking_boundary! {
-///     mod blocking;
-///     pub use blocking::Blocking;
+///     use foundation_core::valtron::block_on_future;
 /// }
 /// // Or with an `else` arm for the JS-hosted wasm build:
 /// foundation_core::blocking_boundary! {
-///     if { pub const HAS_BLOCKING: bool = true; }
-///     else { pub const HAS_BLOCKING: bool = false; }
+///     if { pub const CAN_BLOCK: bool = true; }
+///     else { pub const CAN_BLOCK: bool = false; }
 /// }
 /// ```
 #[cfg(not(all(

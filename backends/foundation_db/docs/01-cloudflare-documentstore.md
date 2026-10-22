@@ -168,19 +168,19 @@ is what makes both possible.
 
 ---
 
-## 7. Async-first, sync-via-valtron
+## 7. Async only; sync only at the entry point
 
-Workers force async, but native callers often want a synchronous API. The
-platform rule: **write the async impl once; sync callers wrap it at their
-boundary.** `foundation_db::Blocking<S>` is the one bridge: it implements the sync
-`DocumentStore` (and the other sync storage traits) over any async store,
-waiting on valtron. Backends never carry their own sync twin.
+Workers force async, and the platform rule is the same everywhere: **storage is
+async, and so is the code that calls it.** Backends implement only the
+`Async*` traits (`AsyncDocumentStore` here); there are no sync storage traits
+and no sync wrapper. Code that must be sync (a `main`, an OS thread) is the
+one place that waits, with valtron's `block_on_future` / `.block()` behind
+`blocking_boundary!`.
 
-`Blocking` does not exist on JS-hosted wasm. A Worker has one thread, so blocking
-it would stop the event loop that has to deliver the D1/R2 Promise, and the call
-would never return (the old per-backend sync impls spun forever there). On
-Workers you `.await` `AsyncDocumentStore` directly; building foundation_db with
-`wasm-bindgen-bindings` turns on valtron's JS mode, which compiles `Blocking` out.
+That boundary does not exist on JS-hosted wasm. A Worker has one thread, so
+blocking it would stop the event loop that has to deliver the D1/R2 Promise,
+and the call would never return. On Workers everything `.await`s, up to the
+Worker's own async entry point.
 
 ---
 

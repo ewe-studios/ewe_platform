@@ -346,10 +346,22 @@ let mgr = preset.into_manager(session_id)?;
 
 // 4. As child tools for the agent tool (F15):
 let child_tools = preset.as_child_tools()?;   // Vec<Arc<dyn ToolImpl>>
-// Doc / Mem: the sub-agents\' store types, e.g. MemoryDocumentStore and
-// KvMemoryStore<MemoryStorage>.
+// Doc / Mem: the sub-agents\' store types. `agent` default-constructs them
+// for each sub-agent, so it suits the in-memory stores (MemoryDocumentStore,
+// KvMemoryStore<MemoryStorage>):
 let agent_tool = ToolPreset::agent::<Doc, Mem>(
     router, 0, 5, model, "/tmp/delegations", user, child_tools,
+);
+
+// Stores that open a database are built by an async factory instead
+// (`SessionStoreFactory`; any `Fn() -> impl Future<Output = StorageResult<(D, M)>>`):
+let agent_tool = ToolPreset::agent_with_stores(
+    router, 0, 5, model, "/tmp/delegations", user, child_tools,
+    Arc::new(|| async {
+        let docs = SqlDocumentStore::new(TursoStorage::in_memory().await?);
+        let memory = KvMemoryStore::new(TursoStorage::in_memory().await?);
+        Ok((docs, memory))
+    }),
 );
 ```
 

@@ -2,6 +2,7 @@
 //! the start / check / result / pause / resume / stop cycle over a mock
 //! provider. Moved here from the inline module in `src/agentic/tools/agent.rs`.
 
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
@@ -9,12 +10,12 @@ use std::time::Duration;
 use foundation_ai::agentic::memory_store::KvMemoryStore;
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider, MockTool};
 use foundation_ai::agentic::tool_impl::{ToolCallManager, ToolCallResult, ToolError, ToolImpl};
-use foundation_ai::agentic::tools::agent::{register_agent_tool, AgentTool};
+use foundation_ai::agentic::tools::agent::{register_agent_tool, AgentTool, SessionStoreFactory};
 use foundation_ai::agentic::UserId;
 use foundation_ai::types::routable_provider::ProviderRouter;
 use foundation_ai::types::{ModelId, SessionId, Tool, ToolArguments, UserModelContent};
 use foundation_core::valtron::valtron_test;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
+use foundation_db::{MemoryDocumentStore, MemoryStorage, StorageError};
 use futures_lite::future::block_on;
 
 type D = MemoryDocumentStore;
@@ -867,6 +868,64 @@ fn depth_cap_of_zero_refuses_all_delegation() {
         match err {
             ToolError::Execution { reason, .. } => {
                 assert!(reason.contains("depth cap"), "got: {reason}");
+            }
+            other => panic!("expected Execution, got {other:?}"),
+        }
+    });
+}
+
+// ------------------------------------------------------------------
+// store factory
+// ------------------------------------------------------------------
+
+fn tool_with_stores(router: ProviderRouter, stores: Arc<dyn SessionStoreFactory<D, M>>) -> AgentTool<D, M> {
+    AgentTool::with_store_factory(
+        router,
+        0,
+        5,
+        ModelId::Name("mock".into(), None),
+        "/tmp/test-delegation".into(),
+        test_user(),
+        vec![],
+        stores,
+    )
+}
+
+#[valtron_test]
+fn store_factory_builds_fresh_stores_for_each_start() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("done")]);
+    let created = Arc::new(AtomicUsize::new(0));
+    let counter = Arc::clone(&created);
+    let t = tool_with_stores(
+        mock.into_router(),
+        Arc::new(move || {
+            counter.fetch_add(1, Ordering::SeqCst);
+            async { Ok((MemoryDocumentStore::new(), KvMemoryStore::new(MemoryStorage::new()))) }
+        }),
+    );
+
+    for task in ["first", "second"] {
+        let out = block_on(t.execute(cmd("start", &[("task", task)]))).expect("start");
+        assert_eq!(as_json(&out)["status"], "running");
+    }
+    assert_eq!(created.load(Ordering::SeqCst), 2, "one set of stores per sub-agent");
+}
+
+#[test]
+fn a_failing_store_factory_fails_start() {
+    block_on(async {
+        let t = tool_with_stores(
+            empty_router(),
+            Arc::new(|| async { Err::<(D, M), _>(StorageError::Backend("disk full".into())) }),
+        );
+        let err = t
+            .execute(cmd("start", &[("task", "anything")]))
+            .await
+            .unwrap_err();
+        match err {
+            ToolError::Execution { reason, .. } => {
+                assert!(reason.contains("stores") && reason.contains("disk full"), "got: {reason}");
             }
             other => panic!("expected Execution, got {other:?}"),
         }

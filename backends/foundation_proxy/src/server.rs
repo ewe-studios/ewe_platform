@@ -69,6 +69,11 @@ impl std::fmt::Debug for ProxyServer {
 impl ProxyServer {
     /// Start the proxy from a validated configuration.
     ///
+    /// Async because restoring persisted state awaits the async `StateStore`.
+    /// The listeners and control socket run on their own threads, so the
+    /// returned handle is ready to serve. A sync caller (a `main`, a sync test)
+    /// waits with `.block()` / `block_on_future`.
+    ///
     /// # Errors
     /// Returns [`ProxyError::Config`] on a duplicate host, or
     /// [`ProxyError::Startup`] if the front-end listener cannot bind.
@@ -76,7 +81,7 @@ impl ProxyServer {
     /// # Panics
     /// Never panics. (The valtron pool must already be initialised by the
     /// caller; without it the front end cannot submit connections.)
-    pub fn start(config: ProxyConfig) -> Result<Self, ProxyError> {
+    pub async fn start(config: ProxyConfig) -> Result<Self, ProxyError> {
         tracing::info!(domain = %config.domain, services = config.services.len(), "starting proxy");
 
         // Validate: no duplicate routes. A route is a (host, path_prefix) pair —
@@ -132,7 +137,7 @@ impl ProxyServer {
             Arc::new(ProxyStateStore::new(std::path::Path::new(dir), &config.domain))
         });
         if let Some(store) = &store {
-            restore_persisted_state(store, &services, &config);
+            restore_persisted_state(store, &services, &config).await;
         }
 
         let mut h1_app = HttpApp::new_serve();
@@ -458,12 +463,12 @@ fn spawn_h3_server(
 /// Restore persisted backend drain/pause state onto the live services and record
 /// the current config hash (Decision 21, F14). Best-effort — a load/save failure
 /// is logged and startup proceeds with default (Active) backend states.
-fn restore_persisted_state(
+async fn restore_persisted_state(
     store: &ProxyStateStore,
     services: &[Arc<ServiceRuntime>],
     config: &ProxyConfig,
 ) {
-    let mut persisted = match store.load() {
+    let mut persisted = match store.load().await {
         Ok(Some(p)) => {
             apply_backend_states(services, &p);
             p
@@ -476,7 +481,7 @@ fn restore_persisted_state(
     };
     // Record the current config hash so a later run can detect topology changes.
     persisted.config_hash = Some(ProxyStateStore::compute_config_hash(config));
-    if let Err(e) = store.save(&persisted) {
+    if let Err(e) = store.save(&persisted).await {
         tracing::warn!("failed to persist proxy state on start: {e}");
     }
 }

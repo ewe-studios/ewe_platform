@@ -208,6 +208,15 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
   - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer can fail to fire (see §4) and `H2Transport`'s pump parks on the socket read with no read timeout.
   - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
   - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
+- **Backend-state persistence can lose an update.** Each control-socket
+  connection runs on its own thread, and `ProxyStateStore::save_backend_state`
+  / `save_tls_cert` (`src/persistence.rs`) load the whole persisted state,
+  change one entry and save it back. Two admin commands at once can each save
+  over the other's change. Fix: serialise the read-modify-write behind a
+  mutex in `ProxyStateStore` (or store each backend's state as its own record).
+- **The `mut` on `h3_local_addr` warns without the `h3` feature**
+  (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
+  expression instead of assigning inside the `cfg` block.
 
 ## 10. foundation_ai
 
@@ -258,68 +267,85 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
-- **Sync storage callers still go through `Blocking`.** Each should move to the
-  `Async*` traits, one crate at a time, before the sync traits are deleted:
-  - `foundation_auth` server services/handlers, generic over sync
-    `QueryStore`/`KeyValueStore` and run inside HTTP handler tasks (their
-    default store is now `Blocking<MemoryStorage>`);
-  - `foundation_cedar` `KvPolicyStore`/`SqlPolicyStore`;
-  - `foundation_vectors` `SqlVectorStore`/`LibsqlVectorStore`;
-  - `foundation_cronjobs` `CronScheduler`;
-  - `MigrationRunner::run` and `StorageCleanup` (keep only `run_async` and an
-    async cleanup).
-- **`StateStore` is still a sync trait.** `LibsqlStore`'s `StateStore::init`
-  / `sync_remote` and `native::create_state_store` wait on libsql with
-  `.block()`, and `D1Store`'s `StateStore` impl uses a blocking HTTP call
-  (`execute_sql`). Fix: an async `StateStore` (the deployment crates are its
-  callers).
-- **`Default` for `TursoStorage` / `LibsqlStore` blocks.** `Default` is sync,
-  so it waits on the async constructor with `.block()`, and panics without a
-  valtron pool. It exists for `S: Default` callers: the deprecated
-  `AgentSession::builder_for` and the `agent` tool, which builds each
-  sub-agent's stores with `D::default()` / `M::default()`
-  (`foundation_ai/src/agentic/tools/agent.rs`). Fix: give the agent tool a
-  store factory (an async constructor) instead of the `Default` bound, remove
-  `builder_for`, then drop these `Default` impls.
-- **The in-memory rate limiters never let a busy window expire.**
-  `record_rate_limit_async` on `MemoryStorage` and `MemoryJsonStore`
-  (`src/core/backends/memory*.rs`) sets `window_start = now` on every call, so
-  a key hit at least once per window stays limited for good, and the count
-  never resets. Fix: start a new window (count 1) only when the old one has
-  expired; otherwise increment and keep `window_start`.
-- **`worker` is an unused dependency natively.** `cargo check -p foundation_db
-  --all-features` warns that `worker` (only used by the Workers bindings) is
-  unused. Fix: make it a wasm-only target dependency, like the other entry
-  above.
-- **Unused dependencies on wasm.** `cargo check --target wasm32` for
-  `--features wasm-bindgen-storage` warns that `async-stream` and
-  `foundation_netio` are unused (both are used only natively). Fix: move them
-  to target-specific dependencies.
-- **No CI build covers several feature sets, and they had rotted:**
-  - foundation_db `libsql` (two libsql tests had no `#[test]`; fixed);
-  - foundation_nativeapis `vfs-native,vfs-d1,vfs-r2` (didn't compile; fixed);
-  - foundation_vectors `sql-store`;
-  - foundation_auth `server-test`;
-  - `examples/cf-login-app` (its manifest couldn't load; fixed).
-
-  Fix: add these runs to `ci/packages.toml` and an examples job.
+- **`StateStore::set` ignores its `resource_id`.** Every backend (file,
+  libsql, D1, R2) keys the write by `state.id`, so `set("a", &state_b)` writes
+  `b` (`src/core/state/*.rs`, `src/native/{libsql_store,d1_kvstore,r2_blobstore}.rs`).
+  `NamespacedStore` now rewrites `state.id` itself (fixed in F04 T8). Fix:
+  drop the parameter, or key by it and set `state.id` from it in one place.
+- **`R2Store` parses the R2 REST JSON by hand** (`src/native/r2_blobstore.rs`).
+  The generated Cloudflare types live in `foundation_deployment_cloudflare`,
+  which depends on `foundation_db`, so they can't be used here (rule 5). Fix:
+  move the generated R2 types to a crate both can depend on. Related:
+  `worker-stub.js` has no object-listing endpoint, so the R2 listing is only
+  tested against the in-process mock in `tests/r2_state_store_tests.rs`, not
+  against the wrangler stub.
+- **R2 state listings hold every matching ID before streaming.** The listing
+  pages through R2's cursor, sorts the IDs, then fetches each state lazily;
+  the ID list itself is in memory. Fine for deployment state; a store with
+  very many resources would want a cursor-driven stream (R2 already returns
+  keys in order).
+- **D1's state `init` sends several statements in one `/query` call**
+  (`src/native/d1_kvstore.rs`). It (and libsql's) was missing the `;` after
+  `CREATE TABLE`, so `init` always failed; fixed in F04 T8 and covered for
+  libsql by `tests/libsql_state_store_tests.rs`, but the D1 path is only
+  exercised by the wrangler integration tests (`CF_INTEGRATION_TEST=1`).
+- **Auth tables mix timestamp units.** The `created_at` defaults in the core
+  migrations are milliseconds (`strftime('%s','now') * 1000`), while
+  `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
+  server writes milliseconds for its own rows. Fix: pick one unit per column,
+  document it in the migrations, and make cleanup follow it.
+- **`KVWasmStorage`'s rate limiter isn't atomic**
+  (`src/wasm/wasm_storage/kv_wasm.rs`): a record reads the entry, then
+  writes it back, so two concurrent hits can count once (and KV is
+  eventually consistent across locations). Fix: use a Durable Object or D1
+  for rate limits on Workers, and document KV as best-effort.
+- **Databases created by the old rate-limit code have the wrong table.**
+  Before F04 T11 a store that wasn't migrated created
+  `rate_limits (key PRIMARY KEY, count, window_start)`; the store now uses the
+  migration 014 shape (`id`, `key UNIQUE`, `count`, `window_start`,
+  `window_end`), which `CREATE TABLE IF NOT EXISTS` won't add to an existing
+  old-shape table. Fix: a migration that rebuilds an old-shape table (rate
+  limit rows are disposable), or drop it on detection.
+- **No CI job builds the example workspaces** (`examples/cf-*`,
+  `apps/answerme-agent`); `examples/cf-login-app`'s manifest had stopped
+  loading unnoticed. Fix: an examples job (wasm32 for `cf-*`). The feature
+  runs that had rotted (foundation_db `libsql`, foundation_nativeapis
+  `vfs-native,vfs-d1,vfs-r2`, foundation_vectors `sql-store`, foundation_auth
+  `server-test`) are in `ci/packages.toml` since F04 T12.
 
 ## 12. foundation_auth
 
-- **17 IdP HTTP integration tests fail, on master too.** `tests/integration/e2e`
-  (8) and `tests/integration/idp_server` (9) get non-success responses
-  (e.g. `introspect_returns_inactive_for_unknown_token`: `response.is_success()`
-  is false). CI never runs them: the test target needs `server-test`, which
-  `ci/packages.toml` doesn't enable. Fix: find why the handlers fail, then add a
-  `server-test` run.
+- **`PowService` checks leading zero bits against a byte count.**
+  `verify_solution` (`src/server/services/pow_service.rs`) compares
+  `count_leading_zero_bytes(&hash)` — which counts *bits* — with
+  `difficulty / 8`, so a difficulty of 22 bits only needs 2 zero bits. Its
+  `solve_validity_secs` field is never read either. Fix: compare bits with
+  `difficulty`, rename the helper, and either enforce the solve window or
+  drop the field (update the tests, which solve at difficulty 8).
+- **`register` answers a duplicate email with `200 {"error": "user_exists"}`**
+  (`src/server/handlers/core.rs`); spec 48 F03 says `409`. Fix: return
+  `IdpError::Conflict`.
+- **`header_name_eq` compares header names through `Debug` formatting**
+  (`src/server/handlers/core.rs`), so it depends on `SimpleHeader`'s `Debug`
+  output. Fix: compare with the header's canonical name.
+- **IdP integer columns are cast with `as`** (`interval_secs`, `counter`,
+  `failed_login_attempts` in `src/server/storage.rs`): a negative or oversized
+  value wraps silently. Fix: `u32::try_from` and report a `Parse` error.
 - **`--features server-native` tests don't link here.** `webauthn-rs` needs
   OpenSSL 3 symbols (`EVP_Q_digest`, `OPENSSL_sk_*`) that the build host
   doesn't provide. Fix: vendor OpenSSL (`openssl/vendored`) or document the
   system dependency.
-- **`AuthManager` calls the sync `CredentialStore` from async fns.**
-  `authenticate`, `refresh` and `logout` (`src/shared/auth_manager.rs`) block
-  on storage inside async code, and `AuthManager` is compiled out on JS-hosted
-  wasm because of it. Fix: move it to `AsyncCredentialStore`.
+- **Unused dependencies on wasm.** `cargo check --target wasm32-unknown-unknown
+  -p foundation_auth --no-default-features --features wasm` warns that
+  `argon2`, `foundation_errstacks`, `pbkdf2`, `time` and `uuid` are unused
+  there. Fix: make the native-only ones target-specific dependencies (or gate
+  them behind the features that use them).
+- **`foundation_db::wasm::{WasmCredentialStore, session}` duplicate
+  `CredentialStorage`.** Their docs say they exist because the sync
+  `CredentialStore` routed D1 through blocking calls; that trait is gone (spec
+  50 F04), and `CredentialStorage` over a D1 `StorageProvider` already serves
+  `AsyncCredentialStore` on Workers. Fix: fold callers onto
+  `CredentialStorage` and delete the duplicates.
 - **`NativeOAuth` keeps sync twins** (`exchange_code`, `client_credentials`,
   `refresh_token`) next to the `*_async` methods (`src/native/oauth.rs`),
   against the async-only API rule. Fix: keep only the async methods (as the
@@ -327,16 +353,25 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **`FjallDocumentStore` implements only the sync `DocumentStore`** although it
-  does disk I/O (`src/shared/vfs/fjall_document_store.rs`). Fix: implement
-  `AsyncDocumentStore` (the I/O can run in the async body, like
-  `JsonFileStorage`) and let sync callers use `Blocking`.
-- **The async D1/R2 VFS files block and ignore the write offset.**
-  `AsyncD1File` / `AsyncR2File` (`src/native/vfs/{d1,r2}_delta/mod.rs`) call
-  the sync delta methods, which now wait through `Blocking`, from inside async
-  fns. Their `write_at_async` ignores `offset` (it rewrites the whole file from
-  `data`), and their `mode` field is never read. Fix: async delta methods over
-  the `Async*` stores; honour `offset` and read-only `mode`.
+- **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
+  (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
+  file, its metadata and its whiteout as separate blobs, and a blob store has
+  no key listing: `list_async` and `list_whiteouts_async` return nothing and
+  `reset_async` is unsupported. Fix: keep a per-directory index blob (or use
+  D1's key-value listing, `list_keys_async`, for the D1 delta).
+- **A blob-delta write rewrites the whole file.** Each `write_at_async` reads
+  the blob, splices the bytes in and writes it back, so a large file written
+  in small pieces is O(n²). Fix: chunked storage (the unused
+  `d1_delta::chunking` module sketches it) with a configurable chunk size.
+- **The VFS shim never uses the D1/R2 deltas.** `src/native/vfs/shim/mod.rs`
+  logs "impls pending" and falls back to the memory delta for
+  `DeltaBackend::D1` / `R2`; the deltas now exist (as `SyncFs<D1Delta>` /
+  `SyncFs<R2Delta>` for the sync overlay). Fix: build them from the shim
+  config.
+- **`FjallDocumentStore` scans buffer their rows.** `scan_async`,
+  `scan_all_async` and `scan_from_async` collect the matching rows into a
+  `Vec` before streaming them (`src/shared/vfs/fjall_document_store.rs`);
+  `scan_all_async` is unbounded. Fix: walk the fjall index range lazily.
 
 ## 14. foundation_cronjobs
 
@@ -345,13 +380,21 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   same fixed interval. Fix: parse `cron_expr` with a cron crate (`cron` or
   `saffron`) and compute the real next fire time; reject an invalid
   expression at `register`.
-- **`CronScheduler::load` drops errors.** It skips stream items that are
-  `Err`, and reads each column with `unwrap_or` defaults, so a failed read
-  or a bad row silently resets the job's state. Fix: return the first error;
-  treat a missing column as an error.
+- **`CronScheduler` never runs a job.** The crate docs (`src/lib.rs`)
+  describe tasks parked on `Delayed` until each fire time, execution, result
+  recording and missed-job catch-up (`MissedJobPolicy`); none of it exists —
+  the scheduler only registers jobs and saves/loads their state. Fix:
+  implement the run loop (one valtron task per job) and the missed-job
+  policy, or cut the docs down to what exists.
 
 ## 15. foundation_cedar
 
+- **`SqlPolicyStore` reads its row once per field.** `load_from_store` calls
+  `load_schema`, `load_policies` and `load_entities`, and each runs the same
+  `SELECT` (`src/storage/sql_store.rs`). Fix: a `load_all` on `PolicyStore`
+  (default: the three calls) that the SQL store overrides with one query.
+- **`derive_more` is an unused dependency** (`cargo` warns). Fix: drop it
+  from `Cargo.toml`.
 - **`unreachable call` warnings in `src/core/request.rs`.** The three
   `EntityId::from_str(id).map_err(..)` calls map an error type that can't
   occur (`Infallible`), so the compiler warns on each `map_err`. Fix: drop the
@@ -361,6 +404,12 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 - **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
   - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
+- **`crates/ewe_deployables` doesn't build.** It isn't a workspace member, so
+  nothing compiles it, and it still implements an older `Deployable` shape
+  (sync `TaskIterator`s, sync `store(&client).get_typed(..)`), which no longer
+  exists. Fix: port it to the current async `Deployable` / `StateStore` and
+  add it to the workspace (or delete it if superseded by the per-provider
+  deployment crates).
 - **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
 - **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
   compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target
@@ -383,6 +432,17 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `test:wasm-bindgen:deno` cannot start even though it only needs deno and
   wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
   task invoke the two binaries via `mise which`.
+
+## 17. foundation_vectors
+
+- **`AsyncVectorStore::len_async` returns `usize`,** so a backend error can't
+  be reported (`src/store.rs`); the SQL stores count a failure as 0. Fix:
+  return `Result<usize, VectorStoreError>` from `len_async` (and `len`) across
+  every vector store. Owner decision 2026-10-21: recorded, not fixed in F04.
+- **The SQL-backed stores scan a whole namespace per search**
+  (`SqlVectorStore::search_async`): memory is bounded (`TopK`), but time is
+  O(n·d) per query. Expected for the portable fallback; large namespaces
+  should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
 
 ## Paused
 

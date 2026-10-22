@@ -1,7 +1,5 @@
 //! OAuth 2.0 token exchange using native HTTP client.
 
-use foundation_core::valtron::{from_future, execute, ShortCircuit, Stream, StreamIteratorExt};
-use foundation_db::{StorageError, StorageItemStream};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 use foundation_netio::http::FinalizedResponse;
@@ -11,7 +9,7 @@ type HttpResponse = FinalizedResponse<SendSafeBody, SystemDnsResolver>;
 use crate::shared::oauth::{OAuthConfig, OAuthError, OAuthManager, TokenResponse};
 use crate::shared::oauth_token::OAuthToken;
 
-/// Native OAuth client wrapping shared OAuth configuration with sync token exchange.
+/// Native OAuth client: shared OAuth configuration plus async token exchange.
 #[derive(Clone)]
 pub struct NativeOAuth {
     inner: OAuthManager,
@@ -33,10 +31,14 @@ impl NativeOAuth {
     }
 
     // ========================================================================
-    // Async API (source of truth — uses NativeHttpClient::send_async)
+    // Token exchange (async, over NativeHttpClient::send_async)
     // ========================================================================
 
-    /// Async version of [`Self::exchange_code`].
+    /// Exchange an authorization code (with its PKCE verifier) for tokens.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the request fails or the response can't be parsed.
     pub async fn exchange_code_async(
         &self,
         code: &str,
@@ -68,7 +70,11 @@ impl NativeOAuth {
         parse_token_response(resp).await
     }
 
-    /// Async version of [`Self::client_credentials`].
+    /// Client-credentials flow for service-to-service authentication.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the request fails or the response can't be parsed.
     pub async fn client_credentials_async(
         &self,
         scopes: Option<Vec<String>>,
@@ -104,7 +110,11 @@ impl NativeOAuth {
         parse_token_response(resp).await
     }
 
-    /// Async version of [`Self::refresh_token`].
+    /// Refresh an access token with a refresh token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `OAuthError` if the request fails or the response can't be parsed.
     pub async fn refresh_token_async(
         &self,
         refresh_token: &str,
@@ -126,100 +136,6 @@ impl NativeOAuth {
         let resp = do_post_async(&self.inner.config.token_url, &body).await?;
         parse_refresh_response(resp, refresh_token).await
     }
-
-    // ========================================================================
-    // Sync API (wraps async via valtron from_future)
-    // ========================================================================
-
-    /// Exchange authorization code for tokens.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn exchange_code(
-        &self,
-        code: &str,
-        code_verifier: Option<&str>,
-    ) -> Result<OAuthToken, OAuthError> {
-        let this = self.clone();
-        let code = code.to_string();
-        let code_verifier = code_verifier.map(String::from);
-        let stream = Self::wrap_oauth_async(async move {
-            this.exchange_code_async(&code, code_verifier.as_deref()).await
-        })
-        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
-        collect_one_result(stream)
-    }
-
-    /// Client credentials flow for service-to-service authentication.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the token request fails or the response cannot be parsed.
-    #[allow(clippy::cast_possible_truncation, clippy::needless_pass_by_value)]
-    pub fn client_credentials(
-        &self,
-        scopes: Option<Vec<String>>,
-    ) -> Result<OAuthToken, OAuthError> {
-        let this = self.clone();
-        let scopes = scopes.clone();
-        let stream = Self::wrap_oauth_async(async move {
-            this.client_credentials_async(scopes).await
-        })
-        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
-        collect_one_result(stream)
-    }
-
-    /// Refresh an access token using a refresh token.
-    ///
-    /// # Errors
-    ///
-    /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
-        let this = self.clone();
-        let refresh_token = refresh_token.to_string();
-        let stream = Self::wrap_oauth_async(async move {
-            this.refresh_token_async(&refresh_token).await
-        })
-        .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
-        collect_one_result(stream)
-    }
-
-    /// Wrap an OAuth async future into a valtron `StorageItemStream`.
-    fn wrap_oauth_async<T: Send + 'static>(
-        future: impl std::future::Future<Output = Result<T, OAuthError>> + Send + 'static,
-    ) -> Result<StorageItemStream<'static, T>, StorageError> {
-        let task = from_future(async move {
-            future.await.map_err(|e| StorageError::Backend(e.to_string()))
-        });
-        let stream = execute(task, None)
-            .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-        Ok(Box::new(
-            stream
-                .map_circuit(|item| match item {
-                    Stream::Next(result) => match result {
-                        Ok(v) => ShortCircuit::Continue(Stream::Next(Ok(v))),
-                        Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(e))),
-                    },
-                    _ => ShortCircuit::Continue(Stream::Ignore),
-                })
-                .map_pending(|_| ()),
-        ))
-    }
-}
-
-/// Helper: collect one result from a valtron stream.
-fn collect_one_result<T>(
-    stream: StorageItemStream<'_, T>,
-) -> Result<T, OAuthError> {
-    for item in stream {
-        if let Stream::Next(result) = item {
-            return result.map_err(|e| OAuthError::TokenRequestFailed(e.to_string()));
-        }
-    }
-    Err(OAuthError::TokenRequestFailed("stream ended without result".into()))
 }
 
 // ============================================================================

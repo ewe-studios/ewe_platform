@@ -3,6 +3,7 @@
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::native::vfs::d1_delta::D1Delta;
 use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
+use foundation_nativeapis::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
 use foundation_nativeapis::shared::vfs::{DeltaStore, VfsFileSystem};
 
 fn init_pool() -> PoolGuard {
@@ -55,14 +56,19 @@ fn test_d1_delta_from_env_no_creds() {
 
 #[test]
 fn test_d1_delta_is_vfs_file_system() {
+    // The delta is async; sync callers go through `SyncFs`.
+    fn assert_async_fs<T: AsyncVfsFileSystem>() {}
     fn assert_vfs_fs<T: VfsFileSystem>() {}
-    assert_vfs_fs::<D1Delta>();
+    assert_async_fs::<D1Delta>();
+    assert_vfs_fs::<SyncFs<D1Delta>>();
 }
 
 #[test]
 fn test_d1_delta_is_delta_store() {
+    fn assert_async_delta<T: AsyncDeltaStore>() {}
     fn assert_delta<T: DeltaStore>() {}
-    assert_delta::<D1Delta>();
+    assert_async_delta::<D1Delta>();
+    assert_delta::<SyncFs<D1Delta>>();
 }
 
 // ── Integration Tests through valtron sync bridge ──

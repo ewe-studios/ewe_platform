@@ -13,10 +13,10 @@ use foundation_auth::server::handlers::provider_admin::{
 use foundation_auth::server::models::provider::{ProviderType, UpstreamProvider};
 use foundation_auth::server::services::provider_service::{ProviderCrypto, ProviderService};
 use foundation_core::valtron::valtron_test;
-use foundation_db::{Blocking, StorageProvider};
+use foundation_db::StorageProvider;
 use tempfile::TempDir;
 
-fn make_service() -> (ProviderService<Blocking<StorageProvider>>, TempDir) {
+fn make_service() -> (ProviderService<StorageProvider>, TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("admin_test.db");
     let store = Arc::new(
@@ -29,18 +29,18 @@ fn make_service() -> (ProviderService<Blocking<StorageProvider>>, TempDir) {
 // ── Discovery ───────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn extended_discovery_lists_active_providers() {
+async fn extended_discovery_lists_active_providers() {
     let (svc, _tmp) = make_service();
 
     // Create a few providers
     let google = sample_google();
-    svc.create(google.clone()).expect("create google");
+    svc.create(google.clone()).await.expect("create google");
 
     let mut github = sample_github();
     github.is_active = false;
-    svc.create(github).expect("create github");
+    svc.create(github).await.expect("create github");
 
-    let providers = svc.find_active().expect("find_active");
+    let providers = svc.find_active().await.expect("find_active");
     assert_eq!(providers.len(), 1, "only google is active");
 
     use foundation_auth::server::config::IdpConfig;
@@ -57,12 +57,12 @@ fn extended_discovery_lists_active_providers() {
 // ── List all ────────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn list_all_includes_inactive() {
+async fn list_all_includes_inactive() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_google()).expect("create google");
-    svc.create(sample_github()).expect("create github");
+    svc.create(sample_google()).await.expect("create google");
+    svc.create(sample_github()).await.expect("create github");
 
-    let resp = provider_admin::list_all(&svc).expect("list_all");
+    let resp = provider_admin::list_all(&svc).await.expect("list_all");
     let body: serde_json::Value = resp.body;
     let providers = body["providers"].as_array().unwrap();
     assert_eq!(providers.len(), 2);
@@ -71,11 +71,11 @@ fn list_all_includes_inactive() {
 // ── Get one ─────────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn get_one_returns_provider() {
+async fn get_one_returns_provider() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_google()).expect("create");
+    svc.create(sample_google()).await.expect("create");
 
-    let resp = provider_admin::get_one(&svc, "google").expect("get");
+    let resp = provider_admin::get_one(&svc, "google").await.expect("get");
     let entry: ProviderEntry =
         serde_json::from_value(resp.body).expect("deserialize");
     assert_eq!(entry.id, "google");
@@ -84,16 +84,16 @@ fn get_one_returns_provider() {
 }
 
 #[valtron_test]
-fn get_one_missing_returns_error() {
+async fn get_one_missing_returns_error() {
     let (svc, _tmp) = make_service();
-    let err = provider_admin::get_one(&svc, "nope").unwrap_err();
+    let err = provider_admin::get_one(&svc, "nope").await.unwrap_err();
     assert!(err.to_string().contains("not found"));
 }
 
 // ── Create ──────────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn create_provider_with_discovery_url() {
+async fn create_provider_with_discovery_url() {
     let (svc, _tmp) = make_service();
 
     let req = CreateProviderRequest {
@@ -109,7 +109,7 @@ fn create_provider_with_discovery_url() {
         client_secret: Some("secret-123".into()),
     };
 
-    let resp = provider_admin::create(&svc, req).expect("create");
+    let resp = provider_admin::create(&svc, req).await.expect("create");
     let entry: ProviderEntry =
         serde_json::from_value(resp.body).expect("deserialize");
     assert_eq!(entry.id, "google");
@@ -117,20 +117,20 @@ fn create_provider_with_discovery_url() {
 }
 
 #[valtron_test]
-fn create_rejects_invalid_provider_type() {
+async fn create_rejects_invalid_provider_type() {
     let (svc, _tmp) = make_service();
     let mut req = create_req("bad");
     req.provider_type = "saml".into();
-    let err = provider_admin::create(&svc, req).unwrap_err();
+    let err = provider_admin::create(&svc, req).await.unwrap_err();
     assert!(err.to_string().contains("unknown provider_type"));
 }
 
 // ── Update ──────────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn update_changes_name_and_scopes() {
+async fn update_changes_name_and_scopes() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_google()).expect("create");
+    svc.create(sample_google()).await.expect("create");
 
     let req = CreateProviderRequest {
         id: "google".into(),
@@ -145,7 +145,7 @@ fn update_changes_name_and_scopes() {
         client_secret: None,
     };
 
-    let resp = provider_admin::update(&svc, "google", req).expect("update");
+    let resp = provider_admin::update(&svc, "google", req).await.expect("update");
     let entry: ProviderEntry =
         serde_json::from_value(resp.body).expect("deserialize");
     assert_eq!(entry.name, "Google SSO Updated");
@@ -155,41 +155,41 @@ fn update_changes_name_and_scopes() {
 // ── Delete ──────────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn delete_deactivates_provider() {
+async fn delete_deactivates_provider() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_google()).expect("create");
+    svc.create(sample_google()).await.expect("create");
 
-    let resp = provider_admin::delete(&svc, "google").expect("delete");
+    let resp = provider_admin::delete(&svc, "google").await.expect("delete");
     let body: serde_json::Value = resp.body;
     assert_eq!(body["deleted"], "google");
 
-    assert!(svc.find_by_id("google").unwrap().is_none());
+    assert!(svc.find_by_id("google").await.unwrap().is_none());
 }
 
 // ── Set secret ──────────────────────────────────────────────────────────
 
 #[valtron_test]
-fn set_secret_encrypts_and_stores() {
+async fn set_secret_encrypts_and_stores() {
     let (svc, _tmp) = make_service();
-    svc.create(sample_google()).expect("create");
+    svc.create(sample_google()).await.expect("create");
 
     let req = SetSecretRequest {
         secret: "my-secret".into(),
     };
-    let resp = provider_admin::set_secret(&svc, "google", req).expect("set_secret");
+    let resp = provider_admin::set_secret(&svc, "google", req).await.expect("set_secret");
     assert_eq!(resp.body["ok"], true);
 
-    let stored = svc.get_secret("google").expect("get_secret");
+    let stored = svc.get_secret("google").await.expect("get_secret");
     assert_eq!(stored, "my-secret");
 }
 
 #[valtron_test]
-fn set_secret_on_missing_provider_errors() {
+async fn set_secret_on_missing_provider_errors() {
     let (svc, _tmp) = make_service();
     let req = SetSecretRequest {
         secret: "secret".into(),
     };
-    let err = provider_admin::set_secret(&svc, "nope", req).unwrap_err();
+    let err = provider_admin::set_secret(&svc, "nope", req).await.unwrap_err();
     assert!(err.to_string().contains("not found") || err.to_string().contains("Not"));
 }
 

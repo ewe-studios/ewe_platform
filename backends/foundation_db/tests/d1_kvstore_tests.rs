@@ -1,149 +1,134 @@
-//! `KeyValueStore` integration tests for the D1 backend against a local
-//! wrangler worker emulating the Cloudflare D1 REST API.
+//! `AsyncKeyValueStore` / `AsyncQueryStore` integration tests for the D1
+//! backend against a local wrangler worker emulating the Cloudflare D1 REST
+//! API. Skipped unless `CF_INTEGRATION_TEST=1` (see [`common`]).
 
 mod common;
 
-use common::{init_valtron, make_d1_store};
-use foundation_core::valtron::BlockingFutureExt;
-use foundation_db::{Blocking, D1Store, DataValue, KeyValueStore, QueryStore};
+use common::make_d1_store;
+use foundation_core::valtron::valtron_test;
+use foundation_db::{AsyncKeyValueStore, AsyncQueryStore, D1Store, DataValue};
+use futures_lite::StreamExt;
 
-/// `D1Store` is async-only; these tests use its `Blocking` sync view.
-fn create_local_d1_store() -> Option<Blocking<D1Store>> {
-    make_d1_store().map(Blocking::new)
-}
-
-/// Create the KV table (async `init_kv`) before the sync calls.
-fn init_kv(storage: &Blocking<D1Store>) {
-    let storage = storage.shared();
-    async move { storage.init_kv().await }.block().unwrap();
-}
-
-#[test]
-fn test_d1_kvstore_put_get() {
-    init_valtron();
-    let Some(storage) = create_local_d1_store() else {
+/// A KV-initialised store on the local worker, or `None` to skip.
+async fn kv_store() -> Option<D1Store> {
+    let Some(storage) = make_d1_store() else {
         println!("Skipping D1 test - miniflare not available");
-        return;
+        return None;
     };
-    init_kv(&storage);
-
-    let test_value = "Hello, D1!";
-    let key = format!("test_put_get_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
-
-    storage.set(&key, test_value).unwrap();
-
-    let retrieved: Option<String> = storage.get(&key).unwrap();
-    assert_eq!(retrieved, Some(test_value.to_string()));
-
-    storage.delete(&key).unwrap();
+    storage.init_kv().await.unwrap();
+    Some(storage)
 }
 
-#[test]
-fn test_d1_kvstore_delete() {
-    init_valtron();
-    let Some(storage) = create_local_d1_store() else {
-        println!("Skipping D1 test - miniflare not available");
-        return;
-    };
-    init_kv(&storage);
-
-    let test_value = "To be deleted";
-    let key = format!("test_delete_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
-
-    storage.set(&key, test_value).unwrap();
-
-    let exists_before: bool = storage.exists(&key).unwrap();
-    assert!(exists_before);
-
-    storage.delete(&key).unwrap();
-
-    let exists_after: bool = storage.exists(&key).unwrap();
-    assert!(!exists_after);
+fn stamp() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
 }
 
-#[test]
-fn test_d1_kvstore_exists() {
-    init_valtron();
-    let Some(storage) = create_local_d1_store() else {
-        println!("Skipping D1 test - miniflare not available");
-        return;
-    };
-    init_kv(&storage);
-
-    let key = format!("test_exists_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
-
-    let exists: bool = storage.exists(&key).unwrap();
-    assert!(!exists);
-
-    storage.set(&key, "Exists!").unwrap();
-
-    let exists: bool = storage.exists(&key).unwrap();
-    assert!(exists);
-
-    storage.delete(&key).unwrap();
+async fn keys(storage: &D1Store, prefix: Option<&str>) -> Vec<String> {
+    storage
+        .list_keys_async(prefix)
+        .await
+        .unwrap()
+        .map(Result::unwrap)
+        .collect()
+        .await
 }
 
-#[test]
-fn test_d1_kvstore_list_keys() {
-    init_valtron();
-    let Some(storage) = create_local_d1_store() else {
-        println!("Skipping D1 test - miniflare not available");
-        return;
-    };
-    init_kv(&storage);
+#[valtron_test]
+async fn test_d1_kvstore_put_get() {
+    let Some(storage) = kv_store().await else { return };
+    let key = format!("test_put_get_{}", stamp());
 
-    storage.set("prefix:a", "1").unwrap();
-    storage.set("prefix:b", "2").unwrap();
-    storage.set("other:c", "3").unwrap();
+    storage.set_async(&key, "Hello, D1!").await.unwrap();
+    let retrieved: Option<String> = storage.get_async(&key).await.unwrap();
+    assert_eq!(retrieved.as_deref(), Some("Hello, D1!"));
 
-    let keys: Vec<String> = storage.list_keys(None).unwrap()
-        .flat_map(|s| match s { foundation_core::valtron::Stream::Next(Ok(r)) => vec![r], _ => vec![] })
-        .collect();
-    assert_eq!(keys.len(), 3);
-
-    let keys: Vec<String> = storage.list_keys(Some("prefix:")).unwrap()
-        .flat_map(|s| match s { foundation_core::valtron::Stream::Next(Ok(r)) => vec![r], _ => vec![] })
-        .collect();
-    assert_eq!(keys.len(), 2);
-
-    storage.delete("prefix:a").unwrap();
-    storage.delete("prefix:b").unwrap();
-    storage.delete("other:c").unwrap();
+    storage.delete_async(&key).await.unwrap();
 }
 
-#[test]
-fn test_d1_query_store() {
-    init_valtron();
-    let Some(storage) = create_local_d1_store() else {
-        println!("Skipping D1 test - miniflare not available");
-        return;
-    };
+#[valtron_test]
+async fn test_d1_kvstore_delete() {
+    let Some(storage) = kv_store().await else { return };
+    let key = format!("test_delete_{}", stamp());
 
-    let table_name = format!("test_table_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs());
-    let create_sql = format!("CREATE TABLE IF NOT EXISTS {} (name TEXT PRIMARY KEY, value INTEGER)", table_name);
+    storage.set_async(&key, "To be deleted").await.unwrap();
+    assert!(storage.exists_async(&key).await.unwrap());
 
-    storage.execute_batch(&create_sql).unwrap();
+    storage.delete_async(&key).await.unwrap();
+    assert!(!storage.exists_async(&key).await.unwrap());
+}
 
-    let insert_sql = format!("INSERT INTO {} (name, value) VALUES (?, ?)", table_name);
-    storage.execute(&insert_sql, &[DataValue::Text("test".to_string()), DataValue::Integer(42)]).unwrap();
+#[valtron_test]
+async fn test_d1_kvstore_exists() {
+    let Some(storage) = kv_store().await else { return };
+    let key = format!("test_exists_{}", stamp());
 
-    let select_sql = format!("SELECT * FROM {} WHERE name = ?", table_name);
-    let mut rows = storage.query(&select_sql, &[DataValue::Text("test".to_string())]).unwrap();
-    
-    let mut found = false;
-    for item in &mut rows {
-        if let foundation_core::valtron::Stream::Next(Ok(row)) = item {
-            let name: String = row.get_by_name("name").unwrap();
-            let value: i64 = row.get_by_name("value").unwrap();
-            assert_eq!(name, "test");
-            assert_eq!(value, 42);
-            found = true;
-        }
+    assert!(!storage.exists_async(&key).await.unwrap());
+    storage.set_async(&key, "Exists!").await.unwrap();
+    assert!(storage.exists_async(&key).await.unwrap());
+
+    storage.delete_async(&key).await.unwrap();
+}
+
+#[valtron_test]
+async fn test_d1_kvstore_list_keys() {
+    let Some(storage) = kv_store().await else { return };
+
+    storage.set_async("prefix:a", "1").await.unwrap();
+    storage.set_async("prefix:b", "2").await.unwrap();
+    storage.set_async("other:c", "3").await.unwrap();
+
+    assert_eq!(keys(&storage, None).await.len(), 3);
+    assert_eq!(keys(&storage, Some("prefix:")).await.len(), 2);
+
+    for key in ["prefix:a", "prefix:b", "other:c"] {
+        storage.delete_async(key).await.unwrap();
     }
-    assert!(found, "Should have found the inserted row");
-
-    let drop_sql = format!("DROP TABLE {}", table_name);
-    storage.execute_batch(&drop_sql).unwrap();
 }
 
+#[valtron_test]
+async fn test_d1_query_store() {
+    let Some(storage) = make_d1_store() else {
+        println!("Skipping D1 test - miniflare not available");
+        return;
+    };
 
+    let table_name = format!("test_table_{}", stamp());
+    storage
+        .execute_batch_async(&format!(
+            "CREATE TABLE IF NOT EXISTS {table_name} (name TEXT PRIMARY KEY, value INTEGER)"
+        ))
+        .await
+        .unwrap();
+
+    storage
+        .execute_async(
+            &format!("INSERT INTO {table_name} (name, value) VALUES (?, ?)"),
+            &[DataValue::Text("test".to_string()), DataValue::Integer(42)],
+        )
+        .await
+        .unwrap();
+
+    let rows: Vec<_> = storage
+        .query_async(
+            &format!("SELECT * FROM {table_name} WHERE name = ?"),
+            &[DataValue::Text("test".to_string())],
+        )
+        .await
+        .unwrap()
+        .map(Result::unwrap)
+        .collect()
+        .await;
+    assert_eq!(rows.len(), 1, "Should have found the inserted row");
+    let name: String = rows[0].get_by_name("name").unwrap();
+    let value: i64 = rows[0].get_by_name("value").unwrap();
+    assert_eq!(name, "test");
+    assert_eq!(value, 42);
+
+    storage
+        .execute_batch_async(&format!("DROP TABLE {table_name}"))
+        .await
+        .unwrap();
+}

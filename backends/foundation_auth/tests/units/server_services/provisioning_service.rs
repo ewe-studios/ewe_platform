@@ -5,7 +5,7 @@ use foundation_auth::server::models::provider::{ProviderMapping, ProviderType, U
 use foundation_auth::server::services::provisioning_service::{ProvisioningResult, ProvisioningService};
 use foundation_auth::shared::upstream_client::UpstreamProfile;
 use foundation_core::valtron::{valtron_test, BlockingFutureExt};
-use foundation_db::{Blocking, StorageBackend, StorageProvider};
+use foundation_db::{StorageBackend, StorageProvider};
 use std::sync::Arc;
 
 fn test_provider() -> UpstreamProvider {
@@ -44,25 +44,25 @@ fn test_profile() -> UpstreamProfile {
     }
 }
 
-/// A migrated Turso `StorageProvider` (async constructor), as the sync
-/// `QueryStore` the service is generic over.
-fn make_store() -> (Arc<Blocking<StorageProvider>>, tempfile::TempDir) {
+/// A migrated Turso `StorageProvider`. Test setup is a sync boundary, so it
+/// waits for the async constructor with `.block()`.
+fn make_store() -> (Arc<StorageProvider>, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let url = dir.path().join("provision_test.db").to_str().unwrap().to_string();
     let provider = async move { StorageProvider::new(StorageBackend::Turso { url }).await }
         .block()
         .expect("init turso");
-    (Arc::new(Blocking::new(provider)), dir)
+    (Arc::new(provider), dir)
 }
 
 #[valtron_test]
-fn new_profile_creates_user_and_link() {
+async fn new_profile_creates_user_and_link() {
     let (store, _tmp) = make_store();
     let svc = ProvisioningService::new(store);
     let provider = test_provider();
     let profile = test_profile();
 
-    let result = svc.provision(&provider, &profile).expect("provision");
+    let result = svc.provision(&provider, &profile).await.expect("provision");
     match result {
         ProvisioningResult::Created { ref user_id, email_verified: true } => {
             assert!(!user_id.is_empty());
@@ -72,23 +72,23 @@ fn new_profile_creates_user_and_link() {
 }
 
 #[valtron_test]
-fn same_profile_provisions_once_and_links_twice() {
+async fn same_profile_provisions_once_and_links_twice() {
     let (store, _tmp) = make_store();
     let svc = ProvisioningService::new(store);
     let provider = test_provider();
     let profile = test_profile();
 
-    let result1 = svc.provision(&provider, &profile).expect("first provision");
+    let result1 = svc.provision(&provider, &profile).await.expect("first provision");
     let uid1 = result1.user_id().to_string();
 
-    let result2 = svc.provision(&provider, &profile).expect("second provision");
+    let result2 = svc.provision(&provider, &profile).await.expect("second provision");
     let uid2 = result2.user_id().to_string();
 
     assert_eq!(uid1, uid2, "same upstream sub should return same local user");
 }
 
 #[valtron_test]
-fn different_providers_with_same_verified_email_share_user() {
+async fn different_providers_with_same_verified_email_share_user() {
     let (store, _tmp) = make_store();
     let svc = ProvisioningService::new(store);
 
@@ -96,7 +96,7 @@ fn different_providers_with_same_verified_email_share_user() {
     let google = test_provider();
     let profile_g = test_profile();
 
-    let r1 = svc.provision(&google, &profile_g).expect("google provision");
+    let r1 = svc.provision(&google, &profile_g).await.expect("google provision");
     let uid1 = r1.user_id().to_string();
 
     // GitHub: same email, different sub
@@ -107,21 +107,21 @@ fn different_providers_with_same_verified_email_share_user() {
     let mut profile_gh = test_profile();
     profile_gh.sub = "github-999".into();
 
-    let r2 = svc.provision(&github, &profile_gh).expect("github provision");
+    let r2 = svc.provision(&github, &profile_gh).await.expect("github provision");
     let uid2 = r2.user_id().to_string();
 
     assert_eq!(uid1, uid2, "same verified email should auto-link to existing user");
 }
 
 #[valtron_test]
-fn disabled_auto_link_creates_separate_users() {
+async fn disabled_auto_link_creates_separate_users() {
     let (store, _tmp) = make_store();
     let mut svc = ProvisioningService::new(store);
     svc.disable_auto_link();
 
     let provider = test_provider();
     let p1 = test_profile();
-    let r1 = svc.provision(&provider, &p1).expect("first");
+    let r1 = svc.provision(&provider, &p1).await.expect("first");
 
     // With auto-link disabled, the same email from a different upstream
     // identity must NOT auto-link — but the email must be different too
@@ -130,7 +130,7 @@ fn disabled_auto_link_creates_separate_users() {
     p2.sub = "google-different-sub".into();
     p2.email = Some("other@example.com".into());
     p2.name = Some("Other User".into());
-    let r2 = svc.provision(&provider, &p2).expect("second");
+    let r2 = svc.provision(&provider, &p2).await.expect("second");
 
     assert_ne!(
         r1.user_id(),
@@ -140,15 +140,15 @@ fn disabled_auto_link_creates_separate_users() {
 }
 
 #[valtron_test]
-fn link_exists_detects_existing_link() {
+async fn link_exists_detects_existing_link() {
     let (store, _tmp) = make_store();
     let svc = ProvisioningService::new(store);
     let provider = test_provider();
     let profile = test_profile();
 
-    assert!(!svc.link_exists(&provider, &profile.sub).expect("check"));
+    assert!(!svc.link_exists(&provider, &profile.sub).await.expect("check"));
 
-    svc.provision(&provider, &profile).expect("provision");
+    svc.provision(&provider, &profile).await.expect("provision");
 
-    assert!(svc.link_exists(&provider, &profile.sub).expect("check after"));
+    assert!(svc.link_exists(&provider, &profile.sub).await.expect("check after"));
 }

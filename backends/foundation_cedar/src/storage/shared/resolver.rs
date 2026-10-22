@@ -4,10 +4,16 @@ use crate::core::engine::CedarEngine;
 use crate::core::errors::CedarError;
 use crate::storage::traits::PolicyStore;
 
-pub fn load_from_store(store: &dyn PolicyStore) -> Result<CedarEngine, CedarError> {
-    let schema_text = store.load_schema()?;
-    let policy_text = store.load_policies()?;
-    let entities_json = store.load_entities()?;
+/// Build a [`CedarEngine`] from a policy source.
+///
+/// # Errors
+///
+/// Returns [`CedarError`] if the source can't be read, or its schema,
+/// policies or entities don't parse.
+pub async fn load_from_store(store: &dyn PolicyStore) -> Result<CedarEngine, CedarError> {
+    let schema_text = store.load_schema().await?;
+    let policy_text = store.load_policies().await?;
+    let entities_json = store.load_entities().await?;
 
     let entities = match entities_json {
         Some(ref json) => Entities::from_json_str(json, None)

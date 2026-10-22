@@ -149,7 +149,7 @@ impl JsonFileStorage {
 // ===========================================================================
 // Async trait implementations — the only storage traits this backend
 // implements. The file I/O is synchronous `std::fs`, so it runs directly in
-// the async bodies; sync callers wrap the store in `foundation_db::Blocking`.
+// the async bodies.
 // ===========================================================================
 
 #[async_trait::async_trait]
@@ -278,7 +278,7 @@ impl AsyncRateLimiterStore for JsonFileStorage {
         ))
     }
 
-    async fn record_rate_limit_async(&self, _key: &str) -> StorageResult<u32> {
+    async fn record_rate_limit_async(&self, _key: &str, _window_seconds: u64) -> StorageResult<u32> {
         Err(StorageError::Generic(
             "RateLimiterStore not supported for JsonFileStorage".to_string(),
         ))

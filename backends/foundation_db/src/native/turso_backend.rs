@@ -2,9 +2,10 @@
 //!
 //! `TursoStorage` implements only the `Async*` storage traits: every operation
 //! is a native `async fn`, and multi-row queries return an `AsyncQueryStream`
-//! pulled row by row. Sync callers wrap the store in `foundation_db::Blocking`.
+//! pulled row by row.
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
+use crate::core::rate_limit;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::schema::{MigrationRunner, MIGRATIONS};
 use crate::core::storage_provider::{
@@ -13,7 +14,6 @@ use crate::core::storage_provider::{
 };
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::BlockingFutureExt;
 use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
@@ -29,35 +29,21 @@ pub struct TursoStorage {
     encryption_key: Option<EncryptionKey>,
 }
 
-/// An in-memory database with the full schema migrated (`kv_store`, `documents`,
-/// …): nothing is persisted, so it suits tests and throwaway sessions. Use
-/// [`TursoStorage::new`] with a file path for a store that survives restarts.
-///
-/// `Default` is a synchronous trait, so this is a sync boundary: it waits for
-/// [`TursoStorage::new`] and [`TursoStorage::init_schema`] on the valtron
-/// executor with `.block()`. In async code, call those two directly instead.
-///
-/// # Panics
-///
-/// If the in-memory database can't be opened or migrated, which only happens
-/// when the executor isn't available or `SQLite` itself fails.
-impl Default for TursoStorage {
-    fn default() -> Self {
-        async {
-            let storage = Self::new(":memory:")
-                .await
-                .expect("TursoStorage::default: failed to open an in-memory database");
-            storage
-                .init_schema()
-                .await
-                .expect("TursoStorage::default: failed to migrate the in-memory database");
-            storage
-        }
-        .block()
-    }
-}
-
 impl TursoStorage {
+    /// An in-memory database with the full schema migrated (`kv_store`,
+    /// `documents`, …): nothing is persisted, so it suits tests and throwaway
+    /// sessions. Use [`TursoStorage::new`] with a file path for a store that
+    /// survives restarts.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database can't be opened or migrated.
+    pub async fn in_memory() -> StorageResult<Self> {
+        let storage = Self::new(":memory:").await?;
+        storage.init_schema().await?;
+        Ok(storage)
+    }
+
     /// Create a new Turso storage connection without encryption.
     ///
     /// # Errors
@@ -378,112 +364,6 @@ impl TursoStorage {
         Ok(exists)
     }
 
-    /// Async rate limit check.
-    async fn check_rate_limit_async_internal(
-        &self,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> StorageResult<bool> {
-        let create_table = r"
-            CREATE TABLE IF NOT EXISTS rate_limits (
-                key TEXT PRIMARY KEY,
-                count INTEGER NOT NULL,
-                window_start INTEGER NOT NULL
-            )
-        ";
-        let conn = Arc::clone(&self.conn);
-        conn.execute_batch(create_table).await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        let window_start = now - window_seconds;
-        let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-
-        let opt = conn
-            .prepare("SELECT count, window_start FROM rate_limits WHERE key = ?")
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-            .query([key])
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-            .next()
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        match opt {
-            Some(row) => {
-                let count: i64 = row
-                    .get(0)
-                    .map_err(|e| StorageError::Backend(e.to_string()))?;
-                let stored_window_start: i64 = row
-                    .get(1)
-                    .map_err(|e| StorageError::Backend(e.to_string()))?;
-                if stored_window_start.cast_unsigned() < window_start {
-                    Ok(true)
-                } else {
-                    Ok(count < i64::from(max_count))
-                }
-            }
-            None => Ok(true),
-        }
-    }
-
-    /// Async rate limit record.
-    async fn record_rate_limit_async_internal(&self, key: &str) -> StorageResult<u32> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs()
-            .cast_signed();
-        let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-
-        conn.execute(
-            "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start",
-            [key.clone(), now.to_string()],
-        )
-        .await
-        .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        let opt = conn
-            .prepare("SELECT count FROM rate_limits WHERE key = ?")
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-            .query([key])
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?
-            .next()
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        match opt {
-            Some(row) => {
-                let count: i64 = row
-                    .get(0)
-                    .map_err(|e| StorageError::Backend(e.to_string()))?;
-                Ok(u32::try_from(count).map_err(|e| {
-                    StorageError::Backend(format!("Cannot convert count to u32: {e}"))
-                })?)
-            }
-            None => Ok(1),
-        }
-    }
-
-    /// Async rate limit reset.
-    async fn reset_rate_limit_async_internal(&self, key: &str) -> StorageResult<()> {
-        let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-        conn.execute("DELETE FROM rate_limits WHERE key = ?", [key])
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-        Ok(())
-    }
-
     /// Creates a lazy async stream that yields SQL rows one at a time.
     ///
     /// NOTE: This is a **sync function** returning a stream — it does NOT block.
@@ -635,15 +515,15 @@ impl AsyncRateLimiterStore for TursoStorage {
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        self.check_rate_limit_async_internal(key, max_count, window_seconds).await
+        rate_limit::sql_check(self, key, max_count, window_seconds).await
     }
 
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        self.record_rate_limit_async_internal(key).await
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+        rate_limit::sql_record(self, key, window_seconds).await
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
-        self.reset_rate_limit_async_internal(key).await
+        rate_limit::sql_reset(self, key).await
     }
 }
 

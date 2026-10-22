@@ -2,7 +2,7 @@
 //!
 //! Uses `std::sync::Mutex` for thread-safe access. It implements only the
 //! `Async*` store traits, like every other store; its futures resolve at once
-//! (there is no I/O). Sync callers go through `foundation_db::Blocking`.
+//! (there is no I/O).
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -12,6 +12,7 @@ use zeroize::Zeroizing;
 
 use super::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
     AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
     AsyncRateLimiterStore, DataValue,
@@ -39,12 +40,6 @@ impl Default for MemoryStorage {
     }
 }
 
-/// Rate limit entry for in-memory storage.
-#[derive(Serialize, serde::Deserialize)]
-struct RateLimitEntry {
-    count: u32,
-    window_start: u64,
-}
 
 // ===========================================================================
 // Async trait implementations — in-memory ops resolve immediately.
@@ -142,43 +137,31 @@ impl AsyncRateLimiterStore for MemoryStorage {
         let rate_key = format!("_rate_limit:{key}");
         let data = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        let allowed = match data.get(&rate_key) {
+        match data.get(&rate_key) {
             Some(bytes) => {
                 let entry: RateLimitEntry = serde_json::from_slice(bytes)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                if entry.window_start < now.saturating_sub(window_seconds) {
-                    true
-                } else {
-                    entry.count < max_count
-                }
+                Ok(entry.allows(max_count, now, window_seconds))
             }
-            None => true,
-        };
-        Ok(allowed)
+            None => Ok(true),
+        }
     }
 
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
         let now = unix_now_secs()?;
         let rate_key = format!("_rate_limit:{key}");
         let mut data = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        let new_count = if let Some(bytes) = data.get(&rate_key) {
-            let mut entry: RateLimitEntry = serde_json::from_slice(bytes)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            entry.count += 1;
-            entry.window_start = now;
-            data.insert(rate_key.clone(), Zeroizing::new(
-                serde_json::to_vec(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?,
-            ));
-            entry.count
-        } else {
-            let entry = RateLimitEntry { count: 1, window_start: now };
-            data.insert(rate_key.clone(), Zeroizing::new(
-                serde_json::to_vec(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?,
-            ));
-            1
-        };
-        Ok(new_count)
+        let previous = data
+            .get(&rate_key)
+            .map(|bytes| serde_json::from_slice::<RateLimitEntry>(bytes))
+            .transpose()
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let entry = RateLimitEntry::record(previous, now, window_seconds);
+        data.insert(rate_key, Zeroizing::new(
+            serde_json::to_vec(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?,
+        ));
+        Ok(entry.count)
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {

@@ -1,23 +1,34 @@
+//! Portable full-scan `AsyncVectorStore` over any async SQL store.
+//!
+//! Vectors are little-endian `f32` blobs in the `vectors` table; search scans
+//! the namespace and ranks rows as they stream in (O(k) memory).
+
 use std::sync::Arc;
 
-use foundation_core::valtron::Stream;
-use foundation_db::traits::{DataValue, QueryStore, SqlRow};
+use foundation_db::{AsyncQueryStore, DataValue};
+use futures_lite::StreamExt;
 
-use crate::flat::flat_top_k;
+use crate::flat::TopK;
 use crate::schema;
 use crate::store::{
-    VectorEntry, VectorMatch, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
+    AsyncVectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
+    VectorStoreError,
 };
 use crate::vector::Vector;
 
-pub struct SqlVectorStore<Q: QueryStore> {
+pub struct SqlVectorStore<Q: AsyncQueryStore + 'static> {
     backend: Arc<Q>,
     config: VectorStoreConfig,
 }
 
-impl<Q: QueryStore> SqlVectorStore<Q> {
-    pub fn new(backend: Arc<Q>, config: VectorStoreConfig) -> Result<Self, VectorStoreError> {
-        schema::run_migrations(backend.as_ref())?;
+impl<Q: AsyncQueryStore + 'static> SqlVectorStore<Q> {
+    /// Open a store over `backend`, running the vector migrations.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`VectorStoreError::Backend`] if the migrations fail.
+    pub async fn new(backend: Arc<Q>, config: VectorStoreConfig) -> Result<Self, VectorStoreError> {
+        schema::run_migrations(backend.as_ref()).await?;
         Ok(Self { backend, config })
     }
 
@@ -52,39 +63,28 @@ fn blob_to_vector(blob: &[u8]) -> Vector {
     Vector::new(floats)
 }
 
-fn metadata_to_json(m: &VectorMetadata) -> String {
-    serde_json::to_string(m).unwrap_or_else(|_| "{}".into())
+fn metadata_to_json(m: &VectorMetadata) -> Result<String, VectorStoreError> {
+    serde_json::to_string(m).map_err(|e| VectorStoreError::Backend(format!("encode metadata: {e}")))
 }
 
-fn json_to_metadata(s: &str) -> VectorMetadata {
-    serde_json::from_str(s).unwrap_or_default()
+fn json_to_metadata(s: &str) -> Result<VectorMetadata, VectorStoreError> {
+    serde_json::from_str(s).map_err(|e| VectorStoreError::Backend(format!("decode metadata: {e}")))
 }
 
-fn collect_rows(
-    stream: foundation_db::traits::StorageItemStream<'_, SqlRow>,
-) -> Result<Vec<SqlRow>, VectorStoreError> {
-    let mut rows = Vec::new();
-    for item in stream {
-        match item {
-            Stream::Next(Ok(row)) => rows.push(row),
-            Stream::Next(Err(e)) => {
-                return Err(VectorStoreError::Backend(format!("row error: {e}")));
-            }
-            _ => {}
-        }
-    }
-    Ok(rows)
+fn backend_err<E: core::fmt::Display>(ctx: &'static str) -> impl Fn(E) -> VectorStoreError {
+    move |e| VectorStoreError::Backend(format!("{ctx}: {e}"))
 }
 
-impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
-    fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
+#[async_trait::async_trait]
+impl<Q: AsyncQueryStore + 'static> AsyncVectorStore for SqlVectorStore<Q> {
+    async fn insert_async(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(&entry)?;
         let blob = vector_to_blob(&entry.vector);
-        let meta_json = metadata_to_json(&entry.metadata);
-        #[allow(clippy::cast_possible_wrap)]
-        let dim = entry.vector.dimension() as i64;
+        let meta_json = metadata_to_json(&entry.metadata)?;
+        let dim = i64::try_from(entry.vector.dimension())
+            .map_err(|_| VectorStoreError::Backend("dimension does not fit in i64".into()))?;
         self.backend
-            .execute(
+            .execute_async(
                 "INSERT OR REPLACE INTO vectors (id, namespace, dimension, vector, metadata) \
                  VALUES (?, ?, ?, ?, ?)",
                 &[
@@ -95,28 +95,30 @@ impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
                     DataValue::Text(meta_json),
                 ],
             )
-            .map_err(|e| VectorStoreError::Backend(format!("insert failed: {e}")))?;
+            .await
+            .map_err(backend_err("insert failed"))?;
         Ok(())
     }
 
-    fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
         let affected = self
             .backend
-            .execute(
+            .execute_async(
                 "DELETE FROM vectors WHERE namespace = ? AND id = ?",
                 &[
                     DataValue::Text(namespace.to_string()),
                     DataValue::Text(id.to_string()),
                 ],
             )
-            .map_err(|e| VectorStoreError::Backend(format!("delete failed: {e}")))?;
+            .await
+            .map_err(backend_err("delete failed"))?;
         if affected == 0 {
             return Err(VectorStoreError::NotFound { id: id.to_string() });
         }
         Ok(())
     }
 
-    fn search(
+    async fn search_async(
         &self,
         namespace: &str,
         query: &[f32],
@@ -128,79 +130,82 @@ impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
                 got: query.len(),
             });
         }
-        let stream = self
+        let mut rows = self
             .backend
-            .query(
+            .query_async(
                 "SELECT id, vector FROM vectors WHERE namespace = ?",
                 &[DataValue::Text(namespace.to_string())],
             )
-            .map_err(|e| VectorStoreError::Backend(format!("query failed: {e}")))?;
-        let rows = collect_rows(stream)?;
-        let mut entries: Vec<(String, Vec<f32>)> = Vec::with_capacity(rows.len());
-        for row in &rows {
-            let id: String = row
-                .get(0)
-                .map_err(|e| VectorStoreError::Backend(format!("read id: {e}")))?;
-            let blob: Vec<u8> = row
-                .get(1)
-                .map_err(|e| VectorStoreError::Backend(format!("read vector: {e}")))?;
-            entries.push((id, blob_to_vector(&blob).data));
+            .await
+            .map_err(backend_err("query failed"))?;
+        // Rank rows as they arrive: memory stays at k, not the namespace size.
+        let mut top = TopK::new(query, k, self.config.metric);
+        while let Some(row) = rows.next().await {
+            let row = row.map_err(backend_err("row error"))?;
+            let id: String = row.get(0).map_err(backend_err("read id"))?;
+            let blob: Vec<u8> = row.get(1).map_err(backend_err("read vector"))?;
+            top.push(&id, &blob_to_vector(&blob).data);
         }
-        let iter = entries
-            .iter()
-            .map(|(id, data)| (id.as_str(), data.as_slice()));
-        Ok(flat_top_k(query, iter, k, self.config.metric))
+        Ok(top.finish())
     }
 
-    fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
-        let stream = self
+    async fn get_async(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
+        let mut rows = self
             .backend
-            .query(
+            .query_async(
                 "SELECT id, vector, metadata FROM vectors WHERE namespace = ? AND id = ?",
                 &[
                     DataValue::Text(namespace.to_string()),
                     DataValue::Text(id.to_string()),
                 ],
             )
-            .map_err(|e| VectorStoreError::Backend(format!("get failed: {e}")))?;
-        let rows = collect_rows(stream)?;
-        let Some(row) = rows.first() else {
+            .await
+            .map_err(backend_err("get failed"))?;
+        let Some(row) = rows.next().await else {
             return Ok(None);
         };
-        let id: String = row
-            .get(0)
-            .map_err(|e| VectorStoreError::Backend(format!("read id: {e}")))?;
-        let blob: Vec<u8> = row
-            .get(1)
-            .map_err(|e| VectorStoreError::Backend(format!("read vector: {e}")))?;
-        let meta_json: String = row
-            .get(2)
-            .map_err(|e| VectorStoreError::Backend(format!("read metadata: {e}")))?;
+        let row = row.map_err(backend_err("row error"))?;
+        let id: String = row.get(0).map_err(backend_err("read id"))?;
+        let blob: Vec<u8> = row.get(1).map_err(backend_err("read vector"))?;
+        let meta_json: String = row.get(2).map_err(backend_err("read metadata"))?;
         Ok(Some(VectorEntry {
             id,
             vector: blob_to_vector(&blob),
-            metadata: json_to_metadata(&meta_json),
+            metadata: json_to_metadata(&meta_json)?,
         }))
     }
 
-    fn len(&self, namespace: &str) -> usize {
-        let stream = match self.backend.query(
+    /// The namespace's vector count. `AsyncVectorStore::len_async` can't
+    /// report errors (see the `foundation_vectors` entry in
+    /// `docs/bug-backlog.md`), so a failed count reads as 0.
+    async fn len_async(&self, namespace: &str) -> usize {
+        count_rows(
+            self.backend.as_ref(),
             "SELECT COUNT(*) FROM vectors WHERE namespace = ?",
-            &[DataValue::Text(namespace.to_string())],
-        ) {
-            Ok(s) => s,
-            Err(_) => return 0,
-        };
-        let rows = match collect_rows(stream) {
-            Ok(r) => r,
-            Err(_) => return 0,
-        };
-        rows.first()
-            .and_then(|row| row.get::<i64>(0).ok())
-            .unwrap_or(0) as usize
+            namespace,
+        )
+        .await
+        .unwrap_or(0)
     }
 
     fn config(&self) -> &VectorStoreConfig {
         &self.config
     }
+}
+
+/// Run a `SELECT COUNT(*) … WHERE namespace = ?` and read the count.
+pub(crate) async fn count_rows<Q: AsyncQueryStore + ?Sized>(
+    backend: &Q,
+    sql: &str,
+    namespace: &str,
+) -> Result<usize, VectorStoreError> {
+    let mut rows = backend
+        .query_async(sql, &[DataValue::Text(namespace.to_string())])
+        .await
+        .map_err(backend_err("count failed"))?;
+    let Some(row) = rows.next().await else {
+        return Ok(0);
+    };
+    let n: i64 = row.map_err(backend_err("row error"))?.get(0).map_err(backend_err("read count"))?;
+    usize::try_from(n).map_err(backend_err("count out of range"))
 }

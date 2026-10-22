@@ -4635,13 +4635,16 @@ version = "0.0.2"
 name = "foundation_cedar"
 version = "0.0.3"
 dependencies = [
+ "async-trait",
  "cedar-policy",
  "derive_more",
  "foundation_core",
  "foundation_db",
+ "futures-lite",
  "serde",
  "serde_json",
  "smol_str",
+ "tempfile",
 ]
 
 [[package]]
@@ -4793,8 +4796,10 @@ dependencies = [
  "chrono",
  "foundation_core",
  "foundation_db",
+ "futures-lite",
  "serde",
  "serde_json",
+ "tempfile",
  "tracing",
 ]
 
@@ -5202,6 +5207,7 @@ dependencies = [
  "foundation_macros",
  "foundation_nostd",
  "fuser",
+ "futures-lite",
  "hex",
  "io-uring",
  "libc",
