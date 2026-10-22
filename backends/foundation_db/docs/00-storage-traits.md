@@ -9,16 +9,16 @@ traits.
 ## 1. The trait hierarchy
 
 ```
-AsyncBlobStore          ← raw bytes (R2, S3, filesystem)
-AsyncKeyValueStore      ← typed key-value (KV, Redis)
-AsyncQueryStore         ← SQL-like queries (SQLite, D1, Turso)
-AsyncRateLimiterStore   ← fixed-window rate limits
+BlobStore          ← raw bytes (R2, S3, filesystem)
+KeyValueStore      ← typed key-value (KV, Redis)
+QueryStore         ← SQL-like queries (SQLite, D1, Turso)
+RateLimiterStore   ← fixed-window rate limits
      ↓
-AsyncDocumentStore      ← structured documents with ordering
+DocumentStore      ← structured documents with ordering
 ```
 
-Each level builds on the one below. `AsyncDocumentStore` needs `AsyncQueryStore`
-for SQL backends and `AsyncBlobStore` for large blobs.
+Each level builds on the one below. `DocumentStore` needs `QueryStore`
+for SQL backends and `BlobStore` for large blobs.
 
 ### Async only
 
@@ -31,7 +31,7 @@ ready at once). There are no sync storage traits and no sync wrapper (the old
 F04).
 
 ```rust
-use foundation_db::{AsyncKeyValueStore, TursoStorage};
+use foundation_db::{KeyValueStore, TursoStorage};
 
 let store = TursoStorage::in_memory().await?;   // or TursoStorage::new("app.db").await? + init_schema()
 store.set_async("k", "v").await?;
@@ -48,13 +48,13 @@ store.set_async("k", "v").await?;
 - Inside a valtron `TaskIterator`, hold the store future as a `FutureTask` and
   poll it from `next_status` (see `StoreStateTask`).
 
-## 2. AsyncBlobStore
+## 2. BlobStore
 
 The simplest trait — store and retrieve raw bytes:
 
 ```rust
 #[async_trait]
-trait AsyncBlobStore: Send + Sync {
+trait BlobStore: Send + Sync {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()>;
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()>;
@@ -65,13 +65,13 @@ trait AsyncBlobStore: Send + Sync {
 **Backends**: `MemoryStorage`, `JsonFileStorage`, `R2Store` (REST),
 `R2WasmStorage` (Workers binding), `D1WasmStorage`, `KVWasmStorage`.
 
-## 3. AsyncKeyValueStore
+## 3. KeyValueStore
 
 Typed key-value with serialization:
 
 ```rust
 #[async_trait]
-trait AsyncKeyValueStore: Send + Sync {
+trait KeyValueStore: Send + Sync {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
     async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
     async fn delete_async(&self, key: &str) -> StorageResult<()>;
@@ -83,13 +83,13 @@ trait AsyncKeyValueStore: Send + Sync {
 **Backends**: `MemoryStorage`, `MemoryJsonStore`, `JsonFileStorage`,
 `TursoStorage`, `LibsqlStore`, `D1Store`, `KVWasmStorage`, `D1WasmStorage`.
 
-## 4. AsyncQueryStore
+## 4. QueryStore
 
 SQL-like queries with typed parameters and streamed result rows:
 
 ```rust
 #[async_trait]
-trait AsyncQueryStore: Send + Sync {
+trait QueryStore: Send + Sync {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream>;
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
     async fn execute_batch_async(&self, sql: &str) -> StorageResult<()>;
@@ -114,20 +114,20 @@ whole result set, which the stream then yields one row at a time.
 
 **Backends**: `TursoStorage`, `LibsqlStore`, `D1Store`, `D1WasmStorage`.
 
-## 5. AsyncRateLimiterStore
+## 5. RateLimiterStore
 
 Fixed-window counters (`check_rate_limit_async`, `record_rate_limit_async`,
 `reset_rate_limit_async`). The window length comes from the caller's
 configuration.
 
-## 6. AsyncDocumentStore
+## 6. DocumentStore
 
 The highest-level trait — structured documents with ordering, namespaces, and
 promoted columns:
 
 ```rust
 #[async_trait]
-trait AsyncDocumentStore: Send + Sync {
+trait DocumentStore: Send + Sync {
     async fn append_async<V: Serialize + Send + 'static>(
         &self, key: &str, content: V) -> StorageResult<Document>;
     async fn scan_async<V: DeserializeOwned + Send + 'static>(
@@ -153,7 +153,7 @@ trait AsyncDocumentStore: Send + Sync {
 
 **Backends**:
 - `MemoryDocumentStore` — in-memory (tests)
-- `SqlDocumentStore<Q>` — generic over any `AsyncQueryStore` (F22b)
+- `SqlDocumentStore<Q>` — generic over any `QueryStore` (F22b)
 - `D1R2DocumentStore<Q, B>` — D1 + R2 with offload (F23)
 - `FjallDocumentStore` — fjall key-value with NDJSON (F22)
 - `VectorStore` implementations use DocumentStore patterns for vector metadata
@@ -174,8 +174,8 @@ MigrationRunner::new(MIGRATIONS).run_async(&store).await?;
 There is no sync runner: a sync entry point awaits `run_async` through
 `block_on_future` / `.block()` behind `blocking_boundary!`.
 
-Expired auth rows are removed with `AsyncStorageCleanup` (implemented for
-every `AsyncQueryStore`), with retention periods from `CleanupConfig`:
+Expired auth rows are removed with `StorageCleanup` (implemented for
+every `QueryStore`), with retention periods from `CleanupConfig`:
 
 ```rust
 let stats = store.run_full_cleanup(&CleanupConfig::default()).await?;
@@ -193,10 +193,10 @@ routing to the selected backend:
 ```rust
 let provider = StorageProvider::new(config).await?;
 
-// As AsyncKeyValueStore
+// As KeyValueStore
 provider.set_async("session:123", session_data).await?;
 
-// As AsyncQueryStore
+// As QueryStore
 let rows = provider
     .query_async("SELECT * FROM users WHERE id = ?", &[DataValue::Text("123".into())])
     .await?

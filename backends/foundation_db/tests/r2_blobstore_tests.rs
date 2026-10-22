@@ -1,4 +1,4 @@
-//! `AsyncBlobStore` integration tests for the R2 backend against a local
+//! `BlobStore` integration tests for the R2 backend against a local
 //! wrangler worker emulating the Cloudflare R2 REST API.
 //!
 //! Endpoint configuration lives in [`common`] — set `CF_INTEGRATION_TEST=1`
@@ -8,7 +8,7 @@ mod common;
 
 use common::make_r2_store;
 use foundation_core::valtron::valtron_test;
-use foundation_db::{AsyncBlobStore, R2Store};
+use foundation_db::{BlobStore, R2Store};
 
 fn store() -> Option<R2Store> {
     let store = make_r2_store();

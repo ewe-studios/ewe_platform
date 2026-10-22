@@ -2,7 +2,7 @@
 #![cfg(feature = "libsql")]
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::{AsyncKeyValueStore, LibsqlStore};
+use foundation_db::{KeyValueStore, LibsqlStore};
 use futures_lite::StreamExt;
 use tempfile::TempDir;
 

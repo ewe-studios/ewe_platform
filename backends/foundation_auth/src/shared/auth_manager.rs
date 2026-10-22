@@ -388,7 +388,7 @@ impl AuthManager {
     /// Returns `AuthManagerError` if store or session operations fail.
     pub async fn logout(&mut self, user_id: Option<&str>) -> Result<(), AuthManagerError> {
         if let (Some(ref session_mgr), Some(uid)) = (&self.session_mgr, user_id) {
-            session_mgr.revoke_all_sessions_async(uid).await?;
+            session_mgr.revoke_all_sessions(uid).await?;
         }
 
         self.jwt_manager.clear_token();

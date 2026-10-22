@@ -19,7 +19,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 
 use crate::agentic::memory::MemoryHierarchy;
@@ -174,7 +174,7 @@ impl ToolPreset {
     pub fn memory<M, D>(hierarchy: Arc<MemoryHierarchy<M, D>>) -> Self
     where
         M: MemoryStore + 'static,
-        D: AsyncDocumentStore + 'static,
+        D: DocumentStore + 'static,
     {
         Self::from_tools(vec![Arc::new(MemoryTool::new(hierarchy))])
     }
@@ -197,7 +197,7 @@ impl ToolPreset {
         child_tools: Vec<Arc<dyn ToolImpl>>,
     ) -> Self
     where
-        D: AsyncDocumentStore + Default + 'static,
+        D: DocumentStore + Default + 'static,
         M: MemoryStore + Default + 'static,
     {
         Self::from_tools(vec![Arc::new(AgentTool::<D, M>::new(
@@ -226,7 +226,7 @@ impl ToolPreset {
         stores: Arc<dyn SessionStoreFactory<D, M>>,
     ) -> Self
     where
-        D: AsyncDocumentStore + 'static,
+        D: DocumentStore + 'static,
         M: MemoryStore + 'static,
     {
         Self::from_tools(vec![Arc::new(AgentTool::<D, M>::with_store_factory(

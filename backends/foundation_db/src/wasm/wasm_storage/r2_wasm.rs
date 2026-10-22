@@ -1,11 +1,11 @@
 //! R2 storage via wasm-bindgen — calls Cloudflare R2 JS API directly.
 //!
-//! Wraps `R2Bucket` and implements `AsyncBlobStore` using R2's object storage.
+//! Wraps `R2Bucket` and implements `BlobStore` using R2's object storage.
 //! There is no sync impl: a sync call would block the isolate waiting on a JS
 //! Promise that could then never resolve.
 
 use crate::core::errors::{StorageError, StorageResult};
-use crate::core::storage_provider::AsyncBlobStore;
+use crate::core::storage_provider::BlobStore;
 use crate::wasm::bindgen::{R2Bucket, R2Object};
 use js_sys::{ArrayBuffer, Uint8Array};
 use wasm_bindgen::JsCast;
@@ -41,7 +41,7 @@ impl R2WasmStorage {
 }
 
 // ===========================================================================
-// AsyncBlobStore
+// BlobStore
 // ===========================================================================
 
 impl R2WasmStorage {
@@ -118,7 +118,7 @@ impl R2WasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for R2WasmStorage {
+impl BlobStore for R2WasmStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
     }

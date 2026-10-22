@@ -14,7 +14,7 @@ use foundation_errstacks::ErrorTrace;
 
 use super::super::config::IdpConfig;
 use super::super::storage::HandlerStorage;
-use foundation_db::{AsyncKeyValueStore, MemoryStorage};
+use foundation_db::{KeyValueStore, MemoryStorage};
 use super::core::{HandlerResponse, IdpError, IdpHandlerCore};
 
 /// Write JSON response with optional extra headers.
@@ -73,11 +73,11 @@ fn status_code(code: u16) -> Status {
 /// stores it).
 ///
 /// [`IdpServer::http_app`]: crate::server::IdpServer::http_app
-pub struct ServeAdapter<KV: AsyncKeyValueStore + Clone + 'static = MemoryStorage> {
+pub struct ServeAdapter<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
     core: Arc<IdpHandlerCore<KV>>,
 }
 
-impl<KV: AsyncKeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
+impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
@@ -199,7 +199,7 @@ impl<KV: AsyncKeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
     }
 }
 
-impl<KV: AsyncKeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
+impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
     /// # Panics
     ///
     /// If the `ContextBag` holds no `IdpConfig` or no `Arc<HandlerStorage<KV>>`
@@ -223,7 +223,7 @@ impl<KV: AsyncKeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV>
 
 /// `Serve::serve` is sync (`foundation_http`'s trait), so this is a sync
 /// boundary: it runs the async dispatch on valtron and waits for its result.
-fn run_sync<KV: AsyncKeyValueStore + Clone + 'static>(
+fn run_sync<KV: KeyValueStore + Clone + 'static>(
     core: Arc<IdpHandlerCore<KV>>,
     req: SimpleIncomingRequest,
 ) -> Result<HandlerResponse, IdpError> {

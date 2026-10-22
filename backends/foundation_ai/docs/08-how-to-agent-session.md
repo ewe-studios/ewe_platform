@@ -68,7 +68,7 @@ primary, fallback and memory models into a `ModelSelection`
 (`MemoryDocumentStore` + `KvMemoryStore<MemoryStorage>`) and a fresh
 `SessionId`; chain `with_*` → `build().await`. `build()` is async because
 `resume(id)` reads the document store. The session uses its stores through the
-async `foundation_db` traits (`AsyncDocumentStore`, and `AsyncKeyValueStore`
+async `foundation_db` traits (`DocumentStore`, and `KeyValueStore`
 under `KvMemoryStore`), so the same session runs over in-memory, SQL or
 Cloudflare stores, natively and on Workers. The stores are part of the
 builder's type: `with_doc_store` / `with_memory_store` swap one and change the

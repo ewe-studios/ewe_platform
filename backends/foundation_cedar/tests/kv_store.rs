@@ -2,7 +2,7 @@
 
 use foundation_cedar::{KvPolicyStore, PolicyStore};
 use foundation_core::valtron::valtron_test;
-use foundation_db::{AsyncKeyValueStore, MemoryStorage};
+use foundation_db::{KeyValueStore, MemoryStorage};
 
 fn memory_store() -> MemoryStorage {
     MemoryStorage::new()

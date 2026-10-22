@@ -30,7 +30,7 @@ orchestrates:
 
 It stores its data in two stores, which are type parameters with in-memory
 defaults (`AgentSession` = `AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>`):
-- **`D: AsyncDocumentStore`** — stores the message history (conversation log)
+- **`D: DocumentStore`** — stores the message history (conversation log)
 - **`M: MemoryStore`** — caches the latest memory record per tier per session
 
 ---
@@ -289,21 +289,21 @@ agent.follow_up("Also check the config file.");
 
 ### 5.2. Available Store Backends
 
-`AgentSession<D, M>` keeps its data in an `AsyncDocumentStore` (message
+`AgentSession<D, M>` keeps its data in an `DocumentStore` (message
 history) and a `MemoryStore` (latest memory per tier via an
-`AsyncKeyValueStore`); both default to the in-memory stores. SQL stores are
+`KeyValueStore`); both default to the in-memory stores. SQL stores are
 opened with their async constructors (e.g. `TursoStorage::in_memory().await?`,
 `LibsqlStore::new_kv(path, None).await?`) and passed to the builder.
 
-**AsyncDocumentStore backends:**
+**DocumentStore backends:**
 
 | Type | Backend | Feature |
 |------|---------|---------|
 | `MemoryDocumentStore` | RAM (`Vec<SessionRecord>`) | (always) |
-| `SqlDocumentStore<Q>` | Any `AsyncQueryStore` (Turso, libsql, D1) | `turso` / `libsql` / `d1` |
+| `SqlDocumentStore<Q>` | Any `QueryStore` (Turso, libsql, D1) | `turso` / `libsql` / `d1` |
 | `D1R2DocumentStore<Q, B>` | D1 + R2 | `d1` + `r2` |
 
-**AsyncKeyValueStore backends (wrap into `KvMemoryStore`):**
+**KeyValueStore backends (wrap into `KvMemoryStore`):**
 
 | Type | Backend | Feature |
 |------|---------|---------|

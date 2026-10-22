@@ -88,7 +88,7 @@ pass in.
 ## 5. Storage
 
 `MemoryStore` is a small async trait — get / set / hydrate / clear the latest
-record per tier. `KvMemoryStore<K: AsyncKeyValueStore>` implements it over any
+record per tier. `KvMemoryStore<K: KeyValueStore>` implements it over any
 `foundation_db` key-value store, keeping the whole bundle under one key:
 
 ```
@@ -96,7 +96,7 @@ memory:{session_id} → SessionMemory { working, observation, reflection }
 ```
 
 `MemoryCoordinator<M, D>` dual-writes: it appends each memory record to an
-audit `AsyncDocumentStore` and overwrites the latest copy in the `MemoryStore`.
+audit `DocumentStore` and overwrites the latest copy in the `MemoryStore`.
 `MemoryHierarchy` writes through the coordinator.
 
 ## 6. One store for everything

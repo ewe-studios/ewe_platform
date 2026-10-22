@@ -1,14 +1,14 @@
 //! Storage-backed operations for the IdP server.
 //!
-//! Every function here talks to an [`AsyncQueryStore`] (Turso/libsql natively,
+//! Every function here talks to an [`QueryStore`] (Turso/libsql natively,
 //! D1 on Workers) and is awaited by the async handlers. Multi-row reads hand
 //! back a lazily-pulled stream, so an unbounded scan can't run out of memory.
 
 use std::sync::Arc;
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, AsyncQueryStream, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, AsyncQueryStream, DataValue, SqlRow};
 use foundation_db::{
-    AsyncAuthStore, AsyncKeyValueStore, AsyncPasskeyStore, AsyncStorageItemStream, AsyncTosStore,
+    AuthStore, KeyValueStore, PasskeyStore, AsyncStorageItemStream, TosStore,
     StorageError, StorageResult, StoredPasskey, StoredTosAcceptance,
 };
 use futures_lite::StreamExt;
@@ -56,7 +56,7 @@ async fn first_row(mut stream: AsyncQueryStream) -> Result<Option<SqlRow>, Stora
 
 /// Run a query and return its first row.
 async fn query_one(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     sql: &str,
     params: &[DataValue],
 ) -> Result<Option<SqlRow>, StorageOpError> {
@@ -66,7 +66,7 @@ async fn query_one(
 
 /// Run a statement, discarding the affected-row count.
 async fn execute(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     sql: &str,
     params: &[DataValue],
 ) -> Result<(), StorageOpError> {
@@ -76,7 +76,7 @@ async fn execute(
 // ─── OAuth clients, codes, tokens ────────────────────────────────────────────
 
 pub async fn find_client_by_id(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     client_id: &str,
 ) -> Result<Option<OAuthClient>, StorageOpError> {
     let sql = "SELECT id, name, client_secret_hash, redirect_uris, grant_types, scopes, is_public, created_at FROM oauth_clients WHERE id = ?";
@@ -87,7 +87,7 @@ pub async fn find_client_by_id(
 }
 
 pub async fn store_auth_code(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     code: &AuthorizationCode,
 ) -> Result<(), StorageOpError> {
     let sql = "INSERT INTO authorization_codes (code, user_id, client_id, redirect_uri, code_challenge, scope, nonce, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -110,7 +110,7 @@ pub async fn store_auth_code(
 }
 
 pub async fn find_auth_code(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     code: &str,
 ) -> Result<Option<AuthorizationCode>, StorageOpError> {
     let sql = "SELECT code, user_id, client_id, redirect_uri, code_challenge, scope, nonce, expires_at, created_at FROM authorization_codes WHERE code = ?";
@@ -120,13 +120,13 @@ pub async fn find_auth_code(
     }
 }
 
-pub async fn delete_auth_code(store: &dyn AsyncQueryStore, code: &str) -> Result<(), StorageOpError> {
+pub async fn delete_auth_code(store: &dyn QueryStore, code: &str) -> Result<(), StorageOpError> {
     let sql = "DELETE FROM authorization_codes WHERE code = ?";
     execute(store, sql, &[DataValue::Text(code.to_string())]).await
 }
 
 pub async fn store_refresh_token(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     token: &RefreshToken,
 ) -> Result<(), StorageOpError> {
     let sql = "INSERT INTO refresh_tokens (id, user_id, client_id, token_hash, expires_at, rotated_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -147,7 +147,7 @@ pub async fn store_refresh_token(
 }
 
 pub async fn find_refresh_token_by_hash(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     token_hash: &str,
 ) -> Result<Option<RefreshToken>, StorageOpError> {
     let sql = "SELECT id, user_id, client_id, token_hash, expires_at, rotated_at, created_at FROM refresh_tokens WHERE token_hash = ?";
@@ -158,7 +158,7 @@ pub async fn find_refresh_token_by_hash(
 }
 
 pub async fn mark_refresh_token_rotated(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     token_hash: &str,
 ) -> Result<(), StorageOpError> {
     let now = chrono::Utc::now().timestamp_millis();
@@ -172,7 +172,7 @@ pub async fn mark_refresh_token_rotated(
 }
 
 pub async fn store_device_code(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     code: &DeviceCode,
 ) -> Result<(), StorageOpError> {
     let sql = "INSERT INTO device_codes (device_code, user_code, client_id, scope, expires_at, interval_secs, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -194,7 +194,7 @@ pub async fn store_device_code(
 }
 
 pub async fn find_device_code(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     device_code: &str,
 ) -> Result<Option<DeviceCode>, StorageOpError> {
     let sql = "SELECT device_code, user_code, client_id, scope, expires_at, interval_secs, user_id, created_at FROM device_codes WHERE device_code = ?";
@@ -205,7 +205,7 @@ pub async fn find_device_code(
 }
 
 pub async fn approve_device_code(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     device_code: &str,
     user_id: &str,
 ) -> Result<(), StorageOpError> {
@@ -282,7 +282,7 @@ fn parse_device_code_row(row: &SqlRow) -> Result<DeviceCode, StorageOpError> {
 // ─── Users ───────────────────────────────────────────────────────────────────
 
 pub async fn find_user_by_email(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     email: &str,
 ) -> Result<Option<User>, StorageOpError> {
     let sql = "SELECT id, email, username, password_hash, email_verified, email_verified_at, created_at, updated_at, metadata, failed_login_attempts, locked_until, deleted_at FROM users WHERE email = ?";
@@ -294,7 +294,7 @@ pub async fn find_user_by_email(
 
 /// Update a user's failed login attempts and lockout state.
 pub async fn update_user_lockout(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     user_id: &str,
     failed_attempts: u32,
     locked_until: Option<i64>,
@@ -317,7 +317,7 @@ pub async fn update_user_lockout(
 
 /// Find a user by their ID.
 pub async fn find_user_by_id(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     user_id: &str,
 ) -> Result<Option<User>, StorageOpError> {
     let sql = "SELECT id, email, username, password_hash, email_verified, email_verified_at, created_at, updated_at, metadata, failed_login_attempts, locked_until, deleted_at FROM users WHERE id = ?";
@@ -329,7 +329,7 @@ pub async fn find_user_by_id(
 
 /// Update user profile fields (username only for now — email changes require re-verification).
 pub async fn update_user_profile(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     user_id: &str,
     username: Option<&str>,
 ) -> Result<(), StorageOpError> {
@@ -350,7 +350,7 @@ pub async fn update_user_profile(
 
 /// Update a user's password hash.
 pub async fn update_user_password(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     user_id: &str,
     new_hash: &str,
 ) -> Result<(), StorageOpError> {
@@ -369,7 +369,7 @@ pub async fn update_user_password(
 }
 
 /// Soft-delete a user by setting `deleted_at`.
-pub async fn soft_delete_user(store: &dyn AsyncQueryStore, user_id: &str) -> Result<(), StorageOpError> {
+pub async fn soft_delete_user(store: &dyn QueryStore, user_id: &str) -> Result<(), StorageOpError> {
     let now = chrono::Utc::now().timestamp_millis();
     let sql = "UPDATE users SET deleted_at = ?, updated_at = ? WHERE id = ?";
     execute(
@@ -390,7 +390,7 @@ pub async fn soft_delete_user(store: &dyn AsyncQueryStore, user_id: &str) -> Res
 ///
 /// `Parse` if the user's metadata can't be serialized; `Query` on insert
 /// failure.
-pub async fn create_user(store: &dyn AsyncQueryStore, user: &User) -> Result<(), StorageOpError> {
+pub async fn create_user(store: &dyn QueryStore, user: &User) -> Result<(), StorageOpError> {
     let sql = "INSERT INTO users (id, email, username, password_hash, email_verified, email_verified_at, created_at, updated_at, metadata, failed_login_attempts, locked_until, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, NULL)";
     let now = chrono::Utc::now().timestamp_millis();
     let email_verified_at = if user.email_verified { Some(now) } else { None };
@@ -448,7 +448,7 @@ fn parse_json_vec<T: serde::de::DeserializeOwned>(value: &str) -> Result<Vec<T>,
 
 // ─── Passkeys ────────────────────────────────────────────────────────────────
 
-pub async fn store_passkey(store: &dyn AsyncQueryStore, passkey: &Passkey) -> Result<(), StorageOpError> {
+pub async fn store_passkey(store: &dyn QueryStore, passkey: &Passkey) -> Result<(), StorageOpError> {
     let sql = "INSERT INTO passkeys (id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)";
     execute(
         store,
@@ -468,7 +468,7 @@ pub async fn store_passkey(store: &dyn AsyncQueryStore, passkey: &Passkey) -> Re
 
 /// Stream a user's passkeys, one at a time (nothing is collected).
 pub async fn find_passkeys_by_user(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     user_id: &str,
 ) -> Result<AsyncStorageItemStream<'static, StoredPasskey>, StorageOpError> {
     let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE user_id = ?";
@@ -487,7 +487,7 @@ pub async fn find_passkeys_by_user(
 }
 
 pub async fn find_passkey_by_id(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     passkey_id: &str,
 ) -> Result<Option<Passkey>, StorageOpError> {
     let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE id = ?";
@@ -498,7 +498,7 @@ pub async fn find_passkey_by_id(
 }
 
 pub async fn find_passkey_by_credential_id(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     credential_id: &[u8],
 ) -> Result<Option<Passkey>, StorageOpError> {
     let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE credential_id = ?";
@@ -509,7 +509,7 @@ pub async fn find_passkey_by_credential_id(
 }
 
 pub async fn update_passkey_counter(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     passkey_id: &str,
     counter: u32,
 ) -> Result<(), StorageOpError> {
@@ -528,7 +528,7 @@ pub async fn update_passkey_counter(
 }
 
 pub async fn update_passkey_name(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     passkey_id: &str,
     name: &str,
 ) -> Result<(), StorageOpError> {
@@ -541,7 +541,7 @@ pub async fn update_passkey_name(
     .await
 }
 
-pub async fn delete_passkey(store: &dyn AsyncQueryStore, passkey_id: &str) -> Result<(), StorageOpError> {
+pub async fn delete_passkey(store: &dyn QueryStore, passkey_id: &str) -> Result<(), StorageOpError> {
     let sql = "DELETE FROM passkeys WHERE id = ?";
     execute(store, sql, &[DataValue::Text(passkey_id.to_string())]).await
 }
@@ -565,7 +565,7 @@ fn parse_passkey_row(row: &SqlRow) -> Result<Passkey, StorageOpError> {
 // ─── ToS Acceptances ────────────────────────────────────────────────────────
 
 pub async fn store_tos_acceptance(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     acceptance: &TosAcceptance,
 ) -> Result<(), StorageOpError> {
     let sql = "INSERT INTO tos_acceptances (user_id, tos_version, accepted_at, ip_address) VALUES (?, ?, ?, ?)";
@@ -583,7 +583,7 @@ pub async fn store_tos_acceptance(
 }
 
 pub async fn find_tos_acceptance(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     user_id: &str,
     tos_version: &str,
 ) -> Result<Option<TosAcceptance>, StorageOpError> {
@@ -599,7 +599,7 @@ pub async fn find_tos_acceptance(
 }
 
 pub async fn find_latest_tos_acceptance(
-    store: &dyn AsyncQueryStore,
+    store: &dyn QueryStore,
     user_id: &str,
 ) -> Result<Option<TosAcceptance>, StorageOpError> {
     let sql = "SELECT user_id, tos_version, accepted_at, ip_address FROM tos_acceptances WHERE user_id = ? ORDER BY accepted_at DESC LIMIT 1";
@@ -623,10 +623,10 @@ fn parse_tos_acceptance_row(row: &SqlRow) -> Result<TosAcceptance, StorageOpErro
 
 /// The IdP server's storage: an async SQL store plus a key-value cache.
 ///
-/// Implements [`AsyncAuthStore`] (passkeys, ToS, user lookup) over the SQL
+/// Implements [`AuthStore`] (passkeys, ToS, user lookup) over the SQL
 /// store.
-pub struct HandlerStorage<KV: AsyncKeyValueStore> {
-    pub query_store: Arc<dyn AsyncQueryStore>,
+pub struct HandlerStorage<KV: KeyValueStore> {
+    pub query_store: Arc<dyn QueryStore>,
     /// Shared cache for short-lived two-step handshake state (PoW challenges,
     /// WebAuthn ceremony state). Generic over the KV backend so the same
     /// handler works with an in-memory cache (single process) or a persistent
@@ -634,8 +634,8 @@ pub struct HandlerStorage<KV: AsyncKeyValueStore> {
     pub cache: KV,
 }
 
-impl<KV: AsyncKeyValueStore> HandlerStorage<KV> {
-    pub fn new(query_store: Arc<dyn AsyncQueryStore>, cache: KV) -> Self {
+impl<KV: KeyValueStore> HandlerStorage<KV> {
+    pub fn new(query_store: Arc<dyn QueryStore>, cache: KV) -> Self {
         Self { query_store, cache }
     }
 }
@@ -686,7 +686,7 @@ fn stored_to_tos(st: &StoredTosAcceptance) -> TosAcceptance {
     }
 }
 
-// ─── AsyncAuthStore impl ─────────────────────────────────────────────────────
+// ─── AuthStore impl ─────────────────────────────────────────────────────
 
 fn map_storage_err(e: StorageOpError) -> String {
     e.to_string()
@@ -700,7 +700,7 @@ fn op_to_storage_err(e: StorageOpError) -> StorageError {
 }
 
 #[async_trait::async_trait]
-impl<KV: AsyncKeyValueStore> AsyncPasskeyStore for HandlerStorage<KV> {
+impl<KV: KeyValueStore> PasskeyStore for HandlerStorage<KV> {
     async fn store_passkey_async(&self, passkey: &StoredPasskey) -> Result<(), String> {
         let our_pk = stored_to_passkey(passkey);
         store_passkey(self.query_store.as_ref(), &our_pk).await.map_err(map_storage_err)
@@ -750,7 +750,7 @@ impl<KV: AsyncKeyValueStore> AsyncPasskeyStore for HandlerStorage<KV> {
 }
 
 #[async_trait::async_trait]
-impl<KV: AsyncKeyValueStore> AsyncTosStore for HandlerStorage<KV> {
+impl<KV: KeyValueStore> TosStore for HandlerStorage<KV> {
     async fn store_tos_acceptance_async(&self, acceptance: &StoredTosAcceptance) -> Result<(), String> {
         let our_ta = stored_to_tos(acceptance);
         store_tos_acceptance(self.query_store.as_ref(), &our_ta).await.map_err(map_storage_err)
@@ -779,7 +779,7 @@ impl<KV: AsyncKeyValueStore> AsyncTosStore for HandlerStorage<KV> {
 }
 
 #[async_trait::async_trait]
-impl<KV: AsyncKeyValueStore> AsyncAuthStore for HandlerStorage<KV> {
+impl<KV: KeyValueStore> AuthStore for HandlerStorage<KV> {
     async fn find_user_by_email_async(&self, email: &str) -> StorageResult<Option<(String, bool)>> {
         find_user_by_email(self.query_store.as_ref(), email)
             .await

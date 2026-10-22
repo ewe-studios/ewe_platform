@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use foundation_core::valtron::valtron_test;
 use foundation_cronjobs::{CronJob, CronScheduler, JobConfig};
-use foundation_db::{AsyncQueryStore, DataValue, MemoryStorage, TursoStorage};
+use foundation_db::{QueryStore, DataValue, MemoryStorage, TursoStorage};
 
 fn job(id: &str) -> JobConfig {
     JobConfig {

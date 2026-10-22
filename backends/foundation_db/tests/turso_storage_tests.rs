@@ -1,7 +1,7 @@
 //! Turso storage backend integration tests.
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::{AsyncKeyValueStore, AsyncQueryStore, DataValue, EncryptionKey, SqlRow, TursoStorage};
+use foundation_db::{KeyValueStore, QueryStore, DataValue, EncryptionKey, SqlRow, TursoStorage};
 use tempfile::TempDir;
 
 async fn open(url: &str, key: Option<EncryptionKey>) -> TursoStorage {

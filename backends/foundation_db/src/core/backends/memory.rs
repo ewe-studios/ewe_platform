@@ -14,8 +14,8 @@ use super::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore, DataValue,
+    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
+    RateLimiterStore, DataValue,
 };
 
 /// In-memory storage with zeroizing support for sensitive data.
@@ -46,7 +46,7 @@ impl Default for MemoryStorage {
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for MemoryStorage {
+impl KeyValueStore for MemoryStorage {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let bytes = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?
@@ -97,7 +97,7 @@ impl AsyncKeyValueStore for MemoryStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for MemoryStorage {
+impl BlobStore for MemoryStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let mut storage = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
@@ -126,7 +126,7 @@ impl AsyncBlobStore for MemoryStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for MemoryStorage {
+impl RateLimiterStore for MemoryStorage {
     async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -176,7 +176,7 @@ impl AsyncRateLimiterStore for MemoryStorage {
 /// `MemoryStorage` has no SQL engine, so every query method fails with
 /// `StorageError::Generic`.
 #[async_trait::async_trait]
-impl AsyncQueryStore for MemoryStorage {
+impl QueryStore for MemoryStorage {
     async fn query_async(
         &self,
         _sql: &str,

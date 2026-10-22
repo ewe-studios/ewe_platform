@@ -25,7 +25,7 @@ use foundation_deployment_platform::docker_container;
 use foundation_keychain::core::store::apply_schema;
 use foundation_keychain::server::native::KeychainServer;
 use foundation_keychain::KeychainContext;
-use foundation_db::core::storage_provider::AsyncQueryStore;
+use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -107,7 +107,7 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
         async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })
     .expect("db");
-    let store: Arc<dyn AsyncQueryStore> = Arc::new(p);
+    let store: Arc<dyn QueryStore> = Arc::new(p);
     let sdb = Arc::clone(&store);
     block_on_future(async move { apply_schema(sdb.as_ref()).await }).expect("schema");
     let srv = KeychainServer::new(KeychainContext::new(store)).http_app()

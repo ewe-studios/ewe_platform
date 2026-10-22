@@ -2,7 +2,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -31,7 +31,7 @@ fn map_row(row: &SqlRow) -> AppResult<EventRow> {
 }
 
 /// Append an event.
-pub async fn insert(db: &dyn AsyncQueryStore, row: &EventRow) -> AppResult<()> {
+pub async fn insert(db: &dyn QueryStore, row: &EventRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO vault_events (uuid, user_uuid, atype, cipher_uuid, event_date, created_at) \
          VALUES (?, ?, ?, ?, ?, ?)",
@@ -53,7 +53,7 @@ pub async fn insert(db: &dyn AsyncQueryStore, row: &EventRow) -> AppResult<()> {
 }
 
 /// The user's events, newest first.
-pub async fn find_by_user(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResult<Vec<EventRow>> {
+pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<EventRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {COLUMNS} FROM vault_events WHERE user_uuid = ? ORDER BY event_date DESC"),

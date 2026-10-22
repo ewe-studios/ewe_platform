@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::{AsyncAuthStore, AsyncKeyValueStore, StoredPasskey};
+use foundation_db::{AuthStore, KeyValueStore, StoredPasskey};
 use futures_lite::StreamExt;
 
 use serde::{Deserialize, Serialize};
@@ -95,11 +95,11 @@ fn auth_key(session: &str) -> String {
 /// WebAuthn/FIDO2 service for passkey registration and authentication.
 ///
 /// Ceremony state (registration/auth challenges) is stored in the shared
-/// `AsyncKeyValueStore` cache, so the issuing endpoint and the verifying endpoint
+/// `KeyValueStore` cache, so the issuing endpoint and the verifying endpoint
 /// — even if served by different handler instances or nodes — see the same
 /// state. The cache key is scoped by session and consumed (deleted) on finish.
 #[cfg(feature = "server-native")]
-pub struct WebAuthnService<S: AsyncAuthStore + Send + Sync, KV: AsyncKeyValueStore> {
+pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
     config: Arc<IdpConfig>,
     store: Arc<S>,
     cache: KV,
@@ -107,13 +107,13 @@ pub struct WebAuthnService<S: AsyncAuthStore + Send + Sync, KV: AsyncKeyValueSto
 }
 
 #[cfg(not(feature = "server-native"))]
-pub struct WebAuthnService<S: AsyncAuthStore + Send + Sync, KV: AsyncKeyValueStore> {
+pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
     config: Arc<IdpConfig>,
     store: Arc<S>,
     _cache: std::marker::PhantomData<KV>,
 }
 
-impl<S: AsyncAuthStore + Send + Sync, KV: AsyncKeyValueStore> WebAuthnService<S, KV> {
+impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
     #[must_use]
     pub fn new(config: Arc<IdpConfig>, store: Arc<S>, cache: KV) -> Self {
         #[cfg(feature = "server-native")]

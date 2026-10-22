@@ -6,7 +6,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -39,7 +39,7 @@ fn map_row(row: &SqlRow) -> AppResult<TwoFactorRow> {
 }
 
 /// The user's 2FA row, if any.
-pub async fn get(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResult<Option<TwoFactorRow>> {
+pub async fn get(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Option<TwoFactorRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {COLUMNS} FROM vault_two_factor WHERE user_uuid = ?"),
@@ -54,7 +54,7 @@ pub async fn get(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResult<Option<
 }
 
 /// Insert or replace the user's 2FA row.
-pub async fn upsert(db: &dyn AsyncQueryStore, row: &TwoFactorRow) -> AppResult<()> {
+pub async fn upsert(db: &dyn QueryStore, row: &TwoFactorRow) -> AppResult<()> {
     db.execute_async(
         "INSERT OR REPLACE INTO vault_two_factor \
          (user_uuid, secret, enabled, recovery_code, created_at, updated_at) \
@@ -77,7 +77,7 @@ pub async fn upsert(db: &dyn AsyncQueryStore, row: &TwoFactorRow) -> AppResult<(
 }
 
 /// Remove the user's 2FA (disable).
-pub async fn delete(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResult<()> {
+pub async fn delete(db: &dyn QueryStore, user_uuid: &str) -> AppResult<()> {
     db.execute_async(
         "DELETE FROM vault_two_factor WHERE user_uuid = ?",
         &[DataValue::Text(user_uuid.to_string())],

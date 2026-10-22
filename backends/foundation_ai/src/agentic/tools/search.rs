@@ -16,7 +16,7 @@ use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::agentic::toolshed::ContextSearch;
 use crate::types::{Args, Tool, ToolArguments, ToolDefinition};
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_nativeapis::{VfsFileSystem, VfsSearchMatch, VfsSearcher};
 
 // ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ impl SearchContextTool {
     }
 }
 
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> From<ContextProvider<D, M>>
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<ContextProvider<D, M>>
     for Arc<dyn ContextSearch>
 {
     fn from(context: ContextProvider<D, M>) -> Self {

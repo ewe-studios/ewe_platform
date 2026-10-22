@@ -1,4 +1,4 @@
-use foundation_db::{AsyncQueryStore, Migration, MigrationRunner};
+use foundation_db::{QueryStore, Migration, MigrationRunner};
 
 use crate::store::VectorStoreError;
 
@@ -15,7 +15,7 @@ pub static MIGRATIONS: &[Migration] = &[
 /// # Errors
 ///
 /// Returns [`VectorStoreError::Backend`] if a migration fails.
-pub async fn run_migrations(store: &dyn AsyncQueryStore) -> Result<usize, VectorStoreError> {
+pub async fn run_migrations(store: &dyn QueryStore) -> Result<usize, VectorStoreError> {
     MigrationRunner::new(MIGRATIONS)
         .run_async(store)
         .await

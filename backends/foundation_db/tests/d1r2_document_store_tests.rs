@@ -1,4 +1,4 @@
-//! D1+R2 `AsyncDocumentStore` integration tests (F23) against a local
+//! D1+R2 `DocumentStore` integration tests (F23) against a local
 //! wrangler/miniflare worker emulating Cloudflare D1 + R2.
 //!
 //! WHY: `D1R2DocumentStore` is the Cloudflare DocumentStore — D1 is the ordered
@@ -19,7 +19,7 @@ mod common;
 
 use common::{make_d1_store, make_r2_store};
 use foundation_core::valtron::valtron_test;
-use foundation_db::traits::{AsyncDocumentStore, AsyncQueryStore};
+use foundation_db::traits::{DocumentStore, QueryStore};
 use foundation_db::{D1R2DocumentStore, D1Store, DataValue, R2Store};
 use futures_lite::StreamExt;
 

@@ -43,28 +43,28 @@ impl SessionService {
         user_agent: Option<&str>,
     ) -> Result<(Session, Vec<Cookie>), SessionServiceError> {
         self.session_mgr
-            .create_session_async(user_id, ip_address, user_agent)
+            .create_session(user_id, ip_address, user_agent)
             .await
             .map_err(SessionServiceError::Session)
     }
 
     pub async fn get_session(&self, token: &str) -> Result<Option<Session>, SessionServiceError> {
         self.session_mgr
-            .get_session_async(token)
+            .get_session(token)
             .await
             .map_err(SessionServiceError::Session)
     }
 
     pub async fn revoke_session(&self, session_id: &str) -> Result<(), SessionServiceError> {
         self.session_mgr
-            .revoke_session_async(session_id)
+            .revoke_session(session_id)
             .await
             .map_err(SessionServiceError::Session)
     }
 
     pub async fn revoke_all_sessions(&self, user_id: &str) -> Result<usize, SessionServiceError> {
         self.session_mgr
-            .revoke_all_sessions_async(user_id)
+            .revoke_all_sessions(user_id)
             .await
             .map_err(SessionServiceError::Session)
     }

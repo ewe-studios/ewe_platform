@@ -1,7 +1,7 @@
-//! `AsyncBlobStore` tests for the in-memory backend. Its futures are ready at
+//! `BlobStore` tests for the in-memory backend. Its futures are ready at
 //! once, so they are driven with `futures_lite`'s `block_on`; no pool is needed.
 
-use foundation_db::traits::AsyncBlobStore;
+use foundation_db::traits::BlobStore;
 use foundation_db::MemoryStorage;
 use futures_lite::future::block_on;
 

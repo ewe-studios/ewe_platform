@@ -3,7 +3,7 @@
 //! test binary where no other test can race it.
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::traits::AsyncKeyValueStore;
+use foundation_db::traits::KeyValueStore;
 use foundation_db::JsonFileStorage;
 use tempfile::TempDir;
 

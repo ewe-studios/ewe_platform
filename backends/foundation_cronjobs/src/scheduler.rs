@@ -11,7 +11,7 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_db::{AsyncQueryStore, DataValue, SqlRow, StorageError};
+use foundation_db::{QueryStore, DataValue, SqlRow, StorageError};
 use futures_lite::StreamExt;
 
 use crate::storage::{JobRecord, JobState};
@@ -72,12 +72,12 @@ impl CronJob {
 ///
 /// Job state persists in the `cron_jobs` table of an async SQL store; call
 /// [`ensure_table`](Self::ensure_table) once before the first `save`/`load`.
-pub struct CronScheduler<QS: AsyncQueryStore + ?Sized + 'static> {
+pub struct CronScheduler<QS: QueryStore + ?Sized + 'static> {
     jobs: Vec<CronJob>,
     query_store: Arc<QS>,
 }
 
-impl<QS: AsyncQueryStore + ?Sized + 'static> CronScheduler<QS> {
+impl<QS: QueryStore + ?Sized + 'static> CronScheduler<QS> {
     #[must_use]
     pub fn new(query_store: Arc<QS>) -> Self {
         Self { jobs: Vec::new(), query_store }

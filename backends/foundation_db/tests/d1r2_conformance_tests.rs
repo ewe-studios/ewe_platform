@@ -7,8 +7,8 @@
 //! miniflare worker. This suite proves the *store logic itself* — 4 KB offload
 //! threshold, `r2_key` bookkeeping, transparent read-through, scru128 ordering,
 //! inclusive `scan_from`, and delete cleanup — using `TursoStorage` (real
-//! in-memory SQLite, an `AsyncQueryStore`) as the index and `MemoryStorage` (an
-//! `AsyncBlobStore`) as the blob backend. It runs everywhere, including CI.
+//! in-memory SQLite, an `QueryStore`) as the index and `MemoryStorage` (an
+//! `BlobStore`) as the blob backend. It runs everywhere, including CI.
 //!
 //! HOW: `TursoStorage::init_schema` applies the F06 `documents` migrations incl.
 //! the F23 `r2_key` column (022); async methods are driven with
@@ -16,7 +16,7 @@
 
 use std::sync::Mutex;
 
-use foundation_db::traits::{AsyncBlobStore, AsyncDocumentStore};
+use foundation_db::traits::{BlobStore, DocumentStore};
 use foundation_db::{D1R2DocumentStore, MemoryStorage, StorageError, TursoStorage};
 use futures_lite::StreamExt;
 

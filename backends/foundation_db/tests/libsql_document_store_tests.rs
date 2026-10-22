@@ -11,7 +11,7 @@
 #![cfg(feature = "libsql")]
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::{AsyncDocumentStore, LibsqlStore, SqlDocumentStore};
+use foundation_db::{DocumentStore, LibsqlStore, SqlDocumentStore};
 use futures_lite::StreamExt;
 
 async fn store() -> SqlDocumentStore<LibsqlStore> {

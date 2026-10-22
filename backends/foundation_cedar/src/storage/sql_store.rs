@@ -1,4 +1,4 @@
-use foundation_db::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::{QueryStore, DataValue, SqlRow};
 use futures_lite::StreamExt;
 
 use super::traits::PolicyStore;
@@ -16,13 +16,13 @@ CREATE TABLE IF NOT EXISTS cedar_policies (
 /// Policies, schema, entities and version kept in one `cedar_policies` row
 /// per namespace, read through an async SQL store.
 pub struct SqlPolicyStore<'a> {
-    store: &'a dyn AsyncQueryStore,
+    store: &'a dyn QueryStore,
     namespace: String,
 }
 
 impl<'a> SqlPolicyStore<'a> {
     #[must_use]
-    pub fn new(store: &'a dyn AsyncQueryStore, namespace: &str) -> Self {
+    pub fn new(store: &'a dyn QueryStore, namespace: &str) -> Self {
         Self {
             store,
             namespace: namespace.to_string(),

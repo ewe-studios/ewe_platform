@@ -10,7 +10,7 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ProviderRouter, SessionId, SessionRecord, TextContent,
     UserModelContent,
 };
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 use foundation_ai::agentic::errors::{AuthError, UserId};
@@ -521,7 +521,7 @@ mod failing_store {
 
     use async_trait::async_trait;
     use foundation_db::traits::{
-        AsyncDocumentStore, AsyncStorageItemStream, Document, PromotableDocument,
+        DocumentStore, AsyncStorageItemStream, Document, PromotableDocument,
     };
     use foundation_db::{MemoryDocumentStore, StorageError, StorageResult};
     use serde::de::DeserializeOwned;
@@ -552,7 +552,7 @@ mod failing_store {
     }
 
     #[async_trait]
-    impl AsyncDocumentStore for FailingDocStore {
+    impl DocumentStore for FailingDocStore {
         async fn append_async<V: Serialize + Send + 'static>(
             &self,
             key: &str,

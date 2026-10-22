@@ -67,7 +67,7 @@ Sessions have configurable TTL and sliding window:
 
 - Passwords: Argon2id (memory-hard, configurable parallelism/memory/iterations)
 - OAuth tokens: AES-256-GCM encrypted at rest
-- TOTP secrets: encrypted in an `AsyncCredentialStore`
+- TOTP secrets: encrypted in an `CredentialStore`
 
 ## 8. Integration with foundation_ai
 

@@ -20,7 +20,7 @@
 use std::sync::Arc;
 
 use foundation_core::valtron::execute;
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_errstacks::ErrorTrace;
 
@@ -171,7 +171,7 @@ impl AgentSession {
     }
 }
 
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// Start a builder over explicit stores.
     #[deprecated(
         note = "use AgentSession::builder(router).with_session_id(id).with_doc_store(doc_store).with_memory_store(memory_store)"
@@ -187,7 +187,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, 
     }
 }
 
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D, M> {
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D, M> {
     fn new(router: ProviderRouter, doc_store: D, memory_store: M) -> Self {
         Self {
             session_id: SessionId::new(),
@@ -262,7 +262,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuil
 
     /// Keep the session's message log in `store`. Changes the builder's type.
     #[must_use]
-    pub fn with_doc_store<D2: AsyncDocumentStore + 'static>(
+    pub fn with_doc_store<D2: DocumentStore + 'static>(
         self,
         store: D2,
     ) -> AgentSessionBuilder<D2, M> {
@@ -509,7 +509,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuil
 // ---------------------------------------------------------------------------
 // Preflight
 
-impl<D: AsyncDocumentStore, M: MemoryStore> SessionInner<D, M> {
+impl<D: DocumentStore, M: MemoryStore> SessionInner<D, M> {
     fn preflight(&self) -> Result<(), ErrorTrace<AgenticError>> {
         if !self
             .access
@@ -545,7 +545,7 @@ impl<D: AsyncDocumentStore, M: MemoryStore> SessionInner<D, M> {
 // ---------------------------------------------------------------------------
 // Lifecycle
 
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     #[must_use]
     pub fn session_id(&self) -> &SessionId {
         &self.inner.session_id

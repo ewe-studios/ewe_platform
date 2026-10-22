@@ -7,18 +7,18 @@ use foundation_http::SimpleMethod;
 use super::config::IdpConfig;
 use super::handlers::ServeAdapter;
 use super::storage::HandlerStorage;
-use foundation_db::{AsyncKeyValueStore, MemoryStorage};
+use foundation_db::{KeyValueStore, MemoryStorage};
 
 /// The IdP server: routes plus the config and storage its handlers share.
 ///
 /// `KV` is the cache for short-lived handshake state (PoW, WebAuthn); the
 /// default is the in-memory store.
-pub struct IdpServer<KV: AsyncKeyValueStore + Clone + 'static = MemoryStorage> {
+pub struct IdpServer<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
     config: IdpConfig,
     storage: Arc<HandlerStorage<KV>>,
 }
 
-impl<KV: AsyncKeyValueStore + Clone + 'static> IdpServer<KV> {
+impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     #[must_use]
     pub fn new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>) -> Self {
         Self { config, storage }

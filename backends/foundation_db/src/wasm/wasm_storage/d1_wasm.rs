@@ -11,8 +11,8 @@ use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt, 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore, DataValue, SqlRow,
+    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
+    RateLimiterStore, DataValue, SqlRow,
 };
 use crate::wasm::bindgen::D1Database;
 use base64::{engine::general_purpose::STANDARD, Engine};
@@ -229,7 +229,7 @@ impl D1WasmStorage {
 }
 
 // ===========================================================================
-// AsyncKeyValueStore
+// KeyValueStore
 // ===========================================================================
 
 impl D1WasmStorage {
@@ -362,7 +362,7 @@ impl D1WasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for D1WasmStorage {
+impl KeyValueStore for D1WasmStorage {
     async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
@@ -443,7 +443,7 @@ impl D1WasmStorage {
 }
 
 // ===========================================================================
-// AsyncQueryStore
+// QueryStore
 // ===========================================================================
 
 impl D1WasmStorage {
@@ -506,7 +506,7 @@ impl D1WasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncQueryStore for D1WasmStorage {
+impl QueryStore for D1WasmStorage {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let rows = foundation_compact::SendWrapper::new(async move {
             self.query_async(sql, params).await
@@ -526,11 +526,11 @@ impl AsyncQueryStore for D1WasmStorage {
 }
 
 // ===========================================================================
-// AsyncRateLimiterStore
+// RateLimiterStore
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for D1WasmStorage {
+impl RateLimiterStore for D1WasmStorage {
     async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -550,7 +550,7 @@ impl AsyncRateLimiterStore for D1WasmStorage {
 }
 
 // ===========================================================================
-// AsyncBlobStore
+// BlobStore
 // ===========================================================================
 
 impl D1WasmStorage {
@@ -668,7 +668,7 @@ impl D1WasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for D1WasmStorage {
+impl BlobStore for D1WasmStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
     }

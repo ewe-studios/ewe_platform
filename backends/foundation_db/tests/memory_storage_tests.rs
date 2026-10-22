@@ -3,7 +3,7 @@
 //! `MemoryStorage` implements only the async store traits; its futures are
 //! ready at once, so these tests drive them with `futures_lite`'s `block_on`.
 
-use foundation_db::traits::AsyncKeyValueStore;
+use foundation_db::traits::KeyValueStore;
 use foundation_db::MemoryStorage;
 use futures_lite::future::block_on;
 use serde::{Deserialize, Serialize};

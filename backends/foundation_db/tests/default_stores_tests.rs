@@ -4,7 +4,7 @@
 //! in-memory backend.
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::traits::{AsyncDocumentStore, AsyncKeyValueStore};
+use foundation_db::traits::{DocumentStore, KeyValueStore};
 use foundation_db::{SqlDocumentStore, StorageProvider, TursoStorage};
 
 #[cfg(feature = "libsql")]

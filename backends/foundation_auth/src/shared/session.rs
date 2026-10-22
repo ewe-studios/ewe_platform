@@ -4,7 +4,7 @@
 //!
 //! WHAT: `SessionManager` with session CRUD, sliding/absolute expiration, and
 //! three-cookie system (`session_token`, `session_data`, `dont_remember`).
-//! HOW: Sessions stored via `AsyncCredentialStore`. Token signing via HMAC-SHA256.
+//! HOW: Sessions stored via `CredentialStore`. Token signing via HMAC-SHA256.
 
 use std::sync::{Arc, Mutex};
 use std::time::Duration as StdDuration;
@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use zeroize::Zeroizing;
 
-use crate::shared::credential_store::AsyncCredentialStore;
+use crate::shared::credential_store::CredentialStore;
 use super::types::ConfidentialText;
 use crate::shared::credential_store::CredentialStoreError;
 
@@ -163,12 +163,12 @@ impl<S> SessionManager<S> {
 }
 
 // ============================================================================
-// Session methods — over `AsyncCredentialStore`.
+// Session methods — over `CredentialStore`.
 // ============================================================================
 
-impl<S: AsyncCredentialStore> SessionManager<S> {
+impl<S: CredentialStore> SessionManager<S> {
     /// Create a new session for a user (async).
-    pub async fn create_session_async(
+    pub async fn create_session(
         &self,
         user_id: &str,
         ip_address: Option<&str>,
@@ -205,7 +205,7 @@ impl<S: AsyncCredentialStore> SessionManager<S> {
     }
 
     /// Get and validate a session by token (async).
-    pub async fn get_session_async(
+    pub async fn get_session(
         &self,
         token: &str,
     ) -> Result<Option<Session>, SessionError> {
@@ -222,7 +222,7 @@ impl<S: AsyncCredentialStore> SessionManager<S> {
                 {
                     if session.is_valid() {
                         if self.config.sliding_expiration {
-                            self.extend_session_async(&session).await?;
+                            self.extend_session(&session).await?;
                         }
                         return Ok(Some(session));
                     }
@@ -252,7 +252,7 @@ impl<S: AsyncCredentialStore> SessionManager<S> {
                 {
                     if session.is_valid() {
                         if self.config.sliding_expiration {
-                            self.extend_session_async(&session).await?;
+                            self.extend_session(&session).await?;
                         }
                         return Ok(Some(session));
                     }
@@ -265,7 +265,7 @@ impl<S: AsyncCredentialStore> SessionManager<S> {
     }
 
     /// Revoke a single session (async).
-    pub async fn revoke_session_async(
+    pub async fn revoke_session(
         &self,
         session_id: &str,
     ) -> Result<(), SessionError> {
@@ -290,7 +290,7 @@ impl<S: AsyncCredentialStore> SessionManager<S> {
     }
 
     /// Revoke all sessions for a user (async).
-    pub async fn revoke_all_sessions_async(
+    pub async fn revoke_all_sessions(
         &self,
         user_id: &str,
     ) -> Result<usize, SessionError> {
@@ -325,7 +325,7 @@ impl<S: AsyncCredentialStore> SessionManager<S> {
     }
 
     /// Extend session expiration (async, sliding expiration).
-    async fn extend_session_async(
+    async fn extend_session(
         &self,
         session: &Session,
     ) -> Result<(), SessionError> {

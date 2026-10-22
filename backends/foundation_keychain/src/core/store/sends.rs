@@ -6,7 +6,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -85,7 +85,7 @@ fn map_row(row: &SqlRow) -> AppResult<SendRow> {
 }
 
 /// Insert a new send.
-pub async fn insert(db: &dyn AsyncQueryStore, row: &SendRow) -> AppResult<()> {
+pub async fn insert(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO sends \
          (uuid, user_uuid, atype, name, notes, data, akey, password, max_access_count, \
@@ -116,7 +116,7 @@ pub async fn insert(db: &dyn AsyncQueryStore, row: &SendRow) -> AppResult<()> {
 }
 
 /// All sends owned by a user.
-pub async fn find_by_user(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResult<Vec<SendRow>> {
+pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<SendRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {COLUMNS} FROM sends WHERE user_uuid = ? ORDER BY created_at"),
@@ -131,7 +131,7 @@ pub async fn find_by_user(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResul
 }
 
 /// A single send by uuid.
-pub async fn find(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<SendRow>> {
+pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SendRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {COLUMNS} FROM sends WHERE uuid = ?"),
@@ -146,7 +146,7 @@ pub async fn find(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<Send
 }
 
 /// Update the mutable fields of a send.
-pub async fn update(db: &dyn AsyncQueryStore, row: &SendRow) -> AppResult<()> {
+pub async fn update(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
     db.execute_async(
         "UPDATE sends SET name = ?, notes = ?, data = ?, akey = ?, password = ?, \
          max_access_count = ?, disabled = ?, hide_email = ?, expiration_date = ?, \
@@ -173,7 +173,7 @@ pub async fn update(db: &dyn AsyncQueryStore, row: &SendRow) -> AppResult<()> {
 
 /// Bump `access_count` (on a successful anonymous access).
 pub async fn increment_access(
-    db: &dyn AsyncQueryStore,
+    db: &dyn QueryStore,
     uuid: &str,
     new_count: i64,
 ) -> AppResult<()> {
@@ -187,7 +187,7 @@ pub async fn increment_access(
 }
 
 /// Delete a send.
-pub async fn delete(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<()> {
+pub async fn delete(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     db.execute_async(
         "DELETE FROM sends WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],

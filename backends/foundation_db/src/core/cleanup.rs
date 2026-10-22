@@ -6,7 +6,7 @@
 //!   OTPs past their expiry;
 //! - rate-limit windows that have closed.
 //!
-//! Every operation is async over [`AsyncQueryStore`]; [`AsyncStorageCleanup`]
+//! Every operation is async over [`QueryStore`]; [`StorageCleanup`]
 //! is implemented for every async SQL store. Timestamps are compared in Unix
 //! **seconds** (the unit the callers write into `expires_at`), and every
 //! retention period comes from [`CleanupConfig`].
@@ -15,7 +15,7 @@ use std::time::Duration;
 
 use crate::core::backends::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
-use crate::core::storage_provider::{AsyncQueryStore, DataValue};
+use crate::core::storage_provider::{QueryStore, DataValue};
 
 /// How long expired rows are kept before a full cleanup deletes them.
 ///
@@ -120,7 +120,7 @@ fn cutoff(now: i64, period: Duration) -> StorageResult<i64> {
 
 /// Cleanup operations for storage maintenance, on any async SQL store.
 #[async_trait::async_trait]
-pub trait AsyncStorageCleanup: AsyncQueryStore {
+pub trait StorageCleanup: QueryStore {
     /// Delete expired sessions, and (with `max_inactive`) sessions idle for
     /// longer than that. `now` is Unix seconds. Returns the number deleted.
     ///
@@ -243,7 +243,7 @@ pub trait AsyncStorageCleanup: AsyncQueryStore {
     }
 }
 
-impl<T: AsyncQueryStore + ?Sized> AsyncStorageCleanup for T {}
+impl<T: QueryStore + ?Sized> StorageCleanup for T {}
 
 /// Statistics from a cleanup run.
 #[derive(Debug, Default, Clone)]

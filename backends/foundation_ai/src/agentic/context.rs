@@ -19,7 +19,7 @@ use crate::agentic::token_ledger::TokenLedger;
 use crate::types::{
     MessageRole, Messages, SessionId, SessionRecord, TextContent, UserModelContent,
 };
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
 use serde::{Deserialize, Serialize};
 
@@ -148,7 +148,7 @@ impl<D, M> Clone for ContextProvider<D, M> {
     }
 }
 
-impl<D: AsyncDocumentStore, M: MemoryStore> ContextProvider<D, M> {
+impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
     #[must_use]
     pub fn new(
         session_id: SessionId,

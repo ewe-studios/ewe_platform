@@ -1,10 +1,10 @@
-//! In-memory `AsyncDocumentStore` tests (F06).
+//! In-memory `DocumentStore` tests (F06).
 //!
 //! The in-memory store is pure (no valtron pool / no I/O): its futures are
 //! ready at once, so these run as plain `#[test]`s driven with
 //! `futures_lite::future::block_on`.
 
-use foundation_db::traits::{AsyncDocumentStore, AsyncStorageItemStream, PromotableDocument};
+use foundation_db::traits::{DocumentStore, AsyncStorageItemStream, PromotableDocument};
 use foundation_compact::ids::new_scru128_string;
 use foundation_db::MemoryDocumentStore;
 use futures_lite::future::block_on;

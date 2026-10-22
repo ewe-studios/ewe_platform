@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use chrono::{Duration, Utc};
 use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
-use foundation_db::core::storage_provider::AsyncQueryStore;
+use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::sends;
 use foundation_keychain::core::models::send::{SendCreateRequest, SendType, SendUpdateRequest};
@@ -36,7 +36,7 @@ fn fresh_ctx() -> (KeychainContext, TempDir) {
         async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })
     .expect("init turso");
-    let db: Arc<dyn AsyncQueryStore> = Arc::new(provider);
+    let db: Arc<dyn QueryStore> = Arc::new(provider);
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");
     (KeychainContext::new(db), dir)

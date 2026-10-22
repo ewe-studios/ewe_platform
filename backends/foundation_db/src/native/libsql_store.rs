@@ -31,8 +31,8 @@ use crate::core::schema::{MigrationRunner, MIGRATIONS};
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{status_column_value, ResourceState, StateStatus};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStream, AsyncQueryStore,
-    AsyncRateLimiterStore, DataValue, SqlRow,
+    BlobStore, KeyValueStore, AsyncListStream, AsyncQueryStream, QueryStore,
+    RateLimiterStore, DataValue, SqlRow,
 };
 
 // ============================================================================
@@ -755,7 +755,7 @@ impl StateStore for LibsqlStore {
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for LibsqlStore {
+impl KeyValueStore for LibsqlStore {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         self.get_async_internal::<V>(key).await
     }
@@ -787,7 +787,7 @@ impl AsyncKeyValueStore for LibsqlStore {
 }
 
 #[async_trait::async_trait]
-impl AsyncQueryStore for LibsqlStore {
+impl QueryStore for LibsqlStore {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let conn = Arc::clone(&self.conn);
         let sql = sql.to_string();
@@ -804,7 +804,7 @@ impl AsyncQueryStore for LibsqlStore {
 }
 
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for LibsqlStore {
+impl RateLimiterStore for LibsqlStore {
     async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         rate_limit::sql_check(self, key, max_count, window_seconds).await
     }
@@ -817,7 +817,7 @@ impl AsyncRateLimiterStore for LibsqlStore {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for LibsqlStore {
+impl BlobStore for LibsqlStore {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         self.put_blob_async_internal(key, data).await
     }

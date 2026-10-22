@@ -5,7 +5,7 @@
 //! end-to-end, not just against the in-memory backend.
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::traits::{AsyncDocumentStore, PromotableDocument};
+use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_db::{MigrationRunner, SqlDocumentStore, TursoStorage, MIGRATIONS};
 use tempfile::TempDir;
 

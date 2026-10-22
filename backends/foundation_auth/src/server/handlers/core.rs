@@ -18,8 +18,8 @@ use super::super::services::{
 use super::super::storage::{
     self, HandlerStorage, StorageOpError, find_client_by_id, update_user_lockout,
 };
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
-use foundation_db::{AsyncKeyValueStore, MemoryStorage};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::{KeyValueStore, MemoryStorage};
 use futures_lite::StreamExt;
 
 use crate::shared::auth_session::{UpstreamAuthSession, UpstreamAuthSessionStore};
@@ -232,7 +232,7 @@ impl From<TokenServiceError> for IdpError {
     }
 }
 
-pub struct IdpHandlerCore<KV: AsyncKeyValueStore + Clone = MemoryStorage> {
+pub struct IdpHandlerCore<KV: KeyValueStore + Clone = MemoryStorage> {
     config: Arc<IdpConfig>,
     storage: Arc<HandlerStorage<KV>>,
     token_service: Arc<TokenService>,
@@ -244,7 +244,7 @@ pub struct IdpHandlerCore<KV: AsyncKeyValueStore + Clone = MemoryStorage> {
     session_store: Option<Arc<crate::shared::auth_session::memory::MemoryAuthSessionStore>>,
 }
 
-impl<KV: AsyncKeyValueStore + Clone> IdpHandlerCore<KV> {
+impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     #[must_use]
     pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage<KV>>) -> Self {
         let cache = storage.cache.clone();
@@ -1343,7 +1343,7 @@ fn has_query_param(name: &str, req: &SimpleIncomingRequest) -> bool {
 
 /// Look up an upstream provider by slug from the IdP database.
 async fn lookup_upstream_provider(
-    qs: &dyn AsyncQueryStore, id: &str,
+    qs: &dyn QueryStore, id: &str,
 ) -> Result<Option<UpstreamProvider>, String> {
     let mut stream = qs.query_async(
         "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
@@ -1399,7 +1399,7 @@ fn parse_provider_row(row: &SqlRow) -> Result<Option<UpstreamProvider>, String> 
 
 /// Minimal provisioning: find user by email, or create a new row.
 async fn provision_from_upstream_profile(
-    qs: &dyn AsyncQueryStore, profile: &crate::shared::upstream_client::UpstreamProfile,
+    qs: &dyn QueryStore, profile: &crate::shared::upstream_client::UpstreamProfile,
 ) -> Result<String, String> {
     if let (Some(email), true) = (&profile.email, profile.email_verified) {
         if let Some(user_id) = find_user_by_email_lax(qs, email).await? {
@@ -1424,7 +1424,7 @@ async fn provision_from_upstream_profile(
     Ok(user_id)
 }
 
-async fn find_user_by_email_lax(qs: &dyn AsyncQueryStore, email: &str) -> Result<Option<String>, String> {
+async fn find_user_by_email_lax(qs: &dyn QueryStore, email: &str) -> Result<Option<String>, String> {
     let mut stream = qs.query_async(
         "SELECT id FROM users WHERE email = ?",
         &[DataValue::Text(email.to_lowercase())],

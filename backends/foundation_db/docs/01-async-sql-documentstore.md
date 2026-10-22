@@ -5,13 +5,13 @@ you've never touched `foundation_db`'s storage traits.
 
 ---
 
-## 1. One trait, async: `AsyncQueryStore`
+## 1. One trait, async: `QueryStore`
 
 SQL access is a single async trait:
 
 ```rust
 #[async_trait]
-trait AsyncQueryStore {
+trait QueryStore {
     async fn query_async(&self, sql, params) -> StorageResult<AsyncQueryStream>;
     async fn execute_async(&self, sql, params) -> StorageResult<u64>;
     async fn execute_batch_async(&self, sql) -> StorageResult<()>;
@@ -25,8 +25,8 @@ the same async code; a native program that must be sync waits once, at its
 entry point. (Until spec 50 F04 there was also a sync `QueryStore` twin; it is
 gone. The `_async` suffixes go in a follow-up rename.)
 
-One layer up, **`AsyncDocumentStore`** is the document store trait;
-`SqlDocumentStore<Q: AsyncQueryStore>` implements it for any SQL backend.
+One layer up, **`DocumentStore`** is the document store trait;
+`SqlDocumentStore<Q: QueryStore>` implements it for any SQL backend.
 
 Backends implement only the async traits, and there are no sync twins (the
 old sync traits and the `Blocking<S>` wrapper were removed in spec 50 F04).
@@ -83,7 +83,7 @@ are ready at once.
 
 ## 4. Generic over the backend: write the SQL once
 
-`SqlDocumentStore<Q: AsyncQueryStore>` is generic. It never names Turso, Libsql
+`SqlDocumentStore<Q: QueryStore>` is generic. It never names Turso, Libsql
 or D1 — it only needs "something that can run async SQL." So **one** implementation
 serves every SQL backend:
 
@@ -118,6 +118,6 @@ returned row, only positions.
 
 ## 6. Mental model in one line
 
-> One generic async impl over `AsyncQueryStore`, returning lazily-pulled streams so
+> One generic async impl over `QueryStore`, returning lazily-pulled streams so
 > unbounded scans never OOM; the sync trait wraps it via valtron; the SQL is written
 > once and shared, so every SQLite-family backend behaves identically.

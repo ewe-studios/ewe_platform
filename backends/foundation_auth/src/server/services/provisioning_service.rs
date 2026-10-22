@@ -9,12 +9,12 @@
 //! find-existing-link → create-new-user → auto-link-by-email (trusted providers
 //! only) → manual-link-request (when email exists but auto-linking is disabled).
 //!
-//! HOW: Uses `foundation_db::AsyncQueryStore` for user CRUD and a
+//! HOW: Uses `foundation_db::QueryStore` for user CRUD and a
 //! `UserProviderLink` table (migration 025) for upstream-to-local mappings.
 
 use std::sync::Arc;
 
-use foundation_db::{AsyncQueryStore, AsyncQueryStream, DataValue, SqlRow, StorageResult};
+use foundation_db::{QueryStore, AsyncQueryStream, DataValue, SqlRow, StorageResult};
 use futures_lite::StreamExt;
 
 use crate::server::models::provider::UpstreamProvider;
@@ -97,17 +97,17 @@ impl ProvisioningResult {
 
 /// Service that provisions local users from upstream social login profiles.
 ///
-/// Uses `foundation_db::AsyncQueryStore` directly — no custom traits needed.
+/// Uses `foundation_db::QueryStore` directly — no custom traits needed.
 /// The `user_provider_links` table (migration 025) stores the mapping from
 /// `(provider_id, upstream_subject)` → `user_id`.
-pub struct ProvisioningService<QS: AsyncQueryStore + ?Sized + 'static> {
+pub struct ProvisioningService<QS: QueryStore + ?Sized + 'static> {
     query_store: Arc<QS>,
     /// Whether trusted providers with verified email claims can auto-link
     /// to existing local users by email.
     auto_link_by_email: bool,
 }
 
-impl<QS: AsyncQueryStore + ?Sized + 'static> ProvisioningService<QS> {
+impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
     /// Create a new provisioning service.
     #[must_use]
     pub fn new(query_store: Arc<QS>) -> Self {

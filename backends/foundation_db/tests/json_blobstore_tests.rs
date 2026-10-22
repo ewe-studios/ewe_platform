@@ -1,7 +1,7 @@
-//! JSON file storage `AsyncBlobStore` tests.
+//! JSON file storage `BlobStore` tests.
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::{AsyncBlobStore, JsonFileStorage};
+use foundation_db::{BlobStore, JsonFileStorage};
 use tempfile::TempDir;
 
 #[valtron_test]

@@ -25,7 +25,7 @@ use foundation_core::valtron::{
     FutureTask,
     Stream, StreamSpread, TaskIterator, park_on, TaskStatus,
 };
-use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::traits::DocumentStore;
 use foundation_db::{StorageError, StorageResult};
 
 use crate::agentic::access::{AllowAllAccess, SessionAccessProvider};
@@ -623,7 +623,7 @@ fn vacuous_answer_redirect() -> Messages {
     }
 }
 
-impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
     #[allow(clippy::too_many_arguments)]
     #[must_use]
     pub fn new(
@@ -1795,7 +1795,7 @@ impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> 
 
 impl<D, M> TaskIterator for AgentLoop<D, M>
 where
-    D: AsyncDocumentStore + 'static,
+    D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
     type Ready = SessionRecord;

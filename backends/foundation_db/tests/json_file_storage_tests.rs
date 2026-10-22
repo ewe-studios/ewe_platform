@@ -3,7 +3,7 @@
 //! the sync view).
 
 use foundation_db::{
-    AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore, JsonFileStorage, StorageError,
+    KeyValueStore, QueryStore, RateLimiterStore, JsonFileStorage, StorageError,
 };
 use futures_lite::future::block_on;
 use tempfile::TempDir;

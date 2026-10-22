@@ -26,7 +26,7 @@ A few fields have custom handling:
 - `Args` serializes as its JSON Schema only; the validator is rebuilt on load.
 
 `MessageApi` stores each record as the JSON `content` of a document in an
-`AsyncDocumentStore`, keyed by session id.
+`DocumentStore`, keyed by session id.
 
 ## 2. How records are persisted
 

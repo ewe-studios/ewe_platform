@@ -1,7 +1,7 @@
 //! KV storage via wasm-bindgen — calls Cloudflare KV JS API directly.
 //!
 //! Wraps `KVNamespace` and implements the `Async*` key-value, rate-limiter and
-//! blob traits using Cloudflare Workers KV (plus an `AsyncQueryStore` that
+//! blob traits using Cloudflare Workers KV (plus an `QueryStore` that
 //! reports SQL as unsupported). There are no sync impls: a sync call would
 //! block the isolate waiting on a JS Promise that could then never resolve.
 
@@ -9,8 +9,8 @@ use crate::core::backends::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore, DataValue,
+    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
+    RateLimiterStore, DataValue,
 };
 use crate::wasm::bindgen::KVNamespace;
 use js_sys::Object;
@@ -46,7 +46,7 @@ impl KVWasmStorage {
 }
 
 // ===========================================================================
-// AsyncKeyValueStore
+// KeyValueStore
 // ===========================================================================
 
 impl KVWasmStorage {
@@ -162,7 +162,7 @@ impl KVWasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for KVWasmStorage {
+impl KeyValueStore for KVWasmStorage {
     async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         foundation_compact::SendWrapper::new(async move { self.get_async(key).await }).await
     }
@@ -190,13 +190,13 @@ impl AsyncKeyValueStore for KVWasmStorage {
 }
 
 // ===========================================================================
-// AsyncQueryStore (not supported for KV)
+// QueryStore (not supported for KV)
 // ===========================================================================
 
 /// Workers KV has no SQL engine: every query method fails with
 /// `StorageError::Generic`.
 #[async_trait::async_trait]
-impl AsyncQueryStore for KVWasmStorage {
+impl QueryStore for KVWasmStorage {
     async fn query_async(
         &self,
         _sql: &str,
@@ -221,7 +221,7 @@ impl AsyncQueryStore for KVWasmStorage {
 }
 
 // ===========================================================================
-// AsyncRateLimiterStore
+// RateLimiterStore
 // ===========================================================================
 
 impl KVWasmStorage {
@@ -242,7 +242,7 @@ impl KVWasmStorage {
             .map_err(|e| StorageError::Serialization(e.to_string()))
     }
 
-    /// Check if a rate limit key is allowed (see [`AsyncRateLimiterStore`]).
+    /// Check if a rate limit key is allowed (see [`RateLimiterStore`]).
     pub async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -256,7 +256,7 @@ impl KVWasmStorage {
             .is_none_or(|entry| entry.allows(max_count, now, window_seconds)))
     }
 
-    /// Record a rate-limited action (see [`AsyncRateLimiterStore`]). KV has
+    /// Record a rate-limited action (see [`RateLimiterStore`]). KV has
     /// no atomic read-modify-write, so two concurrent records can count once.
     pub async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> Result<u32, StorageError> {
         let rate_key = format!("_rate_limit:{key}");
@@ -285,7 +285,7 @@ impl KVWasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for KVWasmStorage {
+impl RateLimiterStore for KVWasmStorage {
     async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -307,7 +307,7 @@ impl AsyncRateLimiterStore for KVWasmStorage {
 }
 
 // ===========================================================================
-// AsyncBlobStore (KV stores strings, so blobs are base64-encoded)
+// BlobStore (KV stores strings, so blobs are base64-encoded)
 // ===========================================================================
 
 impl KVWasmStorage {
@@ -381,7 +381,7 @@ impl KVWasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for KVWasmStorage {
+impl BlobStore for KVWasmStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
     }

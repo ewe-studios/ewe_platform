@@ -9,8 +9,8 @@ use crate::core::rate_limit;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::schema::{MigrationRunner, MIGRATIONS};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore, DataValue, SqlRow,
+    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
+    RateLimiterStore, DataValue, SqlRow,
 };
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
@@ -453,7 +453,7 @@ impl TursoStorage {
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for TursoStorage {
+impl KeyValueStore for TursoStorage {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         self.get_async_internal::<V>(key).await
     }
@@ -489,7 +489,7 @@ impl AsyncKeyValueStore for TursoStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncQueryStore for TursoStorage {
+impl QueryStore for TursoStorage {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let conn = Arc::clone(&self.conn);
         let sql = sql.to_string();
@@ -508,7 +508,7 @@ impl AsyncQueryStore for TursoStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for TursoStorage {
+impl RateLimiterStore for TursoStorage {
     async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -528,7 +528,7 @@ impl AsyncRateLimiterStore for TursoStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for TursoStorage {
+impl BlobStore for TursoStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         self.put_blob_async_internal(key, data).await
     }

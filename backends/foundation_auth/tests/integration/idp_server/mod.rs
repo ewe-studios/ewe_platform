@@ -7,7 +7,7 @@ use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::{IdpConfig, IdpServer};
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
-use foundation_db::{AsyncQueryStore, MemoryStorage};
+use foundation_db::{QueryStore, MemoryStorage};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
@@ -20,7 +20,7 @@ fn make_storage() -> Arc<HandlerStorage<MemoryStorage>> {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("test_auth.db");
     let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
-    let query_store: Arc<dyn AsyncQueryStore> = Arc::new(provider);
+    let query_store: Arc<dyn QueryStore> = Arc::new(provider);
     let cache = MemoryStorage::new();
     Arc::new(HandlerStorage::new(query_store, cache))
 }

@@ -1,4 +1,4 @@
-//! SQL-backed document store over any [`AsyncQueryStore`].
+//! SQL-backed document store over any [`QueryStore`].
 //!
 //! Documents are stored in a table with columns: `collection_key`, `doc_id`,
 //! content, metadata, and the promoted `title`/`summary`/`record_type`
@@ -10,7 +10,7 @@
 
 use crate::core::errors::StorageResult;
 use crate::core::storage_provider::{
-    AsyncDocumentStore, AsyncQueryStore, AsyncQueryStream, AsyncStorageItemStream, DataValue,
+    DocumentStore, QueryStore, AsyncQueryStream, AsyncStorageItemStream, DataValue,
     Document, PromotableDocument, StorageError,
 };
 use futures_lite::StreamExt;
@@ -138,10 +138,10 @@ pub(crate) mod sql {
     }
 }
 
-/// SQL document store over any [`AsyncQueryStore`] backend (Turso, libsql,
+/// SQL document store over any [`QueryStore`] backend (Turso, libsql,
 /// native D1, Cloudflare D1 on wasm).
 ///
-/// It implements only [`AsyncDocumentStore`]. Multi-item reads return an
+/// It implements only [`DocumentStore`]. Multi-item reads return an
 /// [`AsyncStorageItemStream`] pulled one item at a time with `.next().await`,
 /// never a `Vec`, so unbounded scans can't OOM (F06 OD-06-8).
 pub struct SqlDocumentStore<Q> {
@@ -182,7 +182,7 @@ fn map_content<V: DeserializeOwned + 'static>(
     Box::pin(stream.map(|r| r.and_then(|row| sql::deser_content::<V>(&row))))
 }
 
-impl<Q: AsyncQueryStore> SqlDocumentStore<Q> {
+impl<Q: QueryStore> SqlDocumentStore<Q> {
     async fn insert_row(
         &self,
         key: &str,
@@ -229,7 +229,7 @@ impl<Q: AsyncQueryStore> SqlDocumentStore<Q> {
 }
 
 #[async_trait::async_trait]
-impl<Q: AsyncQueryStore> AsyncDocumentStore for SqlDocumentStore<Q> {
+impl<Q: QueryStore> DocumentStore for SqlDocumentStore<Q> {
     async fn append_async<V: Serialize + Send + 'static>(
         &self,
         key: &str,

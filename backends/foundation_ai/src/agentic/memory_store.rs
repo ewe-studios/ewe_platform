@@ -9,7 +9,7 @@
 //! A `MemoryCoordinator` (in `memory_coordinator.rs`) owns both stores, does
 //! dual-write, and the `record_type` fallback.
 
-use foundation_db::traits::AsyncKeyValueStore;
+use foundation_db::traits::KeyValueStore;
 use foundation_db::{StorageError, StorageResult};
 use serde::{Deserialize, Serialize};
 
@@ -119,9 +119,9 @@ pub trait MemoryStore: Send + Sync {
 }
 
 // ---------------------------------------------------------------------------
-// KvMemoryStore — universal impl over any AsyncKeyValueStore
+// KvMemoryStore — universal impl over any KeyValueStore
 
-/// `MemoryStore` backed by an [`AsyncKeyValueStore`]. Stores the full `SessionMemory`
+/// `MemoryStore` backed by an [`KeyValueStore`]. Stores the full `SessionMemory`
 /// bundle under one key per session (`memory:{session_id}`), so `hydrate` is
 /// a single KV get.
 pub struct KvMemoryStore<K> {
@@ -142,7 +142,7 @@ impl<K: Default> Default for KvMemoryStore<K> {
 }
 
 #[async_trait::async_trait]
-impl<K: AsyncKeyValueStore> MemoryStore for KvMemoryStore<K> {
+impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
     async fn get_async(
         &self,
         session: &SessionId,

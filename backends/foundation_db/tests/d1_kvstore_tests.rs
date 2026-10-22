@@ -1,4 +1,4 @@
-//! `AsyncKeyValueStore` / `AsyncQueryStore` integration tests for the D1
+//! `KeyValueStore` / `QueryStore` integration tests for the D1
 //! backend against a local wrangler worker emulating the Cloudflare D1 REST
 //! API. Skipped unless `CF_INTEGRATION_TEST=1` (see [`common`]).
 
@@ -6,7 +6,7 @@ mod common;
 
 use common::make_d1_store;
 use foundation_core::valtron::valtron_test;
-use foundation_db::{AsyncKeyValueStore, AsyncQueryStore, D1Store, DataValue};
+use foundation_db::{KeyValueStore, QueryStore, D1Store, DataValue};
 use futures_lite::StreamExt;
 
 /// A KV-initialised store on the local worker, or `None` to skip.

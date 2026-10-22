@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::{
-    AsyncQueryStore, AsyncStorageCleanup, CleanupConfig, CleanupStats, DataValue, MemoryStorage,
+    QueryStore, StorageCleanup, CleanupConfig, CleanupStats, DataValue, MemoryStorage,
     TursoStorage,
 };
 
