@@ -240,3 +240,25 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
 - **A new worktree has no submodules.** `foundation_ai` builds `llama.cpp` from the
   `tools/llama.cpp` submodule. Run `git submodule update --init tools/llama.cpp` in a new
   worktree before you build it.
+
+## Feature 05 task T2: the VFS async-first
+
+- **Build every feature of a crate before you change it.** `foundation_nativeapis` CI builds only
+  `""` and `vfs-native,vfs-d1,vfs-r2`. A check of each other VFS feature found `vfs-sqlite` broken
+  (a missing dependency), `vfs-preload` broken (the `open` symbol), and `TursoDelta` never
+  compiled. Find these first, so a new failure is not taken for your own.
+- **Poll once before you go to the pool.** `exec_async` now polls the future once on the calling
+  thread. Memory, native and Fjall futures are ready at once, so `SyncFs` over them needs no
+  valtron pool and uses no worker. This also keeps the sync boundaries (the shim, ptrace, sync
+  tests) free of a pool where the store does not need one.
+- **A `Drop` impl cannot await.** Remote file handles close themselves in `Drop`. The transport got
+  a sync `release` for requests whose response is not needed. Over a bus with ordered responses,
+  the client counts the released requests and skips their responses before it reads its own.
+- **A handle that borrows its parent must share it.** `OverlayDirectory` held raw pointers to the
+  layers. With an async trait the handle can live across awaits, so the layers are now in an
+  `Arc` that the file system and its directory handles share.
+- **`#[traced_test]` and `#[valtron_test]` in one test binary race.** Both try to install the
+  global tracing subscriber; the loser panics at random. Do not mix them in one binary.
+- **A shared target directory is not yours.** Other sessions built and pruned the shared target
+  at the same time; deleted dependency outputs gave "can't find crate" errors that `cargo` does
+  not repair. A private target in the worktree (with `CARGO_PROFILE_DEV_DEBUG=0`) was reliable.
