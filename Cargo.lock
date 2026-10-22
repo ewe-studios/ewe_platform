@@ -4796,8 +4796,10 @@ dependencies = [
  "chrono",
  "foundation_core",
  "foundation_db",
+ "futures-lite",
  "serde",
  "serde_json",
+ "tempfile",
  "tracing",
 ]
 

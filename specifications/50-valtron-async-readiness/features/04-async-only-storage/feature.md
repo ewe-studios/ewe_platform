@@ -364,7 +364,13 @@ The two SQL-backed stores move from the sync `VectorStore` to the existing
   `fn load(&mut self) -> Result<(), StorageError>` → `async fn load(&mut self)`.
 - `load` stops ignoring errors: a failed row read or column decode is
   returned (was `if let Next(Ok(row))` + `unwrap_or(0)`).
-- Tests (`tests/scheduler_tests.rs`) use `MemoryStorage` directly, async.
+- New `async fn ensure_table(&self)` and `CREATE_TABLE_SQL`: nothing ever
+  created `cron_jobs`, so `save`/`load` could not work on any SQL store.
+- New accessor `jobs(&self) -> &[CronJob]`.
+- `foundation_core` moves to dev-dependencies (the library no longer uses
+  it); `futures-lite` is added.
+- Tests (`tests/scheduler_tests.rs`): async over Turso — save/load round trip,
+  a bad row is an error, save without the table is an error.
 
 ### 3.6 foundation_db — `MigrationRunner`, `StorageCleanup`
 

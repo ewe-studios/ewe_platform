@@ -260,7 +260,6 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **Sync storage callers still go through `Blocking`.** Each should move to the
   `Async*` traits, one crate at a time, before the sync traits are deleted:
-  - `foundation_cronjobs` `CronScheduler`;
   - `MigrationRunner::run` and `StorageCleanup` (keep only `run_async` and an
     async cleanup).
 - **`StateStore` is still a sync trait.** `LibsqlStore`'s `StateStore::init`
@@ -357,10 +356,12 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   same fixed interval. Fix: parse `cron_expr` with a cron crate (`cron` or
   `saffron`) and compute the real next fire time; reject an invalid
   expression at `register`.
-- **`CronScheduler::load` drops errors.** It skips stream items that are
-  `Err`, and reads each column with `unwrap_or` defaults, so a failed read
-  or a bad row silently resets the job's state. Fix: return the first error;
-  treat a missing column as an error.
+- **`CronScheduler` never runs a job.** The crate docs (`src/lib.rs`)
+  describe tasks parked on `Delayed` until each fire time, execution, result
+  recording and missed-job catch-up (`MissedJobPolicy`); none of it exists —
+  the scheduler only registers jobs and saves/loads their state. Fix:
+  implement the run loop (one valtron task per job) and the missed-job
+  policy, or cut the docs down to what exists.
 
 ## 15. foundation_cedar
 
