@@ -203,9 +203,9 @@ fn test_nfs_remove_file() {
     }).unwrap();
 }
 
-/// Bug fix: `remove` and `rename` ignored the directory id and used the bare
-/// name, so they acted on the root (or on nothing) instead of the entry in
-/// that directory.
+/// Bug fixes: `remove` and `rename` ignored the directory id and used the
+/// bare name; and the first new entry got id 1, the root's id, so the root
+/// mapped to that entry.
 #[test]
 #[serial_test::serial]
 fn test_nfs_remove_and_rename_in_subdirectory() {
@@ -214,6 +214,9 @@ fn test_nfs_remove_and_rename_in_subdirectory() {
 
     let n = Arc::clone(&nfs);
     let (sub, _) = run_nfs_async(async move { n.mkdir(1, &ns("sub")).await }).unwrap();
+    assert_ne!(sub, 1, "a new entry must not reuse the root id");
+    let n = Arc::clone(&nfs);
+    assert_eq!(run_nfs_async(async move { n.lookup(1, &ns("sub")).await }).unwrap(), sub);
     let n = Arc::clone(&nfs);
     run_nfs_async(async move {
         n.create(sub, &ns("a.txt"), nfsserve::nfs::sattr3::default()).await

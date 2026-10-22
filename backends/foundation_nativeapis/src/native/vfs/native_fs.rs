@@ -148,7 +148,14 @@ fn create_host_file(fs_path: &Path, vfs_path: &str, mode: u32) -> VfsResult<Nati
             path: vfs_path.to_string(),
         }));
     }
-    let file = std::fs::File::create(fs_path).map_err(io_err)?;
+    // The handle is `ReadWrite`, so the host file is opened for both: a
+    // write-only `File::create` handle failed every read.
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create_new(true)
+        .open(fs_path)
+        .map_err(io_err)?;
     #[cfg(unix)]
     std::fs::set_permissions(fs_path, std::fs::Permissions::from_mode(mode)).map_err(io_err)?;
     #[cfg(not(unix))]

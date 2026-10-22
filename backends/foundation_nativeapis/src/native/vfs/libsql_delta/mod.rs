@@ -503,7 +503,12 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         Ok(())
     }
 
+    /// Replaces the file's content, and creates the file (mode `0o644`) when
+    /// it does not exist, as the trait's default does.
     async fn write_file_async(&self, path: String, data: Vec<u8>) -> VfsResult<()> {
+        if !self.exists_async(path.clone()).await? {
+            drop(self.create_async(path.clone(), 0o644).await?);
+        }
         let ino = resolve_path_async(self.conn.clone(), path).await?;
         write_all_chunks_async(&self.conn, ino, &data, self.chunk_config.default_chunk_size)
             .await

@@ -22,7 +22,8 @@ struct IdMapper {
 impl IdMapper {
     fn new() -> Self {
         let m = Self {
-            next_id: std::sync::atomic::AtomicU64::new(1),
+            // Id 1 is the root directory (`root_dir`); new entries start at 2.
+            next_id: std::sync::atomic::AtomicU64::new(2),
             id_to_path: RwLock::new(HashMap::new()),
             path_to_id: RwLock::new(HashMap::new()),
         };

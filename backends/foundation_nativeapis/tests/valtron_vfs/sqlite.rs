@@ -115,10 +115,15 @@ fn sync_libsql_read_file_write_file() {
     let data = sync.read_file("/test.txt").unwrap();
     assert_eq!(&data, b"test content");
 
-    // Overwrite
+    // Overwrite (bug fix: the old chunks were kept, so this failed on a
+    // UNIQUE constraint)
     sync.write_file("/test.txt", b"new content").unwrap();
     let data = sync.read_file("/test.txt").unwrap();
     assert_eq!(&data, b"new content");
+
+    // Empty content (bug fix: an INSERT with no rows was invalid SQL)
+    sync.write_file("/test.txt", b"").unwrap();
+    assert!(sync.read_file("/test.txt").unwrap().is_empty());
 }
 
 #[test]

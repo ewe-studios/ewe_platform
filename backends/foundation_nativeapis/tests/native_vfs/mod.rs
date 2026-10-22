@@ -2,7 +2,7 @@
 
 use foundation_nativeapis::native::vfs::NativeFs;
 use foundation_core::valtron::valtron_test;
-use foundation_nativeapis::shared::vfs::{AsyncVfsDirectory, AsyncVfsFileSystem, SyncFs};
+use foundation_nativeapis::shared::vfs::{AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem, SyncFs};
 use foundation_nativeapis::shared::vfs::{
     OpenMode, SeekFrom, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem, VfsFileType,
 };
@@ -263,4 +263,15 @@ async fn async_read_write_round_trip() {
     assert_eq!(native_fs.read_file_async("/a.txt".into()).await.unwrap(), b"hello");
     let meta = native_fs.stat_async("/a.txt".into()).await.unwrap();
     assert_eq!(meta.size, 5);
+}
+
+/// Bug fix: `create` returned a `ReadWrite` handle over a write-only host
+/// file, so a read on it failed with "bad file descriptor".
+#[valtron_test]
+async fn created_files_can_be_read_back() {
+    let tmp = TempDir::new("create_rw");
+    let native_fs = NativeFs::new(tmp.path()).unwrap();
+    let f = native_fs.create_async("/n.txt".into(), 0o644).await.unwrap();
+    f.write_at_async(b"abc".to_vec(), 0).await.unwrap();
+    assert_eq!(f.read_at_async(3, 0).await.unwrap(), b"abc");
 }
