@@ -1,6 +1,6 @@
 # Spec 65 Progress: Agent RPC Serving System
 
-_Last updated: 2026-10-21 (review round 2 recorded). Read this first, then `LEARNINGS.md` ("Handoff guide"
+_Last updated: 2026-10-22 (feature 07 design written). Read this first, then `LEARNINGS.md` ("Handoff guide"
 at the top) before touching code._
 
 ## Status at a glance
@@ -14,6 +14,7 @@ at the top) before touching code._
 | 04 — registrar sidecar | ⏳ 0/7 | — |
 | 05 — Cloudflare | ⏳ 0/6 | — |
 | 06 — wasm async streaming | ✅ 5/5 | PR #124 |
+| 07 — pluggable agent-rpc (owner review round 2) | 📐 design done, 0/22 tasks | PR #126 branch |
 | (spec 68 — valtron wasm runtime tests) | ✅ owned path 10/10, bindgen path 5/5 | PR #124 (#125 merged into it) |
 
 ## Branches and PRs (how the work is stacked)
@@ -195,6 +196,28 @@ Work, in order:
 Also open from the earlier review: the Postgres question. foundation_db has no
 Postgres backend; the trusted-client SQL is portable except for `?`
 placeholders. It's unscheduled.
+
+## Feature 07 — Pluggable agent RPC (design written 2026-10-22)
+
+The owner's review round 2 on #126 is now a full design in
+`features/07-pluggable-agent-rpc/`. It is written in ASD-STE100 Simplified Technical English
+(STE), with Mermaid diagrams. Files:
+
+- `feature.md`: overview, glossary, architecture, owner directions, breaking changes,
+  migration, tests, task list T0 to T22, open questions.
+- `start.md`: how an agent starts.
+- `env.md`: side effects and the `Env` bundle in valtron's `Ctx`.
+- `auth.md`: auth moved into `foundation_auth` (signed secrets, key store, certificate
+  authority, trusted clients, mutual TLS, client auth providers).
+- `registry-and-models.md`: model catalog, kinds and devices, instance registry, Durable
+  Objects.
+- `hosts.md`: native host, Worker host, web client, native client.
+- `proto.md`: wire contract changes.
+- `deterministic-simulation-testing.md`: deterministic simulation testing in plain words.
+
+Next: the owner answers the open questions in `feature.md` section 11. Then task T0 (merge
+`master` into this branch) starts the work. The plan above ("owner review round 2") is now
+replaced by feature 07.
 
 ## Feature 00 — foundation (`worktree-65-agent-rpc-serving-system`)
 

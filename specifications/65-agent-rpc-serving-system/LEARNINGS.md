@@ -867,3 +867,20 @@ the isolate.
   (needs `protoc`, e.g. `PROTOC=~/.local/share/mise/installs/protoc/36.2/bin/protoc`).
   56 tests, ~20 s, dominated by the candle spike.
 
+
+
+## Feature 07 design (2026-10-22)
+
+- **Read before you design.** valtron already has a `Clock` trait, a `MockClock` in tests and
+  a seeded `ChaCha8Rng` in `Ctx`; `foundation_compact` already has wasm-safe `Instant`,
+  `SystemTime`, entropy and scru128 IDs. The `Env` design extends these. It does not add a
+  second system.
+- **Some crypto libraries hide their randomness.** `ring`'s `SystemRandom` is sealed, so
+  `rcgen` key generation and ECDSA signing cannot be made deterministic. The design makes
+  keys with the pure-Rust `p256` and `ed25519-compact` crates from `Env` entropy, and signs
+  certificates through an `rcgen::RemoteKeyPair` with RFC 6979 nonces. TLS handshakes stay
+  out of DST.
+- **`std::time::Instant::now()` panics on `wasm32-unknown-unknown`.** valtron's sleep and
+  connectrpc's deadline timer use it today. Both move to the injected timer (task T2, T3).
+- **A design agent can stop before it finishes** (the account spend limit stopped it after
+  five of eight files). Commit and push each design file as soon as it is written.

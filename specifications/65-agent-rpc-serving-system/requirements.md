@@ -184,6 +184,7 @@ corresponding skills BEFORE implementation.
 | 4  | [Registrar Sidecar](./features/04-registrar-sidecar/feature.md) | Reads manifest, reviews proxied binaries, registers them with the proxy | 2, 3 | ⬜ Pending |
 | 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Thin WASM orchestrator on Workers + full model server on Sandboxes/Containers, consuming 00-foundation | 0, 1 | ⬜ Pending |
 | 6  | [WASM Lazy Streaming](./features/06-wasm-async-streaming/feature.md) | Remove the wasm-unsafe `run_future`/`collect()` anti-pattern from the streaming path: park-friendly `into_future_stream`, lazy `send_sse` + `SseProgress::Failed`, zero `Model` API change; fix the T6 sync-streaming hang | 0 | 🔄 In Progress |
+| 7  | [Pluggable Agent RPC](./features/07-pluggable-agent-rpc/feature.md) | One RPC surface on native, Docker, Cloudflare Workers and the browser: a core behind traits, auth in foundation_auth, injected side effects for deterministic simulation testing, model capabilities and instance kinds | 1 | ⬜ Pending (design done) |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
