@@ -4069,7 +4069,7 @@ dependencies = [
 name = "ewe_platform_tests"
 version = "0.1.0"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "foundation_core",
  "foundation_netio",
  "foundation_nostd",
@@ -5506,7 +5506,7 @@ dependencies = [
 name = "foundation_testing"
 version = "0.0.3"
 dependencies = [
- "base64 0.21.7",
+ "base64 0.22.1",
  "criterion",
  "derive_more",
  "foundation_core",
