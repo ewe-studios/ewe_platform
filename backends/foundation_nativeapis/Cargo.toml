@@ -34,7 +34,7 @@ thiserror = { workspace = true }
 derive_more = { workspace = true }
 serde_json = { version = "1", optional = true }
 libsql = { version = "0.9", optional = true }
-turso = { version = "0.5.3", optional = true }
+turso = { version = "0.8.3", optional = true }
 fjall = { version = "2", optional = true }
 nfsserve = { version = "0.11", optional = true }
 hex = { version = "0.4", optional = true }
