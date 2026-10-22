@@ -1,7 +1,7 @@
 use foundation_core::valtron::initialize_pool;
-use foundation_nativeapis::shared::vfs::{
-    DeltaStore, LibsqlDelta, SyncLibsqlDelta, VfsFile, VfsFileSystem,
-};
+use foundation_nativeapis::native::vfs::LibsqlDelta;
+use foundation_nativeapis::shared::vfs::exec_async::exec_async;
+use foundation_nativeapis::shared::vfs::{DeltaStore, SyncFs, VfsFile, VfsFileSystem};
 
 fn main() {
     println!("=== SQLite DeltaStore Example ===\n");
@@ -12,12 +12,14 @@ fn main() {
     // Clean up from previous runs
     let _ = std::fs::remove_file(&db_path);
 
-    // Create a LibsqlDelta — async-first implementation
-    let async_delta = LibsqlDelta::new(&db_path).unwrap();
+    // Create a LibsqlDelta — async-first implementation. `main` is a sync
+    // boundary: it waits for the async constructor through `exec_async`.
+    let path = db_path.clone();
+    let async_delta = exec_async(async move { LibsqlDelta::new(path).await }).unwrap();
     println!("Created LibsqlDelta at {:?}", db_path);
 
-    // Wrap in SyncLibsqlDelta for sync API
-    let delta = SyncLibsqlDelta::new(async_delta);
+    // Wrap in SyncFs for the sync API
+    let delta = SyncFs::new(async_delta);
 
     // Create files — stored as chunked blobs in SQLite
     delta.mkdir("/config").unwrap();

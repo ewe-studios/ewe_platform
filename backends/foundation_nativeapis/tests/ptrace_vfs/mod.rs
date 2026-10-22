@@ -101,7 +101,7 @@ fn test_mount_table_is_virtual() {
     let tmp = TempDir::new("mount");
     let fs = NativeFs::new(tmp.path()).unwrap();
     let mut mt = MountTable::new();
-    mt.mount("/virtual", DynFs::new(Arc::new(fs)));
+    mt.mount("/virtual", DynFs::from_async(fs));
 
     assert!(mt.is_virtual("/virtual/file.txt"));
     assert!(mt.is_virtual("/virtual/deep/nested/path"));
@@ -114,7 +114,7 @@ fn test_mount_table_resolve() {
     let tmp = TempDir::new("resolve");
     let fs = NativeFs::new(tmp.path()).unwrap();
     let mut mt = MountTable::new();
-    mt.mount("/v", DynFs::new(Arc::new(fs)));
+    mt.mount("/v", DynFs::from_async(fs));
 
     assert!(mt.resolve("/v/x").is_some());
     assert!(mt.resolve("/real").is_none());

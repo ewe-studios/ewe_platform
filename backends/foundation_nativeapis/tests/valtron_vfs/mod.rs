@@ -5,7 +5,7 @@
 //!
 //! Sub-modules:
 //! - `memory` — SyncFs<MemoryFs> and SyncFs<MemoryDelta> through valtron
-//! - `sqlite` — SyncLibsqlDelta through valtron
+//! - `sqlite` — SyncFs<LibsqlDelta> through valtron
 //! - `async` — AsyncVfsFileSystem traits called through valtron futures
 //! - `overlay` — OverlayFileSystem through valtron
 //! - `seekable` — Seekable file concurrency + cursor sharing via valtron

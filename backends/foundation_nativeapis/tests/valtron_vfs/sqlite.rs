@@ -1,7 +1,7 @@
-//! Integration tests: SyncLibsqlDelta through valtron.
+//! Integration tests: `SyncFs<LibsqlDelta>` through valtron.
 //!
 //! These tests verify the sync-bridge code path for LibsqlDelta —
-//! `SyncLibsqlDelta` delegates to `SyncFs<LibsqlDelta>` which routes all
+//! `SyncFs<LibsqlDelta>` routes all
 //! operations through valtron's `exec_async`. Direct async calls on
 //! `LibsqlDelta` bypass the bridge.
 
@@ -13,7 +13,16 @@ use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::shared::vfs::{
     DeltaStore, OpenMode, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem,
 };
-use foundation_nativeapis::native::vfs::libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
+use foundation_nativeapis::native::vfs::libsql_delta::LibsqlDelta;
+use foundation_nativeapis::shared::vfs::exec_async::exec_async;
+use foundation_nativeapis::shared::vfs::SyncFs;
+
+/// Opens a `LibsqlDelta` and wraps it in `SyncFs`, the sync face of an
+/// I/O-backed store.
+fn open_sync(path: &std::path::Path) -> SyncFs<LibsqlDelta> {
+    let path = path.to_path_buf();
+    SyncFs::new(exec_async(async move { LibsqlDelta::new(path).await }).unwrap())
+}
 
 fn init_pool() -> PoolGuard {
     initialize_pool(42, Some(3))
@@ -51,7 +60,7 @@ impl Drop for TempFile {
     }
 }
 
-// ── SyncLibsqlDelta: Basic Operations ──
+// ── SyncFs<LibsqlDelta>: Basic Operations ──
 
 #[test]
 #[foundation_macros::timeout(60_000)]
@@ -60,7 +69,7 @@ impl Drop for TempFile {
 fn sync_libsql_mkdir_and_stat() {
     let _guard = init_pool();
     let tmp = TempFile::new("mkdir_stat");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.mkdir("/src").unwrap();
     sync.mkdir("/src/lib").unwrap();
@@ -80,7 +89,7 @@ fn sync_libsql_mkdir_and_stat() {
 fn sync_libsql_create_write_read() {
     let _guard = init_pool();
     let tmp = TempFile::new("create_write_read");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     let file = sync.create("/hello.txt", 0o644).unwrap();
     file.write_at(b"hello world", 0).unwrap();
@@ -100,7 +109,7 @@ fn sync_libsql_create_write_read() {
 fn sync_libsql_read_file_write_file() {
     let _guard = init_pool();
     let tmp = TempFile::new("read_write_file");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.write_file("/test.txt", b"test content").unwrap();
     let data = sync.read_file("/test.txt").unwrap();
@@ -119,7 +128,7 @@ fn sync_libsql_read_file_write_file() {
 fn sync_libsql_open_seekable() {
     let _guard = init_pool();
     let tmp = TempFile::new("open_seekable");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.write_file("/seek.txt", b"0123456789abcdef").unwrap();
 
@@ -144,7 +153,7 @@ fn sync_libsql_open_seekable() {
 fn sync_libsql_seek_operations() {
     let _guard = init_pool();
     let tmp = TempFile::new("seek_ops");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.write_file("/seek.txt", b"0123456789").unwrap();
     let mut seekable = sync.open_seekable("/seek.txt", OpenMode::Read).unwrap();
@@ -169,7 +178,7 @@ fn sync_libsql_seek_operations() {
 fn sync_libsql_rename_and_remove() {
     let _guard = init_pool();
     let tmp = TempFile::new("rename_remove");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.write_file("/old.txt", b"content").unwrap();
     sync.rename("/old.txt", "/new.txt").unwrap();
@@ -188,7 +197,7 @@ fn sync_libsql_rename_and_remove() {
 fn sync_libsql_remove_all() {
     let _guard = init_pool();
     let tmp = TempFile::new("remove_all");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.mkdir("/a").unwrap();
     sync.write_file("/a/b.txt", b"data").unwrap();
@@ -206,7 +215,7 @@ fn sync_libsql_remove_all() {
 fn sync_libsql_chmod() {
     let _guard = init_pool();
     let tmp = TempFile::new("chmod");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.write_file("/file.txt", b"data").unwrap();
     let before = sync.stat("/file.txt").unwrap();
@@ -224,7 +233,7 @@ fn sync_libsql_chmod() {
 fn sync_libsql_directory_operations() {
     let _guard = init_pool();
     let tmp = TempFile::new("dir_ops");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.mkdir("/dir").unwrap();
     sync.write_file("/dir/a.txt", b"a").unwrap();
@@ -244,7 +253,7 @@ fn sync_libsql_directory_operations() {
 fn sync_libsql_copy() {
     let _guard = init_pool();
     let tmp = TempFile::new("copy");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.write_file("/src.txt", b"source data").unwrap();
     sync.copy("/src.txt", "/dst.txt").unwrap();
@@ -253,7 +262,7 @@ fn sync_libsql_copy() {
     assert_eq!(sync.read_file("/dst.txt").unwrap(), b"source data");
 }
 
-// ── SyncLibsqlDelta: DeltaStore Operations ──
+// ── SyncFs<LibsqlDelta>: DeltaStore Operations ──
 
 #[test]
 #[foundation_macros::timeout(60_000)]
@@ -262,7 +271,7 @@ fn sync_libsql_copy() {
 fn sync_libsql_whiteout() {
     let _guard = init_pool();
     let tmp = TempFile::new("whiteout");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.add_whiteout("/hidden.txt", 1).unwrap();
     assert!(sync.is_whiteout("/hidden.txt").unwrap().is_some());
@@ -278,7 +287,7 @@ fn sync_libsql_whiteout() {
 fn sync_libsql_list_whiteouts() {
     let _guard = init_pool();
     let tmp = TempFile::new("list_whiteouts");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.add_whiteout("/src/a.rs", 1).unwrap();
     sync.add_whiteout("/src/b.rs", 2).unwrap();
@@ -296,7 +305,7 @@ fn sync_libsql_list_whiteouts() {
 fn sync_libsql_reset() {
     let _guard = init_pool();
     let tmp = TempFile::new("reset");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.mkdir("/data").unwrap();
     sync.write_file("/data/file.txt", b"data").unwrap();
@@ -316,7 +325,7 @@ fn sync_libsql_reset() {
 fn sync_libsql_flush() {
     let _guard = init_pool();
     let tmp = TempFile::new("flush");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     sync.flush().unwrap();
 }
@@ -330,7 +339,7 @@ fn sync_libsql_flush() {
 fn sync_libsql_large_file_chunked() {
     let _guard = init_pool();
     let tmp = TempFile::new("large_file");
-    let sync = SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap());
+    let sync = open_sync(tmp.path());
 
     // Write a file larger than the default 64KB chunk size
     let data: Vec<u8> = (0..200_000).map(|i| (i % 256) as u8).collect();

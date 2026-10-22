@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use foundation_nativeapis::native::vfs::native_fs::NativeFs;
 use foundation_nativeapis::shared::vfs::{
-    VfsDirectory, VfsFile, VfsFileSystem,
+    SyncFs, VfsDirectory, VfsFile, VfsFileSystem,
 };
 
 fn main() {
@@ -12,7 +12,9 @@ fn main() {
     let tmp = std::env::temp_dir().join("foundation_native_fs_example");
     std::fs::create_dir_all(&tmp).unwrap();
 
-    let fs = NativeFs::new(&tmp).unwrap();
+    // NativeFs implements the async VFS traits. `main` is a sync boundary, so
+    // the example uses it through `SyncFs`.
+    let fs = SyncFs::new(NativeFs::new(&tmp).unwrap());
     println!("NativeFs root: {:?}", fs.root());
 
     // Create directories and files through the VFS API

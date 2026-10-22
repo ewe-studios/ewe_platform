@@ -3,7 +3,13 @@
 #![cfg(feature = "vfs")]
 
 use foundation_core::valtron::{collect_one, initialize_pool, PoolGuard};
-use foundation_nativeapis::shared::vfs::{MemoryFs, ObservableFs, VfsFileSystem};
+use foundation_nativeapis::shared::vfs::exec_async::poll_once;
+use foundation_nativeapis::shared::vfs::{AsyncVfsFileSystem, MemoryFs, ObservableFs};
+
+/// Runs a memory-VFS future, which is ready at once.
+fn now<T>(future: impl std::future::Future<Output = T>) -> T {
+    poll_once(future).expect("a memory VFS future is ready at once")
+}
 use foundation_nativeapis::{VfsEvent, VfsTask};
 
 fn init_pool() -> PoolGuard {
@@ -22,7 +28,7 @@ fn vfs_task_receives_write_events() {
     let stop = task.stop_signal();
 
     // create emits a single FileCreated event (no intermediate OperationFailed)
-    fs.create("/hello.txt", 0o644).unwrap();
+    now(fs.create_async("/hello.txt".into(), 0o644)).unwrap();
 
     let mut stream = foundation_core::valtron::execute(task, None).unwrap();
 
@@ -50,9 +56,9 @@ fn vfs_task_receives_multiple_events() {
     let stop = task.stop_signal();
 
     // Each operation emits one event
-    fs.mkdir("/src").unwrap();
-    fs.mkdir("/lib").unwrap();
-    fs.create("/main.rs", 0o644).unwrap();
+    now(fs.mkdir_async("/src".into())).unwrap();
+    now(fs.mkdir_async("/lib".into())).unwrap();
+    now(fs.create_async("/main.rs".into(), 0o644)).unwrap();
 
     let mut stream = foundation_core::valtron::execute(task, None).unwrap();
 
@@ -105,7 +111,7 @@ fn vfs_task_subscribe_for_downstream() {
     assert_eq!(task.subscriber_count(), 1);
 
     // create emits a single clean event
-    fs.create("/test.txt", 0o644).unwrap();
+    now(fs.create_async("/test.txt".into(), 0o644)).unwrap();
 
     let stop = task.stop_signal();
 
