@@ -1,4 +1,4 @@
-use foundation_db::{QueryStore, DataValue, SqlRow};
+use foundation_db::{DataValue, QueryStore, SqlRow};
 use futures_lite::StreamExt;
 
 use super::traits::PolicyStore;
