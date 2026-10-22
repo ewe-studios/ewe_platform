@@ -2,7 +2,7 @@
 
 _Updated: 2026-10-22_
 
-## Status: storage layer async-only (pending #134 merge); F05 (remaining sync twins) and F02 open
+## Status: storage layer async-only (#134 merged); F05 T1 (vector stores) done on `db/async-vectors`; F05 T2–T4 and F02 open
 
 ## The async-storage stream (overall plan and status)
 
@@ -207,10 +207,20 @@ Mechanical, names only. 129 files.
 | Kept | `AsyncDeltaStore`, `AsyncVectorStore` (sync `DeltaStore` / `VectorStore` traits still exist); every storage trait method's `_async` suffix (owner did not decide; feature 05 task T3) |
 | Checks | `cargo check --workspace --tests`: pass. wasm32: foundation_db (`wasm`, `wasm-bindgen-storage`), foundation_auth (`wasm`, `wasm,wasm-bindgen-session`, `wasm,wasm-bindgen-oauth`), foundation_ai (`--no-default-features`): pass. Examples `cf-agent-loop`, `cf-cloud-provider`, `cf-login-app` (wasm32) and `apps/answerme-agent` (native): pass |
 
+### Feature 05 task T1: vector stores async-only (branch `db/async-vectors`)
+
+| Item | Detail |
+|---|---|
+| Trait | The sync `VectorStore` trait is deleted. `AsyncVectorStore` is renamed to `VectorStore`. Methods keep `_async` (task T3). `len_async` returns `Result`. |
+| Stores | `InMemoryVectorStore`, `FjallVectorStore`, `SqliteVecVectorStore` and `TurboPufferVectorStore` implement only the async trait. `TurboPuffer` awaits `HttpClient::send_async` (v2 API, bounded body reads). SQLite-vec awaits libSQL. Fjall calls its sync API inline (sync boundary, in the backlog). |
+| Bugs fixed | `TurboPuffer`: `len` was always 0, `get` used a zero-vector query, delete sent `"undef"`, the dot metric was sent as cosine, the L2 score was wrong. SQLite-vec: `get` was always `None`, an insert with an existing id added a row, `len` hid errors, the namespace went into SQL unchecked. Fjall: `delete` of an unknown id was `Ok`, metadata errors were dropped, unneeded `unsafe impl Send/Sync`. `hybrid_search` hid search errors. |
+| Callers | `foundation_ai` `shed`: `ToolDiscovery` is async; `register` / `deregister` queue the index change; `search_tools` applies the queue and reports failures in `ShedResult::index_failures`. `enable_discovery` and `ToolShed::build` are async. No caller in `apps/` or `examples/`. |
+| Tests | New `tests/contract` (7 checks) runs for every store: in-memory, SQL (Turso), libSQL, Fjall, SQLite-vec, `TurboPuffer` (in-process mock of the v2 API). New `foundation_ai` tests for the index queue (5). |
+| Checks | `ci.py run foundation_vectors` (build, clippy, test, wasm; runs `""` and `sql-store`): pass. `cargo test -p foundation_vectors --features sql-store,turbopuffer,fjall-store,sqlite-vec`: pass. `ci.py run foundation_ai`, steps one at a time (build, clippy, test, wasm): pass; test: 2745 pass, 0 fail. `cargo check --workspace --tests`: pass. |
+
 ## Next
 
-1. Merge #134.
-2. Feature 05 (remaining sync twins): the vector store first; the VFS and the method suffixes
-   after the owner decides (`features/05-remaining-sync-twins/feature.md` section 4).
+1. Review and merge the F05 T1 pull request (`db/async-vectors`).
+2. Feature 05 task T2 (VFS async-first core), then task T3 (drop the `_async` method suffixes).
 3. Then spec 65 feature 07 (agent-rpc), task T0.
 4. F02 (readiness-source seam) and the F01/F03 front matter.

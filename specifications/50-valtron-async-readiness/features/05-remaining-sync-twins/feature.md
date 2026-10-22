@@ -107,3 +107,13 @@ Order: T1 (vectors), then T2 (VFS), then T3 (method suffixes), then spec 65 feat
 **Sync boundaries that stay:** fjall has only a sync API, so `FjallVectorStore` calls it inline
 (the same choice as `FjallDocumentStore` in feature 04). `SqliteVecVectorStore::open` writes and
 loads the extension with sync calls, once. Both are in the backlog.
+
+**Checks (2026-10-22):**
+
+| Check | Result |
+|---|---|
+| `ci.py run foundation_vectors --step build --step clippy --step test --step wasm` (runs `""` and `sql-store`) | pass |
+| `cargo test -p foundation_vectors --features sql-store,turbopuffer,fjall-store,sqlite-vec` | pass |
+| `ci.py run foundation_ai`, steps one at a time (build, clippy, test, wasm) | pass; test 2745 pass, 0 fail |
+| `cargo check --workspace --tests` | pass |
+| `apps/`, `examples/` | no use of the changed APIs |
