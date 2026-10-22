@@ -52,6 +52,14 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 - **QUIC streams register no waker.** Every H3 future must wake itself, so it busy-polls a worker while idle. `h3_serve.rs` works around this. The quinn driver should wake stream tasks when they become ready.
 - **`FramedRecv` buffers whole DATA frames.** It holds up to `DEFAULT_MAX_FRAME_SIZE` (16 MiB) before yielding. Stream within a frame, and make the size config **(rule 8)**.
 - **`H3Connection::poll_accept_webtransport` loses streams.** It drops the accepted stream if its headers aren't ready yet. It also drops a non-WebTransport request whose headers it has already read.
+- **`AsyncSendSafeBody` polls sync body iterators inline**
+  (`shared/client/body_reader.rs`). `poll_next` calls the inner iterator's
+  `next()`. Unless that iterator returns a "not ready" item (`Data::Retry`), a
+  read that waits for the socket waits inside `poll_next` and holds the worker.
+  Every async caller that reads a streamed body (the deployment API clients,
+  `TurboPufferVectorStore`) has this. Fix: give the body iterators a
+  readiness-based async form that returns `Poll::Pending` and wakes on socket
+  readiness.
 - **`SendSafeBodyBytesIterator` reports would-block inconsistently.** It returns `Err` for chunked bodies but `Ignore` for sized bodies, so its ~15 users can't tell "not ready" apart from bookkeeping items.
 - **`BatchReader` logs every `WouldBlock` at `error!`.**
 - **Case-sensitive `chunked` check.** The request reader's `transfer_encodings.iter().position(|n| n == CHUNKED_VALUE)` compares case-sensitively, unlike the lowercase set check just before it.
@@ -435,10 +443,33 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 17. foundation_vectors
 
-- **`AsyncVectorStore::len_async` returns `usize`,** so a backend error can't
-  be reported (`src/store.rs`); the SQL stores count a failure as 0. Fix:
-  return `Result<usize, VectorStoreError>` from `len_async` (and `len`) across
-  every vector store. Owner decision 2026-10-21: recorded, not fixed in F04.
+- **`FjallVectorStore` runs fjall inline in its async methods**
+  (`src/fjall_store.rs`). fjall has only a sync API. The calls read and write
+  the page cache without `fsync`, but the first use of a namespace scans all
+  of its vectors to rebuild the index, and `flush` (`fsync`) is sync. Both can
+  hold a worker for a long time. Fix: run them on a blocking-work seam when
+  valtron has one (or in a task of their own), and make `flush` async.
+- **`SqliteVecVectorStore` ships only a linux-x86_64 `vec0.so`**
+  (`vendor/vec0.so`). `open` fails on every other platform. Fix: vendor the
+  extension for each supported target, or build sqlite-vec from source.
+- **`SqliteVecVectorStore` tables from before spec 50 F05 T1 do not work.**
+  T1 changed the `vec0` schema (text primary key, `metadata` column, distance
+  metric). An old `vec0_{ns}` table gives SQL errors. Fix: detect the old
+  schema on `open` and migrate it, or fail with a clear message.
+- **`TurboPufferVectorStore` is tested only against a mock.** The mock
+  follows the request and response types of the official Python client
+  (`turbopuffer` 2.14.0), because the documentation site was not reachable.
+  Two details are not proven against the live service: that `deleted_ids`
+  lists only ids that existed (`delete_async` reports `NotFound` from it), and
+  that `include_attributes: ["vector"]` returns the vector. Fix: an opt-in
+  test against a real namespace (API key from the environment).
+- **`TurboPufferVectorStore` does not retry HTTP 429.** `TurboPuffer` throttles
+  writes with 429 (backpressure). The store reports it as an error. Fix: retry
+  with backoff, with the attempts and delays on a config.
+- **`hybrid_search` gives the reranker no texts** (`src/fusion.rs`). It calls
+  `Reranker::rerank(query, fused, &[])`, so a reranker cannot read the
+  candidate documents. Fix: take a text lookup (id → text) as an argument, or
+  change `Reranker` to fetch the texts it needs.
 - **The SQL-backed stores scan a whole namespace per search**
   (`SqlVectorStore::search_async`): memory is bounded (`TopK`), but time is
   O(n·d) per query. Expected for the portable fallback; large namespaces
