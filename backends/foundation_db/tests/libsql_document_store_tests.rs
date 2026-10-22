@@ -1,55 +1,50 @@
-//! Libsql DocumentStore genericity check (F22b).
+//! `SqlDocumentStore` over libsql (F22b): the generic SQL document store runs
+//! on `LibsqlStore`, not just Turso.
 //!
-//! Proves the generic stores **instantiate for libsql** at compile time — i.e.
-//! `LibsqlStore` satisfies the `AsyncQueryStore` bound that `SqlDocumentStore<Q>`
-//! requires, and that the sync view `Blocking<SqlDocumentStore<LibsqlStore>>`
-//! is a `DocumentStore`. This is the real
-//! F22b claim for libsql ("the generic works for every SQL backend").
+//! The full behavioural suite (promoted columns, limits) is the Turso one
+//! (`document_store_tests.rs`, `async_sql_document_store_tests.rs`); every SQL
+//! backend shares the same statement builder, so this checks the libsql
+//! connection end to end: migrated schema, append, ordered scans, count,
+//! delete.
 //!
-//! Behavioural conformance (scru128 ordering, inclusive `scan_from`, promoted
-//! columns) is covered by the Turso suite (`async_sql_document_store_tests.rs`):
-//! all SQL backends share the same `sql` builder module, so the statements are
-//! identical. (libsql itself does run on valtron — `libsql_storage_tests.rs`
-//! drives a real local database — so a behavioural libsql document-store run
-//! could be added here too.)
-//!
-//! Gated behind the `libsql` feature:
-//! `cargo test -p foundation_db --no-default-features --features libsql`.
+//! Gated behind the `libsql` feature.
 #![cfg(feature = "libsql")]
 
-use foundation_db::{Blocking, DocumentStore, LibsqlStore, SqlDocumentStore};
+use foundation_core::valtron::valtron_test;
+use foundation_db::{AsyncDocumentStore, LibsqlStore, SqlDocumentStore};
+use futures_lite::StreamExt;
 
-/// Compile-time proof that the SQL document store instantiates over
-/// `LibsqlStore`, and its `Blocking` view is a sync `DocumentStore`. Never
-/// executed (no I/O / runtime), so it can't hang on libsql's tokio runtime —
-/// it only needs to type-check.
-#[allow(dead_code)]
-fn _generic_instantiates_for_libsql(
-    sync_backend: LibsqlStore,
-    async_backend: LibsqlStore,
-) -> (
-    Blocking<SqlDocumentStore<LibsqlStore>>,
-    SqlDocumentStore<LibsqlStore>,
-) {
-    fn assert_document_store<D: DocumentStore>(_: &D) {}
-    let sync_view = Blocking::new(SqlDocumentStore::new(sync_backend));
-    assert_document_store(&sync_view);
-    (sync_view, SqlDocumentStore::new(async_backend))
+async fn store() -> SqlDocumentStore<LibsqlStore> {
+    SqlDocumentStore::new(LibsqlStore::in_memory().await.unwrap())
 }
 
-#[test]
-fn libsql_generic_instantiation_compiles() {
-    // The assertion is the successful compilation of the function above; this test
-    // exists so the gated file has a runnable case under `--features libsql`.
-    let _ = _generic_instantiates_for_libsql as fn(_, _) -> _;
-}
+#[valtron_test]
+async fn append_scan_count_and_delete_over_libsql() {
+    let store = store().await;
 
-/// Compile-time proof that the libsql-backed stores implement `Default`, so they
-/// satisfy `S: Default` bounds such as `AgentSession::build()`'s.
-#[allow(dead_code)]
-fn _libsql_stores_implement_default() {
-    fn assert_default<T: Default>() {}
-    assert_default::<LibsqlStore>();
-    assert_default::<SqlDocumentStore<LibsqlStore>>();
-    assert_default::<Blocking<SqlDocumentStore<LibsqlStore>>>();
+    let mut ids = Vec::new();
+    for n in 0..3 {
+        ids.push(store.append_async("k", serde_json::json!({ "n": n })).await.unwrap().id);
+    }
+    assert_eq!(store.count_async("k").await.unwrap(), 3);
+
+    // Newest first.
+    let docs = store.scan_documents_async("k", 10).await.unwrap();
+    let got: Vec<&str> = docs.iter().map(|d| d.id.as_str()).collect();
+    assert_eq!(got, vec![ids[2].as_str(), ids[1].as_str(), ids[0].as_str()]);
+
+    // Inclusive `scan_from`, oldest first.
+    let from_second: Vec<serde_json::Value> = store
+        .scan_from_async::<serde_json::Value>("k", &ids[1], 0)
+        .await
+        .unwrap()
+        .map(Result::unwrap)
+        .collect()
+        .await;
+    assert_eq!(from_second, vec![serde_json::json!({"n": 1}), serde_json::json!({"n": 2})]);
+
+    store.delete_async("k", &ids[0]).await.unwrap();
+    assert_eq!(store.count_async("k").await.unwrap(), 2);
+    assert_eq!(store.delete_all_async("k").await.unwrap(), 2);
+    assert_eq!(store.count_async("k").await.unwrap(), 0);
 }

@@ -18,12 +18,15 @@
 //! `Arc<AtomicBool>` checked at drain time.
 
 use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use foundation_core::valtron::Stream;
 use foundation_db::traits::AsyncDocumentStore;
+use foundation_db::StorageResult;
 use serde::{Deserialize, Serialize};
 
 use crate::agentic::errors::UserId;
@@ -59,6 +62,50 @@ enum AgentStatus {
     /// Terminal: the sub-agent finished successfully. Carries the file location
     /// the sub-agent wrote its result to + a short summary.
     Done { location: String, summary: String },
+}
+
+// ---------------------------------------------------------------------------
+// SessionStoreFactory — fresh stores for each sub-agent
+// ---------------------------------------------------------------------------
+
+/// The future a [`SessionStoreFactory`] returns.
+pub type StoreFuture<D, M> = Pin<Box<dyn Future<Output = StorageResult<(D, M)>> + Send + 'static>>;
+
+/// Builds a fresh document store and memory store for one sub-agent.
+///
+/// Each `start` gets its own stores. Building them is async, so a store
+/// that opens a database (Turso, libsql) awaits its constructor instead of
+/// blocking in a `Default` impl.
+pub trait SessionStoreFactory<D, M>: Send + Sync + 'static {
+    /// Build the stores for one sub-agent session.
+    fn create(&self) -> StoreFuture<D, M>;
+}
+
+/// Factory for stores whose `Default` is cheap and doesn't block (the
+/// in-memory ones: `MemoryDocumentStore`, `KvMemoryStore<MemoryStorage>`).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct DefaultStores;
+
+impl<D, M> SessionStoreFactory<D, M> for DefaultStores
+where
+    D: Default + Send + 'static,
+    M: Default + Send + 'static,
+{
+    fn create(&self) -> StoreFuture<D, M> {
+        Box::pin(async { Ok((D::default(), M::default())) })
+    }
+}
+
+/// Any `Fn() -> impl Future<Output = StorageResult<(D, M)>>` is a factory,
+/// e.g. `|| async { Ok((open_doc_store().await?, open_memory().await?)) }`.
+impl<D, M, F, Fut> SessionStoreFactory<D, M> for F
+where
+    F: Fn() -> Fut + Send + Sync + 'static,
+    Fut: Future<Output = StorageResult<(D, M)>> + Send + 'static,
+{
+    fn create(&self) -> StoreFuture<D, M> {
+        Box::pin(self())
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -117,6 +164,8 @@ where
     user: UserId,
     /// Tools provisioned on every child sub-agent session (e.g. write, read).
     child_tools: Vec<Arc<dyn ToolImpl>>,
+    /// Builds each sub-agent's stores.
+    stores: Arc<dyn SessionStoreFactory<D, M>>,
 }
 
 impl<D, M> AgentTool<D, M>
@@ -124,7 +173,9 @@ where
     D: AsyncDocumentStore + Default + 'static,
     M: MemoryStore + Default + 'static,
 {
-    /// Create a new agent tool.
+    /// Create a new agent tool whose sub-agents get default-constructed stores
+    /// ([`DefaultStores`]). Use it for in-memory stores; for stores that open
+    /// a database use [`with_store_factory`](Self::with_store_factory).
     ///
     /// `child_tools` are registered on every sub-agent session so the child
     /// can produce output (at minimum: `write` and `read`).
@@ -138,6 +189,41 @@ where
         user: UserId,
         child_tools: Vec<Arc<dyn ToolImpl>>,
     ) -> Self {
+        Self::with_store_factory(
+            router,
+            depth,
+            max_depth,
+            default_model,
+            output_base,
+            user,
+            child_tools,
+            Arc::new(DefaultStores),
+        )
+    }
+}
+
+impl<D, M> AgentTool<D, M>
+where
+    D: AsyncDocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    /// Create a new agent tool whose sub-agents get their stores from
+    /// `stores`.
+    ///
+    /// `child_tools` are registered on every sub-agent session so the child
+    /// can produce output (at minimum: `write` and `read`).
+    #[must_use]
+    #[allow(clippy::too_many_arguments)]
+    pub fn with_store_factory(
+        router: ProviderRouter,
+        depth: u32,
+        max_depth: u32,
+        default_model: ModelId,
+        output_base: String,
+        user: UserId,
+        child_tools: Vec<Arc<dyn ToolImpl>>,
+        stores: Arc<dyn SessionStoreFactory<D, M>>,
+    ) -> Self {
         Self {
             router,
             runs: Arc::new(Mutex::new(HashMap::new())),
@@ -147,6 +233,7 @@ where
             output_base,
             user,
             child_tools,
+            stores,
         }
     }
 
@@ -209,10 +296,15 @@ where
         let delegate_id = Self::new_id();
         let output_location = format!("{}/{}.json", self.output_base, delegate_id);
 
+        let (doc_store, memory_store) = self.stores.create().await.map_err(|e| ToolError::Execution {
+            tool: TOOL.into(),
+            reason: format!("failed to create the sub-agent's stores: {e}"),
+        })?;
+
         let mut builder = AgentSession::builder(self.router.clone())
             .with_session_id(child_session_id.clone())
-            .with_doc_store(D::default())
-            .with_memory_store(M::default())
+            .with_doc_store(doc_store)
+            .with_memory_store(memory_store)
             // Provision the child session with the tools it needs to produce
             // output (at minimum: write, read — supplied at construction).
             .with_toolshed(
@@ -522,8 +614,8 @@ where
 #[async_trait]
 impl<D, M> ToolImpl for AgentTool<D, M>
 where
-    D: AsyncDocumentStore + Default + 'static,
-    M: MemoryStore + Default + 'static,
+    D: AsyncDocumentStore + 'static,
+    M: MemoryStore + 'static,
 {
     fn definition(&self) -> Tool {
         let start_opts = foundation_jsonschema::ValidationOptions::with_schema(
@@ -672,7 +764,37 @@ pub fn register_agent_tool<D, M>(
     D: AsyncDocumentStore + Default + 'static,
     M: MemoryStore + Default + 'static,
 {
-    let tool = AgentTool::<D, M>::new(
+    register_agent_tool_with_stores::<D, M>(
+        manager,
+        router,
+        depth,
+        max_depth,
+        default_model,
+        output_base,
+        user,
+        child_tools,
+        Arc::new(DefaultStores),
+    );
+}
+
+/// Register the `agent` tool, building each sub-agent's stores with
+/// `stores` (see [`SessionStoreFactory`]).
+#[allow(clippy::too_many_arguments)]
+pub fn register_agent_tool_with_stores<D, M>(
+    manager: &crate::agentic::tool_impl::ToolCallManager,
+    router: ProviderRouter,
+    depth: u32,
+    max_depth: u32,
+    default_model: ModelId,
+    output_base: &str,
+    user: UserId,
+    child_tools: Vec<Arc<dyn ToolImpl>>,
+    stores: Arc<dyn SessionStoreFactory<D, M>>,
+) where
+    D: AsyncDocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    let tool = AgentTool::<D, M>::with_store_factory(
         router,
         depth,
         max_depth,
@@ -680,6 +802,7 @@ pub fn register_agent_tool<D, M>(
         output_base.to_string(),
         user,
         child_tools,
+        stores,
     );
     manager.register(Arc::new(tool));
 }

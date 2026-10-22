@@ -25,7 +25,7 @@ use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 use crate::agentic::memory::MemoryHierarchy;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{ToolCallManager, ToolImpl};
-use crate::agentic::tools::agent::AgentTool;
+use crate::agentic::tools::agent::{AgentTool, SessionStoreFactory};
 use crate::agentic::tools::files::{BashTool, EditTool, ReadTool, WriteTool};
 use crate::agentic::tools::memory::MemoryTool;
 use crate::agentic::tools::search::SearchContextTool;
@@ -183,8 +183,9 @@ impl ToolPreset {
     ///
     /// `child_tools` are provisioned on every sub-agent session the tool spawns.
     /// At minimum this should include file tools so the sub-agent can produce
-    /// output. `D` / `M` are the sub-agents' store types (default-constructed
-    /// for each sub-agent).
+    /// output. `D` / `M` are the sub-agents' store types, default-constructed
+    /// for each sub-agent; for stores that open a database use
+    /// [`agent_with_stores`](Self::agent_with_stores).
     #[must_use]
     pub fn agent<D, M>(
         router: ProviderRouter,
@@ -207,6 +208,36 @@ impl ToolPreset {
             output_base.to_string(),
             user,
             child_tools,
+        ))])
+    }
+
+    /// Agent tool whose sub-agents get their stores from `stores` (see
+    /// [`SessionStoreFactory`]): the form for stores that open a database.
+    #[must_use]
+    #[allow(clippy::too_many_arguments)]
+    pub fn agent_with_stores<D, M>(
+        router: ProviderRouter,
+        depth: u32,
+        max_depth: u32,
+        default_model: ModelId,
+        output_base: &str,
+        user: UserId,
+        child_tools: Vec<Arc<dyn ToolImpl>>,
+        stores: Arc<dyn SessionStoreFactory<D, M>>,
+    ) -> Self
+    where
+        D: AsyncDocumentStore + 'static,
+        M: MemoryStore + 'static,
+    {
+        Self::from_tools(vec![Arc::new(AgentTool::<D, M>::with_store_factory(
+            router,
+            depth,
+            max_depth,
+            default_model,
+            output_base.to_string(),
+            user,
+            child_tools,
+            stores,
         ))])
     }
 

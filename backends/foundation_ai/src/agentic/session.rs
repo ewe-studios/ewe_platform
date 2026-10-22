@@ -172,20 +172,6 @@ impl AgentSession {
 }
 
 impl<D: AsyncDocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
-    /// The old two-argument builder: a session id plus default-constructed
-    /// stores of the turbofished types.
-    #[deprecated(
-        note = "use AgentSession::builder(router).with_session_id(id), plus with_doc_store / with_memory_store for other stores"
-    )]
-    #[must_use]
-    pub fn builder_for(session_id: SessionId, router: ProviderRouter) -> AgentSessionBuilder<D, M>
-    where
-        D: Default,
-        M: Default,
-    {
-        AgentSessionBuilder::new(router, D::default(), M::default()).with_session_id(session_id)
-    }
-
     /// Start a builder over explicit stores.
     #[deprecated(
         note = "use AgentSession::builder(router).with_session_id(id).with_doc_store(doc_store).with_memory_store(memory_store)"

@@ -146,6 +146,17 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
   the IdP `NoOpStore` fallback, `collect_stream` helpers that drop `Err`
   items, and `let _ =` on writes all turned up while converting callers.
   Converting is a good moment to make every error reach the caller.
+- Code nothing exercises has usually rotted. The libsql/D1 state stores had
+  never had a test: their `init` was a SQL syntax error and `find_by_status`
+  could never match. R2's listing read one page and ignored filters. Adding
+  the first behavioural test of a backend is worth it even when the task is
+  "only make it async".
+- An in-process mock HTTP server (`TcpListener` on a thread) is enough to
+  test a REST-backed store, but it must answer `Expect: 100-continue` (the
+  netio client sends it on bodies and otherwise waits 3s per request).
+- To commit one task while the next one's edits are already in the tree,
+  stage an exact file version without touching the worktree:
+  `git hash-object -w <file>` then `git update-index --cacheinfo`.
 
 ## Pool teardown in tests
 

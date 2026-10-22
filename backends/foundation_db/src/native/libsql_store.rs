@@ -21,7 +21,6 @@ use std::sync::Arc;
 
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::BlockingFutureExt;
 use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -176,35 +175,22 @@ pub struct LibsqlStore {
     mode: LibsqlMode,
 }
 
-/// An in-memory KV-mode database with the full schema migrated (`kv_store`,
-/// `documents`, …): nothing is persisted, so it suits tests and throwaway
-/// sessions. Use [`LibsqlStore::new_kv`] with a file path for a store that
-/// survives restarts.
-///
-/// # Panics
-///
-/// If the in-memory database can't be opened or migrated, which only happens
-/// when the executor isn't available or `SQLite` itself fails.
-impl Default for LibsqlStore {
-    // `Default` is synchronous, so this is a sync boundary: it waits for the
-    // async constructor and migrations with valtron's `.block()`.
-    fn default() -> Self {
-        async {
-            let store = Self::new_kv(":memory:", None)
-                .await
-                .expect("LibsqlStore::default: failed to open an in-memory database");
-            MigrationRunner::new(MIGRATIONS)
-                .run_async(&store)
-                .await
-                .expect("LibsqlStore::default: failed to migrate the in-memory database");
-            store
-        }
-        .block()
-    }
-}
-
 impl LibsqlStore {
     // ========== KV-mode constructors ==========
+
+    /// An in-memory KV/query store with the core migrations applied
+    /// (`kv_store`, `documents`, …): nothing is persisted, so it suits tests
+    /// and throwaway sessions. Use [`LibsqlStore::new_kv`] with a file path
+    /// for a store that survives restarts.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database can't be opened or migrated.
+    pub async fn in_memory() -> StorageResult<Self> {
+        let store = Self::new_kv(":memory:", None).await?;
+        MigrationRunner::new(MIGRATIONS).run_async(&store).await?;
+        Ok(store)
+    }
 
     /// KV/query/rate-limit/blob store with optional encryption.
     ///

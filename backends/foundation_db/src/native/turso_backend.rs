@@ -13,7 +13,6 @@ use crate::core::storage_provider::{
 };
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::BlockingFutureExt;
 use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
@@ -29,35 +28,21 @@ pub struct TursoStorage {
     encryption_key: Option<EncryptionKey>,
 }
 
-/// An in-memory database with the full schema migrated (`kv_store`, `documents`,
-/// …): nothing is persisted, so it suits tests and throwaway sessions. Use
-/// [`TursoStorage::new`] with a file path for a store that survives restarts.
-///
-/// `Default` is a synchronous trait, so this is a sync boundary: it waits for
-/// [`TursoStorage::new`] and [`TursoStorage::init_schema`] on the valtron
-/// executor with `.block()`. In async code, call those two directly instead.
-///
-/// # Panics
-///
-/// If the in-memory database can't be opened or migrated, which only happens
-/// when the executor isn't available or `SQLite` itself fails.
-impl Default for TursoStorage {
-    fn default() -> Self {
-        async {
-            let storage = Self::new(":memory:")
-                .await
-                .expect("TursoStorage::default: failed to open an in-memory database");
-            storage
-                .init_schema()
-                .await
-                .expect("TursoStorage::default: failed to migrate the in-memory database");
-            storage
-        }
-        .block()
-    }
-}
-
 impl TursoStorage {
+    /// An in-memory database with the full schema migrated (`kv_store`,
+    /// `documents`, …): nothing is persisted, so it suits tests and throwaway
+    /// sessions. Use [`TursoStorage::new`] with a file path for a store that
+    /// survives restarts.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database can't be opened or migrated.
+    pub async fn in_memory() -> StorageResult<Self> {
+        let storage = Self::new(":memory:").await?;
+        storage.init_schema().await?;
+        Ok(storage)
+    }
+
     /// Create a new Turso storage connection without encryption.
     ///
     /// # Errors

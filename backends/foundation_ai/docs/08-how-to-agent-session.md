@@ -112,8 +112,10 @@ message log, context assembly and the memory hierarchy see the same data.
 access provider must allow the session and the primary model. The user's
 `token_budget` becomes the ledger's budget.
 
-The old two-argument `AgentSession::<D, M>::builder_for(session_id, router)`
-(default-constructed stores) and `builder_with_stores(..)` remain, deprecated.
+`builder_with_stores(..)` remains, deprecated. (The old two-argument
+`AgentSession::<D, M>::builder_for(session_id, router)` is gone: it relied on
+`Default` for SQL stores, which had to block; open them with their async
+constructors, e.g. `TursoStorage::in_memory().await?`, and pass them in.)
 
 ## 3. Tools
 

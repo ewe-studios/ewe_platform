@@ -570,6 +570,16 @@ impl<D, M, F, Fut> SessionStoreFactory<D, M> for F where F: Fn() -> Fut + Send +
   **deleted** (their docs point to `TursoStorage::new(":memory:")` +
   `init_schema()`, and `LibsqlStore::new_kv(":memory:", None)` + migrations).
 
+**As built (T9):** `SessionStoreFactory`, `StoreFuture`, `DefaultStores` live
+in `agentic::tools::agent`. Alongside `AgentTool::with_store_factory` there are
+`register_agent_tool_with_stores` and `ToolPreset::agent_with_stores`; the
+`Default`-bound `new` / `register_agent_tool` / `ToolPreset::agent` delegate to
+them with `DefaultStores`. `start` builds a sub-agent's stores before its
+session and fails with `ToolError::Execution` if the factory fails. The two
+`Default` impls are replaced by async `TursoStorage::in_memory()` and
+`LibsqlStore::in_memory()` (open `:memory:` and migrate), which is what a
+factory closure calls.
+
 ### 3.10 foundation_db — what remains of `Blocking`
 
 Once §3.1–§3.9 land, nothing in the workspace uses `Blocking<S>`:

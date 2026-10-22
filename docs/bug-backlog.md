@@ -268,8 +268,8 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **The sync storage traits and `Blocking` still exist.** Every caller now
-  uses the `Async*` traits or `StateStore` (F04 T1–T8); what remains is the
-  `Default` impls below (T9) and deleting the sync traits (T10).
+  uses the `Async*` traits or `StateStore` (F04 T1–T9); what remains is
+  deleting the sync traits (T10).
 - **`StateStore::set` ignores its `resource_id`.** Every backend (file,
   libsql, D1, R2) keys the write by `state.id`, so `set("a", &state_b)` writes
   `b` (`src/core/state/*.rs`, `src/native/{libsql_store,d1_kvstore,r2_blobstore}.rs`).
@@ -292,14 +292,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `CREATE TABLE`, so `init` always failed; fixed in F04 T8 and covered for
   libsql by `tests/libsql_state_store_tests.rs`, but the D1 path is only
   exercised by the wrangler integration tests (`CF_INTEGRATION_TEST=1`).
-- **`Default` for `TursoStorage` / `LibsqlStore` blocks.** `Default` is sync,
-  so it waits on the async constructor with `.block()`, and panics without a
-  valtron pool. It exists for `S: Default` callers: the deprecated
-  `AgentSession::builder_for` and the `agent` tool, which builds each
-  sub-agent's stores with `D::default()` / `M::default()`
-  (`foundation_ai/src/agentic/tools/agent.rs`). Fix: give the agent tool a
-  store factory (an async constructor) instead of the `Default` bound, remove
-  `builder_for`, then drop these `Default` impls.
 - **Auth tables mix timestamp units.** The `created_at` defaults in the core
   migrations are milliseconds (`strftime('%s','now') * 1000`), while
   `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
