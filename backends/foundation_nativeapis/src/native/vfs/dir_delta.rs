@@ -1,18 +1,20 @@
+//! `DirectoryDelta`: a delta store in a host directory (the "shadow"
+//! directory), behind the async VFS traits. A whiteout is a `.wh.<name>`
+//! sentinel file next to the hidden entry.
+
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::sync::RwLock;
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
+use async_trait::async_trait;
 use foundation_errstacks::ErrorTrace;
 
+use crate::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsDirectory, AsyncVfsFileSystem};
 use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::path_utils::normalize_vfs_path as shared_normalize;
-use crate::shared::vfs::traits::{DeltaStore, VfsDirectory, VfsFileSystem};
 use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
-#[allow(unused_imports)]
-use foundation_nostd::macros::scaffold;
-use foundation_macros::scaffold_impl;
 
-use super::native_fs::NativeFs;
+use super::native_fs::{NativeFile, NativeFs, SeekableNativeFile};
 
 const WHITEOUT_PREFIX: &str = ".wh.";
 
@@ -39,6 +41,20 @@ impl DirectoryDelta {
     pub fn shadow_root(&self) -> &Path {
         self.fs.root()
     }
+
+    fn read_whiteouts(&self) -> VfsResult<RwLockReadGuard<'_, HashMap<String, u64>>> {
+        self.whiteouts.read().map_err(|_| poisoned())
+    }
+
+    fn write_whiteouts(&self) -> VfsResult<RwLockWriteGuard<'_, HashMap<String, u64>>> {
+        self.whiteouts.write().map_err(|_| poisoned())
+    }
+}
+
+fn poisoned() -> ErrorTrace<VfsError> {
+    ErrorTrace::new(VfsError::Backend {
+        message: "whiteout table lock poisoned".into(),
+    })
 }
 
 fn scan_whiteouts(root: &Path) -> HashMap<String, u64> {
@@ -102,9 +118,10 @@ fn whiteout_sentinel_path(shadow_root: &Path, vfs_path: &str) -> VfsResult<PathB
     Ok(path)
 }
 
-impl DeltaStore for DirectoryDelta {
-    fn add_whiteout(&self, path: &str, version: u64) -> VfsResult<()> {
-        let sentinel = whiteout_sentinel_path(self.fs.root(), path)?;
+#[async_trait]
+impl AsyncDeltaStore for DirectoryDelta {
+    async fn add_whiteout_async(&self, path: String, version: u64) -> VfsResult<()> {
+        let sentinel = whiteout_sentinel_path(self.fs.root(), &path)?;
         if let Some(parent) = sentinel.parent() {
             if !parent.exists() {
                 std::fs::create_dir_all(parent)
@@ -113,14 +130,14 @@ impl DeltaStore for DirectoryDelta {
         }
         std::fs::write(&sentinel, version.to_string())
             .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
-        let mut whiteouts = self.whiteouts.write().unwrap();
-        whiteouts.insert(normalize_vfs_path(path)?, version);
+        let mut whiteouts = self.write_whiteouts()?;
+        whiteouts.insert(normalize_vfs_path(&path)?, version);
         Ok(())
     }
 
-    fn is_whiteout(&self, path: &str) -> VfsResult<Option<u64>> {
-        let whiteouts = self.whiteouts.read().unwrap();
-        let normalized = normalize_vfs_path(path)?;
+    async fn is_whiteout_async(&self, path: String) -> VfsResult<Option<u64>> {
+        let whiteouts = self.read_whiteouts()?;
+        let normalized = normalize_vfs_path(&path)?;
         let mut highest: Option<u64> = None;
 
         if let Some(&ver) = whiteouts.get(&normalized) {
@@ -143,20 +160,20 @@ impl DeltaStore for DirectoryDelta {
         Ok(highest)
     }
 
-    fn remove_whiteout(&self, path: &str) -> VfsResult<()> {
-        let sentinel = whiteout_sentinel_path(self.fs.root(), path)?;
+    async fn remove_whiteout_async(&self, path: String) -> VfsResult<()> {
+        let sentinel = whiteout_sentinel_path(self.fs.root(), &path)?;
         if sentinel.exists() {
             std::fs::remove_file(&sentinel)
                 .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
         }
-        let mut whiteouts = self.whiteouts.write().unwrap();
-        whiteouts.remove(&normalize_vfs_path(path)?);
+        let mut whiteouts = self.write_whiteouts()?;
+        whiteouts.remove(&normalize_vfs_path(&path)?);
         Ok(())
     }
 
-    fn list_whiteouts(&self, dir: &str) -> VfsResult<Vec<(String, u64)>> {
-        let whiteouts = self.whiteouts.read().unwrap();
-        let normalized_dir = normalize_vfs_path(dir)?;
+    async fn list_whiteouts_async(&self, dir: String) -> VfsResult<Vec<(String, u64)>> {
+        let whiteouts = self.read_whiteouts()?;
+        let normalized_dir = normalize_vfs_path(&dir)?;
         let prefix = if normalized_dir == "/" {
             "/".to_string()
         } else {
@@ -171,12 +188,12 @@ impl DeltaStore for DirectoryDelta {
         Ok(result)
     }
 
-    fn flush(&self) -> VfsResult<()> {
+    async fn flush_async(&self) -> VfsResult<()> {
         Ok(())
     }
 
-    fn reset(&self) -> VfsResult<()> {
-        let mut whiteouts = self.whiteouts.write().unwrap();
+    async fn reset_async(&self) -> VfsResult<()> {
+        let mut whiteouts = self.write_whiteouts()?;
         whiteouts.clear();
         drop(whiteouts);
 
@@ -198,87 +215,171 @@ impl DeltaStore for DirectoryDelta {
     }
 }
 
-#[scaffold_impl(via = "self.fs")]
-impl VfsFileSystem for DirectoryDelta {
-    type File = <NativeFs as VfsFileSystem>::File;
-    type SeekableFile = <NativeFs as VfsFileSystem>::SeekableFile;
+type FilteredDirBox =
+    Box<dyn AsyncVfsDirectory<File = NativeFile, SeekableFile = SeekableNativeFile>>;
+
+#[async_trait]
+impl AsyncVfsFileSystem for DirectoryDelta {
+    type File = NativeFile;
+    type SeekableFile = SeekableNativeFile;
     type Directory = FilteredDirectory;
 
-    // Override — wraps inner directory to filter out .wh.* sentinel files
-    fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
-        let inner = self.fs.open_directory(path)?;
-        Ok(FilteredDirectory { inner })
+    fn capabilities(&self) -> VfsCapabilities {
+        self.fs.capabilities()
     }
 
-    // Delegated to self.fs
-    fn capabilities(&self) -> VfsCapabilities { scaffold!() }
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> { scaffold!() }
-    fn inode(&self, path: &str) -> VfsResult<u64> { scaffold!() }
-    fn path_by_inode(&self, ino: u64) -> VfsResult<String> { scaffold!() }
-    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> { scaffold!() }
-    fn exists(&self, path: &str) -> VfsResult<bool> { scaffold!() }
-    fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> { scaffold!() }
-    fn symlink(&self, target: &str, link: &str) -> VfsResult<()> { scaffold!() }
-    fn readlink(&self, path: &str) -> VfsResult<String> { scaffold!() }
-    fn rename(&self, from: &str, to: &str) -> VfsResult<()> { scaffold!() }
-    fn remove(&self, path: &str) -> VfsResult<()> { scaffold!() }
-    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> { scaffold!() }
-    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> { scaffold!() }
-    fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> { scaffold!() }
-    fn mkdir(&self, path: &str) -> VfsResult<()> { scaffold!() }
-    fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> { scaffold!() }
-    fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> { scaffold!() }
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        self.fs.stat_async(path).await
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        self.fs.exists_async(path).await
+    }
+
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
+        self.fs.chmod_async(path, mode).await
+    }
+
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> {
+        self.fs.symlink_async(target, link).await
+    }
+
+    async fn readlink_async(&self, path: String) -> VfsResult<String> {
+        self.fs.readlink_async(path).await
+    }
+
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
+        self.fs.rename_async(from, to).await
+    }
+
+    async fn remove_async(&self, path: String) -> VfsResult<()> {
+        self.fs.remove_async(path).await
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<NativeFile> {
+        self.fs.open_async(path, mode).await
+    }
+
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<SeekableNativeFile> {
+        self.fs.open_seekable_async(path, mode).await
+    }
+
+    /// Wraps the directory so that the `.wh.*` sentinel files stay hidden.
+    async fn open_directory_async(&self, path: String) -> VfsResult<FilteredDirectory> {
+        let inner = self.fs.open_directory_async(path).await?;
+        Ok(FilteredDirectory {
+            inner: Box::new(inner),
+        })
+    }
+
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<NativeFile> {
+        self.fs.create_async(path, mode).await
+    }
+
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> {
+        self.fs.mkdir_async(path).await
+    }
+
+    async fn inode_async(&self, path: String) -> VfsResult<u64> {
+        self.fs.inode_async(path).await
+    }
+
+    async fn path_by_inode_async(&self, ino: u64) -> VfsResult<String> {
+        self.fs.path_by_inode_async(ino).await
+    }
+
+    async fn stat_by_inode_async(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        self.fs.stat_by_inode_async(ino).await
+    }
+
+    async fn read_file_async(&self, path: String) -> VfsResult<Vec<u8>> {
+        self.fs.read_file_async(path).await
+    }
+
+    async fn write_file_async(&self, path: String, data: Vec<u8>) -> VfsResult<()> {
+        self.fs.write_file_async(path, data).await
+    }
 }
 
-// ── FilteredDirectory — hides .wh.* sentinel files from listings ──
+// ── FilteredDirectory — hides .wh.* sentinel files ──
 
+/// A shadow directory with the `.wh.*` sentinel files hidden. The
+/// subdirectories it opens or creates are filtered too.
 pub struct FilteredDirectory {
-    inner: <NativeFs as VfsFileSystem>::Directory,
+    inner: FilteredDirBox,
 }
 
-#[scaffold_impl(via = "self.inner")]
-impl VfsDirectory for FilteredDirectory {
-    type File = <NativeFs as VfsFileSystem>::File;
-    type SeekableFile = <NativeFs as VfsFileSystem>::SeekableFile;
+#[async_trait]
+impl AsyncVfsDirectory for FilteredDirectory {
+    type File = NativeFile;
+    type SeekableFile = SeekableNativeFile;
 
-    // Override — filter out .wh.* sentinel files from listings
-    fn list(&self) -> VfsResult<Vec<VfsDirEntry>> {
-        let entries = self.inner.list()?;
+    fn path(&self) -> String {
+        self.inner.path()
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        self.inner.metadata_async().await
+    }
+
+    async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
+        let entries = self.inner.list_async().await?;
         Ok(entries
             .into_iter()
             .filter(|e| !e.name.starts_with(WHITEOUT_PREFIX))
             .collect())
     }
 
-    // Override — block access to whiteout sentinel files
-    fn get_entry(&self, name: &str) -> VfsResult<Option<VfsDirEntry>> {
+    async fn get_entry_async(&self, name: String) -> VfsResult<Option<VfsDirEntry>> {
         if name.starts_with(WHITEOUT_PREFIX) {
             return Ok(None);
         }
-        self.inner.get_entry(name)
+        self.inner.get_entry_async(name).await
     }
 
-    // Delegated to self.inner
-    fn path(&self) -> &str { scaffold!() }
-    fn metadata(&self) -> VfsResult<VfsMetadata> { scaffold!() }
-    fn create_file(&self, name: &str, mode: u32) -> VfsResult<Self::File> { scaffold!() }
-    fn create_dir(
-        &self,
-        name: &str,
-    ) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
-    { scaffold!() }
-    fn remove_entry(&self, name: &str) -> VfsResult<()> { scaffold!() }
-    fn rename_entry(&self, old_name: &str, new_name: &str) -> VfsResult<()> { scaffold!() }
-    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> { scaffold!() }
-    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> { scaffold!() }
-    fn open_directory(
-        &self,
-        path: &str,
-    ) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
-    { scaffold!() }
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> { scaffold!() }
-    fn exists(&self, path: &str) -> VfsResult<bool> { scaffold!() }
-}
+    async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<NativeFile> {
+        self.inner.create_file_async(name, mode).await
+    }
 
-unsafe impl Send for FilteredDirectory {}
-unsafe impl Sync for FilteredDirectory {}
+    async fn create_dir_async(&self, name: String) -> VfsResult<FilteredDirBox> {
+        let inner = self.inner.create_dir_async(name).await?;
+        Ok(Box::new(FilteredDirectory { inner }))
+    }
+
+    async fn remove_entry_async(&self, name: String) -> VfsResult<()> {
+        self.inner.remove_entry_async(name).await
+    }
+
+    async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
+        self.inner.rename_entry_async(old_name, new_name).await
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<NativeFile> {
+        self.inner.open_async(path, mode).await
+    }
+
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<SeekableNativeFile> {
+        self.inner.open_seekable_async(path, mode).await
+    }
+
+    async fn open_directory_async(&self, path: String) -> VfsResult<FilteredDirBox> {
+        let inner = self.inner.open_directory_async(path).await?;
+        Ok(Box::new(FilteredDirectory { inner }))
+    }
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        self.inner.stat_async(path).await
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        self.inner.exists_async(path).await
+    }
+}

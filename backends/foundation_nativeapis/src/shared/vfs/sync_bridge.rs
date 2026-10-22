@@ -19,7 +19,7 @@ use std::sync::Arc;
 use super::async_traits::{
     AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
 };
-use super::error::{VfsError, VfsResult};
+use super::error::VfsResult;
 use super::exec_async::exec_async;
 use super::traits::{DeltaStore, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
 use super::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
@@ -516,20 +516,19 @@ impl<A: AsyncVfsFileSystem + 'static> VfsFileSystem for SyncFs<A> {
     }
 
     fn inode(&self, path: &str) -> VfsResult<u64> {
-        let meta = self.stat(path)?;
-        Ok(meta.inode)
+        let inner = self.inner.clone();
+        let path = path.to_string();
+        exec_async(async move { inner.inode_async(path).await })
     }
 
-    fn path_by_inode(&self, _ino: u64) -> VfsResult<String> {
-        Err(foundation_errstacks::ErrorTrace::new(VfsError::Unsupported {
-            operation: "path_by_inode on SyncFs".to_string(),
-        }))
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
+        let inner = self.inner.clone();
+        exec_async(async move { inner.path_by_inode_async(ino).await })
     }
 
-    fn stat_by_inode(&self, _ino: u64) -> VfsResult<VfsMetadata> {
-        Err(foundation_errstacks::ErrorTrace::new(VfsError::Unsupported {
-            operation: "stat_by_inode on SyncFs".to_string(),
-        }))
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        let inner = self.inner.clone();
+        exec_async(async move { inner.stat_by_inode_async(ino).await })
     }
 
     fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
@@ -594,6 +593,38 @@ impl<A: AsyncVfsFileSystem + 'static> VfsFileSystem for SyncFs<A> {
         let inner = self.inner.clone();
         let path = path.to_string();
         exec_async(async move { inner.mkdir_async(path).await })
+    }
+
+    fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
+        let inner = self.inner.clone();
+        let path = path.to_string();
+        exec_async(async move { inner.read_file_async(path).await })
+    }
+
+    fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
+        let inner = self.inner.clone();
+        let path = path.to_string();
+        let data = data.to_vec();
+        exec_async(async move { inner.write_file_async(path, data).await })
+    }
+
+    fn copy(&self, from: &str, to: &str) -> VfsResult<()> {
+        let inner = self.inner.clone();
+        let from = from.to_string();
+        let to = to.to_string();
+        exec_async(async move { inner.copy_async(from, to).await })
+    }
+
+    fn remove_all(&self, path: &str) -> VfsResult<()> {
+        let inner = self.inner.clone();
+        let path = path.to_string();
+        exec_async(async move { inner.remove_all_async(path).await })
+    }
+
+    fn mkdir_all(&self, path: &str) -> VfsResult<()> {
+        let inner = self.inner.clone();
+        let path = path.to_string();
+        exec_async(async move { inner.mkdir_all_async(path).await })
     }
 }
 

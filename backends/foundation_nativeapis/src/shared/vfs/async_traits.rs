@@ -149,6 +149,31 @@ pub trait AsyncVfsFileSystem: Send + Sync {
     async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File>;
     async fn mkdir_async(&self, path: String) -> VfsResult<()>;
 
+    /// Returns the inode number of `path`. The default reads it from `stat_async`.
+    async fn inode_async(&self, path: String) -> VfsResult<u64> {
+        Ok(self.stat_async(path).await?.inode)
+    }
+
+    /// Returns the path of inode `ino`.
+    ///
+    /// The default returns [`VfsError::Unsupported`]: a store must keep a
+    /// reverse index to answer this.
+    async fn path_by_inode_async(&self, ino: u64) -> VfsResult<String> {
+        Err(foundation_errstacks::ErrorTrace::new(VfsError::Unsupported {
+            operation: format!("path_by_inode({ino})"),
+        }))
+    }
+
+    /// Returns the metadata of inode `ino`.
+    ///
+    /// The default returns [`VfsError::Unsupported`]: a store must keep a
+    /// reverse index to answer this.
+    async fn stat_by_inode_async(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        Err(foundation_errstacks::ErrorTrace::new(VfsError::Unsupported {
+            operation: format!("stat_by_inode({ino})"),
+        }))
+    }
+
     async fn read_file_async(&self, path: String) -> VfsResult<Vec<u8>> {
         let file = self.open_async(path, OpenMode::Read).await?;
         let size = file.size_async().await?;
